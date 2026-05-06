@@ -21,7 +21,6 @@ func playHomeShowsResumeWhenActiveMatchExists() async throws {
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
         matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        activeMatchStore: ActiveMatchStore(),
         logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
     )
 
@@ -37,11 +36,24 @@ func playHomeShowsResumeWhenActiveMatchExists() async throws {
 
 @MainActor
 @Test(.tags(.integration, .navigation, .smoke, .regression))
+func playHomeShowsNoActiveMatchWhenRosterExistsButNoActiveMatch() async {
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        matchRepository: FakeMatchRepository(activeMatch: nil),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    #expect(vm.state == .readyNoActiveMatch)
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .smoke, .regression))
 func playHomeShowsNoPlayersStateWhenRosterEmpty() async {
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: []),
         matchRepository: FakeMatchRepository(activeMatch: nil),
-        activeMatchStore: ActiveMatchStore(),
         logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
     )
 

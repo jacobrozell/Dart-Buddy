@@ -71,13 +71,14 @@ Scope:
 Planned:
 - [x] Route setup-created sessions through `MatchRepository` create + initial snapshot persistence.
 - [x] Persist turn events and periodic snapshots on submit/undo/complete.
-- [-] Make PlayHome and History read from repository-backed state as source of truth.
+- [x] Make PlayHome and History read from repository-backed state as source of truth.
 - [x] Add destructive-exit confirmation for active-match routes.
 - [x] Wire Match Summary CTAs to actionable routes.
 - [x] Replace migration recovery placeholders with concrete retry/export/reset behavior.
 
 Completed in this pass:
 - Match view-model rehydration from persisted snapshot + tail events when in-memory state is missing.
+- PlayHome active-match resolution now uses repository-backed state as the source of truth.
 
 ### Iteration 3 (queued)
 Scope:

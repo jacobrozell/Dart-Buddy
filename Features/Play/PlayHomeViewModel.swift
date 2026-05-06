@@ -13,18 +13,15 @@ final class PlayHomeViewModel: ObservableObject {
     @Published private(set) var state: State = .loading
     private let playerRepository: any PlayerRepository
     private let matchRepository: any MatchRepository
-    private let activeMatchStore: ActiveMatchStore
     private let logger: any AppLogger
 
     init(
         playerRepository: any PlayerRepository,
         matchRepository: any MatchRepository,
-        activeMatchStore: ActiveMatchStore,
         logger: any AppLogger
     ) {
         self.playerRepository = playerRepository
         self.matchRepository = matchRepository
-        self.activeMatchStore = activeMatchStore
         self.logger = logger
     }
 
@@ -37,9 +34,7 @@ final class PlayHomeViewModel: ObservableObject {
                 return
             }
 
-            let active = PerformanceMonitor.measure(.resumeMatch, logger: logger) {
-                activeMatchStore.activeMatchSummary()
-            } ?? (try await matchRepository.fetchActiveMatch())
+            let active = try await matchRepository.fetchActiveMatch()
             if let active {
                 state = .readyWithActiveMatch(active)
             } else {

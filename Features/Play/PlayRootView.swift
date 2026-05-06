@@ -12,7 +12,6 @@ struct PlayRootView: View {
             wrappedValue: PlayHomeViewModel(
                 playerRepository: dependencies.playerRepository,
                 matchRepository: dependencies.matchRepository,
-                activeMatchStore: dependencies.activeMatchStore,
                 logger: dependencies.logger
             )
         )
