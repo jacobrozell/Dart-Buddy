@@ -3,6 +3,7 @@ import SwiftUI
 struct PlayRootView: View {
     let dependencies: AppDependencies
     @State private var path: [PlayRoute] = []
+    @State private var hasAppliedSnapshotRoute = false
     @StateObject private var viewModel: PlayHomeViewModel
     @StateObject private var setupViewModel: MatchSetupViewModel
 
@@ -79,25 +80,47 @@ struct PlayRootView: View {
                         )
                     case let .historyDetail(matchId):
                         MatchHistoryDetailScreen(
-                            matchId: matchId,
                             viewModel: HistoryDetailViewModel(
                                 matchId: matchId,
                                 matchRepository: dependencies.matchRepository,
                                 statsRepository: dependencies.statsRepository
-                            )
+                            ),
+                            matchId: matchId
                         )
                     case .quickAddPlayer:
                         QuickAddPlayerScreen(repository: dependencies.playerRepository) {
                             await setupViewModel.onAppear()
-                            path.removeLast()
                         }
                     }
                 }
                 .task {
                     await viewModel.onAppear()
+                    if let snapshotRoute = initialSnapshotRoute(),
+                       hasAppliedSnapshotRoute == false {
+                        hasAppliedSnapshotRoute = true
+                        path = [snapshotRoute]
+                    }
                 }
         }
     }
+
+    private func initialSnapshotRoute() -> PlayRoute? {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("-snapshot_match_setup") {
+            return .setup
+        }
+        if arguments.contains("-snapshot_match_x01") {
+            return .x01Match(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID())
+        }
+        if arguments.contains("-snapshot_match_cricket") {
+            return .cricketMatch(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000002") ?? UUID())
+        }
+        return nil
+    }
+}
+
+private func localizedText(_ key: String) -> Text {
+    Text(LocalizedStringKey(key))
 }
 
 private struct QuickAddPlayerScreen: View {
@@ -118,7 +141,7 @@ private struct QuickAddPlayerScreen: View {
             }
             if let errorMessageKey {
                 Section {
-                    Text(errorMessageKey)
+                    localizedText(errorMessageKey)
                         .foregroundStyle(DS.ColorRole.danger)
                 }
             }
@@ -157,20 +180,26 @@ private struct QuickAddPlayerScreen: View {
 }
 
 private struct PlayHomeView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     let state: PlayHomeViewModel.State
     let onTapStartNewMatch: () -> Void
     let onTapResumeMatch: (MatchSummary) -> Void
 
+    private var contentMaxWidth: CGFloat {
+        horizontalSizeClass == .regular ? 700 : .infinity
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
             switch state {
             case .loading:
                 ProgressView(L10n.loading)
             case .readyNoActiveMatch:
                 Text(L10n.noActiveMatch)
                     .foregroundStyle(DS.ColorRole.textSecondary)
+                startButton
             case let .readyWithActiveMatch(match):
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
                     Text(L10n.resumeActiveMatch)
                         .font(.headline)
                     Text(L10n.format("play.home.modeFormat", match.type.rawValue.uppercased()))
@@ -184,31 +213,69 @@ private struct PlayHomeView: View {
                 }
                 .padding(DS.Spacing.s4)
                 .background(.thinMaterial, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+                startButton
             case .emptyNoPlayers:
-                Text(L10n.noPlayersGuidance)
-                    .foregroundStyle(DS.ColorRole.textSecondary)
+                Spacer(minLength: 0)
+                VStack(spacing: DS.Spacing.s2) {
+                    Image(systemName: "person.2")
+                        .font(.system(size: 36, weight: .semibold))
+                        .foregroundStyle(DS.ColorRole.textSecondary)
+                    Text(L10n.noPlayersGuidance)
+                        .foregroundStyle(DS.ColorRole.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(DS.Spacing.s5)
+                .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                Spacer(minLength: 0)
             case let .error(messageKey):
-                Text(messageKey)
+                localizedText(messageKey)
                     .foregroundStyle(DS.ColorRole.danger)
+                startButton
             }
-
-            Button {
-                onTapStartNewMatch()
-            } label: {
-                Text(L10n.startNewMatch)
-            }
-            .buttonStyle(.borderedProminent)
-            .accessibilityHint("play.home.startNewMatch.hint")
         }
-        .padding(DS.Spacing.s4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, DS.Spacing.s4)
+        .frame(maxWidth: contentMaxWidth, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.top, DS.Spacing.s4)
+        .safeAreaInset(edge: .bottom) {
+            if case .emptyNoPlayers = state {
+                startButton
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, DS.Spacing.s4)
+                .padding(.top, DS.Spacing.s2)
+                .padding(.bottom, DS.Spacing.s3)
+            }
+        }
+    }
+
+    private var startButton: some View {
+        Button {
+            onTapStartNewMatch()
+        } label: {
+            Text(L10n.startNewMatch)
+        }
+        .buttonStyle(.borderedProminent)
+        .accessibilityHint("play.home.startNewMatch.hint")
     }
 }
 
 private struct MatchSetupView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject var viewModel: MatchSetupViewModel
     let onStartRoute: (PlayRoute) -> Void
     let onQuickAddPlayer: () -> Void
     @State private var startTask: Task<Void, Never>?
+
+    private var contentMaxWidth: CGFloat {
+        horizontalSizeClass == .regular ? 760 : .infinity
+    }
+
+    private var usesInlineStartButton: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
 
     var body: some View {
         ScrollView {
@@ -219,29 +286,33 @@ private struct MatchSetupView: View {
                     x01Section
                 }
                 validationSection
+                if usesInlineStartButton {
+                    startMatchButton
+                        .padding(.top, DS.Spacing.s2)
+                }
             }
-            .padding()
+            .padding(DS.Spacing.s4)
+            .padding(.bottom, usesInlineStartButton ? DS.Spacing.s4 : 88)
+            .frame(maxWidth: contentMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
+        .background(ThemeTokens.appBackground)
         .navigationTitle(L10n.newMatchTitle)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.onAppear()
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
-                startTask?.cancel()
-                startTask = Task {
-                    if let route = await viewModel.startMatchRoute() {
-                        onStartRoute(route)
-                    }
+            if !usesInlineStartButton {
+                VStack(spacing: 0) {
+                    Divider()
+                    startMatchButton
+                        .padding(.top, DS.Spacing.s3)
+                        .padding(.bottom, DS.Spacing.s2)
                 }
-            } label: {
-                Text(viewModel.isSubmitting ? "play.setup.starting" : "play.setup.startMatch")
+                .background(DS.ColorRole.backgroundPrimary.opacity(0.92))
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(!viewModel.canStart)
-            .frame(minHeight: 56)
-            .padding(DS.Spacing.s4)
-            .background(.ultraThinMaterial)
         }
         .onDisappear {
             startTask?.cancel()
@@ -251,15 +322,31 @@ private struct MatchSetupView: View {
     private var modeSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.modeSection).font(.headline)
-            Picker("play.setup.mode", selection: Binding(
-                get: { viewModel.mode },
-                set: { viewModel.updateMode($0) }
-            )) {
-                Text("settings.mode.x01").tag(MatchSetupViewModel.SetupMode.x01)
-                Text("settings.mode.cricket").tag(MatchSetupViewModel.SetupMode.cricket)
+            Group {
+                if usesInlineStartButton {
+                    Picker("play.setup.mode", selection: Binding(
+                        get: { viewModel.mode },
+                        set: { viewModel.updateMode($0) }
+                    )) {
+                        Text("settings.mode.x01").tag(MatchSetupViewModel.SetupMode.x01)
+                        Text("settings.mode.cricket").tag(MatchSetupViewModel.SetupMode.cricket)
+                    }
+                    .pickerStyle(.menu)
+                } else {
+                    Picker("play.setup.mode", selection: Binding(
+                        get: { viewModel.mode },
+                        set: { viewModel.updateMode($0) }
+                    )) {
+                        Text("settings.mode.x01").tag(MatchSetupViewModel.SetupMode.x01)
+                        Text("settings.mode.cricket").tag(MatchSetupViewModel.SetupMode.cricket)
+                    }
+                    .pickerStyle(.segmented)
+                }
             }
-            .pickerStyle(.segmented)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Spacing.s4)
+        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 
     private var playerSection: some View {
@@ -286,27 +373,53 @@ private struct MatchSetupView: View {
             }
             .buttonStyle(.bordered)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Spacing.s4)
+        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 
     private var x01Section: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.x01Options).font(.headline)
-            Picker("play.setup.startScore", selection: $viewModel.x01StartScore) {
-                Text("301").tag(301)
-                Text("501").tag(501)
+            Group {
+                if usesInlineStartButton {
+                    Picker("play.setup.startScore", selection: $viewModel.x01StartScore) {
+                        Text("301").tag(301)
+                        Text("501").tag(501)
+                    }
+                    .pickerStyle(.menu)
+                } else {
+                    Picker("play.setup.startScore", selection: $viewModel.x01StartScore) {
+                        Text("301").tag(301)
+                        Text("501").tag(501)
+                    }
+                    .pickerStyle(.segmented)
+                }
             }
-            .pickerStyle(.segmented)
             Stepper(L10n.format("play.setup.legsToWinFormat", viewModel.x01LegsToWin), value: $viewModel.x01LegsToWin, in: 1 ... 99)
             Toggle("play.setup.setsEnabled", isOn: $viewModel.x01SetsEnabled)
             if viewModel.x01SetsEnabled {
                 Stepper(L10n.format("play.setup.setsToWinFormat", viewModel.x01SetsToWin), value: $viewModel.x01SetsToWin, in: 1 ... 99)
             }
-            Picker("play.setup.checkout", selection: $viewModel.x01CheckoutMode) {
-                Text(L10n.singleOut).tag(X01CheckoutMode.singleOut)
-                Text(L10n.doubleOut).tag(X01CheckoutMode.doubleOut)
+            Group {
+                if usesInlineStartButton {
+                    Picker("play.setup.checkout", selection: $viewModel.x01CheckoutMode) {
+                        Text(L10n.singleOut).tag(X01CheckoutMode.singleOut)
+                        Text(L10n.doubleOut).tag(X01CheckoutMode.doubleOut)
+                    }
+                    .pickerStyle(.menu)
+                } else {
+                    Picker("play.setup.checkout", selection: $viewModel.x01CheckoutMode) {
+                        Text(L10n.singleOut).tag(X01CheckoutMode.singleOut)
+                        Text(L10n.doubleOut).tag(X01CheckoutMode.doubleOut)
+                    }
+                    .pickerStyle(.segmented)
+                }
             }
-            .pickerStyle(.segmented)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Spacing.s4)
+        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         .onChange(of: viewModel.x01StartScore) { _, _ in viewModel.revalidate() }
         .onChange(of: viewModel.x01LegsToWin) { _, _ in viewModel.revalidate() }
         .onChange(of: viewModel.x01SetsEnabled) { _, _ in viewModel.revalidate() }
@@ -316,11 +429,32 @@ private struct MatchSetupView: View {
     private var validationSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             ForEach(viewModel.validationErrors, id: \.self) { key in
-                Text(key)
+                localizedText(key)
                     .font(.footnote)
                     .foregroundStyle(DS.ColorRole.danger)
             }
         }
+    }
+
+    private var startMatchButton: some View {
+        Button {
+            startTask?.cancel()
+            startTask = Task {
+                if let route = await viewModel.startMatchRoute() {
+                    onStartRoute(route)
+                }
+            }
+        } label: {
+            Text(viewModel.isSubmitting ? "play.setup.starting" : "play.setup.startMatch")
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(usesInlineStartButton ? .regular : .large)
+        .disabled(!viewModel.canStart)
+        .frame(maxWidth: 360)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, DS.Spacing.s4)
     }
 }
 
@@ -332,43 +466,46 @@ private struct X01MatchScreen: View {
     @State private var actionTask: Task<Void, Never>?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.x01Title)
-                .font(.title2).bold()
-            if let session = viewModel.session, let state = session.runtime.x01State {
-                Text(L10n.format("play.x01.turnLegSet", state.currentPlayerIndex + 1, state.legIndex + 1, state.setIndex + 1))
-                ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
-                    HStack {
-                        Text(L10n.format("common.playerOrdinal", index + 1))
-                        Spacer()
-                        Text("\(player.remainingScore)")
-                        if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(L10n.x01Title)
+                    .font(.title2).bold()
+                if let session = viewModel.session, let state = session.runtime.x01State {
+                    Text(L10n.format("play.x01.turnLegSet", state.currentPlayerIndex + 1, state.legIndex + 1, state.setIndex + 1))
+                    ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
+                        HStack {
+                            Text(L10n.format("common.playerOrdinal", index + 1))
+                            Spacer()
+                            Text("\(player.remainingScore)")
+                            if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
+                                Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                            }
                         }
                     }
                 }
+                ScoringInputPad(
+                    modeOptions: [.totalEntry, .dartEntry],
+                    mode: $viewModel.inputMode,
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    enteredDarts: $viewModel.enteredDarts,
+                    totalEntryText: $viewModel.totalEntryText,
+                    canSubmit: viewModel.canSubmit,
+                    onSubmit: {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.submitTurn() }
+                    },
+                    onUndo: {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.undoLastTurn() }
+                    }
+                )
+                stateBanner
             }
-            ScoringInputPad(
-                modeOptions: [.totalEntry, .dartEntry],
-                mode: $viewModel.inputMode,
-                selectedMultiplier: $viewModel.selectedMultiplier,
-                enteredDarts: $viewModel.enteredDarts,
-                totalEntryText: $viewModel.totalEntryText,
-                canSubmit: viewModel.canSubmit,
-                onSubmit: {
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.submitTurn() }
-                },
-                onUndo: {
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.undoLastTurn() }
-                }
-            )
-            stateBanner
         }
         .padding(DS.Spacing.s4)
         .navigationTitle("play.x01.navTitle")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -407,7 +544,7 @@ private struct X01MatchScreen: View {
             Text(L10n.bustFeedback)
                 .foregroundStyle(DS.ColorRole.warning)
         case let .entryInvalid(key), let .error(key):
-            Text(key).foregroundStyle(DS.ColorRole.danger)
+            localizedText(key).foregroundStyle(DS.ColorRole.danger)
         case .matchCompleted:
             Text(L10n.matchCompleteRoute)
         }
@@ -422,53 +559,56 @@ private struct CricketMatchScreen: View {
     @State private var actionTask: Task<Void, Never>?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.cricketTitle)
-                .font(.title2).bold()
-            if let session = viewModel.session, let state = session.runtime.cricketState {
-                Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
-                ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(L10n.format("common.playerOrdinal", index + 1))
-                            Spacer()
-                            Text(L10n.format("play.cricket.pointsFormat", player.score))
-                            if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                                Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(L10n.cricketTitle)
+                    .font(.title2).bold()
+                if let session = viewModel.session, let state = session.runtime.cricketState {
+                    Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
+                    ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(L10n.format("common.playerOrdinal", index + 1))
+                                Spacer()
+                                Text(L10n.format("play.cricket.pointsFormat", player.score))
+                                if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
+                                    Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                }
                             }
-                        }
-                        HStack(spacing: 6) {
-                            ForEach(CricketTarget.allCases, id: \.rawValue) { target in
-                                Text("\(target.rawValue):\(marksText(player.marks[target.rawValue] ?? 0))")
-                                    .font(.caption2)
-                                    .padding(.horizontal, 4)
-                                    .background(.thinMaterial, in: Capsule())
+                            HStack(spacing: 6) {
+                                ForEach(CricketTarget.allCases, id: \.rawValue) { target in
+                                    Text("\(target.rawValue):\(marksText(player.marks[target.rawValue] ?? 0))")
+                                        .font(.caption2)
+                                        .padding(.horizontal, 4)
+                                        .background(.thinMaterial, in: Capsule())
+                                }
                             }
                         }
                     }
                 }
+                ScoringInputPad(
+                    modeOptions: [.dartEntry],
+                    mode: .constant(.dartEntry),
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    enteredDarts: $viewModel.enteredDarts,
+                    totalEntryText: .constant(""),
+                    canSubmit: viewModel.canSubmit,
+                    onSubmit: {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.submitTurn() }
+                    },
+                    onUndo: {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.undoLastTurn() }
+                    }
+                )
+                stateBanner
             }
-            ScoringInputPad(
-                modeOptions: [.dartEntry],
-                mode: .constant(.dartEntry),
-                selectedMultiplier: $viewModel.selectedMultiplier,
-                enteredDarts: $viewModel.enteredDarts,
-                totalEntryText: .constant(""),
-                canSubmit: viewModel.canSubmit,
-                onSubmit: {
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.submitTurn() }
-                },
-                onUndo: {
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.undoLastTurn() }
-                }
-            )
-            stateBanner
         }
         .padding(DS.Spacing.s4)
         .navigationTitle("play.cricket.navTitle")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -517,7 +657,7 @@ private struct CricketMatchScreen: View {
             Text(L10n.boardUpdated)
                 .foregroundStyle(DS.ColorRole.textSecondary)
         case let .entryInvalid(key), let .error(key):
-            Text(key).foregroundStyle(DS.ColorRole.danger)
+            localizedText(key).foregroundStyle(DS.ColorRole.danger)
         case .matchCompleted:
             Text(L10n.matchCompleteRoute)
         }
@@ -553,6 +693,7 @@ private struct MatchSummaryScreen: View {
         }
         .padding(DS.Spacing.s4)
         .navigationTitle("play.summary.navTitle")
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 

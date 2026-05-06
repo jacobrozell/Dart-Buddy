@@ -6,6 +6,7 @@ enum ScoringInputMode: String, CaseIterable {
 }
 
 struct ScoringInputPad: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let modeOptions: [ScoringInputMode]
     @Binding var mode: ScoringInputMode
     @Binding var selectedMultiplier: DartMultiplier
@@ -16,16 +17,32 @@ struct ScoringInputPad: View {
     let onUndo: () -> Void
 
     private let segments: [DartSegment] = (1 ... 20).map { .oneToTwenty($0) } + [.outerBull, .innerBull]
+    private var usesCompactPickerStyles: Bool { dynamicTypeSize.isAccessibilitySize }
+    private var segmentGridColumns: [GridItem] {
+        let count = dynamicTypeSize.isAccessibilitySize ? 3 : 4
+        return Array(repeating: GridItem(.flexible()), count: count)
+    }
 
     var body: some View {
         VStack(spacing: 12) {
             if modeOptions.count > 1 {
-                Picker("scoring.inputMode", selection: $mode) {
-                    ForEach(modeOptions, id: \.rawValue) { option in
-                        Text(option == .totalEntry ? "scoring.mode.total" : "scoring.mode.darts").tag(option)
+                Group {
+                    if usesCompactPickerStyles {
+                        Picker("scoring.inputMode", selection: $mode) {
+                            ForEach(modeOptions, id: \.rawValue) { option in
+                                Text(option == .totalEntry ? "scoring.mode.total" : "scoring.mode.darts").tag(option)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    } else {
+                        Picker("scoring.inputMode", selection: $mode) {
+                            ForEach(modeOptions, id: \.rawValue) { option in
+                                Text(option == .totalEntry ? "scoring.mode.total" : "scoring.mode.darts").tag(option)
+                            }
+                        }
+                        .pickerStyle(.segmented)
                     }
                 }
-                .pickerStyle(.segmented)
             }
 
             if mode == .totalEntry {
@@ -47,11 +64,15 @@ struct ScoringInputPad: View {
                     }
                 }
 
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
+                LazyVGrid(columns: segmentGridColumns, spacing: 8) {
                     ForEach(segments, id: \.self) { segment in
-                        Button(segmentLabel(segment)) {
+                        Button {
                             guard enteredDarts.count < 3 else { return }
                             enteredDarts.append(DartInput(multiplier: selectedMultiplier, segment: segment))
+                        } label: {
+                            Text(segmentLabel(segment))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                         }
                         .buttonStyle(.bordered)
                         .frame(minHeight: 52)
@@ -67,29 +88,55 @@ struct ScoringInputPad: View {
                 }
             }
 
-            HStack {
-                Button(L10n.scoringBackspace) {
-                    _ = enteredDarts.popLast()
-                }
-                .buttonStyle(.bordered)
-                .accessibilityHint("scoring.backspace.hint")
+            ViewThatFits {
+                HStack {
+                    Button(L10n.scoringBackspace) {
+                        _ = enteredDarts.popLast()
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityHint("scoring.backspace.hint")
 
-                Button(L10n.scoringClearTurn) {
-                    enteredDarts.removeAll()
-                    totalEntryText = ""
+                    Button(L10n.scoringClearTurn) {
+                        enteredDarts.removeAll()
+                        totalEntryText = ""
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityHint("scoring.clearTurn.hint")
                 }
-                .buttonStyle(.bordered)
-                .accessibilityHint("scoring.clearTurn.hint")
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    Button(L10n.scoringBackspace) {
+                        _ = enteredDarts.popLast()
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityHint("scoring.backspace.hint")
+                    Button(L10n.scoringClearTurn) {
+                        enteredDarts.removeAll()
+                        totalEntryText = ""
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityHint("scoring.clearTurn.hint")
+                }
             }
 
-            HStack {
-                Button(L10n.scoringSubmitTurn, action: onSubmit)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(!canSubmit)
-                    .accessibilityHint("scoring.submitTurn.hint")
-                Button(L10n.scoringUndoLastTurn, action: onUndo)
-                    .buttonStyle(.bordered)
-                    .accessibilityHint("scoring.undoTurn.hint")
+            ViewThatFits {
+                HStack {
+                    Button(L10n.scoringSubmitTurn, action: onSubmit)
+                        .buttonStyle(.borderedProminent)
+                        .disabled(!canSubmit)
+                        .accessibilityHint("scoring.submitTurn.hint")
+                    Button(L10n.scoringUndoLastTurn, action: onUndo)
+                        .buttonStyle(.bordered)
+                        .accessibilityHint("scoring.undoTurn.hint")
+                }
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    Button(L10n.scoringSubmitTurn, action: onSubmit)
+                        .buttonStyle(.borderedProminent)
+                        .disabled(!canSubmit)
+                        .accessibilityHint("scoring.submitTurn.hint")
+                    Button(L10n.scoringUndoLastTurn, action: onUndo)
+                        .buttonStyle(.bordered)
+                        .accessibilityHint("scoring.undoTurn.hint")
+                }
             }
         }
         .padding(DS.Spacing.s3)

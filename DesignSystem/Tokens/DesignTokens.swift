@@ -21,7 +21,7 @@ enum DS {
         static let backgroundPrimary = Color(.systemBackground)
         static let backgroundSecondary = Color(.secondarySystemBackground)
         static let textPrimary = Color.primary
-        static let textSecondary = Color.secondary
+        static let textSecondary = Color.primary.opacity(0.72)
         static let success = Color.green
         static let warning = Color.orange
         static let danger = Color.red

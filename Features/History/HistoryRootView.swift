@@ -2,10 +2,15 @@ import SwiftUI
 
 struct HistoryRootView: View {
     let dependencies: AppDependencies
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var path: [HistoryRoute] = []
     @StateObject private var viewModel: HistoryListViewModel
     @State private var filterTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
+
+    private var contentMaxWidth: CGFloat {
+        horizontalSizeClass == .regular ? 760 : .infinity
+    }
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -19,27 +24,40 @@ struct HistoryRootView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            VStack {
-                HStack {
-                    Picker("history.filter.mode", selection: $viewModel.modeFilter) {
-                        ForEach(HistoryListViewModel.ModeFilter.allCases) { mode in
-                            Text(historyModeTitle(mode)).tag(mode)
+            VStack(spacing: DS.Spacing.s4) {
+                Group {
+                    VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                        Text("settings.mode.label")
+                            .font(.caption)
+                            .foregroundStyle(DS.ColorRole.textSecondary)
+                        Picker("history.filter.mode", selection: $viewModel.modeFilter) {
+                            ForEach(HistoryListViewModel.ModeFilter.allCases) { mode in
+                                Text(historyModeTitle(mode)).tag(mode)
+                            }
                         }
                     }
-                    Picker("history.filter.date", selection: $viewModel.dateFilter) {
-                        Text("history.filter.7d").tag(HistoryListViewModel.DateFilter.d7)
-                        Text("history.filter.30d").tag(HistoryListViewModel.DateFilter.d30)
-                        Text("history.filter.all").tag(HistoryListViewModel.DateFilter.all)
+                    VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                        Text("history.filter.date")
+                            .font(.caption)
+                            .foregroundStyle(DS.ColorRole.textSecondary)
+                        Picker("history.filter.date", selection: $viewModel.dateFilter) {
+                            Text("history.filter.7d").tag(HistoryListViewModel.DateFilter.d7)
+                            Text("history.filter.30d").tag(HistoryListViewModel.DateFilter.d30)
+                            Text("history.filter.all").tag(HistoryListViewModel.DateFilter.all)
+                        }
                     }
                 }
+                .modifier(HistoryFilterLayoutModifier(isRegular: horizontalSizeClass == .regular))
                 .pickerStyle(.segmented)
-                .padding(.horizontal)
+                .padding(.horizontal, DS.Spacing.s4)
+                .frame(maxWidth: contentMaxWidth, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
 
                 if viewModel.state == .error {
                     ContentUnavailableView(
                         L10n.errorTitle,
                         systemImage: "exclamationmark.triangle",
-                        description: Text(viewModel.errorMessageKey ?? "error.repository.storage")
+                        description: Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
                     )
                     .overlay(alignment: .bottom) {
                         Button(L10n.retry) {
@@ -50,7 +68,16 @@ struct HistoryRootView: View {
                         .padding(.bottom, DS.Spacing.s6)
                     }
                 } else if viewModel.rows.isEmpty {
-                    ContentUnavailableView(L10n.historyNoMatches, systemImage: "clock")
+                    if horizontalSizeClass == .regular {
+                        VStack {
+                            ContentUnavailableView(L10n.historyNoMatches, systemImage: "clock")
+                        }
+                        .frame(maxWidth: 560)
+                        .padding(.vertical, DS.Spacing.s6)
+                        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                    } else {
+                        ContentUnavailableView(L10n.historyNoMatches, systemImage: "clock")
+                    }
                 } else {
                     List(viewModel.rows) { row in
                         Button {
@@ -71,6 +98,7 @@ struct HistoryRootView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .navigationTitle(L10n.historyTitle)
             .task { await viewModel.onAppear() }
             .onDisappear {
@@ -99,6 +127,22 @@ struct HistoryRootView: View {
                         matchId: matchId
                     )
                 }
+            }
+        }
+    }
+}
+
+private struct HistoryFilterLayoutModifier: ViewModifier {
+    let isRegular: Bool
+
+    func body(content: Content) -> some View {
+        if isRegular {
+            HStack(alignment: .top, spacing: DS.Spacing.s2) {
+                content
+            }
+        } else {
+            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                content
             }
         }
     }

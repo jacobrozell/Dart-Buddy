@@ -2,9 +2,14 @@ import SwiftUI
 
 struct SettingsRootView: View {
     let dependencies: AppDependencies
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var path: [SettingsRoute] = []
     @StateObject private var viewModel: SettingsViewModel
     @State private var retryTask: Task<Void, Never>?
+
+    private var contentMaxWidth: CGFloat {
+        horizontalSizeClass == .regular ? 760 : .infinity
+    }
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -61,13 +66,16 @@ struct SettingsRootView: View {
                                 .foregroundStyle(DS.ColorRole.textSecondary)
                         }
                     }
+                    .frame(maxWidth: contentMaxWidth)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .safeAreaPadding(.bottom, DS.Spacing.s6)
                 } else {
                     switch viewModel.state {
                     case let .error(messageKey):
                         ContentUnavailableView(
                             L10n.errorTitle,
                             systemImage: "exclamationmark.triangle",
-                            description: Text(messageKey)
+                            description: Text(LocalizedStringKey(messageKey))
                         )
                         .overlay(alignment: .bottom) {
                             Button(L10n.retry) {

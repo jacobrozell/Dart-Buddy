@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PlayersRootView: View {
     let dependencies: AppDependencies
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var path: [PlayersRoute] = []
     @StateObject private var viewModel: PlayersListViewModel
     @State private var editingPlayer: EditablePlayer?
@@ -10,6 +11,10 @@ struct PlayersRootView: View {
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
 
+    private var contentMaxWidth: CGFloat {
+        horizontalSizeClass == .regular ? 760 : .infinity
+    }
+
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: PlayersListViewModel(repository: dependencies.playerRepository))
@@ -17,40 +22,64 @@ struct PlayersRootView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            Group {
-                if viewModel.state == .error {
-                    ContentUnavailableView(
-                        L10n.errorTitle,
-                        systemImage: "exclamationmark.triangle",
-                        description: Text(viewModel.errorMessageKey ?? "error.repository.storage")
-                    )
-                } else if viewModel.filtered.isEmpty {
-                    ContentUnavailableView(L10n.playersEmptyTitle, systemImage: "person.2", description: Text(L10n.playersEmptyDescription))
-                } else {
-                    List(viewModel.filtered) { player in
-                        Button {
-                            path.append(.detail(playerId: player.id))
-                        } label: {
-                            HStack {
-                                Text(player.name)
-                                if player.isArchived {
-                                    Text(L10n.archived).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+            VStack(spacing: DS.Spacing.s3) {
+                searchField
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .frame(maxWidth: contentMaxWidth, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                Group {
+                    if viewModel.state == .error {
+                        ContentUnavailableView(
+                            L10n.errorTitle,
+                            systemImage: "exclamationmark.triangle",
+                            description: Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
+                        )
+                    } else if viewModel.filtered.isEmpty {
+                        if horizontalSizeClass == .regular {
+                            VStack {
+                                ContentUnavailableView(
+                                    L10n.playersEmptyTitle,
+                                    systemImage: "person.2",
+                                    description: Text(L10n.playersEmptyDescription)
+                                )
+                            }
+                            .frame(maxWidth: 560)
+                            .padding(.vertical, DS.Spacing.s6)
+                            .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                        } else {
+                            ContentUnavailableView(
+                                L10n.playersEmptyTitle,
+                                systemImage: "person.2",
+                                description: Text(L10n.playersEmptyDescription)
+                            )
+                        }
+                    } else {
+                        List(viewModel.filtered) { player in
+                            Button {
+                                path.append(.detail(playerId: player.id))
+                            } label: {
+                                HStack {
+                                    Text(player.name)
+                                    if player.isArchived {
+                                        Text(L10n.archived).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                    }
                                 }
                             }
-                        }
-                        .swipeActions {
-                            Button(player.isArchived ? "players.unarchive" : "players.archive") {
-                                actionTask?.cancel()
-                                actionTask = Task { await viewModel.archiveToggle(player.id) }
-                            }.tint(.orange)
-                            Button(L10n.delete, role: .destructive) {
-                                actionTask?.cancel()
-                                actionTask = Task {
-                                    if !await viewModel.delete(player.id) {
-                                        deleteBlockedMessage = NSLocalizedString(
-                                            viewModel.errorMessageKey ?? "players.delete.blocked.message",
-                                            comment: ""
-                                        )
+                            .swipeActions {
+                                Button(player.isArchived ? "players.unarchive" : "players.archive") {
+                                    actionTask?.cancel()
+                                    actionTask = Task { await viewModel.archiveToggle(player.id) }
+                                }.tint(.orange)
+                                Button(L10n.delete, role: .destructive) {
+                                    actionTask?.cancel()
+                                    actionTask = Task {
+                                        if !(await viewModel.delete(player.id)) {
+                                            deleteBlockedMessage = NSLocalizedString(
+                                                viewModel.errorMessageKey ?? "players.delete.blocked.message",
+                                                comment: ""
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -58,9 +87,24 @@ struct PlayersRootView: View {
                     }
                 }
             }
-            .searchable(text: $viewModel.searchText)
             .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
+            .frame(maxWidth: contentMaxWidth, alignment: .center)
+            .frame(maxWidth: .infinity, alignment: .center)
             .navigationTitle(L10n.playersTitle)
+            .safeAreaInset(edge: .bottom) {
+                if viewModel.state != .error && viewModel.filtered.isEmpty {
+                    Button {
+                        editingPlayer = nil
+                        showEditSheet = true
+                    } label: {
+                        Text(L10n.addPlayerTitle)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .padding(.vertical, DS.Spacing.s2)
+                }
+            }
             .toolbar {
                 Button {
                     editingPlayer = nil
@@ -128,6 +172,19 @@ struct PlayersRootView: View {
                 retryTask?.cancel()
             }
         }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: DS.Spacing.s2) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(DS.ColorRole.textSecondary)
+            TextField("Search", text: $viewModel.searchText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+        }
+        .padding(.horizontal, DS.Spacing.s3)
+        .padding(.vertical, DS.Spacing.s2)
+        .background(DS.ColorRole.backgroundSecondary, in: Capsule())
     }
 }
 
