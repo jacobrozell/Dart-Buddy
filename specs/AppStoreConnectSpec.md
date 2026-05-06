@@ -1,0 +1,163 @@
+# App Store Connect Specification
+
+## 1. Purpose
+Define App Store presence, branding, naming, metadata, and launch assets for the darts app so release execution is consistent and high quality.
+
+---
+
+## 2. Product Positioning
+- Free darts scorekeeper for iPhone
+- No ads
+- Fast scoring for X01 and Cricket
+- Local-first reliability
+- Accessible, clean Apple-native UI
+
+Primary audience:
+- Casual home players
+- Pub/bar players
+- League players wanting simple and reliable scoring
+
+---
+
+## 3. App Naming
+
+## Recommended Name (Primary)
+- **Darts Scoreboard**
+
+Why:
+- Clear and descriptive
+- Strong keyword relevance (`darts`, `scoreboard`)
+- No implication of a paid/full split
+
+## Backup Name Candidates
+- `Darts Scoreboard Simple`
+- `Darts Scorekeeper`
+- `Darts Match Scoreboard`
+- `Dart Scoreboard: X01 & Cricket`
+
+Naming rules:
+- Keep final name <= 30 characters when possible
+- Avoid trademark conflicts
+- Keep subtitle responsible for feature detail, not name bloat
+
+---
+
+## 4. Brand Direction
+
+## Brand Attributes
+- Clean
+- Fast
+- Trustworthy
+- Friendly
+- Competitive but non-gimmicky
+
+## Visual Direction
+- Dark-mode friendly scoreboard aesthetic
+- High-contrast score typography
+- Minimal chrome around core scoring surfaces
+
+## Icon Direction
+- Simple dartboard + score motif
+- No tiny detail that gets lost at small icon sizes
+- Consistent with accessibility contrast expectations
+
+---
+
+## 5. App Store Metadata
+
+## App Name
+- `Darts Scoreboard` (subject to availability)
+
+## Subtitle (examples)
+- `Free X01 & Cricket Scoring`
+- `No Ads Dart Scorekeeper`
+
+## Keywords (starter set)
+- darts, scoreboard, scorekeeper, x01, cricket, dart scorer, darts counter, darts tracker
+
+Rules:
+- Keep keyword list focused; avoid irrelevant stuffing
+- Revisit after real search analytics data
+
+## Promotional Text (example)
+- `A simple, free darts scoreboard for X01 and Cricket. Fast input, clean UI, match history, and no ads.`
+
+## Description Structure
+1. Core value proposition
+2. Key features (X01, Cricket, history, players, settings)
+3. Accessibility/local-first/no ads highlights
+4. Future roadmap tease (watch, smart scoring) without overpromising dates
+
+---
+
+## 6. Privacy and Compliance Metadata
+- Reflect local-first behavior in privacy disclosures
+- No ad tracking
+- Keep diagnostics disclosures aligned with actual enabled services
+- Re-audit privacy labels before enabling Firebase phases
+
+---
+
+## 7. Category, Age Rating, and Pricing
+- Category: `Sports`
+- Age rating: expected `4+` unless future social features change scope
+- Price: `Free`
+- Ads: `None`
+- In-app purchases: `None` for 1.0.0
+
+---
+
+## 8. Screenshots and Preview Assets
+
+## Screenshot Priorities (iPhone)
+1. X01 gameplay with large score UI
+2. Cricket board view
+3. New match setup simplicity
+4. Match history summary
+5. Player stats/profile snapshot
+
+Asset guidance:
+- Use real in-app UI, not concept mockups
+- Keep text overlays short and benefit-driven
+- Include dark/light examples if useful
+
+---
+
+## 9. App Store Presence and Launch Plan
+
+## Pre-Launch
+- Reserve app name
+- Prepare icon + screenshots
+- Finalize privacy details and support URL
+- Prepare concise release notes
+
+## Launch Week
+- Monitor reviews and crash reports daily
+- Track conversion metrics and keyword performance
+- Patch critical UX issues quickly
+
+## Post-Launch Iteration
+- A/B test subtitle and screenshot order over time
+- Refine keywords from observed discoverability
+
+---
+
+## 10. Localization Strategy for Store Listing
+- Start with English listing
+- Expand store metadata localization as app localization grows
+- Prioritize markets where darts is popular for early localization waves
+
+---
+
+## 11. Risks and Mitigations
+- Name unavailable -> keep backup names ready
+- Weak discoverability -> improve subtitle/keywords/screenshots iteratively
+- Misaligned privacy labels -> strict release checklist validation
+
+---
+
+## 12. Ownership and Governance
+- Product/PM owns positioning and messaging
+- Design owns icon/screenshot visual quality
+- Engineering confirms metadata truthfulness vs app behavior
+- Release owner verifies final App Store Connect checklist

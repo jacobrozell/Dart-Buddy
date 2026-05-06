@@ -1,0 +1,157 @@
+# Match Specification
+
+## 1. Purpose
+Define match lifecycle behavior shared by X01 and Cricket: setup, active play state, completion, persistence, resume, and history integrity.
+
+---
+
+## 2. MVP Scope
+
+### In Scope (1.0.0)
+- Create match from setup flow
+- Support X01 and Cricket match types
+- Persist in-progress and completed matches locally
+- Resume one in-progress match from Play tab
+- Complete match and write summary data
+
+### Out of Scope
+- Online matches
+- Cloud sync
+- Multi-device live continuity
+
+---
+
+## 3. Tech Stack and Architecture
+- `SwiftUI` feature module under `Features/Play`
+- `MatchDomain` service for generic lifecycle state
+- Mode-specific engines (`X01Engine`, `CricketEngine`)
+- `MatchRepository` protocol + SwiftData implementation
+- Event-sourced scoring timeline with snapshot checkpoints for fast resume
+
+---
+
+## 4. Match Data Model
+
+Authoritative persistence field definitions live in:
+- `specs/SwiftData.md` (versioned schema details)
+- `specs/DataSchemaSpec.md` (cross-entity invariants)
+
+This section is conceptual and must not diverge from those sources.
+
+## Core Entities
+- `MatchRecord`
+  - `id: UUID`
+  - `type: MatchType` (`x01`, `cricket`)
+  - `status: MatchStatus` (`notStarted`, `inProgress`, `completed`, `abandoned`)
+  - `startedAt: Date`
+  - `endedAt: Date?`
+  - `winnerPlayerId: UUID?`
+  - `configPayload: Data` (versioned mode config)
+  - `currentTurnPlayerId: UUID?`
+  - `currentLegIndex: Int`
+  - `currentSetIndex: Int`
+  - `eventCount: Int`
+
+- `MatchParticipantRecord`
+  - `id: UUID`
+  - `matchId: UUID`
+  - `playerId: UUID?` (nullable for historical safety if player record is removed)
+  - `turnOrder: Int`
+  - `displayNameAtMatchStart: String`
+  - `avatarStyleAtMatchStart: String?`
+
+- `MatchSnapshotRecord`
+  - `matchId: UUID`
+  - `snapshotVersion: Int`
+  - `snapshotPayload: Data`
+  - `updatedAt: Date`
+
+---
+
+## 5. Match Lifecycle
+
+## Create
+1. Validate setup input.
+2. Materialize `MatchRecord` and participants.
+3. Initialize mode engine state.
+4. Save initial snapshot.
+
+## Progress
+- Each accepted turn generates immutable events.
+- Engine computes derived state (scores/marks/leg progress).
+- Repository updates match head fields (`currentTurnPlayerId`, indices, eventCount).
+
+## Complete
+1. Engine returns `isMatchComplete = true`.
+2. Persist `endedAt`, `winnerPlayerId`, `status = completed`.
+3. Compute and cache summary metrics for history list cards.
+
+## Resume
+- Load `MatchRecord` + latest snapshot + events after snapshot.
+- Rehydrate state deterministically.
+
+---
+
+## 6. UI Expectations
+
+## Setup to Start
+- Match setup is a guided form with sticky `Start Match`.
+- Validation blocks invalid states.
+
+## Active Match Shell
+- Top region: participants, turn indicator, legs/sets (or cricket board header)
+- Middle region: mode-specific board/score
+- Bottom region: input controls + `Undo`
+
+## End Summary
+- Winner card
+- Match metadata (duration, participants, mode)
+- Core metrics chips
+- `New Match` primary CTA
+
+---
+
+## 7. Data Management Rules
+- Match/event history is immutable after completion.
+- Profile edits never rewrite participant snapshots.
+- Hard delete of match is disallowed in MVP UI (future admin option only).
+- If a player is archived/deleted later, completed match remains readable.
+
+---
+
+## 8. Error/Edge Case Handling
+- App termination mid-turn -> recover to last committed event
+- Corrupt snapshot -> rebuild state from full event stream
+- Missing player reference -> fallback to `displayNameAtMatchStart`
+- Resume conflict (multiple in-progress records) -> show selector (future), for MVP prefer single active constraint
+
+---
+
+## 9. Testing
+
+## Unit
+- Use `Swift Testing` (`Testing` module).
+- Lifecycle transitions by status
+- Resume rehydration determinism
+- Winner assignment correctness
+
+## Integration
+- Use `Swift Testing` (`Testing` module).
+- Setup -> play -> complete -> history render
+- Setup -> partial play -> app relaunch -> resume
+
+## UI
+- Out of scope for 1.0.0.
+- Future UI automation tasks (post-UI-lock):
+  - Start match validation
+  - End summary CTA flow
+
+---
+
+## 10. Future Improvements
+- Multiple active matches with explicit queue
+- Match tags/notes/location metadata
+- Export/import single match bundles
+- Cloud conflict resolution for in-progress matches
+- Vision-assisted auto-scoring session support (`specs/AutoScoringVisionSpec.md`)
+- Future verified online match mode using signed scoring events and confidence metadata
