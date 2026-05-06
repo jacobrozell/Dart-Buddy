@@ -161,8 +161,14 @@ final class MatchSetupViewModel: ObservableObject {
             )
             activeMatchStore.save(session)
             return route
+        } catch is CancellationError {
+            return nil
         } catch {
-            validationErrors = ["setup.error.start"]
+            if let appError = error as? AppError {
+                validationErrors = [appError.userMessageKey]
+            } else {
+                validationErrors = ["setup.error.start"]
+            }
             return nil
         }
     }

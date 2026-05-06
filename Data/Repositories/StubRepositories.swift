@@ -30,7 +30,6 @@ public actor StubMatchRepository: MatchRepository {
 public actor StubStatsRepository: StatsRepository {
     public init() {}
     public func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    public func rebuildAggregateCache() async throws {}
 }
 
 public actor StubSettingsRepository: SettingsRepository {

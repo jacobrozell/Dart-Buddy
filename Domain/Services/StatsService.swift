@@ -57,7 +57,9 @@ public enum StatsService {
             }
 
             if session.runtime.type == .cricket, let winner = session.runtime.winnerPlayerId {
-                aggregates[winner, default: PlayerAggregateStats()].cricketWins += 1
+                var aggregate = aggregates[winner, default: PlayerAggregateStats()]
+                aggregate.cricketWins += 1
+                aggregates[winner] = aggregate
             }
         }
 

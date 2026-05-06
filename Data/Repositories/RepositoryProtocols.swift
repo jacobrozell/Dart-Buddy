@@ -25,7 +25,6 @@ public protocol MatchRepository: Sendable {
 
 public protocol StatsRepository: Sendable {
     func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary]
-    func rebuildAggregateCache() async throws
 }
 
 public protocol SettingsRepository: Sendable {

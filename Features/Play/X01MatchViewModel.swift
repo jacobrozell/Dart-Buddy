@@ -90,8 +90,6 @@ final class X01MatchViewModel: ObservableObject {
                 state = .entryInvalid(errorMessageKey(for: error, fallback: "x01.error.invalidTurn"))
                 return
             }
-            store.save(current)
-            session = current
             do {
                 try await persistProgress(current)
             } catch is CancellationError {
@@ -101,6 +99,8 @@ final class X01MatchViewModel: ObservableObject {
                 state = .error(errorMessageKey(for: error, fallback: "error.repository.storage"))
                 return
             }
+            store.save(current)
+            session = current
             if current.runtime.status == .completed {
                 PerformanceMonitor.measure(
                     .completeMatch,
@@ -123,14 +123,14 @@ final class X01MatchViewModel: ObservableObject {
         guard let current = session else { return }
         do {
             let undone = try MatchLifecycleService.undoLastTurn(session: current)
-            store.save(undone)
-            session = undone
             try await matchRepository.updateMatch(matchSummary(from: undone.runtime))
             _ = try await matchRepository.saveSnapshot(
                 matchId: matchId,
                 snapshotVersion: undone.latestSnapshot.payloadVersion,
                 snapshotPayload: undone.latestSnapshot.payload
             )
+            store.save(undone)
+            session = undone
             state = .readyTurn
             enteredDarts.removeAll()
             totalEntryText = ""

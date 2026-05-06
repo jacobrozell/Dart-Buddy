@@ -164,6 +164,18 @@ public actor SwiftDataMatchRepository: MatchRepository {
     public func createMatch(type: MatchType, configPayload: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary {
         try dataCall {
             let context = ModelContext(container)
+            let activeDescriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.inProgress.rawValue }
+            )
+            if try context.fetchCount(activeDescriptor) > 0 {
+                throw AppError(
+                    code: .conflict,
+                    layer: .data,
+                    severity: .warning,
+                    isRecoverable: true,
+                    userMessageKey: "error.match.activeExists"
+                )
+            }
             let now = Date()
             let matchId = UUID()
             let record = SchemaV1.MatchRecord(
@@ -209,42 +221,38 @@ public actor SwiftDataMatchRepository: MatchRepository {
     public func fetchHistory(page: Int, pageSize: Int) async throws -> [MatchSummary] {
         try dataCall {
             let context = ModelContext(container)
-            let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+            let safePage = max(0, page)
+            let safeSize = max(1, pageSize)
+            var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
                 predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.completed.rawValue },
                 sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
             )
-            let all = try context.fetch(descriptor).map(mapMatch)
-            let safePage = max(0, page)
-            let safeSize = max(1, pageSize)
-            let offset = safePage * safeSize
-            guard offset < all.count else { return [] }
-            let end = min(all.count, offset + safeSize)
-            return Array(all[offset ..< end])
+            descriptor.fetchOffset = safePage * safeSize
+            descriptor.fetchLimit = safeSize
+            return try context.fetch(descriptor).map(mapMatch)
         }
     }
 
     public func fetchHistoryWithParticipants(page: Int, pageSize: Int) async throws -> [MatchHistoryRecord] {
         try dataCall {
             let context = ModelContext(container)
-            let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+            let safePage = max(0, page)
+            let safeSize = max(1, pageSize)
+            var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
                 predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.completed.rawValue },
                 sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
             )
-            let allMatches = try context.fetch(descriptor)
-            let safePage = max(0, page)
-            let safeSize = max(1, pageSize)
-            let offset = safePage * safeSize
-            guard offset < allMatches.count else { return [] }
-            let end = min(allMatches.count, offset + safeSize)
-            let pageMatches = Array(allMatches[offset ..< end])
-            let pageMatchIds = Set(pageMatches.map(\.id))
+            descriptor.fetchOffset = safePage * safeSize
+            descriptor.fetchLimit = safeSize
+            let pageMatches = try context.fetch(descriptor)
+            guard !pageMatches.isEmpty else { return [] }
+            let pageMatchIds = pageMatches.map(\.id)
 
             let participantDescriptor = FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                predicate: #Predicate<SchemaV1.MatchParticipantRecord> { pageMatchIds.contains($0.matchId) },
                 sortBy: [SortDescriptor(\.turnOrder, order: .forward)]
             )
-            let participants = try context.fetch(participantDescriptor)
-                .filter { pageMatchIds.contains($0.matchId) }
-                .map(mapParticipant)
+            let participants = try context.fetch(participantDescriptor).map(mapParticipant)
             let participantsByMatchId = Dictionary(grouping: participants, by: \.matchId)
             return pageMatches.map {
                 MatchHistoryRecord(
@@ -426,10 +434,6 @@ public actor SwiftDataStatsRepository: StatsRepository {
             )
             return try context.fetch(descriptor).map(mapEvent)
         }
-    }
-
-    public func rebuildAggregateCache() async throws {
-        _ = container
     }
 }
 

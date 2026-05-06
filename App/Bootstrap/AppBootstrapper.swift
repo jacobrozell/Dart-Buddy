@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 
 public enum AppBootstrapResult {
     case ready(AppDependencies)
@@ -12,6 +13,7 @@ public enum AppBootstrapper {
 
         do {
             let container = try ModelContainerFactory.makeContainer(mode: .appDefault)
+            try validateSchemaInvariants(in: container)
 
             let dependencies = AppDependencies(
                 modelContainer: container,
@@ -38,6 +40,24 @@ public enum AppBootstrapper {
                 ]
             )
             return .migrationRecovery(MigrationRecoveryContext(error: appError))
+        }
+    }
+
+    private static func validateSchemaInvariants(in container: ModelContainer) throws {
+        let context = ModelContext(container)
+        let events = try context.fetch(FetchDescriptor<SchemaV1.MatchEventRecord>())
+        let eventIndexesByMatch = Dictionary(grouping: events, by: \.matchId).mapValues { $0.map(\.eventIndex) }
+        for (matchId, indexes) in eventIndexesByMatch {
+            guard SchemaInvariantValidator.hasContiguousEventIndexes(indexes) else {
+                throw AppError(
+                    code: .migrationFailed,
+                    layer: .data,
+                    severity: .fault,
+                    isRecoverable: true,
+                    userMessageKey: "error.migration.invariant",
+                    debugContext: ["matchId": matchId.uuidString]
+                )
+            }
         }
     }
 }
