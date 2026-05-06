@@ -1,7 +1,7 @@
 import Foundation
 
 @MainActor
-final class ActiveMatchStore: ObservableObject {
+public final class ActiveMatchStore: ObservableObject {
     @Published private(set) var sessions: [UUID: MatchLifecycleSession] = [:]
 
     func session(for matchId: UUID) -> MatchLifecycleSession? {

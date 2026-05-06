@@ -24,9 +24,11 @@ final class PlayersListViewModel: ObservableObject {
     @Published private(set) var errorMessageKey: String?
 
     private let repository: any PlayerRepository
+    private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
 
-    init(repository: any PlayerRepository) {
+    init(repository: any PlayerRepository, pendingMatchPlayerSelections: PendingMatchPlayerSelections) {
         self.repository = repository
+        self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
     }
 
     func onAppear() async {
@@ -92,7 +94,8 @@ final class PlayersListViewModel: ObservableObject {
             if players.contains(where: { $0.id == player.id }) {
                 _ = try await repository.updatePlayerName(playerId: player.id, name: player.name)
             } else {
-                _ = try await repository.createPlayer(name: player.name)
+                let created = try await repository.createPlayer(name: player.name)
+                pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
             }
             await onAppear()
         } catch {
@@ -122,10 +125,12 @@ final class PlayerEditViewModel: ObservableObject {
 
     private let existingNames: [String]
     private let editingId: UUID?
+    private let originalNormalizedName: String?
 
     init(existingNames: [String], editing: EditablePlayer?) {
         self.existingNames = existingNames
         self.editingId = editing?.id
+        self.originalNormalizedName = editing.map { Self.normalizedName($0.name) }
         self.name = editing?.name ?? ""
         self.notes = editing?.notes ?? ""
         validate()
@@ -143,9 +148,22 @@ final class PlayerEditViewModel: ObservableObject {
             canSave = false
             return
         }
-        let normalized = normalizedName(trimmed)
-        if existingNames.contains(where: { normalizedName($0) == normalized }) {
-            if editingId == nil {
+        let normalized = Self.normalizedName(trimmed)
+        let duplicateCount = existingNames.reduce(into: 0) { count, existingName in
+            if Self.normalizedName(existingName) == normalized {
+                count += 1
+            }
+        }
+        if editingId == nil {
+            if duplicateCount > 0 {
+                validationMessage = "player.validation.duplicateName"
+                canSave = false
+                return
+            }
+        } else {
+            let isSameAsOriginal = normalized == originalNormalizedName
+            let allowedCount = isSameAsOriginal ? 1 : 0
+            if duplicateCount > allowedCount {
                 validationMessage = "player.validation.duplicateName"
                 canSave = false
                 return
@@ -164,7 +182,7 @@ final class PlayerEditViewModel: ObservableObject {
         )
     }
 
-    private func normalizedName(_ value: String) -> String {
+    private static func normalizedName(_ value: String) -> String {
         value.lowercased().replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
     }
 }

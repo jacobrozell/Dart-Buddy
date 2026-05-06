@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import DartsScoreboard
 
 @Test(.tags(.unit, .cricket, .critical, .offline, .regression))
 func cricketClosureAndOverflowScoring() throws {

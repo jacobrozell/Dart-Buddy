@@ -164,8 +164,9 @@ public actor SwiftDataMatchRepository: MatchRepository {
     public func createMatch(type: MatchType, configPayload: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary {
         try dataCall {
             let context = ModelContext(container)
+            let inProgressRaw = MatchStatus.inProgress.rawValue
             let activeDescriptor = FetchDescriptor<SchemaV1.MatchRecord>(
-                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.inProgress.rawValue }
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == inProgressRaw }
             )
             if try context.fetchCount(activeDescriptor) > 0 {
                 throw AppError(
@@ -181,7 +182,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
             let record = SchemaV1.MatchRecord(
                 id: matchId,
                 typeRaw: type.rawValue,
-                statusRaw: MatchStatus.inProgress.rawValue,
+                statusRaw: inProgressRaw,
                 startedAt: now,
                 configPayload: configPayload,
                 currentTurnPlayerId: participants.sorted(by: { $0.turnOrder < $1.turnOrder }).first?.playerId,
@@ -210,8 +211,9 @@ public actor SwiftDataMatchRepository: MatchRepository {
     public func fetchActiveMatch() async throws -> MatchSummary? {
         try dataCall {
             let context = ModelContext(container)
+            let inProgressRaw = MatchStatus.inProgress.rawValue
             let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
-                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.inProgress.rawValue },
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == inProgressRaw },
                 sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
             )
             return try context.fetch(descriptor).first.map(mapMatch)
@@ -223,8 +225,9 @@ public actor SwiftDataMatchRepository: MatchRepository {
             let context = ModelContext(container)
             let safePage = max(0, page)
             let safeSize = max(1, pageSize)
+            let completedRaw = MatchStatus.completed.rawValue
             var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
-                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.completed.rawValue },
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw },
                 sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
             )
             descriptor.fetchOffset = safePage * safeSize
@@ -238,8 +241,9 @@ public actor SwiftDataMatchRepository: MatchRepository {
             let context = ModelContext(container)
             let safePage = max(0, page)
             let safeSize = max(1, pageSize)
+            let completedRaw = MatchStatus.completed.rawValue
             var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
-                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.completed.rawValue },
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw },
                 sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
             )
             descriptor.fetchOffset = safePage * safeSize
@@ -464,8 +468,9 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
     public func updateSettings(_ settings: SettingsSummary) async throws -> SettingsSummary {
         try dataCall {
             let context = ModelContext(container)
+            let settingsId = settings.id
             let descriptor = FetchDescriptor<SchemaV1.SettingsRecord>(
-                predicate: #Predicate<SchemaV1.SettingsRecord> { $0.id == settings.id }
+                predicate: #Predicate<SchemaV1.SettingsRecord> { $0.id == settingsId }
             )
             let record: SchemaV1.SettingsRecord
             if let existing = try context.fetch(descriptor).first {

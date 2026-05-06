@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import DartsScoreboard
 
 @Test(.tags(.unit, .stats, .offline, .regression))
 func statsServiceComputesX01AverageFromEvents() throws {
@@ -11,7 +12,7 @@ func statsServiceComputesX01AverageFromEvents() throws {
     ]
     var session = try MatchLifecycleService.createMatch(
         type: .x01,
-        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
         participants: participants
     )
 
@@ -24,7 +25,16 @@ func statsServiceComputesX01AverageFromEvents() throws {
         ]
     )
     session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 0, darts: nil)
-    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 40, darts: [DartInput(multiplier: .double, segment: .oneToTwenty(20))])
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 180, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 0, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(
+        session: session,
+        enteredTotal: nil,
+        darts: [
+            DartInput(multiplier: .double, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(20))
+        ]
+    )
 
     let aggregates = StatsService.recomputePlayerAggregates(from: [session])
     let average = aggregates[player1]?.x01Average3Dart

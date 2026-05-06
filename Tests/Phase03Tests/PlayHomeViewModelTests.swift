@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import DartsScoreboard
 
 @MainActor
 @Test(.tags(.integration, .navigation, .match, .smoke, .regression))

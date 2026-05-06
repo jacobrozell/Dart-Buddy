@@ -22,7 +22,7 @@
 "player.validation.duplicateName" = "A player with this name already exists.";
 "setup.error.load" = "Unable to load setup data.";
 "setup.error.start" = "Unable to start match.";
-"setup.validation.minimumPlayers" = "Select at least two players.";
+"setup.validation.minimumPlayers" = "Select at least two players (tap names until they show a checkmark).";
 "setup.validation.invalidStartScore" = "Invalid start score.";
 "setup.validation.invalidLegs" = "Leg count must be at least 1.";
 "setup.validation.invalidSets" = "Set count must be at least 1.";
@@ -51,6 +51,9 @@
 "play.setup.title" = "New Match";
 "play.setup.mode" = "Mode";
 "play.setup.players" = "Players";
+"play.setup.playersEmptyHint" = "Use Quick Add to create players, then tap each name to add them to this match.";
+"play.setup.playersSelectionHint" = "Tap each name to include that player. At least two need a checkmark.";
+"play.setup.playerRow.accessibilityHint" = "Toggles whether this player is in this match.";
 "play.setup.quickAdd" = "+ Quick Add";
 "play.setup.x01Options" = "X01 Options";
 "play.setup.checkout.single" = "Single-Out";

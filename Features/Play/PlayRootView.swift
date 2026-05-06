@@ -21,7 +21,8 @@ struct PlayRootView: View {
                 playerRepository: dependencies.playerRepository,
                 settingsRepository: dependencies.settingsRepository,
                 matchRepository: dependencies.matchRepository,
-                activeMatchStore: dependencies.activeMatchStore
+                activeMatchStore: dependencies.activeMatchStore,
+                pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections
             )
         )
     }
@@ -41,6 +42,7 @@ struct PlayRootView: View {
                     case .setup:
                         MatchSetupView(
                             viewModel: setupViewModel,
+                            pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
                             onStartRoute: { next in path.append(next) },
                             onQuickAddPlayer: { path.append(.quickAddPlayer) }
                         )
@@ -88,7 +90,8 @@ struct PlayRootView: View {
                             matchId: matchId
                         )
                     case .quickAddPlayer:
-                        QuickAddPlayerScreen(repository: dependencies.playerRepository) {
+                        QuickAddPlayerScreen(repository: dependencies.playerRepository) { created in
+                            dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
                             await setupViewModel.onAppear()
                         }
                     }
@@ -125,7 +128,7 @@ private func localizedText(_ key: String) -> Text {
 
 private struct QuickAddPlayerScreen: View {
     let repository: any PlayerRepository
-    let onCreated: () async -> Void
+    let onCreated: (PlayerSummary) async -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
@@ -168,8 +171,8 @@ private struct QuickAddPlayerScreen: View {
         isSaving = true
         defer { isSaving = false }
         do {
-            _ = try await repository.createPlayer(name: name)
-            await onCreated()
+            let created = try await repository.createPlayer(name: name)
+            await onCreated(created)
             dismiss()
         } catch let appError as AppError {
             errorMessageKey = appError.userMessageKey
@@ -265,6 +268,7 @@ private struct MatchSetupView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject var viewModel: MatchSetupViewModel
+    @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
     let onStartRoute: (PlayRoute) -> Void
     let onQuickAddPlayer: () -> Void
     @State private var startTask: Task<Void, Never>?
@@ -302,6 +306,9 @@ private struct MatchSetupView: View {
         .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.onAppear()
+        }
+        .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
+            Task { await viewModel.onAppear() }
         }
         .safeAreaInset(edge: .bottom) {
             if !usesInlineStartButton {
@@ -352,19 +359,34 @@ private struct MatchSetupView: View {
     private var playerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.playersSection).font(.headline)
+            if viewModel.availablePlayers.isEmpty {
+                Text(L10n.setupPlayersEmptyHint)
+                    .font(.footnote)
+                    .foregroundStyle(DS.ColorRole.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if viewModel.selectedPlayerIds.count < 2 {
+                Text(L10n.setupPlayersSelectionHint)
+                    .font(.footnote)
+                    .foregroundStyle(DS.ColorRole.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             ForEach(viewModel.availablePlayers) { player in
+                let isSelected = viewModel.selectedPlayerIds.contains(player.id)
                 Button {
                     viewModel.togglePlayer(player.id)
                 } label: {
                     HStack {
                         Text(player.name)
                         Spacer()
-                        if viewModel.selectedPlayerIds.contains(player.id) {
-                            Image(systemName: "checkmark.circle.fill")
-                        }
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .imageScale(.large)
+                            .foregroundStyle(isSelected ? DS.ColorRole.info : DS.ColorRole.textSecondary)
                     }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityHint(L10n.setupPlayerRowAccessibilityHint)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
             Button {
                 onQuickAddPlayer()
@@ -459,30 +481,92 @@ private struct MatchSetupView: View {
 }
 
 private struct X01MatchScreen: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ObservedObject var viewModel: X01MatchViewModel
     let onShowSummary: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
+    
+    private var contentMaxWidth: CGFloat {
+        horizontalSizeClass == .regular ? 700 : .infinity
+    }
+    
+    private var isSnapshotPreviewMode: Bool {
+        ProcessInfo.processInfo.arguments.contains("-snapshot_match_x01")
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 Text(L10n.x01Title)
                     .font(.title2).bold()
-                if let session = viewModel.session, let state = session.runtime.x01State {
-                    Text(L10n.format("play.x01.turnLegSet", state.currentPlayerIndex + 1, state.legIndex + 1, state.setIndex + 1))
-                    ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
-                        HStack {
-                            Text(L10n.format("common.playerOrdinal", index + 1))
-                            Spacer()
-                            Text("\(player.remainingScore)")
-                            if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                                Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    if let session = viewModel.session, let state = session.runtime.x01State {
+                        Text(L10n.format("play.x01.turnLegSet", state.currentPlayerIndex + 1, state.legIndex + 1, state.setIndex + 1))
+                            .foregroundStyle(DS.ColorRole.textSecondary)
+                        ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
+                            ViewThatFits {
+                                HStack {
+                                    Text(L10n.format("common.playerOrdinal", index + 1))
+                                    Spacer()
+                                    HStack(spacing: DS.Spacing.s1) {
+                                        Text("\(player.remainingScore)")
+                                            .font(.title3.weight(.semibold))
+                                        if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
+                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                        }
+                                    }
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                                }
+                                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                                    Text(L10n.format("common.playerOrdinal", index + 1))
+                                    HStack(spacing: DS.Spacing.s1) {
+                                        Text("\(player.remainingScore)")
+                                            .font(.title3.weight(.semibold))
+                                        if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
+                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                        }
+                                    }
+                                }
                             }
                         }
+                    } else if isSnapshotPreviewMode {
+                        Text(L10n.format("play.x01.turnLegSet", 1, 1, 1))
+                            .foregroundStyle(DS.ColorRole.textSecondary)
+                        ForEach([501, 421], id: \.self) { score in
+                            ViewThatFits {
+                                HStack {
+                                    Text(L10n.format("common.playerOrdinal", score == 501 ? 1 : 2))
+                                    Spacer()
+                                    HStack(spacing: DS.Spacing.s1) {
+                                        Text("\(score)")
+                                            .font(.title3.weight(.semibold))
+                                        if score == 501 {
+                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                        }
+                                    }
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                                }
+                                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                                    Text(L10n.format("common.playerOrdinal", score == 501 ? 1 : 2))
+                                    HStack(spacing: DS.Spacing.s1) {
+                                        Text("\(score)")
+                                            .font(.title3.weight(.semibold))
+                                        if score == 501 {
+                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        ProgressView(L10n.loading)
                     }
                 }
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 ScoringInputPad(
                     modeOptions: [.totalEntry, .dartEntry],
                     mode: $viewModel.inputMode,
@@ -501,6 +585,8 @@ private struct X01MatchScreen: View {
                 )
                 stateBanner
             }
+            .frame(maxWidth: contentMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(DS.Spacing.s4)
         .navigationTitle("play.x01.navTitle")
@@ -552,40 +638,102 @@ private struct X01MatchScreen: View {
 }
 
 private struct CricketMatchScreen: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ObservedObject var viewModel: CricketMatchViewModel
     let onShowSummary: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
+    
+    private var contentMaxWidth: CGFloat {
+        horizontalSizeClass == .regular ? 700 : .infinity
+    }
+    
+    private var isSnapshotPreviewMode: Bool {
+        ProcessInfo.processInfo.arguments.contains("-snapshot_match_cricket")
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 Text(L10n.cricketTitle)
                     .font(.title2).bold()
-                if let session = viewModel.session, let state = session.runtime.cricketState {
-                    Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
-                    ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(L10n.format("common.playerOrdinal", index + 1))
-                                Spacer()
-                                Text(L10n.format("play.cricket.pointsFormat", player.score))
-                                if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                                    Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    if let session = viewModel.session, let state = session.runtime.cricketState {
+                        Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
+                            .foregroundStyle(DS.ColorRole.textSecondary)
+                        ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
+                            VStack(alignment: .leading, spacing: 4) {
+                                ViewThatFits {
+                                    HStack {
+                                        Text(L10n.format("common.playerOrdinal", index + 1))
+                                        Spacer()
+                                        HStack(spacing: DS.Spacing.s1) {
+                                            Text(L10n.format("play.cricket.pointsFormat", player.score))
+                                                .font(.title3.weight(.semibold))
+                                            if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
+                                                Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                            }
+                                        }
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.85)
+                                    }
+                                    VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                                        Text(L10n.format("common.playerOrdinal", index + 1))
+                                        HStack(spacing: DS.Spacing.s1) {
+                                            Text(L10n.format("play.cricket.pointsFormat", player.score))
+                                                .font(.title3.weight(.semibold))
+                                            if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
+                                                Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                            HStack(spacing: 6) {
-                                ForEach(CricketTarget.allCases, id: \.rawValue) { target in
-                                    Text("\(target.rawValue):\(marksText(player.marks[target.rawValue] ?? 0))")
-                                        .font(.caption2)
-                                        .padding(.horizontal, 4)
-                                        .background(.thinMaterial, in: Capsule())
+                                HStack(spacing: 6) {
+                                    ForEach(CricketTarget.allCases, id: \.rawValue) { target in
+                                        Text("\(target.rawValue):\(marksText(player.marks[target.rawValue] ?? 0))")
+                                            .font(.caption2)
+                                            .padding(.horizontal, 4)
+                                            .background(.thinMaterial, in: Capsule())
+                                    }
                                 }
                             }
                         }
+                    } else if isSnapshotPreviewMode {
+                        Text(L10n.format("play.cricket.roundTurn", 1, 1))
+                            .foregroundStyle(DS.ColorRole.textSecondary)
+                        ForEach([32, 10], id: \.self) { points in
+                            ViewThatFits {
+                                HStack {
+                                    Text(L10n.format("common.playerOrdinal", points == 32 ? 1 : 2))
+                                    Spacer()
+                                    HStack(spacing: DS.Spacing.s1) {
+                                        Text(L10n.format("play.cricket.pointsFormat", points))
+                                            .font(.title3.weight(.semibold))
+                                        if points == 32 {
+                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                        }
+                                    }
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                                }
+                                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                                    Text(L10n.format("common.playerOrdinal", points == 32 ? 1 : 2))
+                                    HStack(spacing: DS.Spacing.s1) {
+                                        Text(L10n.format("play.cricket.pointsFormat", points))
+                                            .font(.title3.weight(.semibold))
+                                        if points == 32 {
+                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        ProgressView(L10n.loading)
                     }
                 }
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 ScoringInputPad(
                     modeOptions: [.dartEntry],
                     mode: .constant(.dartEntry),
@@ -604,6 +752,8 @@ private struct CricketMatchScreen: View {
                 )
                 stateBanner
             }
+            .frame(maxWidth: contentMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(DS.Spacing.s4)
         .navigationTitle("play.cricket.navTitle")

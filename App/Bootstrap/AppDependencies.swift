@@ -11,6 +11,7 @@ public struct AppDependencies {
     public let hapticsService: any HapticsService
     public let audioFeedbackService: any AudioFeedbackService
     public let activeMatchStore: ActiveMatchStore
+    public let pendingMatchPlayerSelections: PendingMatchPlayerSelections
 
     public init(
         modelContainer: ModelContainer,
@@ -21,7 +22,8 @@ public struct AppDependencies {
         settingsRepository: any SettingsRepository,
         hapticsService: any HapticsService,
         audioFeedbackService: any AudioFeedbackService,
-        activeMatchStore: ActiveMatchStore
+        activeMatchStore: ActiveMatchStore,
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections
     ) {
         self.modelContainer = modelContainer
         self.logger = logger
@@ -32,5 +34,6 @@ public struct AppDependencies {
         self.hapticsService = hapticsService
         self.audioFeedbackService = audioFeedbackService
         self.activeMatchStore = activeMatchStore
+        self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
     }
 }

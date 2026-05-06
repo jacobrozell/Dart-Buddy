@@ -9,19 +9,17 @@ public enum ModelContainerFactory {
     }
 
     public static func makeContainer(mode: StorageMode = .appDefault) throws -> ModelContainer {
-        let schema = Schema(DartsMigrationPlan.schemas)
-        let isInMemory: Bool
+        let schema = Schema(versionedSchema: SchemaV1.self)
+        let configuration: ModelConfiguration
         switch mode {
         case .inMemory:
-            isInMemory = true
-        default:
-            isInMemory = false
+            configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        case .appDefault, .customURL:
+            guard let url = storeURL(for: mode) else {
+                preconditionFailure("storeURL must return a URL for \(mode)")
+            }
+            configuration = ModelConfiguration(schema: schema, url: url)
         }
-        let configuration = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: isInMemory,
-            url: storeURL(for: mode)
-        )
         return try ModelContainer(
             for: schema,
             migrationPlan: DartsMigrationPlan.self,

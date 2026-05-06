@@ -3,32 +3,46 @@ import SwiftData
 
 @main
 struct DartsScoreboardApp: App {
-    @State private var bootstrapResult: AppBootstrapResult = AppBootstrapper.bootstrap()
+    @State private var bootstrapResult: AppBootstrapResult?
 
     var body: some Scene {
         WindowGroup {
-            switch bootstrapResult {
-            case let .ready(dependencies):
-                MainTabView(dependencies: dependencies)
-                    .modelContainer(dependencies.modelContainer)
-            case let .migrationRecovery(context):
-                MigrationRecoveryView(
-                    context: context,
-                    retryHandler: {
-                        let result = AppBootstrapper.bootstrap()
-                        bootstrapResult = result
-                        if case .ready = result { return true }
-                        return false
-                    },
-                    resetHandler: {
-                        resetLocalStoreFiles()
-                        bootstrapResult = AppBootstrapper.bootstrap()
-                        if case .ready = bootstrapResult { return true }
-                        return false
+            Group {
+                if let currentBootstrapResult = bootstrapResult {
+                    switch currentBootstrapResult {
+                    case let .ready(dependencies):
+                        MainTabView(dependencies: dependencies)
+                            .modelContainer(dependencies.modelContainer)
+                    case let .migrationRecovery(context):
+                        MigrationRecoveryView(
+                            context: context,
+                            retryHandler: {
+                                await refreshBootstrapResult()
+                                if case .ready = self.bootstrapResult { return true }
+                                return false
+                            },
+                            resetHandler: {
+                                resetLocalStoreFiles()
+                                await refreshBootstrapResult()
+                                if case .ready = self.bootstrapResult { return true }
+                                return false
+                            }
+                        )
                     }
-                )
+                } else {
+                    ProgressView(L10n.loading)
+                }
+            }
+            .task {
+                guard bootstrapResult == nil else { return }
+                await refreshBootstrapResult()
             }
         }
+    }
+
+    @MainActor
+    private func refreshBootstrapResult() async {
+        bootstrapResult = await AppBootstrapper.bootstrap()
     }
 
     private func resetLocalStoreFiles() {

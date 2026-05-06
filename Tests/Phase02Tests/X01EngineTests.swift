@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import DartsScoreboard
 
 @Test(.tags(.unit, .x01, .critical, .offline, .regression))
 func x01SingleOutCheckoutCompletesMatch() throws {
@@ -18,13 +19,22 @@ func x01SingleOutCheckoutCompletesMatch() throws {
 @Test(.tags(.unit, .x01, .critical, .offline, .regression))
 func x01DoubleOutInvalidFinishBecomesBust() throws {
     let players = [UUID(), UUID()]
-    let config = MatchConfigX01(startScore: 40, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
     var state = try X01Engine.makeInitialState(config: config, playerIds: players)
+
+    // Bring player 1 down to 40 remaining, preserving turn order.
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 180, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 81, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
 
     let outcome = try X01Engine.submitTurn(
         state: state,
         enteredTotal: nil,
-        darts: [DartInput(multiplier: .single, segment: .oneToTwenty(20))]
+        darts: [
+            DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(20))
+        ]
     )
 
     #expect(outcome.event.isBust)
@@ -35,12 +45,18 @@ func x01DoubleOutInvalidFinishBecomesBust() throws {
 @Test(.tags(.unit, .x01, .critical, .offline, .regression))
 func x01OverflowBustResetsAppliedScore() throws {
     let players = [UUID(), UUID()]
-    let config = MatchConfigX01(startScore: 32, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)
-    let state = try X01Engine.makeInitialState(config: config, playerIds: players)
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)
+    var state = try X01Engine.makeInitialState(config: config, playerIds: players)
 
-    let outcome = try X01Engine.submitTurn(state: state, enteredTotal: 60, darts: nil)
+    // Bring player 1 to a low score, then overflow with a legal turn total.
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 180, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 61, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+
+    let outcome = try X01Engine.submitTurn(state: state, enteredTotal: 100, darts: nil)
 
     #expect(outcome.event.isBust)
     #expect(outcome.event.appliedTotal == 0)
-    #expect(outcome.updatedState.players[0].remainingScore == 32)
+    #expect(outcome.updatedState.players[0].remainingScore == 60)
 }

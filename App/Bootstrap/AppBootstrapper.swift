@@ -7,13 +7,19 @@ public enum AppBootstrapResult {
 }
 
 public enum AppBootstrapper {
-    public static func bootstrap() -> AppBootstrapResult {
+    public static func bootstrap() async -> AppBootstrapResult {
         let logger = DefaultAppLogger.makeForCurrentBuild()
         logger.info(.appLifecycle, eventName: "app_bootstrap_start", message: "Bootstrapping app dependencies.")
 
         do {
-            let container = try ModelContainerFactory.makeContainer(mode: .appDefault)
-            try validateSchemaInvariants(in: container)
+            let container = try await Task.detached(priority: .userInitiated) {
+                let container = try ModelContainerFactory.makeContainer(mode: .appDefault)
+                try validateSchemaInvariants(in: container)
+                return container
+            }.value
+            let (activeMatchStore, pendingMatchPlayerSelections) = await MainActor.run {
+                (ActiveMatchStore(), PendingMatchPlayerSelections())
+            }
 
             let dependencies = AppDependencies(
                 modelContainer: container,
@@ -24,7 +30,8 @@ public enum AppBootstrapper {
                 settingsRepository: SwiftDataSettingsRepository(container: container),
                 hapticsService: NoopHapticsService(),
                 audioFeedbackService: NoopAudioFeedbackService(),
-                activeMatchStore: ActiveMatchStore()
+                activeMatchStore: activeMatchStore,
+                pendingMatchPlayerSelections: pendingMatchPlayerSelections
             )
             logger.info(.appLifecycle, eventName: "app_bootstrap_ready", message: "App bootstrap completed.")
             return .ready(dependencies)
@@ -45,19 +52,45 @@ public enum AppBootstrapper {
 
     private static func validateSchemaInvariants(in container: ModelContainer) throws {
         let context = ModelContext(container)
-        let events = try context.fetch(FetchDescriptor<SchemaV1.MatchEventRecord>())
-        let eventIndexesByMatch = Dictionary(grouping: events, by: \.matchId).mapValues { $0.map(\.eventIndex) }
-        for (matchId, indexes) in eventIndexesByMatch {
-            guard SchemaInvariantValidator.hasContiguousEventIndexes(indexes) else {
-                throw AppError(
-                    code: .migrationFailed,
-                    layer: .data,
-                    severity: .fault,
-                    isRecoverable: true,
-                    userMessageKey: "error.migration.invariant",
-                    debugContext: ["matchId": matchId.uuidString]
-                )
+        let matches = try context.fetch(FetchDescriptor<SchemaV1.MatchRecord>())
+        for match in matches {
+            try validateContiguousEventIndexes(for: match.id, in: context)
+        }
+    }
+
+    private static func validateContiguousEventIndexes(for matchId: UUID, in context: ModelContext) throws {
+        var expectedIndex = 0
+        var fetchOffset = 0
+        let pageSize = 500
+
+        while true {
+            var descriptor = FetchDescriptor<SchemaV1.MatchEventRecord>(
+                predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId },
+                sortBy: [SortDescriptor(\.eventIndex, order: .forward)]
+            )
+            descriptor.fetchLimit = pageSize
+            descriptor.fetchOffset = fetchOffset
+
+            let page = try context.fetch(descriptor)
+            if page.isEmpty {
+                break
             }
+
+            for event in page {
+                guard event.eventIndex == expectedIndex else {
+                    throw AppError(
+                        code: .migrationFailed,
+                        layer: .data,
+                        severity: .fault,
+                        isRecoverable: true,
+                        userMessageKey: "error.migration.invariant",
+                        debugContext: ["matchId": matchId.uuidString]
+                    )
+                }
+                expectedIndex += 1
+            }
+
+            fetchOffset += page.count
         }
     }
 }

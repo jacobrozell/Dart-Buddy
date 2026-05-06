@@ -23,17 +23,20 @@ final class MatchSetupViewModel: ObservableObject {
     private let settingsRepository: any SettingsRepository
     private let matchRepository: any MatchRepository
     private let activeMatchStore: ActiveMatchStore
+    private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
 
     init(
         playerRepository: any PlayerRepository,
         settingsRepository: any SettingsRepository,
         matchRepository: any MatchRepository,
-        activeMatchStore: ActiveMatchStore
+        activeMatchStore: ActiveMatchStore,
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections
     ) {
         self.playerRepository = playerRepository
         self.settingsRepository = settingsRepository
         self.matchRepository = matchRepository
         self.activeMatchStore = activeMatchStore
+        self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
     }
 
     var canStart: Bool {
@@ -43,6 +46,10 @@ final class MatchSetupViewModel: ObservableObject {
     func onAppear() async {
         do {
             availablePlayers = try await playerRepository.fetchPlayers(includeArchived: false)
+            let loadedIds = Set(availablePlayers.map(\.id))
+            for id in pendingMatchPlayerSelections.dequeueIdsPresent(in: loadedIds) {
+                selectedPlayerIds.insert(id)
+            }
             let settings = try await settingsRepository.seedDefaultsIfNeeded()
             x01StartScore = [301, 501].contains(settings.defaultX01StartScore) ? settings.defaultX01StartScore : 501
             x01LegsToWin = max(1, settings.defaultLegsToWin)
@@ -61,6 +68,12 @@ final class MatchSetupViewModel: ObservableObject {
         } else {
             selectedPlayerIds.insert(id)
         }
+        revalidate()
+    }
+
+    /// Adds a player to the match roster without toggling off if already selected (e.g. after Quick Add).
+    func addPlayerToSelection(_ id: UUID) {
+        selectedPlayerIds.insert(id)
         revalidate()
     }
 

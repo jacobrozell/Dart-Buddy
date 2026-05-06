@@ -17,7 +17,10 @@ struct PlayersRootView: View {
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
-        _viewModel = StateObject(wrappedValue: PlayersListViewModel(repository: dependencies.playerRepository))
+        _viewModel = StateObject(wrappedValue: PlayersListViewModel(
+            repository: dependencies.playerRepository,
+            pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections
+        ))
     }
 
     var body: some View {

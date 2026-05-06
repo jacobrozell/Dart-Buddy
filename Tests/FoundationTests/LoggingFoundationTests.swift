@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import DartsScoreboard
 
 @Test(.tags(.unit, .logging, .regression, .critical))
 func redactionPolicyAllowlistsMetadata() {

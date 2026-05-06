@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import Testing
+@testable import DartsScoreboard
 
 @Test(.tags(.unit, .settings, .swiftdata, .regression))
 func settingsSeederIsIdempotent() throws {

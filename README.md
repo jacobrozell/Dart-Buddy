@@ -56,3 +56,9 @@ Darts Scoreboard is an iOS SwiftUI app for running and tracking darts matches.
 2. `App/MainTabView.swift` presents `Play`, `History`, `Players`, `Settings`.
 3. Each feature root view initializes its view model(s) and coordinates navigation + async tasks.
 
+## QA and Smoke Testing
+
+- Full manual smoke pass: `specs/SmokeTestChecklist.md`
+- Fast pre-release gate (5-10 min): `specs/ReleaseGateChecklist.md`
+- PR/CI evidence template: `specs/SmokeTestEvidenceTemplate.md`
+

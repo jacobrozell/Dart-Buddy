@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import DartsScoreboard
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
@@ -8,7 +9,8 @@ func setupValidationRequiresMinimumPlayers() async {
         playerRepository: FakePlayerRepository(players: [makePlayer("A")]),
         settingsRepository: FakeSettingsRepository(),
         matchRepository: FakeMatchRepository(),
-        activeMatchStore: ActiveMatchStore()
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
     )
     await vm.onAppear()
     vm.selectedPlayerIds = []
@@ -20,13 +22,49 @@ func setupValidationRequiresMinimumPlayers() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
+func setupOnAppearSelectsPendingPlayersWhenPresent() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let pending = PendingMatchPlayerSelections()
+    pending.enqueueForNextMatchSetup(players[1].id)
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: pending
+    )
+    await vm.onAppear()
+    #expect(vm.selectedPlayerIds.contains(players[1].id))
+    #expect(!vm.selectedPlayerIds.contains(players[0].id))
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
+func setupAddPlayerToSelectionIsIdempotent() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.addPlayerToSelection(players[0].id)
+    vm.addPlayerToSelection(players[0].id)
+    #expect(vm.selectedPlayerIds == Set([players[0].id]))
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupStartRouteUsesSelectedMode() async {
     let players = [makePlayer("A"), makePlayer("B")]
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
         settingsRepository: FakeSettingsRepository(),
         matchRepository: FakeMatchRepository(),
-        activeMatchStore: ActiveMatchStore()
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
     )
     await vm.onAppear()
     vm.updateMode(.cricket)
