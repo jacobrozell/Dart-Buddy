@@ -9,10 +9,19 @@ struct EditablePlayer: Identifiable, Equatable {
 
 @MainActor
 final class PlayersListViewModel: ObservableObject {
+    enum State: Equatable {
+        case loading
+        case ready
+        case empty
+        case searchNoResults
+        case error
+    }
+
     @Published var searchText = ""
     @Published private(set) var players: [EditablePlayer] = []
     @Published private(set) var filtered: [EditablePlayer] = []
-    @Published private(set) var state: String = "loading"
+    @Published private(set) var state: State = .loading
+    @Published private(set) var errorMessageKey: String?
 
     private let repository: any PlayerRepository
 
@@ -21,15 +30,19 @@ final class PlayersListViewModel: ObservableObject {
     }
 
     func onAppear() async {
+        errorMessageKey = nil
         do {
             let loaded = try await repository.fetchPlayers(includeArchived: true)
             players = loaded.map {
                 EditablePlayer(id: $0.id, name: $0.name, isArchived: $0.isArchived, notes: "")
             }
             applySearch()
-            state = players.isEmpty ? "empty" : "ready"
+            state = players.isEmpty ? .empty : .ready
+        } catch is CancellationError {
+            return
         } catch {
-            state = "error"
+            state = .error
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
     }
 
@@ -37,9 +50,10 @@ final class PlayersListViewModel: ObservableObject {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if query.isEmpty {
             filtered = players.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            state = players.isEmpty ? .empty : .ready
         } else {
             filtered = players.filter { $0.name.lowercased().contains(query) }
-            if filtered.isEmpty { state = "searchNoResults" }
+            state = filtered.isEmpty ? .searchNoResults : .ready
         }
     }
 
@@ -55,7 +69,8 @@ final class PlayersListViewModel: ObservableObject {
             players[idx].isArchived = nextArchived
             applySearch()
         } catch {
-            state = "error"
+            state = .error
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
     }
 
@@ -67,6 +82,7 @@ final class PlayersListViewModel: ObservableObject {
             applySearch()
             return true
         } catch {
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
             return false
         }
     }
@@ -80,12 +96,20 @@ final class PlayersListViewModel: ObservableObject {
             }
             await onAppear()
         } catch {
-            state = "error"
+            state = .error
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
     }
 
     func player(id: UUID) -> EditablePlayer? {
         players.first(where: { $0.id == id })
+    }
+
+    private func messageKey(for error: Error, fallback: String) -> String {
+        if let appError = error as? AppError {
+            return appError.userMessageKey
+        }
+        return fallback
     }
 }
 

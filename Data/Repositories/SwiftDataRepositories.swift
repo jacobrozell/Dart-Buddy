@@ -223,6 +223,38 @@ public actor SwiftDataMatchRepository: MatchRepository {
         }
     }
 
+    public func fetchHistoryWithParticipants(page: Int, pageSize: Int) async throws -> [MatchHistoryRecord] {
+        try dataCall {
+            let context = ModelContext(container)
+            let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == MatchStatus.completed.rawValue },
+                sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
+            )
+            let allMatches = try context.fetch(descriptor)
+            let safePage = max(0, page)
+            let safeSize = max(1, pageSize)
+            let offset = safePage * safeSize
+            guard offset < allMatches.count else { return [] }
+            let end = min(allMatches.count, offset + safeSize)
+            let pageMatches = Array(allMatches[offset ..< end])
+            let pageMatchIds = Set(pageMatches.map(\.id))
+
+            let participantDescriptor = FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                sortBy: [SortDescriptor(\.turnOrder, order: .forward)]
+            )
+            let participants = try context.fetch(participantDescriptor)
+                .filter { pageMatchIds.contains($0.matchId) }
+                .map(mapParticipant)
+            let participantsByMatchId = Dictionary(grouping: participants, by: \.matchId)
+            return pageMatches.map {
+                MatchHistoryRecord(
+                    summary: mapMatch($0),
+                    participants: participantsByMatchId[$0.id] ?? []
+                )
+            }
+        }
+    }
+
     public func updateMatch(_ match: MatchSummary) async throws {
         try dataCall {
             let context = ModelContext(container)
@@ -456,7 +488,31 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
         }
     }
 
-    public func resetSettings() async throws {
+    public func resetPreferencesToDefaults() async throws {
+        try dataCall {
+            let context = ModelContext(container)
+            let record: SchemaV1.SettingsRecord
+            if let existing = try context.fetch(FetchDescriptor<SchemaV1.SettingsRecord>()).first {
+                record = existing
+            } else {
+                let created = SchemaV1.SettingsRecord()
+                context.insert(created)
+                record = created
+            }
+            record.appearanceModeRaw = "system"
+            record.hapticsEnabled = true
+            record.soundEnabled = true
+            record.defaultMatchTypeRaw = "x01"
+            record.defaultX01StartScore = 501
+            record.defaultCheckoutModeRaw = "doubleOut"
+            record.defaultLegsToWin = 3
+            record.defaultSetsEnabled = false
+            record.updatedAt = Date()
+            try context.save()
+        }
+    }
+
+    public func resetAllLocalData() async throws {
         try dataCall {
             let context = ModelContext(container)
             for player in try context.fetch(FetchDescriptor<SchemaV1.PlayerRecord>()) {

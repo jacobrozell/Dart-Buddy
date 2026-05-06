@@ -4,6 +4,8 @@ struct HistoryRootView: View {
     let dependencies: AppDependencies
     @State private var path: [HistoryRoute] = []
     @StateObject private var viewModel: HistoryListViewModel
+    @State private var filterTask: Task<Void, Never>?
+    @State private var retryTask: Task<Void, Never>?
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -33,7 +35,21 @@ struct HistoryRootView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
 
-                if viewModel.rows.isEmpty {
+                if viewModel.state == .error {
+                    ContentUnavailableView(
+                        L10n.errorTitle,
+                        systemImage: "exclamationmark.triangle",
+                        description: Text(viewModel.errorMessageKey ?? "error.repository.storage")
+                    )
+                    .overlay(alignment: .bottom) {
+                        Button(L10n.retry) {
+                            retryTask?.cancel()
+                            retryTask = Task { await viewModel.applyFilters() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.bottom, DS.Spacing.s6)
+                    }
+                } else if viewModel.rows.isEmpty {
                     ContentUnavailableView(L10n.historyNoMatches, systemImage: "clock")
                 } else {
                     List(viewModel.rows) { row in
@@ -57,14 +73,24 @@ struct HistoryRootView: View {
             }
             .navigationTitle(L10n.historyTitle)
             .task { await viewModel.onAppear() }
-            .onChange(of: viewModel.modeFilter) { _, _ in Task { await viewModel.applyFilters() } }
-            .onChange(of: viewModel.dateFilter) { _, _ in Task { await viewModel.applyFilters() } }
+            .onDisappear {
+                filterTask?.cancel()
+                retryTask?.cancel()
+            }
+            .onChange(of: viewModel.modeFilter) { _, _ in
+                filterTask?.cancel()
+                filterTask = Task { await viewModel.applyFilters() }
+            }
+            .onChange(of: viewModel.dateFilter) { _, _ in
+                filterTask?.cancel()
+                filterTask = Task { await viewModel.applyFilters() }
+            }
             .navigationDestination(for: HistoryRoute.self) { route in
                 switch route {
                 case .list:
                     EmptyView()
                 case let .detail(matchId):
-                    HistoryDetailView(
+                    MatchHistoryDetailScreen(
                         viewModel: HistoryDetailViewModel(
                             matchId: matchId,
                             matchRepository: dependencies.matchRepository,
@@ -89,31 +115,3 @@ private func historyModeTitle(_ mode: HistoryListViewModel.ModeFilter) -> Locali
     }
 }
 
-private struct HistoryDetailView: View {
-    @ObservedObject var viewModel: HistoryDetailViewModel
-    let matchId: UUID
-
-    var body: some View {
-        List {
-            Section(L10n.historyHeaderSection) {
-                Text(L10n.format("history.detail.matchFormat", String(matchId.uuidString.prefix(8))))
-                if let header = viewModel.header {
-                    Text(L10n.format("history.modeFormat", header.modeText))
-                    Text(L10n.format("history.winnerFormat", header.winnerText))
-                    Text(L10n.format("history.dateFormat", header.dateText))
-                    Text(L10n.format("history.durationFormat", header.durationText))
-                    Text(L10n.format("history.participantsFormat", header.participantsText))
-                    Text(header.modeSpecificSummaryText)
-                        .foregroundStyle(DS.ColorRole.textSecondary)
-                }
-            }
-            Section(L10n.historyTimelineSection) {
-                ForEach(Array(viewModel.timeline.enumerated()), id: \.offset) { _, row in
-                    Text(row)
-                }
-            }
-        }
-        .navigationTitle(L10n.historyDetailTitle)
-        .task { await viewModel.onAppear() }
-    }
-}

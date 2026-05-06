@@ -42,7 +42,13 @@ struct DartsScoreboardApp: App {
             sqliteBase.appendingPathExtension("wal")
         ]
         for url in candidates where FileManager.default.fileExists(atPath: url.path) {
-            try? FileManager.default.removeItem(at: url)
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                #if DEBUG
+                    print("Failed to remove local store file: \(url.lastPathComponent), error: \(error)")
+                #endif
+            }
         }
     }
 }

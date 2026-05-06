@@ -19,6 +19,13 @@ struct HistoryDetailHeader: Equatable {
 
 @MainActor
 final class HistoryListViewModel: ObservableObject {
+    enum State: Equatable {
+        case loading
+        case readyFiltered
+        case emptyFiltered
+        case error
+    }
+
     enum ModeFilter: String, CaseIterable, Identifiable {
         case all
         case x01
@@ -37,7 +44,8 @@ final class HistoryListViewModel: ObservableObject {
     @Published var dateFilter: DateFilter = .all
     @Published var playerFilter: UUID?
     @Published private(set) var rows: [HistoryListRow] = []
-    @Published private(set) var state: String = "loading"
+    @Published private(set) var state: State = .loading
+    @Published private(set) var errorMessageKey: String?
 
     private let matchRepository: any MatchRepository
     private let logger: (any AppLogger)?
@@ -52,12 +60,14 @@ final class HistoryListViewModel: ObservableObject {
     }
 
     func applyFilters() async {
-        state = "loading"
+        state = .loading
+        errorMessageKey = nil
         do {
             let mapped = try await PerformanceMonitor.measure(.historyLoad, logger: logger) {
-                try await matchRepository.fetchHistory(page: 0, pageSize: 500)
+                try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 500)
             }
-            let filtered = mapped.filter { summary in
+            let filtered = mapped.filter { record in
+                let summary = record.summary
                 let modePass: Bool
                 switch modeFilter {
                 case .all: modePass = true
@@ -77,26 +87,33 @@ final class HistoryListViewModel: ObservableObject {
                 let playerPass = playerFilter == nil || summary.winnerPlayerId == playerFilter
                 return modePass && datePass && playerPass
             }
-            var enriched: [HistoryListRow] = []
-            for summary in filtered {
-                let participants = try await matchRepository.fetchParticipants(matchId: summary.id)
+            rows = filtered.map { record in
+                let summary = record.summary
+                let participants = record.participants
                 let names = participants.map(\.displayNameAtMatchStart)
                 let winnerName = participants.first(where: { $0.playerId == summary.winnerPlayerId })?.displayNameAtMatchStart
                     ?? NSLocalizedString("common.unknown", comment: "")
-                enriched.append(
-                    HistoryListRow(
-                        summary: summary,
-                        participantNames: names,
-                        winnerName: winnerName
-                    )
+                return HistoryListRow(
+                    summary: summary,
+                    participantNames: names,
+                    winnerName: winnerName
                 )
             }
-            rows = enriched
-            state = rows.isEmpty ? "emptyFiltered" : "readyFiltered"
+            state = rows.isEmpty ? .emptyFiltered : .readyFiltered
+        } catch is CancellationError {
+            state = rows.isEmpty ? .emptyFiltered : .readyFiltered
         } catch {
             rows = []
-            state = "error"
+            state = .error
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
+    }
+
+    private func messageKey(for error: Error, fallback: String) -> String {
+        if let appError = error as? AppError {
+            return appError.userMessageKey
+        }
+        return fallback
     }
 }
 
@@ -105,6 +122,7 @@ final class HistoryDetailViewModel: ObservableObject {
     @Published private(set) var header: HistoryDetailHeader?
     @Published private(set) var timeline: [String] = []
     @Published private(set) var state: String = "loading"
+    @Published private(set) var errorMessageKey: String?
     private let matchId: UUID
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
@@ -120,10 +138,12 @@ final class HistoryDetailViewModel: ObservableObject {
     }
 
     func onAppear() async {
+        errorMessageKey = nil
         do {
             guard let match = try await matchRepository.fetchMatch(matchId: matchId) else {
                 timeline = []
                 state = "error"
+                errorMessageKey = "error.match.notFound"
                 return
             }
             let participants = try await matchRepository.fetchParticipants(matchId: matchId)
@@ -146,10 +166,13 @@ final class HistoryDetailViewModel: ObservableObject {
             }
             header = buildHeader(match: match, participants: participants, envelopes: envelopes)
             state = "ready"
+        } catch is CancellationError {
+            return
         } catch {
             header = nil
             timeline = []
             state = "error"
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
     }
 
@@ -196,5 +219,12 @@ final class HistoryDetailViewModel: ObservableObject {
             participantsText: participantsText,
             modeSpecificSummaryText: modeSpecificSummaryText
         )
+    }
+
+    private func messageKey(for error: Error, fallback: String) -> String {
+        if let appError = error as? AppError {
+            return appError.userMessageKey
+        }
+        return fallback
     }
 }

@@ -13,6 +13,7 @@ public protocol MatchRepository: Sendable {
     func createMatch(type: MatchType, configPayload: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary
     func fetchActiveMatch() async throws -> MatchSummary?
     func fetchHistory(page: Int, pageSize: Int) async throws -> [MatchSummary]
+    func fetchHistoryWithParticipants(page: Int, pageSize: Int) async throws -> [MatchHistoryRecord]
     func updateMatch(_ match: MatchSummary) async throws
     func completeMatch(matchId: UUID, endedAt: Date, winnerPlayerId: UUID?) async throws -> MatchSummary
     func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary
@@ -31,15 +32,16 @@ public protocol SettingsRepository: Sendable {
     func fetchSettings() async throws -> SettingsSummary
     func seedDefaultsIfNeeded() async throws -> SettingsSummary
     func updateSettings(_ settings: SettingsSummary) async throws -> SettingsSummary
-    func resetSettings() async throws
+    func resetPreferencesToDefaults() async throws
+    func resetAllLocalData() async throws
 }
 
-public extension MatchRepository {
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? {
-        nil
-    }
+public struct MatchHistoryRecord: Equatable, Sendable {
+    public let summary: MatchSummary
+    public let participants: [MatchParticipantSummary]
 
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] {
-        []
+    public init(summary: MatchSummary, participants: [MatchParticipantSummary]) {
+        self.summary = summary
+        self.participants = participants
     }
 }

@@ -7,6 +7,8 @@ struct PlayersRootView: View {
     @State private var editingPlayer: EditablePlayer?
     @State private var showEditSheet = false
     @State private var deleteBlockedMessage: String?
+    @State private var actionTask: Task<Void, Never>?
+    @State private var retryTask: Task<Void, Never>?
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -16,7 +18,13 @@ struct PlayersRootView: View {
     var body: some View {
         NavigationStack(path: $path) {
             Group {
-                if viewModel.filtered.isEmpty {
+                if viewModel.state == .error {
+                    ContentUnavailableView(
+                        L10n.errorTitle,
+                        systemImage: "exclamationmark.triangle",
+                        description: Text(viewModel.errorMessageKey ?? "error.repository.storage")
+                    )
+                } else if viewModel.filtered.isEmpty {
                     ContentUnavailableView(L10n.playersEmptyTitle, systemImage: "person.2", description: Text(L10n.playersEmptyDescription))
                 } else {
                     List(viewModel.filtered) { player in
@@ -32,12 +40,17 @@ struct PlayersRootView: View {
                         }
                         .swipeActions {
                             Button(player.isArchived ? "players.unarchive" : "players.archive") {
-                                Task { await viewModel.archiveToggle(player.id) }
+                                actionTask?.cancel()
+                                actionTask = Task { await viewModel.archiveToggle(player.id) }
                             }.tint(.orange)
                             Button(L10n.delete, role: .destructive) {
-                                Task {
+                                actionTask?.cancel()
+                                actionTask = Task {
                                     if !await viewModel.delete(player.id) {
-                                        deleteBlockedMessage = NSLocalizedString("players.delete.blocked.message", comment: "")
+                                        deleteBlockedMessage = NSLocalizedString(
+                                            viewModel.errorMessageKey ?? "players.delete.blocked.message",
+                                            comment: ""
+                                        )
                                     }
                                 }
                             }
@@ -55,6 +68,12 @@ struct PlayersRootView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                if viewModel.state == .error {
+                    Button(L10n.retry) {
+                        retryTask?.cancel()
+                        retryTask = Task { await viewModel.onAppear() }
+                    }
+                }
             }
             .task {
                 await viewModel.onAppear()
@@ -71,7 +90,8 @@ struct PlayersRootView: View {
                             showEditSheet = true
                         },
                         onArchiveToggle: {
-                            Task { await viewModel.archiveToggle(playerId) }
+                            actionTask?.cancel()
+                            actionTask = Task { await viewModel.archiveToggle(playerId) }
                         }
                     )
                 case let .edit(playerId):
@@ -90,7 +110,8 @@ struct PlayersRootView: View {
                     ),
                     existing: editingPlayer,
                     onSave: { player in
-                        Task { await viewModel.save(player) }
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.save(player) }
                     }
                 )
             }
@@ -101,6 +122,10 @@ struct PlayersRootView: View {
                 Button(L10n.ok, role: .cancel) {}
             } message: {
                 Text(deleteBlockedMessage ?? "")
+            }
+            .onDisappear {
+                actionTask?.cancel()
+                retryTask?.cancel()
             }
         }
     }

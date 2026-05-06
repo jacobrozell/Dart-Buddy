@@ -25,4 +25,22 @@ enum PerformanceMonitor {
         logger?.debug(.ui, eventName: "performance_metric", message: "Measured operation latency.", metadata: merged)
         return result
     }
+
+    @discardableResult
+    static func measure<T>(
+        _ operation: PerformanceOperation,
+        logger: (any AppLogger)? = nil,
+        metadata: [String: String] = [:],
+        _ block: () async throws -> T
+    ) async rethrows -> T {
+        let start = ContinuousClock.now
+        let result = try await block()
+        let elapsed = start.duration(to: .now)
+        let millis = elapsed.components.seconds * 1000 + elapsed.components.attoseconds / 1_000_000_000_000_000
+        var merged = metadata
+        merged["operation"] = operation.rawValue
+        merged["elapsedMs"] = String(millis)
+        logger?.debug(.ui, eventName: "performance_metric", message: "Measured operation latency.", metadata: merged)
+        return result
+    }
 }

@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 
 enum L10n {
+    static let errorTitle: LocalizedStringKey = "common.error.title"
+    static let retry: LocalizedStringKey = "common.retry"
     static let playTitle: LocalizedStringKey = "play.title"
     static let quickAddTitle: LocalizedStringKey = "play.quickAdd.title"
     static let loading: LocalizedStringKey = "common.loading"
@@ -33,6 +35,7 @@ enum L10n {
     static let historyDetailTitle: LocalizedStringKey = "history.detail.title"
     static let historyHeaderSection: LocalizedStringKey = "history.detail.headerSection"
     static let historyTimelineSection: LocalizedStringKey = "history.detail.timelineSection"
+    static let historyTimelineEmpty: LocalizedStringKey = "history.timeline.empty"
     static let playersTitle: LocalizedStringKey = "players.title"
     static let playersEmptyTitle: LocalizedStringKey = "players.empty.title"
     static let playersEmptyDescription: LocalizedStringKey = "players.empty.description"

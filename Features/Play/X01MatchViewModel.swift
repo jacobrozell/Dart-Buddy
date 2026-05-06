@@ -49,12 +49,12 @@ final class X01MatchViewModel: ObservableObject {
         }
     }
 
-    func submitTurn() {
-        Task { await submitTurnAsync() }
+    func submitTurn() async {
+        await submitTurnAsync()
     }
 
-    func undoLastTurn() {
-        Task { await undoLastTurnAsync() }
+    func undoLastTurn() async {
+        await undoLastTurnAsync()
     }
 
     func onAppear() async {
@@ -71,20 +71,36 @@ final class X01MatchViewModel: ObservableObject {
         do {
             let total = inputMode == .totalEntry ? Int(totalEntryText) : nil
             let darts = inputMode == .dartEntry ? enteredDarts : nil
-            current = try PerformanceMonitor.measure(
-                .submitTurn,
-                logger: logger,
-                metadata: ["matchType": MatchType.x01.rawValue]
-            ) {
-                try MatchLifecycleService.submitX01Turn(
-                    session: current,
-                    enteredTotal: total,
-                    darts: darts
-                )
+            do {
+                current = try PerformanceMonitor.measure(
+                    .submitTurn,
+                    logger: logger,
+                    metadata: ["matchType": MatchType.x01.rawValue]
+                ) {
+                    try MatchLifecycleService.submitX01Turn(
+                        session: current,
+                        enteredTotal: total,
+                        darts: darts
+                    )
+                }
+            } catch is CancellationError {
+                state = .readyTurn
+                return
+            } catch {
+                state = .entryInvalid(errorMessageKey(for: error, fallback: "x01.error.invalidTurn"))
+                return
             }
             store.save(current)
             session = current
-            try await persistProgress(current)
+            do {
+                try await persistProgress(current)
+            } catch is CancellationError {
+                state = .readyTurn
+                return
+            } catch {
+                state = .error(errorMessageKey(for: error, fallback: "error.repository.storage"))
+                return
+            }
             if current.runtime.status == .completed {
                 PerformanceMonitor.measure(
                     .completeMatch,
@@ -99,8 +115,6 @@ final class X01MatchViewModel: ObservableObject {
             }
             enteredDarts.removeAll()
             totalEntryText = ""
-        } catch {
-            state = .entryInvalid("x01.error.invalidTurn")
         }
     }
 
@@ -120,8 +134,10 @@ final class X01MatchViewModel: ObservableObject {
             state = .readyTurn
             enteredDarts.removeAll()
             totalEntryText = ""
+        } catch is CancellationError {
+            state = .readyTurn
         } catch {
-            state = .error("x01.error.undoFailed")
+            state = .error(errorMessageKey(for: error, fallback: "x01.error.undoFailed"))
         }
     }
 
@@ -193,7 +209,14 @@ final class X01MatchViewModel: ObservableObject {
             store.save(rehydrated)
             session = rehydrated
         } catch {
-            state = .error("x01.error.sessionMissing")
+            state = .error(errorMessageKey(for: error, fallback: "x01.error.sessionMissing"))
         }
+    }
+
+    private func errorMessageKey(for error: Error, fallback: String) -> String {
+        if let appError = error as? AppError {
+            return appError.userMessageKey
+        }
+        return fallback
     }
 }

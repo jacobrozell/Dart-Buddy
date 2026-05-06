@@ -80,7 +80,11 @@ struct PlayRootView: View {
                     case let .historyDetail(matchId):
                         MatchHistoryDetailScreen(
                             matchId: matchId,
-                            statsRepository: dependencies.statsRepository
+                            viewModel: HistoryDetailViewModel(
+                                matchId: matchId,
+                                matchRepository: dependencies.matchRepository,
+                                statsRepository: dependencies.statsRepository
+                            )
                         )
                     case .quickAddPlayer:
                         QuickAddPlayerScreen(repository: dependencies.playerRepository) {
@@ -104,6 +108,7 @@ private struct QuickAddPlayerScreen: View {
     @State private var name = ""
     @State private var isSaving = false
     @State private var errorMessageKey: String?
+    @State private var createTask: Task<Void, Never>?
 
     var body: some View {
         Form {
@@ -125,10 +130,14 @@ private struct QuickAddPlayerScreen: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button(isSaving ? "common.saving" : "common.save") {
-                    Task { await createPlayer() }
+                    createTask?.cancel()
+                    createTask = Task { await createPlayer() }
                 }
                 .disabled(isSaving || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+        }
+        .onDisappear {
+            createTask?.cancel()
         }
     }
 
@@ -199,6 +208,7 @@ private struct MatchSetupView: View {
     @ObservedObject var viewModel: MatchSetupViewModel
     let onStartRoute: (PlayRoute) -> Void
     let onQuickAddPlayer: () -> Void
+    @State private var startTask: Task<Void, Never>?
 
     var body: some View {
         ScrollView {
@@ -218,7 +228,8 @@ private struct MatchSetupView: View {
         }
         .safeAreaInset(edge: .bottom) {
             Button {
-                Task {
+                startTask?.cancel()
+                startTask = Task {
                     if let route = await viewModel.startMatchRoute() {
                         onStartRoute(route)
                     }
@@ -231,6 +242,9 @@ private struct MatchSetupView: View {
             .frame(minHeight: 56)
             .padding(DS.Spacing.s4)
             .background(.ultraThinMaterial)
+        }
+        .onDisappear {
+            startTask?.cancel()
         }
     }
 
@@ -315,6 +329,7 @@ private struct X01MatchScreen: View {
     let onShowSummary: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
+    @State private var actionTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -340,8 +355,14 @@ private struct X01MatchScreen: View {
                 enteredDarts: $viewModel.enteredDarts,
                 totalEntryText: $viewModel.totalEntryText,
                 canSubmit: viewModel.canSubmit,
-                onSubmit: { viewModel.submitTurn() },
-                onUndo: { viewModel.undoLastTurn() }
+                onSubmit: {
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.submitTurn() }
+                },
+                onUndo: {
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.undoLastTurn() }
+                }
             )
             stateBanner
         }
@@ -370,6 +391,9 @@ private struct X01MatchScreen: View {
         .task {
             await viewModel.onAppear()
         }
+        .onDisappear {
+            actionTask?.cancel()
+        }
     }
 
     @ViewBuilder
@@ -395,6 +419,7 @@ private struct CricketMatchScreen: View {
     let onShowSummary: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
+    @State private var actionTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -430,8 +455,14 @@ private struct CricketMatchScreen: View {
                 enteredDarts: $viewModel.enteredDarts,
                 totalEntryText: .constant(""),
                 canSubmit: viewModel.canSubmit,
-                onSubmit: { viewModel.submitTurn() },
-                onUndo: { viewModel.undoLastTurn() }
+                onSubmit: {
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.submitTurn() }
+                },
+                onUndo: {
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.undoLastTurn() }
+                }
             )
             stateBanner
         }
@@ -459,6 +490,9 @@ private struct CricketMatchScreen: View {
         }
         .task {
             await viewModel.onAppear()
+        }
+        .onDisappear {
+            actionTask?.cancel()
         }
     }
 
@@ -522,53 +556,3 @@ private struct MatchSummaryScreen: View {
     }
 }
 
-private struct MatchHistoryDetailScreen: View {
-    let matchId: UUID
-    let statsRepository: any StatsRepository
-    @State private var rows: [String] = []
-    @State private var state = "loading"
-
-    var body: some View {
-        List {
-            Section(L10n.historyHeaderSection) {
-                Text(L10n.format("history.detail.matchFormat", String(matchId.uuidString.prefix(8))))
-            }
-            Section(L10n.historyTimelineSection) {
-                if rows.isEmpty, state == "loading" {
-                    ProgressView(L10n.loading)
-                } else if rows.isEmpty {
-                    Text("history.timeline.empty")
-                        .foregroundStyle(DS.ColorRole.textSecondary)
-                } else {
-                    ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                        Text(row)
-                    }
-                }
-            }
-        }
-        .navigationTitle(L10n.historyDetailTitle)
-        .task {
-            await load()
-        }
-    }
-
-    private func load() async {
-        state = "loading"
-        do {
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            rows = try events.map { event in
-                let envelope = try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: event.eventPayload)
-                switch envelope.payload {
-                case let .x01Turn(turn):
-                    return "Turn \(turn.turnIndex + 1): \(turn.playerId.uuidString.prefix(6)) +\(turn.appliedTotal)"
-                case let .cricketTurn(turn):
-                    return "Turn \(turn.turnIndex + 1): \(turn.playerId.uuidString.prefix(6)) +\(turn.totalPointsAdded)"
-                }
-            }
-            state = "ready"
-        } catch {
-            rows = []
-            state = "error"
-        }
-    }
-}

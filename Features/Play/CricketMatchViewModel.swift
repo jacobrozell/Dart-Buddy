@@ -39,12 +39,12 @@ final class CricketMatchViewModel: ObservableObject {
 
     var canSubmit: Bool { !enteredDarts.isEmpty }
 
-    func submitTurn() {
-        Task { await submitTurnAsync() }
+    func submitTurn() async {
+        await submitTurnAsync()
     }
 
-    func undoLastTurn() {
-        Task { await undoLastTurnAsync() }
+    func undoLastTurn() async {
+        await undoLastTurnAsync()
     }
 
     func onAppear() async {
@@ -59,16 +59,32 @@ final class CricketMatchViewModel: ObservableObject {
         }
         state = .submittingTurn
         do {
-            current = try PerformanceMonitor.measure(
-                .submitTurn,
-                logger: logger,
-                metadata: ["matchType": MatchType.cricket.rawValue]
-            ) {
-                try MatchLifecycleService.submitCricketTurn(session: current, darts: enteredDarts)
+            do {
+                current = try PerformanceMonitor.measure(
+                    .submitTurn,
+                    logger: logger,
+                    metadata: ["matchType": MatchType.cricket.rawValue]
+                ) {
+                    try MatchLifecycleService.submitCricketTurn(session: current, darts: enteredDarts)
+                }
+            } catch is CancellationError {
+                state = .readyTurn
+                return
+            } catch {
+                state = .entryInvalid(errorMessageKey(for: error, fallback: "cricket.error.invalidTurn"))
+                return
             }
             store.save(current)
             session = current
-            try await persistProgress(current)
+            do {
+                try await persistProgress(current)
+            } catch is CancellationError {
+                state = .readyTurn
+                return
+            } catch {
+                state = .error(errorMessageKey(for: error, fallback: "error.repository.storage"))
+                return
+            }
             if current.runtime.status == .completed {
                 PerformanceMonitor.measure(
                     .completeMatch,
@@ -80,8 +96,6 @@ final class CricketMatchViewModel: ObservableObject {
                 state = .closureTransition
             }
             enteredDarts.removeAll()
-        } catch {
-            state = .entryInvalid("cricket.error.invalidTurn")
         }
     }
 
@@ -100,8 +114,10 @@ final class CricketMatchViewModel: ObservableObject {
             )
             state = .readyTurn
             enteredDarts.removeAll()
+        } catch is CancellationError {
+            state = .readyTurn
         } catch {
-            state = .error("cricket.error.undoFailed")
+            state = .error(errorMessageKey(for: error, fallback: "cricket.error.undoFailed"))
         }
     }
 
@@ -173,7 +189,14 @@ final class CricketMatchViewModel: ObservableObject {
             store.save(rehydrated)
             session = rehydrated
         } catch {
-            state = .error("cricket.error.sessionMissing")
+            state = .error(errorMessageKey(for: error, fallback: "cricket.error.sessionMissing"))
         }
+    }
+
+    private func errorMessageKey(for error: Error, fallback: String) -> String {
+        if let appError = error as? AppError {
+            return appError.userMessageKey
+        }
+        return fallback
     }
 }

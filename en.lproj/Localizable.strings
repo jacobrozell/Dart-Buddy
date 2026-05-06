@@ -1,6 +1,8 @@
 "play.title" = "Play";
 "play.quickAdd.title" = "Quick Add";
 "common.loading" = "Loading...";
+"common.error.title" = "Something went wrong";
+"common.retry" = "Retry";
 "play.home.noActiveMatch" = "No active match";
 "play.home.resumeActiveMatch" = "Resume Active Match";
 "play.home.resumeButton" = "Resume Match";

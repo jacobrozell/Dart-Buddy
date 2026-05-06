@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 
 public enum AppBootstrapResult {
     case ready(AppDependencies)
@@ -13,8 +12,6 @@ public enum AppBootstrapper {
 
         do {
             let container = try ModelContainerFactory.makeContainer(mode: .appDefault)
-            let context = ModelContext(container)
-            try SettingsSeeder(logger: logger).seedDefaultsIfNeeded(in: context)
 
             let dependencies = AppDependencies(
                 modelContainer: container,
