@@ -79,6 +79,51 @@ func setupStartRouteUsesSelectedMode() async {
     }
 }
 
+@MainActor
+@Test(.tags(.integration, .setupFlow, .navigation, .regression))
+func setupStartPromptsWhenAnotherMatchIsActive() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let repo = ActiveConflictMatchRepository(hasActive: true)
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: repo,
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.togglePlayer(players[0].id)
+    vm.togglePlayer(players[1].id)
+
+    let route = await vm.startMatchRoute()
+    #expect(route == nil)
+    #expect(vm.showActiveMatchConflict)
+    #expect(await repo.deletedCount == 0)
+    #expect(vm.validationErrors.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .navigation, .regression))
+func setupConfirmReplaceDeletesActiveMatchThenStarts() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let repo = ActiveConflictMatchRepository(hasActive: true)
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: repo,
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.togglePlayer(players[0].id)
+    vm.togglePlayer(players[1].id)
+
+    let route = await vm.confirmReplaceActiveMatch()
+    #expect(route != nil)
+    #expect(!vm.showActiveMatchConflict)
+    #expect(await repo.deletedCount == 1)
+}
+
 private func makePlayer(_ name: String) -> PlayerSummary {
     PlayerSummary(id: UUID(), name: name, isArchived: false, createdAt: Date(), updatedAt: Date())
 }
@@ -162,4 +207,51 @@ private actor FakeMatchRepository: MatchRepository {
     func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
+}
+
+/// Reports an in-progress match so the setup flow must prompt before starting,
+/// and records deletions triggered by the "Game in Progress" confirmation.
+private actor ActiveConflictMatchRepository: MatchRepository {
+    private var hasActive: Bool
+    private(set) var deletedCount = 0
+
+    init(hasActive: Bool) { self.hasActive = hasActive }
+
+    private func activeSummary() -> MatchSummary {
+        MatchSummary(
+            id: UUID(),
+            type: .x01,
+            status: .inProgress,
+            startedAt: Date(),
+            endedAt: nil,
+            winnerPlayerId: nil,
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: 0,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        MatchSummary(id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil, winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0, eventCount: 0, createdAt: Date(), updatedAt: Date())
+    }
+
+    func fetchActiveMatch() async throws -> MatchSummary? { hasActive ? activeSummary() : nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {
+        deletedCount += 1
+        hasActive = false
+    }
 }

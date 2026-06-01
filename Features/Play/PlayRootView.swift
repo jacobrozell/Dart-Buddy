@@ -167,6 +167,19 @@ private struct SetupHomeView: View {
         .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
             Task { await setupViewModel.onAppear() }
         }
+        .alert("play.setup.activeConflict.title", isPresented: $setupViewModel.showActiveMatchConflict) {
+            Button("common.cancel", role: .cancel) {}
+            Button("play.setup.activeConflict.confirm", role: .destructive) {
+                startTask?.cancel()
+                startTask = Task {
+                    if let route = await setupViewModel.confirmReplaceActiveMatch() {
+                        onStartRoute(route)
+                    }
+                }
+            }
+        } message: {
+            Text("play.setup.activeConflict.message")
+        }
         .onDisappear { startTask?.cancel() }
     }
 
@@ -238,7 +251,7 @@ private struct SetupHomeView: View {
                     }
                 }
             } label: {
-                chipBox("\(setupViewModel.x01StartScore)", color: Brand.green)
+                chipBox("\(setupViewModel.x01StartScore)", color: Brand.green, showsMenuIndicator: true)
             }
         }
     }
@@ -266,7 +279,7 @@ private struct SetupHomeView: View {
                     }
                 }
             } label: {
-                chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.green)
+                chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.green, showsMenuIndicator: true)
             }
         }
     }
@@ -281,7 +294,7 @@ private struct SetupHomeView: View {
                     }
                 }
             } label: {
-                chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.green)
+                chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.green, showsMenuIndicator: true)
             }
         }
     }
@@ -298,7 +311,7 @@ private struct SetupHomeView: View {
         chip(title: title, color: color) { chipBox(value, color: color) }
     }
 
-    private func chipBox(_ text: String, color: Color) -> some View {
+    private func chipBox(_ text: String, color: Color, showsMenuIndicator: Bool = false) -> some View {
         Text(text)
             .font(.headline.weight(.bold))
             .foregroundStyle(.white)
@@ -307,6 +320,14 @@ private struct SetupHomeView: View {
             .frame(maxWidth: .infinity, minHeight: 48)
             .padding(.horizontal, 4)
             .background(color, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+            .overlay(alignment: .topTrailing) {
+                if showsMenuIndicator {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .padding(5)
+                }
+            }
     }
 
     private var startButton: some View {

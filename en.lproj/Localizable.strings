@@ -184,4 +184,7 @@
 "play.match.exit.confirm.message" = "Your current match will remain available to resume later.";
 "common.stay" = "Stay";
 "common.exit" = "Exit";
+"play.setup.activeConflict.title" = "Game in Progress";
+"play.setup.activeConflict.message" = "You already have a match in progress. Delete it and start a new one?";
+"play.setup.activeConflict.confirm" = "Delete & Start";
 "history.timeline.empty" = "No timeline events available.";

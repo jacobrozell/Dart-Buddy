@@ -118,6 +118,31 @@ final class DartsScoreboardUITests: XCTestCase {
         )
     }
 
+    // MARK: - Key path: starting a new match while one is active prompts to replace it
+
+    func testStartingWithActiveMatchPromptsToReplaceIt() {
+        let app = launchApp(["-seed_demo"])
+
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        // The seed leaves an in-progress match, so the resume banner is present.
+        XCTAssertTrue(app.buttons["resumeMatchButton"].waitForExistence(timeout: timeout))
+
+        app.buttons["select_Jacob"].tap()
+        app.buttons["select_Sam"].tap()
+        app.buttons["startMatchButton"].tap()
+
+        let alert = app.alerts["Game in Progress"]
+        XCTAssertTrue(alert.waitForExistence(timeout: timeout), "Starting with an active match should prompt to replace it")
+
+        alert.buttons["Delete & Start"].tap()
+
+        // Confirming deletes the old match and opens the freshly configured board.
+        XCTAssertTrue(
+            app.staticTexts["501, Double Out, First to 3 Legs"].waitForExistence(timeout: timeout),
+            "Confirming should delete the active match and open the new board"
+        )
+    }
+
     // MARK: - Key path: resume an in-progress match
 
     func testResumeActiveMatch() {

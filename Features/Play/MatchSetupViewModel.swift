@@ -23,6 +23,8 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
+    /// Drives the "Game in Progress" confirmation when a match is already active.
+    @Published var showActiveMatchConflict = false
 
     private let playerRepository: any PlayerRepository
     private let settingsRepository: any SettingsRepository
@@ -108,6 +110,35 @@ final class MatchSetupViewModel: ObservableObject {
 
     func startMatchRoute() async -> PlayRoute? {
         revalidate()
+        guard canStart else { return nil }
+        // A match is already in progress: ask the user to replace it instead of
+        // failing silently with a validation error.
+        if (try? await matchRepository.fetchActiveMatch()) != nil {
+            showActiveMatchConflict = true
+            return nil
+        }
+        return await performStart()
+    }
+
+    /// Deletes the active match and immediately starts the configured one.
+    /// Invoked from the "Game in Progress" confirmation popup.
+    func confirmReplaceActiveMatch() async -> PlayRoute? {
+        showActiveMatchConflict = false
+        do {
+            if let active = try await matchRepository.fetchActiveMatch() {
+                try await matchRepository.deleteMatch(matchId: active.id)
+                activeMatchStore.remove(matchId: active.id)
+            }
+        } catch is CancellationError {
+            return nil
+        } catch {
+            validationErrors = [(error as? AppError)?.userMessageKey ?? "setup.error.start"]
+            return nil
+        }
+        return await performStart()
+    }
+
+    private func performStart() async -> PlayRoute? {
         guard canStart else { return nil }
         isSubmitting = true
         defer { isSubmitting = false }
