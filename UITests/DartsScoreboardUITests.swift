@@ -39,6 +39,51 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Sam"].waitForExistence(timeout: timeout))
     }
 
+    // MARK: - Key path: player detail surfaces all-games stats
+
+    func testPlayerDetailShowsStats() {
+        let app = launchApp(["-seed_demo"])
+
+        app.tabBars.buttons["Players"].tap()
+        let jacobRow = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Jacob")).firstMatch
+        XCTAssertTrue(jacobRow.waitForExistence(timeout: timeout))
+        jacobRow.tap()
+
+        XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout), "Player detail should show an X01 stats section")
+        XCTAssertTrue(app.staticTexts["3-Dart Avg"].waitForExistence(timeout: timeout), "Player detail should show the 3-dart average tile")
+        XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout), "Player detail should show hits in sector")
+    }
+
+    // MARK: - Key path: game detail surfaces stats and can be deleted
+
+    func testGameDetailShowsStatsAndDeletes() {
+        let app = launchApp(["-seed_demo"])
+
+        app.tabBars.buttons["All Games"].tap()
+        let gameCard = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch
+        XCTAssertTrue(gameCard.waitForExistence(timeout: timeout))
+        gameCard.tap()
+
+        XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Points"].waitForExistence(timeout: timeout), "Game detail should show the Points table")
+        XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout))
+
+        let delete = app.buttons["Delete"]
+        XCTAssertTrue(delete.waitForExistence(timeout: timeout), "Game detail should show a Delete button")
+        delete.tap()
+
+        // Confirm in the alert, then verify we return to an empty All Games list.
+        let confirm = app.alerts.buttons["Delete"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: timeout))
+        confirm.tap()
+
+        XCTAssertTrue(app.staticTexts["All Games"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: timeout),
+            "Deleting the only completed game should empty the All Games list"
+        )
+    }
+
     // MARK: - Key path: set up a match and score a turn
 
     func testStartMatchAndScoreTurn() {
@@ -86,6 +131,52 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(
             app.staticTexts["121"].waitForExistence(timeout: timeout),
             "Resumed board should show the saved remaining score"
+        )
+    }
+
+    // MARK: - Empty state: a fresh install guides the user to add players
+
+    func testEmptyRosterGuidesUserToAddPlayers() {
+        let app = launchApp([])
+
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            app.staticTexts["Add at least two players to start a match."].waitForExistence(timeout: timeout),
+            "An empty roster should prompt the user to add players"
+        )
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertFalse(start.isEnabled, "START must stay disabled without two players")
+    }
+
+    // MARK: - Validation: START requires two selected players
+
+    func testStartRequiresTwoSelectedPlayers() {
+        let app = launchApp(["-seed_players"])
+
+        let alice = app.buttons["select_Alice"]
+        XCTAssertTrue(alice.waitForExistence(timeout: timeout))
+        alice.tap()
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertFalse(start.isEnabled, "START should be disabled with only one player selected")
+
+        app.buttons["select_Bob"].tap()
+        XCTAssertTrue(start.isEnabled, "START should enable once two players are selected")
+    }
+
+    // MARK: - Empty state: no completed games yet
+
+    func testAllGamesEmptyBeforeAnyMatchCompletes() {
+        let app = launchApp(["-seed_players"])
+
+        app.tabBars.buttons["All Games"].tap()
+        XCTAssertTrue(app.staticTexts["All Games"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: timeout),
+            "All Games should be empty before any match completes"
         )
     }
 

@@ -161,4 +161,5 @@ private actor FakeMatchRepository: MatchRepository {
     func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
     func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
 }
