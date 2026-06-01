@@ -119,7 +119,10 @@ struct X01MatchScreen: View {
     }
 
     private func autoSubmitIfNeeded(darts: [DartInput], state: X01State) {
-        guard !darts.isEmpty, viewModel.state == .readyTurn else { return }
+        guard !darts.isEmpty else { return }
+        // Starting the next visit dismisses the BUST banner and re-arms scoring.
+        viewModel.acknowledgeBustFeedback()
+        guard viewModel.state == .readyTurn else { return }
         let remaining = state.players[state.currentPlayerIndex].remainingScore
         let visitTotal = darts.reduce(0) { $0 + $1.points }
         if darts.count == 3 || visitTotal >= remaining {
@@ -150,12 +153,12 @@ struct X01MatchScreen: View {
     }
 
     private func dartsThrown(for playerId: UUID) -> Int {
-        turnEvents(for: playerId).reduce(0) { $0 + max($1.darts.count, 0) }
+        turnEvents(for: playerId).reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
     }
 
     private func average(for playerId: UUID) -> Double {
         let events = turnEvents(for: playerId)
-        let darts = events.reduce(0) { $0 + max($1.darts.count, 0) }
+        let darts = events.reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
         guard darts > 0 else { return 0 }
         let points = events.reduce(0) { $0 + $1.appliedTotal }
         return Double(points) / Double(darts) * 3.0

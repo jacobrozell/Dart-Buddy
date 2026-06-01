@@ -61,6 +61,13 @@ final class X01MatchViewModel: ObservableObject {
         await loadSessionIfNeeded()
     }
 
+    /// Clears the transient bust banner so the next visit can be scored.
+    /// `bustFeedback` is shown after a busted turn; without acknowledging it the
+    /// auto-submit guard would otherwise stay blocked and stall the match.
+    func acknowledgeBustFeedback() {
+        if state == .bustFeedback { state = .readyTurn }
+    }
+
     private func submitTurnAsync() async {
         await loadSessionIfNeeded()
         guard var current = session else {
