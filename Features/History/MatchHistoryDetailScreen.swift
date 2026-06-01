@@ -3,8 +3,11 @@ import SwiftUI
 struct MatchHistoryDetailScreen: View {
     @ObservedObject var viewModel: HistoryDetailViewModel
     let matchId: UUID
+    var onDeleted: () -> Void = {}
     @State private var retryTask: Task<Void, Never>?
+    @State private var deleteTask: Task<Void, Never>?
     @State private var showTimeline = false
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         ScrollView {
@@ -29,11 +32,10 @@ struct MatchHistoryDetailScreen: View {
                     }
                 } else {
                     resultCard
-                    if !viewModel.throwsRows.isEmpty {
-                        sectionTitle("Throws")
-                        throwsTable
-                    }
+                    statTables
+                    sectorSection
                     timelineSection
+                    deleteButton
                 }
             }
             .padding(.horizontal, DS.Spacing.s4)
@@ -42,7 +44,21 @@ struct MatchHistoryDetailScreen: View {
         .background(Brand.background.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.onAppear() }
-        .onDisappear { retryTask?.cancel() }
+        .onDisappear {
+            retryTask?.cancel()
+            deleteTask?.cancel()
+        }
+        .alert("Delete this game?", isPresented: $showDeleteConfirm) {
+            Button(L10n.cancel, role: .cancel) {}
+            Button(L10n.delete, role: .destructive) {
+                deleteTask?.cancel()
+                deleteTask = Task {
+                    if await viewModel.deleteMatch() { onDeleted() }
+                }
+            }
+        } message: {
+            Text("This permanently removes the game and its stats. This cannot be undone.")
+        }
     }
 
     private func sectionTitle(_ text: String) -> some View {
@@ -50,6 +66,61 @@ struct MatchHistoryDetailScreen: View {
             .font(.title2.weight(.bold))
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var statTables: some View {
+        if !viewModel.breakdowns.isEmpty {
+            if viewModel.isX01 {
+                sectionTitle("Average & Highest Score")
+                StatTable(
+                    columns: [("3-Dart Avg", 90), ("Highest", 80)],
+                    rows: viewModel.breakdowns
+                ) { row in
+                    [String(format: "%.1f", row.average3Dart), "\(row.highestScore)"]
+                }
+                sectionTitle("Legs & Checkout")
+                StatTable(
+                    columns: [("Legs", 60), ("Checkouts", 90), ("Best CO", 80)],
+                    rows: viewModel.breakdowns
+                ) { row in
+                    ["\(row.legs)", "\(row.checkouts)", row.highestCheckout > 0 ? "\(row.highestCheckout)" : "-"]
+                }
+            }
+            sectionTitle("Points")
+            StatTable(
+                columns: [("Points", 90)],
+                rows: viewModel.breakdowns
+            ) { row in
+                ["\(row.points)"]
+            }
+            sectionTitle("Throws")
+            StatTable(
+                columns: [("Throws", 70), ("Double %", 80), ("Triple %", 80)],
+                rows: viewModel.breakdowns
+            ) { row in
+                ["\(row.darts)", String(format: "%.1f%%", row.doublePercent), String(format: "%.1f%%", row.triplePercent)]
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var sectorSection: some View {
+        let combined = combinedHits
+        if !combined.isEmpty {
+            sectionTitle("Hits in Sector")
+            SectorHitsView(hitsBySector: combined, mode: viewModel.matchType)
+        }
+    }
+
+    private var combinedHits: [String: Int] {
+        var totals: [String: Int] = [:]
+        for row in viewModel.breakdowns {
+            for (sector, count) in row.hitsBySector {
+                totals[sector, default: 0] += count
+            }
+        }
+        return totals
     }
 
     private var resultCard: some View {
@@ -88,38 +159,6 @@ struct MatchHistoryDetailScreen: View {
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 
-    private var throwsTable: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("Players").frame(maxWidth: .infinity, alignment: .leading)
-                Text("Throws").frame(width: 70, alignment: .trailing)
-                Text("Double %").frame(width: 80, alignment: .trailing)
-                Text("Triple %").frame(width: 80, alignment: .trailing)
-            }
-            .font(.caption)
-            .foregroundStyle(Brand.textSecondary)
-            .padding(.horizontal, DS.Spacing.s3)
-            .padding(.vertical, DS.Spacing.s2)
-
-            ForEach(Array(viewModel.throwsRows.enumerated()), id: \.element.id) { index, row in
-                HStack {
-                    Text("\(index + 1). \(row.name)")
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .lineLimit(1)
-                    Text("\(row.throwCount)").frame(width: 70, alignment: .trailing).foregroundStyle(.white)
-                    Text(String(format: "%.2f%%", row.doublePercent)).frame(width: 80, alignment: .trailing).foregroundStyle(.white)
-                    Text(String(format: "%.2f%%", row.triplePercent)).frame(width: 80, alignment: .trailing).foregroundStyle(.white)
-                }
-                .font(.subheadline)
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s3)
-                .background(index.isMultiple(of: 2) ? Color.clear : Brand.cardElevated.opacity(0.4))
-            }
-        }
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-    }
-
     private var timelineSection: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
             Button {
@@ -145,5 +184,18 @@ struct MatchHistoryDetailScreen: View {
         .padding(DS.Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+    }
+
+    private var deleteButton: some View {
+        Button(role: .destructive) {
+            showDeleteConfirm = true
+        } label: {
+            Label(L10n.delete, systemImage: "trash")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Brand.red)
+        .controlSize(.large)
+        .padding(.top, DS.Spacing.s4)
     }
 }

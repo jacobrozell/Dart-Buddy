@@ -1,14 +1,9 @@
 import Foundation
 
-struct PlayerStatRow: Identifiable, Equatable {
-    let id: UUID
-    let name: String
-    let games: Int
-    let wins: Int
-
-    var winPercent: Double {
-        games > 0 ? Double(wins) / Double(games) * 100 : 0
-    }
+struct SectorHit: Identifiable, Equatable {
+    let sector: String
+    let count: Int
+    var id: String { sector }
 }
 
 @MainActor
@@ -28,13 +23,28 @@ final class StatisticsViewModel: ObservableObject {
 
     @Published var mode: MatchType = .x01
     @Published var period: Period = .all
-    @Published private(set) var rows: [PlayerStatRow] = []
+    @Published private(set) var rows: [PlayerStatBreakdown] = []
     @Published private(set) var isLoading = false
 
     private let matchRepository: any MatchRepository
+    private let statsRepository: any StatsRepository
 
-    init(matchRepository: any MatchRepository) {
+    init(matchRepository: any MatchRepository, statsRepository: any StatsRepository) {
         self.matchRepository = matchRepository
+        self.statsRepository = statsRepository
+    }
+
+    /// Sectors hit across all listed players, ordered by board value, for charting.
+    var sectorHits: [SectorHit] {
+        var totals: [String: Int] = [:]
+        for row in rows {
+            for (sector, count) in row.hitsBySector {
+                totals[sector, default: 0] += count
+            }
+        }
+        return totals
+            .map { SectorHit(sector: $0.key, count: $0.value) }
+            .sorted { StatsSectorOrder.rank($0.sector, mode: mode) < StatsSectorOrder.rank($1.sector, mode: mode) }
     }
 
     func load() async {
@@ -43,36 +53,42 @@ final class StatisticsViewModel: ObservableObject {
         do {
             let history = try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 1000)
             let cutoff = periodCutoff()
-            var games: [UUID: Int] = [:]
-            var wins: [UUID: Int] = [:]
             var names: [UUID: String] = [:]
+            var inputs: [MatchStatsInput] = []
 
             for record in history {
                 let summary = record.summary
-                guard summary.status == .completed else { continue }
-                guard summary.type == mode else { continue }
+                guard summary.status == .completed, summary.type == mode else { continue }
                 if let cutoff, summary.startedAt < cutoff { continue }
+
+                var keys: [UUID] = []
                 for participant in record.participants {
                     let key = participant.playerId ?? participant.id
                     names[key] = participant.displayNameAtMatchStart
-                    games[key, default: 0] += 1
-                    if summary.winnerPlayerId == key {
-                        wins[key, default: 0] += 1
-                    }
+                    keys.append(key)
                 }
+                let events = (try? await fetchEvents(matchId: summary.id)) ?? []
+                inputs.append(
+                    MatchStatsInput(
+                        type: summary.type,
+                        participantKeys: keys,
+                        winnerKey: summary.winnerPlayerId,
+                        events: events
+                    )
+                )
             }
 
-            rows = names.map { key, name in
-                PlayerStatRow(id: key, name: name, games: games[key] ?? 0, wins: wins[key] ?? 0)
-            }
-            .sorted {
-                if $0.wins != $1.wins { return $0.wins > $1.wins }
-                if $0.games != $1.games { return $0.games > $1.games }
-                return $0.name < $1.name
-            }
+            rows = StatsService.breakdowns(from: inputs, nameById: names)
         } catch {
             rows = []
         }
+    }
+
+    private func fetchEvents(matchId: UUID) async throws -> [MatchEventEnvelope] {
+        let events = try await statsRepository.fetchEvents(matchId: matchId)
+        return try events
+            .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
+            .sorted { $0.eventIndex < $1.eventIndex }
     }
 
     private func periodCutoff() -> Date? {
@@ -86,6 +102,28 @@ final class StatisticsViewModel: ObservableObject {
             return calendar.date(byAdding: .day, value: -7, to: Date())
         case .d30:
             return calendar.date(byAdding: .day, value: -30, to: Date())
+        }
+    }
+}
+
+enum StatsSectorOrder {
+    /// Ordering for charting: bull last for X01, board values descending otherwise.
+    static func rank(_ sector: String, mode: MatchType) -> Int {
+        switch sector {
+        case "innerBull": return 100
+        case "outerBull", "bull": return 99
+        default:
+            if let value = Int(sector) { return 50 - value }
+            return 200
+        }
+    }
+
+    static func label(_ sector: String) -> String {
+        switch sector {
+        case "innerBull": return "Bull"
+        case "outerBull": return "25"
+        case "bull": return "Bull"
+        default: return sector
         }
     }
 }

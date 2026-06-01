@@ -404,6 +404,33 @@ public actor SwiftDataMatchRepository: MatchRepository {
         }
     }
 
+    public func deleteMatch(matchId: UUID) async throws {
+        try dataCall {
+            let context = ModelContext(container)
+            let match = try fetchMatchRecord(id: matchId, in: context)
+            let participants = try context.fetch(
+                FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                    predicate: #Predicate<SchemaV1.MatchParticipantRecord> { $0.matchId == matchId }
+                )
+            )
+            let snapshots = try context.fetch(
+                FetchDescriptor<SchemaV1.MatchSnapshotRecord>(
+                    predicate: #Predicate<SchemaV1.MatchSnapshotRecord> { $0.matchId == matchId }
+                )
+            )
+            let events = try context.fetch(
+                FetchDescriptor<SchemaV1.MatchEventRecord>(
+                    predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId }
+                )
+            )
+            participants.forEach(context.delete)
+            snapshots.forEach(context.delete)
+            events.forEach(context.delete)
+            context.delete(match)
+            try context.save()
+        }
+    }
+
     private func fetchMatchRecord(id: UUID, in context: ModelContext) throws -> SchemaV1.MatchRecord {
         let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
             predicate: #Predicate<SchemaV1.MatchRecord> { $0.id == id }

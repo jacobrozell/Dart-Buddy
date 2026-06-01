@@ -117,6 +117,74 @@ final class PlayersListViewModel: ObservableObject {
 }
 
 @MainActor
+final class PlayerDetailViewModel: ObservableObject {
+    @Published private(set) var x01: PlayerStatBreakdown?
+    @Published private(set) var cricket: PlayerStatBreakdown?
+    @Published private(set) var isLoading = true
+
+    private let playerId: UUID
+    private let playerName: String
+    private let matchRepository: any MatchRepository
+    private let statsRepository: any StatsRepository
+
+    init(
+        playerId: UUID,
+        playerName: String,
+        matchRepository: any MatchRepository,
+        statsRepository: any StatsRepository
+    ) {
+        self.playerId = playerId
+        self.playerName = playerName
+        self.matchRepository = matchRepository
+        self.statsRepository = statsRepository
+    }
+
+    var hasAnyGames: Bool {
+        (x01?.games ?? 0) + (cricket?.games ?? 0) > 0
+    }
+
+    func load() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let history = try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 1000)
+            var x01Inputs: [MatchStatsInput] = []
+            var cricketInputs: [MatchStatsInput] = []
+
+            for record in history {
+                let summary = record.summary
+                guard summary.status == .completed else { continue }
+                let keys = record.participants.map { $0.playerId ?? $0.id }
+                guard keys.contains(playerId) else { continue }
+
+                let events = (try? await fetchEvents(matchId: summary.id)) ?? []
+                let input = MatchStatsInput(
+                    type: summary.type,
+                    participantKeys: keys,
+                    winnerKey: summary.winnerPlayerId,
+                    events: events
+                )
+                if summary.type == .x01 { x01Inputs.append(input) } else { cricketInputs.append(input) }
+            }
+
+            let names = [playerId: playerName]
+            x01 = StatsService.breakdowns(from: x01Inputs, nameById: names).first { $0.playerId == playerId }
+            cricket = StatsService.breakdowns(from: cricketInputs, nameById: names).first { $0.playerId == playerId }
+        } catch {
+            x01 = nil
+            cricket = nil
+        }
+    }
+
+    private func fetchEvents(matchId: UUID) async throws -> [MatchEventEnvelope] {
+        let events = try await statsRepository.fetchEvents(matchId: matchId)
+        return try events
+            .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
+            .sorted { $0.eventIndex < $1.eventIndex }
+    }
+}
+
+@MainActor
 final class PlayerEditViewModel: ObservableObject {
     @Published var name = ""
     @Published var notes = ""

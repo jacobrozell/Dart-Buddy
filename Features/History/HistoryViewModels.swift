@@ -225,9 +225,13 @@ final class HistoryDetailViewModel: ObservableObject {
     @Published private(set) var configText = ""
     @Published private(set) var standings: [HistoryStanding] = []
     @Published private(set) var throwsRows: [ThrowStatRow] = []
+    @Published private(set) var breakdowns: [PlayerStatBreakdown] = []
+    @Published private(set) var matchType: MatchType = .x01
     private let matchId: UUID
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
+
+    var isX01: Bool { matchType == .x01 }
 
     init(
         matchId: UUID,
@@ -266,6 +270,7 @@ final class HistoryDetailViewModel: ObservableObject {
                     return "Turn \(turn.turnIndex + 1): \(name) +\(turn.totalPointsAdded)"
                 }
             }
+            matchType = match.type
             header = buildHeader(match: match, participants: participants, envelopes: envelopes)
             dateText = Self.detailDateFormatter.string(from: match.startedAt)
             await computeStandingsAndThrows(
@@ -273,6 +278,17 @@ final class HistoryDetailViewModel: ObservableObject {
                 participants: participants,
                 envelopes: envelopes,
                 participantNames: participantNames
+            )
+            breakdowns = StatsService.breakdowns(
+                from: [
+                    MatchStatsInput(
+                        type: match.type,
+                        participantKeys: participants.map { $0.playerId ?? $0.id },
+                        winnerKey: match.winnerPlayerId,
+                        events: envelopes
+                    )
+                ],
+                nameById: participantNames
             )
             state = "ready"
         } catch is CancellationError {
@@ -393,6 +409,16 @@ final class HistoryDetailViewModel: ObservableObject {
                 doublePercent: total > 0 ? Double(doubles) / Double(total) * 100 : 0,
                 triplePercent: total > 0 ? Double(triples) / Double(total) * 100 : 0
             )
+        }
+    }
+
+    func deleteMatch() async -> Bool {
+        do {
+            try await matchRepository.deleteMatch(matchId: matchId)
+            return true
+        } catch {
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
+            return false
         }
     }
 

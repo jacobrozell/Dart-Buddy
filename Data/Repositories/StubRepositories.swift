@@ -25,6 +25,7 @@ public actor StubMatchRepository: MatchRepository {
     public func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
     public func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     public func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    public func deleteMatch(matchId _: UUID) async throws {}
 }
 
 public actor StubStatsRepository: StatsRepository {

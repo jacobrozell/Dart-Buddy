@@ -21,6 +21,7 @@ public protocol MatchRepository: Sendable {
     func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary?
     func fetchMatch(matchId: UUID) async throws -> MatchSummary?
     func fetchParticipants(matchId: UUID) async throws -> [MatchParticipantSummary]
+    func deleteMatch(matchId: UUID) async throws
 }
 
 public protocol StatsRepository: Sendable {

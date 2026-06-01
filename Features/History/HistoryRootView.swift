@@ -74,7 +74,12 @@ struct HistoryRootView: View {
                             matchRepository: dependencies.matchRepository,
                             statsRepository: dependencies.statsRepository
                         ),
-                        matchId: matchId
+                        matchId: matchId,
+                        onDeleted: {
+                            if !path.isEmpty { path.removeLast() }
+                            filterTask?.cancel()
+                            filterTask = Task { await viewModel.applyFilters() }
+                        }
                     )
                 }
             }
