@@ -27,6 +27,31 @@ public struct CricketDartTouch: Codable, Equatable, Sendable {
     public let overflowMarks: Int
     public let pointsAdded: Int
     public let wasMiss: Bool
+    /// The precise dart segment (e.g. "innerBull"/"outerBull"/"20"/"miss").
+    /// `targetRaw` collapses both bulls to "bull", which is lossy for replay;
+    /// this preserves the distinction so resume/undo are deterministic.
+    /// Optional so historical events that predate the field still decode.
+    public let segmentRaw: String?
+
+    public init(
+        dartOrder: Int,
+        targetRaw: String,
+        multiplierRaw: String,
+        marksAdded: Int,
+        overflowMarks: Int,
+        pointsAdded: Int,
+        wasMiss: Bool,
+        segmentRaw: String? = nil
+    ) {
+        self.dartOrder = dartOrder
+        self.targetRaw = targetRaw
+        self.multiplierRaw = multiplierRaw
+        self.marksAdded = marksAdded
+        self.overflowMarks = overflowMarks
+        self.pointsAdded = pointsAdded
+        self.wasMiss = wasMiss
+        self.segmentRaw = segmentRaw
+    }
 }
 
 public struct CricketTurnEvent: Codable, Equatable, Identifiable, Sendable {
@@ -108,7 +133,8 @@ public enum CricketEngine {
                         marksAdded: 0,
                         overflowMarks: 0,
                         pointsAdded: 0,
-                        wasMiss: true
+                        wasMiss: true,
+                        segmentRaw: segmentRaw(for: dart.segment)
                     )
                 )
                 continue
@@ -138,7 +164,8 @@ public enum CricketEngine {
                     marksAdded: marksAdded,
                     overflowMarks: overflow,
                     pointsAdded: pointsAdded,
-                    wasMiss: dart.isMiss
+                    wasMiss: dart.isMiss,
+                    segmentRaw: segmentRaw(for: dart.segment)
                 )
             )
         }
@@ -177,16 +204,19 @@ public enum CricketEngine {
     ) throws -> CricketState {
         var state = try makeInitialState(config: config, playerIds: playerIds)
         for event in events {
-            let darts = event.targetsTouched.map { touch in
-                DartInput(
-                    multiplier: DartMultiplier(rawValue: touch.multiplierRaw) ?? .single,
-                    segment: parseTargetToSegment(touch.targetRaw),
-                    isMiss: touch.wasMiss
-                )
-            }
+            let darts = event.targetsTouched.map(dartInput(from:))
             state = try submitTurn(state: state, darts: darts, timestamp: event.timestamp).updatedState
         }
         return state
+    }
+
+    /// Reconstructs the original `DartInput` from a persisted touch.
+    /// Prefers the precise `segmentRaw` (so inner vs outer bull survives);
+    /// falls back to the lossy target mapping only for legacy events.
+    public static func dartInput(from touch: CricketDartTouch) -> DartInput {
+        let multiplier = DartMultiplier(rawValue: touch.multiplierRaw) ?? .single
+        let segment = touch.segmentRaw.map(segment(fromRaw:)) ?? parseTargetToSegment(touch.targetRaw)
+        return DartInput(multiplier: multiplier, segment: segment, isMiss: touch.wasMiss)
     }
 
     private static func marksForCricket(dart: DartInput) -> Int {
@@ -224,6 +254,33 @@ public enum CricketEngine {
 
     private static func cricketTarget(from raw: String) -> CricketTarget? {
         CricketTarget(rawValue: raw)
+    }
+
+    private static func segmentRaw(for segment: DartSegment) -> String {
+        switch segment {
+        case let .oneToTwenty(value):
+            return String(value)
+        case .outerBull:
+            return "outerBull"
+        case .innerBull:
+            return "innerBull"
+        case .miss:
+            return "miss"
+        }
+    }
+
+    static func segment(fromRaw raw: String) -> DartSegment {
+        if let value = Int(raw), (1 ... 20).contains(value) {
+            return .oneToTwenty(value)
+        }
+        switch raw {
+        case "outerBull":
+            return .outerBull
+        case "innerBull":
+            return .innerBull
+        default:
+            return .miss
+        }
     }
 
     private static func parseTargetToSegment(_ raw: String) -> DartSegment {

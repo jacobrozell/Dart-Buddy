@@ -186,13 +186,7 @@ public enum MatchLifecycleService {
                 }
                 session = try submitX01Turn(session: session, enteredTotal: turn.enteredTotal, darts: darts, timestamp: event.timestamp)
             case let .cricketTurn(turn):
-                let darts = turn.targetsTouched.map {
-                    DartInput(
-                        multiplier: DartMultiplier(rawValue: $0.multiplierRaw) ?? .single,
-                        segment: mapCricketTargetRaw($0.targetRaw),
-                        isMiss: $0.wasMiss
-                    )
-                }
+                let darts = turn.targetsTouched.map(CricketEngine.dartInput(from:))
                 session = try submitCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
             }
         }
@@ -226,13 +220,7 @@ public enum MatchLifecycleService {
                 }
                 rebuilt = try submitX01Turn(session: rebuilt, enteredTotal: turn.enteredTotal, darts: darts, timestamp: event.timestamp)
             case let .cricketTurn(turn):
-                let darts = turn.targetsTouched.map {
-                    DartInput(
-                        multiplier: DartMultiplier(rawValue: $0.multiplierRaw) ?? .single,
-                        segment: mapCricketTargetRaw($0.targetRaw),
-                        isMiss: $0.wasMiss
-                    )
-                }
+                let darts = turn.targetsTouched.map(CricketEngine.dartInput(from:))
                 rebuilt = try submitCricketTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
             }
         }
@@ -299,13 +287,5 @@ public enum MatchLifecycleService {
         case "innerBull": return .innerBull
         default: return .miss
         }
-    }
-
-    private static func mapCricketTargetRaw(_ raw: String) -> DartSegment {
-        if let value = Int(raw), (15 ... 20).contains(value) {
-            return .oneToTwenty(value)
-        }
-        if raw == "bull" { return .outerBull }
-        return .miss
     }
 }
