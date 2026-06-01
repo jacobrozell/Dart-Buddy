@@ -62,13 +62,22 @@ struct PlayersRootView: View {
                             Button {
                                 path.append(.detail(playerId: player.id))
                             } label: {
-                                HStack {
+                                HStack(spacing: DS.Spacing.s3) {
+                                    Image(systemName: "location.north.fill")
+                                        .rotationEffect(.degrees(135))
+                                        .foregroundStyle(Brand.textSecondary)
                                     Text(player.name)
+                                        .font(.headline)
+                                        .foregroundStyle(.white)
                                     if player.isArchived {
-                                        Text(L10n.archived).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
+                                        Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
                                     }
+                                    Spacer()
                                 }
+                                .contentShape(Rectangle())
                             }
+                            .listRowBackground(Brand.background)
+                            .listRowSeparatorTint(Brand.cardElevated)
                             .swipeActions {
                                 Button(player.isArchived ? "players.unarchive" : "players.archive") {
                                     actionTask?.cancel()
@@ -87,9 +96,12 @@ struct PlayersRootView: View {
                                 }
                             }
                         }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
                     }
                 }
             }
+            .background(Brand.background.ignoresSafeArea())
             .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
             .frame(maxWidth: contentMaxWidth, alignment: .center)
             .frame(maxWidth: .infinity, alignment: .center)

@@ -5,6 +5,7 @@ struct MainTabView: View {
         case play
         case history
         case players
+        case statistics
         case settings
     }
 
@@ -15,18 +16,23 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             PlayRootView(dependencies: dependencies)
                 .tag(RootTab.play)
-                .tabItem { Label("Play", systemImage: "target") }
-            HistoryRootView(dependencies: dependencies)
-                .tag(RootTab.history)
-                .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
+                .tabItem { Label("Home", systemImage: "house.fill") }
             PlayersRootView(dependencies: dependencies)
                 .tag(RootTab.players)
-                .tabItem { Label("Players", systemImage: "person.2") }
+                .tabItem { Label("Players", systemImage: "person.2.fill") }
+            StatisticsRootView(dependencies: dependencies)
+                .tag(RootTab.statistics)
+                .tabItem { Label("Statistics", systemImage: "chart.bar.fill") }
+            HistoryRootView(dependencies: dependencies)
+                .tag(RootTab.history)
+                .tabItem { Label("All Games", systemImage: "clock.arrow.circlepath") }
             SettingsRootView(dependencies: dependencies)
                 .tag(RootTab.settings)
-                .tabItem { Label("Settings", systemImage: "gearshape") }
+                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }
-        .background(ThemeTokens.appBackground)
+        .tint(Brand.green)
+        .preferredColorScheme(.dark)
+        .background(Brand.background)
         .task {
             dependencies.logger.debug(
                 .ui,

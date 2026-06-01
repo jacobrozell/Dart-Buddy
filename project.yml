@@ -47,6 +47,7 @@ targets:
     scheme:
       testTargets:
         - DartsScoreboardTests
+        - DartsScoreboardUITests
   DartsScoreboardTests:
     type: bundle.unit-test
     platform: iOS
@@ -57,3 +58,14 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+  DartsScoreboardUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: DartsScoreboard
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DartsScoreboard

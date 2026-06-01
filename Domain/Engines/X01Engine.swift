@@ -52,7 +52,7 @@ public struct X01TurnOutcome: Sendable {
 
 public enum X01Engine {
     public static func makeInitialState(config: MatchConfigX01, playerIds: [UUID]) throws -> X01State {
-        guard [301, 501].contains(config.startScore) else {
+        guard [301, 401, 501, 601].contains(config.startScore) else {
             throw AppError(
                 code: .validationFailed,
                 layer: .domain,

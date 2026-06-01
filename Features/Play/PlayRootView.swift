@@ -29,89 +29,91 @@ struct PlayRootView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            PlayHomeView(
-                state: viewModel.state,
-                onTapStartNewMatch: { path.append(.setup) },
-                onTapResumeMatch: { match in
+            SetupHomeView(
+                homeViewModel: viewModel,
+                setupViewModel: setupViewModel,
+                pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
+                onResumeMatch: { match in
                     path.append(match.type == .x01 ? .x01Match(matchId: match.id) : .cricketMatch(matchId: match.id))
-                }
+                },
+                onStartRoute: { next in path.append(next) },
+                onQuickAddPlayer: { path.append(.quickAddPlayer) }
             )
-                .navigationTitle(L10n.playTitle)
-                .navigationDestination(for: PlayRoute.self) { route in
-                    switch route {
-                    case .setup:
-                        MatchSetupView(
-                            viewModel: setupViewModel,
-                            pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
-                            onStartRoute: { next in path.append(next) },
-                            onQuickAddPlayer: { path.append(.quickAddPlayer) }
-                        )
-                    case let .x01Match(matchId):
-                        X01MatchScreen(
-                            viewModel: X01MatchViewModel(
-                                matchId: matchId,
-                                store: dependencies.activeMatchStore,
-                                logger: dependencies.logger,
-                                matchRepository: dependencies.matchRepository,
-                                statsRepository: dependencies.statsRepository
-                            ),
-                            onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
-                        )
-                    case let .cricketMatch(matchId):
-                        CricketMatchScreen(
-                            viewModel: CricketMatchViewModel(
-                                matchId: matchId,
-                                store: dependencies.activeMatchStore,
-                                logger: dependencies.logger,
-                                matchRepository: dependencies.matchRepository,
-                                statsRepository: dependencies.statsRepository
-                            ),
-                            onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
-                        )
-                    case let .matchSummary(matchId):
-                        MatchSummaryScreen(
+            .navigationDestination(for: PlayRoute.self) { route in
+                switch route {
+                case .setup:
+                    EmptyView()
+                case let .x01Match(matchId):
+                    X01MatchScreen(
+                        viewModel: X01MatchViewModel(
                             matchId: matchId,
                             store: dependencies.activeMatchStore,
-                            onStartNewMatch: {
-                                path.removeAll()
-                                path.append(.setup)
-                            },
-                            onViewHistoryDetail: { id in
-                                path.append(.historyDetail(matchId: id))
-                            }
-                        )
-                    case let .historyDetail(matchId):
-                        MatchHistoryDetailScreen(
-                            viewModel: HistoryDetailViewModel(
-                                matchId: matchId,
-                                matchRepository: dependencies.matchRepository,
-                                statsRepository: dependencies.statsRepository
-                            ),
-                            matchId: matchId
-                        )
-                    case .quickAddPlayer:
-                        QuickAddPlayerScreen(repository: dependencies.playerRepository) { created in
-                            dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
-                            await setupViewModel.onAppear()
-                        }
+                            logger: dependencies.logger,
+                            matchRepository: dependencies.matchRepository,
+                            statsRepository: dependencies.statsRepository
+                        ),
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
+                    )
+                case let .cricketMatch(matchId):
+                    CricketMatchScreen(
+                        viewModel: CricketMatchViewModel(
+                            matchId: matchId,
+                            store: dependencies.activeMatchStore,
+                            logger: dependencies.logger,
+                            matchRepository: dependencies.matchRepository,
+                            statsRepository: dependencies.statsRepository
+                        ),
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
+                    )
+                case let .matchSummary(matchId):
+                    MatchSummaryScreen(
+                        matchId: matchId,
+                        store: dependencies.activeMatchStore,
+                        onStartNewMatch: { path.removeAll() },
+                        onViewHistoryDetail: { id in path.append(.historyDetail(matchId: id)) }
+                    )
+                case let .historyDetail(matchId):
+                    MatchHistoryDetailScreen(
+                        viewModel: HistoryDetailViewModel(
+                            matchId: matchId,
+                            matchRepository: dependencies.matchRepository,
+                            statsRepository: dependencies.statsRepository
+                        ),
+                        matchId: matchId
+                    )
+                case .quickAddPlayer:
+                    QuickAddPlayerScreen(repository: dependencies.playerRepository) { created in
+                        dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
+                        await setupViewModel.onAppear()
                     }
                 }
-                .task {
-                    await viewModel.onAppear()
-                    if let snapshotRoute = initialSnapshotRoute(),
-                       hasAppliedSnapshotRoute == false {
-                        hasAppliedSnapshotRoute = true
+            }
+            .task {
+                await viewModel.onAppear()
+                await setupViewModel.onAppear()
+                if hasAppliedSnapshotRoute == false {
+                    hasAppliedSnapshotRoute = true
+                    if ProcessInfo.processInfo.arguments.contains("-open_active_match"),
+                       case let .readyWithActiveMatch(match) = viewModel.state {
+                        path = [match.type == .x01 ? .x01Match(matchId: match.id) : .cricketMatch(matchId: match.id)]
+                    } else if let snapshotRoute = initialSnapshotRoute() {
                         path = [snapshotRoute]
                     }
                 }
+            }
+            .onChange(of: path) { _, newValue in
+                if newValue.isEmpty {
+                    Task {
+                        await viewModel.onAppear()
+                        await setupViewModel.onAppear()
+                    }
+                }
+            }
         }
     }
 
     private func initialSnapshotRoute() -> PlayRoute? {
         let arguments = ProcessInfo.processInfo.arguments
-        if arguments.contains("-snapshot_match_setup") {
-            return .setup
-        }
         if arguments.contains("-snapshot_match_x01") {
             return .x01Match(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID())
         }
@@ -125,6 +127,277 @@ struct PlayRootView: View {
 private func localizedText(_ key: String) -> Text {
     Text(LocalizedStringKey(key))
 }
+
+// MARK: - Setup / Home
+
+private struct SetupHomeView: View {
+    @ObservedObject var homeViewModel: PlayHomeViewModel
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
+    let onResumeMatch: (MatchSummary) -> Void
+    let onStartRoute: (PlayRoute) -> Void
+    let onQuickAddPlayer: () -> Void
+    @State private var startTask: Task<Void, Never>?
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                Text("Dart Scoreboard")
+                    .font(.largeTitle.weight(.heavy))
+                    .foregroundStyle(.white)
+                    .padding(.top, DS.Spacing.s2)
+
+                if case let .readyWithActiveMatch(match) = homeViewModel.state {
+                    resumeBanner(match)
+                }
+
+                modePill
+                if setupViewModel.mode == .x01 {
+                    chipsGrid
+                }
+                startButton
+                rosterControls
+                playerList
+            }
+            .padding(.horizontal, DS.Spacing.s4)
+            .padding(.bottom, DS.Spacing.s6)
+        }
+        .background(Brand.background.ignoresSafeArea())
+        .navigationBarHidden(true)
+        .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
+            Task { await setupViewModel.onAppear() }
+        }
+        .onDisappear { startTask?.cancel() }
+    }
+
+    private func resumeBanner(_ match: MatchSummary) -> some View {
+        Button { onResumeMatch(match) } label: {
+            HStack {
+                Image(systemName: "play.circle.fill")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Resume match").font(.headline)
+                    Text(match.type.rawValue.uppercased()).font(.caption).foregroundStyle(Brand.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(Brand.textSecondary)
+            }
+            .foregroundStyle(.white)
+            .padding(DS.Spacing.s4)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.md).stroke(Brand.green, lineWidth: 2))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("resumeMatchButton")
+    }
+
+    private var modePill: some View {
+        HStack(spacing: 0) {
+            modeButton("X01", mode: .x01)
+            modeButton("Cricket", mode: .cricket)
+        }
+        .padding(4)
+        .background(Brand.card, in: Capsule())
+        .frame(maxWidth: .infinity)
+    }
+
+    private func modeButton(_ title: String, mode: MatchSetupViewModel.SetupMode) -> some View {
+        let isSelected = setupViewModel.mode == mode
+        return Button { setupViewModel.updateMode(mode) } label: {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DS.Spacing.s2)
+                .background(isSelected ? Brand.cardElevated : Color.clear, in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var chipsGrid: some View {
+        VStack(spacing: DS.Spacing.s3) {
+            HStack(spacing: DS.Spacing.s3) {
+                pointsChip
+                checkoutChip
+                setsChip
+            }
+            HStack(spacing: DS.Spacing.s3) {
+                staticChip(title: "Set/Leg", value: "First to", color: Brand.green)
+                staticChip(title: "Check-In", value: "Straight In", color: Brand.red)
+                legsChip
+            }
+        }
+    }
+
+    private var pointsChip: some View {
+        chip(title: "Points", color: Brand.green) {
+            Menu {
+                ForEach(X01StartScores.all, id: \.self) { score in
+                    Button("\(score)") {
+                        setupViewModel.x01StartScore = score
+                        setupViewModel.revalidate()
+                    }
+                }
+            } label: {
+                chipBox("\(setupViewModel.x01StartScore)", color: Brand.green)
+            }
+        }
+    }
+
+    private var checkoutChip: some View {
+        chip(title: "Check-Out", color: Brand.red) {
+            Button {
+                setupViewModel.x01CheckoutMode = setupViewModel.x01CheckoutMode == .doubleOut ? .singleOut : .doubleOut
+                setupViewModel.revalidate()
+            } label: {
+                chipBox(setupViewModel.x01CheckoutMode == .doubleOut ? "Double Out" : "Straight Out", color: Brand.red)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var setsChip: some View {
+        chip(title: "Sets", color: Brand.green) {
+            Menu {
+                ForEach(1 ... 5, id: \.self) { value in
+                    Button("\(value)") {
+                        setupViewModel.x01SetsToWin = value
+                        setupViewModel.x01SetsEnabled = value > 1
+                        setupViewModel.revalidate()
+                    }
+                }
+            } label: {
+                chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.green)
+            }
+        }
+    }
+
+    private var legsChip: some View {
+        chip(title: "Legs", color: Brand.green) {
+            Menu {
+                ForEach(1 ... 9, id: \.self) { value in
+                    Button("\(value)") {
+                        setupViewModel.x01LegsToWin = value
+                        setupViewModel.revalidate()
+                    }
+                }
+            } label: {
+                chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.green)
+            }
+        }
+    }
+
+    private func chip<Content: View>(title: String, color: Color, @ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 6) {
+            Text(title).font(.caption).foregroundStyle(Brand.textSecondary)
+            content()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func staticChip(title: String, value: String, color: Color) -> some View {
+        chip(title: title, color: color) { chipBox(value, color: color) }
+    }
+
+    private func chipBox(_ text: String, color: Color) -> some View {
+        Text(text)
+            .font(.headline.weight(.bold))
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .padding(.horizontal, 4)
+            .background(color, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+    }
+
+    private var startButton: some View {
+        VStack(spacing: 6) {
+            Button {
+                startTask?.cancel()
+                startTask = Task {
+                    if let route = await setupViewModel.startMatchRoute() {
+                        onStartRoute(route)
+                    }
+                }
+            } label: {
+                Text(setupViewModel.isSubmitting ? "STARTING…" : "START")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(setupViewModel.canStart ? Brand.red : Brand.red.opacity(0.4), in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+            }
+            .buttonStyle(.plain)
+            .disabled(!setupViewModel.canStart)
+            .accessibilityIdentifier("startMatchButton")
+
+            ForEach(setupViewModel.validationErrors, id: \.self) { key in
+                localizedText(key).font(.footnote).foregroundStyle(Brand.red)
+            }
+        }
+        .padding(.top, DS.Spacing.s2)
+    }
+
+    private var rosterControls: some View {
+        HStack {
+            Button { setupViewModel.randomOrder.toggle() } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: setupViewModel.randomOrder ? "checkmark.square.fill" : "square")
+                        .foregroundStyle(setupViewModel.randomOrder ? Brand.green : Brand.textSecondary)
+                    Text("Random order").foregroundStyle(.white)
+                }
+            }
+            .buttonStyle(.plain)
+            Spacer()
+            Button { onQuickAddPlayer() } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "person.badge.plus")
+                    Text("Add Players").font(.subheadline.weight(.semibold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, DS.Spacing.s3)
+                .padding(.vertical, DS.Spacing.s2)
+                .background(Brand.green, in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.top, DS.Spacing.s2)
+    }
+
+    @ViewBuilder
+    private var playerList: some View {
+        Text("Players").font(.headline).foregroundStyle(.white)
+        if setupViewModel.availablePlayers.isEmpty {
+            Text("Add at least two players to start a match.")
+                .font(.footnote)
+                .foregroundStyle(Brand.textSecondary)
+        } else {
+            VStack(spacing: 0) {
+                ForEach(setupViewModel.availablePlayers) { player in
+                    let isSelected = setupViewModel.selectedPlayerIds.contains(player.id)
+                    Button { setupViewModel.togglePlayer(player.id) } label: {
+                        HStack(spacing: DS.Spacing.s3) {
+                            Image(systemName: "location.north.fill")
+                                .rotationEffect(.degrees(135))
+                                .foregroundStyle(Brand.textSecondary)
+                            Text(player.name)
+                                .font(.headline)
+                                .foregroundStyle(isSelected ? .white : Brand.textSecondary)
+                            Spacer()
+                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(isSelected ? Brand.green : Brand.textSecondary)
+                        }
+                        .padding(.vertical, DS.Spacing.s3)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("select_\(player.name)")
+                    Divider().overlay(Brand.cardElevated)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Quick add player
 
 private struct QuickAddPlayerScreen: View {
     let repository: any PlayerRepository
@@ -162,9 +435,7 @@ private struct QuickAddPlayerScreen: View {
                 .disabled(isSaving || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
-        .onDisappear {
-            createTask?.cancel()
-        }
+        .onDisappear { createTask?.cancel() }
     }
 
     private func createPlayer() async {
@@ -182,460 +453,7 @@ private struct QuickAddPlayerScreen: View {
     }
 }
 
-private struct PlayHomeView: View {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    let state: PlayHomeViewModel.State
-    let onTapStartNewMatch: () -> Void
-    let onTapResumeMatch: (MatchSummary) -> Void
-
-    private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 700 : .infinity
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-            switch state {
-            case .loading:
-                ProgressView(L10n.loading)
-            case .readyNoActiveMatch:
-                Text(L10n.noActiveMatch)
-                    .foregroundStyle(DS.ColorRole.textSecondary)
-                startButton
-            case let .readyWithActiveMatch(match):
-                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                    Text(L10n.resumeActiveMatch)
-                        .font(.headline)
-                    Text(L10n.format("play.home.modeFormat", match.type.rawValue.uppercased()))
-                    Button {
-                        onTapResumeMatch(match)
-                    } label: {
-                        Text(L10n.resumeMatch)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityHint("play.home.resumeButton.hint")
-                }
-                .padding(DS.Spacing.s4)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-                startButton
-            case .emptyNoPlayers:
-                Spacer(minLength: 0)
-                VStack(spacing: DS.Spacing.s2) {
-                    Image(systemName: "person.2")
-                        .font(.system(size: 36, weight: .semibold))
-                        .foregroundStyle(DS.ColorRole.textSecondary)
-                    Text(L10n.noPlayersGuidance)
-                        .foregroundStyle(DS.ColorRole.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(DS.Spacing.s5)
-                .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-                Spacer(minLength: 0)
-            case let .error(messageKey):
-                localizedText(messageKey)
-                    .foregroundStyle(DS.ColorRole.danger)
-                startButton
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.horizontal, DS.Spacing.s4)
-        .frame(maxWidth: contentMaxWidth, alignment: .leading)
-        .frame(maxWidth: .infinity, alignment: .center)
-        .padding(.top, DS.Spacing.s4)
-        .safeAreaInset(edge: .bottom) {
-            if case .emptyNoPlayers = state {
-                startButton
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, DS.Spacing.s4)
-                .padding(.top, DS.Spacing.s2)
-                .padding(.bottom, DS.Spacing.s3)
-            }
-        }
-    }
-
-    private var startButton: some View {
-        Button {
-            onTapStartNewMatch()
-        } label: {
-            Text(L10n.startNewMatch)
-        }
-        .buttonStyle(.borderedProminent)
-        .accessibilityHint("play.home.startNewMatch.hint")
-    }
-}
-
-private struct MatchSetupView: View {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ObservedObject var viewModel: MatchSetupViewModel
-    @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
-    let onStartRoute: (PlayRoute) -> Void
-    let onQuickAddPlayer: () -> Void
-    @State private var startTask: Task<Void, Never>?
-
-    private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 760 : .infinity
-    }
-
-    private var usesInlineStartButton: Bool {
-        dynamicTypeSize.isAccessibilitySize
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                modeSection
-                playerSection
-                if viewModel.mode == .x01 {
-                    x01Section
-                }
-                validationSection
-                if usesInlineStartButton {
-                    startMatchButton
-                        .padding(.top, DS.Spacing.s2)
-                }
-            }
-            .padding(DS.Spacing.s4)
-            .padding(.bottom, usesInlineStartButton ? DS.Spacing.s4 : 88)
-            .frame(maxWidth: contentMaxWidth, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .background(ThemeTokens.appBackground)
-        .navigationTitle(L10n.newMatchTitle)
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar(.hidden, for: .tabBar)
-        .task {
-            await viewModel.onAppear()
-        }
-        .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
-            Task { await viewModel.onAppear() }
-        }
-        .safeAreaInset(edge: .bottom) {
-            if !usesInlineStartButton {
-                VStack(spacing: 0) {
-                    Divider()
-                    startMatchButton
-                        .padding(.top, DS.Spacing.s3)
-                        .padding(.bottom, DS.Spacing.s2)
-                }
-                .background(DS.ColorRole.backgroundPrimary.opacity(0.92))
-            }
-        }
-        .onDisappear {
-            startTask?.cancel()
-        }
-    }
-
-    private var modeSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.modeSection).font(.headline)
-            Group {
-                if usesInlineStartButton {
-                    Picker("play.setup.mode", selection: Binding(
-                        get: { viewModel.mode },
-                        set: { viewModel.updateMode($0) }
-                    )) {
-                        Text("settings.mode.x01").tag(MatchSetupViewModel.SetupMode.x01)
-                        Text("settings.mode.cricket").tag(MatchSetupViewModel.SetupMode.cricket)
-                    }
-                    .pickerStyle(.menu)
-                } else {
-                    Picker("play.setup.mode", selection: Binding(
-                        get: { viewModel.mode },
-                        set: { viewModel.updateMode($0) }
-                    )) {
-                        Text("settings.mode.x01").tag(MatchSetupViewModel.SetupMode.x01)
-                        Text("settings.mode.cricket").tag(MatchSetupViewModel.SetupMode.cricket)
-                    }
-                    .pickerStyle(.segmented)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DS.Spacing.s4)
-        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-    }
-
-    private var playerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.playersSection).font(.headline)
-            if viewModel.availablePlayers.isEmpty {
-                Text(L10n.setupPlayersEmptyHint)
-                    .font(.footnote)
-                    .foregroundStyle(DS.ColorRole.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else if viewModel.selectedPlayerIds.count < 2 {
-                Text(L10n.setupPlayersSelectionHint)
-                    .font(.footnote)
-                    .foregroundStyle(DS.ColorRole.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            ForEach(viewModel.availablePlayers) { player in
-                let isSelected = viewModel.selectedPlayerIds.contains(player.id)
-                Button {
-                    viewModel.togglePlayer(player.id)
-                } label: {
-                    HStack {
-                        Text(player.name)
-                        Spacer()
-                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .imageScale(.large)
-                            .foregroundStyle(isSelected ? DS.ColorRole.info : DS.ColorRole.textSecondary)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityHint(L10n.setupPlayerRowAccessibilityHint)
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
-            }
-            Button {
-                onQuickAddPlayer()
-            } label: {
-                Text(L10n.quickAdd)
-            }
-            .buttonStyle(.bordered)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DS.Spacing.s4)
-        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-    }
-
-    private var x01Section: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.x01Options).font(.headline)
-            Group {
-                if usesInlineStartButton {
-                    Picker("play.setup.startScore", selection: $viewModel.x01StartScore) {
-                        Text("301").tag(301)
-                        Text("501").tag(501)
-                    }
-                    .pickerStyle(.menu)
-                } else {
-                    Picker("play.setup.startScore", selection: $viewModel.x01StartScore) {
-                        Text("301").tag(301)
-                        Text("501").tag(501)
-                    }
-                    .pickerStyle(.segmented)
-                }
-            }
-            Stepper(L10n.format("play.setup.legsToWinFormat", viewModel.x01LegsToWin), value: $viewModel.x01LegsToWin, in: 1 ... 99)
-            Toggle("play.setup.setsEnabled", isOn: $viewModel.x01SetsEnabled)
-            if viewModel.x01SetsEnabled {
-                Stepper(L10n.format("play.setup.setsToWinFormat", viewModel.x01SetsToWin), value: $viewModel.x01SetsToWin, in: 1 ... 99)
-            }
-            Group {
-                if usesInlineStartButton {
-                    Picker("play.setup.checkout", selection: $viewModel.x01CheckoutMode) {
-                        Text(L10n.singleOut).tag(X01CheckoutMode.singleOut)
-                        Text(L10n.doubleOut).tag(X01CheckoutMode.doubleOut)
-                    }
-                    .pickerStyle(.menu)
-                } else {
-                    Picker("play.setup.checkout", selection: $viewModel.x01CheckoutMode) {
-                        Text(L10n.singleOut).tag(X01CheckoutMode.singleOut)
-                        Text(L10n.doubleOut).tag(X01CheckoutMode.doubleOut)
-                    }
-                    .pickerStyle(.segmented)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DS.Spacing.s4)
-        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-        .onChange(of: viewModel.x01StartScore) { _, _ in viewModel.revalidate() }
-        .onChange(of: viewModel.x01LegsToWin) { _, _ in viewModel.revalidate() }
-        .onChange(of: viewModel.x01SetsEnabled) { _, _ in viewModel.revalidate() }
-        .onChange(of: viewModel.x01SetsToWin) { _, _ in viewModel.revalidate() }
-    }
-
-    private var validationSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ForEach(viewModel.validationErrors, id: \.self) { key in
-                localizedText(key)
-                    .font(.footnote)
-                    .foregroundStyle(DS.ColorRole.danger)
-            }
-        }
-    }
-
-    private var startMatchButton: some View {
-        Button {
-            startTask?.cancel()
-            startTask = Task {
-                if let route = await viewModel.startMatchRoute() {
-                    onStartRoute(route)
-                }
-            }
-        } label: {
-            Text(viewModel.isSubmitting ? "play.setup.starting" : "play.setup.startMatch")
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-        }
-        .buttonStyle(.borderedProminent)
-        .controlSize(usesInlineStartButton ? .regular : .large)
-        .disabled(!viewModel.canStart)
-        .frame(maxWidth: 360)
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, DS.Spacing.s4)
-    }
-}
-
-private struct X01MatchScreen: View {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @ObservedObject var viewModel: X01MatchViewModel
-    let onShowSummary: () -> Void
-    @Environment(\.dismiss) private var dismiss
-    @State private var showExitConfirmation = false
-    @State private var actionTask: Task<Void, Never>?
-    
-    private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 700 : .infinity
-    }
-    
-    private var isSnapshotPreviewMode: Bool {
-        ProcessInfo.processInfo.arguments.contains("-snapshot_match_x01")
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(L10n.x01Title)
-                    .font(.title2).bold()
-                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                    if let session = viewModel.session, let state = session.runtime.x01State {
-                        Text(L10n.format("play.x01.turnLegSet", state.currentPlayerIndex + 1, state.legIndex + 1, state.setIndex + 1))
-                            .foregroundStyle(DS.ColorRole.textSecondary)
-                        ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
-                            ViewThatFits {
-                                HStack {
-                                    Text(L10n.format("common.playerOrdinal", index + 1))
-                                    Spacer()
-                                    HStack(spacing: DS.Spacing.s1) {
-                                        Text("\(player.remainingScore)")
-                                            .font(.title3.weight(.semibold))
-                                        if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                        }
-                                    }
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.85)
-                                }
-                                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                                    Text(L10n.format("common.playerOrdinal", index + 1))
-                                    HStack(spacing: DS.Spacing.s1) {
-                                        Text("\(player.remainingScore)")
-                                            .font(.title3.weight(.semibold))
-                                        if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else if isSnapshotPreviewMode {
-                        Text(L10n.format("play.x01.turnLegSet", 1, 1, 1))
-                            .foregroundStyle(DS.ColorRole.textSecondary)
-                        ForEach([501, 421], id: \.self) { score in
-                            ViewThatFits {
-                                HStack {
-                                    Text(L10n.format("common.playerOrdinal", score == 501 ? 1 : 2))
-                                    Spacer()
-                                    HStack(spacing: DS.Spacing.s1) {
-                                        Text("\(score)")
-                                            .font(.title3.weight(.semibold))
-                                        if score == 501 {
-                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                        }
-                                    }
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.85)
-                                }
-                                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                                    Text(L10n.format("common.playerOrdinal", score == 501 ? 1 : 2))
-                                    HStack(spacing: DS.Spacing.s1) {
-                                        Text("\(score)")
-                                            .font(.title3.weight(.semibold))
-                                        if score == 501 {
-                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        ProgressView(L10n.loading)
-                    }
-                }
-                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-                ScoringInputPad(
-                    modeOptions: [.totalEntry, .dartEntry],
-                    mode: $viewModel.inputMode,
-                    selectedMultiplier: $viewModel.selectedMultiplier,
-                    enteredDarts: $viewModel.enteredDarts,
-                    totalEntryText: $viewModel.totalEntryText,
-                    canSubmit: viewModel.canSubmit,
-                    onSubmit: {
-                        actionTask?.cancel()
-                        actionTask = Task { await viewModel.submitTurn() }
-                    },
-                    onUndo: {
-                        actionTask?.cancel()
-                        actionTask = Task { await viewModel.undoLastTurn() }
-                    }
-                )
-                stateBanner
-            }
-            .frame(maxWidth: contentMaxWidth, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .padding(DS.Spacing.s4)
-        .navigationTitle("play.x01.navTitle")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(L10n.cancel) {
-                    showExitConfirmation = true
-                }
-            }
-        }
-        .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {}
-            Button("common.exit", role: .destructive) { dismiss() }
-        } message: {
-            Text("play.match.exit.confirm.message")
-        }
-        .onChange(of: viewModel.state) { _, newValue in
-            if newValue == .matchCompleted {
-                onShowSummary()
-            }
-        }
-        .task {
-            await viewModel.onAppear()
-        }
-        .onDisappear {
-            actionTask?.cancel()
-        }
-    }
-
-    @ViewBuilder
-    private var stateBanner: some View {
-        switch viewModel.state {
-        case .readyTurn:
-            EmptyView()
-        case .submittingTurn:
-            Text(L10n.submittingTurn)
-        case .bustFeedback:
-            Text(L10n.bustFeedback)
-                .foregroundStyle(DS.ColorRole.warning)
-        case let .entryInvalid(key), let .error(key):
-            localizedText(key).foregroundStyle(DS.ColorRole.danger)
-        case .matchCompleted:
-            Text(L10n.matchCompleteRoute)
-        }
-    }
-}
+// MARK: - Cricket match screen
 
 private struct CricketMatchScreen: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -644,11 +462,11 @@ private struct CricketMatchScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
-    
+
     private var contentMaxWidth: CGFloat {
         horizontalSizeClass == .regular ? 700 : .infinity
     }
-    
+
     private var isSnapshotPreviewMode: Bool {
         ProcessInfo.processInfo.arguments.contains("-snapshot_match_cricket")
     }
@@ -658,82 +476,38 @@ private struct CricketMatchScreen: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(L10n.cricketTitle)
                     .font(.title2).bold()
+                    .foregroundStyle(.white)
                 VStack(alignment: .leading, spacing: DS.Spacing.s2) {
                     if let session = viewModel.session, let state = session.runtime.cricketState {
                         Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
-                            .foregroundStyle(DS.ColorRole.textSecondary)
+                            .foregroundStyle(Brand.textSecondary)
                         ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
                             VStack(alignment: .leading, spacing: 4) {
-                                ViewThatFits {
-                                    HStack {
-                                        Text(L10n.format("common.playerOrdinal", index + 1))
-                                        Spacer()
-                                        HStack(spacing: DS.Spacing.s1) {
-                                            Text(L10n.format("play.cricket.pointsFormat", player.score))
-                                                .font(.title3.weight(.semibold))
-                                            if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                                                Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                            }
-                                        }
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.85)
-                                    }
-                                    VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                                        Text(L10n.format("common.playerOrdinal", index + 1))
-                                        HStack(spacing: DS.Spacing.s1) {
-                                            Text(L10n.format("play.cricket.pointsFormat", player.score))
-                                                .font(.title3.weight(.semibold))
-                                            if index == state.currentPlayerIndex && session.runtime.status == .inProgress {
-                                                Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                            }
-                                        }
-                                    }
+                                HStack {
+                                    Text(name(for: player.playerId, fallbackIndex: index, session: session))
+                                        .foregroundStyle(index == state.currentPlayerIndex ? Brand.green : .white)
+                                    Spacer()
+                                    Text(L10n.format("play.cricket.pointsFormat", player.score))
+                                        .font(.title3.weight(.semibold))
+                                        .foregroundStyle(.white)
                                 }
                                 HStack(spacing: 6) {
                                     ForEach(CricketTarget.allCases, id: \.rawValue) { target in
                                         Text("\(target.rawValue):\(marksText(player.marks[target.rawValue] ?? 0))")
                                             .font(.caption2)
+                                            .foregroundStyle(.white)
                                             .padding(.horizontal, 4)
-                                            .background(.thinMaterial, in: Capsule())
+                                            .background(Brand.cardElevated, in: Capsule())
                                     }
                                 }
                             }
-                        }
-                    } else if isSnapshotPreviewMode {
-                        Text(L10n.format("play.cricket.roundTurn", 1, 1))
-                            .foregroundStyle(DS.ColorRole.textSecondary)
-                        ForEach([32, 10], id: \.self) { points in
-                            ViewThatFits {
-                                HStack {
-                                    Text(L10n.format("common.playerOrdinal", points == 32 ? 1 : 2))
-                                    Spacer()
-                                    HStack(spacing: DS.Spacing.s1) {
-                                        Text(L10n.format("play.cricket.pointsFormat", points))
-                                            .font(.title3.weight(.semibold))
-                                        if points == 32 {
-                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                        }
-                                    }
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.85)
-                                }
-                                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                                    Text(L10n.format("common.playerOrdinal", points == 32 ? 1 : 2))
-                                    HStack(spacing: DS.Spacing.s1) {
-                                        Text(L10n.format("play.cricket.pointsFormat", points))
-                                            .font(.title3.weight(.semibold))
-                                        if points == 32 {
-                                            Text(L10n.active).font(.caption).foregroundStyle(DS.ColorRole.textSecondary)
-                                        }
-                                    }
-                                }
-                            }
+                            .padding(DS.Spacing.s3)
+                            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
                         }
                     } else {
-                        ProgressView(L10n.loading)
+                        ProgressView().tint(.white)
                     }
                 }
-                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 ScoringInputPad(
                     modeOptions: [.dartEntry],
                     mode: .constant(.dartEntry),
@@ -756,15 +530,14 @@ private struct CricketMatchScreen: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(DS.Spacing.s4)
+        .background(Brand.background.ignoresSafeArea())
         .navigationTitle("play.cricket.navTitle")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(L10n.cancel) {
-                    showExitConfirmation = true
-                }
+                Button(L10n.cancel) { showExitConfirmation = true }
             }
         }
         .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
@@ -774,16 +547,15 @@ private struct CricketMatchScreen: View {
             Text("play.match.exit.confirm.message")
         }
         .onChange(of: viewModel.state) { _, newValue in
-            if newValue == .matchCompleted {
-                onShowSummary()
-            }
+            if newValue == .matchCompleted { onShowSummary() }
         }
-        .task {
-            await viewModel.onAppear()
-        }
-        .onDisappear {
-            actionTask?.cancel()
-        }
+        .task { await viewModel.onAppear() }
+        .onDisappear { actionTask?.cancel() }
+    }
+
+    private func name(for playerId: UUID, fallbackIndex: Int, session: MatchLifecycleSession) -> String {
+        let participant = session.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
+        return participant?.displayNameAtMatchStart ?? "Player \(fallbackIndex + 1)"
     }
 
     private func marksText(_ marks: Int) -> String {
@@ -802,17 +574,18 @@ private struct CricketMatchScreen: View {
         case .readyTurn:
             EmptyView()
         case .submittingTurn:
-            Text(L10n.submittingTurn)
+            Text(L10n.submittingTurn).foregroundStyle(.white)
         case .closureTransition:
-            Text(L10n.boardUpdated)
-                .foregroundStyle(DS.ColorRole.textSecondary)
+            Text(L10n.boardUpdated).foregroundStyle(Brand.textSecondary)
         case let .entryInvalid(key), let .error(key):
             localizedText(key).foregroundStyle(DS.ColorRole.danger)
         case .matchCompleted:
-            Text(L10n.matchCompleteRoute)
+            Text(L10n.matchCompleteRoute).foregroundStyle(.white)
         }
     }
 }
+
+// MARK: - Match summary
 
 private struct MatchSummaryScreen: View {
     let matchId: UUID
@@ -822,28 +595,43 @@ private struct MatchSummaryScreen: View {
 
     var body: some View {
         let session = store.session(for: matchId)
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.summaryTitle).font(.title3).bold()
-            Text(L10n.format("play.summary.matchIdFormat", String(matchId.uuidString.prefix(8))))
-                .font(.footnote)
-                .foregroundStyle(DS.ColorRole.textSecondary)
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Result").font(.title.weight(.heavy)).foregroundStyle(.white)
             if let session {
-                Text(L10n.format("play.summary.modeFormat", session.runtime.type.rawValue.uppercased()))
-                Text(L10n.format("play.summary.winnerFormat", session.runtime.winnerPlayerId.map { String($0.uuidString.prefix(8)) } ?? NSLocalizedString("common.unknown", comment: "")))
-                Text(L10n.format("play.summary.eventsFormat", session.runtime.eventCount))
+                let winnerName = session.runtime.participants.first {
+                    ($0.playerId ?? $0.id) == session.runtime.winnerPlayerId
+                }?.displayNameAtMatchStart
+                Text(session.runtime.type.rawValue.uppercased())
+                    .font(.headline)
+                    .foregroundStyle(Brand.textSecondary)
+                if let winnerName {
+                    HStack {
+                        Image(systemName: "trophy.fill").foregroundStyle(Brand.amber)
+                        Text("\(winnerName) wins").font(.title2.weight(.bold)).foregroundStyle(.white)
+                    }
+                }
             }
-            Button(L10n.summaryNewMatch) {
-                onStartNewMatch()
+            Button(action: onStartNewMatch) {
+                Text("New Match")
+                    .font(.headline).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Brand.red, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
             }
-                .buttonStyle(.borderedProminent)
-            Button(L10n.summaryHistoryDetail) {
-                onViewHistoryDetail(matchId)
+            .buttonStyle(.plain)
+            Button(action: { onViewHistoryDetail(matchId) }) {
+                Text("View Game Statistics")
+                    .font(.headline).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
             }
-                .buttonStyle(.bordered)
+            .buttonStyle(.plain)
+            Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(DS.Spacing.s4)
-        .navigationTitle("play.summary.navTitle")
+        .background(Brand.background.ignoresSafeArea())
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
     }
 }
-

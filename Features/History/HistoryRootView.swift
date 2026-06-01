@@ -2,15 +2,9 @@ import SwiftUI
 
 struct HistoryRootView: View {
     let dependencies: AppDependencies
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var path: [HistoryRoute] = []
     @StateObject private var viewModel: HistoryListViewModel
     @State private var filterTask: Task<Void, Never>?
-    @State private var retryTask: Task<Void, Never>?
-
-    private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 760 : .infinity
-    }
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -24,95 +18,51 @@ struct HistoryRootView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            VStack(spacing: DS.Spacing.s4) {
-                Group {
-                    VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                        Text("settings.mode.label")
-                            .font(.caption)
-                            .foregroundStyle(DS.ColorRole.textSecondary)
-                        Picker("history.filter.mode", selection: $viewModel.modeFilter) {
-                            ForEach(HistoryListViewModel.ModeFilter.allCases) { mode in
-                                Text(historyModeTitle(mode)).tag(mode)
-                            }
-                        }
-                    }
-                    VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                        Text("history.filter.date")
-                            .font(.caption)
-                            .foregroundStyle(DS.ColorRole.textSecondary)
-                        Picker("history.filter.date", selection: $viewModel.dateFilter) {
-                            Text("history.filter.7d").tag(HistoryListViewModel.DateFilter.d7)
-                            Text("history.filter.30d").tag(HistoryListViewModel.DateFilter.d30)
-                            Text("history.filter.all").tag(HistoryListViewModel.DateFilter.all)
-                        }
-                    }
-                }
-                .modifier(HistoryFilterLayoutModifier(isRegular: horizontalSizeClass == .regular))
-                .pickerStyle(.segmented)
-                .padding(.horizontal, DS.Spacing.s4)
-                .frame(maxWidth: contentMaxWidth, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .center)
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    Text("All Games")
+                        .font(.largeTitle.weight(.heavy))
+                        .foregroundStyle(.white)
 
-                if viewModel.state == .error {
-                    ContentUnavailableView(
-                        L10n.errorTitle,
-                        systemImage: "exclamationmark.triangle",
-                        description: Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
+                    BrandSegmented(
+                        options: [
+                            (HistoryListViewModel.ModeFilter.all, "All Games"),
+                            (HistoryListViewModel.ModeFilter.x01, "X01"),
+                            (HistoryListViewModel.ModeFilter.cricket, "Cricket")
+                        ],
+                        selection: $viewModel.modeFilter
                     )
-                    .overlay(alignment: .bottom) {
-                        Button(L10n.retry) {
-                            retryTask?.cancel()
-                            retryTask = Task { await viewModel.applyFilters() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .padding(.bottom, DS.Spacing.s6)
-                    }
-                } else if viewModel.rows.isEmpty {
-                    if horizontalSizeClass == .regular {
-                        VStack {
-                            ContentUnavailableView(L10n.historyNoMatches, systemImage: "clock")
-                        }
-                        .frame(maxWidth: 560)
-                        .padding(.vertical, DS.Spacing.s6)
-                        .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+
+                    if viewModel.state == .error {
+                        Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
+                            .foregroundStyle(Brand.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s6)
+                    } else if viewModel.rows.isEmpty {
+                        Text("No games yet. Start a match to see it here.")
+                            .foregroundStyle(Brand.textSecondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s6)
                     } else {
-                        ContentUnavailableView(L10n.historyNoMatches, systemImage: "clock")
-                    }
-                } else {
-                    List(viewModel.rows) { row in
-                        Button {
-                            path.append(.detail(matchId: row.summary.id))
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(row.summary.type.rawValue.uppercased())
-                                Text(row.participantNames.joined(separator: ", "))
-                                    .font(.caption)
-                                Text(L10n.format("history.winnerFormat", row.winnerName))
-                                    .font(.caption)
-                                    .foregroundStyle(DS.ColorRole.textSecondary)
-                                Text(L10n.format("history.eventsFormat", row.summary.eventCount))
-                                    .font(.caption2)
-                                    .foregroundStyle(DS.ColorRole.textSecondary)
+                        ForEach(viewModel.rows) { row in
+                            Button { path.append(.detail(matchId: row.summary.id)) } label: {
+                                MatchHistoryCard(row: row)
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
+                .padding(.horizontal, DS.Spacing.s4)
+                .padding(.bottom, DS.Spacing.s6)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .navigationTitle(L10n.historyTitle)
+            .background(Brand.background.ignoresSafeArea())
+            .navigationBarHidden(true)
             .task { await viewModel.onAppear() }
-            .onDisappear {
-                filterTask?.cancel()
-                retryTask?.cancel()
-            }
             .onChange(of: viewModel.modeFilter) { _, _ in
                 filterTask?.cancel()
                 filterTask = Task { await viewModel.applyFilters() }
             }
-            .onChange(of: viewModel.dateFilter) { _, _ in
-                filterTask?.cancel()
-                filterTask = Task { await viewModel.applyFilters() }
-            }
+            .onDisappear { filterTask?.cancel() }
             .navigationDestination(for: HistoryRoute.self) { route in
                 switch route {
                 case .list:
@@ -132,30 +82,45 @@ struct HistoryRootView: View {
     }
 }
 
-private struct HistoryFilterLayoutModifier: ViewModifier {
-    let isRegular: Bool
+struct MatchHistoryCard: View {
+    let row: HistoryListRow
 
-    func body(content: Content) -> some View {
-        if isRegular {
-            HStack(alignment: .top, spacing: DS.Spacing.s2) {
-                content
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            HStack {
+                Text(row.dateText)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Spacer()
+                if row.isFinished {
+                    StatusBadge(text: "FINISHED", color: Brand.green)
+                }
             }
-        } else {
-            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                content
+            Text(row.configText)
+                .font(.subheadline)
+                .foregroundStyle(Brand.textSecondary)
+
+            ForEach(Array(row.standings.enumerated()), id: \.element.id) { index, standing in
+                HStack(alignment: .center) {
+                    Text("\(index + 1). \(standing.name)")
+                        .font(.body.weight(standing.isWinner ? .semibold : .regular))
+                        .foregroundStyle(standing.isWinner ? .white : Brand.textSecondary)
+                        .lineLimit(1)
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 0) {
+                        Text("Sets: \(standing.sets)  Legs: \(standing.legs)")
+                            .font(.caption)
+                            .foregroundStyle(Brand.textSecondary)
+                        Text("\(standing.score)")
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .padding(.top, 2)
             }
         }
+        .padding(DS.Spacing.s4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 }
-
-private func historyModeTitle(_ mode: HistoryListViewModel.ModeFilter) -> LocalizedStringKey {
-    switch mode {
-    case .all:
-        return "history.filter.all"
-    case .x01:
-        return "settings.mode.x01"
-    case .cricket:
-        return "settings.mode.cricket"
-    }
-}
-

@@ -33,6 +33,7 @@ public enum AppBootstrapper {
                 activeMatchStore: activeMatchStore,
                 pendingMatchPlayerSelections: pendingMatchPlayerSelections
             )
+            await DemoSeeder.seedIfRequested(dependencies)
             logger.info(.appLifecycle, eventName: "app_bootstrap_ready", message: "App bootstrap completed.")
             return .ready(dependencies)
         } catch {

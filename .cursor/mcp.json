@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "XcodeBuildMCP": {
+      "command": "npx",
+      "args": ["-y", "xcodebuildmcp@latest", "mcp"],
+      "env": {
+        "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/jrozell/Library/Python/3.9/bin"
+      }
+    },
+    "ios-simulator": {
+      "command": "npx",
+      "args": ["-y", "ios-simulator-mcp"],
+      "env": {
+        "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/jrozell/Library/Python/3.9/bin",
+        "IOS_SIMULATOR_MCP_IDB_PATH": "/Users/jrozell/Library/Python/3.9/bin/idb",
+        "IOS_SIMULATOR_MCP_DEFAULT_OUTPUT_DIR": "/Users/jrozell/Desktop/personal/Dart-Buddy/tmp"
+      }
+    }
+  }
+}

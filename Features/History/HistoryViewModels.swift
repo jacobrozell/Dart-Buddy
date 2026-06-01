@@ -1,9 +1,20 @@
 import Foundation
 
+struct HistoryStanding: Identifiable, Equatable {
+    let id: UUID
+    let name: String
+    let isWinner: Bool
+    let sets: Int
+    let legs: Int
+    let score: Int
+}
+
 struct HistoryListRow: Identifiable, Equatable {
     let summary: MatchSummary
-    let participantNames: [String]
-    let winnerName: String
+    let dateText: String
+    let configText: String
+    let standings: [HistoryStanding]
+    let isFinished: Bool
 
     var id: UUID { summary.id }
 }
@@ -87,18 +98,20 @@ final class HistoryListViewModel: ObservableObject {
                 let playerPass = playerFilter == nil || summary.winnerPlayerId == playerFilter
                 return modePass && datePass && playerPass
             }
-            rows = filtered.map { record in
-                let summary = record.summary
-                let participants = record.participants
-                let names = participants.map(\.displayNameAtMatchStart)
-                let winnerName = participants.first(where: { $0.playerId == summary.winnerPlayerId })?.displayNameAtMatchStart
-                    ?? NSLocalizedString("common.unknown", comment: "")
-                return HistoryListRow(
-                    summary: summary,
-                    participantNames: names,
-                    winnerName: winnerName
+            var built: [HistoryListRow] = []
+            for record in filtered {
+                let (configText, standings) = await standingsAndConfig(for: record)
+                built.append(
+                    HistoryListRow(
+                        summary: record.summary,
+                        dateText: Self.dateFormatter.string(from: record.summary.startedAt),
+                        configText: configText,
+                        standings: standings,
+                        isFinished: record.summary.status == .completed
+                    )
                 )
             }
+            rows = built
             state = rows.isEmpty ? .emptyFiltered : .readyFiltered
         } catch is CancellationError {
             state = rows.isEmpty ? .emptyFiltered : .readyFiltered
@@ -106,6 +119,83 @@ final class HistoryListViewModel: ObservableObject {
             rows = []
             state = .error
             errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
+        }
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy HH:mm"
+        return formatter
+    }()
+
+    private func standingsAndConfig(for record: MatchHistoryRecord) async -> (String, [HistoryStanding]) {
+        let summary = record.summary
+        let nameById = Dictionary(
+            uniqueKeysWithValues: record.participants.map { ($0.playerId ?? $0.id, $0.displayNameAtMatchStart) }
+        )
+
+        func fallback() -> (String, [HistoryStanding]) {
+            let standings = record.participants.map { participant -> HistoryStanding in
+                let key = participant.playerId ?? participant.id
+                return HistoryStanding(
+                    id: key,
+                    name: participant.displayNameAtMatchStart,
+                    isWinner: key == summary.winnerPlayerId,
+                    sets: 0,
+                    legs: 0,
+                    score: 0
+                )
+            }
+            return (summary.type == .x01 ? "X01" : "Cricket", standings)
+        }
+
+        guard let snapshot = try? await matchRepository.fetchLatestSnapshot(matchId: summary.id),
+              let runtime = try? CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.snapshotPayload) else {
+            return fallback()
+        }
+
+        if let state = runtime.x01State {
+            let checkout = state.config.checkoutMode == .doubleOut ? "Double Out" : "Straight Out"
+            var configParts = ["\(state.config.startScore)", checkout]
+            if state.config.setsEnabled {
+                configParts.append("First to \(state.config.setsToWin ?? 1) Set\(state.config.setsToWin == 1 ? "" : "s")")
+            }
+            configParts.append("First to \(state.config.legsToWin) Leg\(state.config.legsToWin == 1 ? "" : "s")")
+            let configText = "X01 (\(configParts.joined(separator: ", ")))"
+            let standings = state.players.map { player in
+                HistoryStanding(
+                    id: player.playerId,
+                    name: nameById[player.playerId] ?? "Player",
+                    isWinner: player.playerId == runtime.winnerPlayerId,
+                    sets: player.setsWon,
+                    legs: player.legsWon,
+                    score: player.remainingScore
+                )
+            }
+            return (configText, sortStandings(standings))
+        }
+
+        if let state = runtime.cricketState {
+            let standings = state.players.map { player in
+                HistoryStanding(
+                    id: player.playerId,
+                    name: nameById[player.playerId] ?? "Player",
+                    isWinner: player.playerId == runtime.winnerPlayerId,
+                    sets: 0,
+                    legs: 0,
+                    score: player.score
+                )
+            }
+            return ("Cricket", sortStandings(standings))
+        }
+
+        return fallback()
+    }
+
+    private func sortStandings(_ standings: [HistoryStanding]) -> [HistoryStanding] {
+        standings.sorted { lhs, rhs in
+            if lhs.isWinner != rhs.isWinner { return lhs.isWinner }
+            return lhs.score < rhs.score
         }
     }
 
@@ -117,12 +207,24 @@ final class HistoryListViewModel: ObservableObject {
     }
 }
 
+struct ThrowStatRow: Identifiable, Equatable {
+    let id: UUID
+    let name: String
+    let throwCount: Int
+    let doublePercent: Double
+    let triplePercent: Double
+}
+
 @MainActor
 final class HistoryDetailViewModel: ObservableObject {
     @Published private(set) var header: HistoryDetailHeader?
     @Published private(set) var timeline: [String] = []
     @Published private(set) var state: String = "loading"
     @Published private(set) var errorMessageKey: String?
+    @Published private(set) var dateText = ""
+    @Published private(set) var configText = ""
+    @Published private(set) var standings: [HistoryStanding] = []
+    @Published private(set) var throwsRows: [ThrowStatRow] = []
     private let matchId: UUID
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
@@ -165,6 +267,13 @@ final class HistoryDetailViewModel: ObservableObject {
                 }
             }
             header = buildHeader(match: match, participants: participants, envelopes: envelopes)
+            dateText = Self.detailDateFormatter.string(from: match.startedAt)
+            await computeStandingsAndThrows(
+                match: match,
+                participants: participants,
+                envelopes: envelopes,
+                participantNames: participantNames
+            )
             state = "ready"
         } catch is CancellationError {
             return
@@ -219,6 +328,79 @@ final class HistoryDetailViewModel: ObservableObject {
             participantsText: participantsText,
             modeSpecificSummaryText: modeSpecificSummaryText
         )
+    }
+
+    private static let detailDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy HH:mm"
+        return formatter
+    }()
+
+    private func computeStandingsAndThrows(
+        match: MatchSummary,
+        participants: [MatchParticipantSummary],
+        envelopes: [MatchEventEnvelope],
+        participantNames: [UUID: String]
+    ) async {
+        if let snapshot = try? await matchRepository.fetchLatestSnapshot(matchId: match.id),
+           let runtime = try? CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.snapshotPayload) {
+            if let s = runtime.x01State {
+                let checkout = s.config.checkoutMode == .doubleOut ? "Double Out" : "Straight Out"
+                var parts = ["\(s.config.startScore)", checkout]
+                if s.config.setsEnabled {
+                    parts.append("First to \(s.config.setsToWin ?? 1) Set\(s.config.setsToWin == 1 ? "" : "s")")
+                }
+                parts.append("First to \(s.config.legsToWin) Leg\(s.config.legsToWin == 1 ? "" : "s")")
+                configText = "X01 (\(parts.joined(separator: ", ")))"
+                standings = sortStandings(s.players.map {
+                    HistoryStanding(id: $0.playerId, name: participantNames[$0.playerId] ?? "Player", isWinner: $0.playerId == runtime.winnerPlayerId, sets: $0.setsWon, legs: $0.legsWon, score: $0.remainingScore)
+                })
+            } else if let c = runtime.cricketState {
+                configText = "Cricket"
+                standings = sortStandings(c.players.map {
+                    HistoryStanding(id: $0.playerId, name: participantNames[$0.playerId] ?? "Player", isWinner: $0.playerId == runtime.winnerPlayerId, sets: 0, legs: 0, score: $0.score)
+                })
+            }
+        }
+
+        var throwsByPlayer: [UUID: Int] = [:]
+        var doublesByPlayer: [UUID: Int] = [:]
+        var triplesByPlayer: [UUID: Int] = [:]
+        for envelope in envelopes {
+            switch envelope.payload {
+            case let .x01Turn(turn):
+                for dart in turn.darts {
+                    throwsByPlayer[turn.playerId, default: 0] += 1
+                    if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[turn.playerId, default: 0] += 1 }
+                    if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[turn.playerId, default: 0] += 1 }
+                }
+            case let .cricketTurn(turn):
+                for touch in turn.targetsTouched {
+                    throwsByPlayer[turn.playerId, default: 0] += 1
+                    if touch.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[turn.playerId, default: 0] += 1 }
+                    if touch.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[turn.playerId, default: 0] += 1 }
+                }
+            }
+        }
+        throwsRows = standings.map { standing in
+            let total = throwsByPlayer[standing.id] ?? 0
+            let doubles = doublesByPlayer[standing.id] ?? 0
+            let triples = triplesByPlayer[standing.id] ?? 0
+            return ThrowStatRow(
+                id: standing.id,
+                name: standing.name,
+                throwCount: total,
+                doublePercent: total > 0 ? Double(doubles) / Double(total) * 100 : 0,
+                triplePercent: total > 0 ? Double(triples) / Double(total) * 100 : 0
+            )
+        }
+    }
+
+    private func sortStandings(_ standings: [HistoryStanding]) -> [HistoryStanding] {
+        standings.sorted { lhs, rhs in
+            if lhs.isWinner != rhs.isWinner { return lhs.isWinner }
+            return lhs.score < rhs.score
+        }
     }
 
     private func messageKey(for error: Error, fallback: String) -> String {

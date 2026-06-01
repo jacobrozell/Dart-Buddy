@@ -1,5 +1,9 @@
 import Foundation
 
+enum X01StartScores {
+    static let all = [301, 401, 501, 601]
+}
+
 @MainActor
 final class MatchSetupViewModel: ObservableObject {
     enum SetupMode: String, CaseIterable, Identifiable {
@@ -16,6 +20,7 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var x01SetsEnabled = false
     @Published var x01SetsToWin: Int = 1
     @Published var x01CheckoutMode: X01CheckoutMode = .doubleOut
+    @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
 
@@ -51,7 +56,7 @@ final class MatchSetupViewModel: ObservableObject {
                 selectedPlayerIds.insert(id)
             }
             let settings = try await settingsRepository.seedDefaultsIfNeeded()
-            x01StartScore = [301, 501].contains(settings.defaultX01StartScore) ? settings.defaultX01StartScore : 501
+            x01StartScore = X01StartScores.all.contains(settings.defaultX01StartScore) ? settings.defaultX01StartScore : 501
             x01LegsToWin = max(1, settings.defaultLegsToWin)
             x01SetsEnabled = settings.defaultSetsEnabled
             x01CheckoutMode = settings.defaultCheckoutModeRaw == X01CheckoutMode.singleOut.rawValue ? .singleOut : .doubleOut
@@ -88,7 +93,7 @@ final class MatchSetupViewModel: ObservableObject {
             errors.append("setup.validation.minimumPlayers")
         }
         if mode == .x01 {
-            if ![301, 501].contains(x01StartScore) {
+            if !X01StartScores.all.contains(x01StartScore) {
                 errors.append("setup.validation.invalidStartScore")
             }
             if x01LegsToWin <= 0 {
@@ -106,8 +111,9 @@ final class MatchSetupViewModel: ObservableObject {
         guard canStart else { return nil }
         isSubmitting = true
         defer { isSubmitting = false }
-        let selectedPlayers = availablePlayers
-            .filter { selectedPlayerIds.contains($0.id) }
+        let roster = availablePlayers.filter { selectedPlayerIds.contains($0.id) }
+        let orderedRoster = randomOrder ? roster.shuffled() : roster
+        let selectedPlayers = orderedRoster
             .enumerated()
             .map { index, player in
                 MatchParticipant(
