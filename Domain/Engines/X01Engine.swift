@@ -43,6 +43,15 @@ public struct X01TurnEvent: Codable, Equatable, Identifiable, Sendable {
     public let checkoutDartCount: Int?
     public let darts: [X01DartEvent]
     public let timestamp: Date
+    /// Number of darts thrown this visit. For per-dart entry this equals
+    /// `darts.count`; for total entry (no per-dart detail) it defaults to a
+    /// full 3-dart visit so averages stay meaningful. Optional for backward
+    /// compatibility with events persisted before this field existed.
+    public let dartsThrown: Int?
+
+    /// Darts thrown this visit, falling back to the recorded dart detail for
+    /// legacy events that predate `dartsThrown`.
+    public var effectiveDartsThrown: Int { dartsThrown ?? darts.count }
 }
 
 public struct X01TurnOutcome: Sendable {
@@ -116,13 +125,22 @@ public enum X01Engine {
             isBust = true
             appliedTotal = 0
             endRemaining = startRemaining
+        } else if endRemaining == 1, updated.config.checkoutMode == .doubleOut {
+            // The lowest legal double-out finish is D1 (2), so leaving exactly 1
+            // can never be checked out — treat it as a bust.
+            isBust = true
+            appliedTotal = 0
+            endRemaining = startRemaining
         } else if endRemaining == 0 {
             switch updated.config.checkoutMode {
             case .singleOut:
                 didCheckout = true
             case .doubleOut:
                 let finalDart = darts.last
-                if finalDart?.multiplier == .double || finalDart?.segment == .innerBull {
+                // With per-dart entry the finishing dart must be a double (or
+                // inner bull). With total entry we have no per-dart detail, so
+                // trust an exact finish — the player asserts a legal checkout.
+                if darts.isEmpty || finalDart?.multiplier == .double || finalDart?.segment == .innerBull {
                     didCheckout = true
                 } else {
                     isBust = true
@@ -190,7 +208,8 @@ public enum X01Engine {
             checkoutModeRaw: state.config.checkoutMode.rawValue,
             checkoutDartCount: didCheckout ? max(1, darts.count) : nil,
             darts: dartEvents,
-            timestamp: timestamp
+            timestamp: timestamp,
+            dartsThrown: darts.isEmpty ? 3 : darts.count
         )
         return X01TurnOutcome(updatedState: updated, event: event)
     }
