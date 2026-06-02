@@ -27,62 +27,7 @@ struct SettingsRootView: View {
         NavigationStack(path: $path) {
             Group {
                 if let settings = viewModel.settings {
-                    Form {
-                        Section(L10n.appearanceSection) {
-                            Picker("settings.theme.label", selection: Binding(
-                                get: { settings.appearanceModeRaw },
-                                set: { viewModel.queueAppearanceUpdate($0) }
-                            )) {
-                                Text("settings.theme.system").tag("system")
-                                Text("settings.theme.light").tag("light")
-                                Text("settings.theme.dark").tag("dark")
-                            }
-                        }
-                        Section(L10n.gameplayDefaultsSection) {
-                            Picker("settings.mode.label", selection: Binding(
-                                get: { settings.defaultMatchTypeRaw },
-                                set: { viewModel.queueDefaultsUpdate(matchType: $0, startScore: settings.defaultX01StartScore, checkout: settings.defaultCheckoutModeRaw, legs: settings.defaultLegsToWin, setsEnabled: settings.defaultSetsEnabled) }
-                            )) {
-                                Text("settings.mode.x01").tag("x01")
-                                Text("settings.mode.cricket").tag("cricket")
-                            }
-                        }
-                        Section {
-                            Toggle("settings.feedback.haptics", isOn: Binding(
-                                get: { settings.hapticsEnabled },
-                                set: { viewModel.queueFeedbackUpdate(haptics: $0) }
-                            ))
-                            .accessibilityIdentifier("settings_hapticsToggle")
-                            Toggle("settings.feedback.sound", isOn: Binding(
-                                get: { settings.soundEnabled },
-                                set: { viewModel.queueFeedbackUpdate(sound: $0) }
-                            ))
-                            .accessibilityIdentifier("settings_soundToggle")
-                            Toggle("settings.feedback.turnTotalCaller", isOn: Binding(
-                                get: { settings.turnTotalCallerEnabled },
-                                set: { viewModel.queueFeedbackUpdate(turnTotalCaller: $0) }
-                            ))
-                            .accessibilityIdentifier("settings_turnTotalCallerToggle")
-                        } header: {
-                            Text(L10n.feedbackSection)
-                        } footer: {
-                            Text("settings.feedback.turnTotalCaller.footer")
-                        }
-                        Section(L10n.dataSection) {
-                            Button(L10n.resetAllData, role: .destructive) {
-                                viewModel.requestReset()
-                            }
-                            .accessibilityLabel(L10n.string("settings.reset.accessibility"))
-                            .accessibilityIdentifier("settings_resetAllDataButton")
-                        }
-                        Section(L10n.aboutSection) {
-                            Text("settings.about.value")
-                                .foregroundStyle(DS.ColorRole.textSecondary)
-                        }
-                    }
-                    .frame(maxWidth: contentMaxWidth)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .safeAreaPadding(.bottom, DS.Spacing.s6)
+                    settingsForm(settings)
                 } else {
                     switch viewModel.state {
                     case let .error(messageKey):
@@ -134,5 +79,78 @@ struct SettingsRootView: View {
                 viewModel.cancelPendingWork()
             }
         }
+    }
+
+    @ViewBuilder
+    private func settingsForm(_ settings: SettingsSummary) -> some View {
+        let usesBrand = AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: settings.appearanceModeRaw)
+
+        Form {
+            Section(L10n.appearanceSection) {
+                Picker("settings.theme.label", selection: Binding(
+                    get: { settings.appearanceModeRaw },
+                    set: { viewModel.queueAppearanceUpdate($0) }
+                )) {
+                    Text("settings.theme.system").tag("system")
+                    Text("settings.theme.light").tag("light")
+                    Text("settings.theme.dark").tag("dark")
+                }
+            }
+            .brandFormRowBackground(when: usesBrand)
+
+            Section(L10n.gameplayDefaultsSection) {
+                Picker("settings.mode.label", selection: Binding(
+                    get: { settings.defaultMatchTypeRaw },
+                    set: { viewModel.queueDefaultsUpdate(matchType: $0, startScore: settings.defaultX01StartScore, checkout: settings.defaultCheckoutModeRaw, legs: settings.defaultLegsToWin, setsEnabled: settings.defaultSetsEnabled) }
+                )) {
+                    Text("settings.mode.x01").tag("x01")
+                    Text("settings.mode.cricket").tag("cricket")
+                }
+            }
+            .brandFormRowBackground(when: usesBrand)
+
+            Section {
+                Toggle("settings.feedback.haptics", isOn: Binding(
+                    get: { settings.hapticsEnabled },
+                    set: { viewModel.queueFeedbackUpdate(haptics: $0) }
+                ))
+                .accessibilityIdentifier("settings_hapticsToggle")
+                Toggle("settings.feedback.sound", isOn: Binding(
+                    get: { settings.soundEnabled },
+                    set: { viewModel.queueFeedbackUpdate(sound: $0) }
+                ))
+                .accessibilityIdentifier("settings_soundToggle")
+                Toggle("settings.feedback.turnTotalCaller", isOn: Binding(
+                    get: { settings.turnTotalCallerEnabled },
+                    set: { viewModel.queueFeedbackUpdate(turnTotalCaller: $0) }
+                ))
+                .accessibilityIdentifier("settings_turnTotalCallerToggle")
+            } header: {
+                Text(L10n.feedbackSection)
+            } footer: {
+                Text("settings.feedback.turnTotalCaller.footer")
+            }
+            .brandFormRowBackground(when: usesBrand)
+
+            Section(L10n.dataSection) {
+                Button(L10n.resetAllData, role: .destructive) {
+                    viewModel.requestReset()
+                }
+                .accessibilityLabel(L10n.string("settings.reset.accessibility"))
+                .accessibilityIdentifier("settings_resetAllDataButton")
+            }
+            .brandFormRowBackground(when: usesBrand)
+
+            Section(L10n.aboutSection) {
+                Text("settings.about.value")
+                    .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
+            }
+            .brandFormRowBackground(when: usesBrand)
+        }
+        .tint(Brand.green)
+        .frame(maxWidth: contentMaxWidth)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .safeAreaPadding(.bottom, DS.Spacing.s6)
+        .brandSettingsChrome(appearanceModeRaw: settings.appearanceModeRaw)
     }
 }

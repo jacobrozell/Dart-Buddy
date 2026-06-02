@@ -95,24 +95,26 @@ final class MatchSummaryViewModel: ObservableObject {
                 id: breakdown.playerId,
                 name: breakdown.name,
                 isWinner: breakdown.playerId == runtime.winnerPlayerId,
-                stats: stats(for: breakdown, runtime: runtime)
+                stats: Self.stats(for: breakdown, runtime: runtime)
             )
         }
     }
 
-    private func stats(for breakdown: PlayerStatBreakdown, runtime: MatchRuntimeState) -> [(label: String, value: String)] {
+    static func stats(for breakdown: PlayerStatBreakdown, runtime: MatchRuntimeState) -> [(label: String, value: String)] {
         switch runtime.type {
         case .x01:
-            var rows: [(String, String)] = [(L10n.string("play.summary.stat.threeDartAvg"), String(format: "%.1f", breakdown.average3Dart))]
+            var rows: [(String, String)] = [
+                (L10n.string("play.summary.stat.threeDartAvg"), String(format: "%.1f", breakdown.average3Dart))
+            ]
+            if runtime.x01State?.config.setsEnabled == true,
+               let player = runtime.x01State?.players.first(where: { $0.playerId == breakdown.playerId }) {
+                rows.append((L10n.string("play.summary.stat.sets"), "\(player.setsWon)"))
+            }
             if let player = runtime.x01State?.players.first(where: { $0.playerId == breakdown.playerId }) {
-                if runtime.x01State?.config.setsEnabled == true {
-                    rows.append((L10n.string("play.summary.stat.sets"), "\(player.setsWon)"))
-                }
                 rows.append((L10n.string("play.summary.stat.legs"), "\(player.legsWon)"))
             }
-            if breakdown.highestCheckout > 0 {
-                rows.append((L10n.string("play.summary.stat.bestOut"), "\(breakdown.highestCheckout)"))
-            }
+            let bestOut = breakdown.highestCheckout > 0 ? "\(breakdown.highestCheckout)" : "—"
+            rows.append((L10n.string("play.summary.stat.bestOut"), bestOut))
             return rows
         case .cricket:
             let score = runtime.cricketState?.players.first(where: { $0.playerId == breakdown.playerId })?.score ?? breakdown.points

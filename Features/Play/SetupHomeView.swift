@@ -30,15 +30,25 @@ struct SetupHomeView: View {
                 if setupViewModel.mode == .x01 {
                     chipsGrid
                 }
-                startButton
                 rosterControls
                 playerList
             }
             .padding(.horizontal, DS.Spacing.s4)
-            .padding(.bottom, DS.Spacing.s6)
+            .padding(.bottom, DS.Spacing.s4)
         }
         .background(Brand.background.ignoresSafeArea())
         .navigationBarHidden(true)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            startButton
+                .padding(.horizontal, DS.Spacing.s4)
+                .padding(.top, DS.Spacing.s3)
+                .padding(.bottom, DS.Spacing.s2)
+                .background {
+                    Brand.background
+                        .shadow(color: .black.opacity(0.25), radius: 10, y: -4)
+                        .ignoresSafeArea(edges: .bottom)
+                }
+        }
         .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
             Task { await setupViewModel.onAppear() }
         }
@@ -330,7 +340,6 @@ struct SetupHomeView: View {
                 playLocalizedText(key).font(.footnote).foregroundStyle(Brand.red)
             }
         }
-        .padding(.top, DS.Spacing.s2)
     }
 
     private var rosterControls: some View {

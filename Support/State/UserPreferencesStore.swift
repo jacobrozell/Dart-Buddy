@@ -13,17 +13,9 @@ public final class UserPreferencesStore: ObservableObject {
     let feedback = FeedbackPreferences()
 
     func apply(_ settings: SettingsSummary) {
-        preferredColorScheme = Self.colorScheme(for: settings.appearanceModeRaw)
+        preferredColorScheme = AppAppearancePolicy.colorScheme(for: settings.appearanceModeRaw)
         feedback.hapticsEnabled = settings.hapticsEnabled
         feedback.soundEnabled = settings.soundEnabled
         feedback.turnTotalCallerEnabled = settings.turnTotalCallerEnabled
-    }
-
-    static func colorScheme(for raw: String) -> ColorScheme? {
-        switch raw {
-        case "light": return .light
-        case "dark": return .dark
-        default: return nil
-        }
     }
 }

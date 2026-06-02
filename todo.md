@@ -10,6 +10,15 @@ Status legend: `[ ]` todo · `[~]` partial
 
 * What if we had a watch app? SO you could enter your throws on the watch and it connect back to the main app
 * Speak mode while playing
+Add Game Center support with acheivements
+ -- play 1 game
+ -- play 50 games
+ -- play 100 games
+ -- first triple 20
+ -- 3 triple 20's in a turn
+ -- bullseye hitter
+ -- win by more than 100 points
+ -- help me brainstorm more
 
 - [x] **Turn total caller (optional)** — After human submits a visit, speak/play visit total; Settings toggle, default off; respect sound gate.
 - [x] **Leg vs match finish SFX** — `legFinishSoundToken` uses `playMatchFinished()` today; add leg-specific sound; reserve `game_finished` for match end.
@@ -47,16 +56,16 @@ Status legend: `[ ]` todo · `[~]` partial
 - [ ] **Accessibility pass** — Follow `accessibility/accessibility_todo.md` (Phase 0–2); status in `accessibility/wcag-2.1-aa/`.
 - [x] **Localize remaining English** — Home, History, Statistics, Match Summary, setup, game detail delete copy.
 - [x] **Cricket nav title contrast** — dark toolbar on `CricketMatchScreen` (verify in Inspector / `Manual_todo.md`)
-- [ ] **X01 layout dead space** — Gap between cards and pad on phone.
-- [ ] **Setup flow** — Roster below START / tab bar; Add Bot vs START proximity; red START semantics.
-- [ ] **Unify match exit chrome** — X01 chevron vs Cricket Cancel.
-- [ ] **Match Summary stat parity** — Align winner/loser stat columns (e.g. Best Out).
+- [x] **X01 layout dead space** — `ViewThatFits` compact vs scroll layout; cards hug content on phone.
+- [x] **Setup flow** — Roster above sticky START inset; Add Bot separated from primary CTA.
+- [x] **Unify match exit chrome** — Shared `MatchGameplayHeader` (chevron exit) on X01 + Cricket.
+- [x] **Match Summary stat parity** — Best Out always shown; equal-width stat columns.
 - [x] **Empty-state CTAs** — History/Statistics “no games” → jump to Play.
-- [ ] **Cricket one-screen fit (phone)** — Pin active row + pad; scroll grid only.
-- [ ] **X01 player card legibility** — Tiny sets/legs/darts/avg on right.
-- [ ] **Theme cohesion** — Settings light vs Play dark when preference is dark.
+- [x] **Cricket one-screen fit (phone)** — Pin player header + tap pad; scroll marks grid only.
+- [x] **X01 player card legibility** — Right-column stats bumped to `.footnote`; fixed min width.
+- [x] **Theme cohesion** — Scoreboard tabs fixed dark; Settings brand form when not Light.
 - [ ] **App icon finalization** — `Media.xcassets` / `assets/app-icons/`
-- [ ] **Reduce Motion on summary celebration**
+- [x] **Reduce Motion on summary celebration**
 - [ ] **Cricket closure highlight** — Beyond `boardUpdated` text on `closureTransition`
 - [ ] **Bot turn pacing** — Optional stagger + per-dart haptic (settings).
 - [ ] **DesignSystem primitives** — `PrimaryActionButton`, `StatChip`, `ErrorBanner` (Phase 05 P1).

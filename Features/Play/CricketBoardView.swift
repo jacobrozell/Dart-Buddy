@@ -13,7 +13,20 @@ struct CricketBoardView: View {
     }
 
     let columns: [Column]
-    private let targets = CricketTarget.allCases
+
+    var body: some View {
+        VStack(spacing: 0) {
+            CricketBoardPlayerHeaderRow(columns: columns)
+            CricketBoardMarksGrid(columns: columns)
+        }
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+    }
+}
+
+/// Pinned player name/score row for one-screen Cricket layout.
+struct CricketBoardPlayerHeaderRow: View {
+    let columns: [CricketBoardView.Column]
 
     var body: some View {
         Grid(horizontalSpacing: 0, verticalSpacing: 0) {
@@ -38,6 +51,24 @@ struct CricketBoardView: View {
                     .accessibilityIdentifier(column.isActive ? "cricket_column_active" : "cricket_column")
                 }
             }
+        }
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+    }
+
+    private func columnAccessibilityLabel(_ column: CricketBoardView.Column) -> String {
+        let turn = column.isActive ? " \(L10n.string("play.x01.turn.active"))" : ""
+        return L10n.format("play.cricket.column.accessibilityFormat", column.name, column.score, turn)
+    }
+}
+
+/// Scrollable marks grid (targets 20–15 + Bull) without the player header row.
+struct CricketBoardMarksGrid: View {
+    let columns: [CricketBoardView.Column]
+    private let targets = CricketTarget.allCases
+
+    var body: some View {
+        Grid(horizontalSpacing: 0, verticalSpacing: 0) {
             ForEach(targets, id: \.rawValue) { target in
                 GridRow {
                     Text(label(for: target))
@@ -65,11 +96,10 @@ struct CricketBoardView: View {
     private func label(for target: CricketTarget) -> String {
         target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
     }
+}
 
-    private func columnAccessibilityLabel(_ column: Column) -> String {
-        let turn = column.isActive ? " \(L10n.string("play.x01.turn.active"))" : ""
-        return L10n.format("play.cricket.column.accessibilityFormat", column.name, column.score, turn)
-    }
+extension CricketBoardView {
+    static var markTargetCount: Int { CricketTarget.allCases.count }
 }
 
 /// Standard cricket mark glyph: "/" for one, "X" for two, and a circled "X"

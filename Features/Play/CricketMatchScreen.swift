@@ -16,12 +16,31 @@ struct CricketMatchScreen: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                if let state = viewModel.cricketState {
-                    Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
-                        .foregroundStyle(Brand.textSecondary)
-                    CricketBoardView(columns: viewModel.boardColumns)
+        VStack(spacing: 0) {
+            MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
+                Text(L10n.cricketTitle)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+
+            if let state = viewModel.cricketState {
+                Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
+                    .font(.subheadline)
+                    .foregroundStyle(Brand.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .padding(.bottom, DS.Spacing.s2)
+
+                CricketBoardPlayerHeaderRow(columns: viewModel.boardColumns)
+                    .padding(.horizontal, DS.Spacing.s4)
+
+                ScrollView {
+                    CricketBoardMarksGrid(columns: viewModel.boardColumns)
+                        .padding(.horizontal, DS.Spacing.s4)
+                }
+
+                VStack(spacing: DS.Spacing.s2) {
+                    stateBanner
                     CricketTapPad(
                         enteredDarts: $viewModel.enteredDarts,
                         selectedMultiplier: $viewModel.selectedMultiplier,
@@ -45,28 +64,21 @@ struct CricketMatchScreen: View {
                         if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
                         if darts.count == 3 { submit() }
                     }
-                } else {
-                    ProgressView().tint(.white)
                 }
-                stateBanner
+                .padding(.horizontal, DS.Spacing.s4)
+                .padding(.top, DS.Spacing.s2)
+                .padding(.bottom, DS.Spacing.s2)
+            } else {
+                Spacer()
+                ProgressView().tint(.white)
+                Spacer()
             }
-            .frame(maxWidth: contentMaxWidth, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .padding(DS.Spacing.s4)
+        .frame(maxWidth: contentMaxWidth)
+        .frame(maxWidth: .infinity)
         .background(Brand.background.ignoresSafeArea())
-        .navigationTitle("play.cricket.navTitle")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Brand.background, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(L10n.cancel) { showExitConfirmation = true }
-            }
-        }
         .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
             Button("common.stay", role: .cancel) {}
             Button("play.match.exit.saveAndExit") { dismiss() }

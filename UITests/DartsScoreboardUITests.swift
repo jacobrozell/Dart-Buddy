@@ -68,7 +68,7 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Throws"].waitForExistence(timeout: timeout + 5), "Game detail should show throw stats")
         XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout))
 
-        let delete = app.buttons["Delete"]
+        let delete = app.buttons["historyDetailDeleteButton"]
         XCTAssertTrue(delete.waitForExistence(timeout: timeout), "Game detail should show a Delete button")
         delete.tap()
 
@@ -275,7 +275,7 @@ final class DartsScoreboardUITests: XCTestCase {
         app.buttons["startMatchButton"].tap()
 
         XCTAssertTrue(
-            app.staticTexts["101, Straight Out, First to 1 Legs"].waitForExistence(timeout: timeout),
+            app.staticTexts["101, Straight Out, First to 1 Leg"].waitForExistence(timeout: timeout),
             "Board should reflect the quick-match configuration"
         )
 
@@ -330,7 +330,7 @@ final class DartsScoreboardUITests: XCTestCase {
     func testCricketGridScoringRecordsMarks() {
         let app = launchApp(["-seed_players"])
 
-        app.buttons["Cricket"].tap()
+        app.buttons["setup_mode_cricket"].tap()
         app.buttons["select_Alice"].tap()
         app.buttons["select_Bob"].tap()
         app.buttons["startMatchButton"].tap()

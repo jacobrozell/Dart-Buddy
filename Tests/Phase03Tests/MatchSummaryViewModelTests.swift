@@ -59,6 +59,82 @@ func matchSummaryViewModelLoadsSessionFromRepositoryWhenStoreEmpty() async throw
     #expect(store.session(for: matchId) != nil)
 }
 
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func matchSummaryX01StatParityIncludesBestOutForEveryPlayer() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "Alice", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "Bob", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 0, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 41, darts: nil)
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+            id: UUID(),
+            matchId: session.runtime.matchId,
+            snapshotVersion: session.latestSnapshot.payloadVersion,
+            snapshotPayload: session.latestSnapshot.payload,
+            updatedAt: Date()
+        )),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    let rows = vm.playerRows
+    #expect(rows.count == 2)
+
+    let labelSets = rows.map { $0.stats.map(\.label) }
+    #expect(labelSets[0] == labelSets[1])
+
+    let bestOutLabel = L10n.string("play.summary.stat.bestOut")
+    #expect(labelSets[0].contains(bestOutLabel))
+
+    let winner = rows.first(where: \.isWinner)
+    let loser = rows.first(where: { !$0.isWinner })
+    #expect(winner?.stats.first(where: { $0.label == bestOutLabel })?.value == "41")
+    #expect(loser?.stats.first(where: { $0.label == bestOutLabel })?.value == "—")
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryX01StatsBuilderAlwaysIncludesBestOutPlaceholder() throws {
+    let p0 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 501, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    let breakdown = PlayerStatBreakdown(
+        playerId: p0,
+        name: "A",
+        darts: 9,
+        points: 501,
+        highestCheckout: 0
+    )
+
+    let stats = MatchSummaryViewModel.stats(for: breakdown, runtime: session.runtime)
+    let labels = stats.map(\.label)
+    let values = stats.map(\.value)
+
+    #expect(labels.last == L10n.string("play.summary.stat.bestOut"))
+    #expect(values.last == "—")
+}
+
 private actor SummaryFakeMatchRepository: MatchRepository {
     let snapshot: MatchSnapshotSummary
 

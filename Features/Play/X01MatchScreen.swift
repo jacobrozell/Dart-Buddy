@@ -13,7 +13,21 @@ struct X01MatchScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
+                Text(L10n.x01Title)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+            } trailing: {
+                Button { runUndo() } label: {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(Brand.green)
+                        .frame(width: 44, height: 44)
+                        .background(Brand.card, in: Circle())
+                }
+                .accessibilityLabel(L10n.scoringUndoLastTurn)
+            }
+
             if let state = viewModel.x01State {
                 Text(viewModel.configSummary ?? "")
                     .font(.subheadline)
@@ -22,52 +36,9 @@ struct X01MatchScreen: View {
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.bottom, DS.Spacing.s2)
 
-                ScrollView {
-                    VStack(spacing: DS.Spacing.s2) {
-                        ForEach(viewModel.playerCards) { card in
-                            PlayerScoreCard(
-                                name: card.name,
-                                score: card.score,
-                                setsWon: card.setsWon,
-                                legsWon: card.legsWon,
-                                isActive: card.isActive,
-                                visitDarts: card.visitDarts,
-                                dartsThrown: card.dartsThrown,
-                                average: card.average
-                            )
-                        }
-                    }
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.top, DS.Spacing.s2)
-                }
-
-                checkoutBanner
-                    .padding(.horizontal, DS.Spacing.s4)
-
-                botTurnBanner
-                    .padding(.horizontal, DS.Spacing.s4)
-
-                stateBanner
-                    .padding(.horizontal, DS.Spacing.s4)
-
-                DartNumberPad(
-                    enteredDarts: $viewModel.enteredDarts,
-                    selectedMultiplier: $viewModel.selectedMultiplier,
-                    onUndoTurn: { runUndo() }
-                )
-                .disabled(viewModel.canHumanInput == false)
-                .opacity(viewModel.canHumanInput ? 1 : 0.45)
-                .accessibilityElement(children: .contain)
-                .modifier(
-                    OptionalAccessibilityHint(
-                        hint: viewModel.canHumanInput ? nil : L10n.string("play.x01.pad.disabledWhileBot")
-                    )
-                )
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.bottom, DS.Spacing.s2)
-                .onChange(of: viewModel.enteredDarts) { old, darts in
-                    if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
-                    autoSubmitIfNeeded(darts: darts, state: state)
+                ViewThatFits(in: .vertical) {
+                    compactScoringStack(state: state)
+                    scrollableScoringStack(state: state)
                 }
             } else {
                 Spacer()
@@ -133,33 +104,75 @@ struct X01MatchScreen: View {
         .onDisappear { actionTask?.cancel() }
     }
 
-    private var header: some View {
-        HStack {
-            Button { showExitConfirmation = true } label: {
-                Image(systemName: "chevron.left")
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(Brand.green)
-                    .frame(width: 44, height: 44)
-                    .background(Brand.card, in: Circle())
+    private func compactScoringStack(state: X01State) -> some View {
+        VStack(spacing: DS.Spacing.s2) {
+            playerCardsStack
+                .padding(.top, DS.Spacing.s2)
+            statusBanners
+            scoringPad(state: state)
+        }
+    }
+
+    private func scrollableScoringStack(state: X01State) -> some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                playerCardsStack
+                    .padding(.top, DS.Spacing.s2)
             }
-            .accessibilityLabel(L10n.x01LeaveMatchAccessibility)
-            Spacer()
-            Text(L10n.x01Title)
-                .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
-            Spacer()
-            Button { runUndo() } label: {
-                Image(systemName: "arrow.uturn.backward")
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(Brand.green)
-                    .frame(width: 44, height: 44)
-                    .background(Brand.card, in: Circle())
+            statusBanners
+                .padding(.vertical, DS.Spacing.s2)
+            scoringPad(state: state)
+        }
+    }
+
+    private var playerCardsStack: some View {
+        VStack(spacing: DS.Spacing.s2) {
+            ForEach(viewModel.playerCards) { card in
+                PlayerScoreCard(
+                    name: card.name,
+                    score: card.score,
+                    setsWon: card.setsWon,
+                    legsWon: card.legsWon,
+                    isActive: card.isActive,
+                    visitDarts: card.visitDarts,
+                    dartsThrown: card.dartsThrown,
+                    average: card.average
+                )
             }
-            .accessibilityLabel(L10n.scoringUndoLastTurn)
         }
         .padding(.horizontal, DS.Spacing.s4)
-        .padding(.top, DS.Spacing.s2)
+    }
+
+    @ViewBuilder
+    private var statusBanners: some View {
+        VStack(spacing: DS.Spacing.s2) {
+            checkoutBanner
+            botTurnBanner
+            stateBanner
+        }
+        .padding(.horizontal, DS.Spacing.s4)
+    }
+
+    private func scoringPad(state: X01State) -> some View {
+        DartNumberPad(
+            enteredDarts: $viewModel.enteredDarts,
+            selectedMultiplier: $viewModel.selectedMultiplier,
+            onUndoTurn: { runUndo() }
+        )
+        .disabled(viewModel.canHumanInput == false)
+        .opacity(viewModel.canHumanInput ? 1 : 0.45)
+        .accessibilityElement(children: .contain)
+        .modifier(
+            OptionalAccessibilityHint(
+                hint: viewModel.canHumanInput ? nil : L10n.string("play.x01.pad.disabledWhileBot")
+            )
+        )
+        .padding(.horizontal, DS.Spacing.s3)
         .padding(.bottom, DS.Spacing.s2)
+        .onChange(of: viewModel.enteredDarts) { old, darts in
+            if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
+            autoSubmitIfNeeded(darts: darts, state: state)
+        }
     }
 
     @ViewBuilder
@@ -287,23 +300,24 @@ private struct PlayerScoreCard: View {
                         .accessibilityIdentifier(isActive ? "scoreCard_visitTotal" : "")
                 }
                 Spacer(minLength: DS.Spacing.s2)
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: 6) {
                     Text(L10n.format("play.x01.setsLegsFormat", setsWon, legsWon))
-                        .font(.caption)
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(Brand.textSecondary)
                     HStack(spacing: 4) {
-                        Image(systemName: "scope").font(.caption2)
-                        Text("\(dartsThrown)").font(.caption.weight(.semibold))
+                        Image(systemName: "scope").font(.footnote)
+                        Text("\(dartsThrown)").font(.footnote.weight(.semibold))
                     }
                     .foregroundStyle(Brand.textSecondary)
                     .accessibilityIdentifier(isActive ? "scoreCard_dartsThrown" : "")
                     HStack(spacing: 4) {
-                        Image(systemName: "chart.bar.fill").font(.caption2)
-                        Text(String(format: "%.2f", average)).font(.caption.weight(.semibold))
+                        Image(systemName: "chart.bar.fill").font(.footnote)
+                        Text(String(format: "%.2f", average)).font(.footnote.weight(.semibold))
                     }
                     .foregroundStyle(Brand.textSecondary)
                     .accessibilityIdentifier(isActive ? "scoreCard_average" : "")
                 }
+                .frame(minWidth: 72, alignment: .trailing)
             }
             .padding(DS.Spacing.s3)
         }

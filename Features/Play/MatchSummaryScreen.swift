@@ -91,7 +91,7 @@ struct MatchSummaryScreen: View {
                         .font(.headline)
                         .foregroundStyle(row.isWinner ? Brand.amber : .white)
                 }
-                HStack(spacing: DS.Spacing.s4) {
+                HStack(spacing: DS.Spacing.s3) {
                     ForEach(row.stats, id: \.label) { stat in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(stat.value)
@@ -100,7 +100,10 @@ struct MatchSummaryScreen: View {
                             Text(stat.label)
                                 .font(.caption2)
                                 .foregroundStyle(Brand.textSecondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
