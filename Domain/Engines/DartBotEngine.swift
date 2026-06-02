@@ -79,6 +79,26 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
         case .pro: 0.32
         }
     }
+
+    /// Extra hit probability when trying to double/triple in at the start of a leg.
+    fileprivate var checkInHitBoost: Double {
+        switch self {
+        case .easy: 0.16
+        case .medium: 0.12
+        case .hard: 0.08
+        case .pro: 0.06
+        }
+    }
+
+    /// Chance a dart completely misses the board after failing the intended target.
+    fileprivate var offBoardMissChance: Double {
+        switch self {
+        case .easy: 0.10
+        case .medium: 0.07
+        case .hard: 0.05
+        case .pro: 0.03
+        }
+    }
 }
 
 public enum DartBotEngine {
@@ -121,7 +141,13 @@ public enum DartBotEngine {
                 rng: &rng
             )
 
-            let resolved = resolveDart(intended: intended, difficulty: difficulty, rng: &rng)
+            let hitBoost = checkedIn ? 0 : difficulty.checkInHitBoost
+            let resolved = resolveDart(
+                intended: intended,
+                difficulty: difficulty,
+                hitBoost: hitBoost,
+                rng: &rng
+            )
             let points = scoredPoints(
                 for: resolved,
                 checkInMode: checkInMode,
@@ -137,11 +163,13 @@ public enum DartBotEngine {
                 points: points,
                 checkoutMode: checkoutMode
             ) {
-                if difficulty == .easy, Double.random(in: 0 ... 1, using: &rng) < 0.35 {
-                    darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
-                } else {
-                    darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
-                }
+                let safe = safeScoringDart(
+                    remaining: simulatedRemaining,
+                    checkoutMode: checkoutMode,
+                    rng: &rng
+                )
+                darts.append(safe)
+                simulatedRemaining -= safe.points
             } else {
                 darts.append(resolved)
                 if checkedIn {
@@ -241,13 +269,15 @@ public enum DartBotEngine {
                 rng: &rng
             )
         case .doubleIn:
-            let face = Int.random(in: 1 ... 20, using: &rng)
+            let faces = [16, 8, 4, 20, 12, 18]
+            let face = faces.randomElement(using: &rng) ?? 16
             return DartInput(multiplier: .double, segment: .oneToTwenty(face))
         case .masterIn:
             if Double.random(in: 0 ... 1, using: &rng) < difficulty.masterInTripleOpenerChance {
                 return DartInput(multiplier: .triple, segment: .oneToTwenty(20))
             }
-            let face = Int.random(in: 1 ... 20, using: &rng)
+            let faces = [16, 8, 20, 12, 18, 4]
+            let face = faces.randomElement(using: &rng) ?? 16
             return DartInput(multiplier: .double, segment: .oneToTwenty(face))
         }
     }
@@ -280,12 +310,13 @@ public enum DartBotEngine {
                 return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
             }
         }
-        return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        return boardGlanceDart(near: DartInput(multiplier: .single, segment: .oneToTwenty(20)), rng: &rng)
     }
 
     private static func resolveDart(
         intended: DartInput,
         difficulty: BotDifficulty,
+        hitBoost: Double = 0,
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
         guard intended.isMiss == false else {
@@ -293,16 +324,24 @@ public enum DartBotEngine {
         }
 
         let roll = Double.random(in: 0 ... 1, using: &rng)
-        let hitChance = difficulty.hitChance(intendedMultiplier: intended.multiplier)
+        let hitChance = min(
+            0.95,
+            difficulty.hitChance(intendedMultiplier: intended.multiplier) + hitBoost
+        )
         if roll < hitChance {
             return intended
         }
 
-        if roll < hitChance + 0.12 {
+        let downgradeBand = 0.28
+        if roll < hitChance + downgradeBand {
             return downgrade(intended: intended, rng: &rng)
         }
 
-        return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        if roll < hitChance + downgradeBand + difficulty.offBoardMissChance {
+            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        }
+
+        return boardGlanceDart(near: intended, rng: &rng)
     }
 
     private static func downgrade(
@@ -331,6 +370,37 @@ public enum DartBotEngine {
         case .miss:
             return intended
         }
+    }
+
+    /// Lands on a nearby scoring segment when the bot misses the intended target.
+    private static func boardGlanceDart(
+        near intended: DartInput,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        switch intended.segment {
+        case let .oneToTwenty(value):
+            let neighbor = max(1, min(20, value + Int.random(in: -3 ... 3, using: &rng)))
+            return DartInput(multiplier: .single, segment: .oneToTwenty(neighbor))
+        case .innerBull, .outerBull:
+            let face = Int.random(in: 1 ... 20, using: &rng)
+            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        case .miss:
+            let face = Int.random(in: 1 ... 20, using: &rng)
+            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        }
+    }
+
+    /// Picks a single that cannot bust when a planned dart would overshoot.
+    private static func safeScoringDart(
+        remaining: Int,
+        checkoutMode: X01CheckoutMode,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        let candidates = (1 ... 20).filter { value in
+            !wouldBust(remaining: remaining, points: value, checkoutMode: checkoutMode)
+        }
+        let segment = candidates.randomElement(using: &rng) ?? 1
+        return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
     }
 
     private static func scoredPoints(

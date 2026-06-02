@@ -149,6 +149,50 @@ import Testing
     }
 }
 
+@Test func dartBotEngine_zeroVisitRateIsRareForStraightIn() {
+    let limits: [BotDifficulty: Double] = [
+        .easy: 0.08,
+        .medium: 0.04,
+        .hard: 0.03,
+        .pro: 0.02
+    ]
+    let samples = 500
+
+    for difficulty in BotDifficulty.allCases {
+        var zeroVisits = 0
+        for seed in 0 ..< samples {
+            var rng = SeededRandomNumberGenerator(seed: UInt64(seed + 1_000))
+            let darts = DartBotEngine.generateX01Turn(
+                remaining: 501,
+                difficulty: difficulty,
+                checkoutMode: .doubleOut,
+                checkInMode: .straightIn,
+                isCheckedIn: true,
+                rng: &rng
+            )
+            if darts.reduce(0, { $0 + $1.points }) == 0 {
+                zeroVisits += 1
+            }
+        }
+        let rate = Double(zeroVisits) / Double(samples)
+        #expect(rate <= limits[difficulty]!)
+    }
+}
+
+@Test func dartBotEngine_bustAvoidanceScoresOnBoard() {
+    var rng = SeededRandomNumberGenerator(seed: 77)
+    let darts = DartBotEngine.generateX01Turn(
+        remaining: 32,
+        difficulty: .medium,
+        checkoutMode: .doubleOut,
+        checkInMode: .straightIn,
+        isCheckedIn: true,
+        rng: &rng
+    )
+    #expect(darts.allSatisfy { $0.isMiss == false || $0.points == 0 })
+    #expect(darts.contains { $0.points > 0 })
+}
+
 private struct SeededRandomNumberGenerator: RandomNumberGenerator {
     private var state: UInt64
 
