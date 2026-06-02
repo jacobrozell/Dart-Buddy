@@ -45,6 +45,29 @@ struct SectorHitsChart: View {
     }
 }
 
+struct PerPlayerSectorHitsSection: View {
+    let breakdowns: [PlayerStatBreakdown]
+    let mode: MatchType
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            ForEach(breakdowns.filter { !$0.hitsBySector.isEmpty }) { row in
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    Text(row.name)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    SectorHitsChart(
+                        hitsBySector: row.hitsBySector,
+                        mode: mode,
+                        height: min(180, CGFloat(max(row.hitsBySector.count, 4)) * 28)
+                    )
+                    .accessibilityIdentifier("gameDetail_sectorChart_\(row.playerId.uuidString)")
+                }
+            }
+        }
+    }
+}
+
 struct AverageTrendChart: View {
     let points: [StatsTrendPoint]
 

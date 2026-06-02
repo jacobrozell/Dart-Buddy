@@ -106,21 +106,10 @@ struct MatchHistoryDetailScreen: View {
 
     @ViewBuilder
     private var sectorSection: some View {
-        let combined = combinedHits
-        if !combined.isEmpty {
+        if viewModel.breakdowns.contains(where: { !$0.hitsBySector.isEmpty }) {
             sectionTitle("Hits in Sector")
-            SectorHitsChart(hitsBySector: combined, mode: viewModel.matchType)
+            PerPlayerSectorHitsSection(breakdowns: viewModel.breakdowns, mode: viewModel.matchType)
         }
-    }
-
-    private var combinedHits: [String: Int] {
-        var totals: [String: Int] = [:]
-        for row in viewModel.breakdowns {
-            for (sector, count) in row.hitsBySector {
-                totals[sector, default: 0] += count
-            }
-        }
-        return totals
     }
 
     private var resultCard: some View {

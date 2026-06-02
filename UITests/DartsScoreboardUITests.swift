@@ -260,6 +260,69 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertEqual(app.staticTexts["scoreCard_dartSlot_1"].label, "20")
     }
 
+    // MARK: - Key path: checkout finishes match and shows summary
+
+    func testCheckoutShowsWinnerSummary() {
+        let app = launchApp(["-seed_players"])
+        configureQuickX01Match(app)
+
+        app.buttons["select_Alice"].tap()
+        app.buttons["Add Bot"].tap()
+        app.buttons["Easy"].tap()
+        app.buttons["select_bot_easy"].tap()
+        app.buttons["startMatchButton"].tap()
+
+        XCTAssertTrue(
+            app.staticTexts["101, Straight Out, First to 1 Legs"].waitForExistence(timeout: timeout),
+            "Board should reflect the quick-match configuration"
+        )
+
+        let twenty = app.buttons["pad_20"]
+        XCTAssertTrue(twenty.waitForExistence(timeout: timeout))
+        twenty.tap()
+        twenty.tap()
+        twenty.tap()
+
+        // Wait for the bot visit to finish and return control to Alice on 41 remaining.
+        let padReady = twenty.waitForExistence(timeout: timeout + 10)
+        XCTAssertTrue(padReady)
+        _ = twenty.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 10)
+
+        app.buttons["pad_double"].tap()
+        app.buttons["pad_20"].tap()
+        app.buttons["pad_1"].tap()
+
+        let summaryHeader = app.otherElements["matchSummaryHeader"]
+        XCTAssertTrue(summaryHeader.waitForExistence(timeout: timeout + 5), "Match summary should appear after checkout")
+        XCTAssertTrue(app.staticTexts["Alice wins!"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["New Match"].waitForExistence(timeout: timeout))
+    }
+
+    // MARK: - Game detail: per-player sector charts
+
+    func testGameDetailShowsPerPlayerSectorCharts() {
+        let app = launchApp(["-seed_demo"])
+
+        app.tabBars.buttons["History"].tap()
+        let gameCard = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch
+        XCTAssertTrue(gameCard.waitForExistence(timeout: timeout))
+        gameCard.tap()
+
+        XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Jacob"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Sam"].waitForExistence(timeout: timeout))
+    }
+
+    private func configureQuickX01Match(_ app: XCUIApplication) {
+        app.buttons["setup_startScoreChip"].tap()
+        app.buttons["101"].tap()
+        app.buttons["setup_checkoutChip"].tap()
+        app.buttons["Straight Out"].tap()
+        app.buttons["setup_legsChip"].tap()
+        app.buttons["1"].tap()
+    }
+
     // MARK: - Key path: undo a dart on the scoring pad
 
     func testUndoRemovesEnteredDart() {

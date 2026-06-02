@@ -26,7 +26,7 @@ Status legend: `[ ]` todo · `[~]` partial
 - [x] **All Games: in-progress row** — Resume section + optional tab badge when `fetchActiveMatch` non-nil.
 - [ ] **Abandoned matches** — Optional list or purge policy (rows exist in DB, invisible in UI).
 - [x] **Home: recent completed mini-list** — Optional `UIBlueprint` entry on setup home.
-- [ ] **Game detail per-player hit bars** — Sector chart exists; per-player bars like reference app still missing.
+- [x] **Game detail per-player hit bars** — Per-player sector charts on game detail.
 
 ### Match setup & play
 
@@ -72,8 +72,8 @@ Status legend: `[ ]` todo · `[~]` partial
 - [x] **`StatisticsViewModel`** — Breakdown, player/mode/period filters, partial active match, empty state.
 - [x] **`HistoryListViewModel`** — Mode/date/player filters, pagination, DB filter mapping, empty/error states.
 - [x] **`MatchSummaryViewModel` tests** — Cold-load, missing snapshot.
-- [ ] **`MigrationRecoveryViewModel` tests**
-- [ ] **UI: checkout → winner → summary**
+- [x] **`MigrationRecoveryViewModel` tests**
+- [x] **UI: checkout → winner → summary**
 - [ ] **UI: Cricket grid scoring**
 - [ ] **UI: settings sound/haptics persistence**
 - [ ] **Repository contract tests** — `specs/RepositorySpec.md`

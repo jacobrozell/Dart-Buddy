@@ -174,6 +174,7 @@ struct SetupHomeView: View {
             } label: {
                 chipBox("\(setupViewModel.x01StartScore)", color: Brand.green, showsMenuIndicator: true)
             }
+            .accessibilityIdentifier("setup_startScoreChip")
         }
     }
 
@@ -189,6 +190,7 @@ struct SetupHomeView: View {
             } label: {
                 chipBox(setupViewModel.x01CheckoutMode.displayName, color: Brand.red, showsMenuIndicator: true)
             }
+            .accessibilityIdentifier("setup_checkoutChip")
         }
     }
 
@@ -250,6 +252,7 @@ struct SetupHomeView: View {
             } label: {
                 chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.green, showsMenuIndicator: true)
             }
+            .accessibilityIdentifier("setup_legsChip")
         }
     }
 
