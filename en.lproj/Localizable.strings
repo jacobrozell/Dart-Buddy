@@ -23,6 +23,7 @@
 "setup.error.load" = "Unable to load setup data.";
 "setup.error.start" = "Unable to start match.";
 "setup.validation.minimumPlayers" = "Select at least two players (tap names until they show a checkmark).";
+"setup.validation.requiresHuman" = "Select at least one human player to start a match.";
 "setup.validation.invalidStartScore" = "Invalid start score.";
 "setup.validation.invalidLegs" = "Leg count must be at least 1.";
 "setup.validation.invalidSets" = "Set count must be at least 1.";
@@ -229,6 +230,6 @@
 "common.stay" = "Stay";
 "common.exit" = "Exit";
 "play.setup.activeConflict.title" = "Game in Progress";
-"play.setup.activeConflict.message" = "You already have a match in progress. Delete it and start a new one?";
-"play.setup.activeConflict.confirm" = "Delete & Start";
+"play.setup.activeConflict.message" = "You already have a match in progress. Abandon it and start a new one?";
+"play.setup.activeConflict.confirm" = "Abandon & Start";
 "history.timeline.empty" = "No timeline events available.";

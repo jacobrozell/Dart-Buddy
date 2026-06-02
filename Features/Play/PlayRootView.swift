@@ -2,13 +2,15 @@ import SwiftUI
 
 struct PlayRootView: View {
     let dependencies: AppDependencies
+    @Binding var pendingResumeMatch: MatchSummary?
     @State private var path: [PlayRoute] = []
     @State private var hasAppliedSnapshotRoute = false
     @StateObject private var viewModel: PlayHomeViewModel
     @StateObject private var setupViewModel: MatchSetupViewModel
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: AppDependencies, pendingResumeMatch: Binding<MatchSummary?> = .constant(nil)) {
         self.dependencies = dependencies
+        _pendingResumeMatch = pendingResumeMatch
         _viewModel = StateObject(
             wrappedValue: PlayHomeViewModel(
                 playerRepository: dependencies.playerRepository,
@@ -100,6 +102,11 @@ struct PlayRootView: View {
                         await setupViewModel.onAppear()
                     }
                 }
+            }
+            .onChange(of: pendingResumeMatch) { _, match in
+                guard let match else { return }
+                path = [match.type == .x01 ? .x01Match(matchId: match.id) : .cricketMatch(matchId: match.id)]
+                pendingResumeMatch = nil
             }
         }
     }

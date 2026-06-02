@@ -63,8 +63,14 @@ final class HistoryListViewModel: ObservableObject {
     @Published var playerFilter: UUID?
     @Published private(set) var rows: [HistoryListRow] = []
     @Published private(set) var playerOptions: [PlayerSummary] = []
+    @Published private(set) var activeMatch: MatchSummary?
+    @Published private(set) var hasMorePages = false
+    @Published private(set) var isLoadingMore = false
     @Published private(set) var state: State = .loading
     @Published private(set) var errorMessageKey: String?
+
+    private static let pageSize = 25
+    private var currentPage = 0
 
     private let matchRepository: any MatchRepository
     private let playerRepository: any PlayerRepository
@@ -85,13 +91,37 @@ final class HistoryListViewModel: ObservableObject {
         return playerOptions.first(where: { $0.id == playerFilter })?.name
     }
 
+    var hasActiveFilters: Bool {
+        modeFilter != .all || dateFilter != .all || playerFilter != nil
+    }
+
     func onAppear() async {
         await applyFilters()
+    }
+
+    func loadMore() async {
+        guard hasMorePages, isLoadingMore == false, state != .loading else { return }
+        isLoadingMore = true
+        defer { isLoadingMore = false }
+        do {
+            let nextPage = currentPage + 1
+            let batch = try await fetchHistoryPage(nextPage)
+            currentPage = nextPage
+            hasMorePages = batch.count == Self.pageSize
+            rows.append(contentsOf: await buildRows(from: batch))
+        } catch is CancellationError {
+            return
+        } catch {
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
+        }
     }
 
     func applyFilters() async {
         state = .loading
         errorMessageKey = nil
+        rows = []
+        currentPage = 0
+        hasMorePages = false
         do {
             playerOptions = try await playerRepository.fetchPlayers(includeArchived: true)
                 .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
@@ -100,47 +130,12 @@ final class HistoryListViewModel: ObservableObject {
                !playerOptions.contains(where: { $0.id == playerFilter }) {
                 self.playerFilter = nil
             }
-            let mapped = try await PerformanceMonitor.measure(.historyLoad, logger: logger) {
-                try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 500, filter: MatchHistoryFilter())
+            activeMatch = try await matchRepository.fetchActiveMatch()
+            let batch = try await PerformanceMonitor.measure(.historyLoad, logger: logger) {
+                try await fetchHistoryPage(0)
             }
-            let filtered = mapped.filter { record in
-                let summary = record.summary
-                let modePass: Bool
-                switch modeFilter {
-                case .all: modePass = true
-                case .x01: modePass = summary.type == .x01
-                case .cricket: modePass = summary.type == .cricket
-                }
-                let datePass: Bool = {
-                    switch dateFilter {
-                    case .all:
-                        return true
-                    case .d7:
-                        return summary.startedAt >= Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? .distantPast
-                    case .d30:
-                        return summary.startedAt >= Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? .distantPast
-                    }
-                }()
-                let playerPass: Bool = {
-                    guard let filterId = playerFilter else { return true }
-                    return record.participants.contains { ($0.playerId ?? $0.id) == filterId }
-                }()
-                return modePass && datePass && playerPass
-            }
-            var built: [HistoryListRow] = []
-            for record in filtered {
-                let (configText, standings) = await standingsAndConfig(for: record)
-                built.append(
-                    HistoryListRow(
-                        summary: record.summary,
-                        dateText: Self.dateFormatter.string(from: record.summary.startedAt),
-                        configText: configText,
-                        standings: standings,
-                        isFinished: record.summary.status == .completed
-                    )
-                )
-            }
-            rows = built
+            rows = await buildRows(from: batch)
+            hasMorePages = batch.count == Self.pageSize
             state = rows.isEmpty ? .emptyFiltered : .readyFiltered
         } catch is CancellationError {
             state = rows.isEmpty ? .emptyFiltered : .readyFiltered
@@ -149,6 +144,49 @@ final class HistoryListViewModel: ObservableObject {
             state = .error
             errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
+    }
+
+    private func fetchHistoryPage(_ page: Int) async throws -> [MatchHistoryRecord] {
+        try await matchRepository.fetchHistoryWithParticipants(
+            page: page,
+            pageSize: Self.pageSize,
+            filter: repositoryFilter()
+        )
+    }
+
+    private func repositoryFilter() -> MatchHistoryFilter {
+        let matchType: MatchType? = switch modeFilter {
+        case .all: nil
+        case .x01: .x01
+        case .cricket: .cricket
+        }
+        let startedAfter: Date? = switch dateFilter {
+        case .all: nil
+        case .d7: Calendar.current.date(byAdding: .day, value: -7, to: Date())
+        case .d30: Calendar.current.date(byAdding: .day, value: -30, to: Date())
+        }
+        return MatchHistoryFilter(
+            matchType: matchType,
+            startedAfter: startedAfter,
+            participantPlayerId: playerFilter
+        )
+    }
+
+    private func buildRows(from records: [MatchHistoryRecord]) async -> [HistoryListRow] {
+        var built: [HistoryListRow] = []
+        for record in records {
+            let (configText, standings) = await standingsAndConfig(for: record)
+            built.append(
+                HistoryListRow(
+                    summary: record.summary,
+                    dateText: Self.dateFormatter.string(from: record.summary.startedAt),
+                    configText: configText,
+                    standings: standings,
+                    isFinished: record.summary.status == .completed
+                )
+            )
+        }
+        return built
     }
 
     private static let dateFormatter: DateFormatter = {

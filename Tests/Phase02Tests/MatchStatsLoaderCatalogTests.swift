@@ -79,12 +79,17 @@ private actor CatalogMatchRepository: MatchRepository {
     }
 
     func fetchHistoryWithParticipants(page: Int, pageSize: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
-        guard page == 0 else { return [] }
-        return records.filter { record in
+        let filtered = records.filter { record in
             if let type = filter.matchType, record.summary.type != type { return false }
             if let startedAfter = filter.startedAfter, record.summary.startedAt < startedAfter { return false }
+            if let playerId = filter.participantPlayerId {
+                guard record.participants.contains(where: { $0.playerId == playerId }) else { return false }
+            }
             return true
-        }.prefix(pageSize).map { $0 }
+        }
+        let start = max(0, page) * max(1, pageSize)
+        guard start < filtered.count else { return [] }
+        return Array(filtered.dropFirst(start).prefix(pageSize))
     }
 
     func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fatalError() }

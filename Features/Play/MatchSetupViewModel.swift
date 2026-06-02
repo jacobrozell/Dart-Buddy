@@ -122,6 +122,11 @@ final class MatchSetupViewModel: ObservableObject {
         var errors: [String] = []
         if selectedParticipantCount < 2 {
             errors.append("setup.validation.minimumPlayers")
+        } else {
+            let selected = availablePlayers.filter { selectedPlayerIds.contains($0.id) }
+            if selected.allSatisfy(\.isBot) {
+                errors.append("setup.validation.requiresHuman")
+            }
         }
         if mode == .x01 {
             if !X01StartScores.all.contains(x01StartScore) {

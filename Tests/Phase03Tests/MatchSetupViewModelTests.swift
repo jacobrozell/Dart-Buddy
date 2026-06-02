@@ -56,6 +56,42 @@ func setupAddPlayerToSelectionIsIdempotent() async {
 }
 
 @MainActor
+@Test(.tags(.integration, .setupFlow, .navigation, .regression))
+func setupValidationBlocksBotOnlyMatch() async {
+    let easyBot = PlayerSummary(
+        id: UUID(),
+        name: "Easy Bot 1",
+        isArchived: false,
+        isBot: true,
+        botDifficultyRaw: BotDifficulty.easy.rawValue,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let mediumBot = PlayerSummary(
+        id: UUID(),
+        name: "Medium Bot 1",
+        isArchived: false,
+        isBot: true,
+        botDifficultyRaw: BotDifficulty.medium.rawValue,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [easyBot, mediumBot]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.togglePlayer(easyBot.id)
+    vm.togglePlayer(mediumBot.id)
+
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.requiresHuman"))
+}
+
+@MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupStartRouteUsesSelectedMode() async {
     let players = [makePlayer("A"), makePlayer("B")]

@@ -21,9 +21,9 @@ Status legend: `[ ]` todo · `[~]` partial
 
 - [ ] **Statistics: in-progress / partial stats** — Completed games only; no mid-match or saved-incomplete surface.
 - [x] **History: player filter UI** — VM + tests exist; wire menu in `HistoryRootView` (mirror Statistics).
-- [ ] **History: push filters to SwiftData** — Map mode/date (and player) into `MatchHistoryFilter` instead of fetch-500-then-filter.
-- [ ] **History: pagination** — Load more / proper `emptyFiltered` when filters match nothing.
-- [ ] **All Games: in-progress row** — Resume section + optional tab badge when `fetchActiveMatch` non-nil.
+- [x] **History: push filters to SwiftData** — Map mode/date (and player) into `MatchHistoryFilter` instead of fetch-500-then-filter.
+- [x] **History: pagination** — Load more / proper `emptyFiltered` when filters match nothing.
+- [x] **All Games: in-progress row** — Resume section + optional tab badge when `fetchActiveMatch` non-nil.
 - [ ] **Abandoned matches** — Optional list or purge policy (rows exist in DB, invisible in UI).
 - [ ] **Home: recent completed mini-list** — Optional `UIBlueprint` entry on setup home.
 - [ ] **Game detail per-player hit bars** — Sector chart exists; per-player bars like reference app still missing.
@@ -33,7 +33,7 @@ Status legend: `[ ]` todo · `[~]` partial
 - [ ] **X01 total-score entry toggle** — Remove forced `.dartEntry` on appear; segmented per-dart vs visit total.
 - [ ] **Setup: reorder + remove roster** — Drag reorder; swipe remove; keep random order.
 - [ ] **Settings: default X01/Cricket options** — Expose checkout, check-in, legs/sets, start score in Settings, or stop persisting unused fields.
-- [ ] **Bot-vs-bot guard** — Warn or block START when no human selected.
+- [x] **Bot-vs-bot guard** — Warn or block START when no human selected.
 - [ ] **Match Summary cold path** — Reload from `matchRepository` when `ActiveMatchStore` has no session.
 - [ ] **Cricket setup variants** — e.g. Cut Throat (`CricketSpec`).
 - [ ] **Bust / leg / set animations** — Bust is text banner only today.
@@ -60,17 +60,17 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ### Copy / quick fixes
 
-- [ ] **“Delete & Start” → abandon wording** — Behavior abandons; update `play.setup.activeConflict.*` + UITest.
-- [ ] **Bust banner** — Use `L10n.bustFeedback` instead of hardcoded `"BUST"`.
-- [ ] **`PlayHomeViewModel.emptyNoPlayers`** — Wire to UI quick-add CTA or remove dead state.
-- [ ] **Tab labels vs spec** — “Home” / “All Games” vs blueprint “Play” / “History”.
+- [x] **“Delete & Start” → abandon wording** — Behavior abandons; update `play.setup.activeConflict.*` + UITest.
+- [x] **Bust banner** — Use `L10n.bustFeedback` instead of hardcoded `"BUST"`.
+- [x] **`PlayHomeViewModel.emptyNoPlayers`** — Removed; setup roster empty state covers the UI.
+- [x] **Tab labels vs spec** — “Play” / “History” tab items; History screen title aligned with blueprint.
 
 ---
 
 ## Testing
 
 - [~] **`StatisticsViewModel`** — `statisticsViewModelComputesBreakdownRows` / player filter exist; add period cutoff, mode filter, empty state.
-- [~] **`HistoryListViewModel`** — Mode filter test exists; add date/player filter, config decode, error/empty, DB filter mapping when wired.
+- [x] **`HistoryListViewModel`** — Mode/date/player filters, pagination, DB filter mapping, empty/error states.
 - [ ] **`MatchSummaryViewModel` tests**
 - [ ] **`MigrationRecoveryViewModel` tests**
 - [ ] **UI: checkout → winner → summary**
@@ -95,7 +95,7 @@ Status legend: `[ ]` todo · `[~]` partial
 - [ ] **Manual evidence** — `SmokeTestEvidenceTemplate.md` screenshots.
 - [ ] **App Store metadata** — Icon, name, privacy disclosure (`AppStoreConnectSpec`, Phase 06 privacy checklist).
 - [ ] **On-device reset wipe verification**
-- [ ] **Commit bot tuning + Very Easy**
+- [ ] **Commit bot tuning + Very Easy** — Done in `477a2c5`.
 
 ---
 

@@ -157,15 +157,18 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
     // --- History list: mode filters partition the 50 games correctly ---
     let historyVM = HistoryListViewModel(matchRepository: matchRepo, playerRepository: playerRepo)
     await historyVM.applyFilters()
+    while historyVM.hasMorePages { await historyVM.loadMore() }
     #expect(historyVM.rows.count == 50)
 
     historyVM.modeFilter = .x01
     await historyVM.applyFilters()
+    while historyVM.hasMorePages { await historyVM.loadMore() }
     #expect(historyVM.rows.count == totalX01Games)
     #expect(historyVM.rows.allSatisfy { $0.standings.contains { $0.isWinner } })
 
     historyVM.modeFilter = .cricket
     await historyVM.applyFilters()
+    while historyVM.hasMorePages { await historyVM.loadMore() }
     #expect(historyVM.rows.count == 5)
 }
 

@@ -174,9 +174,10 @@ struct X01MatchScreen: View {
     private var stateBanner: some View {
         switch viewModel.state {
         case .bustFeedback:
-            Text("BUST")
+            Text(L10n.bustFeedback)
                 .font(.headline.weight(.heavy))
                 .foregroundStyle(Brand.red)
+                .multilineTextAlignment(.center)
         case let .entryInvalid(key), let .error(key):
             Text(LocalizedStringKey(key)).foregroundStyle(Brand.red)
         default:

@@ -30,8 +30,8 @@ final class DartsScoreboardUITests: XCTestCase {
         let jacobStat = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Jacob")).firstMatch
         XCTAssertTrue(jacobStat.waitForExistence(timeout: timeout), "Statistics should rank Jacob")
 
-        app.tabBars.buttons["All Games"].tap()
-        XCTAssertTrue(app.staticTexts["All Games"].waitForExistence(timeout: timeout))
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.staticTexts["FINISHED"].waitForExistence(timeout: timeout), "A completed game should be listed as FINISHED")
 
         app.tabBars.buttons["Players"].tap()
@@ -59,7 +59,7 @@ final class DartsScoreboardUITests: XCTestCase {
     func testGameDetailShowsStatsAndDeletes() {
         let app = launchApp(["-seed_demo"])
 
-        app.tabBars.buttons["All Games"].tap()
+        app.tabBars.buttons["History"].tap()
         let gameCard = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch
         XCTAssertTrue(gameCard.waitForExistence(timeout: timeout))
         gameCard.tap()
@@ -72,12 +72,12 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(delete.waitForExistence(timeout: timeout), "Game detail should show a Delete button")
         delete.tap()
 
-        // Confirm in the alert, then verify we return to an empty All Games list.
+        // Confirm in the alert, then verify we return to the History list.
         let confirm = app.alerts.buttons["Delete"]
         XCTAssertTrue(confirm.waitForExistence(timeout: timeout))
         confirm.tap()
 
-        XCTAssertTrue(app.staticTexts["All Games"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
         // `-seed_demo` includes two completed games (X01 + Cricket); deleting one leaves the other.
         XCTAssertFalse(
             app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: 2),
@@ -85,7 +85,7 @@ final class DartsScoreboardUITests: XCTestCase {
         )
         XCTAssertTrue(
             app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch.waitForExistence(timeout: timeout),
-            "All Games should still list the remaining completed match"
+            "History should still list the remaining completed match"
         )
     }
 
@@ -139,9 +139,9 @@ final class DartsScoreboardUITests: XCTestCase {
         let alert = app.alerts["Game in Progress"]
         XCTAssertTrue(alert.waitForExistence(timeout: timeout), "Starting with an active match should prompt to replace it")
 
-        alert.buttons["Delete & Start"].tap()
+        alert.buttons["Abandon & Start"].tap()
 
-        // Confirming deletes the old match and opens the freshly configured board.
+        // Confirming abandons the old match and opens the freshly configured board.
         XCTAssertTrue(
             app.staticTexts["501, Double Out, First to 3 Legs"].waitForExistence(timeout: timeout),
             "Confirming should delete the active match and open the new board"
@@ -225,11 +225,11 @@ final class DartsScoreboardUITests: XCTestCase {
     func testAllGamesEmptyBeforeAnyMatchCompletes() {
         let app = launchApp(["-seed_players"])
 
-        app.tabBars.buttons["All Games"].tap()
-        XCTAssertTrue(app.staticTexts["All Games"].waitForExistence(timeout: timeout))
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
         XCTAssertTrue(
             app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: timeout),
-            "All Games should be empty before any match completes"
+            "History should be empty before any match completes"
         )
     }
 

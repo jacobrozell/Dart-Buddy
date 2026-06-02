@@ -293,8 +293,25 @@ public actor SwiftDataMatchRepository: MatchRepository {
             let safePage = max(0, page)
             let safeSize = max(1, pageSize)
             let completedRaw = MatchStatus.completed.rawValue
+
+            let restrictedMatchIds: [UUID]?
+            if let playerId = filter.participantPlayerId {
+                let participantDescriptor = FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                    predicate: #Predicate<SchemaV1.MatchParticipantRecord> { $0.playerId == playerId }
+                )
+                let matchIds = Array(Set(try context.fetch(participantDescriptor).map(\.matchId)))
+                guard !matchIds.isEmpty else { return [] }
+                restrictedMatchIds = matchIds
+            } else {
+                restrictedMatchIds = nil
+            }
+
             var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
-                predicate: completedHistoryPredicate(filter: filter, completedRaw: completedRaw),
+                predicate: historyMatchPredicate(
+                    filter: filter,
+                    completedRaw: completedRaw,
+                    restrictedToMatchIds: restrictedMatchIds
+                ),
                 sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
             )
             descriptor.fetchOffset = safePage * safeSize
@@ -637,22 +654,39 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
     }
 }
 
-private func completedHistoryPredicate(
+private func historyMatchPredicate(
     filter: MatchHistoryFilter,
-    completedRaw: String
+    completedRaw: String,
+    restrictedToMatchIds matchIds: [UUID]?
 ) -> Predicate<SchemaV1.MatchRecord> {
-    switch (filter.matchType, filter.startedAfter) {
-    case (nil, nil):
+    switch (filter.matchType, filter.startedAfter, matchIds) {
+    case (nil, nil, nil):
         return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw }
-    case (let type?, nil):
+    case (nil, nil, let ids?):
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && ids.contains($0.id) }
+    case (let type?, nil, nil):
         let typeRaw = type.rawValue
         return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.typeRaw == typeRaw }
-    case (nil, let startedAfter?):
+    case (let type?, nil, let ids?):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && ids.contains($0.id)
+        }
+    case (nil, let startedAfter?, nil):
         return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.startedAt >= startedAfter }
-    case (let type?, let startedAfter?):
+    case (nil, let startedAfter?, let ids?):
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.startedAt >= startedAfter && ids.contains($0.id)
+        }
+    case (let type?, let startedAfter?, nil):
         let typeRaw = type.rawValue
         return #Predicate<SchemaV1.MatchRecord> {
             $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter
+        }
+    case (let type?, let startedAfter?, let ids?):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter && ids.contains($0.id)
         }
     }
 }

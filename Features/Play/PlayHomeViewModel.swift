@@ -6,7 +6,6 @@ final class PlayHomeViewModel: ObservableObject {
         case loading
         case readyNoActiveMatch
         case readyWithActiveMatch(MatchSummary)
-        case emptyNoPlayers
         case error(messageKey: String)
     }
 
@@ -30,7 +29,7 @@ final class PlayHomeViewModel: ObservableObject {
         do {
             let players = try await playerRepository.fetchPlayers(includeArchived: false)
             if players.isEmpty {
-                state = .emptyNoPlayers
+                state = .readyNoActiveMatch
                 return
             }
 

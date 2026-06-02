@@ -2,12 +2,15 @@ import SwiftUI
 
 struct HistoryRootView: View {
     let dependencies: AppDependencies
+    var onResumeActiveMatch: ((MatchSummary) -> Void)?
     @State private var path: [HistoryRoute] = []
     @StateObject private var viewModel: HistoryListViewModel
     @State private var filterTask: Task<Void, Never>?
+    @State private var loadMoreTask: Task<Void, Never>?
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: AppDependencies, onResumeActiveMatch: ((MatchSummary) -> Void)? = nil) {
         self.dependencies = dependencies
+        self.onResumeActiveMatch = onResumeActiveMatch
         _viewModel = StateObject(
             wrappedValue: HistoryListViewModel(
                 matchRepository: dependencies.matchRepository,
@@ -20,7 +23,7 @@ struct HistoryRootView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    Text("All Games")
+                    Text("History")
                         .font(.largeTitle.weight(.heavy))
                         .foregroundStyle(.white)
 
@@ -40,6 +43,10 @@ struct HistoryRootView: View {
 
                     playerFilterMenu
 
+                    if let activeMatch = viewModel.activeMatch {
+                        inProgressBanner(activeMatch)
+                    }
+
                     if viewModel.state == .loading && viewModel.rows.isEmpty {
                         ProgressView()
                             .tint(Brand.green)
@@ -51,7 +58,7 @@ struct HistoryRootView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
                     } else if viewModel.rows.isEmpty {
-                        Text(viewModel.state == .emptyFiltered
+                        Text(viewModel.state == .emptyFiltered && viewModel.hasActiveFilters
                             ? "No games match these filters."
                             : "No games yet. Start a match to see it here.")
                             .foregroundStyle(Brand.textSecondary)
@@ -63,6 +70,27 @@ struct HistoryRootView: View {
                                 MatchHistoryCard(row: row)
                             }
                             .buttonStyle(.plain)
+                        }
+
+                        if viewModel.hasMorePages {
+                            Button {
+                                loadMoreTask?.cancel()
+                                loadMoreTask = Task { await viewModel.loadMore() }
+                            } label: {
+                                Group {
+                                    if viewModel.isLoadingMore {
+                                        ProgressView().tint(Brand.green)
+                                    } else {
+                                        Text("Load more")
+                                            .font(.subheadline.weight(.semibold))
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, DS.Spacing.s3)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(Brand.green)
+                            .accessibilityIdentifier("historyLoadMoreButton")
                         }
                     }
                 }
@@ -84,7 +112,10 @@ struct HistoryRootView: View {
                 filterTask?.cancel()
                 filterTask = Task { await viewModel.applyFilters() }
             }
-            .onDisappear { filterTask?.cancel() }
+            .onDisappear {
+                filterTask?.cancel()
+                loadMoreTask?.cancel()
+            }
             .navigationDestination(for: HistoryRoute.self) { route in
                 switch route {
                 case .list:
@@ -149,6 +180,28 @@ struct HistoryRootView: View {
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
         .accessibilityIdentifier("historyPlayerFilterMenu")
+    }
+
+    private func inProgressBanner(_ match: MatchSummary) -> some View {
+        Button {
+            onResumeActiveMatch?(match)
+        } label: {
+            HStack {
+                Image(systemName: "play.circle.fill")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Resume match").font(.headline)
+                    Text(match.type.rawValue.uppercased()).font(.caption).foregroundStyle(Brand.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(Brand.textSecondary)
+            }
+            .foregroundStyle(.white)
+            .padding(DS.Spacing.s4)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            .overlay(RoundedRectangle(cornerRadius: DS.Radius.md).stroke(Brand.green, lineWidth: 2))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("historyResumeMatchButton")
     }
 }
 

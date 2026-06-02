@@ -65,7 +65,7 @@ func playHomeShowsNoActiveMatchWhenRosterExistsButNoActiveMatch() async {
 
 @MainActor
 @Test(.tags(.integration, .navigation, .smoke, .regression))
-func playHomeShowsNoPlayersStateWhenRosterEmpty() async {
+func playHomeShowsNoActiveMatchWhenRosterEmpty() async {
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: []),
         matchRepository: FakeMatchRepository(activeMatch: nil),
@@ -74,7 +74,7 @@ func playHomeShowsNoPlayersStateWhenRosterEmpty() async {
 
     await vm.onAppear()
 
-    #expect(vm.state == .emptyNoPlayers)
+    #expect(vm.state == .readyNoActiveMatch)
 }
 
 private func makePlayer(_ name: String) -> PlayerSummary {
