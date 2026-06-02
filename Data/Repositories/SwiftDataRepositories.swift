@@ -762,8 +762,8 @@ private func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
         defaultLegFormatRaw: record.defaultLegFormatRaw.isEmpty ? "firstTo" : record.defaultLegFormatRaw,
         defaultLegsToWin: record.defaultLegsToWin,
         defaultSetsEnabled: record.defaultSetsEnabled,
-        botStaggerEnabled: record.botStaggerEnabled,
-        botDartHapticsEnabled: record.botDartHapticsEnabled,
+        botStaggerEnabled: record.botStaggerEnabled ?? true,
+        botDartHapticsEnabled: record.botDartHapticsEnabled ?? true,
         updatedAt: record.updatedAt
     )
 }

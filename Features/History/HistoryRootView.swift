@@ -126,12 +126,9 @@ struct HistoryRootView: View {
                     EmptyView()
                 case let .detail(matchId):
                     MatchHistoryDetailScreen(
-                        viewModel: HistoryDetailViewModel(
-                            matchId: matchId,
-                            matchRepository: dependencies.matchRepository,
-                            statsRepository: dependencies.statsRepository
-                        ),
                         matchId: matchId,
+                        matchRepository: dependencies.matchRepository,
+                        statsRepository: dependencies.statsRepository,
                         onDeleted: {
                             if !path.isEmpty { path.removeLast() }
                             filterTask?.cancel()

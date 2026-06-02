@@ -41,9 +41,17 @@ public struct DefaultAppLogger: AppLogger {
 }
 
 public extension DefaultAppLogger {
-    static func makeForCurrentBuild() -> DefaultAppLogger {
+    static func makeForCurrentBuild(
+        featureFlags: any FeatureFlagsProvider = LocalFeatureFlagsProvider()
+    ) -> DefaultAppLogger {
         let console = ConsoleLogSink()
-        let remote = FilteredLogSink(minimumLevel: .info, wrapped: NoOpRemoteAnalyticsLogSink())
+        let remoteSink: any RemoteAnalyticsLogSink =
+            if featureFlags.isEnabled(.enableFirebaseAnalytics) {
+                FirebaseAnalyticsLogSink(isCollectionEnabled: FirebaseBootstrap.isAnalyticsCollectionEnabled)
+            } else {
+                NoOpRemoteAnalyticsLogSink()
+            }
+        let remote = FilteredLogSink(minimumLevel: .info, wrapped: remoteSink)
         let sink = CompositeLogSink(sinks: [console, remote])
         #if DEBUG
         return DefaultAppLogger(minimumLevel: .debug, sink: sink)

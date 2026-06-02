@@ -192,8 +192,9 @@ public enum SchemaV1: VersionedSchema {
         public var defaultLegFormatRaw: String
         public var defaultLegsToWin: Int
         public var defaultSetsEnabled: Bool
-        public var botStaggerEnabled: Bool
-        public var botDartHapticsEnabled: Bool
+        /// Nil on stores created before 1.0 bot-preference columns; repository maps to `true`.
+        public var botStaggerEnabled: Bool?
+        public var botDartHapticsEnabled: Bool?
         public var updatedAt: Date
 
         public init(
@@ -209,8 +210,8 @@ public enum SchemaV1: VersionedSchema {
             defaultLegFormatRaw: String = "firstTo",
             defaultLegsToWin: Int = 3,
             defaultSetsEnabled: Bool = false,
-            botStaggerEnabled: Bool = true,
-            botDartHapticsEnabled: Bool = true,
+            botStaggerEnabled: Bool? = true,
+            botDartHapticsEnabled: Bool? = true,
             updatedAt: Date = Date()
         ) {
             self.id = id

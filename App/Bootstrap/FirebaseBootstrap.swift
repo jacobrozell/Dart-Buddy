@@ -1,8 +1,10 @@
 import Foundation
 
-enum FirebaseBootstrap {
+public enum FirebaseBootstrap {
+    private static let featureFlags = LocalFeatureFlagsProvider()
+
     /// Skip Firebase when the bundled plist is still the checked-in placeholder (CI, fresh clones).
-    static var shouldConfigure: Bool {
+    public static var shouldConfigure: Bool {
         guard
             let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
             let plist = NSDictionary(contentsOfFile: path),
@@ -11,5 +13,9 @@ enum FirebaseBootstrap {
             return false
         }
         return !appID.contains("REPLACE_WITH")
+    }
+
+    public static var isAnalyticsCollectionEnabled: Bool {
+        shouldConfigure && featureFlags.isEnabled(.enableFirebaseAnalytics)
     }
 }

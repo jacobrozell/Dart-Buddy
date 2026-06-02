@@ -174,27 +174,27 @@ struct SettingsRootView: View {
 
             Section {
                 Toggle("settings.feedback.haptics", isOn: Binding(
-                    get: { settings.hapticsEnabled },
+                    get: { viewModel.settings?.hapticsEnabled ?? true },
                     set: { viewModel.queueFeedbackUpdate(haptics: $0) }
                 ))
                 .accessibilityIdentifier("settings_hapticsToggle")
                 Toggle("settings.feedback.sound", isOn: Binding(
-                    get: { settings.soundEnabled },
+                    get: { viewModel.settings?.soundEnabled ?? true },
                     set: { viewModel.queueFeedbackUpdate(sound: $0) }
                 ))
                 .accessibilityIdentifier("settings_soundToggle")
                 Toggle("settings.feedback.turnTotalCaller", isOn: Binding(
-                    get: { settings.turnTotalCallerEnabled },
+                    get: { viewModel.settings?.turnTotalCallerEnabled ?? false },
                     set: { viewModel.queueFeedbackUpdate(turnTotalCaller: $0) }
                 ))
                 .accessibilityIdentifier("settings_turnTotalCallerToggle")
                 Toggle("settings.feedback.botStagger", isOn: Binding(
-                    get: { settings.botStaggerEnabled },
+                    get: { viewModel.settings?.botStaggerEnabled ?? true },
                     set: { viewModel.queueBotPacingUpdate(stagger: $0) }
                 ))
                 .accessibilityIdentifier("settings_botStaggerToggle")
                 Toggle("settings.feedback.botDartHaptics", isOn: Binding(
-                    get: { settings.botDartHapticsEnabled },
+                    get: { viewModel.settings?.botDartHapticsEnabled ?? true },
                     set: { viewModel.queueBotPacingUpdate(dartHaptics: $0) }
                 ))
                 .accessibilityIdentifier("settings_botDartHapticsToggle")

@@ -1,13 +1,30 @@
 import SwiftUI
 
 struct MatchHistoryDetailScreen: View {
-    @ObservedObject var viewModel: HistoryDetailViewModel
+    @StateObject private var viewModel: HistoryDetailViewModel
     let matchId: UUID
     var onDeleted: () -> Void = {}
     @State private var retryTask: Task<Void, Never>?
     @State private var deleteTask: Task<Void, Never>?
     @State private var showTimeline = false
     @State private var showDeleteConfirm = false
+
+    init(
+        matchId: UUID,
+        matchRepository: any MatchRepository,
+        statsRepository: any StatsRepository,
+        onDeleted: @escaping () -> Void = {}
+    ) {
+        self.matchId = matchId
+        self.onDeleted = onDeleted
+        _viewModel = StateObject(
+            wrappedValue: HistoryDetailViewModel(
+                matchId: matchId,
+                matchRepository: matchRepository,
+                statsRepository: statsRepository
+            )
+        )
+    }
 
     var body: some View {
         ScrollView {

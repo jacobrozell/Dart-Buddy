@@ -78,55 +78,23 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func updateFeedback(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) async {
-        guard var current = settings else { return }
-        current = SettingsSummary(
-            id: current.id,
-            appearanceModeRaw: current.appearanceModeRaw,
-            hapticsEnabled: haptics ?? current.hapticsEnabled,
-            soundEnabled: sound ?? current.soundEnabled,
-            turnTotalCallerEnabled: turnTotalCaller ?? current.turnTotalCallerEnabled,
-            defaultMatchTypeRaw: current.defaultMatchTypeRaw,
-            defaultX01StartScore: current.defaultX01StartScore,
-            defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
-            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
-            defaultLegFormatRaw: current.defaultLegFormatRaw,
-            defaultLegsToWin: current.defaultLegsToWin,
-            defaultSetsEnabled: current.defaultSetsEnabled,
-            botStaggerEnabled: current.botStaggerEnabled,
-            botDartHapticsEnabled: current.botDartHapticsEnabled,
-            updatedAt: Date()
-        )
+        guard let current = applyFeedbackDraft(haptics: haptics, sound: sound, turnTotalCaller: turnTotalCaller) else { return }
         await persist(current)
     }
 
     func updateBotPacing(stagger: Bool? = nil, dartHaptics: Bool? = nil) async {
-        guard var current = settings else { return }
-        current = SettingsSummary(
-            id: current.id,
-            appearanceModeRaw: current.appearanceModeRaw,
-            hapticsEnabled: current.hapticsEnabled,
-            soundEnabled: current.soundEnabled,
-            turnTotalCallerEnabled: current.turnTotalCallerEnabled,
-            defaultMatchTypeRaw: current.defaultMatchTypeRaw,
-            defaultX01StartScore: current.defaultX01StartScore,
-            defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
-            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
-            defaultLegFormatRaw: current.defaultLegFormatRaw,
-            defaultLegsToWin: current.defaultLegsToWin,
-            defaultSetsEnabled: current.defaultSetsEnabled,
-            botStaggerEnabled: stagger ?? current.botStaggerEnabled,
-            botDartHapticsEnabled: dartHaptics ?? current.botDartHapticsEnabled,
-            updatedAt: Date()
-        )
+        guard let current = applyBotPacingDraft(stagger: stagger, dartHaptics: dartHaptics) else { return }
         await persist(current)
     }
 
-    func queueBotPacingUpdate(stagger: Bool? = nil, dartHaptics: Bool? = nil) {
-        queueMutation { await self.updateBotPacing(stagger: stagger, dartHaptics: dartHaptics) }
+    func queueFeedbackUpdate(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) {
+        guard let current = applyFeedbackDraft(haptics: haptics, sound: sound, turnTotalCaller: turnTotalCaller) else { return }
+        queueMutation { await self.persist(current) }
     }
 
-    func queueFeedbackUpdate(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) {
-        queueMutation { await self.updateFeedback(haptics: haptics, sound: sound, turnTotalCaller: turnTotalCaller) }
+    func queueBotPacingUpdate(stagger: Bool? = nil, dartHaptics: Bool? = nil) {
+        guard let current = applyBotPacingDraft(stagger: stagger, dartHaptics: dartHaptics) else { return }
+        queueMutation { await self.persist(current) }
     }
 
     func updateDefaults(
@@ -226,6 +194,58 @@ final class SettingsViewModel: ObservableObject {
         } catch {
             state = .error(messageKey(for: error, fallback: "settings.error.save"))
         }
+    }
+
+    private func applyFeedbackDraft(
+        haptics: Bool?,
+        sound: Bool?,
+        turnTotalCaller: Bool?
+    ) -> SettingsSummary? {
+        guard var current = settings else { return nil }
+        current = SettingsSummary(
+            id: current.id,
+            appearanceModeRaw: current.appearanceModeRaw,
+            hapticsEnabled: haptics ?? current.hapticsEnabled,
+            soundEnabled: sound ?? current.soundEnabled,
+            turnTotalCallerEnabled: turnTotalCaller ?? current.turnTotalCallerEnabled,
+            defaultMatchTypeRaw: current.defaultMatchTypeRaw,
+            defaultX01StartScore: current.defaultX01StartScore,
+            defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+            defaultLegFormatRaw: current.defaultLegFormatRaw,
+            defaultLegsToWin: current.defaultLegsToWin,
+            defaultSetsEnabled: current.defaultSetsEnabled,
+            botStaggerEnabled: current.botStaggerEnabled,
+            botDartHapticsEnabled: current.botDartHapticsEnabled,
+            updatedAt: Date()
+        )
+        settings = current
+        userPreferencesStore.apply(current)
+        return current
+    }
+
+    private func applyBotPacingDraft(stagger: Bool?, dartHaptics: Bool?) -> SettingsSummary? {
+        guard var current = settings else { return nil }
+        current = SettingsSummary(
+            id: current.id,
+            appearanceModeRaw: current.appearanceModeRaw,
+            hapticsEnabled: current.hapticsEnabled,
+            soundEnabled: current.soundEnabled,
+            turnTotalCallerEnabled: current.turnTotalCallerEnabled,
+            defaultMatchTypeRaw: current.defaultMatchTypeRaw,
+            defaultX01StartScore: current.defaultX01StartScore,
+            defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+            defaultLegFormatRaw: current.defaultLegFormatRaw,
+            defaultLegsToWin: current.defaultLegsToWin,
+            defaultSetsEnabled: current.defaultSetsEnabled,
+            botStaggerEnabled: stagger ?? current.botStaggerEnabled,
+            botDartHapticsEnabled: dartHaptics ?? current.botDartHapticsEnabled,
+            updatedAt: Date()
+        )
+        settings = current
+        userPreferencesStore.apply(current)
+        return current
     }
 
     private func queueMutation(_ operation: @escaping @MainActor () async -> Void) {

@@ -15,6 +15,10 @@ enum DemoSeeder {
             await seedPlayersOnly(dependencies)
         }
 
+        if arguments.contains("-ui_test_disable_feedback") {
+            await disableFeedbackForUITest(dependencies)
+        }
+
         if arguments.contains("-snapshot_match_cricket") {
             await seedCricketSnapshot(dependencies)
         }
@@ -139,6 +143,38 @@ enum DemoSeeder {
             _ = try await dependencies.playerRepository.createPlayer(name: "Bob")
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "seed_players_failed", message: "Seed players failed: \(error)")
+        }
+    }
+
+    private static func disableFeedbackForUITest(_ dependencies: AppDependencies) async {
+        do {
+            let current = try await dependencies.settingsRepository.fetchSettings()
+            let disabled = SettingsSummary(
+                id: current.id,
+                appearanceModeRaw: current.appearanceModeRaw,
+                hapticsEnabled: false,
+                soundEnabled: false,
+                turnTotalCallerEnabled: current.turnTotalCallerEnabled,
+                defaultMatchTypeRaw: current.defaultMatchTypeRaw,
+                defaultX01StartScore: current.defaultX01StartScore,
+                defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+                defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+                defaultLegFormatRaw: current.defaultLegFormatRaw,
+                defaultLegsToWin: current.defaultLegsToWin,
+                defaultSetsEnabled: current.defaultSetsEnabled,
+                botStaggerEnabled: current.botStaggerEnabled,
+                botDartHapticsEnabled: current.botDartHapticsEnabled,
+                updatedAt: Date()
+            )
+            _ = try await dependencies.settingsRepository.updateSettings(disabled)
+            let applied = disabled
+            await MainActor.run { dependencies.userPreferencesStore.apply(applied) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "ui_test_disable_feedback_failed",
+                message: "Failed to disable feedback for UI test: \(error)"
+            )
         }
     }
 

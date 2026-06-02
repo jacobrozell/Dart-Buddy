@@ -72,12 +72,9 @@ struct PlayRootView: View {
                     )
                 case let .historyDetail(matchId):
                     MatchHistoryDetailScreen(
-                        viewModel: HistoryDetailViewModel(
-                            matchId: matchId,
-                            matchRepository: dependencies.matchRepository,
-                            statsRepository: dependencies.statsRepository
-                        ),
                         matchId: matchId,
+                        matchRepository: dependencies.matchRepository,
+                        statsRepository: dependencies.statsRepository,
                         onDeleted: { path.removeAll() }
                     )
                 case .quickAddPlayer:

@@ -42,7 +42,5 @@ public protocol RemoteAnalyticsLogSink: LogSink {}
 public struct NoOpRemoteAnalyticsLogSink: RemoteAnalyticsLogSink {
     public init() {}
 
-    public func write(_ entry: LogEntry) {
-        // Post-1.0: map stable `eventName` tokens to analytics / crash reporting SDK calls.
-    }
+    public func write(_ entry: LogEntry) {}
 }

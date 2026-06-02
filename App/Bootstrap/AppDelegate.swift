@@ -1,3 +1,4 @@
+import FirebaseAnalytics
 import FirebaseCore
 import UIKit
 
@@ -8,6 +9,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         if FirebaseBootstrap.shouldConfigure {
             FirebaseApp.configure()
+            Analytics.setAnalyticsCollectionEnabled(FirebaseBootstrap.isAnalyticsCollectionEnabled)
         }
         return true
     }

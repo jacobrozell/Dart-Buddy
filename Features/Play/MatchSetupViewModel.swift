@@ -173,9 +173,22 @@ final class MatchSetupViewModel: ObservableObject {
         guard canStart else { return nil }
         // A match is already in progress: ask the user to replace it instead of
         // failing silently with a validation error.
-        if (try? await matchRepository.fetchActiveMatch()) != nil {
-            logger.debug(.ui, eventName: "active_match_conflict", message: "Setup blocked by in-progress match.")
-            showActiveMatchConflict = true
+        do {
+            if try await matchRepository.fetchActiveMatch() != nil {
+                logger.debug(.ui, eventName: "active_match_conflict", message: "Setup blocked by in-progress match.")
+                showActiveMatchConflict = true
+                return nil
+            }
+        } catch is CancellationError {
+            return nil
+        } catch {
+            logger.error(
+                .ui,
+                eventName: "active_match_lookup_failed",
+                message: "Failed to check for an active match before start.",
+                metadata: appErrorMetadata(for: error)
+            )
+            validationErrors = [(error as? AppError)?.userMessageKey ?? "setup.error.start"]
             return nil
         }
         return await performStart()
@@ -407,6 +420,11 @@ final class MatchSetupViewModel: ObservableObject {
                 metadata: appErrorMetadata(for: error)
             )
             if let appError = error as? AppError {
+                if appError.code == .conflict {
+                    showActiveMatchConflict = true
+                    validationErrors = []
+                    return nil
+                }
                 validationErrors = [appError.userMessageKey]
             } else {
                 validationErrors = ["setup.error.start"]
