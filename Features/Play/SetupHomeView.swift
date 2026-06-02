@@ -7,6 +7,7 @@ struct SetupHomeView: View {
     let onResumeMatch: (MatchSummary) -> Void
     let onStartRoute: (PlayRoute) -> Void
     let onQuickAddPlayer: () -> Void
+    let onViewCompletedMatch: (UUID) -> Void
     @State private var startTask: Task<Void, Never>?
 
     var body: some View {
@@ -19,6 +20,10 @@ struct SetupHomeView: View {
 
                 if case let .readyWithActiveMatch(match) = homeViewModel.state {
                     resumeBanner(match)
+                }
+
+                if !homeViewModel.recentCompletedMatches.isEmpty {
+                    recentCompletedSection
                 }
 
                 modePill
@@ -71,6 +76,52 @@ struct SetupHomeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("resumeMatchButton")
+    }
+
+    private var recentCompletedSection: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            Text("Recent Games")
+                .font(.headline)
+                .foregroundStyle(.white)
+
+            VStack(spacing: 0) {
+                ForEach(homeViewModel.recentCompletedMatches) { match in
+                    Button { onViewCompletedMatch(match.id) } label: {
+                        HStack(spacing: DS.Spacing.s3) {
+                            Text(match.type == .x01 ? "X01" : "Cricket")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Brand.textSecondary)
+                                .frame(width: 56, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(match.participantsLabel)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                if let winnerName = match.winnerName {
+                                    Text("\(winnerName) won")
+                                        .font(.caption)
+                                        .foregroundStyle(Brand.textSecondary)
+                                }
+                            }
+                            Spacer()
+                            Text(match.playedAt, style: .date)
+                                .font(.caption)
+                                .foregroundStyle(Brand.textSecondary)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Brand.textSecondary)
+                        }
+                        .padding(.horizontal, DS.Spacing.s3)
+                        .padding(.vertical, DS.Spacing.s3)
+                    }
+                    .buttonStyle(.plain)
+                    if match.id != homeViewModel.recentCompletedMatches.last?.id {
+                        Divider().overlay(Brand.cardElevated)
+                    }
+                }
+            }
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        }
     }
 
     private var modePill: some View {

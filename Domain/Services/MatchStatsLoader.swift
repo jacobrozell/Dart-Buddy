@@ -50,6 +50,28 @@ public struct RecentMatchSummary: Identifiable, Equatable, Sendable {
     }
 }
 
+public struct CompletedMatchPreview: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    public let type: MatchType
+    public let playedAt: Date
+    public let participantsLabel: String
+    public let winnerName: String?
+
+    public init(
+        id: UUID,
+        type: MatchType,
+        playedAt: Date,
+        participantsLabel: String,
+        winnerName: String?
+    ) {
+        self.id = id
+        self.type = type
+        self.playedAt = playedAt
+        self.participantsLabel = participantsLabel
+        self.winnerName = winnerName
+    }
+}
+
 public enum MatchStatsLoader {
     public static let defaultPageSize = 100
 
@@ -192,6 +214,32 @@ public enum MatchStatsLoader {
         }
 
         return recent
+    }
+
+    public static func recentCompletedMatches(
+        matchRepository: any MatchRepository,
+        limit: Int = 3,
+        pageSize: Int = defaultPageSize
+    ) async throws -> [CompletedMatchPreview] {
+        guard limit > 0 else { return [] }
+        let batch = try await matchRepository.fetchHistoryWithParticipants(
+            page: 0,
+            pageSize: max(limit, 1),
+            filter: MatchHistoryFilter()
+        )
+        return batch.prefix(limit).map { record in
+            let names = record.participants.map(\.displayNameAtMatchStart)
+            let winnerName = record.participants.first(where: {
+                ($0.playerId ?? $0.id) == record.summary.winnerPlayerId
+            })?.displayNameAtMatchStart
+            return CompletedMatchPreview(
+                id: record.summary.id,
+                type: record.summary.type,
+                playedAt: record.summary.endedAt ?? record.summary.startedAt,
+                participantsLabel: names.joined(separator: " vs "),
+                winnerName: winnerName
+            )
+        }
     }
 
     public static func decodeEvents(_ summaries: [MatchEventSummary]) -> [MatchEventEnvelope] {

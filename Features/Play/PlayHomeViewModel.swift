@@ -10,6 +10,7 @@ final class PlayHomeViewModel: ObservableObject {
     }
 
     @Published private(set) var state: State = .loading
+    @Published private(set) var recentCompletedMatches: [CompletedMatchPreview] = []
     private let playerRepository: any PlayerRepository
     private let matchRepository: any MatchRepository
     private let logger: any AppLogger
@@ -26,7 +27,12 @@ final class PlayHomeViewModel: ObservableObject {
 
     func onAppear() async {
         state = .loading
+        recentCompletedMatches = []
         do {
+            recentCompletedMatches = try await MatchStatsLoader.recentCompletedMatches(
+                matchRepository: matchRepository,
+                limit: 3
+            )
             let players = try await playerRepository.fetchPlayers(includeArchived: false)
             if players.isEmpty {
                 state = .readyNoActiveMatch
