@@ -23,8 +23,8 @@ struct SectorHitsChart: View {
             } else {
                 Chart(hits) { hit in
                     BarMark(
-                        x: .value("Sector", StatsSectorOrder.label(hit.sector)),
-                        y: .value("Hits", hit.count)
+                        x: .value(L10n.string("stats.chart.axis.sector"), StatsSectorOrder.label(hit.sector)),
+                        y: .value(L10n.string("stats.chart.axis.hits"), hit.count)
                     )
                     .foregroundStyle(Brand.green)
                 }
@@ -74,14 +74,14 @@ struct AverageTrendChart: View {
     var body: some View {
         Chart(points) { point in
             LineMark(
-                x: .value("Date", point.date),
-                y: .value("Average", point.average3Dart)
+                x: .value(L10n.string("stats.chart.axis.date"), point.date),
+                y: .value(L10n.string("stats.chart.axis.average"), point.average3Dart)
             )
             .foregroundStyle(Brand.green)
             .interpolationMethod(.catmullRom)
             PointMark(
-                x: .value("Date", point.date),
-                y: .value("Average", point.average3Dart)
+                x: .value(L10n.string("stats.chart.axis.date"), point.date),
+                y: .value(L10n.string("stats.chart.axis.average"), point.average3Dart)
             )
             .foregroundStyle(Brand.green)
         }
@@ -124,8 +124,8 @@ struct PlayerAverageChart: View {
     var body: some View {
         Chart {
             BarMark(
-                x: .value("Average", average),
-                y: .value("Player", playerName)
+                x: .value(L10n.string("stats.chart.axis.average"), average),
+                y: .value(L10n.string("stats.chart.axis.player"), playerName)
             )
             .foregroundStyle(Brand.green)
             .annotation(position: .trailing) {

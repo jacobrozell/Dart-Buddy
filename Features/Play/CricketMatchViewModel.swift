@@ -82,7 +82,7 @@ final class CricketMatchViewModel: ObservableObject {
 
     private func name(for playerId: UUID, fallbackIndex: Int) -> String {
         let participant = session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-        return participant?.displayNameAtMatchStart ?? "Player \(fallbackIndex + 1)"
+        return participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: fallbackIndex)
     }
 
     func submitTurn() async {

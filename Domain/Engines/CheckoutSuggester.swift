@@ -109,3 +109,23 @@ public enum CheckoutSuggester {
         return result
     }()
 }
+
+public extension CheckoutSuggester {
+    static func localizedDisplayLabels(for route: [String]) -> [String] {
+        route.map { localizedDisplayLabel(for: $0) }
+    }
+
+    static func localizedDisplayLabel(for token: String) -> String {
+        if token == "Bull" { return L10n.string("scoring.checkout.bull") }
+        if token.hasPrefix("T"), let value = Int(token.dropFirst()) {
+            return L10n.format("scoring.checkout.tripleFormat", value)
+        }
+        if token.hasPrefix("D"), let value = Int(token.dropFirst()) {
+            return L10n.format("scoring.checkout.doubleFormat", value)
+        }
+        if let value = Int(token) {
+            return "\(value)"
+        }
+        return token
+    }
+}

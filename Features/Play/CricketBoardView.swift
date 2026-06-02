@@ -63,7 +63,7 @@ struct CricketBoardView: View {
     }
 
     private func label(for target: CricketTarget) -> String {
-        target == .bull ? "Bull" : target.rawValue
+        target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
     }
 
     private func columnAccessibilityLabel(_ column: Column) -> String {
@@ -164,14 +164,14 @@ struct CricketTapPad: View {
             }
             HStack(spacing: spacing) {
                 key(
-                    "BULL",
+                    L10n.string("scoring.pad.bullLabel"),
                     background: Brand.key,
                     identifier: "cricket_bull",
                     accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
                     accessibilityHint: L10n.string("scoring.segment.hint")
                 ) { appendBull() }
                 key(
-                    "MISS",
+                    L10n.string("scoring.pad.missLabel"),
                     background: Brand.key,
                     identifier: "cricket_miss",
                     accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
@@ -223,7 +223,7 @@ struct CricketTapPad: View {
     private var visitPreviewAccessibilityLabel: String {
         let names = enteredDarts.map(\.spokenAccessibilityName)
         guard !names.isEmpty else { return "" }
-        return "Visit darts \(names.joined(separator: ", "))"
+        return L10n.format("scoring.visitDartsFormat", names.joined(separator: ", "))
     }
 
     private func modifierKey(_ multiplier: DartMultiplier, title: String, identifier: String) -> some View {

@@ -165,11 +165,12 @@ struct X01MatchScreen: View {
     @ViewBuilder
     private var checkoutBanner: some View {
         if let route = viewModel.checkoutRoute {
+            let labels = CheckoutSuggester.localizedDisplayLabels(for: route)
             HStack(spacing: 6) {
                 Image(systemName: "target")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Brand.green)
-                Text(route.joined(separator: "  "))
+                Text(labels.joined(separator: "  "))
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
@@ -179,7 +180,7 @@ struct X01MatchScreen: View {
             .padding(.vertical, DS.Spacing.s2)
             .background(Brand.card, in: Capsule())
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(L10n.format("play.x01.checkout.accessibilityFormat", route.joined(separator: ", ")))
+            .accessibilityLabel(L10n.format("play.x01.checkout.accessibilityFormat", labels.joined(separator: ", ")))
             .accessibilityIdentifier("checkoutSuggestion")
         }
     }
@@ -318,18 +319,18 @@ private struct PlayerScoreCard: View {
     }
 
     private var accessibilitySummary: String {
-        var parts = ["\(name), \(score) remaining"]
+        var parts = [L10n.format("play.x01.scoreCard.summaryFormat", name, score)]
         if isActive {
             parts.append(L10n.string("play.x01.turn.active"))
         }
         let dartSpeech = visitDarts.map(\.spokenAccessibilityName)
         if !dartSpeech.isEmpty {
-            parts.append("Visit darts \(dartSpeech.joined(separator: ", "))")
+            parts.append(L10n.format("play.x01.scoreCard.visitDartsFormat", dartSpeech.joined(separator: ", ")))
         }
-        parts.append("Visit total \(visitTotal)")
+        parts.append(L10n.format("play.x01.scoreCard.visitTotalFormat", visitTotal))
         parts.append(L10n.format("play.x01.setsLegsFormat", setsWon, legsWon))
-        parts.append("\(dartsThrown) darts thrown")
-        parts.append(String(format: "Three-dart average %.2f", average))
+        parts.append(L10n.format("play.x01.scoreCard.dartsThrownFormat", dartsThrown))
+        parts.append(L10n.format("play.x01.scoreCard.averageFormat", average))
         return parts.joined(separator: ". ")
     }
 

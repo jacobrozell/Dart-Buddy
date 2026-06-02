@@ -129,17 +129,7 @@ final class X01MatchViewModel: ObservableObject {
 
     var configSummary: String? {
         guard let config = session?.runtime.x01State?.config else { return nil }
-        var parts = ["\(config.startScore)", config.checkoutMode.displayName]
-        if config.checkInMode != .straightIn {
-            parts.append(config.checkInMode.displayName)
-        }
-        let format = config.legFormat.displayName
-        if config.setsEnabled {
-            let sets = config.setsToWin ?? 1
-            parts.append("\(format) \(sets) Set\(sets == 1 ? "" : "s")")
-        }
-        parts.append("\(format) \(config.legsToWin) Leg\(config.legsToWin == 1 ? "" : "s")")
-        return parts.joined(separator: ", ")
+        return MatchConfigText.x01InlineConfig(from: config)
     }
 
     var isCurrentPlayerBot: Bool {
@@ -162,7 +152,7 @@ final class X01MatchViewModel: ObservableObject {
 
     private func name(for playerId: UUID, fallbackIndex: Int) -> String {
         let participant = session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-        return participant?.displayNameAtMatchStart ?? "Player \(fallbackIndex + 1)"
+        return participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: fallbackIndex)
     }
 
     private func turnEvents(for playerId: UUID) -> [X01TurnEvent] {

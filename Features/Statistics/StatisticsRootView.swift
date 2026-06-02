@@ -249,8 +249,8 @@ struct StatisticsRootView: View {
     private var averageChart: some View {
         Chart(viewModel.rows) { row in
             BarMark(
-                x: .value("Average", row.average3Dart),
-                y: .value("Player", row.name)
+                x: .value(L10n.string("stats.chart.axis.average"), row.average3Dart),
+                y: .value(L10n.string("stats.chart.axis.player"), row.name)
             )
             .foregroundStyle(Brand.green)
             .annotation(position: .trailing) {

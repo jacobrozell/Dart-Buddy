@@ -249,7 +249,7 @@ struct PlayersRootView: View {
         HStack(spacing: DS.Spacing.s2) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(DS.ColorRole.textSecondary)
-            TextField("Search", text: $viewModel.searchText)
+            TextField(L10n.string("players.search.placeholder"), text: $viewModel.searchText)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .accessibilityLabel(L10n.string("players.search.accessibility"))
@@ -372,7 +372,7 @@ private struct PlayerStatsDetailView: View {
             VStack(spacing: 0) {
                 ForEach(viewModel.recentMatches) { match in
                     HStack(spacing: DS.Spacing.s3) {
-                        Text(match.type == .x01 ? "X01" : "Cricket")
+                        Text(match.type == .x01 ? L10n.x01Title : L10n.cricketTitle)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Brand.textSecondary)
                             .frame(width: 56, alignment: .leading)

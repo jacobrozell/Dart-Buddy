@@ -1,0 +1,61 @@
+import Foundation
+
+enum MatchConfigText {
+    static func modeLabel(for type: MatchType) -> String {
+        switch type {
+        case .x01: L10n.string("play.x01.title")
+        case .cricket: L10n.string("play.cricket.title")
+        }
+    }
+
+    static func x01DetailParts(from config: MatchConfigX01) -> [String] {
+        var parts = ["\(config.startScore)", config.checkoutMode.displayName]
+        if config.checkInMode != .straightIn {
+            parts.append(config.checkInMode.displayName)
+        }
+        let format = config.legFormat.displayName
+        if config.setsEnabled {
+            let sets = config.setsToWin ?? 1
+            parts.append(targetSets(format: format, count: sets))
+        }
+        parts.append(targetLegs(format: format, count: config.legsToWin))
+        return parts
+    }
+
+    static func x01CardConfig(from config: MatchConfigX01) -> String {
+        L10n.format(
+            "history.config.x01Format",
+            modeLabel(for: .x01),
+            x01DetailParts(from: config).joined(separator: ", ")
+        )
+    }
+
+    static func x01InlineConfig(from config: MatchConfigX01) -> String {
+        x01DetailParts(from: config).joined(separator: ", ")
+    }
+
+    static func playerName(_ name: String?) -> String {
+        name ?? L10n.string("common.playerFallback")
+    }
+
+    static func playerName(forIndex index: Int) -> String {
+        L10n.format("common.playerNumberFormat", index + 1)
+    }
+
+    static func standingAccessibility(name: String, isWinner: Bool, score: Int) -> String {
+        let role = isWinner ? L10n.string("history.standing.winnerRole") : ""
+        return L10n.format("history.standing.accessibilityFormat", name, role, score)
+    }
+
+    private static func targetSets(format: String, count: Int) -> String {
+        count == 1
+            ? L10n.format("match.config.setSingular", format, count)
+            : L10n.format("match.config.setsPlural", format, count)
+    }
+
+    private static func targetLegs(format: String, count: Int) -> String {
+        count == 1
+            ? L10n.format("match.config.legSingular", format, count)
+            : L10n.format("match.config.legsPlural", format, count)
+    }
+}

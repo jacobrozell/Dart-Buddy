@@ -165,9 +165,9 @@ enum StatsSectorOrder {
 
     static func label(_ sector: String) -> String {
         switch sector {
-        case "innerBull": return "Bull"
+        case "innerBull": return L10n.string("stats.sector.bull")
         case "outerBull": return "25"
-        case "bull": return "Bull"
+        case "bull": return L10n.string("stats.sector.bull")
         default: return sector
         }
     }

@@ -20,8 +20,11 @@ struct HistoryListRow: Identifiable, Equatable {
 
     var accessibilitySummary: String {
         let players = standings.map { standing in
-            let role = standing.isWinner ? ", winner" : ""
-            return "\(standing.name)\(role), score \(standing.score)"
+            MatchConfigText.standingAccessibility(
+                name: standing.name,
+                isWinner: standing.isWinner,
+                score: standing.score
+            )
         }.joined(separator: ". ")
         return L10n.format("history.row.accessibilityFormat", dateText, configText, players)
     }
@@ -221,7 +224,7 @@ final class HistoryListViewModel: ObservableObject {
                     score: 0
                 )
             }
-            return (summary.type == .x01 ? "X01" : "Cricket", standings)
+            return (MatchConfigText.modeLabel(for: summary.type), standings)
         }
 
         guard let snapshot = try? await matchRepository.fetchLatestSnapshot(matchId: summary.id),
@@ -230,21 +233,11 @@ final class HistoryListViewModel: ObservableObject {
         }
 
         if let state = runtime.x01State {
-            var configParts = ["\(state.config.startScore)", state.config.checkoutMode.displayName]
-            if state.config.checkInMode != .straightIn {
-                configParts.append(state.config.checkInMode.displayName)
-            }
-            let format = state.config.legFormat.displayName
-            if state.config.setsEnabled {
-                let sets = state.config.setsToWin ?? 1
-                configParts.append("\(format) \(sets) Set\(sets == 1 ? "" : "s")")
-            }
-            configParts.append("\(format) \(state.config.legsToWin) Leg\(state.config.legsToWin == 1 ? "" : "s")")
-            let configText = "X01 (\(configParts.joined(separator: ", ")))"
+            let configText = MatchConfigText.x01CardConfig(from: state.config)
             let standings = state.players.map { player in
                 HistoryStanding(
                     id: player.playerId,
-                    name: nameById[player.playerId] ?? "Player",
+                    name: MatchConfigText.playerName(nameById[player.playerId]),
                     isWinner: player.playerId == runtime.winnerPlayerId,
                     sets: player.setsWon,
                     legs: player.legsWon,
@@ -258,14 +251,14 @@ final class HistoryListViewModel: ObservableObject {
             let standings = state.players.map { player in
                 HistoryStanding(
                     id: player.playerId,
-                    name: nameById[player.playerId] ?? "Player",
+                    name: MatchConfigText.playerName(nameById[player.playerId]),
                     isWinner: player.playerId == runtime.winnerPlayerId,
                     sets: 0,
                     legs: 0,
                     score: player.score
                 )
             }
-            return ("Cricket", sortStandings(standings))
+            return (MatchConfigText.modeLabel(for: .cricket), sortStandings(standings))
         }
 
         return fallback()
@@ -314,8 +307,11 @@ final class HistoryDetailViewModel: ObservableObject {
 
     var resultAccessibilitySummary: String {
         let players = standings.map { standing in
-            let role = standing.isWinner ? ", winner" : ""
-            return "\(standing.name)\(role), score \(standing.score)"
+            MatchConfigText.standingAccessibility(
+                name: standing.name,
+                isWinner: standing.isWinner,
+                score: standing.score
+            )
         }.joined(separator: ". ")
         return L10n.format("history.detail.result.accessibilityFormat", dateText, configText, players)
     }
@@ -351,10 +347,20 @@ final class HistoryDetailViewModel: ObservableObject {
                 switch envelope.payload {
                 case let .x01Turn(turn):
                     let name = participantNames[turn.playerId] ?? String(turn.playerId.uuidString.prefix(6))
-                    return "Turn \(turn.turnIndex + 1): \(name) +\(turn.appliedTotal)"
+                    return L10n.format(
+                        "history.timeline.x01TurnFormat",
+                        turn.turnIndex + 1,
+                        name,
+                        turn.appliedTotal
+                    )
                 case let .cricketTurn(turn):
                     let name = participantNames[turn.playerId] ?? String(turn.playerId.uuidString.prefix(6))
-                    return "Turn \(turn.turnIndex + 1): \(name) +\(turn.totalPointsAdded)"
+                    return L10n.format(
+                        "history.timeline.cricketTurnFormat",
+                        turn.turnIndex + 1,
+                        name,
+                        turn.totalPointsAdded
+                    )
                 }
             }
             matchType = match.type
@@ -396,12 +402,12 @@ final class HistoryDetailViewModel: ObservableObject {
         let winnerName = participants
             .first(where: { $0.playerId == match.winnerPlayerId })?
             .displayNameAtMatchStart ?? NSLocalizedString("common.unknown", comment: "")
-        let modeText = match.type == .x01 ? "X01" : "Cricket"
+        let modeText = MatchConfigText.modeLabel(for: match.type)
         let dateText = DateFormatter.localizedString(from: match.startedAt, dateStyle: .medium, timeStyle: .short)
         let durationText: String = {
             guard let end = match.endedAt else { return NSLocalizedString("common.unknown", comment: "") }
             let minutes = Int(max(0, end.timeIntervalSince(match.startedAt)) / 60)
-            return "\(minutes)m"
+            return L10n.format("history.detail.durationFormat", minutes)
         }()
         let participantsText = participants.map(\.displayNameAtMatchStart).joined(separator: ", ")
         let modeSpecificSummaryText: String = {
@@ -413,14 +419,14 @@ final class HistoryDetailViewModel: ObservableObject {
                 }
                 let total = turns.reduce(0) { $0 + $1.appliedTotal }
                 let busts = turns.filter(\.isBust).count
-                return "Total scored: \(total) • Busts: \(busts)"
+                return L10n.format("history.detail.x01SummaryFormat", total, busts)
             case .cricket:
                 let turns = envelopes.compactMap { envelope -> CricketTurnEvent? in
                     if case let .cricketTurn(turn) = envelope.payload { return turn }
                     return nil
                 }
                 let points = turns.reduce(0) { $0 + $1.totalPointsAdded }
-                return "Total points: \(points) • Turns: \(turns.count)"
+                return L10n.format("history.detail.cricketSummaryFormat", points, turns.count)
             }
         }()
         return HistoryDetailHeader(
@@ -448,24 +454,28 @@ final class HistoryDetailViewModel: ObservableObject {
         if let snapshot = try? await matchRepository.fetchLatestSnapshot(matchId: match.id),
            let runtime = try? CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.snapshotPayload) {
             if let s = runtime.x01State {
-                var parts = ["\(s.config.startScore)", s.config.checkoutMode.displayName]
-                if s.config.checkInMode != .straightIn {
-                    parts.append(s.config.checkInMode.displayName)
-                }
-                let format = s.config.legFormat.displayName
-                if s.config.setsEnabled {
-                    let sets = s.config.setsToWin ?? 1
-                    parts.append("\(format) \(sets) Set\(sets == 1 ? "" : "s")")
-                }
-                parts.append("\(format) \(s.config.legsToWin) Leg\(s.config.legsToWin == 1 ? "" : "s")")
-                configText = "X01 (\(parts.joined(separator: ", ")))"
+                configText = MatchConfigText.x01CardConfig(from: s.config)
                 standings = sortStandings(s.players.map {
-                    HistoryStanding(id: $0.playerId, name: participantNames[$0.playerId] ?? "Player", isWinner: $0.playerId == runtime.winnerPlayerId, sets: $0.setsWon, legs: $0.legsWon, score: $0.remainingScore)
+                    HistoryStanding(
+                        id: $0.playerId,
+                        name: MatchConfigText.playerName(participantNames[$0.playerId]),
+                        isWinner: $0.playerId == runtime.winnerPlayerId,
+                        sets: $0.setsWon,
+                        legs: $0.legsWon,
+                        score: $0.remainingScore
+                    )
                 })
             } else if let c = runtime.cricketState {
-                configText = "Cricket"
+                configText = MatchConfigText.modeLabel(for: .cricket)
                 standings = sortStandings(c.players.map {
-                    HistoryStanding(id: $0.playerId, name: participantNames[$0.playerId] ?? "Player", isWinner: $0.playerId == runtime.winnerPlayerId, sets: 0, legs: 0, score: $0.score)
+                    HistoryStanding(
+                        id: $0.playerId,
+                        name: MatchConfigText.playerName(participantNames[$0.playerId]),
+                        isWinner: $0.playerId == runtime.winnerPlayerId,
+                        sets: 0,
+                        legs: 0,
+                        score: $0.score
+                    )
                 })
             }
         }

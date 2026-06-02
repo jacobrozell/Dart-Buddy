@@ -64,7 +64,7 @@ struct SetupHomeView: View {
                 Image(systemName: "play.circle.fill")
                 VStack(alignment: .leading, spacing: 2) {
                     Text(L10n.resumeMatch).font(.headline)
-                    Text(match.type.rawValue.uppercased()).font(.caption).foregroundStyle(Brand.textSecondary)
+                    Text(MatchConfigText.modeLabel(for: match.type)).font(.caption).foregroundStyle(Brand.textSecondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.right").foregroundStyle(Brand.textSecondary)
