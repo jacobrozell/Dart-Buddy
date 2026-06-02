@@ -418,23 +418,23 @@ private struct PlayerStatsDetailView: View {
                 .foregroundStyle(.white)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DS.Spacing.s3) {
-                StatTile(label: L10n.statsGames, value: "\(stats.games)")
-                StatTile(label: L10n.statsWins, value: "\(stats.wins) (\(String(format: "%.0f%%", stats.winPercent)))")
-                StatTile(label: L10n.statsThrows, value: "\(stats.darts)")
-                StatTile(label: L10n.statsPoints, value: "\(stats.points)")
+                StatTile(labelKey: "stats.games", value: "\(stats.games)")
+                StatTile(labelKey: "stats.wins", value: "\(stats.wins) (\(String(format: "%.0f%%", stats.winPercent)))")
+                StatTile(labelKey: "stats.throws", value: "\(stats.darts)")
+                StatTile(labelKey: "stats.points", value: "\(stats.points)")
                 if isX01 {
-                    StatTile(label: L10n.statsLegsWon, value: "\(stats.legs)")
-                    StatTile(label: L10n.statsThreeDartAverage, value: String(format: "%.1f", stats.average3Dart))
-                    StatTile(label: L10n.statsHighestScore, value: "\(stats.highestScore)")
-                    StatTile(label: L10n.statsCheckouts, value: "\(stats.checkouts)")
-                    StatTile(label: L10n.statsBestCheckout, value: stats.highestCheckout > 0 ? "\(stats.highestCheckout)" : "-")
+                    StatTile(labelKey: "stats.legsWon", value: "\(stats.legs)")
+                    StatTile(labelKey: "stats.threeDartAverage", value: String(format: "%.1f", stats.average3Dart))
+                    StatTile(labelKey: "stats.highestScore", value: "\(stats.highestScore)")
+                    StatTile(labelKey: "stats.checkouts", value: "\(stats.checkouts)")
+                    StatTile(labelKey: "stats.bestCheckout", value: stats.highestCheckout > 0 ? "\(stats.highestCheckout)" : "-")
                 } else {
-                    StatTile(label: L10n.statsMPR, value: String(format: "%.2f", stats.marksPerRound))
-                    StatTile(label: L10n.statsMarks, value: "\(stats.cricketMarks)")
-                    StatTile(label: L10n.statsRounds, value: "\(stats.cricketRounds)")
+                    StatTile(labelKey: "stats.mpr", value: String(format: "%.2f", stats.marksPerRound))
+                    StatTile(labelKey: "stats.marks", value: "\(stats.cricketMarks)")
+                    StatTile(labelKey: "stats.rounds", value: "\(stats.cricketRounds)")
                 }
-                StatTile(label: L10n.statsDoublePercent, value: String(format: "%.1f%%", stats.doublePercent))
-                StatTile(label: L10n.statsTriplePercent, value: String(format: "%.1f%%", stats.triplePercent))
+                StatTile(labelKey: "stats.doublePercent", value: String(format: "%.1f%%", stats.doublePercent))
+                StatTile(labelKey: "stats.triplePercent", value: String(format: "%.1f%%", stats.triplePercent))
             }
 
             if isX01, stats.average3Dart > 0 {
@@ -462,12 +462,12 @@ private struct PlayerStatsDetailView: View {
 }
 
 private struct StatTile: View {
-    let label: LocalizedStringKey
+    let labelKey: String
     let value: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-            Text(label)
+            Text(LocalizedStringKey(labelKey))
                 .font(.caption)
                 .foregroundStyle(Brand.textSecondary)
             Text(value)
@@ -482,7 +482,7 @@ private struct StatTile: View {
     }
 
     private var statTileAccessibilityLabel: String {
-        L10n.format("stats.statTile.accessibilityFormat", String(localized: label), value)
+        L10n.format("stats.statTile.accessibilityFormat", L10n.string(labelKey), value)
     }
 }
 
