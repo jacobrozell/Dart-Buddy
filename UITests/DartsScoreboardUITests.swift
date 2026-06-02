@@ -78,9 +78,14 @@ final class DartsScoreboardUITests: XCTestCase {
         confirm.tap()
 
         XCTAssertTrue(app.staticTexts["All Games"].waitForExistence(timeout: timeout))
+        // `-seed_demo` includes two completed games (X01 + Cricket); deleting one leaves the other.
+        XCTAssertFalse(
+            app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: 2),
+            "One completed game should remain after deleting a single seeded match"
+        )
         XCTAssertTrue(
-            app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: timeout),
-            "Deleting the only completed game should empty the All Games list"
+            app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch.waitForExistence(timeout: timeout),
+            "All Games should still list the remaining completed match"
         )
     }
 
@@ -188,7 +193,7 @@ final class DartsScoreboardUITests: XCTestCase {
         app.buttons["Easy"].tap()
 
         XCTAssertTrue(app.buttons["select_bot_easy"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["DartBot · Easy"].exists)
+        XCTAssertTrue(app.staticTexts["Easy Bot 1"].waitForExistence(timeout: timeout))
 
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(start.isEnabled, "START should enable with one human and one bot")

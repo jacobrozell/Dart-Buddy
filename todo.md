@@ -117,9 +117,11 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 
 ### Statistics & history depth
 
-- [~] Statistics tables (Games, Avg, Legs/Checkout, Points, Throws, sector chart) — present; legs win% / player filter missing
-- [ ] Statistics: filter by individual player
+- [x] Statistics tables (Games, Avg, Legs/Checkout, Points, Throws, sector chart)
+- [x] Statistics: filter by individual player
 - [x] Player detail stats parity — X01/Cricket tiles, MPR, Swift Charts sector + avg chart, recent matches, list W/L subtitle
+- [x] Player detail identity card — avatar chip, color token, notes; edit sheet pickers
+- [x] X01 average trend chart (Statistics + Player detail when 2+ games)
 - [~] Game detail hit-distribution charts — sector Swift Chart; per-player bars like reference TBD
 - [x] All Games: delete a game (`deleteMatch` + detail confirm)
 - [x] All Games: config summary includes check-in/out, best-of/first-to (via snapshot decode in `HistoryListViewModel`)
@@ -133,7 +135,7 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 - [x] First to vs Best of sets/legs
 - [x] Persist last-used setup ↔ Settings — round-trip for mode, start score, checkout, check-in, leg format, legs, sets-enabled
 - [ ] Player reordering on setup roster + remove-from-match
-- [ ] Player avatars / colors (bot vs human)
+- [x] Player avatars / colors (bot vs human)
 
 ---
 
