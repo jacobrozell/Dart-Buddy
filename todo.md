@@ -26,21 +26,21 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 
 ### P2 — Data model & bots
 
-- [ ] **Persist `botDifficultyRaw` on match participants** — Lives in `MatchParticipant` / snapshot payload only; `SchemaV1.MatchParticipantRecord` has no column. Resume relies entirely on snapshot JSON; DB participant rows cannot reconstruct bot tier if snapshot is missing/corrupt.
+- [x] Persist `botDifficultyRaw` on match participants — `SchemaV1.MatchParticipantRecord` + repository mapping; written on match create.
 - [ ] **Bot identity in stats** — Bots use ephemeral `SetupBot.id` as `playerId`; may create orphan stat keys separate from `PlayerRecord`. Decide: exclude bots from player aggregates or use stable bot pseudo-IDs.
-- [ ] **Replace-active-match deletes DB row** — `confirmReplaceActiveMatch` calls `deleteMatch`, not `abandon`. Destructive vs “leave incomplete game”; align with product intent.
+- [x] **Replace-active-match deletes DB row** — `confirmReplaceActiveMatch` now abandons via `MatchLifecycleService` instead of `deleteMatch`.
 
 ### P3 — History & statistics
 
-- [ ] **Wire or remove `HistoryListViewModel` filters** — `dateFilter` and `playerFilter` filter in VM but `HistoryRootView` only exposes mode. `playerFilter` matches `winnerPlayerId` only (wrong for “games involving player X”).
+- [x] **Wire or remove `HistoryListViewModel` filters** — Date filter wired in `HistoryRootView`; player filter matches any participant, not just winner.
 - [ ] **Statistics load performance** — `StatisticsViewModel`, `PlayerDetailViewModel`, and similar paths fetch up to **1000** history rows + per-match `fetchEvents`. Add pagination or repository-level aggregates before large histories.
-- [ ] **Statistics loading UI** — `isLoading` exists but `StatisticsRootView` shows empty state without spinner (flash of “no data”).
-- [ ] **Cricket MPR in Statistics** — Not surfaced; reference app shows marks-per-round for cricket.
+- [x] **Statistics loading UI** — Spinner shown while `isLoading && rows.isEmpty`.
+- [x] **Cricket MPR in Statistics** — `marksPerRound` tracked in `StatsService`; MPR table in Cricket mode.
 
 ### P4 — UI / UX / accessibility
 
 - [ ] **iPad / landscape layouts** — X01 board portrait-tuned; Cricket has `contentMaxWidth` on regular size class only.
-- [ ] **Accessibility pass** — Sparse VoiceOver on score cards; X01 header back/undo buttons are **40×40** (spec: ≥44pt gameplay controls). Cricket grid cells need labels.
+- [ ] **Accessibility pass** — Sparse VoiceOver on score cards; X01 header back/undo buttons bumped to **44×44**; Cricket grid cells need labels.
 - [ ] **Localize hardcoded strings** — Home, History, Statistics, Match Summary, X01 exit, game detail delete copy still English inline (Players/Settings use `L10n` / keys).
 - [ ] **Settings gameplay defaults UI** — Schema stores checkout/legs/sets/start score; Settings UI only exposes default **mode** (X01 vs Cricket). Expose or stop persisting unused fields.
 
@@ -51,7 +51,7 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 - [ ] **`SettingsViewModel` tests** — Load/save, reset, appearance/feedback mutations, error keys.
 - [ ] **`MatchSummaryViewModel` tests** — Winner rows, stats labels; store-only data path (no repository fallback).
 - [ ] **`MigrationRecoveryViewModel` tests** — Retry/reset flows.
-- [ ] **Abandon + resume integration** — Lifecycle unit test exists; add VM test: abandoned match not offered on Play home.
+- [x] **Abandon + resume integration** — `playHomeDoesNotOfferAbandonedMatch` VM test added.
 - [ ] **UI tests** — Checkout banner, Cricket tap grid, match summary, settings feedback toggles, abandon vs save & exit.
 - [ ] **Repository contract tests** — `specs/RepositorySpec.md` calls for per-repo contract tests; only in-memory fakes in feature tests today.
 
@@ -181,11 +181,11 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 Issues found on re-scan beyond the first audit:
 
 - [x] **`ScoringInputPad.swift` is orphaned** — Deleted; enum moved to `X01MatchViewModel`.
-- [ ] **`botDifficultyRaw` not in SwiftData participant schema** — Bot tier only in snapshot `MatchRuntimeState`; DB participant rows incomplete for rehydrate alternatives.
+- [x] **`botDifficultyRaw` not in SwiftData participant schema** — Column added to `MatchParticipantRecord`.
 - [ ] **Settings UI vs schema mismatch** — Checkout/legs/start score defaults stored but not editable in Settings (only match type).
 - [ ] **`HistoryListViewModel.dateFilter` / `playerFilter` dead** — Implemented, not bound to UI; player filter logic incorrect for future use.
 - [ ] **`MatchSummaryViewModel` store-only** — No reload from `matchRepository` if `ActiveMatchStore` cleared.
-- [ ] **`confirmReplaceActiveMatch` uses `deleteMatch`** — Data loss vs abandon semantics (see P2).
+- [x] **`confirmReplaceActiveMatch` uses `deleteMatch`** — Now abandons in place.
 - [ ] **Bot ephemeral UUIDs in stats** — May pollute player-level statistics (see P2).
 - [ ] **No `SettingsViewModel` / `MigrationRecoveryViewModel` tests**
 - [ ] **Repository contract tests missing** — Per `RepositorySpec.md`

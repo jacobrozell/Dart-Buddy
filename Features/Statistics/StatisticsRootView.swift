@@ -34,7 +34,12 @@ struct StatisticsRootView: View {
                         selection: $viewModel.period
                     )
 
-                    if viewModel.rows.isEmpty {
+                    if viewModel.isLoading && viewModel.rows.isEmpty {
+                        ProgressView()
+                            .tint(Brand.green)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s6)
+                    } else if viewModel.rows.isEmpty {
                         emptyState
                     } else {
                         gamesTable
@@ -44,6 +49,9 @@ struct StatisticsRootView: View {
                             averageChart
                             sectionTitle("Legs & Checkout")
                             checkoutTable
+                        } else {
+                            sectionTitle("Marks Per Round")
+                            mprTable
                         }
                         sectionTitle("Points")
                         pointsTable
@@ -110,6 +118,19 @@ struct StatisticsRootView: View {
             rows: viewModel.rows
         ) { row in
             ["\(row.legs)", "\(row.checkouts)", row.highestCheckout > 0 ? "\(row.highestCheckout)" : "-"]
+        }
+    }
+
+    private var mprTable: some View {
+        StatTable(
+            columns: [("MPR", 80), ("Marks", 80), ("Rounds", 80)],
+            rows: viewModel.rows
+        ) { row in
+            [
+                String(format: "%.2f", row.marksPerRound),
+                "\(row.cricketMarks)",
+                "\(row.cricketRounds)"
+            ]
         }
     }
 

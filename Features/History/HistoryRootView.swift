@@ -33,7 +33,17 @@ struct HistoryRootView: View {
                         selection: $viewModel.modeFilter
                     )
 
-                    if viewModel.state == .error {
+                    BrandSegmented(
+                        options: HistoryListViewModel.DateFilter.allCases.map { ($0, $0.title) },
+                        selection: $viewModel.dateFilter
+                    )
+
+                    if viewModel.state == .loading && viewModel.rows.isEmpty {
+                        ProgressView()
+                            .tint(Brand.green)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s6)
+                    } else if viewModel.state == .error {
                         Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
                             .foregroundStyle(Brand.red)
                             .frame(maxWidth: .infinity)
@@ -59,6 +69,10 @@ struct HistoryRootView: View {
             .navigationBarHidden(true)
             .task { await viewModel.onAppear() }
             .onChange(of: viewModel.modeFilter) { _, _ in
+                filterTask?.cancel()
+                filterTask = Task { await viewModel.applyFilters() }
+            }
+            .onChange(of: viewModel.dateFilter) { _, _ in
                 filterTask?.cancel()
                 filterTask = Task { await viewModel.applyFilters() }
             }

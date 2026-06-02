@@ -133,11 +133,17 @@ func breakdownsComputeCricketHitsAndPoints() throws {
     #expect(one.hitsBySector["20"] == 2)
     #expect(one.points == 60)
     #expect(one.legs == 0)
+    #expect(one.cricketRounds == 2)
+    #expect(one.cricketMarks == 3)
+    #expect(abs(one.marksPerRound - 1.5) < 0.0001)
 
     let two = try #require(rows.first { $0.playerId == p2 })
     #expect(two.darts == 1)
     #expect(two.hitsBySector["19"] == 1)
     #expect(two.points == 0)
+    #expect(two.cricketRounds == 1)
+    #expect(two.cricketMarks == 1)
+    #expect(abs(two.marksPerRound - 1.0) < 0.0001)
 }
 
 @Test(.tags(.unit, .stats, .regression))

@@ -49,6 +49,13 @@ final class HistoryListViewModel: ObservableObject {
         case d30
         case all
         var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .d7: return "7 Days"
+            case .d30: return "30 Days"
+            case .all: return "All time"
+            }
+        }
     }
 
     @Published var modeFilter: ModeFilter = .all
@@ -95,7 +102,10 @@ final class HistoryListViewModel: ObservableObject {
                         return summary.startedAt >= Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? .distantPast
                     }
                 }()
-                let playerPass = playerFilter == nil || summary.winnerPlayerId == playerFilter
+                let playerPass: Bool = {
+                    guard let filterId = playerFilter else { return true }
+                    return record.participants.contains { ($0.playerId ?? $0.id) == filterId }
+                }()
                 return modePass && datePass && playerPass
             }
             var built: [HistoryListRow] = []

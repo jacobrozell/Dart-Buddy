@@ -104,7 +104,7 @@ func setupStartPromptsWhenAnotherMatchIsActive() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .regression))
-func setupConfirmReplaceDeletesActiveMatchThenStarts() async {
+func setupConfirmReplaceAbandonsActiveMatchThenStarts() async {
     let players = [makePlayer("A"), makePlayer("B")]
     let repo = ActiveConflictMatchRepository(hasActive: true)
     let vm = MatchSetupViewModel(
@@ -121,7 +121,8 @@ func setupConfirmReplaceDeletesActiveMatchThenStarts() async {
     let route = await vm.confirmReplaceActiveMatch()
     #expect(route != nil)
     #expect(!vm.showActiveMatchConflict)
-    #expect(await repo.deletedCount == 1)
+    #expect(await repo.abandonedCount == 1)
+    #expect(await repo.deletedCount == 0)
 }
 
 private func makePlayer(_ name: String) -> PlayerSummary {
@@ -212,10 +213,11 @@ private actor FakeMatchRepository: MatchRepository {
 }
 
 /// Reports an in-progress match so the setup flow must prompt before starting,
-/// and records deletions triggered by the "Game in Progress" confirmation.
+/// and records abandon vs delete operations from the "Game in Progress" confirmation.
 private actor ActiveConflictMatchRepository: MatchRepository {
     private var hasActive: Bool
     private(set) var deletedCount = 0
+    private(set) var abandonedCount = 0
 
     init(hasActive: Bool) { self.hasActive = hasActive }
 
@@ -243,7 +245,12 @@ private actor ActiveConflictMatchRepository: MatchRepository {
     func fetchActiveMatch() async throws -> MatchSummary? { hasActive ? activeSummary() : nil }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
     func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
+    func updateMatch(_ match: MatchSummary) async throws {
+        if match.status == .abandoned {
+            abandonedCount += 1
+            hasActive = false
+        }
+    }
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
     func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
     func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {

@@ -36,6 +36,8 @@ public struct PlayerStatBreakdown: Identifiable, Equatable, Sendable {
     public var doubles: Int
     public var triples: Int
     public var hitsBySector: [String: Int]
+    public var cricketMarks: Int
+    public var cricketRounds: Int
 
     public init(
         playerId: UUID,
@@ -50,7 +52,9 @@ public struct PlayerStatBreakdown: Identifiable, Equatable, Sendable {
         checkouts: Int = 0,
         doubles: Int = 0,
         triples: Int = 0,
-        hitsBySector: [String: Int] = [:]
+        hitsBySector: [String: Int] = [:],
+        cricketMarks: Int = 0,
+        cricketRounds: Int = 0
     ) {
         self.playerId = playerId
         self.name = name
@@ -65,6 +69,8 @@ public struct PlayerStatBreakdown: Identifiable, Equatable, Sendable {
         self.doubles = doubles
         self.triples = triples
         self.hitsBySector = hitsBySector
+        self.cricketMarks = cricketMarks
+        self.cricketRounds = cricketRounds
     }
 
     public var id: UUID { playerId }
@@ -83,6 +89,10 @@ public struct PlayerStatBreakdown: Identifiable, Equatable, Sendable {
 
     public var winPercent: Double {
         games > 0 ? Double(wins) / Double(games) * 100 : 0
+    }
+
+    public var marksPerRound: Double {
+        cricketRounds > 0 ? Double(cricketMarks) / Double(cricketRounds) : 0
     }
 }
 
@@ -148,8 +158,10 @@ public enum StatsService {
                 case let .cricketTurn(turn):
                     var entry = breakdown(for: turn.playerId)
                     entry.points += turn.totalPointsAdded
+                    entry.cricketRounds += 1
                     for touch in turn.targetsTouched where !touch.wasMiss {
                         entry.darts += 1
+                        entry.cricketMarks += touch.marksAdded
                         if touch.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
                         if touch.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
                         entry.hitsBySector[touch.targetRaw, default: 0] += 1

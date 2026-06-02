@@ -146,14 +146,13 @@ final class MatchSetupViewModel: ObservableObject {
         return await performStart()
     }
 
-    /// Deletes the active match and immediately starts the configured one.
+    /// Abandons the active match and immediately starts the configured one.
     /// Invoked from the "Game in Progress" confirmation popup.
     func confirmReplaceActiveMatch() async -> PlayRoute? {
         showActiveMatchConflict = false
         do {
             if let active = try await matchRepository.fetchActiveMatch() {
-                try await matchRepository.deleteMatch(matchId: active.id)
-                activeMatchStore.remove(matchId: active.id)
+                try await abandonActiveMatch(active)
             }
         } catch is CancellationError {
             return nil
@@ -162,6 +161,75 @@ final class MatchSetupViewModel: ObservableObject {
             return nil
         }
         return await performStart()
+    }
+
+    private func abandonActiveMatch(_ active: MatchSummary) async throws {
+        if let session = activeMatchStore.session(for: active.id) {
+            let abandoned = try MatchLifecycleService.abandon(session: session)
+            try await matchRepository.updateMatch(matchSummary(from: abandoned.runtime))
+            _ = try await matchRepository.saveSnapshot(
+                matchId: active.id,
+                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
+                snapshotPayload: abandoned.latestSnapshot.payload
+            )
+            activeMatchStore.remove(matchId: active.id)
+            return
+        }
+
+        guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: active.id) else {
+            try await matchRepository.updateMatch(
+                MatchSummary(
+                    id: active.id,
+                    type: active.type,
+                    status: .abandoned,
+                    startedAt: active.startedAt,
+                    endedAt: Date(),
+                    winnerPlayerId: nil,
+                    currentTurnPlayerId: nil,
+                    currentLegIndex: active.currentLegIndex,
+                    currentSetIndex: active.currentSetIndex,
+                    eventCount: active.eventCount,
+                    createdAt: active.createdAt,
+                    updatedAt: Date()
+                )
+            )
+            activeMatchStore.remove(matchId: active.id)
+            return
+        }
+
+        let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
+        let snapshot = MatchSnapshot(
+            payloadVersion: snapshotSummary.snapshotVersion,
+            eventCount: runtime.eventCount,
+            createdAt: snapshotSummary.updatedAt,
+            payload: snapshotSummary.snapshotPayload
+        )
+        let session = MatchLifecycleSession(runtime: runtime, events: [], latestSnapshot: snapshot)
+        let abandoned = try MatchLifecycleService.abandon(session: session)
+        try await matchRepository.updateMatch(matchSummary(from: abandoned.runtime))
+        _ = try await matchRepository.saveSnapshot(
+            matchId: active.id,
+            snapshotVersion: abandoned.latestSnapshot.payloadVersion,
+            snapshotPayload: abandoned.latestSnapshot.payload
+        )
+        activeMatchStore.remove(matchId: active.id)
+    }
+
+    private func matchSummary(from runtime: MatchRuntimeState) -> MatchSummary {
+        MatchSummary(
+            id: runtime.matchId,
+            type: runtime.type,
+            status: MatchStatus(rawValue: runtime.status.rawValue) ?? .inProgress,
+            startedAt: runtime.startedAt,
+            endedAt: runtime.endedAt,
+            winnerPlayerId: runtime.winnerPlayerId,
+            currentTurnPlayerId: runtime.currentTurnPlayerId,
+            currentLegIndex: runtime.currentLegIndex,
+            currentSetIndex: runtime.currentSetIndex,
+            eventCount: runtime.eventCount,
+            createdAt: runtime.startedAt,
+            updatedAt: Date()
+        )
     }
 
     private func performStart() async -> PlayRoute? {
@@ -218,7 +286,8 @@ final class MatchSetupViewModel: ObservableObject {
                     playerId: participant.playerId,
                     turnOrder: index,
                     displayNameAtMatchStart: participant.displayNameAtMatchStart,
-                    avatarStyleAtMatchStart: nil
+                    avatarStyleAtMatchStart: nil,
+                    botDifficultyRaw: participant.botDifficultyRaw
                 )
             }
             let persisted = try await matchRepository.createMatch(

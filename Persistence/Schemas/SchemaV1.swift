@@ -93,6 +93,7 @@ public enum SchemaV1: VersionedSchema {
         public var turnOrder: Int
         public var displayNameAtMatchStart: String
         public var avatarStyleAtMatchStart: String?
+        public var botDifficultyRaw: String?
 
         public init(
             id: UUID = UUID(),
@@ -100,7 +101,8 @@ public enum SchemaV1: VersionedSchema {
             playerId: UUID?,
             turnOrder: Int,
             displayNameAtMatchStart: String,
-            avatarStyleAtMatchStart: String? = nil
+            avatarStyleAtMatchStart: String? = nil,
+            botDifficultyRaw: String? = nil
         ) {
             self.id = id
             self.matchId = matchId
@@ -108,6 +110,7 @@ public enum SchemaV1: VersionedSchema {
             self.turnOrder = turnOrder
             self.displayNameAtMatchStart = displayNameAtMatchStart
             self.avatarStyleAtMatchStart = avatarStyleAtMatchStart
+            self.botDifficultyRaw = botDifficultyRaw
         }
     }
 

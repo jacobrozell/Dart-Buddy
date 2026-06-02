@@ -199,7 +199,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
                         playerId: participant.playerId,
                         turnOrder: participant.turnOrder,
                         displayNameAtMatchStart: participant.displayNameAtMatchStart,
-                        avatarStyleAtMatchStart: participant.avatarStyleAtMatchStart
+                        avatarStyleAtMatchStart: participant.avatarStyleAtMatchStart,
+                        botDifficultyRaw: participant.botDifficultyRaw
                     )
                 )
             }
@@ -651,7 +652,8 @@ private func mapParticipant(_ record: SchemaV1.MatchParticipantRecord) -> MatchP
         playerId: record.playerId,
         turnOrder: record.turnOrder,
         displayNameAtMatchStart: record.displayNameAtMatchStart,
-        avatarStyleAtMatchStart: record.avatarStyleAtMatchStart
+        avatarStyleAtMatchStart: record.avatarStyleAtMatchStart,
+        botDifficultyRaw: record.botDifficultyRaw
     )
 }
 

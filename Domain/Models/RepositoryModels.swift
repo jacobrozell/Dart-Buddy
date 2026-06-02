@@ -27,6 +27,25 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
     public let turnOrder: Int
     public let displayNameAtMatchStart: String
     public let avatarStyleAtMatchStart: String?
+    public let botDifficultyRaw: String?
+
+    public init(
+        id: UUID,
+        matchId: UUID,
+        playerId: UUID?,
+        turnOrder: Int,
+        displayNameAtMatchStart: String,
+        avatarStyleAtMatchStart: String? = nil,
+        botDifficultyRaw: String? = nil
+    ) {
+        self.id = id
+        self.matchId = matchId
+        self.playerId = playerId
+        self.turnOrder = turnOrder
+        self.displayNameAtMatchStart = displayNameAtMatchStart
+        self.avatarStyleAtMatchStart = avatarStyleAtMatchStart
+        self.botDifficultyRaw = botDifficultyRaw
+    }
 }
 
 public struct MatchSummary: Identifiable, Equatable, Sendable {

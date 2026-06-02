@@ -103,9 +103,10 @@ struct X01MatchScreen: View {
                 Image(systemName: "chevron.left")
                     .font(.headline.weight(.bold))
                     .foregroundStyle(Brand.green)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 44, height: 44)
                     .background(Brand.card, in: Circle())
             }
+            .accessibilityLabel("Leave match")
             Spacer()
             Text("X01")
                 .font(.title3.weight(.bold))
@@ -115,7 +116,7 @@ struct X01MatchScreen: View {
                 Image(systemName: "arrow.uturn.backward")
                     .font(.headline.weight(.bold))
                     .foregroundStyle(Brand.green)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 44, height: 44)
                     .background(Brand.card, in: Circle())
             }
             .accessibilityLabel("Undo last turn")
