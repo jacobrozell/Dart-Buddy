@@ -13,6 +13,7 @@ import Testing
 /// | Pro    | ~80–95            | Lowest        | ~58% attempt rate  | Beats Hard often   |
 ///
 /// Run `botLongTermBenchmarkSnapshot` in Xcode to print a fresh sample to the console.
+/// Run `botTierMirrorMatchAnalysisSnapshot` for same-tier best-of-3 501 tuning reports.
 
 private struct BotPerformanceProfile: Sendable {
     var visits = 0
@@ -23,6 +24,7 @@ private struct BotPerformanceProfile: Sendable {
     var checkouts = 0
     var games = 0
     var wins = 0
+    var zeroScoreVisits = 0
 
     var average3Dart: Double {
         guard totalDarts > 0 else { return 0 }
@@ -44,17 +46,56 @@ private struct BotPerformanceProfile: Sendable {
         return Double(wins) / Double(games)
     }
 
+    var zeroVisitRate: Double {
+        guard visits > 0 else { return 0 }
+        return Double(zeroScoreVisits) / Double(visits)
+    }
+
     mutating func record(turn: X01TurnEvent, wasFinishable: Bool) {
         visits += 1
         totalPoints += turn.appliedTotal
         totalDarts += turn.effectiveDartsThrown
         if turn.isBust { busts += 1 }
+        if turn.appliedTotal == 0 { zeroScoreVisits += 1 }
         if wasFinishable { checkoutAttempts += 1 }
         if turn.didCheckout { checkouts += 1 }
     }
 }
 
-// MARK: - Simulator
+private struct BotX01MatchResult: Sendable {
+    let winnerTurnOrder: Int
+    let winnerDifficulty: BotDifficulty
+    let legsPlayed: Int
+    let playerProfiles: [Int: BotPerformanceProfile]
+}
+
+private struct BotMirrorTierReport: Sendable {
+    let difficulty: BotDifficulty
+    let matches: Int
+    var turnOrderZeroWins = 0
+    var turnOrderOneWins = 0
+    var totalLegsPlayed = 0
+    var profile = BotPerformanceProfile()
+
+    var averageLegsPerMatch: Double {
+        guard matches > 0 else { return 0 }
+        return Double(totalLegsPlayed) / Double(matches)
+    }
+
+    mutating func absorb(_ result: BotX01MatchResult) {
+        if result.winnerTurnOrder == 0 {
+            turnOrderZeroWins += 1
+        } else {
+            turnOrderOneWins += 1
+        }
+        totalLegsPlayed += result.legsPlayed
+        profile = BotSimulator.merge([
+            profile,
+            result.playerProfiles[0] ?? BotPerformanceProfile(),
+            result.playerProfiles[1] ?? BotPerformanceProfile()
+        ])
+    }
+}
 
 private enum BotSimulator {
     static let standard501 = MatchConfigX01(
@@ -63,6 +104,16 @@ private enum BotSimulator {
         setsEnabled: false,
         setsToWin: nil,
         checkoutMode: .doubleOut
+    )
+
+    /// Best-of-3 legs, 501 double-out — typical pub match format for bot tuning.
+    static let bestOfThree501 = MatchConfigX01(
+        startScore: 501,
+        legsToWin: 3,
+        setsEnabled: false,
+        setsToWin: nil,
+        checkoutMode: .doubleOut,
+        legFormat: .bestOf
     )
 
     static func botParticipant(_ difficulty: BotDifficulty, turnOrder: Int) -> MatchParticipant {
@@ -75,21 +126,21 @@ private enum BotSimulator {
         )
     }
 
-    /// Plays a full X01 leg bot-vs-bot and returns per-bot stats for that game.
-    @discardableResult
-    static func playX01Game(
+    /// Plays a full X01 match bot-vs-bot with per-player stats (supports same-tier pairs).
+    static func playX01Match(
         first: BotDifficulty,
         second: BotDifficulty,
         config: MatchConfigX01 = standard501,
         seed: UInt64
-    ) throws -> (winner: BotDifficulty, profiles: [BotDifficulty: BotPerformanceProfile]) {
+    ) throws -> BotX01MatchResult {
         let participants = [
             botParticipant(first, turnOrder: 0),
             botParticipant(second, turnOrder: 1)
         ]
+        let playerIds = participants.map { $0.playerId! }
         var difficultyByPlayerId: [UUID: BotDifficulty] = [:]
-        difficultyByPlayerId[participants[0].playerId!] = first
-        difficultyByPlayerId[participants[1].playerId!] = second
+        difficultyByPlayerId[playerIds[0]] = first
+        difficultyByPlayerId[playerIds[1]] = second
 
         var session = try MatchLifecycleService.createMatch(
             type: .x01,
@@ -97,16 +148,14 @@ private enum BotSimulator {
             participants: participants
         )
 
-        var profiles: [BotDifficulty: BotPerformanceProfile] = [
-            first: BotPerformanceProfile(),
-            second: BotPerformanceProfile()
-        ]
+        var profiles: [Int: BotPerformanceProfile] = [0: BotPerformanceProfile(), 1: BotPerformanceProfile()]
         var rng = BotSimulationRNG(seed: seed)
         var turnCounter: UInt64 = 0
 
         while session.runtime.status == .inProgress {
             guard let state = session.runtime.x01State else { break }
-            let player = state.players[state.currentPlayerIndex]
+            let playerIndex = state.currentPlayerIndex
+            let player = state.players[playerIndex]
             guard let difficulty = difficultyByPlayerId[player.playerId] else { break }
 
             let finishable = CheckoutSuggester.suggestion(
@@ -131,21 +180,22 @@ private enum BotSimulator {
             )
 
             if case let .x01Turn(event) = session.events.last?.payload {
-                profiles[difficulty, default: BotPerformanceProfile()].record(
+                profiles[playerIndex, default: BotPerformanceProfile()].record(
                     turn: event,
                     wasFinishable: finishable
                 )
             }
 
             turnCounter &+= 1
-            if turnCounter > 2_000 {
+            if turnCounter > 6_000 {
                 Issue.record("Bot simulation exceeded turn safety limit")
                 break
             }
         }
 
         guard let winnerId = session.runtime.winnerPlayerId,
-              let winnerDifficulty = difficultyByPlayerId[winnerId] else {
+              let winnerDifficulty = difficultyByPlayerId[winnerId],
+              let winnerTurnOrder = playerIds.firstIndex(of: winnerId) else {
             throw AppError(
                 code: .invalidGameState,
                 layer: .domain,
@@ -155,12 +205,42 @@ private enum BotSimulator {
             )
         }
 
-        for difficulty in [first, second] {
-            profiles[difficulty, default: BotPerformanceProfile()].games += 1
+        let legsPlayed = session.events.reduce(into: 0) { count, envelope in
+            if case let .x01Turn(event) = envelope.payload, event.didCheckout {
+                count += 1
+            }
         }
-        profiles[winnerDifficulty, default: BotPerformanceProfile()].wins += 1
 
-        return (winnerDifficulty, profiles)
+        for index in profiles.keys {
+            profiles[index]?.games += 1
+        }
+        profiles[winnerTurnOrder]?.wins += 1
+
+        return BotX01MatchResult(
+            winnerTurnOrder: winnerTurnOrder,
+            winnerDifficulty: winnerDifficulty,
+            legsPlayed: legsPlayed,
+            playerProfiles: profiles
+        )
+    }
+
+    /// Plays a full X01 leg bot-vs-bot and returns per-bot stats for that game.
+    @discardableResult
+    static func playX01Game(
+        first: BotDifficulty,
+        second: BotDifficulty,
+        config: MatchConfigX01 = standard501,
+        seed: UInt64
+    ) throws -> (winner: BotDifficulty, profiles: [BotDifficulty: BotPerformanceProfile]) {
+        let result = try playX01Match(first: first, second: second, config: config, seed: seed)
+        var profiles: [BotDifficulty: BotPerformanceProfile] = [
+            first: result.playerProfiles[0] ?? BotPerformanceProfile(),
+            second: result.playerProfiles[1] ?? BotPerformanceProfile()
+        ]
+        if first == second {
+            profiles[first] = merge([result.playerProfiles[0], result.playerProfiles[1]].compactMap { $0 })
+        }
+        return (result.winnerDifficulty, profiles)
     }
 
     /// Runs many standalone visits (no match completion) to sample raw scoring.
@@ -425,6 +505,117 @@ func botLongTermCricketMarksScaleWithDifficulty() throws {
 
     #expect(hardMarks > mediumMarks)
     #expect(mediumMarks > easyMarks)
+}
+
+// MARK: - Same-tier mirror matchups (best-of-3 501)
+
+/// Runs many best-of-3 501 matches where both players share a difficulty tier.
+/// Run `botTierMirrorMatchAnalysisSnapshot` in Xcode to print a tuning report.
+private func runMirrorTierAnalysis(
+    difficulty: BotDifficulty,
+    matches: Int,
+    seedBase: UInt64,
+    config: MatchConfigX01 = BotSimulator.bestOfThree501
+) throws -> BotMirrorTierReport {
+    var report = BotMirrorTierReport(difficulty: difficulty, matches: matches)
+    for index in 0 ..< matches {
+        let result = try BotSimulator.playX01Match(
+            first: difficulty,
+            second: difficulty,
+            config: config,
+            seed: seedBase + UInt64(index)
+        )
+        report.absorb(result)
+    }
+    return report
+}
+
+private func printMirrorTierReport(_ report: BotMirrorTierReport) {
+    let p0WinRate = Double(report.turnOrderZeroWins) / Double(report.matches) * 100
+    let profile = report.profile
+    print(String(
+        format: "  %@  matches: %3d  3-dart avg: %5.1f  zero visits: %4.1f%%  bust: %4.1f%%  checkout: %4.1f%%  legs/match: %.2f  P0 wins: %.0f%%",
+        report.difficulty.displayName,
+        report.matches,
+        profile.average3Dart,
+        profile.zeroVisitRate * 100,
+        profile.bustRate * 100,
+        profile.checkoutRate * 100,
+        report.averageLegsPerMatch,
+        p0WinRate
+    ))
+}
+
+@Test(.tags(.integration, .x01, .performance, .regression))
+func botTierMirrorMatchAnalysisSnapshot() throws {
+    let matches = 40
+    let easy = try runMirrorTierAnalysis(difficulty: .easy, matches: matches, seedBase: 60_001)
+    let medium = try runMirrorTierAnalysis(difficulty: .medium, matches: matches, seedBase: 60_101)
+    let hard = try runMirrorTierAnalysis(difficulty: .hard, matches: matches, seedBase: 60_201)
+    let pro = try runMirrorTierAnalysis(difficulty: .pro, matches: matches, seedBase: 60_301)
+
+    print("Bot tier mirror analysis (best-of-3 501 double-out, \(matches) matches per tier, seeded)")
+    printMirrorTierReport(easy)
+    printMirrorTierReport(medium)
+    printMirrorTierReport(hard)
+    printMirrorTierReport(pro)
+
+    #expect(pro.profile.average3Dart > hard.profile.average3Dart)
+    #expect(hard.profile.average3Dart > medium.profile.average3Dart)
+    #expect(medium.profile.average3Dart > easy.profile.average3Dart)
+}
+
+@Test(.tags(.integration, .x01, .performance, .regression))
+func botTierMirrorMatchupsStayOrderedByDifficulty() throws {
+    let matches = 35
+    let seedBases: [BotDifficulty: UInt64] = [
+        .easy: 61_001,
+        .medium: 61_101,
+        .hard: 61_201,
+        .pro: 61_301
+    ]
+    let reports = try BotDifficulty.allCases.map { difficulty in
+        try runMirrorTierAnalysis(
+            difficulty: difficulty,
+            matches: matches,
+            seedBase: seedBases[difficulty]!
+        )
+    }
+
+    for index in 1 ..< reports.count {
+        #expect(reports[index].profile.average3Dart > reports[index - 1].profile.average3Dart)
+        #expect(reports[index].profile.zeroVisitRate <= reports[index - 1].profile.zeroVisitRate + 0.02)
+    }
+}
+
+@Test(.tags(.integration, .x01, .performance, .regression))
+func botTierMirrorMatchupsHaveBalancedTurnOrder() throws {
+    let matches = 80
+    for (offset, difficulty) in BotDifficulty.allCases.enumerated() {
+        let report = try runMirrorTierAnalysis(
+            difficulty: difficulty,
+            matches: matches,
+            seedBase: 62_000 + UInt64(offset * 1_000)
+        )
+        let p0Rate = Double(report.turnOrderZeroWins) / Double(matches)
+        // Same-tier bots should split wins fairly; allow statistical noise.
+        #expect(p0Rate >= 0.35)
+        #expect(p0Rate <= 0.65)
+    }
+}
+
+@Test(.tags(.integration, .x01, .performance, .regression))
+func botTierMirrorBestOfThreeCompletesInTwoOrThreeLegs() throws {
+    let matches = 50
+    for (offset, difficulty) in BotDifficulty.allCases.enumerated() {
+        let report = try runMirrorTierAnalysis(
+            difficulty: difficulty,
+            matches: matches,
+            seedBase: 63_000 + UInt64(offset * 1_000)
+        )
+        #expect(report.averageLegsPerMatch >= 2.0)
+        #expect(report.averageLegsPerMatch <= 3.0)
+    }
 }
 
 // MARK: - Helpers
