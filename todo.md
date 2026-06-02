@@ -34,7 +34,7 @@ Status legend: `[ ]` todo · `[~]` partial
 - [ ] **Setup: reorder + remove roster** — Drag reorder; swipe remove; keep random order.
 - [ ] **Settings: default X01/Cricket options** — Expose checkout, check-in, legs/sets, start score in Settings, or stop persisting unused fields.
 - [x] **Bot-vs-bot guard** — Warn or block START when no human selected.
-- [ ] **Match Summary cold path** — Reload from `matchRepository` when `ActiveMatchStore` has no session.
+- [x] **Match Summary cold path** — Reload from `matchRepository` when `ActiveMatchStore` has no session.
 - [ ] **Cricket setup variants** — e.g. Cut Throat (`CricketSpec`).
 - [ ] **Bust / leg / set animations** — Bust is text banner only today.
 
@@ -48,7 +48,7 @@ Status legend: `[ ]` todo · `[~]` partial
 - [ ] **Setup flow** — Roster below START / tab bar; Add Bot vs START proximity; red START semantics.
 - [ ] **Unify match exit chrome** — X01 chevron vs Cricket Cancel.
 - [ ] **Match Summary stat parity** — Align winner/loser stat columns (e.g. Best Out).
-- [ ] **Empty-state CTAs** — History/Statistics “no games” → jump to Home.
+- [x] **Empty-state CTAs** — History/Statistics “no games” → jump to Play.
 - [ ] **Cricket one-screen fit (phone)** — Pin active row + pad; scroll grid only.
 - [ ] **X01 player card legibility** — Tiny sets/legs/darts/avg on right.
 - [ ] **Theme cohesion** — Settings light vs Play dark when preference is dark.
@@ -71,7 +71,7 @@ Status legend: `[ ]` todo · `[~]` partial
 
 - [~] **`StatisticsViewModel`** — `statisticsViewModelComputesBreakdownRows` / player filter exist; add period cutoff, mode filter, empty state.
 - [x] **`HistoryListViewModel`** — Mode/date/player filters, pagination, DB filter mapping, empty/error states.
-- [ ] **`MatchSummaryViewModel` tests**
+- [~] **`MatchSummaryViewModel` tests** — Cold-load from repository covered; add error/empty paths.
 - [ ] **`MigrationRecoveryViewModel` tests**
 - [ ] **UI: checkout → winner → summary**
 - [ ] **UI: Cricket grid scoring**

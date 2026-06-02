@@ -61,7 +61,9 @@ struct PlayRootView: View {
                     MatchSummaryScreen(
                         viewModel: MatchSummaryViewModel(
                             matchId: matchId,
-                            store: dependencies.activeMatchStore
+                            store: dependencies.activeMatchStore,
+                            matchRepository: dependencies.matchRepository,
+                            statsRepository: dependencies.statsRepository
                         ),
                         onStartNewMatch: { path.removeAll() },
                         onViewHistoryDetail: { id in path.append(.historyDetail(matchId: id)) }

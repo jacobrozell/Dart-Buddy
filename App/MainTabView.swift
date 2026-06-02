@@ -28,13 +28,13 @@ struct MainTabView: View {
             PlayersRootView(dependencies: dependencies)
                 .tag(RootTab.players)
                 .tabItem { Label("Players", systemImage: "person.2.fill") }
-            StatisticsRootView(dependencies: dependencies)
+            StatisticsRootView(dependencies: dependencies, onStartMatch: { selectedTab = .play })
                 .tag(RootTab.statistics)
                 .tabItem { Label("Statistics", systemImage: "chart.bar.fill") }
-            HistoryRootView(dependencies: dependencies) { match in
+            HistoryRootView(dependencies: dependencies, onResumeActiveMatch: { match in
                 pendingPlayResume = match
                 selectedTab = .play
-            }
+            }, onStartMatch: { selectedTab = .play })
                 .tag(RootTab.history)
                 .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
                 .badge(showsActiveMatchBadge ? " " : nil)

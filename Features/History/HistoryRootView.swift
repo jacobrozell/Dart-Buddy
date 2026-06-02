@@ -3,14 +3,20 @@ import SwiftUI
 struct HistoryRootView: View {
     let dependencies: AppDependencies
     var onResumeActiveMatch: ((MatchSummary) -> Void)?
+    var onStartMatch: (() -> Void)?
     @State private var path: [HistoryRoute] = []
     @StateObject private var viewModel: HistoryListViewModel
     @State private var filterTask: Task<Void, Never>?
     @State private var loadMoreTask: Task<Void, Never>?
 
-    init(dependencies: AppDependencies, onResumeActiveMatch: ((MatchSummary) -> Void)? = nil) {
+    init(
+        dependencies: AppDependencies,
+        onResumeActiveMatch: ((MatchSummary) -> Void)? = nil,
+        onStartMatch: (() -> Void)? = nil
+    ) {
         self.dependencies = dependencies
         self.onResumeActiveMatch = onResumeActiveMatch
+        self.onStartMatch = onStartMatch
         _viewModel = StateObject(
             wrappedValue: HistoryListViewModel(
                 matchRepository: dependencies.matchRepository,
@@ -58,12 +64,7 @@ struct HistoryRootView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
                     } else if viewModel.rows.isEmpty {
-                        Text(viewModel.state == .emptyFiltered && viewModel.hasActiveFilters
-                            ? "No games match these filters."
-                            : "No games yet. Start a match to see it here.")
-                            .foregroundStyle(Brand.textSecondary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DS.Spacing.s6)
+                        emptyListState
                     } else {
                         ForEach(viewModel.rows) { row in
                             Button { path.append(.detail(matchId: row.summary.id)) } label: {
@@ -137,6 +138,31 @@ struct HistoryRootView: View {
                 }
             }
         }
+    }
+
+    private var emptyListState: some View {
+        VStack(spacing: DS.Spacing.s3) {
+            Text(viewModel.state == .emptyFiltered && viewModel.hasActiveFilters
+                ? "No games match these filters."
+                : "No games yet. Start a match to see it here.")
+                .foregroundStyle(Brand.textSecondary)
+                .multilineTextAlignment(.center)
+            if onStartMatch != nil,
+               viewModel.state == .emptyFiltered,
+               !viewModel.hasActiveFilters {
+                Button(action: { onStartMatch?() }) {
+                    Text("Start a Match")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("emptyStateStartMatchButton")
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, DS.Spacing.s6)
     }
 
     private var playerFilterMenu: some View {

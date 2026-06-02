@@ -10,18 +10,62 @@ final class MatchSummaryViewModel: ObservableObject {
     }
 
     @Published private(set) var session: MatchLifecycleSession?
+    @Published private(set) var isLoading = false
 
     let matchId: UUID
     private let store: ActiveMatchStore
+    private let matchRepository: any MatchRepository
+    private let statsRepository: any StatsRepository
 
-    init(matchId: UUID, store: ActiveMatchStore) {
+    init(
+        matchId: UUID,
+        store: ActiveMatchStore,
+        matchRepository: any MatchRepository,
+        statsRepository: any StatsRepository
+    ) {
         self.matchId = matchId
         self.store = store
+        self.matchRepository = matchRepository
+        self.statsRepository = statsRepository
         self.session = store.session(for: matchId)
     }
 
     func refresh() {
         session = store.session(for: matchId)
+    }
+
+    func loadIfNeeded() async {
+        if session != nil { return }
+        if let existing = store.session(for: matchId) {
+            session = existing
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
+                return
+            }
+            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
+            let events = try await statsRepository.fetchEvents(matchId: matchId)
+            let envelopes = try events
+                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
+                .sorted { $0.eventIndex < $1.eventIndex }
+            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
+            let snapshot = MatchSnapshot(
+                payloadVersion: snapshotSummary.snapshotVersion,
+                eventCount: runtime.eventCount,
+                createdAt: snapshotSummary.updatedAt,
+                payload: snapshotSummary.snapshotPayload
+            )
+            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
+            store.save(rehydrated)
+            session = rehydrated
+        } catch {
+            return
+        }
     }
 
     var hasResult: Bool { session != nil }

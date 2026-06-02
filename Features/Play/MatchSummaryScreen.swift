@@ -10,7 +10,12 @@ struct MatchSummaryScreen: View {
     var body: some View {
         ScrollView {
             VStack(spacing: DS.Spacing.s4) {
-                if viewModel.hasResult {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .tint(Brand.green)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Spacing.s6)
+                } else if viewModel.hasResult {
                     celebrationHeader
                     ForEach(viewModel.playerRows) { row in
                         playerCard(row)
@@ -29,6 +34,7 @@ struct MatchSummaryScreen: View {
         .toolbar(.hidden, for: .tabBar)
         .sensoryFeedback(.success, trigger: celebrate)
         .task {
+            await viewModel.loadIfNeeded()
             viewModel.refresh()
             try? await Task.sleep(nanoseconds: 120_000_000)
             withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { celebrate = true }

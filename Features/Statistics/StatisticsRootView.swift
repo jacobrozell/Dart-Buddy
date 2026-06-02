@@ -3,11 +3,13 @@ import SwiftUI
 
 struct StatisticsRootView: View {
     let dependencies: AppDependencies
+    var onStartMatch: (() -> Void)?
     @StateObject private var viewModel: StatisticsViewModel
     @State private var loadTask: Task<Void, Never>?
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: AppDependencies, onStartMatch: (() -> Void)? = nil) {
         self.dependencies = dependencies
+        self.onStartMatch = onStartMatch
         _viewModel = StateObject(wrappedValue: StatisticsViewModel(
             matchRepository: dependencies.matchRepository,
             statsRepository: dependencies.statsRepository,
@@ -137,10 +139,26 @@ struct StatisticsRootView: View {
     }
 
     private var emptyState: some View {
-        Text("No completed games yet.")
-            .foregroundStyle(Brand.textSecondary)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.vertical, DS.Spacing.s6)
+        VStack(spacing: DS.Spacing.s3) {
+            Text("No completed games yet.")
+                .foregroundStyle(Brand.textSecondary)
+                .multilineTextAlignment(.center)
+            if onStartMatch != nil,
+               viewModel.playerFilter == nil,
+               viewModel.period == .all {
+                Button(action: { onStartMatch?() }) {
+                    Text("Start a Match")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("emptyStateStartMatchButton")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.vertical, DS.Spacing.s6)
     }
 
     private var gamesTable: some View {
