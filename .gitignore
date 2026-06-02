@@ -5,6 +5,7 @@
 # Xcode / build
 DerivedData/
 .derivedData/
+.packages/
 build/
 *.xcuserstate
 *.xcuserdatad/
