@@ -477,6 +477,12 @@ private struct StatTile: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(DS.Spacing.s3)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(statTileAccessibilityLabel)
+    }
+
+    private var statTileAccessibilityLabel: String {
+        L10n.format("stats.statTile.accessibilityFormat", String(localized: label), value)
     }
 }
 
@@ -490,6 +496,7 @@ private struct PlayerEditSheet: View {
         NavigationStack {
             Form {
                 TextField("players.edit.name", text: $viewModel.name)
+                    .accessibilityLabel(L10n.string("players.edit.name.accessibility"))
                     .onChange(of: viewModel.name) { _, _ in viewModel.validate() }
                 if !viewModel.isBot {
                     Section(L10n.playersEditAvatar) {
@@ -500,6 +507,7 @@ private struct PlayerEditSheet: View {
                     }
                 }
                 TextField("players.edit.notes", text: $viewModel.notes, axis: .vertical)
+                    .accessibilityLabel(L10n.string("players.edit.notes.accessibility"))
                 if let message = viewModel.validationMessage {
                     Text(message).foregroundStyle(.red).font(.footnote)
                 }
@@ -515,6 +523,8 @@ private struct PlayerEditSheet: View {
                         dismiss()
                     }
                     .disabled(!viewModel.canSave)
+                    .accessibilityLabel(L10n.string("players.edit.save.accessibility"))
+                    .accessibilityIdentifier("playerEdit_save")
                 }
             }
         }
