@@ -111,6 +111,16 @@ struct PlayerIdentityCard: View {
             RoundedRectangle(cornerRadius: DS.Radius.md)
                 .strokeBorder(accent.opacity(0.35), lineWidth: 1)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(playerIdentityAccessibilityLabel)
+    }
+
+    private var playerIdentityAccessibilityLabel: String {
+        var suffix = ""
+        if player.isBot, let difficulty = player.botDifficulty {
+            suffix = L10n.format("players.row.botSuffix", difficulty.displayName)
+        }
+        return L10n.format("players.detail.identity.accessibilityFormat", player.name, suffix)
     }
 }
 
@@ -127,7 +137,7 @@ struct AvatarStylePicker: View {
                     Image(systemName: style.symbolName)
                         .font(.title3)
                         .foregroundStyle(isSelected ? Brand.background : Brand.textSecondary)
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, minHeight: 44)
                         .padding(.vertical, DS.Spacing.s3)
                         .background(isSelected ? Brand.green : Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
@@ -159,6 +169,7 @@ struct PlayerColorTokenPicker: View {
                                     .foregroundStyle(.white)
                             }
                         }
+                        .frame(minWidth: 44, minHeight: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(LocalizedStringKey("players.identity.color.\(token.rawValue)"))

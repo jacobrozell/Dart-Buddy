@@ -9,6 +9,7 @@ struct X01MatchScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
+    @State private var lastAnnouncedCheckout: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -56,6 +57,12 @@ struct X01MatchScreen: View {
                 )
                 .disabled(viewModel.canHumanInput == false)
                 .opacity(viewModel.canHumanInput ? 1 : 0.45)
+                .accessibilityElement(children: .contain)
+                .modifier(
+                    OptionalAccessibilityHint(
+                        hint: viewModel.canHumanInput ? nil : L10n.string("play.x01.pad.disabledWhileBot")
+                    )
+                )
                 .padding(.horizontal, DS.Spacing.s3)
                 .padding(.bottom, DS.Spacing.s2)
                 .onChange(of: viewModel.enteredDarts) { old, darts in
@@ -86,16 +93,37 @@ struct X01MatchScreen: View {
             Text("play.match.exit.confirm.message")
         }
         .onChange(of: viewModel.legFinishSoundToken) { _, token in
-            if token > 0 { audio.playLegFinished() }
+            if token > 0 {
+                audio.playLegFinished()
+                postAccessibilityAnnouncement(L10n.string("play.x01.announce.legWon"))
+            }
         }
         .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in
             guard let signal else { return }
             turnTotalCaller.announceTurnTotal(signal.total)
         }
+        .onChange(of: viewModel.checkoutRoute) { _, route in
+            guard let route else {
+                lastAnnouncedCheckout = nil
+                return
+            }
+            let spoken = route.joined(separator: ", ")
+            guard spoken != lastAnnouncedCheckout else { return }
+            lastAnnouncedCheckout = spoken
+            postAccessibilityAnnouncement(
+                L10n.format("play.x01.checkout.accessibilityFormat", spoken)
+            )
+        }
         .onChange(of: viewModel.state) { _, newValue in
-            if newValue == .matchCompleted {
+            switch newValue {
+            case .bustFeedback:
+                postAccessibilityAnnouncement(L10n.string("play.x01.bustFeedback"))
+            case .matchCompleted:
                 audio.playMatchFinished()
+                postAccessibilityAnnouncement(L10n.string("play.x01.announce.matchComplete"))
                 onShowSummary()
+            default:
+                break
             }
         }
         .task {
@@ -167,6 +195,8 @@ struct X01MatchScreen: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, DS.Spacing.s2)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(L10n.string("play.match.botThrowing"))
         }
     }
 
@@ -178,6 +208,7 @@ struct X01MatchScreen: View {
                 .font(.headline.weight(.heavy))
                 .foregroundStyle(Brand.red)
                 .multilineTextAlignment(.center)
+                .accessibilityIdentifier("bustBanner")
         case let .entryInvalid(key), let .error(key):
             Text(LocalizedStringKey(key)).foregroundStyle(Brand.red)
         default:
@@ -207,6 +238,11 @@ struct X01MatchScreen: View {
     private func playDartFeedback(_ dart: DartInput) {
         if dart.isMiss { audio.playMiss() } else { audio.playHit() }
         haptics.playImpact()
+    }
+
+    private func postAccessibilityAnnouncement(_ text: String) {
+        guard !text.isEmpty else { return }
+        AccessibilityNotification.Announcement(text).post()
     }
 }
 
@@ -272,12 +308,29 @@ private struct PlayerScoreCard: View {
         }
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilitySummary)
         .accessibilityIdentifier(isActive ? "scoreCard_active" : "scoreCard")
     }
 
     private var visitTotal: Int {
         visitDarts.reduce(0) { $0 + $1.points }
+    }
+
+    private var accessibilitySummary: String {
+        var parts = ["\(name), \(score) remaining"]
+        if isActive {
+            parts.append(L10n.string("play.x01.turn.active"))
+        }
+        let dartSpeech = visitDarts.map(\.spokenAccessibilityName)
+        if !dartSpeech.isEmpty {
+            parts.append("Visit darts \(dartSpeech.joined(separator: ", "))")
+        }
+        parts.append("Visit total \(visitTotal)")
+        parts.append(L10n.format("play.x01.setsLegsFormat", setsWon, legsWon))
+        parts.append("\(dartsThrown) darts thrown")
+        parts.append(String(format: "Three-dart average %.2f", average))
+        return parts.joined(separator: ". ")
     }
 
     private func dartBox(_ label: String?) -> some View {

@@ -52,14 +52,17 @@ struct SettingsRootView: View {
                                 get: { settings.hapticsEnabled },
                                 set: { viewModel.queueFeedbackUpdate(haptics: $0) }
                             ))
+                            .accessibilityIdentifier("settings_hapticsToggle")
                             Toggle("settings.feedback.sound", isOn: Binding(
                                 get: { settings.soundEnabled },
                                 set: { viewModel.queueFeedbackUpdate(sound: $0) }
                             ))
+                            .accessibilityIdentifier("settings_soundToggle")
                             Toggle("settings.feedback.turnTotalCaller", isOn: Binding(
                                 get: { settings.turnTotalCallerEnabled },
                                 set: { viewModel.queueFeedbackUpdate(turnTotalCaller: $0) }
                             ))
+                            .accessibilityIdentifier("settings_turnTotalCallerToggle")
                         } header: {
                             Text(L10n.feedbackSection)
                         } footer: {
@@ -69,6 +72,8 @@ struct SettingsRootView: View {
                             Button(L10n.resetAllData, role: .destructive) {
                                 viewModel.requestReset()
                             }
+                            .accessibilityLabel(L10n.string("settings.reset.accessibility"))
+                            .accessibilityIdentifier("settings_resetAllDataButton")
                         }
                         Section(L10n.aboutSection) {
                             Text("settings.about.value")

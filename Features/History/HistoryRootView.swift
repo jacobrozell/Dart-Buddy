@@ -71,6 +71,8 @@ struct HistoryRootView: View {
                                 MatchHistoryCard(row: row)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(row.accessibilitySummary)
                         }
 
                         if viewModel.hasMorePages {
@@ -91,6 +93,7 @@ struct HistoryRootView: View {
                             }
                             .buttonStyle(.plain)
                             .foregroundStyle(Brand.green)
+                            .accessibilityLabel(L10n.string("history.loadMore.accessibility"))
                             .accessibilityIdentifier("historyLoadMoreButton")
                         }
                     }
@@ -205,6 +208,12 @@ struct HistoryRootView: View {
             .padding(.vertical, DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
+        .accessibilityLabel(
+            L10n.format(
+                "history.filter.player.accessibilityFormat",
+                viewModel.selectedPlayerName ?? L10n.string("stats.filter.allPlayers")
+            )
+        )
         .accessibilityIdentifier("historyPlayerFilterMenu")
     }
 
@@ -227,6 +236,13 @@ struct HistoryRootView: View {
             .overlay(RoundedRectangle(cornerRadius: DS.Radius.md).stroke(Brand.green, lineWidth: 2))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(
+            L10n.format(
+                "play.home.resumeAccessibilityFormat",
+                L10n.string("play.home.resumeButton"),
+                match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+            )
+        )
         .accessibilityIdentifier("historyResumeMatchButton")
     }
 }

@@ -34,6 +34,12 @@ struct CricketMatchScreen: View {
                     )
                     .disabled(viewModel.canHumanInput == false)
                     .opacity(viewModel.canHumanInput ? 1 : 0.45)
+                    .accessibilityElement(children: .contain)
+                    .modifier(
+                        OptionalAccessibilityHint(
+                            hint: viewModel.canHumanInput ? nil : L10n.string("play.cricket.pad.disabledWhileBot")
+                        )
+                    )
                     .onChange(of: viewModel.enteredDarts) { old, darts in
                         guard viewModel.canHumanInput else { return }
                         if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
@@ -51,6 +57,9 @@ struct CricketMatchScreen: View {
         .background(Brand.background.ignoresSafeArea())
         .navigationTitle("play.cricket.navTitle")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Brand.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -72,9 +81,14 @@ struct CricketMatchScreen: View {
             Text("play.match.exit.confirm.message")
         }
         .onChange(of: viewModel.state) { _, newValue in
-            if newValue == .matchCompleted {
+            switch newValue {
+            case .closureTransition:
+                postAccessibilityAnnouncement(L10n.string("play.cricket.boardUpdated"))
+            case .matchCompleted:
                 audio.playMatchFinished()
                 onShowSummary()
+            default:
+                break
             }
         }
         .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in
@@ -95,19 +109,29 @@ struct CricketMatchScreen: View {
         actionTask = Task { await viewModel.submitTurn() }
     }
 
+    private func postAccessibilityAnnouncement(_ text: String) {
+        guard !text.isEmpty else { return }
+        AccessibilityNotification.Announcement(text).post()
+    }
+
     @ViewBuilder
     private var stateBanner: some View {
         switch viewModel.state {
         case .readyTurn:
             if viewModel.isBotPlaying {
-                Text(L10n.botThrowing).foregroundStyle(Brand.amber)
+                Text(L10n.botThrowing)
+                    .foregroundStyle(Brand.amber)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(L10n.string("play.match.botThrowing"))
             } else {
                 EmptyView()
             }
         case .submittingTurn:
             Text(L10n.submittingTurn).foregroundStyle(.white)
         case .closureTransition:
-            Text(L10n.boardUpdated).foregroundStyle(Brand.textSecondary)
+            Text(L10n.boardUpdated)
+                .foregroundStyle(Brand.textSecondary)
+                .accessibilityIdentifier("cricketBoardUpdatedBanner")
         case let .entryInvalid(key), let .error(key):
             playLocalizedText(key).foregroundStyle(DS.ColorRole.danger)
         case .matchCompleted:

@@ -75,6 +75,13 @@ struct SetupHomeView: View {
                 .overlay(RoundedRectangle(cornerRadius: DS.Radius.md).stroke(Brand.green, lineWidth: 2))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(
+            L10n.format(
+                "play.home.resumeAccessibilityFormat",
+                L10n.string("play.home.resumeButton"),
+                match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+            )
+        )
         .accessibilityIdentifier("resumeMatchButton")
     }
 
@@ -115,6 +122,7 @@ struct SetupHomeView: View {
                         .padding(.vertical, DS.Spacing.s3)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(recentMatchAccessibilityLabel(match))
                     if match.id != homeViewModel.recentCompletedMatches.last?.id {
                         Divider().overlay(Brand.cardElevated)
                     }
@@ -145,6 +153,9 @@ struct SetupHomeView: View {
                 .background(isSelected ? Brand.cardElevated : Color.clear, in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(L10n.format("play.setup.mode.accessibilityFormat", L10n.string(mode == .x01 ? "play.x01.title" : "play.cricket.title")))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier(mode == .x01 ? "setup_mode_x01" : "setup_mode_cricket")
     }
 
     private var chipsGrid: some View {
@@ -174,6 +185,7 @@ struct SetupHomeView: View {
             } label: {
                 chipBox("\(setupViewModel.x01StartScore)", color: Brand.green, showsMenuIndicator: true)
             }
+            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.points", "\(setupViewModel.x01StartScore)"))
             .accessibilityIdentifier("setup_startScoreChip")
         }
     }
@@ -190,6 +202,7 @@ struct SetupHomeView: View {
             } label: {
                 chipBox(setupViewModel.x01CheckoutMode.displayName, color: Brand.red, showsMenuIndicator: true)
             }
+            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.checkOut", setupViewModel.x01CheckoutMode.displayName))
             .accessibilityIdentifier("setup_checkoutChip")
         }
     }
@@ -206,6 +219,8 @@ struct SetupHomeView: View {
             } label: {
                 chipBox(setupViewModel.x01CheckInMode.displayName, color: Brand.red, showsMenuIndicator: true)
             }
+            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.checkIn", setupViewModel.x01CheckInMode.displayName))
+            .accessibilityIdentifier("setup_checkInChip")
         }
     }
 
@@ -221,6 +236,8 @@ struct SetupHomeView: View {
             } label: {
                 chipBox(setupViewModel.x01LegFormat.displayName, color: Brand.green, showsMenuIndicator: true)
             }
+            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.setLeg", setupViewModel.x01LegFormat.displayName))
+            .accessibilityIdentifier("setup_setLegChip")
         }
     }
 
@@ -237,6 +254,8 @@ struct SetupHomeView: View {
             } label: {
                 chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.green, showsMenuIndicator: true)
             }
+            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.sets", "\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)"))
+            .accessibilityIdentifier("setup_setsChip")
         }
     }
 
@@ -248,10 +267,12 @@ struct SetupHomeView: View {
                         setupViewModel.x01LegsToWin = value
                         setupViewModel.revalidate()
                     }
+                    .accessibilityIdentifier("setup_legsOption_\(value)")
                 }
             } label: {
                 chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.green, showsMenuIndicator: true)
             }
+            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.legs", "\(setupViewModel.x01LegsToWin)"))
             .accessibilityIdentifier("setup_legsChip")
         }
     }
@@ -301,6 +322,8 @@ struct SetupHomeView: View {
             }
             .buttonStyle(.plain)
             .disabled(!setupViewModel.canStart)
+            .accessibilityLabel(L10n.string(setupViewModel.isSubmitting ? "play.setup.startingButton" : "play.setup.startButton"))
+            .modifier(OptionalAccessibilityHint(hint: setupViewModel.canStart ? nil : L10n.string("play.setup.start.disabledHint")))
             .accessibilityIdentifier("startMatchButton")
 
             ForEach(setupViewModel.validationErrors, id: \.self) { key in
@@ -320,6 +343,8 @@ struct SetupHomeView: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(L10n.setupRandomOrder)
+            .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
             Spacer()
             HStack(spacing: DS.Spacing.s2) {
                 Menu {
@@ -337,6 +362,7 @@ struct SetupHomeView: View {
                     .background(Brand.cardElevated, in: Capsule())
                     .overlay(Capsule().stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
                 }
+                .accessibilityLabel(L10n.addBotTitle)
                 Button { onQuickAddPlayer() } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "person.badge.plus")
@@ -348,6 +374,7 @@ struct SetupHomeView: View {
                     .background(Brand.green, in: Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(L10n.setupAddPlayers)
             }
         }
         .padding(.top, DS.Spacing.s2)
@@ -437,7 +464,20 @@ struct SetupHomeView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(name)
+        .accessibilityHint(L10n.string("play.setup.playerRow.accessibilityHint"))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier(accessibilityId)
+    }
+
+    private func chipAccessibilityLabel(_ titleKey: String, _ value: String) -> String {
+        L10n.format("play.setup.chip.accessibilityFormat", L10n.string(titleKey), value)
+    }
+
+    private func recentMatchAccessibilityLabel(_ match: CompletedMatchPreview) -> String {
+        let mode = match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+        let winner = match.winnerName.map { L10n.format("play.home.recentWinnerFormat", $0) } ?? ""
+        return L10n.format("play.home.recentMatchAccessibilityFormat", mode, match.participantsLabel, winner)
     }
 
     private func botDifficultyColor(_ difficulty: BotDifficulty) -> Color {

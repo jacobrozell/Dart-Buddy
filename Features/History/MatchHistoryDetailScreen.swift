@@ -15,6 +15,7 @@ struct MatchHistoryDetailScreen: View {
                 Text(L10n.historyGameStatistics)
                     .font(.largeTitle.weight(.heavy))
                     .foregroundStyle(.white)
+                    .accessibilityAddTraits(.isHeader)
 
                 if viewModel.state == "loading" {
                     ProgressView().tint(.white)
@@ -146,6 +147,9 @@ struct MatchHistoryDetailScreen: View {
         .padding(DS.Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(viewModel.resultAccessibilitySummary)
+        .accessibilityIdentifier("historyDetailResultCard")
     }
 
     private var timelineSection: some View {
@@ -161,6 +165,11 @@ struct MatchHistoryDetailScreen: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(L10n.string("history.detail.timeline.accessibility"))
+            .accessibilityValue(
+                L10n.string(showTimeline ? "history.detail.timeline.expanded" : "history.detail.timeline.collapsed")
+            )
+            .accessibilityIdentifier("historyDetailTimelineToggle")
             if showTimeline {
                 ForEach(Array(viewModel.timeline.enumerated()), id: \.offset) { _, line in
                     Text(line)
@@ -186,5 +195,8 @@ struct MatchHistoryDetailScreen: View {
         .tint(Brand.red)
         .controlSize(.large)
         .padding(.top, DS.Spacing.s4)
+        .accessibilityLabel(L10n.string("history.detail.delete.accessibility"))
+        .accessibilityHint(L10n.string("history.detail.delete.hint"))
+        .accessibilityIdentifier("historyDetailDeleteButton")
     }
 }

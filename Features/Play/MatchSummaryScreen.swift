@@ -6,6 +6,7 @@ struct MatchSummaryScreen: View {
     let onViewHistoryDetail: (UUID) -> Void
 
     @State private var celebrate = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ScrollView {
@@ -36,8 +37,12 @@ struct MatchSummaryScreen: View {
         .task {
             await viewModel.loadIfNeeded()
             viewModel.refresh()
-            try? await Task.sleep(nanoseconds: 120_000_000)
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { celebrate = true }
+            if reduceMotion {
+                celebrate = true
+            } else {
+                try? await Task.sleep(nanoseconds: 120_000_000)
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { celebrate = true }
+            }
         }
     }
 
@@ -46,9 +51,10 @@ struct MatchSummaryScreen: View {
             Image(systemName: "trophy.fill")
                 .font(.system(size: 56))
                 .foregroundStyle(Brand.amber)
-                .scaleEffect(celebrate ? 1 : 0.4)
-                .opacity(celebrate ? 1 : 0)
-                .rotationEffect(.degrees(celebrate ? 0 : -25))
+                .scaleEffect(celebrate ? 1 : (reduceMotion ? 1 : 0.4))
+                .opacity(celebrate ? 1 : (reduceMotion ? 1 : 0))
+                .rotationEffect(.degrees(celebrate ? 0 : (reduceMotion ? 0 : -25)))
+                .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: celebrate)
             if let winnerName = viewModel.winnerName {
                 Text(L10n.format("play.summary.winsFormat", winnerName))
                     .font(.title.weight(.heavy))
@@ -61,8 +67,14 @@ struct MatchSummaryScreen: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, DS.Spacing.s4)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(celebrationHeaderAccessibilityLabel)
         .accessibilityIdentifier("matchSummaryHeader")
+    }
+
+    private var celebrationHeaderAccessibilityLabel: String {
+        guard let winnerName = viewModel.winnerName else { return viewModel.typeLabel }
+        return L10n.format("play.summary.header.accessibilityFormat", winnerName, viewModel.typeLabel)
     }
 
     private func playerCard(_ row: MatchSummaryViewModel.PlayerRow) -> some View {
@@ -97,6 +109,14 @@ struct MatchSummaryScreen: View {
         }
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(playerRowAccessibilityLabel(row))
+    }
+
+    private func playerRowAccessibilityLabel(_ row: MatchSummaryViewModel.PlayerRow) -> String {
+        let stats = row.stats.map { "\($0.label) \($0.value)" }.joined(separator: ", ")
+        let prefix = row.isWinner ? L10n.string("play.summary.player.winnerPrefix") : ""
+        return L10n.format("play.summary.player.accessibilityFormat", prefix, row.name, stats)
     }
 
     private var actions: some View {

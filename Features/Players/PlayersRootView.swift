@@ -211,6 +211,8 @@ struct PlayersRootView: View {
         }
         .listRowBackground(Brand.background)
         .listRowSeparatorTint(Brand.cardElevated)
+        .accessibilityLabel(playerRowAccessibilityLabel(player))
+        .accessibilityIdentifier(player.botDifficulty == nil ? "player_row_\(player.name)" : "player_row_bot_\(player.id.uuidString)")
         .swipeActions {
             Button(player.isArchived ? "players.unarchive" : "players.archive") {
                 actionTask?.cancel()
@@ -230,6 +232,19 @@ struct PlayersRootView: View {
         }
     }
 
+    private func playerRowAccessibilityLabel(_ player: EditablePlayer) -> String {
+        var suffix = ""
+        if let difficulty = player.botDifficulty {
+            suffix += L10n.format("players.row.botSuffix", difficulty.displayName)
+        } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
+            suffix += ", \(L10n.format("players.list.record", summary.games, summary.wins))"
+        }
+        if player.isArchived {
+            suffix += L10n.string("players.row.archivedSuffix")
+        }
+        return L10n.format("players.row.accessibilityFormat", player.name, suffix)
+    }
+
     private var searchField: some View {
         HStack(spacing: DS.Spacing.s2) {
             Image(systemName: "magnifyingglass")
@@ -237,10 +252,12 @@ struct PlayersRootView: View {
             TextField("Search", text: $viewModel.searchText)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+                .accessibilityLabel(L10n.string("players.search.accessibility"))
         }
         .padding(.horizontal, DS.Spacing.s3)
         .padding(.vertical, DS.Spacing.s2)
         .background(DS.ColorRole.backgroundSecondary, in: Capsule())
+        .accessibilityIdentifier("players_searchField")
     }
 }
 
@@ -323,10 +340,16 @@ private struct PlayerStatsDetailView: View {
                 HStack(spacing: DS.Spacing.s3) {
                     Button(L10n.edit, action: onEdit)
                         .buttonStyle(.bordered)
+                        .accessibilityLabel(L10n.string("players.detail.edit.accessibility"))
+                        .accessibilityIdentifier("playerDetail_edit")
                     if !player.isBot {
                         Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
                             .buttonStyle(.bordered)
                             .tint(.orange)
+                            .accessibilityLabel(
+                                L10n.string(player.isArchived ? "players.detail.unarchive.accessibility" : "players.detail.archive.accessibility")
+                            )
+                            .accessibilityIdentifier("playerDetail_archive")
                     }
                 }
                 .padding(.top, DS.Spacing.s2)
@@ -369,6 +392,8 @@ private struct PlayerStatsDetailView: View {
                     }
                     .padding(.horizontal, DS.Spacing.s3)
                     .padding(.vertical, DS.Spacing.s3)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(recentMatchAccessibilityLabel(match))
                     if match.id != viewModel.recentMatches.last?.id {
                         Divider().overlay(Brand.cardElevated)
                     }
@@ -376,6 +401,13 @@ private struct PlayerStatsDetailView: View {
             }
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
+    }
+
+    private func recentMatchAccessibilityLabel(_ match: RecentMatchSummary) -> String {
+        let mode = match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+        let outcome = match.didWin ? L10n.string("players.detail.win") : L10n.string("players.detail.loss")
+        let date = DateFormatter.localizedString(from: match.playedAt, dateStyle: .medium, timeStyle: .none)
+        return L10n.format("players.detail.recentMatch.accessibilityFormat", mode, match.opponentLabel, outcome, date)
     }
 
     @ViewBuilder

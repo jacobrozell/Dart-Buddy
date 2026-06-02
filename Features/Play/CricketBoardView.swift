@@ -33,6 +33,9 @@ struct CricketBoardView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s2)
                     .background(column.isActive ? Brand.cardElevated : Color.clear)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(columnAccessibilityLabel(column))
+                    .accessibilityIdentifier(column.isActive ? "cricket_column_active" : "cricket_column")
                 }
             }
             ForEach(targets, id: \.rawValue) { target in
@@ -43,10 +46,13 @@ struct CricketBoardView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s2)
                     ForEach(columns) { column in
-                        CricketMarkCell(marks: column.marks[target.rawValue] ?? 0)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DS.Spacing.s2)
-                            .background(column.isActive ? Brand.cardElevated.opacity(0.4) : Color.clear)
+                        CricketMarkCell(
+                            targetLabel: label(for: target),
+                            marks: column.marks[target.rawValue] ?? 0
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Spacing.s2)
+                        .background(column.isActive ? Brand.cardElevated.opacity(0.4) : Color.clear)
                     }
                 }
                 Divider().overlay(Brand.cardElevated)
@@ -59,11 +65,17 @@ struct CricketBoardView: View {
     private func label(for target: CricketTarget) -> String {
         target == .bull ? "Bull" : target.rawValue
     }
+
+    private func columnAccessibilityLabel(_ column: Column) -> String {
+        let turn = column.isActive ? " \(L10n.string("play.x01.turn.active"))" : ""
+        return L10n.format("play.cricket.column.accessibilityFormat", column.name, column.score, turn)
+    }
 }
 
 /// Standard cricket mark glyph: "/" for one, "X" for two, and a circled "X"
 /// (closed) for three. Closed marks turn green to read at a glance.
 struct CricketMarkCell: View {
+    let targetLabel: String
     let marks: Int
 
     private var tint: Color { marks >= 3 ? Brand.green : .white }
@@ -85,12 +97,14 @@ struct CricketMarkCell: View {
     }
 
     private var accessibilityLabel: String {
+        let state: String
         switch marks {
-        case 0: return "Open"
-        case 1: return "1 mark"
-        case 2: return "2 marks"
-        default: return "Closed"
+        case 0: state = L10n.string("cricket.mark.open")
+        case 1: state = L10n.string("cricket.mark.one")
+        case 2: state = L10n.string("cricket.mark.two")
+        default: state = L10n.string("cricket.mark.closed")
         }
+        return L10n.format("cricket.mark.accessibilityFormat", targetLabel, state)
     }
 }
 
@@ -132,23 +146,41 @@ struct CricketTapPad: View {
             ForEach(numberRows, id: \.self) { row in
                 HStack(spacing: spacing) {
                     ForEach(row, id: \.self) { value in
-                        key(value, background: Brand.key, identifier: "cricket_\(value)") {
-                            appendNumber(Int(value) ?? 0)
+                        let segment = Int(value) ?? 0
+                        key(
+                            value,
+                            background: Brand.key,
+                            identifier: "cricket_\(value)",
+                            accessibilityLabel: DartInput.padKeyAccessibilityLabel(
+                                segmentValue: segment,
+                                armedMultiplier: selectedMultiplier
+                            ),
+                            accessibilityHint: L10n.string("scoring.segment.hint")
+                        ) {
+                            appendNumber(segment)
                         }
                     }
                 }
             }
             HStack(spacing: spacing) {
-                key("BULL", background: Brand.key, identifier: "cricket_bull") { appendBull() }
-                key("MISS", background: Brand.key, identifier: "cricket_miss") { appendMiss() }
+                key(
+                    "BULL",
+                    background: Brand.key,
+                    identifier: "cricket_bull",
+                    accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
+                    accessibilityHint: L10n.string("scoring.segment.hint")
+                ) { appendBull() }
+                key(
+                    "MISS",
+                    background: Brand.key,
+                    identifier: "cricket_miss",
+                    accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
+                    accessibilityHint: L10n.string("scoring.segment.hint")
+                ) { appendMiss() }
             }
             HStack(spacing: spacing) {
-                key("DOUBLE", background: selectedMultiplier == .double ? Brand.amber : Brand.amber.opacity(0.55), weight: .bold, identifier: "cricket_double") {
-                    toggle(.double)
-                }
-                key("TRIPLE", background: selectedMultiplier == .triple ? Brand.orange : Brand.orange.opacity(0.55), weight: .bold, identifier: "cricket_triple") {
-                    toggle(.triple)
-                }
+                modifierKey(.double, title: L10n.string("scoring.pad.double"), identifier: "cricket_double")
+                modifierKey(.triple, title: L10n.string("scoring.pad.triple"), identifier: "cricket_triple")
                 Button(action: undo) {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.title3.weight(.bold))
@@ -167,6 +199,7 @@ struct CricketTapPad: View {
                     .background(canSubmit ? Brand.green : Brand.green.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
             }
             .disabled(!canSubmit)
+            .accessibilityLabel(L10n.scoringEnter)
             .accessibilityIdentifier("cricket_enter")
         }
     }
@@ -182,9 +215,53 @@ struct CricketTapPad: View {
                     .background(Brand.dartBox, in: RoundedRectangle(cornerRadius: 6))
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(visitPreviewAccessibilityLabel)
+        .accessibilityHidden(enteredDarts.isEmpty)
     }
 
-    private func key(_ title: String, background: Color, weight: Font.Weight = .semibold, identifier: String, action: @escaping () -> Void) -> some View {
+    private var visitPreviewAccessibilityLabel: String {
+        let names = enteredDarts.map(\.spokenAccessibilityName)
+        guard !names.isEmpty else { return "" }
+        return "Visit darts \(names.joined(separator: ", "))"
+    }
+
+    private func modifierKey(_ multiplier: DartMultiplier, title: String, identifier: String) -> some View {
+        let isSelected = selectedMultiplier == multiplier
+        let background: Color = {
+            switch multiplier {
+            case .double:
+                return isSelected ? Brand.amber : Brand.amber.opacity(0.55)
+            case .triple:
+                return isSelected ? Brand.orange : Brand.orange.opacity(0.55)
+            case .single:
+                return Brand.key
+            }
+        }()
+        return key(
+            title,
+            background: background,
+            weight: .bold,
+            identifier: identifier,
+            accessibilityLabel: multiplierAccessibilityLabel(multiplier),
+            accessibilityHint: modifierHint(multiplier, isSelected: isSelected),
+            isSelected: isSelected
+        ) {
+            toggle(multiplier)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func key(
+        _ title: String,
+        background: Color,
+        weight: Font.Weight = .semibold,
+        identifier: String,
+        accessibilityLabel: String? = nil,
+        accessibilityHint: String? = nil,
+        isSelected: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 17, weight: weight))
@@ -194,7 +271,42 @@ struct CricketTapPad: View {
                 .frame(maxWidth: .infinity, minHeight: 52)
                 .background(background, in: RoundedRectangle(cornerRadius: 8))
         }
+        .accessibilityLabel(accessibilityLabel ?? title)
+        .modifier(OptionalAccessibilityHint(hint: accessibilityHint))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier(identifier)
+    }
+
+    private func multiplierAccessibilityLabel(_ multiplier: DartMultiplier) -> String {
+        switch multiplier {
+        case .single:
+            return L10n.string("scoring.multiplier.single.accessibility")
+        case .double:
+            return L10n.string("scoring.multiplier.double.accessibility")
+        case .triple:
+            return L10n.string("scoring.multiplier.triple.accessibility")
+        }
+    }
+
+    private func modifierHint(_ multiplier: DartMultiplier, isSelected: Bool) -> String {
+        if isSelected {
+            switch multiplier {
+            case .double:
+                return L10n.string("scoring.pad.double.hint.armed")
+            case .triple:
+                return L10n.string("scoring.pad.triple.hint.armed")
+            case .single:
+                return L10n.string("scoring.multiplier.hint")
+            }
+        }
+        switch multiplier {
+        case .double:
+            return L10n.string("scoring.pad.double.hint")
+        case .triple:
+            return L10n.string("scoring.pad.triple.hint")
+        case .single:
+            return L10n.string("scoring.multiplier.hint")
+        }
     }
 
     private func appendNumber(_ value: Int) {

@@ -105,7 +105,15 @@ struct AverageTrendChart: View {
     }
 
     private var trendAccessibilityValue: String {
-        points.map { String(format: "%.1f", $0.average3Dart) }.joined(separator: ", ")
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return points.map { point in
+            L10n.format(
+                "stats.trend.accessibilityPointFormat",
+                formatter.string(from: point.date),
+                point.average3Dart
+            )
+        }.joined(separator: ", ")
     }
 }
 

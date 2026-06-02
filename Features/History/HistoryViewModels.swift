@@ -17,6 +17,14 @@ struct HistoryListRow: Identifiable, Equatable {
     let isFinished: Bool
 
     var id: UUID { summary.id }
+
+    var accessibilitySummary: String {
+        let players = standings.map { standing in
+            let role = standing.isWinner ? ", winner" : ""
+            return "\(standing.name)\(role), score \(standing.score)"
+        }.joined(separator: ". ")
+        return L10n.format("history.row.accessibilityFormat", dateText, configText, players)
+    }
 }
 
 struct HistoryDetailHeader: Equatable {
@@ -303,6 +311,14 @@ final class HistoryDetailViewModel: ObservableObject {
     private let statsRepository: any StatsRepository
 
     var isX01: Bool { matchType == .x01 }
+
+    var resultAccessibilitySummary: String {
+        let players = standings.map { standing in
+            let role = standing.isWinner ? ", winner" : ""
+            return "\(standing.name)\(role), score \(standing.score)"
+        }.joined(separator: ". ")
+        return L10n.format("history.detail.result.accessibilityFormat", dateText, configText, players)
+    }
 
     init(
         matchId: UUID,

@@ -22,6 +22,8 @@ struct BrandSegmented<T: Hashable>: View {
                         .background(selection == option.value ? Brand.cardElevated : Color.clear, in: Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(option.title)
+                .accessibilityAddTraits(selection == option.value ? .isSelected : [])
             }
         }
         .padding(4)

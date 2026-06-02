@@ -132,6 +132,13 @@ struct StatisticsRootView: View {
             .padding(.vertical, DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
+        .accessibilityLabel(
+            L10n.format(
+                "stats.filter.player.accessibilityFormat",
+                viewModel.selectedPlayerName ?? L10n.string("stats.filter.allPlayers")
+            )
+        )
+        .accessibilityIdentifier("statsPlayerFilterMenu")
     }
 
     private func sectionTitle(_ text: String) -> some View {
@@ -152,6 +159,8 @@ struct StatisticsRootView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(DS.Spacing.s3)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.string("stats.partialMatchBanner.accessibility"))
         .accessibilityIdentifier("statsPartialMatchBanner")
     }
 
@@ -255,6 +264,11 @@ struct StatisticsRootView: View {
         .frame(height: CGFloat(viewModel.rows.count) * 44 + 24)
         .padding(DS.Spacing.s4)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L10n.string("stats.threeDartAverage"))
+        .accessibilityValue(
+            viewModel.rows.map { "\($0.name) \(String(format: "%.1f", $0.average3Dart))" }.joined(separator: ", ")
+        )
     }
 
     private var sectorChart: some View {
@@ -328,9 +342,16 @@ struct StatTable: View {
                     .padding(.horizontal, DS.Spacing.s3)
                     .padding(.vertical, DS.Spacing.s3)
                     .background(index.isMultiple(of: 2) ? Color.clear : Brand.cardElevated.opacity(0.4))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(rowAccessibilityLabel(index: index, row: row, cells: cells))
                 }
             }
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
+    }
+
+    private func rowAccessibilityLabel(index: Int, row: PlayerStatBreakdown, cells: [String]) -> String {
+        let stats = zip(columns.map(\.label), cells).map { "\($0) \($1)" }.joined(separator: ", ")
+        return L10n.format("stats.table.row.accessibilityFormat", index + 1, row.name, stats)
     }
 }
