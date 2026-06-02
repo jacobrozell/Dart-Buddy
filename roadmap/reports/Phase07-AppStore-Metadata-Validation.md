@@ -4,7 +4,7 @@
 - `specs/AppStoreConnectSpec.md`
 
 ## Metadata Alignment Check
-- App name: `Darts Scoreboard` (spec-aligned, availability check pending App Store Connect)
+- App name: `Dart Buddy` (spec-aligned, availability check pending App Store Connect)
 - Category: `Sports` (aligned)
 - Pricing: `Free` (aligned)
 - Ads: `None` (aligned)

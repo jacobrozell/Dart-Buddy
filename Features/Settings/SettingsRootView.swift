@@ -214,9 +214,23 @@ struct SettingsRootView: View {
             }
             .brandFormRowBackground(when: usesBrand)
 
-            Section(L10n.aboutSection) {
+            Section {
                 Text("settings.about.value")
                     .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
+
+                if let buyDeveloperCoffeeURL = AppLinks.buyDeveloperCoffee {
+                    Link(destination: buyDeveloperCoffeeURL) {
+                        Label(L10n.settingsBuyDeveloperCoffee, systemImage: "cup.and.saucer.fill")
+                    }
+                    .accessibilityLabel(L10n.settingsBuyDeveloperCoffeeAccessibility)
+                    .accessibilityIdentifier("settings_buyDeveloperCoffeeLink")
+                }
+            } header: {
+                Text(L10n.aboutSection)
+            } footer: {
+                if AppLinks.buyDeveloperCoffee != nil {
+                    Text(L10n.settingsBuyDeveloperCoffeeFooter)
+                }
             }
             .brandFormRowBackground(when: usesBrand)
         }

@@ -1,6 +1,6 @@
-# DartBuddy — 1.0 Release Checklist
+# Dart Buddy — 1.0 Release Checklist
 
-**Customer brand:** DartBuddy (App Store listing, marketing, Reddit)  
+**Customer brand:** Dart Buddy (App Store listing, marketing, Reddit)  
 **Technical target:** `DartsScoreboard` (Xcode scheme, bundle ID `com.jacobrozell.DartsScoreboard`, module)  
 **Version:** `1.0.0`  
 **Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
@@ -262,7 +262,7 @@ Reference: [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md)
 
 | Field | Draft / final value | Done |
 |-------|---------------------|------|
-| **Name** (≤30 chars) | e.g. `Darts Scoreboard` or `DartBuddy` — check availability | [ ] |
+| **Name** (≤30 chars) | `Dart Buddy` — check availability | [ ] |
 | **Subtitle** | e.g. `Free X01 & Cricket Scoring` | [ ] |
 | **Promotional text** (optional) | Short hook; updatable without review | [ ] |
 | **Description** | Value prop → features → no ads/local-first → accessibility | [ ] |
@@ -399,7 +399,7 @@ Post-submit ops: [`roadmap/release/Launch-Day-Runbook.md`](roadmap/release/Launc
 **Title options (pick one):**
 
 - `I built a free, no-ads darts scoreboard for X01 & Cricket — would love feedback from actual throwers`
-- `[iOS] DartBuddy — local-first X01/Cricket scorer with history & stats (no ads)`
+- `[iOS] Dart Buddy — local-first X01/Cricket scorer with history & stats (no ads)`
 
 **Body outline:**
 

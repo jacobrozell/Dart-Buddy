@@ -22,18 +22,17 @@ Primary audience:
 ## 3. App Naming
 
 ## Recommended Name (Primary)
-- **Darts Scoreboard**
+- **Dart Buddy**
 
 Why:
-- Clear and descriptive
-- Strong keyword relevance (`darts`, `scoreboard`)
-- No implication of a paid/full split
+- Distinctive and memorable
+- Matches App Store display name (`CFBundleDisplayName`)
+- Strong keyword relevance via subtitle and keywords (`darts`, `scoreboard`)
 
 ## Backup Name Candidates
-- `Darts Scoreboard Simple`
-- `Darts Scorekeeper`
-- `Darts Match Scoreboard`
-- `Dart Scoreboard: X01 & Cricket`
+- `Dart Buddy: X01 & Cricket`
+- `Dart Buddy Scorekeeper`
+- `Dart Buddy — Darts Scorer`
 
 Naming rules:
 - Keep final name <= 30 characters when possible
@@ -66,11 +65,11 @@ Naming rules:
 ## 5. App Store Metadata
 
 ## App Name
-- `Darts Scoreboard` (subject to availability)
+- `Dart Buddy` (subject to availability)
 
 ## Subtitle (examples)
 - `Free X01 & Cricket Scoring`
-- `No Ads Dart Scorekeeper`
+- `No Ads Darts Scorekeeper`
 
 ## Keywords (starter set)
 - darts, scoreboard, scorekeeper, x01, cricket, dart scorer, darts counter, darts tracker

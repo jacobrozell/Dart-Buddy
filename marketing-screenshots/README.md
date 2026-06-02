@@ -1,6 +1,6 @@
 # Marketing Screenshots
 
-Professional App Store and marketing assets for **DartBuddy**.
+Professional App Store and marketing assets for **Dart Buddy**.
 
 ## Quick start
 
