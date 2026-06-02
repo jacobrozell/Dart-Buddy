@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — Dart Buddy</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Privacy Policy</h1>
+      <p class="subtitle">Dart Buddy · Darts Scoreboard</p>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="support.html">Support</a>
+      </nav>
+      <p class="meta">Last updated: June 2, 2026</p>
+    </header>
+
+    <p>This Privacy Policy describes how <strong>Dart Buddy</strong> (“the app,” also distributed under the name <strong>Darts Scoreboard</strong>) handles information when you use our iOS application. The app is developed by Jacob Rozell.</p>
+
+    <p>We designed Dart Buddy to be <strong>local-first</strong>: your matches and players stay on your device. We do not sell your data, show ads, or use cross-app tracking.</p>
+
+    <h2>1. Summary</h2>
+    <ul>
+      <li><strong>On your device:</strong> match history, player names, game settings, and statistics.</li>
+      <li><strong>Sent from App Store (Release) builds only:</strong> limited anonymous usage analytics and crash/diagnostic reports via Google Firebase.</li>
+      <li><strong>Not collected:</strong> advertising identifiers, precise location, contacts, photos, or an in-app account.</li>
+      <li><strong>Your control:</strong> delete all local data anytime in Settings → Reset All Local Data.</li>
+    </ul>
+
+    <h2>2. Information stored on your device</h2>
+    <p>The app stores the following locally on your iPhone or iPad using Apple’s on-device storage (SwiftData):</p>
+    <ul>
+      <li><strong>Player profiles</strong> — display names you enter, optional notes, avatar/color choices, and bot settings.</li>
+      <li><strong>Match data</strong> — scores, turns, game mode (X01 or Cricket), configuration, timestamps, and related statistics.</li>
+      <li><strong>App settings</strong> — theme, sound, haptics, default game options, and similar preferences.</li>
+    </ul>
+    <p>This data remains on your device unless you delete it (see Section 7) or remove the app. We do not operate a cloud backup or sync service in version 1.0.</p>
+
+    <h2>3. Information sent to third parties</h2>
+    <p>In <strong>Release builds installed from the App Store</strong> (not typical Debug or developer builds), the app may send limited diagnostic and usage data to <strong>Google Firebase</strong>, operated by Google LLC:</p>
+
+    <h3>3.1 Firebase Analytics (usage events)</h3>
+    <p>We collect a small, allowlisted set of anonymous product-health events to understand whether core features work reliably. Events may include:</p>
+    <ul>
+      <li><code>app_open</code> — app finished launching</li>
+      <li><code>match_started</code>, <code>match_completed</code>, <code>match_abandoned</code></li>
+      <li><code>turn_submitted</code>, <code>undo_used</code></li>
+      <li>Failure signals such as <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>app_bootstrap_migration_failure</code></li>
+    </ul>
+    <p>Event parameters are restricted to non-identifying technical context, such as game mode (X01/Cricket), app version, error codes, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
+
+    <h3>3.2 Firebase Crashlytics (crashes &amp; errors)</h3>
+    <p>If the app crashes or records certain allowlisted error conditions, Crashlytics may receive:</p>
+    <ul>
+      <li>Crash stack traces and device state needed to diagnose the problem</li>
+      <li>App version and OS version</li>
+      <li>Anonymous installation identifiers assigned by Firebase</li>
+      <li>Non-fatal error reports for persistence or match lifecycle failures (same allowlisted metadata as above — no player names)</li>
+    </ul>
+
+    <h3>3.3 When Firebase is disabled</h3>
+    <p>Firebase Analytics and Crashlytics are <strong>not</strong> enabled when:</p>
+    <ul>
+      <li>You run a Debug build from Xcode (unless explicitly enabled for development)</li>
+      <li>The app is built without a valid production Firebase configuration</li>
+      <li>Automated tests run with telemetry disabled</li>
+    </ul>
+    <p>Google’s privacy practices are described at <a href="https://firebase.google.com/support/privacy" rel="noopener noreferrer">firebase.google.com/support/privacy</a> and <a href="https://policies.google.com/privacy" rel="noopener noreferrer">policies.google.com/privacy</a>.</p>
+
+    <h2>4. What we do not collect</h2>
+    <ul>
+      <li>No advertising or ad-network SDKs</li>
+      <li>No “tracking” across other companies’ apps or websites (no App Tracking Transparency / IDFA use for ads)</li>
+      <li>No sale or rental of personal information</li>
+      <li>No requirement to create an account</li>
+      <li>No access to your contacts, photos, microphone, or precise location for scoring features</li>
+    </ul>
+
+    <h2>5. Legal bases &amp; purposes (where applicable)</h2>
+    <p>We process on-device data to provide the scoring service you request. We process limited Firebase data in our legitimate interest to maintain app stability and fix bugs. We do not use your information for automated decision-making or profiling.</p>
+
+    <h2>6. Children’s privacy</h2>
+    <p>Dart Buddy is suitable for general audiences and does not knowingly collect personal information from children under 13 beyond what users voluntarily enter as player display names on their own device. If you believe a child has provided personal information through our support channels, contact us and we will delete it.</p>
+
+    <h2>7. Your choices &amp; retention</h2>
+    <ul>
+      <li><strong>Delete local data:</strong> Settings → <strong>Reset All Local Data</strong> removes players, history, and settings from the device.</li>
+      <li><strong>Remove the app:</strong> Deleting the app removes local app data subject to iOS system behavior.</li>
+      <li><strong>Firebase data:</strong> Analytics and crash data retained by Google is governed by Google’s policies and Firebase project settings. It is not linked to player names you enter in the app.</li>
+    </ul>
+
+    <h2>8. Data security</h2>
+    <p>Local data uses iOS standard app sandbox and file protection. Network transmission to Firebase uses encrypted connections (HTTPS/TLS). No security method is perfect; avoid entering sensitive personal information as player names.</p>
+
+    <h2>9. International users</h2>
+    <p>If you use the app outside the United States, your limited Firebase data may be processed in countries where Google operates infrastructure, including the United States.</p>
+
+    <h2>10. Changes to this policy</h2>
+    <p>We may update this policy when the app changes (for example, if we add online play or new Firebase services). We will update the “Last updated” date and, where required, provide additional notice. Continued use after changes constitutes acceptance of the updated policy.</p>
+
+    <h2>11. Contact</h2>
+    <p>Questions about this policy or your data:</p>
+    <ul>
+      <li><strong>Email:</strong> <a href="mailto:jacob.rozell83@gmail.com">jacob.rozell83@gmail.com</a></li>
+      <li><a href="https://github.com/jacobrozell/Dart-Buddy/issues">GitHub Issues — jacobrozell/Dart-Buddy</a></li>
+      <li><a href="support.html">Support page</a></li>
+    </ul>
+
+    <footer>
+      <p>This policy applies to Dart Buddy / Darts Scoreboard version 1.0 and later unless superseded.</p>
+    </footer>
+  </main>
+</body>
+</html>
