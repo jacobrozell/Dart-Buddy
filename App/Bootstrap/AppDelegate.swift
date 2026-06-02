@@ -6,7 +6,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        FirebaseApp.configure()
+        if FirebaseBootstrap.shouldConfigure {
+            FirebaseApp.configure()
+        }
         return true
     }
 }

@@ -27,6 +27,9 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project DartsScoreboard.xcodeproj -scheme DartsScoreboard
+
       - name: Select iOS Simulator
         id: sim
         run: |

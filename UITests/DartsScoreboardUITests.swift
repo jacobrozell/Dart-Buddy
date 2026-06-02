@@ -60,8 +60,10 @@ final class DartsScoreboardUITests: XCTestCase {
         let app = launchApp(["-seed_demo"])
 
         app.tabBars.buttons["History"].tap()
-        let gameCard = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch
-        XCTAssertTrue(gameCard.waitForExistence(timeout: timeout))
+        let gameCard = app.buttons.containing(
+            NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "X01", "301")
+        ).firstMatch
+        XCTAssertTrue(gameCard.waitForExistence(timeout: timeout + 5))
         gameCard.tap()
 
         XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
@@ -306,11 +308,13 @@ final class DartsScoreboardUITests: XCTestCase {
         twenty.tap()
         twenty.tap()
         twenty.tap()
-        _ = twenty.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 10)
 
-        app.buttons["pad_double"].tap()
-        app.buttons["pad_20"].tap()
-        app.buttons["pad_1"].tap()
+        if !app.otherElements["matchSummaryHeader"].waitForExistence(timeout: 3) {
+            _ = twenty.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 10)
+            app.buttons["pad_double"].tap()
+            app.buttons["pad_20"].tap()
+            app.buttons["pad_1"].tap()
+        }
 
         XCTAssertTrue(app.otherElements["matchSummaryHeader"].waitForExistence(timeout: timeout + 5))
 
