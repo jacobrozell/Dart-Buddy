@@ -1,6 +1,6 @@
 # Game Center Achievements — Assessment & Catalog
 
-Assessment for [todo.md](todo.md) item: *Add Game Center support with achievements*.
+Assessment for [todo.md](../todo.md) item: *Add Game Center support with achievements*.
 
 ---
 
@@ -22,7 +22,7 @@ Assessment for [todo.md](todo.md) item: *Add Game Center support with achievemen
 - **Immutable turn events** are the source of truth (`X01TurnEvent`, `CricketTurnEvent`) with segment, multiplier, visit total, checkout, and bust flags.
 - **`StatsService.breakdowns`** already counts triples, doubles, highest visit, checkouts, and sector hits — many achievement checks can reuse the same reducers.
 - **Match completion** is a clear hook (`completeMatch`, `MatchLifecycleSession.runtime.status == .completed`) in both X01 and Cricket view models.
-- **No external dependencies required** — GameKit is Apple-native, consistent with [specs/TechStackSpec.md](specs/TechStackSpec.md).
+- **No external dependencies required** — GameKit is Apple-native, consistent with [specs/TechStackSpec.md](../specs/TechStackSpec.md).
 
 ## Gaps to close first
 
@@ -153,7 +153,7 @@ Legend: **Impl** = implementation effort · **Hidden** = hide until unlocked · 
 
 ### Tier D — Skip or defer
 
-- **Online / multiplayer achievements** — no online play in 1.0 ([specs/OnlinePlaySpec.md](specs/OnlinePlaySpec.md)).
+- **Online / multiplayer achievements** — no online play in 1.0 ([specs/OnlinePlaySpec.md](../specs/OnlinePlaySpec.md)).
 - **Leaderboards** — separate Game Center feature; not required for achievements MVP.
 - **Time-of-day gimmicks** (“Night Owl”) — weak fit for a scorekeeper; skip unless you want personality.
 - **Average-based** (“Maintain 60+ avg over 10 games”) — confusing for casual players; better as local stats, not GC.

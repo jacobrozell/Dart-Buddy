@@ -80,7 +80,8 @@ Do not block 1.0 on these.
 
 ### Post-1.0 roadmap
 
-- [ ] **Game Center achievements** — `achievements.md` (2–4 day MVP; good 1.1 candidate).
+- [ ] **Game Center achievements** — [`FutureIdeas/achievements.md`](FutureIdeas/achievements.md) (2–4 day MVP; good 1.1 candidate).
+- [ ] **Play reminders** — [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) (local notifications + Settings; 1–2 day MVP).
 - [ ] **Firebase Auth** — `specs/FirebaseBackendAnalyticsSpec.md` Phase 2
 - [ ] **Online play / Firestore sync** — `specs/OnlinePlaySpec.md`
 - [ ] **AI camera auto-scoring** — `AutoScoringVisionSpec`

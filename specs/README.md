@@ -47,6 +47,7 @@
 - `specs/AppleWatchCompanionSpec.md` + `specs/AppleWatchCompanionAssessment.md`
 - `specs/OnlinePlaySpec.md`, `specs/AutoScoringVisionSpec.md`
 - `specs/archive/FigmaBuildPlan.md` — historical Figma handoff (UI complete for 1.0)
-- `achievements.md` — Game Center assessment (linked from `todo.md`)
+- `FutureIdeas/achievements.md` — Game Center assessment (linked from `todo.md`)
+- `FutureIdeas/play-reminders.md` — Play reminder notifications (linked from `todo.md`)
 
 Active work and deferrals: [`todo.md`](../todo.md). Do not duplicate backlog items here.

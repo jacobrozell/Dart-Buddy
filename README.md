@@ -92,8 +92,10 @@ Use **one primary doc per concern**. Link instead of copying checklists or backl
 | Device + App Store runbook | [`release_checklist.md`](release_checklist.md) | Duplicating full matrices in `todo.md` |
 | RC sign-off evidence | [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) | `todo.md` (todo links here; matrix lives here) |
 | PR smoke evidence template | [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md) | sign-off doc |
-| Game Center (post-1.0) | [`achievements.md`](achievements.md) | `todo.md` (todo links; assessment detail here) |
-| Post-1.0 features | [`todo.md`](todo.md) § Post-1.0 + feature specs | README (removed) |
+| Post-1.0 assessments | [`FutureIdeas/`](FutureIdeas/) | `todo.md` § Post-1.0 (one-line links only) |
+| Game Center (post-1.0) | [`FutureIdeas/achievements.md`](FutureIdeas/achievements.md) | `FutureIdeas/` |
+| Play reminders (post-1.0) | [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) | `FutureIdeas/` |
+| Post-1.0 backlog | [`todo.md`](todo.md) § Post-1.0 + feature specs | README (removed) |
 
 ### Duplication audit (2026-06)
 
