@@ -76,6 +76,7 @@ Plus tab sustainability: `history-list`, `history-detail`, `players-list`, `sett
 | Method | Tool / action | Evidence location |
 |--------|---------------|---------------------|
 | VoiceOver | Device or Simulator + VO on | `evidence/voiceover/` |
+| Automated XCTest | `WCAGAccessibilityUITests` audits + identifier contracts on core screens | CI |
 | Dynamic Type | Settings → Display → Larger Text → AXXXL | `evidence/dynamic-type/` or `snapshots/*-axxxl-*` |
 | Contrast | Accessibility Inspector → Color Contrast | `evidence/contrast/` |
 | Orientation | Portrait + landscape × light + dark | `evidence/orientation/` |

@@ -88,7 +88,7 @@ Use canonical tags from `specs/SwiftTestingTagsSpec.md`.
   - `integration`, `navigation`, `smoke`
 - `ScoringInput` suite:
   - `unit`, `scoringInput`, `critical`
-- `Accessibility` smoke suite (future, post-UI-lock):
+- `Accessibility` smoke suite (`WCAGAccessibilityUITests`, `WCAGAccessibilityLabelTests`):
   - `ui`, `accessibility`, `smoke`
 - `Localization` smoke suite (future, post-UI-lock):
   - `integration`, `localization`, `smoke`

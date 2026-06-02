@@ -185,8 +185,8 @@ Linked `todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
 
 ### 3.3 Automation (post–UI-lock)
 
-- [ ] XCTest or Swift Testing: assert `accessibilityIdentifier` presence on `startMatchButton`, `pad_20`, `scoreCard_active`, `checkoutSuggestion`, settings toggles (`specs/AccessibilitySpec.md` §6).
-- [ ] Tag tests `@Tag(.accessibility)` (`Tests/TestTags.swift`).
+- [x] XCTest: assert `accessibilityIdentifier` presence on `startMatchButton`, `pad_20`, `scoreCard_active`, settings toggles (`UITests/WCAGAccessibilityUITests.swift`).
+- [x] Tag tests `@Tag(.accessibility)` (`Tests/FoundationTests/WCAGAccessibilityLabelTests.swift`).
 - [ ] Optional: snapshot tests at **Large** and **AXXXL** content size for core screens.
 
 ### 3.4 VoiceOver scripts (repeatable QA)
