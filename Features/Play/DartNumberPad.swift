@@ -26,15 +26,15 @@ struct DartNumberPad: View {
                 }
             }
             HStack(spacing: spacing) {
-                key("0", background: Brand.key, identifier: "pad_0") { appendMiss() }
-                key(L10n.string("scoring.pad.double"), background: selectedMultiplier == .double ? Brand.amber : Brand.amber.opacity(0.55), weight: .bold, identifier: "pad_double") {
-                    toggle(.double)
-                }
-                .frame(maxWidth: .infinity)
-                key(L10n.string("scoring.pad.triple"), background: selectedMultiplier == .triple ? Brand.orange : Brand.orange.opacity(0.55), weight: .bold, identifier: "pad_triple") {
-                    toggle(.triple)
-                }
-                .frame(maxWidth: .infinity)
+                key(
+                    "0",
+                    background: Brand.key,
+                    identifier: "pad_0",
+                    accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
+                    accessibilityHint: L10n.string("scoring.segment.hint")
+                ) { appendMiss() }
+                modifierKey(.double, title: L10n.string("scoring.pad.double"), identifier: "pad_double")
+                modifierKey(.triple, title: L10n.string("scoring.pad.triple"), identifier: "pad_triple")
                 Button(action: undo) {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.title3.weight(.bold))
@@ -50,10 +50,54 @@ struct DartNumberPad: View {
     }
 
     private func numberKey(_ value: Int) -> some View {
-        key(String(value), background: Brand.key, identifier: "pad_\(value)") { append(value) }
+        key(
+            String(value),
+            background: Brand.key,
+            identifier: "pad_\(value)",
+            accessibilityLabel: DartInput.padKeyAccessibilityLabel(
+                segmentValue: value,
+                armedMultiplier: selectedMultiplier
+            ),
+            accessibilityHint: L10n.string("scoring.segment.hint")
+        ) { append(value) }
     }
 
-    private func key(_ title: String, background: Color, weight: Font.Weight = .semibold, identifier: String, action: @escaping () -> Void) -> some View {
+    private func modifierKey(_ multiplier: DartMultiplier, title: String, identifier: String) -> some View {
+        let isSelected = selectedMultiplier == multiplier
+        let background: Color = {
+            switch multiplier {
+            case .double:
+                return isSelected ? Brand.amber : Brand.amber.opacity(0.55)
+            case .triple:
+                return isSelected ? Brand.orange : Brand.orange.opacity(0.55)
+            case .single:
+                return Brand.key
+            }
+        }()
+        return key(
+            title,
+            background: background,
+            weight: .bold,
+            identifier: identifier,
+            accessibilityLabel: multiplierAccessibilityLabel(multiplier),
+            accessibilityHint: modifierHint(multiplier, isSelected: isSelected),
+            isSelected: isSelected
+        ) {
+            toggle(multiplier)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func key(
+        _ title: String,
+        background: Color,
+        weight: Font.Weight = .semibold,
+        identifier: String,
+        accessibilityLabel: String? = nil,
+        accessibilityHint: String? = nil,
+        isSelected: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 17, weight: weight))
@@ -63,7 +107,42 @@ struct DartNumberPad: View {
                 .frame(maxWidth: .infinity, minHeight: 52)
                 .background(background, in: RoundedRectangle(cornerRadius: 8))
         }
+        .accessibilityLabel(accessibilityLabel ?? title)
+        .modifier(OptionalAccessibilityHint(hint: accessibilityHint))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier(identifier)
+    }
+
+    private func multiplierAccessibilityLabel(_ multiplier: DartMultiplier) -> String {
+        switch multiplier {
+        case .single:
+            return L10n.string("scoring.multiplier.single.accessibility")
+        case .double:
+            return L10n.string("scoring.multiplier.double.accessibility")
+        case .triple:
+            return L10n.string("scoring.multiplier.triple.accessibility")
+        }
+    }
+
+    private func modifierHint(_ multiplier: DartMultiplier, isSelected: Bool) -> String {
+        if isSelected {
+            switch multiplier {
+            case .double:
+                return L10n.string("scoring.pad.double.hint.armed")
+            case .triple:
+                return L10n.string("scoring.pad.triple.hint.armed")
+            case .single:
+                return L10n.string("scoring.multiplier.hint")
+            }
+        }
+        switch multiplier {
+        case .double:
+            return L10n.string("scoring.pad.double.hint")
+        case .triple:
+            return L10n.string("scoring.pad.triple.hint")
+        case .single:
+            return L10n.string("scoring.multiplier.hint")
+        }
     }
 
     private func append(_ value: Int) {
@@ -96,6 +175,18 @@ struct DartNumberPad: View {
         } else {
             enteredDarts.removeLast()
             selectedMultiplier = .single
+        }
+    }
+}
+
+struct OptionalAccessibilityHint: ViewModifier {
+    let hint: String?
+
+    func body(content: Content) -> some View {
+        if let hint, !hint.isEmpty {
+            content.accessibilityHint(hint)
+        } else {
+            content
         }
     }
 }
