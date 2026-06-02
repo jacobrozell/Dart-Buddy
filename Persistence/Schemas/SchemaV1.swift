@@ -169,6 +169,8 @@ public enum SchemaV1: VersionedSchema {
         public var defaultMatchTypeRaw: String
         public var defaultX01StartScore: Int
         public var defaultCheckoutModeRaw: String
+        public var defaultCheckInModeRaw: String
+        public var defaultLegFormatRaw: String
         public var defaultLegsToWin: Int
         public var defaultSetsEnabled: Bool
         public var updatedAt: Date
@@ -181,6 +183,8 @@ public enum SchemaV1: VersionedSchema {
             defaultMatchTypeRaw: String = "x01",
             defaultX01StartScore: Int = 501,
             defaultCheckoutModeRaw: String = "doubleOut",
+            defaultCheckInModeRaw: String = "straightIn",
+            defaultLegFormatRaw: String = "firstTo",
             defaultLegsToWin: Int = 3,
             defaultSetsEnabled: Bool = false,
             updatedAt: Date = Date()
@@ -192,6 +196,8 @@ public enum SchemaV1: VersionedSchema {
             self.defaultMatchTypeRaw = defaultMatchTypeRaw
             self.defaultX01StartScore = defaultX01StartScore
             self.defaultCheckoutModeRaw = defaultCheckoutModeRaw
+            self.defaultCheckInModeRaw = defaultCheckInModeRaw
+            self.defaultLegFormatRaw = defaultLegFormatRaw
             self.defaultLegsToWin = defaultLegsToWin
             self.defaultSetsEnabled = defaultSetsEnabled
             self.updatedAt = updatedAt

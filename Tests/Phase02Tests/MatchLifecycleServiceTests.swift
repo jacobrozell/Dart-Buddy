@@ -58,6 +58,51 @@ func lifecycleResumeFromSnapshotPlusTailEventsIsDeterministic() throws {
     #expect(resumed.runtime.eventCount == session.runtime.eventCount)
 }
 
+@Test(.tags(.unit, .match, .regression, .offline))
+func lifecycleAbandonMarksInProgressMatchAbandoned() throws {
+    let participants = [
+        MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "P1", turnOrder: 0),
+        MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "P2", turnOrder: 1)
+    ]
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: participants
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 100, darts: nil)
+
+    let when = Date(timeIntervalSince1970: 99)
+    let abandoned = try MatchLifecycleService.abandon(session: session, timestamp: when)
+
+    #expect(abandoned.runtime.status == .abandoned)
+    #expect(abandoned.runtime.endedAt == when)
+    #expect(abandoned.runtime.currentTurnPlayerId == nil)
+    // Event history is preserved so the match can still be inspected.
+    #expect(abandoned.runtime.eventCount == session.runtime.eventCount)
+}
+
+@Test(.tags(.unit, .match, .regression, .offline))
+func lifecycleAbandonLeavesCompletedMatchUntouched() throws {
+    let participants = [
+        MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "P1", turnOrder: 0),
+        MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "P2", turnOrder: 1)
+    ]
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: participants
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 180, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 0, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 121, darts: nil)
+    #expect(session.runtime.status == .completed)
+
+    let unchanged = try MatchLifecycleService.abandon(session: session)
+
+    #expect(unchanged.runtime.status == .completed)
+    #expect(unchanged.runtime.winnerPlayerId == session.runtime.winnerPlayerId)
+}
+
 @Test(.tags(.unit, .match, .cricket, .critical, .regression, .offline))
 func lifecycleResumePreservesCricketInnerBull() throws {
     // Regression: resuming a cricket match from a snapshot + tail events must

@@ -1,5 +1,12 @@
 import Foundation
 
+/// In-memory cache of live match sessions keyed by match ID.
+///
+/// Resume after app relaunch uses `MatchRepository.fetchActiveMatch()` plus the
+/// persisted snapshot as source of truth. This store holds the hydrated
+/// `MatchLifecycleSession` for the current app session only — do not treat it as
+/// durable storage or a substitute for the repository when deciding whether a
+/// match can be resumed.
 @MainActor
 public final class ActiveMatchStore: ObservableObject {
     @Published private(set) var sessions: [UUID: MatchLifecycleSession] = [:]

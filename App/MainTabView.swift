@@ -10,7 +10,13 @@ struct MainTabView: View {
     }
 
     let dependencies: AppDependencies
+    @ObservedObject private var preferencesStore: UserPreferencesStore
     @State private var selectedTab: RootTab = MainTabView.startupTab
+
+    init(dependencies: AppDependencies) {
+        self.dependencies = dependencies
+        _preferencesStore = ObservedObject(wrappedValue: dependencies.userPreferencesStore)
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -31,7 +37,7 @@ struct MainTabView: View {
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }
         .tint(Brand.green)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(preferencesStore.preferredColorScheme)
         .background(Brand.background)
         .task {
             dependencies.logger.debug(

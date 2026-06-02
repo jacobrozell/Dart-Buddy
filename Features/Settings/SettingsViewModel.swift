@@ -17,13 +17,20 @@ final class SettingsViewModel: ObservableObject {
     private let repository: any SettingsRepository
     private let logger: any AppLogger
     private let activeMatchStore: ActiveMatchStore
+    private let userPreferencesStore: UserPreferencesStore
     private var mutationTask: Task<Void, Never>?
     private var resetTask: Task<Void, Never>?
 
-    init(repository: any SettingsRepository, logger: any AppLogger, activeMatchStore: ActiveMatchStore) {
+    init(
+        repository: any SettingsRepository,
+        logger: any AppLogger,
+        activeMatchStore: ActiveMatchStore,
+        userPreferencesStore: UserPreferencesStore
+    ) {
         self.repository = repository
         self.logger = logger
         self.activeMatchStore = activeMatchStore
+        self.userPreferencesStore = userPreferencesStore
     }
 
     deinit {
@@ -35,6 +42,7 @@ final class SettingsViewModel: ObservableObject {
         state = .loading
         do {
             settings = try await repository.fetchSettings()
+            if let settings { userPreferencesStore.apply(settings) }
             state = .ready
         } catch is CancellationError {
             return
@@ -53,6 +61,8 @@ final class SettingsViewModel: ObservableObject {
             defaultMatchTypeRaw: current.defaultMatchTypeRaw,
             defaultX01StartScore: current.defaultX01StartScore,
             defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+            defaultLegFormatRaw: current.defaultLegFormatRaw,
             defaultLegsToWin: current.defaultLegsToWin,
             defaultSetsEnabled: current.defaultSetsEnabled,
             updatedAt: Date()
@@ -74,6 +84,8 @@ final class SettingsViewModel: ObservableObject {
             defaultMatchTypeRaw: current.defaultMatchTypeRaw,
             defaultX01StartScore: current.defaultX01StartScore,
             defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+            defaultLegFormatRaw: current.defaultLegFormatRaw,
             defaultLegsToWin: current.defaultLegsToWin,
             defaultSetsEnabled: current.defaultSetsEnabled,
             updatedAt: Date()
@@ -95,6 +107,8 @@ final class SettingsViewModel: ObservableObject {
             defaultMatchTypeRaw: matchType,
             defaultX01StartScore: startScore,
             defaultCheckoutModeRaw: checkout,
+            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+            defaultLegFormatRaw: current.defaultLegFormatRaw,
             defaultLegsToWin: max(1, legs),
             defaultSetsEnabled: setsEnabled,
             updatedAt: Date()
@@ -116,6 +130,7 @@ final class SettingsViewModel: ObservableObject {
             try await repository.resetAllLocalData()
             activeMatchStore.clearAll()
             settings = try await repository.fetchSettings()
+            if let settings { userPreferencesStore.apply(settings) }
             state = .ready
             logger.warning(.settings, eventName: "settings_reset_all_data", message: "Reset local data path executed.")
         } catch is CancellationError {
@@ -143,6 +158,7 @@ final class SettingsViewModel: ObservableObject {
         state = .saving
         do {
             settings = try await repository.updateSettings(next)
+            userPreferencesStore.apply(settings!)
             state = .ready
         } catch is CancellationError {
             state = .ready

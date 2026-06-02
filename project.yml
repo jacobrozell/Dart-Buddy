@@ -19,6 +19,7 @@ targets:
       - path: Features
       - path: Persistence
       - path: Support
+      - path: Media.xcassets
       - path: en.lproj/Localizable.strings
         type: file
         buildPhase: resources
@@ -26,6 +27,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboard
         PRODUCT_NAME: DartsScoreboard
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: DartsScoreboard

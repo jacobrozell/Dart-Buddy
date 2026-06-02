@@ -3,6 +3,8 @@ import SwiftUI
 struct X01MatchScreen: View {
     @ObservedObject var viewModel: X01MatchViewModel
     let onShowSummary: () -> Void
+    let audio: any AudioFeedbackService
+    let haptics: any HapticsService
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -10,8 +12,8 @@ struct X01MatchScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            if let session = viewModel.session, let state = session.runtime.x01State {
-                Text(configSummary(state))
+            if let state = viewModel.x01State {
+                Text(viewModel.configSummary ?? "")
                     .font(.subheadline)
                     .foregroundStyle(Brand.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -20,22 +22,28 @@ struct X01MatchScreen: View {
 
                 ScrollView {
                     VStack(spacing: DS.Spacing.s2) {
-                        ForEach(Array(state.players.enumerated()), id: \.element.playerId) { index, player in
+                        ForEach(viewModel.playerCards) { card in
                             PlayerScoreCard(
-                                name: name(for: player.playerId, fallbackIndex: index),
-                                score: player.remainingScore,
-                                setsWon: player.setsWon,
-                                legsWon: player.legsWon,
-                                isActive: index == state.currentPlayerIndex && session.runtime.status == .inProgress,
-                                visitDarts: index == state.currentPlayerIndex ? viewModel.enteredDarts : [],
-                                dartsThrown: dartsThrown(for: player.playerId),
-                                average: average(for: player.playerId)
+                                name: card.name,
+                                score: card.score,
+                                setsWon: card.setsWon,
+                                legsWon: card.legsWon,
+                                isActive: card.isActive,
+                                visitDarts: card.visitDarts,
+                                dartsThrown: card.dartsThrown,
+                                average: card.average
                             )
                         }
                     }
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.top, DS.Spacing.s2)
                 }
+
+                checkoutBanner
+                    .padding(.horizontal, DS.Spacing.s4)
+
+                botTurnBanner
+                    .padding(.horizontal, DS.Spacing.s4)
 
                 stateBanner
                     .padding(.horizontal, DS.Spacing.s4)
@@ -45,9 +53,12 @@ struct X01MatchScreen: View {
                     selectedMultiplier: $viewModel.selectedMultiplier,
                     onUndoTurn: { runUndo() }
                 )
+                .disabled(viewModel.canHumanInput == false)
+                .opacity(viewModel.canHumanInput ? 1 : 0.45)
                 .padding(.horizontal, DS.Spacing.s3)
                 .padding(.bottom, DS.Spacing.s2)
-                .onChange(of: viewModel.enteredDarts) { _, darts in
+                .onChange(of: viewModel.enteredDarts) { old, darts in
+                    if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
                     autoSubmitIfNeeded(darts: darts, state: state)
                 }
             } else {
@@ -60,14 +71,24 @@ struct X01MatchScreen: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .alert("Leave match?", isPresented: $showExitConfirmation) {
-            Button("Stay", role: .cancel) {}
-            Button("Leave", role: .destructive) { dismiss() }
+        .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
+            Button("common.stay", role: .cancel) {}
+            Button("play.match.exit.saveAndExit") { dismiss() }
+            Button("play.match.exit.abandon", role: .destructive) {
+                actionTask?.cancel()
+                actionTask = Task {
+                    await viewModel.abandonMatch()
+                    dismiss()
+                }
+            }
         } message: {
-            Text("Your progress is saved and you can resume later.")
+            Text("play.match.exit.confirm.message")
         }
         .onChange(of: viewModel.state) { _, newValue in
-            if newValue == .matchCompleted { onShowSummary() }
+            if newValue == .matchCompleted {
+                audio.playMatchFinished()
+                onShowSummary()
+            }
         }
         .task {
             viewModel.inputMode = .dartEntry
@@ -105,6 +126,42 @@ struct X01MatchScreen: View {
     }
 
     @ViewBuilder
+    private var checkoutBanner: some View {
+        if let route = viewModel.checkoutRoute {
+            HStack(spacing: 6) {
+                Image(systemName: "target")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Brand.green)
+                Text(route.joined(separator: "  "))
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, DS.Spacing.s2)
+            .background(Brand.card, in: Capsule())
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Checkout: \(route.joined(separator: ", "))")
+            .accessibilityIdentifier("checkoutSuggestion")
+        }
+    }
+
+    @ViewBuilder
+    private var botTurnBanner: some View {
+        if viewModel.isBotPlaying || viewModel.isCurrentPlayerBot && viewModel.canHumanInput == false {
+            HStack(spacing: 8) {
+                ProgressView().tint(Brand.amber)
+                Text("Bot throwing…")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.amber)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, DS.Spacing.s2)
+        }
+    }
+
+    @ViewBuilder
     private var stateBanner: some View {
         switch viewModel.state {
         case .bustFeedback:
@@ -119,6 +176,7 @@ struct X01MatchScreen: View {
     }
 
     private func autoSubmitIfNeeded(darts: [DartInput], state: X01State) {
+        guard viewModel.canHumanInput else { return }
         guard !darts.isEmpty else { return }
         // Starting the next visit dismisses the BUST banner and re-arms scoring.
         viewModel.acknowledgeBustFeedback()
@@ -136,43 +194,9 @@ struct X01MatchScreen: View {
         actionTask = Task { await viewModel.undoLastTurn() }
     }
 
-    private func name(for playerId: UUID, fallbackIndex: Int) -> String {
-        guard let session = viewModel.session else { return "Player \(fallbackIndex + 1)" }
-        let participant = session.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-        return participant?.displayNameAtMatchStart ?? "Player \(fallbackIndex + 1)"
-    }
-
-    private func turnEvents(for playerId: UUID) -> [X01TurnEvent] {
-        guard let session = viewModel.session else { return [] }
-        return session.events.compactMap { envelope in
-            if case let .x01Turn(event) = envelope.payload, event.playerId == playerId {
-                return event
-            }
-            return nil
-        }
-    }
-
-    private func dartsThrown(for playerId: UUID) -> Int {
-        turnEvents(for: playerId).reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
-    }
-
-    private func average(for playerId: UUID) -> Double {
-        let events = turnEvents(for: playerId)
-        let darts = events.reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
-        guard darts > 0 else { return 0 }
-        let points = events.reduce(0) { $0 + $1.appliedTotal }
-        return Double(points) / Double(darts) * 3.0
-    }
-
-    private func configSummary(_ state: X01State) -> String {
-        let config = state.config
-        let checkout = config.checkoutMode == .doubleOut ? "Double Out" : "Straight Out"
-        var parts = ["\(config.startScore)", checkout]
-        if config.setsEnabled {
-            parts.append("First to \(config.setsToWin ?? 1) Set\(config.setsToWin == 1 ? "" : "s")")
-        }
-        parts.append("First to \(config.legsToWin) Leg\(config.legsToWin == 1 ? "" : "s")")
-        return parts.joined(separator: ", ")
+    private func playDartFeedback(_ dart: DartInput) {
+        if dart.isMiss { audio.playMiss() } else { audio.playHit() }
+        haptics.playImpact()
     }
 }
 

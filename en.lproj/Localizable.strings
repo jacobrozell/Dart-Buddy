@@ -181,7 +181,9 @@
 "scoring.multiplier.double.accessibility" = "Double";
 "scoring.multiplier.triple.accessibility" = "Triple";
 "play.match.exit.confirm.title" = "Leave active match?";
-"play.match.exit.confirm.message" = "Your current match will remain available to resume later.";
+"play.match.exit.confirm.message" = "Save to resume later, or abandon to discard this match.";
+"play.match.exit.saveAndExit" = "Save & Exit";
+"play.match.exit.abandon" = "Abandon Match";
 "common.stay" = "Stay";
 "common.exit" = "Exit";
 "play.setup.activeConflict.title" = "Game in Progress";

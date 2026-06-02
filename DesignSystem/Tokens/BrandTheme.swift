@@ -12,6 +12,7 @@ enum Brand {
     static let red = Color(red: 0.90, green: 0.28, blue: 0.24)
     static let amber = Color(red: 0.96, green: 0.70, blue: 0.12)
     static let orange = Color(red: 0.93, green: 0.45, blue: 0.13)
+    static let proBot = Color(red: 0.62, green: 0.38, blue: 0.98)
 
     static let key = Color(red: 0.27, green: 0.27, blue: 0.29)
 

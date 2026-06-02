@@ -15,6 +15,14 @@ enum DemoSeeder {
             await seedPlayersOnly(dependencies)
         }
 
+        if arguments.contains("-snapshot_match_cricket") {
+            await seedCricketSnapshot(dependencies)
+        }
+
+        if arguments.contains("-snapshot_match_summary") {
+            await seedSummarySnapshot(dependencies)
+        }
+
         guard arguments.contains("-seed_demo") else { return }
         do {
             let existing = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
@@ -50,6 +58,64 @@ enum DemoSeeder {
             )
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "demo_seed_failed", message: "Demo seed failed: \(error)")
+        }
+    }
+
+    /// Populates the fixed Cricket match id used by the `-snapshot_match_cricket`
+    /// launch route so the board renders with real marks/scores for screenshots.
+    private static func seedCricketSnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000002") ?? UUID()
+        let config = MatchConfigPayload.cricket(MatchConfigCricket())
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Sam", turnOrder: 1)
+        ]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .cricket,
+                config: config,
+                participants: participants
+            )
+            let turns: [[DartInput]] = [
+                [d(.triple, 20), d(.triple, 20), d(.single, 19)],   // Jacob: close 20, 1 on 19
+                [d(.triple, 19), d(.double, 18), d(.single, 17)],   // Sam: close 19, 2 on 18, 1 on 17
+                [d(.triple, 18), d(.single, 20), d(.single, 20)]    // Jacob: close 18, score on 20
+            ]
+            for darts in turns {
+                session = try MatchLifecycleService.submitCricketTurn(session: session, darts: darts)
+            }
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(.appLifecycle, eventName: "cricket_snapshot_seed_failed", message: "Cricket snapshot seed failed: \(error)")
+        }
+    }
+
+    /// Populates the fixed match id used by `-snapshot_match_summary` with a
+    /// completed X01 leg (Jacob checks out 121) so the summary screen renders
+    /// with real per-player stats for screenshots.
+    private static func seedSummarySnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000003") ?? UUID()
+        let config = MatchConfigPayload.x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut))
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Sam", turnOrder: 1)
+        ]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .x01,
+                config: config,
+                participants: participants
+            )
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 180, darts: nil)
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 100, darts: nil)
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 121, darts: nil)
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(.appLifecycle, eventName: "summary_snapshot_seed_failed", message: "Summary snapshot seed failed: \(error)")
         }
     }
 

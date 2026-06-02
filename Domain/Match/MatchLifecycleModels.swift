@@ -7,9 +7,46 @@ public enum MatchLifecycleStatus: String, Codable, Sendable {
     case abandoned
 }
 
-public enum X01CheckoutMode: String, Codable, Sendable {
+public enum X01CheckoutMode: String, Codable, CaseIterable, Sendable {
     case singleOut
     case doubleOut
+    case masterOut
+
+    public var displayName: String {
+        switch self {
+        case .singleOut: return "Straight Out"
+        case .doubleOut: return "Double Out"
+        case .masterOut: return "Master Out"
+        }
+    }
+}
+
+public enum X01CheckInMode: String, Codable, CaseIterable, Sendable {
+    case straightIn
+    case doubleIn
+    case masterIn
+
+    public var displayName: String {
+        switch self {
+        case .straightIn: return "Straight In"
+        case .doubleIn: return "Double In"
+        case .masterIn: return "Master In"
+        }
+    }
+}
+
+/// How leg/set targets are interpreted. `firstTo` plays until a player reaches
+/// the target; `bestOf` plays a fixed number where the majority wins.
+public enum X01LegFormat: String, Codable, CaseIterable, Sendable {
+    case firstTo
+    case bestOf
+
+    public var displayName: String {
+        switch self {
+        case .firstTo: return "First to"
+        case .bestOf: return "Best of"
+        }
+    }
 }
 
 public struct MatchConfigX01: Codable, Equatable, Sendable {
@@ -19,6 +56,18 @@ public struct MatchConfigX01: Codable, Equatable, Sendable {
     public let setsEnabled: Bool
     public let setsToWin: Int?
     public let checkoutMode: X01CheckoutMode
+    // Optional so payloads persisted before these existed still decode; the
+    // accessors below supply the historical defaults (straight in / first to).
+    public let checkInModeRaw: String?
+    public let legFormatRaw: String?
+
+    public var checkInMode: X01CheckInMode {
+        checkInModeRaw.flatMap(X01CheckInMode.init(rawValue:)) ?? .straightIn
+    }
+
+    public var legFormat: X01LegFormat {
+        legFormatRaw.flatMap(X01LegFormat.init(rawValue:)) ?? .firstTo
+    }
 
     public init(
         payloadVersion: Int = 1,
@@ -26,7 +75,9 @@ public struct MatchConfigX01: Codable, Equatable, Sendable {
         legsToWin: Int,
         setsEnabled: Bool,
         setsToWin: Int?,
-        checkoutMode: X01CheckoutMode
+        checkoutMode: X01CheckoutMode,
+        checkInMode: X01CheckInMode = .straightIn,
+        legFormat: X01LegFormat = .firstTo
     ) {
         self.payloadVersion = payloadVersion
         self.startScore = startScore
@@ -34,6 +85,8 @@ public struct MatchConfigX01: Codable, Equatable, Sendable {
         self.setsEnabled = setsEnabled
         self.setsToWin = setsToWin
         self.checkoutMode = checkoutMode
+        self.checkInModeRaw = checkInMode.rawValue
+        self.legFormatRaw = legFormat.rawValue
     }
 }
 
@@ -91,17 +144,27 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
     public let playerId: UUID?
     public let displayNameAtMatchStart: String
     public let turnOrder: Int
+    /// Present when this participant is a computer opponent.
+    public let botDifficultyRaw: String?
+
+    public var botDifficulty: BotDifficulty? {
+        botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
+    }
+
+    public var isBot: Bool { botDifficulty != nil }
 
     public init(
         id: UUID = UUID(),
         playerId: UUID?,
         displayNameAtMatchStart: String,
-        turnOrder: Int
+        turnOrder: Int,
+        botDifficultyRaw: String? = nil
     ) {
         self.id = id
         self.playerId = playerId
         self.displayNameAtMatchStart = displayNameAtMatchStart
         self.turnOrder = turnOrder
+        self.botDifficultyRaw = botDifficultyRaw
     }
 }
 

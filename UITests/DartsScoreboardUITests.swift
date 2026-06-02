@@ -166,13 +166,36 @@ final class DartsScoreboardUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         XCTAssertTrue(
-            app.staticTexts["Add at least two players to start a match."].waitForExistence(timeout: timeout),
+            app.staticTexts["Add at least two players or bots to start a match."].waitForExistence(timeout: timeout),
             "An empty roster should prompt the user to add players"
         )
 
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(start.waitForExistence(timeout: timeout))
         XCTAssertFalse(start.isEnabled, "START must stay disabled without two players")
+    }
+
+    // MARK: - Bot roster: human + bot can start a match
+
+    func testHumanPlusBotCanStartMatch() {
+        let app = launchApp(["-seed_players"])
+
+        app.buttons["select_Alice"].tap()
+
+        let addBot = app.buttons["Add Bot"]
+        XCTAssertTrue(addBot.waitForExistence(timeout: timeout))
+        addBot.tap()
+        app.buttons["Easy"].tap()
+
+        XCTAssertTrue(app.buttons["select_bot_easy"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["DartBot · Easy"].exists)
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.isEnabled, "START should enable with one human and one bot")
+        start.tap()
+
+        // Human goes first (Alice before bot in roster); scoring pad should appear.
+        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout + 5))
     }
 
     // MARK: - Validation: START requires two selected players

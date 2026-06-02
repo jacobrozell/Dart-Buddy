@@ -1,7 +1,7 @@
 import Foundation
 
 enum X01StartScores {
-    static let all = [301, 401, 501, 601]
+    static let all = [101, 201, 301, 401, 501, 601]
 }
 
 @MainActor
@@ -12,14 +12,24 @@ final class MatchSetupViewModel: ObservableObject {
         var id: String { rawValue }
     }
 
+    struct SetupBot: Identifiable, Equatable {
+        let id: UUID
+        let difficulty: BotDifficulty
+
+        var displayName: String { difficulty.rosterName }
+    }
+
     @Published var mode: SetupMode = .x01
     @Published var selectedPlayerIds: Set<UUID> = []
+    @Published var selectedBots: [SetupBot] = []
     @Published var availablePlayers: [PlayerSummary] = []
     @Published var x01StartScore: Int = 501
     @Published var x01LegsToWin: Int = 3
     @Published var x01SetsEnabled = false
     @Published var x01SetsToWin: Int = 1
     @Published var x01CheckoutMode: X01CheckoutMode = .doubleOut
+    @Published var x01CheckInMode: X01CheckInMode = .straightIn
+    @Published var x01LegFormat: X01LegFormat = .firstTo
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -61,7 +71,9 @@ final class MatchSetupViewModel: ObservableObject {
             x01StartScore = X01StartScores.all.contains(settings.defaultX01StartScore) ? settings.defaultX01StartScore : 501
             x01LegsToWin = max(1, settings.defaultLegsToWin)
             x01SetsEnabled = settings.defaultSetsEnabled
-            x01CheckoutMode = settings.defaultCheckoutModeRaw == X01CheckoutMode.singleOut.rawValue ? .singleOut : .doubleOut
+            x01CheckoutMode = X01CheckoutMode(rawValue: settings.defaultCheckoutModeRaw) ?? .doubleOut
+            x01CheckInMode = X01CheckInMode(rawValue: settings.defaultCheckInModeRaw) ?? .straightIn
+            x01LegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo
             mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
         } catch {
             validationErrors = ["setup.error.load"]
@@ -84,6 +96,20 @@ final class MatchSetupViewModel: ObservableObject {
         revalidate()
     }
 
+    func addBot(_ difficulty: BotDifficulty) {
+        selectedBots.append(SetupBot(id: UUID(), difficulty: difficulty))
+        revalidate()
+    }
+
+    func removeBot(_ id: UUID) {
+        selectedBots.removeAll { $0.id == id }
+        revalidate()
+    }
+
+    var selectedParticipantCount: Int {
+        selectedPlayerIds.count + selectedBots.count
+    }
+
     func updateMode(_ mode: SetupMode) {
         self.mode = mode
         revalidate()
@@ -91,7 +117,7 @@ final class MatchSetupViewModel: ObservableObject {
 
     func revalidate() {
         var errors: [String] = []
-        if selectedPlayerIds.count < 2 {
+        if selectedParticipantCount < 2 {
             errors.append("setup.validation.minimumPlayers")
         }
         if mode == .x01 {
@@ -142,15 +168,27 @@ final class MatchSetupViewModel: ObservableObject {
         guard canStart else { return nil }
         isSubmitting = true
         defer { isSubmitting = false }
-        let roster = availablePlayers.filter { selectedPlayerIds.contains($0.id) }
-        let orderedRoster = randomOrder ? roster.shuffled() : roster
+        struct RosterEntry {
+            let id: UUID
+            let name: String
+            let botDifficulty: BotDifficulty?
+        }
+
+        var rosterEntries: [RosterEntry] = availablePlayers
+            .filter { selectedPlayerIds.contains($0.id) }
+            .map { RosterEntry(id: $0.id, name: $0.name, botDifficulty: nil) }
+        rosterEntries += selectedBots.map {
+            RosterEntry(id: $0.id, name: $0.displayName, botDifficulty: $0.difficulty)
+        }
+        let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
         let selectedPlayers = orderedRoster
             .enumerated()
-            .map { index, player in
+            .map { index, entry in
                 MatchParticipant(
-                    playerId: player.id,
-                    displayNameAtMatchStart: player.name,
-                    turnOrder: index
+                    playerId: entry.id,
+                    displayNameAtMatchStart: entry.name,
+                    turnOrder: index,
+                    botDifficultyRaw: entry.botDifficulty?.rawValue
                 )
             }
         do {
@@ -164,7 +202,9 @@ final class MatchSetupViewModel: ObservableObject {
                         legsToWin: x01LegsToWin,
                         setsEnabled: x01SetsEnabled,
                         setsToWin: x01SetsEnabled ? x01SetsToWin : nil,
-                        checkoutMode: x01CheckoutMode
+                        checkoutMode: x01CheckoutMode,
+                        checkInMode: x01CheckInMode,
+                        legFormat: x01LegFormat
                     )
                 )
             } else {
@@ -210,6 +250,7 @@ final class MatchSetupViewModel: ObservableObject {
                 snapshotPayload: session.latestSnapshot.payload
             )
             activeMatchStore.save(session)
+            await persistLastUsedSetup()
             return route
         } catch is CancellationError {
             return nil
@@ -221,5 +262,24 @@ final class MatchSetupViewModel: ObservableObject {
             }
             return nil
         }
+    }
+
+    private func persistLastUsedSetup() async {
+        guard let settings = try? await settingsRepository.fetchSettings() else { return }
+        let next = SettingsSummary(
+            id: settings.id,
+            appearanceModeRaw: settings.appearanceModeRaw,
+            hapticsEnabled: settings.hapticsEnabled,
+            soundEnabled: settings.soundEnabled,
+            defaultMatchTypeRaw: mode == .x01 ? MatchType.x01.rawValue : MatchType.cricket.rawValue,
+            defaultX01StartScore: x01StartScore,
+            defaultCheckoutModeRaw: x01CheckoutMode.rawValue,
+            defaultCheckInModeRaw: x01CheckInMode.rawValue,
+            defaultLegFormatRaw: x01LegFormat.rawValue,
+            defaultLegsToWin: x01LegsToWin,
+            defaultSetsEnabled: x01SetsEnabled,
+            updatedAt: Date()
+        )
+        _ = try? await settingsRepository.updateSettings(next)
     }
 }

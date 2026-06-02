@@ -6,76 +6,199 @@ Status legend: `[x]` done · `[ ]` todo · `[~]` partial
 
 ---
 
-## Done so far
-- [x] Dark brand theme (black surfaces, green/red/amber accents), forced dark mode
-- [x] Home/setup board: X01/Cricket pill, config chips, red START, player list, random order
-- [x] X01 match board: player cards (active bar, big score, 3 dart boxes + visit total, sets/legs/darts/avg)
-- [x] Per-dart number pad (1–25, DOUBLE/TRIPLE/0/undo) with auto-submit on 3 darts / checkout
-- [x] X01 start scores 301 / 401 / 501 / 601
-- [x] Statistics tab (Games / Wins / Win% with X01-Cricket + Today/7d/30d/All-time filters)
-- [x] All Games list (dark cards, FINISHED badge, config line, per-player sets/legs/score)
-- [x] Game Statistics detail (result card + Throws table with Double%/Triple% + turn timeline)
-- [x] Players list restyle (dart icons, dark)
-- [x] 5-tab shell in reference order (Home / Players / Statistics / All Games / Settings)
-- [x] XCUITest target + tests for key paths (tabs, start+score, resume, undo)
-- [x] Local MCP config (XcodeBuildMCP + ios-simulator) for build/run/UI automation
+## Full code review audit (2026-06-01)
+
+Senior iOS / feature-set review. Items are ranked **impact → effort** unless noted.
+
+### P0 — User-visible bugs / broken settings
+
+- [x] **Honor appearance setting** — `MainTabView` reads `UserPreferencesStore.preferredColorScheme` from settings; theme picker applies live via `SettingsViewModel`.
+- [x] **Honor haptics & sound toggles** — `GatedHapticsService` / `GatedAudioFeedbackService` wrap real services and respect `FeedbackPreferences` synced from settings.
+- [x] **Settings defaults ↔ setup round-trip** — `MatchSetupViewModel` restores all checkout/check-in/leg-format modes from settings and persists last-used setup on match start.
+- [x] **Unify X01 exit copy / localization** — `X01MatchScreen` uses `play.match.exit.*` / `common.stay` keys like Cricket.
+
+### P1 — Architecture & maintainability
+
+- [ ] **Split `PlayRootView.swift` (~800 lines)** — Contains setup home, quick-add, Cricket screen, match summary. Extract to match `X01MatchScreen.swift` (already split).
+- [x] **Remove or wire dead UI: `ScoringInputPad.swift`** — Deleted; `ScoringInputMode` enum lives in `X01MatchViewModel`.
+- [x] **Remove dead code: `isSnapshotPreviewMode`** — Removed from `CricketMatchScreen`.
+- [x] **Document active-match contract** — Doc comment on `ActiveMatchStore` clarifies DB resume vs in-memory cache.
+
+### P2 — Data model & bots
+
+- [ ] **Persist `botDifficultyRaw` on match participants** — Lives in `MatchParticipant` / snapshot payload only; `SchemaV1.MatchParticipantRecord` has no column. Resume relies entirely on snapshot JSON; DB participant rows cannot reconstruct bot tier if snapshot is missing/corrupt.
+- [ ] **Bot identity in stats** — Bots use ephemeral `SetupBot.id` as `playerId`; may create orphan stat keys separate from `PlayerRecord`. Decide: exclude bots from player aggregates or use stable bot pseudo-IDs.
+- [ ] **Replace-active-match deletes DB row** — `confirmReplaceActiveMatch` calls `deleteMatch`, not `abandon`. Destructive vs “leave incomplete game”; align with product intent.
+
+### P3 — History & statistics
+
+- [ ] **Wire or remove `HistoryListViewModel` filters** — `dateFilter` and `playerFilter` filter in VM but `HistoryRootView` only exposes mode. `playerFilter` matches `winnerPlayerId` only (wrong for “games involving player X”).
+- [ ] **Statistics load performance** — `StatisticsViewModel`, `PlayerDetailViewModel`, and similar paths fetch up to **1000** history rows + per-match `fetchEvents`. Add pagination or repository-level aggregates before large histories.
+- [ ] **Statistics loading UI** — `isLoading` exists but `StatisticsRootView` shows empty state without spinner (flash of “no data”).
+- [ ] **Cricket MPR in Statistics** — Not surfaced; reference app shows marks-per-round for cricket.
+
+### P4 — UI / UX / accessibility
+
+- [ ] **iPad / landscape layouts** — X01 board portrait-tuned; Cricket has `contentMaxWidth` on regular size class only.
+- [ ] **Accessibility pass** — Sparse VoiceOver on score cards; X01 header back/undo buttons are **40×40** (spec: ≥44pt gameplay controls). Cricket grid cells need labels.
+- [ ] **Localize hardcoded strings** — Home, History, Statistics, Match Summary, X01 exit, game detail delete copy still English inline (Players/Settings use `L10n` / keys).
+- [ ] **Settings gameplay defaults UI** — Schema stores checkout/legs/sets/start score; Settings UI only exposes default **mode** (X01 vs Cricket). Expose or stop persisting unused fields.
+
+### P5 — Testing gaps
+
+- [ ] **`StatisticsViewModel` unit tests** — Aggregation, period cutoff, mode filter, empty state.
+- [ ] **`HistoryListViewModel` tests** — Date filter, player filter (once fixed), error/empty, config line decoding.
+- [ ] **`SettingsViewModel` tests** — Load/save, reset, appearance/feedback mutations, error keys.
+- [ ] **`MatchSummaryViewModel` tests** — Winner rows, stats labels; store-only data path (no repository fallback).
+- [ ] **`MigrationRecoveryViewModel` tests** — Retry/reset flows.
+- [ ] **Abandon + resume integration** — Lifecycle unit test exists; add VM test: abandoned match not offered on Play home.
+- [ ] **UI tests** — Checkout banner, Cricket tap grid, match summary, settings feedback toggles, abandon vs save & exit.
+- [ ] **Repository contract tests** — `specs/RepositorySpec.md` calls for per-repo contract tests; only in-memory fakes in feature tests today.
+
+### P6 — Polish / performance
+
+- [x] **Retain UIKit haptic generators** — `SystemHapticsService` retains and re-prepares generators per tap.
+- [ ] **SwiftData: new `ModelContext` per repository call** — Works via actor isolation; profile under heavy scoring if writes feel sluggish.
+- [ ] **`MatchSummaryViewModel` repository fallback** — Summary reads `ActiveMatchStore` only; deep link / cold path to summary route may show empty without store session.
 
 ---
 
-## High priority — core parity
+## Auth / login (deferred by design)
+
+- [x] **No login in 1.0** — Local-first SwiftData; bootstrap has no auth (`AppBootstrapper`, `DartsScoreboardApp`).
+- [ ] **Firebase Auth (Phase 2+)** — Per `specs/FirebaseBackendAnalyticsSpec.md`: anonymous first, behind repository interfaces; engines stay Firebase-agnostic.
+
+---
+
+## Code-review improvements (prioritized 2026-06) — shipped
+
+1. [x] **Cricket tap-to-mark grid board** — `CricketBoardView` + `CricketTapPad`; `-snapshot_match_cricket` route.
+2. [x] **Mid-match exit → `abandoned`** — `MatchLifecycleService.abandon`; Save & Exit vs Abandon; unit tests.
+3. [x] **X01 checkout suggestions** — `CheckoutSuggester` + board banner; unit tests incl. 2–170 sweep.
+4. [x] **Win celebration + richer Match Summary** — Trophy, stat cards, `-snapshot_match_summary`.
+5. [x] **Setup chips** — Master Out/In, First to / Best of; engine + tests.
+6. [x] **Real haptics/audio** — `SystemHapticsService` + `BundledAudioFeedbackService` (see P0: settings toggles not honored yet).
+
+---
+
+## Done so far
+
+- [x] Dark brand theme (black surfaces, green/red/amber accents)
+- [x] Home/setup board: X01/Cricket pill, config chips, red START, player list, random order, Add Bot menu
+- [x] X01 match board: player cards, per-dart pad, auto-submit, checkout banner
+- [x] Cricket marks grid + tap-to-mark pad
+- [x] X01 start scores 301 / 401 / 501 / 601 (+ 101 / 201 in engine list)
+- [x] Statistics tab (X01/Cricket + period filters, tables + charts)
+- [x] All Games list + Game Statistics detail + **delete match** (detail screen)
+- [x] Players list + detail + edit
+- [x] 5-tab shell (Home / Players / Statistics / All Games / Settings)
+- [x] XCUITest target (tabs, start+score, resume, undo, bots, delete game, player detail)
+- [x] DartBot engine + difficulties + integration / long-term simulation tests
+- [x] Local MCP config (XcodeBuildMCP + ios-simulator)
+- [x] Migration recovery path
+
+---
+
+## High priority — core parity (reference app)
 
 ### Cricket
-- [ ] Cricket match board as a marks grid (15–20 + Bull columns per player, slash/circle marks)
-- [ ] Tap-to-mark input (tap number to add a mark) instead of the X01-style pad
-- [ ] Cricket-specific setup options (e.g. Cut Throat variant)
-- [ ] Cricket stats: MPR (marks per round), cricket Wins in Statistics tab
+
+- [x] Cricket match board (marks grid 15–20 + Bull)
+- [x] Tap-to-mark input
+- [ ] Cricket-specific setup (e.g. Cut Throat)
+- [ ] Cricket stats: MPR, cricket-specific wins column in Statistics
 
 ### Game flow polish
-- [ ] Checkout suggestion line on the board when a player is on a finish (≤170, valid out)
-- [ ] Win / leg-won celebration + improved Match Summary screen (winner, averages, "New Match")
-- [ ] Handle exit mid-match → mark as `abandoned` (currently stays `inProgress`)
-- [ ] Per-dart bust feedback + leg/set transition animations
+
+- [x] Checkout suggestion on board
+- [x] Win / match summary celebration
+- [x] Exit mid-match → `abandoned`
+- [ ] Per-dart bust feedback animation + leg/set transition animations
 
 ### Statistics & history depth
-- [ ] Statistics: Legs table (Legs / Legs won / Legs win%) + 3-dart average column
+
+- [~] Statistics tables (Games, Avg, Legs/Checkout, Points, Throws, sector chart) — present; legs win% / player filter missing
 - [ ] Statistics: filter by individual player
-- [ ] Game Statistics detail: per-player hit-distribution bar charts (0–25, D, T) like the reference
-- [ ] All Games: delete a game (swipe / trash) — needs a `deleteMatch` repository method
-- [ ] All Games: "Best of / First to" + check-in/out in the config summary line
+- [~] Game detail hit-distribution charts — sector chart exists; per-player bars like reference TBD
+- [x] All Games: delete a game (`deleteMatch` + detail confirm)
+- [x] All Games: config summary includes check-in/out, best-of/first-to (via snapshot decode in `HistoryListViewModel`)
 
 ---
 
 ## Medium priority — setup & options
-- [ ] Check-In modes: Straight In / Double In / Master In (engine + setup chip) — currently static "Straight In"
-- [ ] Master Out checkout option (engine + setup) — currently Straight/Double only
-- [ ] "First to" vs "Best of" for sets/legs (engine + setup chip) — currently static "First to"
-- [ ] Persist last-used setup as defaults (wire Settings defaults ↔ setup screen both ways)
-- [ ] Player reordering (drag handle) and remove-from-match on the setup roster
-- [ ] Player avatars / colors (bot vs human styling)
+
+- [x] Check-In modes (Straight / Double / Master In)
+- [x] Master Out checkout
+- [x] First to vs Best of sets/legs
+- [x] Persist last-used setup ↔ Settings — round-trip for mode, start score, checkout, check-in, leg format, legs, sets-enabled
+- [ ] Player reordering on setup roster + remove-from-match
+- [ ] Player avatars / colors (bot vs human)
 
 ---
 
-## Larger features (reference has these)
-- [ ] Bot opponent ("DartBot") with selectable difficulty
-- [ ] AI camera auto-scoring (large — needs Vision/camera pipeline)
-- [ ] External display / AirPlay scoreboard mode (TV as scoreboard)
-- [ ] Voice caller ("One hundred and eighty!") + sound effects (wire up real Haptics/Audio services; currently no-ops)
+## Larger features (reference / post-1.0)
+
+- [x] Bot opponent (DartBot + Easy/Medium/Hard/Pro)
+- [ ] AI camera auto-scoring (Vision pipeline)
+- [ ] External display / AirPlay scoreboard
+- [ ] Voice caller (“One hundred and eighty!”) beyond current SFX
 
 ---
 
 ## Quality & polish
-- [ ] Localize new English strings (Statistics/All Games/board) via `Localizable.strings`
-- [ ] VoiceOver labels + Dynamic Type passes on the new screens
-- [ ] iPad / landscape layouts for board, setup, stats (board is portrait-tuned today)
-- [ ] App icon: pick a candidate from `assets/app-icons/` and add an asset catalog
-- [ ] Settings screen parity with reference + apply appearance preference (currently forced dark)
+
+- [ ] Localize remaining English strings (`Localizable.strings`)
+- [ ] VoiceOver + Dynamic Type on board, setup, stats
+- [ ] iPad / landscape (see P4)
+- [ ] App icon finalization (`Media.xcassets` / `assets/app-icons/`)
+- [x] Apply appearance preference — `UserPreferencesStore` at app root
+
+---
 
 ## Testing
-- [ ] UI test: full checkout → winner → summary flow
-- [ ] UI test: Cricket game once the grid board exists
-- [ ] Unit tests: `StatisticsViewModel` aggregation + `HistoryListViewModel` standings/config decoding
-- [ ] Snapshot tests for the new dark screens (light/dark, iPhone/iPad)
+
+- [x] Unit: engines, lifecycle, checkout, DartBot, core ViewModels (Play home, setup, X01, Cricket)
+- [x] UI: tab navigation, start/score, resume, undo, bots, delete game
+- [ ] UI: full checkout → winner → summary
+- [ ] UI: Cricket grid scoring path
+- [ ] Unit: `StatisticsViewModel`, `HistoryListViewModel`, `SettingsViewModel`, `MatchSummaryViewModel`
+- [ ] Snapshot tests (light/dark, iPhone/iPad) — optional post UI lock
+
+---
 
 ## Housekeeping
-- [ ] Decide whether to keep the `-seed_demo` / `-seed_players` launch hooks (debug-only) long term
-- [ ] Add `tmp/` (MCP screenshot output) to `.gitignore`
+
+- [ ] Reconcile `todo.md` with git status when editing (avoid stale “not done” items)
+- [ ] Decide long-term fate of `-seed_demo` / `-seed_players` / `-snapshot_*` launch arguments (debug vs release)
+- [x] `tmp/` in `.gitignore` (MCP screenshots)
+- [ ] `DartsScoreboard.xcodeproj/` is gitignored (XcodeGen); ensure team uses `xcodegen generate` — do not commit user state (`xcuserstate`)
+- [ ] Online play / Firebase runtime SDKs — deferred per roadmap (`specs/OnlinePlaySpec.md`, `FirebaseBackendAnalyticsSpec.md`)
+
+---
+
+## Second-pass findings (2026-06-01 scan)
+
+Issues found on re-scan beyond the first audit:
+
+- [x] **`ScoringInputPad.swift` is orphaned** — Deleted; enum moved to `X01MatchViewModel`.
+- [ ] **`botDifficultyRaw` not in SwiftData participant schema** — Bot tier only in snapshot `MatchRuntimeState`; DB participant rows incomplete for rehydrate alternatives.
+- [ ] **Settings UI vs schema mismatch** — Checkout/legs/start score defaults stored but not editable in Settings (only match type).
+- [ ] **`HistoryListViewModel.dateFilter` / `playerFilter` dead** — Implemented, not bound to UI; player filter logic incorrect for future use.
+- [ ] **`MatchSummaryViewModel` store-only** — No reload from `matchRepository` if `ActiveMatchStore` cleared.
+- [ ] **`confirmReplaceActiveMatch` uses `deleteMatch`** — Data loss vs abandon semantics (see P2).
+- [ ] **Bot ephemeral UUIDs in stats** — May pollute player-level statistics (see P2).
+- [ ] **No `SettingsViewModel` / `MigrationRecoveryViewModel` tests**
+- [ ] **Repository contract tests missing** — Per `RepositorySpec.md`
+- [ ] **`try!` in test helpers only** — Acceptable in tests; avoid in app code (currently clean)
+- [ ] **Forced dark mode duplicates “done” and open work** — Resolved: appearance setting is honored at app root.
+
+---
+
+## What’s in good shape (no action required)
+
+- Clean layering: engines → `MatchLifecycleService` → repositories
+- Abandoned matches excluded from history (`fetchHistory` = completed only)
+- Resume via snapshots + tail events; `PlayHome` uses DB active match
+- Strong engine + bot test coverage including long-term simulations
+- Migration recovery + bootstrap error handling
+- UI test baseline for primary flows

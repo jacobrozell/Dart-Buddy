@@ -10,6 +10,7 @@ public struct AppDependencies {
     public let settingsRepository: any SettingsRepository
     public let hapticsService: any HapticsService
     public let audioFeedbackService: any AudioFeedbackService
+    public let userPreferencesStore: UserPreferencesStore
     public let activeMatchStore: ActiveMatchStore
     public let pendingMatchPlayerSelections: PendingMatchPlayerSelections
 
@@ -22,6 +23,7 @@ public struct AppDependencies {
         settingsRepository: any SettingsRepository,
         hapticsService: any HapticsService,
         audioFeedbackService: any AudioFeedbackService,
+        userPreferencesStore: UserPreferencesStore,
         activeMatchStore: ActiveMatchStore,
         pendingMatchPlayerSelections: PendingMatchPlayerSelections
     ) {
@@ -33,6 +35,7 @@ public struct AppDependencies {
         self.settingsRepository = settingsRepository
         self.hapticsService = hapticsService
         self.audioFeedbackService = audioFeedbackService
+        self.userPreferencesStore = userPreferencesStore
         self.activeMatchStore = activeMatchStore
         self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
     }

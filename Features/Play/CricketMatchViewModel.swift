@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 @MainActor
 final class CricketMatchViewModel: ObservableObject {
@@ -15,6 +15,7 @@ final class CricketMatchViewModel: ObservableObject {
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
     @Published private(set) var session: MatchLifecycleSession?
+    @Published private(set) var isBotPlaying = false
 
     private let matchId: UUID
     private let store: ActiveMatchStore
@@ -37,7 +38,48 @@ final class CricketMatchViewModel: ObservableObject {
         self.session = store.session(for: matchId)
     }
 
-    var canSubmit: Bool { !enteredDarts.isEmpty }
+    var canSubmit: Bool { !enteredDarts.isEmpty && canHumanInput }
+
+    var isCurrentPlayerBot: Bool {
+        currentBotDifficulty != nil
+    }
+
+    var canHumanInput: Bool {
+        isCurrentPlayerBot == false && isBotPlaying == false && state == .readyTurn
+    }
+
+    var currentBotDifficulty: BotDifficulty? {
+        guard let session, let cricketState = session.runtime.cricketState else { return nil }
+        guard session.runtime.status == .inProgress else { return nil }
+        let player = cricketState.players[cricketState.currentPlayerIndex]
+        return DartBotEngine.botDifficulty(
+            playerId: player.playerId,
+            in: session.runtime.participants
+        )
+    }
+
+    // MARK: - Presentation
+
+    var cricketState: CricketState? { session?.runtime.cricketState }
+
+    var boardColumns: [CricketBoardView.Column] {
+        guard let session, let state = session.runtime.cricketState else { return [] }
+        let isInProgress = session.runtime.status == .inProgress
+        return state.players.enumerated().map { index, player in
+            CricketBoardView.Column(
+                id: player.playerId,
+                name: name(for: player.playerId, fallbackIndex: index),
+                score: player.score,
+                marks: player.marks,
+                isActive: index == state.currentPlayerIndex && isInProgress
+            )
+        }
+    }
+
+    private func name(for playerId: UUID, fallbackIndex: Int) -> String {
+        let participant = session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
+        return participant?.displayNameAtMatchStart ?? "Player \(fallbackIndex + 1)"
+    }
 
     func submitTurn() async {
         await submitTurnAsync()
@@ -49,6 +91,54 @@ final class CricketMatchViewModel: ObservableObject {
 
     func onAppear() async {
         await loadSessionIfNeeded()
+        await playBotTurnIfNeeded()
+    }
+
+    func playBotTurnIfNeeded() async {
+        guard let difficulty = currentBotDifficulty,
+              state == .readyTurn,
+              isBotPlaying == false,
+              let cricketState = session?.runtime.cricketState else { return }
+
+        isBotPlaying = true
+
+        enteredDarts.removeAll()
+        var rng = SystemRandomNumberGenerator()
+        let plannedDarts = DartBotEngine.generateCricketTurn(
+            state: cricketState,
+            playerIndex: cricketState.currentPlayerIndex,
+            difficulty: difficulty,
+            rng: &rng
+        )
+
+        for dart in plannedDarts {
+            try? await Task.sleep(nanoseconds: 650_000_000)
+            enteredDarts.append(dart)
+        }
+
+        try? await Task.sleep(nanoseconds: 350_000_000)
+        isBotPlaying = false
+        await submitTurnAsync()
+    }
+
+    /// Marks the match abandoned when the player leaves mid-match so it stops
+    /// appearing as resumable. Completed matches are left untouched.
+    func abandonMatch() async {
+        await loadSessionIfNeeded()
+        guard let current = session, current.runtime.status == .inProgress else { return }
+        do {
+            let abandoned = try MatchLifecycleService.abandon(session: current)
+            try await matchRepository.updateMatch(matchSummary(from: abandoned.runtime))
+            _ = try await matchRepository.saveSnapshot(
+                matchId: matchId,
+                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
+                snapshotPayload: abandoned.latestSnapshot.payload
+            )
+            store.remove(matchId: matchId)
+            session = abandoned
+        } catch {
+            logger.error(.appLifecycle, eventName: "cricket_abandon_failed", message: "Abandon failed: \(error)")
+        }
     }
 
     private func submitTurnAsync() async {
@@ -94,6 +184,11 @@ final class CricketMatchViewModel: ObservableObject {
                 state = .matchCompleted
             } else {
                 state = .closureTransition
+                try? await Task.sleep(nanoseconds: 350_000_000)
+                state = .readyTurn
+                if current.runtime.status != .completed {
+                    await playBotTurnIfNeeded()
+                }
             }
             enteredDarts.removeAll()
         }

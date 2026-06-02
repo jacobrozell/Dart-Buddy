@@ -1,5 +1,10 @@
 import Foundation
 
+enum ScoringInputMode {
+    case totalEntry
+    case dartEntry
+}
+
 @MainActor
 final class X01MatchViewModel: ObservableObject {
     enum State: Equatable {
@@ -17,6 +22,7 @@ final class X01MatchViewModel: ObservableObject {
     @Published var enteredDarts: [DartInput] = []
     @Published var totalEntryText = ""
     @Published private(set) var session: MatchLifecycleSession?
+    @Published private(set) var isBotPlaying = false
 
     private let matchId: UUID
     private let store: ActiveMatchStore
@@ -49,6 +55,117 @@ final class X01MatchViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Presentation
+
+    struct PlayerCard: Identifiable {
+        let id: UUID
+        let name: String
+        let score: Int
+        let setsWon: Int
+        let legsWon: Int
+        let isActive: Bool
+        let visitDarts: [DartInput]
+        let dartsThrown: Int
+        let average: Double
+    }
+
+    var x01State: X01State? { session?.runtime.x01State }
+
+    var playerCards: [PlayerCard] {
+        guard let session, let state = session.runtime.x01State else { return [] }
+        let isInProgress = session.runtime.status == .inProgress
+        return state.players.enumerated().map { index, player in
+            let isActive = index == state.currentPlayerIndex && isInProgress
+            return PlayerCard(
+                id: player.playerId,
+                name: name(for: player.playerId, fallbackIndex: index),
+                score: player.remainingScore,
+                setsWon: player.setsWon,
+                legsWon: player.legsWon,
+                isActive: isActive,
+                visitDarts: index == state.currentPlayerIndex ? enteredDarts : [],
+                dartsThrown: dartsThrown(for: player.playerId),
+                average: average(for: player.playerId)
+            )
+        }
+    }
+
+    /// Checkout route for the active player, shown only when a turn is armed and
+    /// the match is still in progress.
+    var checkoutRoute: [String]? {
+        guard state == .readyTurn,
+              isBotPlaying == false,
+              let x01State = session?.runtime.x01State,
+              x01State.winnerPlayerId == nil else { return nil }
+        let player = x01State.players[x01State.currentPlayerIndex]
+        let dartsLeft = max(1, 3 - enteredDarts.count)
+        return CheckoutSuggester.suggestion(
+            remaining: player.remainingScore,
+            mode: x01State.config.checkoutMode,
+            dartsAvailable: dartsLeft
+        )
+    }
+
+    var configSummary: String? {
+        guard let config = session?.runtime.x01State?.config else { return nil }
+        var parts = ["\(config.startScore)", config.checkoutMode.displayName]
+        if config.checkInMode != .straightIn {
+            parts.append(config.checkInMode.displayName)
+        }
+        let format = config.legFormat.displayName
+        if config.setsEnabled {
+            let sets = config.setsToWin ?? 1
+            parts.append("\(format) \(sets) Set\(sets == 1 ? "" : "s")")
+        }
+        parts.append("\(format) \(config.legsToWin) Leg\(config.legsToWin == 1 ? "" : "s")")
+        return parts.joined(separator: ", ")
+    }
+
+    var isCurrentPlayerBot: Bool {
+        currentBotDifficulty != nil
+    }
+
+    var canHumanInput: Bool {
+        isCurrentPlayerBot == false && isBotPlaying == false && state == .readyTurn
+    }
+
+    var currentBotDifficulty: BotDifficulty? {
+        guard let session, let x01State = session.runtime.x01State else { return nil }
+        guard session.runtime.status == .inProgress else { return nil }
+        let player = x01State.players[x01State.currentPlayerIndex]
+        return DartBotEngine.botDifficulty(
+            playerId: player.playerId,
+            in: session.runtime.participants
+        )
+    }
+
+    private func name(for playerId: UUID, fallbackIndex: Int) -> String {
+        let participant = session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
+        return participant?.displayNameAtMatchStart ?? "Player \(fallbackIndex + 1)"
+    }
+
+    private func turnEvents(for playerId: UUID) -> [X01TurnEvent] {
+        guard let session else { return [] }
+        return session.events.compactMap { envelope in
+            if case let .x01Turn(event) = envelope.payload, event.playerId == playerId {
+                return event
+            }
+            return nil
+        }
+    }
+
+    private func dartsThrown(for playerId: UUID) -> Int {
+        turnEvents(for: playerId).reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
+    }
+
+    private func average(for playerId: UUID) -> Double {
+        let events = turnEvents(for: playerId)
+        let darts = events.reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
+        guard darts > 0 else { return 0 }
+        let points = events.reduce(0) { $0 + $1.appliedTotal }
+        return Double(points) / Double(darts) * 3.0
+    }
+
     func submitTurn() async {
         await submitTurnAsync()
     }
@@ -59,6 +176,61 @@ final class X01MatchViewModel: ObservableObject {
 
     func onAppear() async {
         await loadSessionIfNeeded()
+        await playBotTurnIfNeeded()
+    }
+
+    /// Generates and submits a bot visit when it is the bot's turn.
+    func playBotTurnIfNeeded() async {
+        guard let difficulty = currentBotDifficulty,
+              state == .readyTurn || state == .bustFeedback,
+              isBotPlaying == false,
+              let x01State = session?.runtime.x01State else { return }
+
+        if state == .bustFeedback { acknowledgeBustFeedback() }
+        isBotPlaying = true
+
+        enteredDarts.removeAll()
+        totalEntryText = ""
+
+        let player = x01State.players[x01State.currentPlayerIndex]
+        var rng = SystemRandomNumberGenerator()
+        let plannedDarts = DartBotEngine.generateX01Turn(
+            remaining: player.remainingScore,
+            difficulty: difficulty,
+            checkoutMode: x01State.config.checkoutMode,
+            checkInMode: x01State.config.checkInMode,
+            isCheckedIn: player.isCheckedIn,
+            rng: &rng
+        )
+
+        for dart in plannedDarts {
+            try? await Task.sleep(nanoseconds: 650_000_000)
+            enteredDarts.append(dart)
+        }
+
+        try? await Task.sleep(nanoseconds: 350_000_000)
+        isBotPlaying = false
+        await submitTurnAsync()
+    }
+
+    /// Marks the match abandoned when the player leaves mid-match so it stops
+    /// appearing as resumable. Completed matches are left untouched.
+    func abandonMatch() async {
+        await loadSessionIfNeeded()
+        guard let current = session, current.runtime.status == .inProgress else { return }
+        do {
+            let abandoned = try MatchLifecycleService.abandon(session: current)
+            try await matchRepository.updateMatch(matchSummary(from: abandoned.runtime))
+            _ = try await matchRepository.saveSnapshot(
+                matchId: matchId,
+                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
+                snapshotPayload: abandoned.latestSnapshot.payload
+            )
+            store.remove(matchId: matchId)
+            session = abandoned
+        } catch {
+            logger.error(.appLifecycle, eventName: "x01_abandon_failed", message: "Abandon failed: \(error)")
+        }
     }
 
     /// Clears the transient bust banner so the next visit can be scored.
@@ -122,6 +294,9 @@ final class X01MatchViewModel: ObservableObject {
             }
             enteredDarts.removeAll()
             totalEntryText = ""
+            if current.runtime.status != .completed {
+                await playBotTurnIfNeeded()
+            }
         }
     }
 

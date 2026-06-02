@@ -17,7 +17,8 @@ struct SettingsRootView: View {
             wrappedValue: SettingsViewModel(
                 repository: dependencies.settingsRepository,
                 logger: dependencies.logger,
-                activeMatchStore: dependencies.activeMatchStore
+                activeMatchStore: dependencies.activeMatchStore,
+                userPreferencesStore: dependencies.userPreferencesStore
             )
         )
     }

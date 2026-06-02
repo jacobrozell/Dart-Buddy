@@ -155,12 +155,16 @@ final class HistoryListViewModel: ObservableObject {
         }
 
         if let state = runtime.x01State {
-            let checkout = state.config.checkoutMode == .doubleOut ? "Double Out" : "Straight Out"
-            var configParts = ["\(state.config.startScore)", checkout]
-            if state.config.setsEnabled {
-                configParts.append("First to \(state.config.setsToWin ?? 1) Set\(state.config.setsToWin == 1 ? "" : "s")")
+            var configParts = ["\(state.config.startScore)", state.config.checkoutMode.displayName]
+            if state.config.checkInMode != .straightIn {
+                configParts.append(state.config.checkInMode.displayName)
             }
-            configParts.append("First to \(state.config.legsToWin) Leg\(state.config.legsToWin == 1 ? "" : "s")")
+            let format = state.config.legFormat.displayName
+            if state.config.setsEnabled {
+                let sets = state.config.setsToWin ?? 1
+                configParts.append("\(format) \(sets) Set\(sets == 1 ? "" : "s")")
+            }
+            configParts.append("\(format) \(state.config.legsToWin) Leg\(state.config.legsToWin == 1 ? "" : "s")")
             let configText = "X01 (\(configParts.joined(separator: ", ")))"
             let standings = state.players.map { player in
                 HistoryStanding(
@@ -361,12 +365,16 @@ final class HistoryDetailViewModel: ObservableObject {
         if let snapshot = try? await matchRepository.fetchLatestSnapshot(matchId: match.id),
            let runtime = try? CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.snapshotPayload) {
             if let s = runtime.x01State {
-                let checkout = s.config.checkoutMode == .doubleOut ? "Double Out" : "Straight Out"
-                var parts = ["\(s.config.startScore)", checkout]
-                if s.config.setsEnabled {
-                    parts.append("First to \(s.config.setsToWin ?? 1) Set\(s.config.setsToWin == 1 ? "" : "s")")
+                var parts = ["\(s.config.startScore)", s.config.checkoutMode.displayName]
+                if s.config.checkInMode != .straightIn {
+                    parts.append(s.config.checkInMode.displayName)
                 }
-                parts.append("First to \(s.config.legsToWin) Leg\(s.config.legsToWin == 1 ? "" : "s")")
+                let format = s.config.legFormat.displayName
+                if s.config.setsEnabled {
+                    let sets = s.config.setsToWin ?? 1
+                    parts.append("\(format) \(sets) Set\(sets == 1 ? "" : "s")")
+                }
+                parts.append("\(format) \(s.config.legsToWin) Leg\(s.config.legsToWin == 1 ? "" : "s")")
                 configText = "X01 (\(parts.joined(separator: ", ")))"
                 standings = sortStandings(s.players.map {
                     HistoryStanding(id: $0.playerId, name: participantNames[$0.playerId] ?? "Player", isWinner: $0.playerId == runtime.winnerPlayerId, sets: $0.setsWon, legs: $0.legsWon, score: $0.remainingScore)

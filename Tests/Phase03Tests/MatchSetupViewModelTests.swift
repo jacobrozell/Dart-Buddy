@@ -164,6 +164,8 @@ private actor FakeSettingsRepository: SettingsRepository {
         defaultMatchTypeRaw: "x01",
         defaultX01StartScore: 501,
         defaultCheckoutModeRaw: "doubleOut",
+        defaultCheckInModeRaw: "straightIn",
+        defaultLegFormatRaw: "firstTo",
         defaultLegsToWin: 3,
         defaultSetsEnabled: false,
         updatedAt: Date()

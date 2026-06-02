@@ -121,6 +121,21 @@ public enum MatchLifecycleService {
         return MatchLifecycleSession(runtime: runtime, events: [], latestSnapshot: initialSnapshot)
     }
 
+    /// Marks an in-progress match as abandoned (e.g. the player left mid-match).
+    /// Completed matches are returned unchanged so we never overwrite a result.
+    public static func abandon(
+        session: MatchLifecycleSession,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard session.runtime.status == .inProgress else { return session }
+        var runtime = session.runtime
+        runtime.status = .abandoned
+        runtime.endedAt = timestamp
+        runtime.currentTurnPlayerId = nil
+        let snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
+        return MatchLifecycleSession(runtime: runtime, events: session.events, latestSnapshot: snapshot)
+    }
+
     public static func submitX01Turn(
         session: MatchLifecycleSession,
         enteredTotal: Int?,

@@ -69,6 +69,8 @@ public struct SettingsSummary: Identifiable, Equatable, Sendable {
     public let defaultMatchTypeRaw: String
     public let defaultX01StartScore: Int
     public let defaultCheckoutModeRaw: String
+    public let defaultCheckInModeRaw: String
+    public let defaultLegFormatRaw: String
     public let defaultLegsToWin: Int
     public let defaultSetsEnabled: Bool
     public let updatedAt: Date

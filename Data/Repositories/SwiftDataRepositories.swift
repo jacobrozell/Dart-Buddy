@@ -516,6 +516,8 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultMatchTypeRaw = settings.defaultMatchTypeRaw
             record.defaultX01StartScore = settings.defaultX01StartScore
             record.defaultCheckoutModeRaw = settings.defaultCheckoutModeRaw
+            record.defaultCheckInModeRaw = settings.defaultCheckInModeRaw
+            record.defaultLegFormatRaw = settings.defaultLegFormatRaw
             record.defaultLegsToWin = settings.defaultLegsToWin
             record.defaultSetsEnabled = settings.defaultSetsEnabled
             record.updatedAt = settings.updatedAt
@@ -541,6 +543,8 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultMatchTypeRaw = "x01"
             record.defaultX01StartScore = 501
             record.defaultCheckoutModeRaw = "doubleOut"
+            record.defaultCheckInModeRaw = "straightIn"
+            record.defaultLegFormatRaw = "firstTo"
             record.defaultLegsToWin = 3
             record.defaultSetsEnabled = false
             record.updatedAt = Date()
@@ -632,6 +636,8 @@ private func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
         defaultMatchTypeRaw: record.defaultMatchTypeRaw,
         defaultX01StartScore: record.defaultX01StartScore,
         defaultCheckoutModeRaw: record.defaultCheckoutModeRaw,
+        defaultCheckInModeRaw: record.defaultCheckInModeRaw.isEmpty ? "straightIn" : record.defaultCheckInModeRaw,
+        defaultLegFormatRaw: record.defaultLegFormatRaw.isEmpty ? "firstTo" : record.defaultLegFormatRaw,
         defaultLegsToWin: record.defaultLegsToWin,
         defaultSetsEnabled: record.defaultSetsEnabled,
         updatedAt: record.updatedAt

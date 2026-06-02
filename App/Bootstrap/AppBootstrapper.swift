@@ -17,9 +17,18 @@ public enum AppBootstrapper {
                 try validateSchemaInvariants(in: container)
                 return container
             }.value
-            let (activeMatchStore, pendingMatchPlayerSelections) = await MainActor.run {
-                (ActiveMatchStore(), PendingMatchPlayerSelections())
+            let (activeMatchStore, pendingMatchPlayerSelections, userPreferencesStore) = await MainActor.run {
+                (ActiveMatchStore(), PendingMatchPlayerSelections(), UserPreferencesStore())
             }
+
+            let settingsRepository = SwiftDataSettingsRepository(container: container)
+            if let initialSettings = try? await settingsRepository.seedDefaultsIfNeeded() {
+                await userPreferencesStore.apply(initialSettings)
+            }
+
+            let feedbackPreferences = userPreferencesStore.feedback
+            let baseHaptics = SystemHapticsService()
+            let baseAudio = BundledAudioFeedbackService()
 
             let dependencies = AppDependencies(
                 modelContainer: container,
@@ -27,9 +36,10 @@ public enum AppBootstrapper {
                 playerRepository: SwiftDataPlayerRepository(container: container),
                 matchRepository: SwiftDataMatchRepository(container: container),
                 statsRepository: SwiftDataStatsRepository(container: container),
-                settingsRepository: SwiftDataSettingsRepository(container: container),
-                hapticsService: NoopHapticsService(),
-                audioFeedbackService: NoopAudioFeedbackService(),
+                settingsRepository: settingsRepository,
+                hapticsService: GatedHapticsService(underlying: baseHaptics, preferences: feedbackPreferences),
+                audioFeedbackService: GatedAudioFeedbackService(underlying: baseAudio, preferences: feedbackPreferences),
+                userPreferencesStore: userPreferencesStore,
                 activeMatchStore: activeMatchStore,
                 pendingMatchPlayerSelections: pendingMatchPlayerSelections
             )

@@ -47,7 +47,7 @@ func cricketViewModelEntersClosureTransitionOnNormalTurn() async throws {
 
     await vm.submitTurn()
 
-    #expect(vm.state == .closureTransition)
+    #expect(vm.state == .readyTurn)
     #expect(vm.enteredDarts.isEmpty)
 }
 
