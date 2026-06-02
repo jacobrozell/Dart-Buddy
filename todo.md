@@ -19,7 +19,7 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 
 ### P1 — Architecture & maintainability
 
-- [ ] **Split `PlayRootView.swift` (~800 lines)** — Contains setup home, quick-add, Cricket screen, match summary. Extract to match `X01MatchScreen.swift` (already split).
+- [x] **Split `PlayRootView.swift` (~800 lines)** — Shell in `PlayRootView`; extracted `SetupHomeView`, `QuickAddPlayerScreen`, `CricketMatchScreen`, `MatchSummaryScreen`.
 - [x] **Remove or wire dead UI: `ScoringInputPad.swift`** — Deleted; `ScoringInputMode` enum lives in `X01MatchViewModel`.
 - [x] **Remove dead code: `isSnapshotPreviewMode`** — Removed from `CricketMatchScreen`.
 - [x] **Document active-match contract** — Doc comment on `ActiveMatchStore` clarifies DB resume vs in-memory cache.
@@ -48,7 +48,7 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 
 - [ ] **`StatisticsViewModel` unit tests** — Aggregation, period cutoff, mode filter, empty state.
 - [ ] **`HistoryListViewModel` tests** — Date filter, player filter (once fixed), error/empty, config line decoding.
-- [ ] **`SettingsViewModel` tests** — Load/save, reset, appearance/feedback mutations, error keys.
+- [x] **`SettingsViewModel` tests** — Load/save, reset, appearance/feedback mutations, error keys.
 - [ ] **`MatchSummaryViewModel` tests** — Winner rows, stats labels; store-only data path (no repository fallback).
 - [ ] **`MigrationRecoveryViewModel` tests** — Retry/reset flows.
 - [x] **Abandon + resume integration** — `playHomeDoesNotOfferAbandonedMatch` VM test added.
@@ -161,7 +161,8 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 - [x] UI: tab navigation, start/score, resume, undo, bots, delete game
 - [ ] UI: full checkout → winner → summary
 - [ ] UI: Cricket grid scoring path
-- [ ] Unit: `StatisticsViewModel`, `HistoryListViewModel`, `SettingsViewModel`, `MatchSummaryViewModel`
+- [x] Unit: `SettingsViewModel`
+- [ ] Unit: `StatisticsViewModel`, `HistoryListViewModel`, `MatchSummaryViewModel`
 - [ ] Snapshot tests (light/dark, iPhone/iPad) — optional post UI lock
 
 ---
@@ -187,7 +188,7 @@ Issues found on re-scan beyond the first audit:
 - [ ] **`MatchSummaryViewModel` store-only** — No reload from `matchRepository` if `ActiveMatchStore` cleared.
 - [x] **`confirmReplaceActiveMatch` uses `deleteMatch`** — Now abandons in place.
 - [ ] **Bot ephemeral UUIDs in stats** — May pollute player-level statistics (see P2).
-- [ ] **No `SettingsViewModel` / `MigrationRecoveryViewModel` tests**
+- [ ] **No `SettingsViewModel` / `MigrationRecoveryViewModel` tests** — `SettingsViewModel` covered; `MigrationRecoveryViewModel` still open.
 - [ ] **Repository contract tests missing** — Per `RepositorySpec.md`
 - [ ] **`try!` in test helpers only** — Acceptable in tests; avoid in app code (currently clean)
 - [ ] **Forced dark mode duplicates “done” and open work** — Resolved: appearance setting is honored at app root.

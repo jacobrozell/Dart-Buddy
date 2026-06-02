@@ -1,0 +1,269 @@
+import Foundation
+import Testing
+@testable import DartsScoreboard
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsOnAppearLoadsAndAppliesPreferences() async {
+    let settings = makeSettings(appearanceModeRaw: "dark", hapticsEnabled: false, soundEnabled: false)
+    let repository = FakeSettingsRepository(settings: settings)
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: preferences
+    )
+
+    await vm.onAppear()
+
+    #expect(vm.state == .ready)
+    #expect(vm.settings?.appearanceModeRaw == "dark")
+    #expect(preferences.preferredColorScheme == .dark)
+    #expect(preferences.feedback.hapticsEnabled == false)
+    #expect(preferences.feedback.soundEnabled == false)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsUpdateAppearancePersistsAndSyncsPreferences() async {
+    let repository = FakeSettingsRepository(settings: makeSettings(appearanceModeRaw: "system"))
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: preferences
+    )
+    await vm.onAppear()
+
+    await vm.updateAppearance("light")
+
+    #expect(vm.state == .ready)
+    #expect(vm.settings?.appearanceModeRaw == "light")
+    #expect(preferences.preferredColorScheme == .light)
+    #expect(await repository.updateCallCount == 1)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsUpdateFeedbackTogglesHapticsAndSound() async {
+    let repository = FakeSettingsRepository(settings: makeSettings())
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: preferences
+    )
+    await vm.onAppear()
+
+    await vm.updateFeedback(haptics: false, sound: false)
+
+    #expect(vm.settings?.hapticsEnabled == false)
+    #expect(vm.settings?.soundEnabled == false)
+    #expect(preferences.feedback.hapticsEnabled == false)
+    #expect(preferences.feedback.soundEnabled == false)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsUpdateDefaultsChangesMatchType() async {
+    let repository = FakeSettingsRepository(settings: makeSettings(defaultMatchTypeRaw: "x01"))
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+    await vm.onAppear()
+
+    await vm.updateDefaults(matchType: "cricket", startScore: 501, checkout: "doubleOut", legs: 3, setsEnabled: false)
+
+    #expect(vm.settings?.defaultMatchTypeRaw == "cricket")
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsLoadFailureSurfacesErrorKey() async {
+    let repository = FakeSettingsRepository(
+        settings: makeSettings(),
+        fetchError: AppError(
+            code: .storageUnavailable,
+            layer: .data,
+            severity: .error,
+            isRecoverable: true,
+            userMessageKey: "settings.error.load"
+        )
+    )
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+
+    await vm.onAppear()
+
+    if case let .error(key) = vm.state {
+        #expect(key == "settings.error.load")
+    } else {
+        Issue.record("Expected error state")
+    }
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsSaveFailureSurfacesErrorKey() async {
+    let repository = FakeSettingsRepository(
+        settings: makeSettings(),
+        updateError: AppError(
+            code: .storageUnavailable,
+            layer: .data,
+            severity: .error,
+            isRecoverable: true,
+            userMessageKey: "settings.error.save"
+        )
+    )
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+    await vm.onAppear()
+
+    await vm.updateAppearance("dark")
+
+    if case let .error(key) = vm.state {
+        #expect(key == "settings.error.save")
+    } else {
+        Issue.record("Expected error state")
+    }
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsResetPromptFlow() async {
+    let vm = SettingsViewModel(
+        repository: FakeSettingsRepository(settings: makeSettings()),
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+    await vm.onAppear()
+
+    vm.requestReset()
+    #expect(vm.state == .showResetConfirmation)
+
+    vm.dismissResetPrompt()
+    #expect(vm.state == .ready)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsConfirmResetClearsActiveMatchStore() async throws {
+    let repository = FakeSettingsRepository(settings: makeSettings(appearanceModeRaw: "dark"))
+    let activeStore = ActiveMatchStore()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 501, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    activeStore.save(session)
+    #expect(activeStore.activeMatchSummary() != nil)
+
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: activeStore,
+        userPreferencesStore: preferences
+    )
+    await vm.onAppear()
+    preferences.apply(makeSettings(appearanceModeRaw: "dark"))
+
+    await vm.confirmReset()
+
+    #expect(vm.state == .ready)
+    #expect(activeStore.activeMatchSummary() == nil)
+    #expect(vm.settings?.appearanceModeRaw == "system")
+    #expect(preferences.preferredColorScheme == nil)
+    #expect(await repository.resetCallCount == 1)
+}
+
+private func makeSettings(
+    id: UUID = UUID(),
+    appearanceModeRaw: String = "system",
+    hapticsEnabled: Bool = true,
+    soundEnabled: Bool = true,
+    defaultMatchTypeRaw: String = "x01"
+) -> SettingsSummary {
+    SettingsSummary(
+        id: id,
+        appearanceModeRaw: appearanceModeRaw,
+        hapticsEnabled: hapticsEnabled,
+        soundEnabled: soundEnabled,
+        defaultMatchTypeRaw: defaultMatchTypeRaw,
+        defaultX01StartScore: 501,
+        defaultCheckoutModeRaw: "doubleOut",
+        defaultCheckInModeRaw: "straightIn",
+        defaultLegFormatRaw: "firstTo",
+        defaultLegsToWin: 3,
+        defaultSetsEnabled: false,
+        updatedAt: Date()
+    )
+}
+
+private func testLogger() -> DefaultAppLogger {
+    DefaultAppLogger(minimumLevel: .fault, sink: RecordingSettingsLogSink())
+}
+
+private final class RecordingSettingsLogSink: LogSink, @unchecked Sendable {
+    func write(_: LogEntry) {}
+}
+
+private actor FakeSettingsRepository: SettingsRepository {
+    var settings: SettingsSummary
+    let fetchError: AppError?
+    let updateError: AppError?
+    let resetError: AppError?
+    private(set) var updateCallCount = 0
+    private(set) var resetCallCount = 0
+
+    init(settings: SettingsSummary, fetchError: AppError? = nil, updateError: AppError? = nil, resetError: AppError? = nil) {
+        self.settings = settings
+        self.fetchError = fetchError
+        self.updateError = updateError
+        self.resetError = resetError
+    }
+
+    func fetchSettings() async throws -> SettingsSummary {
+        if let fetchError { throw fetchError }
+        return settings
+    }
+
+    func seedDefaultsIfNeeded() async throws -> SettingsSummary {
+        try await fetchSettings()
+    }
+
+    func updateSettings(_ settings: SettingsSummary) async throws -> SettingsSummary {
+        updateCallCount += 1
+        if let updateError { throw updateError }
+        self.settings = settings
+        return settings
+    }
+
+    func resetPreferencesToDefaults() async throws {
+        settings = makeSettings(id: settings.id)
+    }
+
+    func resetAllLocalData() async throws {
+        resetCallCount += 1
+        if let resetError { throw resetError }
+        settings = makeSettings(id: settings.id)
+    }
+}
