@@ -9,7 +9,7 @@ Strategic backlog for reaching and **maintaining** WCAG 2.1 Level AA on Dart Bud
 | `accessibility/accessibility_todo.md` | **This file** — phased work plan |
 | `todo.md` § UI / UX / accessibility | Near-term product/layout items that affect a11y |
 
-**Current baseline (2026-06-01):** Engineering ~50–60% toward spec intent; **no signed WCAG AA evidence** (`accessibility/wcag-2.1-aa/SUMMARY.md`).
+**Current baseline (2026-06-02):** All 13 MVP screens have **zero Required Fail** in code; screens remain **Partial** until manual evidence (`accessibility/Manual_todo.md`, `wcag-2.1-aa/SUMMARY.md`).
 
 ---
 
@@ -143,16 +143,16 @@ Linked `todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
 
 | Screen | Key work | Tracker |
 |--------|----------|---------|
-| History list | VO: filter, resume, load more | `history-list.md` |
-| History detail | Delete alert a11y; chart sections | `history-detail.md` |
-| Statistics | Filter controls; trend value includes dates | `statistics.md` |
-| Players list | Search label; row summary; swipe actions | `players-list.md` |
-| Player detail | Full VO pass | `player-detail.md` |
-| Player edit | TextField label; 44pt color swatches | `player-edit.md` |
-| Settings | Reset destructive flow VO; theme cohesion dark/light | `settings.md` |
-| Migration recovery | Recovery CTAs VO | `migration-recovery.md` |
-| Play home | Resume / start VO | `play-home.md` — labels shipped; manual VO open |
-| Match setup | Chip labels; AXXXL roster | `match-setup.md` — chips/roster shipped |
+| History list | VO: filter, resume, load more | `history-list.md` — [x] labels; manual VO open |
+| History detail | Delete alert a11y; chart sections | `history-detail.md` — [x] labels; manual VO open |
+| Statistics | Filter controls; trend value includes dates | `statistics.md` — [x] labels; manual VO open |
+| Players list | Search label; row summary; swipe actions | `players-list.md` — [x] labels; manual VO open |
+| Player detail | Stat tiles + recent matches VO | `player-detail.md` — [x] labels; manual VO open |
+| Player edit | TextField label; 44pt color swatches | `player-edit.md` — [x] labels; manual VO open |
+| Settings | Reset destructive flow VO | `settings.md` — [x] reset ID/label; manual VO open |
+| Migration recovery | Recovery CTAs VO | `migration-recovery.md` — [x] IDs/labels; manual VO open |
+| Play home | Resume / start VO | `play-home.md` — [x] labels; manual VO open |
+| Match setup | Chip labels; AXXXL roster | `match-setup.md` — [x] chips/roster; manual VO open |
 
 ### 2.3 Theme and appearance cohesion
 

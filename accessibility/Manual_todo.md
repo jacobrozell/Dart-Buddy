@@ -60,6 +60,35 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 
 - [ ] Retry / Export / Reset buttons (`migration_retry`, `migration_export`, `migration_reset`)
 
+## VoiceOver — Statistics (`statistics`)
+
+- [ ] Player filter menu (`statsPlayerFilterMenu`)
+- [ ] Partial-match banner when data incomplete
+- [ ] Trend chart: each point reads value + date
+- [ ] Stat table rows: combined label + value
+- [ ] X01 / Cricket segmented filter — selected state
+
+## VoiceOver — History detail (`history-detail`)
+
+- [ ] Result card: mode, players, outcome in one swipe
+- [ ] Show timeline toggle — on/off value
+- [ ] Delete game: label + hint → confirmation alert
+- [ ] Stat tables + sector chart sections
+
+## VoiceOver — Player detail (`player-detail`)
+
+- [ ] Identity card: name + bot difficulty
+- [ ] Stat tiles: label + value per tile
+- [ ] Recent match rows: mode, opponent, outcome, date
+- [ ] Edit / archive toolbar actions
+
+## VoiceOver — Player edit (`player-edit`)
+
+- [ ] Name field label; notes field
+- [ ] Avatar picker: selected trait + label
+- [ ] Color swatches: 44pt targets, selected state
+- [ ] Save (`players_edit_save`) / Cancel
+
 ## VoiceOver — Core flows (end-to-end)
 
 - [ ] `play-home` → `match-setup` → **X01** → `match-summary`
@@ -70,7 +99,7 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 - [ ] `match-setup` — roster, START, chips
 - [ ] `x01-match` — remaining score + pad usable
 - [ ] `cricket-match` — board + pad on phone
-- [ ] `history-list`, `settings` (Phase 2)
+- [ ] `history-list`, `history-detail`, `statistics`, `players-list`, `player-detail`, `settings`
 
 ## Contrast & appearance
 
