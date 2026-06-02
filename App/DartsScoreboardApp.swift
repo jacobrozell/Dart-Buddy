@@ -3,6 +3,7 @@ import SwiftData
 
 @main
 struct DartsScoreboardApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var bootstrapResult: AppBootstrapResult?
 
     var body: some Scene {

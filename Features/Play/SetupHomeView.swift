@@ -399,6 +399,7 @@ struct SetupHomeView: View {
                 Circle().fill(color).frame(width: 10, height: 10)
             }
         }
+        .accessibilityIdentifier("add_bot_\(difficulty.rawValue)")
     }
 
     @ViewBuilder

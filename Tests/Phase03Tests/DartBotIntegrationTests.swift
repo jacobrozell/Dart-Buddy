@@ -61,7 +61,7 @@ func setupRemoveBotUpdatesValidation() async {
     await vm.onAppear()
     await vm.addBot(.easy)
     await vm.addBot(.medium)
-    let botId = vm.availableBots[0].id
+    let botId = vm.selectedPlayers[0].id
 
     vm.togglePlayer(botId)
     vm.revalidate()

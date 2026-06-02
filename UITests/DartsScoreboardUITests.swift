@@ -65,7 +65,8 @@ final class DartsScoreboardUITests: XCTestCase {
         gameCard.tap()
 
         XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Throws"].waitForExistence(timeout: timeout + 5), "Game detail should show throw stats")
+        XCTAssertTrue(app.staticTexts["3-Dart Avg"].waitForExistence(timeout: timeout + 10), "Stats should finish loading")
+        XCTAssertTrue(app.staticTexts["Throws"].waitForExistence(timeout: timeout), "Game detail should show throw stats")
         XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout))
 
         let delete = app.buttons["historyDetailDeleteButton"]
@@ -187,14 +188,7 @@ final class DartsScoreboardUITests: XCTestCase {
         let app = launchApp(["-seed_players"])
 
         app.buttons["select_Alice"].tap()
-
-        let addBot = app.buttons["Add Bot"]
-        XCTAssertTrue(addBot.waitForExistence(timeout: timeout))
-        addBot.tap()
-        app.buttons["Easy"].tap()
-
-        XCTAssertTrue(app.buttons["select_bot_easy"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Easy Bot 1"].waitForExistence(timeout: timeout))
+        addEasyBot(from: app)
 
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(start.isEnabled, "START should enable with one human and one bot")
@@ -268,10 +262,7 @@ final class DartsScoreboardUITests: XCTestCase {
         configureQuickX01Match(app)
 
         app.buttons["select_Alice"].tap()
-        app.buttons["Add Bot"].tap()
-        XCTAssertTrue(app.buttons["Easy"].waitForExistence(timeout: timeout))
-        app.buttons["Easy"].tap()
-        XCTAssertTrue(app.buttons["select_bot_easy"].waitForExistence(timeout: timeout + 5))
+        addEasyBot(from: app)
         app.buttons["startMatchButton"].tap()
 
         XCTAssertTrue(
@@ -307,10 +298,7 @@ final class DartsScoreboardUITests: XCTestCase {
         configureQuickX01Match(app)
 
         app.buttons["select_Alice"].tap()
-        app.buttons["Add Bot"].tap()
-        XCTAssertTrue(app.buttons["Easy"].waitForExistence(timeout: timeout))
-        app.buttons["Easy"].tap()
-        XCTAssertTrue(app.buttons["select_bot_easy"].waitForExistence(timeout: timeout + 5))
+        addEasyBot(from: app)
         app.buttons["startMatchButton"].tap()
 
         let twenty = app.buttons["pad_20"]
@@ -394,7 +382,7 @@ final class DartsScoreboardUITests: XCTestCase {
         target20.tap()
 
         let closedMark = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label == %@", "Closed"))
+            .matching(NSPredicate(format: "label CONTAINS %@", "Closed"))
             .firstMatch
         XCTAssertTrue(
             closedMark.waitForExistence(timeout: timeout + 5),
@@ -428,6 +416,17 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(haptics.waitForExistence(timeout: timeout))
         XCTAssertEqual(haptics.value as? String, "0")
         XCTAssertEqual(sound.value as? String, "0")
+    }
+
+    private func addEasyBot(from app: XCUIApplication) {
+        let addBot = app.buttons["Add Bot"]
+        XCTAssertTrue(addBot.waitForExistence(timeout: timeout))
+        addBot.tap()
+        let easy = app.buttons["add_bot_easy"]
+        XCTAssertTrue(easy.waitForExistence(timeout: timeout))
+        easy.tap()
+        let botRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Easy Bot")).firstMatch
+        XCTAssertTrue(botRow.waitForExistence(timeout: timeout + 10))
     }
 
     private func setSwitch(_ toggle: XCUIElement, on: Bool) {

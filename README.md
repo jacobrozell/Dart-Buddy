@@ -21,6 +21,8 @@ xcodegen generate
 open DartsScoreboard.xcodeproj
 ```
 
+Copy `GoogleService-Info.plist.example` to `GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS).
+
 Run tests: **Product → Test** (`⌘U`), or:
 
 ```bash
@@ -29,6 +31,10 @@ xcodebuild test -scheme DartsScoreboard \
 ```
 
 > `DartsScoreboard.xcodeproj` is generated locally and not committed. Regenerate after pulling `project.yml` changes.
+
+### CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: installs XcodeGen, regenerates the project, then `xcodebuild test` on the `DartsScoreboard` scheme (unit + UI tests) using an available iPhone simulator on the macOS runner.
 
 ## What the app does
 

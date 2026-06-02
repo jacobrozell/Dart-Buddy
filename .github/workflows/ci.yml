@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare Firebase config
+        run: cp GoogleService-Info.plist.example GoogleService-Info.plist
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Select iOS Simulator
+        id: sim
+        run: |
+          python3 <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import subprocess
+
+          prefs = ("iPhone 16", "iPhone 17", "iPhone 15", "iPhone 16e")
+          data = json.loads(
+              subprocess.check_output(
+                  ["xcrun", "simctl", "list", "devices", "available", "-j"],
+                  text=True,
+              )
+          )
+
+          best = None
+          for runtime in sorted(data["devices"], reverse=True):
+              if "iOS" not in runtime:
+                  continue
+              for device in data["devices"][runtime]:
+                  if not device.get("isAvailable"):
+                      continue
+                  name = device.get("name", "")
+                  if name not in prefs:
+                      continue
+                  candidate = (prefs.index(name), runtime, device["udid"], name)
+                  if best is None or candidate < best:
+                      best = candidate
+
+          if best is None:
+              raise SystemExit("No supported iPhone simulator found on runner")
+
+          print(f"destination=platform=iOS Simulator,id={best[2]}")
+          print(f"name={best[3]}")
+          PY
+          echo "Using simulator: ${{ steps.sim.outputs.name }}"
+
+      - name: Build and test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project DartsScoreboard.xcodeproj \
+            -scheme DartsScoreboard \
+            -destination "${{ steps.sim.outputs.destination }}" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: TestResults.xcresult
+          if-no-files-found: ignore
