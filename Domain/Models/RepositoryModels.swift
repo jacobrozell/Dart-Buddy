@@ -138,6 +138,7 @@ public struct SettingsSummary: Identifiable, Equatable, Sendable {
     public let appearanceModeRaw: String
     public let hapticsEnabled: Bool
     public let soundEnabled: Bool
+    public let turnTotalCallerEnabled: Bool
     public let defaultMatchTypeRaw: String
     public let defaultX01StartScore: Int
     public let defaultCheckoutModeRaw: String

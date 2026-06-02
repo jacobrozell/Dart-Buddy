@@ -58,6 +58,7 @@ final class SettingsViewModel: ObservableObject {
             appearanceModeRaw: value,
             hapticsEnabled: current.hapticsEnabled,
             soundEnabled: current.soundEnabled,
+            turnTotalCallerEnabled: current.turnTotalCallerEnabled,
             defaultMatchTypeRaw: current.defaultMatchTypeRaw,
             defaultX01StartScore: current.defaultX01StartScore,
             defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
@@ -74,13 +75,14 @@ final class SettingsViewModel: ObservableObject {
         queueMutation { await self.updateAppearance(value) }
     }
 
-    func updateFeedback(haptics: Bool? = nil, sound: Bool? = nil) async {
+    func updateFeedback(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) async {
         guard var current = settings else { return }
         current = SettingsSummary(
             id: current.id,
             appearanceModeRaw: current.appearanceModeRaw,
             hapticsEnabled: haptics ?? current.hapticsEnabled,
             soundEnabled: sound ?? current.soundEnabled,
+            turnTotalCallerEnabled: turnTotalCaller ?? current.turnTotalCallerEnabled,
             defaultMatchTypeRaw: current.defaultMatchTypeRaw,
             defaultX01StartScore: current.defaultX01StartScore,
             defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
@@ -93,8 +95,8 @@ final class SettingsViewModel: ObservableObject {
         await persist(current)
     }
 
-    func queueFeedbackUpdate(haptics: Bool? = nil, sound: Bool? = nil) {
-        queueMutation { await self.updateFeedback(haptics: haptics, sound: sound) }
+    func queueFeedbackUpdate(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) {
+        queueMutation { await self.updateFeedback(haptics: haptics, sound: sound, turnTotalCaller: turnTotalCaller) }
     }
 
     func updateDefaults(matchType: String, startScore: Int, checkout: String, legs: Int, setsEnabled: Bool) async {
@@ -104,6 +106,7 @@ final class SettingsViewModel: ObservableObject {
             appearanceModeRaw: current.appearanceModeRaw,
             hapticsEnabled: current.hapticsEnabled,
             soundEnabled: current.soundEnabled,
+            turnTotalCallerEnabled: current.turnTotalCallerEnabled,
             defaultMatchTypeRaw: matchType,
             defaultX01StartScore: startScore,
             defaultCheckoutModeRaw: checkout,

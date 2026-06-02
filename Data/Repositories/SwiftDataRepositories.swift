@@ -569,6 +569,7 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.appearanceModeRaw = settings.appearanceModeRaw
             record.hapticsEnabled = settings.hapticsEnabled
             record.soundEnabled = settings.soundEnabled
+            record.turnTotalCallerEnabled = settings.turnTotalCallerEnabled
             record.defaultMatchTypeRaw = settings.defaultMatchTypeRaw
             record.defaultX01StartScore = settings.defaultX01StartScore
             record.defaultCheckoutModeRaw = settings.defaultCheckoutModeRaw
@@ -596,6 +597,7 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.appearanceModeRaw = "system"
             record.hapticsEnabled = true
             record.soundEnabled = true
+            record.turnTotalCallerEnabled = false
             record.defaultMatchTypeRaw = "x01"
             record.defaultX01StartScore = 501
             record.defaultCheckoutModeRaw = "doubleOut"
@@ -714,6 +716,7 @@ private func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
         appearanceModeRaw: record.appearanceModeRaw,
         hapticsEnabled: record.hapticsEnabled,
         soundEnabled: record.soundEnabled,
+        turnTotalCallerEnabled: record.turnTotalCallerEnabled,
         defaultMatchTypeRaw: record.defaultMatchTypeRaw,
         defaultX01StartScore: record.defaultX01StartScore,
         defaultCheckoutModeRaw: record.defaultCheckoutModeRaw,

@@ -31,6 +31,7 @@ public enum AppBootstrapper {
             let feedbackPreferences = userPreferencesStore.feedback
             let baseHaptics = SystemHapticsService()
             let baseAudio = BundledAudioFeedbackService()
+            let baseTurnTotalCaller = SpeechTurnTotalCallerService()
 
             let dependencies = AppDependencies(
                 modelContainer: container,
@@ -41,6 +42,7 @@ public enum AppBootstrapper {
                 settingsRepository: settingsRepository,
                 hapticsService: GatedHapticsService(underlying: baseHaptics, preferences: feedbackPreferences),
                 audioFeedbackService: GatedAudioFeedbackService(underlying: baseAudio, preferences: feedbackPreferences),
+                turnTotalCallerService: GatedTurnTotalCallerService(underlying: baseTurnTotalCaller, preferences: feedbackPreferences),
                 userPreferencesStore: userPreferencesStore,
                 activeMatchStore: activeMatchStore,
                 pendingMatchPlayerSelections: pendingMatchPlayerSelections

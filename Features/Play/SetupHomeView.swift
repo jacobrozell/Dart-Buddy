@@ -269,6 +269,7 @@ struct SetupHomeView: View {
             Spacer()
             HStack(spacing: DS.Spacing.s2) {
                 Menu {
+                    botMenuButton("Very Easy", difficulty: .veryEasy, color: Color(red: 0.45, green: 0.82, blue: 0.55))
                     botMenuButton("Easy", difficulty: .easy, color: Brand.green)
                     botMenuButton("Medium", difficulty: .medium, color: Brand.amber)
                     botMenuButton("Hard", difficulty: .hard, color: Brand.red)
@@ -389,6 +390,7 @@ struct SetupHomeView: View {
 
     private func botDifficultyColor(_ difficulty: BotDifficulty) -> Color {
         switch difficulty {
+        case .veryEasy: Color(red: 0.45, green: 0.82, blue: 0.55)
         case .easy: Brand.green
         case .medium: Brand.amber
         case .hard: Brand.red

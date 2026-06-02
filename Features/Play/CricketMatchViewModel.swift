@@ -16,6 +16,10 @@ final class CricketMatchViewModel: ObservableObject {
     @Published var enteredDarts: [DartInput] = []
     @Published private(set) var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
+    /// Fires after a human visit is accepted so the UI can announce the visit total.
+    @Published private(set) var turnTotalCallerSignal: TurnTotalCallerSignal?
+
+    private var turnTotalCallerToken = 0
 
     private let matchId: UUID
     private let store: ActiveMatchStore
@@ -148,6 +152,8 @@ final class CricketMatchViewModel: ObservableObject {
             return
         }
         state = .submittingTurn
+        let wasHumanTurn = currentBotDifficulty == nil
+        let submittedVisitTotal = enteredDarts.reduce(0) { $0 + $1.points }
         do {
             do {
                 current = try PerformanceMonitor.measure(
@@ -175,6 +181,10 @@ final class CricketMatchViewModel: ObservableObject {
             }
             store.save(current)
             session = current
+            if wasHumanTurn {
+                turnTotalCallerToken += 1
+                turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: submittedVisitTotal)
+            }
             if current.runtime.status == .completed {
                 PerformanceMonitor.measure(
                     .completeMatch,

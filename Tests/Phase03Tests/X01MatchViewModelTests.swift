@@ -59,6 +59,7 @@ func x01ViewModelCompletesMatchOnCheckout() async throws {
     await vm.submitTurn()
 
     #expect(vm.state == .matchCompleted)
+    #expect(vm.legFinishSoundToken == 0)
     #expect(store.completedSessions().count == 1)
 }
 
@@ -187,6 +188,18 @@ func x01ViewModelSignalsLegFinishSoundBeforeMatchEnds() async throws {
     #expect(vm.legFinishSoundToken == 1)
     #expect(vm.state == .readyTurn)
     #expect(vm.playerCards[0].legsWon == 1)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelSignalsTurnTotalCallerForHumanVisit() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "60"
+
+    await vm.submitTurn()
+
+    #expect(vm.turnTotalCallerSignal?.total == 60)
 }
 
 @MainActor

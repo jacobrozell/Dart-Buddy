@@ -54,7 +54,8 @@ struct PlayRootView: View {
                         ),
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) },
                         audio: dependencies.audioFeedbackService,
-                        haptics: dependencies.hapticsService
+                        haptics: dependencies.hapticsService,
+                        turnTotalCaller: dependencies.turnTotalCallerService
                     )
                 case let .cricketMatch(matchId):
                     CricketMatchScreen(
@@ -67,7 +68,8 @@ struct PlayRootView: View {
                         ),
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) },
                         audio: dependencies.audioFeedbackService,
-                        haptics: dependencies.hapticsService
+                        haptics: dependencies.hapticsService,
+                        turnTotalCaller: dependencies.turnTotalCallerService
                     )
                 case let .matchSummary(matchId):
                     MatchSummaryScreen(

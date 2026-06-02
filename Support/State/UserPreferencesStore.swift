@@ -4,6 +4,7 @@ import SwiftUI
 public final class FeedbackPreferences: @unchecked Sendable {
     public var hapticsEnabled = true
     public var soundEnabled = true
+    public var turnTotalCallerEnabled = false
 }
 
 @MainActor
@@ -15,6 +16,7 @@ public final class UserPreferencesStore: ObservableObject {
         preferredColorScheme = Self.colorScheme(for: settings.appearanceModeRaw)
         feedback.hapticsEnabled = settings.hapticsEnabled
         feedback.soundEnabled = settings.soundEnabled
+        feedback.turnTotalCallerEnabled = settings.turnTotalCallerEnabled
     }
 
     static func colorScheme(for raw: String) -> ColorScheme? {

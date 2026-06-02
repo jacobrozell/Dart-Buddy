@@ -184,6 +184,7 @@ public enum SchemaV1: VersionedSchema {
         public var appearanceModeRaw: String
         public var hapticsEnabled: Bool
         public var soundEnabled: Bool
+        public var turnTotalCallerEnabled: Bool
         public var defaultMatchTypeRaw: String
         public var defaultX01StartScore: Int
         public var defaultCheckoutModeRaw: String
@@ -198,6 +199,7 @@ public enum SchemaV1: VersionedSchema {
             appearanceModeRaw: String = "system",
             hapticsEnabled: Bool = true,
             soundEnabled: Bool = true,
+            turnTotalCallerEnabled: Bool = false,
             defaultMatchTypeRaw: String = "x01",
             defaultX01StartScore: Int = 501,
             defaultCheckoutModeRaw: String = "doubleOut",
@@ -211,6 +213,7 @@ public enum SchemaV1: VersionedSchema {
             self.appearanceModeRaw = appearanceModeRaw
             self.hapticsEnabled = hapticsEnabled
             self.soundEnabled = soundEnabled
+            self.turnTotalCallerEnabled = turnTotalCallerEnabled
             self.defaultMatchTypeRaw = defaultMatchTypeRaw
             self.defaultX01StartScore = defaultX01StartScore
             self.defaultCheckoutModeRaw = defaultCheckoutModeRaw

@@ -190,6 +190,8 @@
 "settings.mode.label" = "Mode";
 "settings.feedback.haptics" = "Haptics";
 "settings.feedback.sound" = "Sound";
+"settings.feedback.turnTotalCaller" = "Announce Turn Total";
+"settings.feedback.turnTotalCaller.footer" = "Speaks your visit score after you submit. Requires Sound to be on.";
 "players.edit.name" = "Name";
 "players.edit.notes" = "Notes";
 "play.setup.startScore" = "Start Score";

@@ -5,6 +5,7 @@ struct X01MatchScreen: View {
     let onShowSummary: () -> Void
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
+    let turnTotalCaller: any TurnTotalCallerService
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -85,10 +86,17 @@ struct X01MatchScreen: View {
             Text("play.match.exit.confirm.message")
         }
         .onChange(of: viewModel.legFinishSoundToken) { _, token in
-            if token > 0 { audio.playMatchFinished() }
+            if token > 0 { audio.playLegFinished() }
+        }
+        .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in
+            guard let signal else { return }
+            turnTotalCaller.announceTurnTotal(signal.total)
         }
         .onChange(of: viewModel.state) { _, newValue in
-            if newValue == .matchCompleted { onShowSummary() }
+            if newValue == .matchCompleted {
+                audio.playMatchFinished()
+                onShowSummary()
+            }
         }
         .task {
             viewModel.inputMode = .dartEntry

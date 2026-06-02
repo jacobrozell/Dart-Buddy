@@ -3,6 +3,7 @@ import Foundation
 /// Skill tiers for computer opponents. Each tier adjusts aim quality and
 /// checkout consistency while keeping averages in a believable range.
 public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
+    case veryEasy
     case easy
     case medium
     case hard
@@ -10,6 +11,7 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
+        case .veryEasy: return "Very Easy"
         case .easy: return "Easy"
         case .medium: return "Medium"
         case .hard: return "Hard"
@@ -22,15 +24,17 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
     /// Rough per-visit scoring target when not on a finish.
     fileprivate var scoringVisitRange: ClosedRange<Int> {
         switch self {
+        case .veryEasy: 10 ... 22
         case .easy: 18 ... 42
-        case .medium: 26 ... 48
-        case .hard: 34 ... 54
-        case .pro: 40 ... 62
+        case .medium: 22 ... 38
+        case .hard: 28 ... 44
+        case .pro: 34 ... 50
         }
     }
 
     fileprivate var checkoutAttemptChance: Double {
         switch self {
+        case .veryEasy: 0.12
         case .easy: 0.25
         case .medium: 0.40
         case .hard: 0.50
@@ -40,33 +44,37 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
 
     fileprivate func hitChance(intendedMultiplier: DartMultiplier) -> Double {
         switch (self, intendedMultiplier) {
+        case (.veryEasy, .triple): return 0.06
+        case (.veryEasy, .double): return 0.14
+        case (.veryEasy, .single): return 0.30
         case (.easy, .triple): return 0.18
         case (.easy, .double): return 0.28
         case (.easy, .single): return 0.42
-        case (.medium, .triple): return 0.40
-        case (.medium, .double): return 0.46
-        case (.medium, .single): return 0.58
-        case (.hard, .triple): return 0.44
-        case (.hard, .double): return 0.50
-        case (.hard, .single): return 0.60
-        case (.pro, .triple): return 0.54
-        case (.pro, .double): return 0.60
-        case (.pro, .single): return 0.72
+        case (.medium, .triple): return 0.34
+        case (.medium, .double): return 0.40
+        case (.medium, .single): return 0.52
+        case (.hard, .triple): return 0.38
+        case (.hard, .double): return 0.44
+        case (.hard, .single): return 0.54
+        case (.pro, .triple): return 0.48
+        case (.pro, .double): return 0.54
+        case (.pro, .single): return 0.66
         }
     }
 
     fileprivate var prefersTripleOnScoringSegment: Double {
         switch self {
+        case .veryEasy: 0.08
         case .easy: 0.25
-        case .medium: 0.40
-        case .hard: 0.38
-        case .pro: 0.55
+        case .medium: 0.32
+        case .hard: 0.32
+        case .pro: 0.44
         }
     }
 
     fileprivate var innerBullAimChance: Double {
         switch self {
-        case .easy, .medium: 0
+        case .veryEasy, .easy, .medium: 0
         case .hard: 0.12
         case .pro: 0.28
         }
@@ -74,7 +82,7 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
 
     fileprivate var masterInTripleOpenerChance: Double {
         switch self {
-        case .easy, .medium: 0
+        case .veryEasy, .easy, .medium: 0
         case .hard: 0.15
         case .pro: 0.32
         }
@@ -83,6 +91,7 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
     /// Extra hit probability when trying to double/triple in at the start of a leg.
     fileprivate var checkInHitBoost: Double {
         switch self {
+        case .veryEasy: 0.18
         case .easy: 0.16
         case .medium: 0.12
         case .hard: 0.08
@@ -93,10 +102,23 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
     /// Chance a dart completely misses the board after failing the intended target.
     fileprivate var offBoardMissChance: Double {
         switch self {
-        case .easy: 0.10
-        case .medium: 0.07
-        case .hard: 0.05
-        case .pro: 0.03
+        case .veryEasy: 0.20
+        case .easy: 0.12
+        case .medium: 0.09
+        case .hard: 0.07
+        case .pro: 0.05
+        }
+    }
+
+    /// When a planned dart would bust, chance the bot throws it anyway instead of
+    /// substituting a safe single (higher tiers still bust less often).
+    fileprivate var riskyDartWhenWouldBustChance: Double {
+        switch self {
+        case .veryEasy: 0.70
+        case .easy: 0.40
+        case .medium: 0.20
+        case .hard: 0.16
+        case .pro: 0.12
         }
     }
 }
@@ -163,18 +185,43 @@ public enum DartBotEngine {
                 points: points,
                 checkoutMode: checkoutMode
             ) {
-                let safe = safeScoringDart(
-                    remaining: simulatedRemaining,
-                    checkoutMode: checkoutMode,
-                    rng: &rng
-                )
-                darts.append(safe)
-                simulatedRemaining -= safe.points
+                let playsRisky = Double.random(in: 0 ... 1, using: &rng) < difficulty.riskyDartWhenWouldBustChance
+                if playsRisky {
+                    darts.append(resolved)
+                    if checkedIn {
+                        simulatedRemaining -= points
+                        if turnEndsAfterSimulatedDart(
+                            remaining: simulatedRemaining,
+                            checkoutMode: checkoutMode
+                        ) {
+                            break
+                        }
+                    }
+                } else {
+                    let safe = safeScoringDart(
+                        remaining: simulatedRemaining,
+                        checkoutMode: checkoutMode,
+                        rng: &rng
+                    )
+                    darts.append(safe)
+                    simulatedRemaining -= safe.points
+                    if turnEndsAfterSimulatedDart(
+                        remaining: simulatedRemaining,
+                        checkoutMode: checkoutMode
+                    ) {
+                        break
+                    }
+                }
             } else {
                 darts.append(resolved)
                 if checkedIn {
                     simulatedRemaining -= points
-                    if simulatedRemaining == 0 { break }
+                    if turnEndsAfterSimulatedDart(
+                        remaining: simulatedRemaining,
+                        checkoutMode: checkoutMode
+                    ) {
+                        break
+                    }
                 }
             }
         }
@@ -299,7 +346,7 @@ public enum DartBotEngine {
             }
             let segment = target.points
             switch difficulty {
-            case .easy:
+            case .veryEasy, .easy:
                 return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
             case .medium:
                 if Double.random(in: 0 ... 1, using: &rng) < 0.45 {
@@ -419,6 +466,16 @@ public enum DartBotEngine {
         }
     }
 
+    private static func turnEndsAfterSimulatedDart(
+        remaining: Int,
+        checkoutMode: X01CheckoutMode
+    ) -> Bool {
+        if remaining == 0 { return true }
+        if remaining < 0 { return true }
+        if remaining == 1, checkoutMode != .singleOut { return true }
+        return false
+    }
+
     private static func wouldBust(
         remaining: Int,
         points: Int,
@@ -435,14 +492,17 @@ public enum DartBotEngine {
         difficulty: BotDifficulty
     ) -> Int {
         switch (checkoutMode, difficulty) {
+        case (.singleOut, .veryEasy): 6
         case (.singleOut, .easy): 10
         case (.singleOut, .medium): 20
         case (.singleOut, .hard): 28
         case (.singleOut, .pro): 32
-        case (.doubleOut, .easy): 12
-        case (.doubleOut, .medium): 36
-        case (.doubleOut, .hard): 52
-        case (.doubleOut, .pro): 48
+        case (.doubleOut, .veryEasy): 4
+        case (.doubleOut, .easy): 10
+        case (.doubleOut, .medium): 28
+        case (.doubleOut, .hard): 38
+        case (.doubleOut, .pro): 34
+        case (.masterOut, .veryEasy): 8
         case (.masterOut, .easy): 12
         case (.masterOut, .medium): 32
         case (.masterOut, .hard): 40
@@ -455,14 +515,17 @@ public enum DartBotEngine {
         rng: inout some RandomNumberGenerator
     ) -> Int {
         switch difficulty {
+        case .veryEasy:
+            return Int.random(in: 1 ... 16, using: &rng)
         case .easy:
             return Int.random(in: 5 ... 20, using: &rng)
         case .medium:
             return [16, 17, 18, 19, 20].randomElement(using: &rng) ?? 19
         case .hard:
-            return Double.random(in: 0 ... 1, using: &rng) < 0.45 ? 20 : 19
+            if Double.random(in: 0 ... 1, using: &rng) < 0.35 { return 20 }
+            return [18, 19].randomElement(using: &rng) ?? 19
         case .pro:
-            return Double.random(in: 0 ... 1, using: &rng) < 0.58 ? 20 : 19
+            return Double.random(in: 0 ... 1, using: &rng) < 0.46 ? 20 : 19
         }
     }
 
@@ -473,11 +536,13 @@ public enum DartBotEngine {
         rng: inout some RandomNumberGenerator
     ) -> DartMultiplier {
         switch difficulty {
+        case .veryEasy:
+            return Double.random(in: 0 ... 1, using: &rng) < 0.92 ? .single : .double
         case .easy:
             return Double.random(in: 0 ... 1, using: &rng) < 0.75 ? .single : .double
         case .medium:
-            if targetTotal >= segment * 3, Double.random(in: 0 ... 1, using: &rng) < 0.65 { return .triple }
-            if Double.random(in: 0 ... 1, using: &rng) < 0.40 { return .triple }
+            if targetTotal >= segment * 3, Double.random(in: 0 ... 1, using: &rng) < 0.48 { return .triple }
+            if Double.random(in: 0 ... 1, using: &rng) < 0.28 { return .triple }
             return .double
         case .hard, .pro:
             if targetTotal >= segment * 3 { return .triple }

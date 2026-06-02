@@ -409,6 +409,7 @@ private actor BotFakeSettingsRepository: SettingsRepository {
         appearanceModeRaw: "system",
         hapticsEnabled: true,
         soundEnabled: true,
+        turnTotalCallerEnabled: false,
         defaultMatchTypeRaw: "x01",
         defaultX01StartScore: 501,
         defaultCheckoutModeRaw: "doubleOut",

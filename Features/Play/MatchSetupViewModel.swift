@@ -351,6 +351,7 @@ final class MatchSetupViewModel: ObservableObject {
             appearanceModeRaw: settings.appearanceModeRaw,
             hapticsEnabled: settings.hapticsEnabled,
             soundEnabled: settings.soundEnabled,
+            turnTotalCallerEnabled: settings.turnTotalCallerEnabled,
             defaultMatchTypeRaw: mode == .x01 ? MatchType.x01.rawValue : MatchType.cricket.rawValue,
             defaultX01StartScore: x01StartScore,
             defaultCheckoutModeRaw: x01CheckoutMode.rawValue,

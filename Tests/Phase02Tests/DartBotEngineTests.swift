@@ -48,6 +48,32 @@ import Testing
     #expect(proTotal > hardTotal)
 }
 
+@Test func dartBotEngine_easyBotAveragesHigherThanVeryEasy() {
+    var veryEasyTotal = 0
+    var easyTotal = 0
+    for seed in 0 ..< 80 {
+        var veryEasyRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        var easyRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        veryEasyTotal += DartBotEngine.generateX01Turn(
+            remaining: 501,
+            difficulty: .veryEasy,
+            checkoutMode: .doubleOut,
+            checkInMode: .straightIn,
+            isCheckedIn: true,
+            rng: &veryEasyRNG
+        ).reduce(0) { $0 + $1.points }
+        easyTotal += DartBotEngine.generateX01Turn(
+            remaining: 501,
+            difficulty: .easy,
+            checkoutMode: .doubleOut,
+            checkInMode: .straightIn,
+            isCheckedIn: true,
+            rng: &easyRNG
+        ).reduce(0) { $0 + $1.points }
+    }
+    #expect(easyTotal > veryEasyTotal)
+}
+
 @Test func dartBotEngine_hardBotAveragesHigherThanEasy() {
     var easyTotal = 0
     var hardTotal = 0
@@ -151,6 +177,7 @@ import Testing
 
 @Test func dartBotEngine_zeroVisitRateIsRareForStraightIn() {
     let limits: [BotDifficulty: Double] = [
+        .veryEasy: 0.12,
         .easy: 0.08,
         .medium: 0.04,
         .hard: 0.03,

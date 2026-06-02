@@ -22,6 +22,7 @@ func settingsOnAppearLoadsAndAppliesPreferences() async {
     #expect(preferences.preferredColorScheme == .dark)
     #expect(preferences.feedback.hapticsEnabled == false)
     #expect(preferences.feedback.soundEnabled == false)
+    #expect(preferences.feedback.turnTotalCallerEnabled == false)
 }
 
 @MainActor
@@ -64,6 +65,25 @@ func settingsUpdateFeedbackTogglesHapticsAndSound() async {
     #expect(vm.settings?.soundEnabled == false)
     #expect(preferences.feedback.hapticsEnabled == false)
     #expect(preferences.feedback.soundEnabled == false)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsUpdateFeedbackTogglesTurnTotalCaller() async {
+    let repository = FakeSettingsRepository(settings: makeSettings())
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: preferences
+    )
+    await vm.onAppear()
+
+    await vm.updateFeedback(turnTotalCaller: true)
+
+    #expect(vm.settings?.turnTotalCallerEnabled == true)
+    #expect(preferences.feedback.turnTotalCallerEnabled == true)
 }
 
 @MainActor
@@ -207,6 +227,7 @@ private func makeSettings(
         appearanceModeRaw: appearanceModeRaw,
         hapticsEnabled: hapticsEnabled,
         soundEnabled: soundEnabled,
+        turnTotalCallerEnabled: false,
         defaultMatchTypeRaw: defaultMatchTypeRaw,
         defaultX01StartScore: 501,
         defaultCheckoutModeRaw: "doubleOut",

@@ -6,6 +6,7 @@ struct CricketMatchScreen: View {
     let onShowSummary: () -> Void
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
+    let turnTotalCaller: any TurnTotalCallerService
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -75,6 +76,10 @@ struct CricketMatchScreen: View {
                 audio.playMatchFinished()
                 onShowSummary()
             }
+        }
+        .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in
+            guard let signal else { return }
+            turnTotalCaller.announceTurnTotal(signal.total)
         }
         .task { await viewModel.onAppear() }
         .onDisappear { actionTask?.cancel() }

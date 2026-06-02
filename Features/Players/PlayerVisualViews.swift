@@ -21,6 +21,7 @@ enum PlayerVisualViews {
 
     static func botDifficultyColor(_ difficulty: BotDifficulty?) -> Color {
         switch difficulty {
+        case .veryEasy: Color(red: 0.45, green: 0.82, blue: 0.55)
         case .easy: Brand.green
         case .medium: Brand.amber
         case .hard: Brand.red

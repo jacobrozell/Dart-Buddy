@@ -47,7 +47,7 @@ struct SettingsRootView: View {
                                 Text("settings.mode.cricket").tag("cricket")
                             }
                         }
-                        Section(L10n.feedbackSection) {
+                        Section {
                             Toggle("settings.feedback.haptics", isOn: Binding(
                                 get: { settings.hapticsEnabled },
                                 set: { viewModel.queueFeedbackUpdate(haptics: $0) }
@@ -56,6 +56,14 @@ struct SettingsRootView: View {
                                 get: { settings.soundEnabled },
                                 set: { viewModel.queueFeedbackUpdate(sound: $0) }
                             ))
+                            Toggle("settings.feedback.turnTotalCaller", isOn: Binding(
+                                get: { settings.turnTotalCallerEnabled },
+                                set: { viewModel.queueFeedbackUpdate(turnTotalCaller: $0) }
+                            ))
+                        } header: {
+                            Text(L10n.feedbackSection)
+                        } footer: {
+                            Text("settings.feedback.turnTotalCaller.footer")
                         }
                         Section(L10n.dataSection) {
                             Button(L10n.resetAllData, role: .destructive) {

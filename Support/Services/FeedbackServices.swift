@@ -17,7 +17,9 @@ public protocol AudioFeedbackService: Sendable {
     func playHit()
     /// Plays the miss sound (for a missed / zero-scoring dart).
     func playMiss()
-    /// Plays the match-finished fanfare.
+    /// Plays a short leg-checkout sound when the match continues.
+    func playLegFinished()
+    /// Plays the match-finished fanfare when the entire match ends.
     func playMatchFinished()
 }
 
@@ -32,6 +34,7 @@ public struct NoopAudioFeedbackService: AudioFeedbackService {
     public init() {}
     public func playHit() {}
     public func playMiss() {}
+    public func playLegFinished() {}
     public func playMatchFinished() {}
 }
 
@@ -60,6 +63,41 @@ public final class GatedHapticsService: HapticsService, @unchecked Sendable {
     }
 }
 
+public protocol TurnTotalCallerService: Sendable {
+    /// Speaks the visit total after a human submits a turn.
+    func announceTurnTotal(_ total: Int)
+}
+
+public struct NoopTurnTotalCallerService: TurnTotalCallerService {
+    public init() {}
+    public func announceTurnTotal(_ total: Int) {}
+}
+
+public struct TurnTotalCallerSignal: Equatable, Sendable {
+    public let token: Int
+    public let total: Int
+
+    public init(token: Int, total: Int) {
+        self.token = token
+        self.total = total
+    }
+}
+
+public final class GatedTurnTotalCallerService: TurnTotalCallerService, @unchecked Sendable {
+    private let underlying: any TurnTotalCallerService
+    private let preferences: FeedbackPreferences
+
+    public init(underlying: any TurnTotalCallerService, preferences: FeedbackPreferences) {
+        self.underlying = underlying
+        self.preferences = preferences
+    }
+
+    public func announceTurnTotal(_ total: Int) {
+        guard preferences.soundEnabled, preferences.turnTotalCallerEnabled else { return }
+        underlying.announceTurnTotal(total)
+    }
+}
+
 public final class GatedAudioFeedbackService: AudioFeedbackService, @unchecked Sendable {
     private let underlying: any AudioFeedbackService
     private let preferences: FeedbackPreferences
@@ -77,6 +115,11 @@ public final class GatedAudioFeedbackService: AudioFeedbackService, @unchecked S
     public func playMiss() {
         guard preferences.soundEnabled else { return }
         underlying.playMiss()
+    }
+
+    public func playLegFinished() {
+        guard preferences.soundEnabled else { return }
+        underlying.playLegFinished()
     }
 
     public func playMatchFinished() {
@@ -129,19 +172,28 @@ public final class SystemHapticsService: HapticsService, @unchecked Sendable {
 #endif
 
 #if canImport(AVFoundation) && canImport(UIKit)
+private enum FeedbackAudioSession {
+    static func configureIfNeeded() {
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+        try? session.setActive(true)
+    }
+}
+
 /// Plays sound effects loaded from the `Media.xcassets` data assets. Players are
 /// preloaded once and reused; playback is dispatched to the main thread.
 public final class BundledAudioFeedbackService: AudioFeedbackService, @unchecked Sendable {
     private static let hitAssetNames = ["dart_hit_1", "dart_hit_2", "dart_hit_3"]
     private static let missAssetName = "dart_miss"
+    private static let legFinishedAssetName = "leg_finished"
     private static let finishedAssetName = "game_finished"
 
     private let players: [String: AVAudioPlayer]
 
     public init() {
-        BundledAudioFeedbackService.configureAudioSession()
+        FeedbackAudioSession.configureIfNeeded()
         var loaded: [String: AVAudioPlayer] = [:]
-        for name in Self.hitAssetNames + [Self.missAssetName, Self.finishedAssetName] {
+        for name in Self.hitAssetNames + [Self.missAssetName, Self.legFinishedAssetName, Self.finishedAssetName] {
             guard let data = NSDataAsset(name: name)?.data,
                   let player = try? AVAudioPlayer(data: data) else { continue }
             player.prepareToPlay()
@@ -158,6 +210,10 @@ public final class BundledAudioFeedbackService: AudioFeedbackService, @unchecked
         play(Self.missAssetName)
     }
 
+    public func playLegFinished() {
+        play(Self.legFinishedAssetName)
+    }
+
     public func playMatchFinished() {
         play(Self.finishedAssetName)
     }
@@ -170,13 +226,22 @@ public final class BundledAudioFeedbackService: AudioFeedbackService, @unchecked
         }
         if Thread.isMainThread { work() } else { DispatchQueue.main.async(execute: work) }
     }
+}
 
-    private static func configureAudioSession() {
-        // Ambient mixes with other audio and respects the silent switch, which
-        // is the friendly default for a scorekeeping app's sound effects.
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-        try? session.setActive(true)
+/// Speaks visit totals using the system voice. Respects the device silent switch
+/// via the ambient audio session configured for bundled sound effects.
+public final class SpeechTurnTotalCallerService: TurnTotalCallerService, @unchecked Sendable {
+    private let synthesizer = AVSpeechSynthesizer()
+
+    public init() {
+        FeedbackAudioSession.configureIfNeeded()
+    }
+
+    public func announceTurnTotal(_ total: Int) {
+        let utterance = AVSpeechUtterance(string: "\(total)")
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        let work = { self.synthesizer.speak(utterance) }
+        if Thread.isMainThread { work() } else { DispatchQueue.main.async(execute: work) }
     }
 }
 #endif
