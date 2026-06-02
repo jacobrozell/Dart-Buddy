@@ -13,12 +13,22 @@ public struct DefaultRedactionPolicy: RedactionPolicy {
             "errorCode",
             "layer",
             "matchId",
+            "matchType",
             "playerId",
             "settingsId",
             "schemaVersion",
             "fromSchema",
             "toSchema",
-            "correlationId"
+            "correlationId",
+            "operation",
+            "elapsedMs",
+            "participantCount",
+            "eventCount",
+            "legIndex",
+            "setIndex",
+            "status",
+            "source",
+            "isBot"
         ],
         sensitiveKeyFragments: [String] = [
             "token",

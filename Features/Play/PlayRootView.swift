@@ -24,7 +24,8 @@ struct PlayRootView: View {
                 settingsRepository: dependencies.settingsRepository,
                 matchRepository: dependencies.matchRepository,
                 activeMatchStore: dependencies.activeMatchStore,
-                pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections
+                pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
+                logger: dependencies.logger
             )
         )
     }
@@ -145,7 +146,8 @@ private struct X01MatchRouteView: View {
                 store: dependencies.activeMatchStore,
                 logger: dependencies.logger,
                 matchRepository: dependencies.matchRepository,
-                statsRepository: dependencies.statsRepository
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
             )
         )
     }
@@ -156,7 +158,8 @@ private struct X01MatchRouteView: View {
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
-            turnTotalCaller: dependencies.turnTotalCallerService
+            turnTotalCaller: dependencies.turnTotalCallerService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
         )
     }
 }
@@ -177,7 +180,8 @@ private struct CricketMatchRouteView: View {
                 store: dependencies.activeMatchStore,
                 logger: dependencies.logger,
                 matchRepository: dependencies.matchRepository,
-                statsRepository: dependencies.statsRepository
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
             )
         )
     }
@@ -188,7 +192,8 @@ private struct CricketMatchRouteView: View {
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
-            turnTotalCaller: dependencies.turnTotalCallerService
+            turnTotalCaller: dependencies.turnTotalCallerService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
         )
     }
 }

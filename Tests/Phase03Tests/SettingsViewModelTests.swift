@@ -23,6 +23,8 @@ func settingsOnAppearLoadsAndAppliesPreferences() async {
     #expect(preferences.feedback.hapticsEnabled == false)
     #expect(preferences.feedback.soundEnabled == false)
     #expect(preferences.feedback.turnTotalCallerEnabled == false)
+    #expect(preferences.feedback.botStaggerEnabled == true)
+    #expect(preferences.feedback.botDartHapticsEnabled == true)
 }
 
 @MainActor
@@ -88,6 +90,49 @@ func settingsUpdateFeedbackTogglesTurnTotalCaller() async {
 
 @MainActor
 @Test(.tags(.unit, .settings, .regression))
+func settingsUpdateBotPacingPersistsAndSyncsPreferences() async {
+    let repository = FakeSettingsRepository(settings: makeSettings())
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: preferences
+    )
+    await vm.onAppear()
+
+    await vm.updateBotPacing(stagger: false, dartHaptics: false)
+
+    #expect(vm.settings?.botStaggerEnabled == false)
+    #expect(vm.settings?.botDartHapticsEnabled == false)
+    #expect(preferences.feedback.botStaggerEnabled == false)
+    #expect(preferences.feedback.botDartHapticsEnabled == false)
+    #expect(await repository.updateCallCount == 1)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsUpdateBotPacingCanToggleIndependently() async {
+    let repository = FakeSettingsRepository(settings: makeSettings())
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+    await vm.onAppear()
+
+    await vm.updateBotPacing(stagger: false)
+    #expect(vm.settings?.botStaggerEnabled == false)
+    #expect(vm.settings?.botDartHapticsEnabled == true)
+
+    await vm.updateBotPacing(dartHaptics: false)
+    #expect(vm.settings?.botStaggerEnabled == false)
+    #expect(vm.settings?.botDartHapticsEnabled == false)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
 func settingsUpdateDefaultsChangesMatchType() async {
     let repository = FakeSettingsRepository(settings: makeSettings(defaultMatchTypeRaw: "x01"))
     let vm = SettingsViewModel(
@@ -98,9 +143,23 @@ func settingsUpdateDefaultsChangesMatchType() async {
     )
     await vm.onAppear()
 
-    await vm.updateDefaults(matchType: "cricket", startScore: 501, checkout: "doubleOut", legs: 3, setsEnabled: false)
+    await vm.updateDefaults(
+        matchType: "cricket",
+        startScore: 301,
+        checkout: "singleOut",
+        checkIn: "doubleIn",
+        legFormat: "bestOf",
+        legs: 5,
+        setsEnabled: true
+    )
 
     #expect(vm.settings?.defaultMatchTypeRaw == "cricket")
+    #expect(vm.settings?.defaultX01StartScore == 301)
+    #expect(vm.settings?.defaultCheckoutModeRaw == "singleOut")
+    #expect(vm.settings?.defaultCheckInModeRaw == "doubleIn")
+    #expect(vm.settings?.defaultLegFormatRaw == "bestOf")
+    #expect(vm.settings?.defaultLegsToWin == 5)
+    #expect(vm.settings?.defaultSetsEnabled == true)
 }
 
 @MainActor
@@ -235,6 +294,8 @@ private func makeSettings(
         defaultLegFormatRaw: "firstTo",
         defaultLegsToWin: 3,
         defaultSetsEnabled: false,
+        botStaggerEnabled: true,
+        botDartHapticsEnabled: true,
         updatedAt: Date()
     )
 }

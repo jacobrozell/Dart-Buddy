@@ -52,7 +52,50 @@ func setupAddPlayerToSelectionIsIdempotent() async {
     await vm.onAppear()
     vm.addPlayerToSelection(players[0].id)
     vm.addPlayerToSelection(players[0].id)
-    #expect(vm.selectedPlayerIds == Set([players[0].id]))
+    #expect(vm.selectedPlayerIds == [players[0].id])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupMoveSelectedPlayersReordersTurnOrder() async {
+    let players = [makePlayer("A"), makePlayer("B"), makePlayer("C")]
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.togglePlayer(players[0].id)
+    vm.togglePlayer(players[1].id)
+    vm.togglePlayer(players[2].id)
+    #expect(vm.selectedPlayers.map(\.name) == ["A", "B", "C"])
+
+    vm.moveSelectedPlayers(from: IndexSet(integer: 2), to: 0)
+    #expect(vm.selectedPlayers.map(\.name) == ["C", "A", "B"])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupStartMatchUsesManualTurnOrder() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let repo = TurnOrderCapturingMatchRepository()
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: repo,
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.randomOrder = false
+    vm.togglePlayer(players[1].id)
+    vm.togglePlayer(players[0].id)
+
+    _ = await vm.startMatchRoute()
+
+    #expect(await repo.lastParticipantNames == ["B", "A"])
 }
 
 @MainActor
@@ -218,8 +261,46 @@ private actor FakeSettingsRepository: SettingsRepository {
         defaultLegFormatRaw: "firstTo",
         defaultLegsToWin: 3,
         defaultSetsEnabled: false,
+        botStaggerEnabled: true,
+        botDartHapticsEnabled: true,
         updatedAt: Date()
     )
+}
+
+private actor TurnOrderCapturingMatchRepository: MatchRepository {
+    private(set) var lastParticipantNames: [String] = []
+
+    func createMatch(type: MatchType, configPayload _: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary {
+        lastParticipantNames = participants.sorted { $0.turnOrder < $1.turnOrder }.map(\.displayNameAtMatchStart)
+        return MatchSummary(
+            id: UUID(),
+            type: type,
+            status: .inProgress,
+            startedAt: Date(),
+            endedAt: nil,
+            winnerPlayerId: nil,
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: 0,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
 }
 
 private actor FakeMatchRepository: MatchRepository {

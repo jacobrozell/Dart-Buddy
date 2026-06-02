@@ -42,10 +42,13 @@ public struct DefaultAppLogger: AppLogger {
 
 public extension DefaultAppLogger {
     static func makeForCurrentBuild() -> DefaultAppLogger {
+        let console = ConsoleLogSink()
+        let remote = FilteredLogSink(minimumLevel: .info, wrapped: NoOpRemoteAnalyticsLogSink())
+        let sink = CompositeLogSink(sinks: [console, remote])
         #if DEBUG
-        DefaultAppLogger(minimumLevel: .debug, sink: ConsoleLogSink())
+        return DefaultAppLogger(minimumLevel: .debug, sink: sink)
         #else
-        DefaultAppLogger(minimumLevel: .info, sink: ConsoleLogSink())
+        return DefaultAppLogger(minimumLevel: .info, sink: sink)
         #endif
     }
 }

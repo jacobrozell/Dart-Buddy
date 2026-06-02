@@ -13,7 +13,8 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     @Published var mode: SetupMode = .x01
-    @Published var selectedPlayerIds: Set<UUID> = []
+    /// Selected players in throw order (first throws first unless `randomOrder` is on at start).
+    @Published var selectedPlayerIds: [UUID] = []
     @Published var availablePlayers: [PlayerSummary] = []
     @Published var x01StartScore: Int = 501
     @Published var x01LegsToWin: Int = 3
@@ -33,19 +34,22 @@ final class MatchSetupViewModel: ObservableObject {
     private let matchRepository: any MatchRepository
     private let activeMatchStore: ActiveMatchStore
     private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
+    private let logger: any AppLogger
 
     init(
         playerRepository: any PlayerRepository,
         settingsRepository: any SettingsRepository,
         matchRepository: any MatchRepository,
         activeMatchStore: ActiveMatchStore,
-        pendingMatchPlayerSelections: PendingMatchPlayerSelections
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections,
+        logger: any AppLogger = DefaultAppLogger(minimumLevel: .fault, sink: NoOpLogSink())
     ) {
         self.playerRepository = playerRepository
         self.settingsRepository = settingsRepository
         self.matchRepository = matchRepository
         self.activeMatchStore = activeMatchStore
         self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
+        self.logger = logger
     }
 
     var canStart: Bool {
@@ -56,8 +60,9 @@ final class MatchSetupViewModel: ObservableObject {
         do {
             availablePlayers = try await playerRepository.fetchPlayers(includeArchived: false)
             let loadedIds = Set(availablePlayers.map(\.id))
+            selectedPlayerIds.removeAll { !loadedIds.contains($0) }
             for id in pendingMatchPlayerSelections.dequeueIdsPresent(in: loadedIds) {
-                selectedPlayerIds.insert(id)
+                appendToSelection(id)
             }
             let settings = try await settingsRepository.seedDefaultsIfNeeded()
             x01StartScore = X01StartScores.all.contains(settings.defaultX01StartScore) ? settings.defaultX01StartScore : 501
@@ -74,26 +79,47 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     func togglePlayer(_ id: UUID) {
-        if selectedPlayerIds.contains(id) {
-            selectedPlayerIds.remove(id)
+        if let index = selectedPlayerIds.firstIndex(of: id) {
+            selectedPlayerIds.remove(at: index)
         } else {
-            selectedPlayerIds.insert(id)
+            appendToSelection(id)
         }
         revalidate()
     }
 
     /// Adds a player to the match roster without toggling off if already selected (e.g. after Quick Add).
     func addPlayerToSelection(_ id: UUID) {
-        selectedPlayerIds.insert(id)
+        appendToSelection(id)
         revalidate()
     }
 
+    func removeFromSelection(_ id: UUID) {
+        selectedPlayerIds.removeAll { $0 == id }
+        revalidate()
+    }
+
+    func moveSelectedPlayers(from source: IndexSet, to destination: Int) {
+        guard !randomOrder else { return }
+        selectedPlayerIds.move(fromOffsets: source, toOffset: destination)
+    }
+
+    var selectedPlayers: [PlayerSummary] {
+        selectedPlayerIds.compactMap { id in
+            availablePlayers.first { $0.id == id }
+        }
+    }
+
     var availableHumans: [PlayerSummary] {
-        availablePlayers.filter { !$0.isBot }
+        availablePlayers.filter { !$0.isBot && !selectedPlayerIds.contains($0.id) }
     }
 
     var availableBots: [PlayerSummary] {
-        availablePlayers.filter(\.isBot)
+        availablePlayers.filter { $0.isBot && !selectedPlayerIds.contains($0.id) }
+    }
+
+    private func appendToSelection(_ id: UUID) {
+        guard !selectedPlayerIds.contains(id) else { return }
+        selectedPlayerIds.append(id)
     }
 
     func addBot(_ difficulty: BotDifficulty) async {
@@ -102,7 +128,7 @@ final class MatchSetupViewModel: ObservableObject {
             if !availablePlayers.contains(where: { $0.id == created.id }) {
                 availablePlayers.append(created)
             }
-            selectedPlayerIds.insert(created.id)
+            appendToSelection(created.id)
             revalidate()
         } catch {
             validationErrors = [(error as? AppError)?.userMessageKey ?? "setup.error.load"]
@@ -123,7 +149,7 @@ final class MatchSetupViewModel: ObservableObject {
         if selectedParticipantCount < 2 {
             errors.append("setup.validation.minimumPlayers")
         } else {
-            let selected = availablePlayers.filter { selectedPlayerIds.contains($0.id) }
+            let selected = selectedPlayers
             if selected.allSatisfy(\.isBot) {
                 errors.append("setup.validation.requiresHuman")
             }
@@ -148,6 +174,7 @@ final class MatchSetupViewModel: ObservableObject {
         // A match is already in progress: ask the user to replace it instead of
         // failing silently with a validation error.
         if (try? await matchRepository.fetchActiveMatch()) != nil {
+            logger.debug(.ui, eventName: "active_match_conflict", message: "Setup blocked by in-progress match.")
             showActiveMatchConflict = true
             return nil
         }
@@ -160,11 +187,26 @@ final class MatchSetupViewModel: ObservableObject {
         showActiveMatchConflict = false
         do {
             if let active = try await matchRepository.fetchActiveMatch() {
+                logger.info(
+                    .scoring,
+                    eventName: "active_match_replaced",
+                    message: "Replacing in-progress match before starting a new one.",
+                    metadata: [
+                        "matchId": active.id.uuidString,
+                        "matchType": active.type.rawValue
+                    ]
+                )
                 try await abandonActiveMatch(active)
             }
         } catch is CancellationError {
             return nil
         } catch {
+            logger.error(
+                .scoring,
+                eventName: "active_match_replace_failed",
+                message: "Failed to abandon active match before replacement.",
+                metadata: appErrorMetadata(for: error)
+            )
             validationErrors = [(error as? AppError)?.userMessageKey ?? "setup.error.start"]
             return nil
         }
@@ -244,6 +286,15 @@ final class MatchSetupViewModel: ObservableObject {
         guard canStart else { return nil }
         isSubmitting = true
         defer { isSubmitting = false }
+        logger.debug(
+            .scoring,
+            eventName: "match_setup_start",
+            message: "Starting match from setup.",
+            metadata: [
+                "matchType": mode == .x01 ? MatchType.x01.rawValue : MatchType.cricket.rawValue,
+                "participantCount": String(selectedParticipantCount)
+            ]
+        )
         struct RosterEntry {
             let id: UUID
             let name: String
@@ -251,16 +302,14 @@ final class MatchSetupViewModel: ObservableObject {
             let avatarStyleRaw: String?
         }
 
-        let rosterEntries: [RosterEntry] = availablePlayers
-            .filter { selectedPlayerIds.contains($0.id) }
-            .map { player in
-                RosterEntry(
-                    id: player.id,
-                    name: player.name,
-                    botDifficulty: player.botDifficulty,
-                    avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue
-                )
-            }
+        let rosterEntries: [RosterEntry] = selectedPlayers.map { player in
+            RosterEntry(
+                id: player.id,
+                name: player.name,
+                botDifficulty: player.botDifficulty,
+                avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue
+            )
+        }
         let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
         let selectedPlayers = orderedRoster
             .enumerated()
@@ -336,10 +385,27 @@ final class MatchSetupViewModel: ObservableObject {
             )
             activeMatchStore.save(session)
             await persistLastUsedSetup()
+            logger.info(
+                .scoring,
+                eventName: "match_started",
+                message: "Match created and persisted.",
+                metadata: [
+                    "matchId": persisted.id.uuidString,
+                    "matchType": (mode == .x01 ? MatchType.x01 : MatchType.cricket).rawValue,
+                    "participantCount": String(selectedPlayers.count)
+                ],
+                correlationId: persisted.id.uuidString
+            )
             return route
         } catch is CancellationError {
             return nil
         } catch {
+            logger.error(
+                .scoring,
+                eventName: "match_start_failed",
+                message: "Match creation failed.",
+                metadata: appErrorMetadata(for: error)
+            )
             if let appError = error as? AppError {
                 validationErrors = [appError.userMessageKey]
             } else {
@@ -364,8 +430,20 @@ final class MatchSetupViewModel: ObservableObject {
             defaultLegFormatRaw: x01LegFormat.rawValue,
             defaultLegsToWin: x01LegsToWin,
             defaultSetsEnabled: x01SetsEnabled,
+            botStaggerEnabled: settings.botStaggerEnabled,
+            botDartHapticsEnabled: settings.botDartHapticsEnabled,
             updatedAt: Date()
         )
         _ = try? await settingsRepository.updateSettings(next)
+    }
+
+    private func appErrorMetadata(for error: Error) -> [String: String] {
+        if let appError = error as? AppError {
+            return [
+                "errorCode": appError.code.rawValue,
+                "layer": appError.layer.rawValue
+            ]
+        }
+        return ["errorCode": "unknown"]
     }
 }

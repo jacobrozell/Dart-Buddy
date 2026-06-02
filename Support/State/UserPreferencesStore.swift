@@ -5,6 +5,8 @@ public final class FeedbackPreferences: @unchecked Sendable {
     public var hapticsEnabled = true
     public var soundEnabled = true
     public var turnTotalCallerEnabled = false
+    public var botStaggerEnabled = true
+    public var botDartHapticsEnabled = true
 }
 
 @MainActor
@@ -17,5 +19,7 @@ public final class UserPreferencesStore: ObservableObject {
         feedback.hapticsEnabled = settings.hapticsEnabled
         feedback.soundEnabled = settings.soundEnabled
         feedback.turnTotalCallerEnabled = settings.turnTotalCallerEnabled
+        feedback.botStaggerEnabled = settings.botStaggerEnabled
+        feedback.botDartHapticsEnabled = settings.botDartHapticsEnabled
     }
 }

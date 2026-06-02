@@ -26,19 +26,22 @@ final class CricketMatchViewModel: ObservableObject {
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
+    private let feedbackPreferences: FeedbackPreferences
 
     init(
         matchId: UUID,
         store: ActiveMatchStore,
         logger: any AppLogger,
         matchRepository: any MatchRepository,
-        statsRepository: any StatsRepository
+        statsRepository: any StatsRepository,
+        feedbackPreferences: FeedbackPreferences = FeedbackPreferences()
     ) {
         self.matchId = matchId
         self.store = store
         self.logger = logger
         self.matchRepository = matchRepository
         self.statsRepository = statsRepository
+        self.feedbackPreferences = feedbackPreferences
         self.session = store.session(for: matchId)
     }
 
@@ -69,13 +72,15 @@ final class CricketMatchViewModel: ObservableObject {
     var boardColumns: [CricketBoardView.Column] {
         guard let session, let state = session.runtime.cricketState else { return [] }
         let isInProgress = session.runtime.status == .inProgress
+        let highlightClosure = self.state == .closureTransition
         return state.players.enumerated().map { index, player in
             CricketBoardView.Column(
                 id: player.playerId,
                 name: name(for: player.playerId, fallbackIndex: index),
                 score: player.score,
                 marks: player.marks,
-                isActive: index == state.currentPlayerIndex && isInProgress
+                isActive: index == state.currentPlayerIndex && isInProgress,
+                isClosureHighlight: highlightClosure && index == state.currentPlayerIndex
             )
         }
     }
@@ -94,6 +99,13 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
+        logger.matchDebug(
+            matchId: matchId,
+            matchType: .cricket,
+            category: .ui,
+            eventName: "match_screen_appeared",
+            message: "Cricket match screen presented."
+        )
         await loadSessionIfNeeded()
         await playBotTurnIfNeeded()
     }
@@ -105,6 +117,12 @@ final class CricketMatchViewModel: ObservableObject {
               let cricketState = session?.runtime.cricketState else { return }
 
         isBotPlaying = true
+        logger.matchDebug(
+            matchId: matchId,
+            matchType: .cricket,
+            eventName: "bot_turn_started",
+            message: "Bot visit generation started."
+        )
 
         enteredDarts.removeAll()
         var rng = SystemRandomNumberGenerator()
@@ -115,12 +133,13 @@ final class CricketMatchViewModel: ObservableObject {
             rng: &rng
         )
 
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
         for dart in plannedDarts {
-            try? await Task.sleep(nanoseconds: 650_000_000)
+            try? await Task.sleep(nanoseconds: dartDelay)
             enteredDarts.append(dart)
         }
 
-        try? await Task.sleep(nanoseconds: 350_000_000)
+        try? await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
         isBotPlaying = false
         await submitTurnAsync()
     }
@@ -140,14 +159,35 @@ final class CricketMatchViewModel: ObservableObject {
             )
             store.remove(matchId: matchId)
             session = abandoned
+            logger.matchInfo(
+                matchId: matchId,
+                matchType: .cricket,
+                category: .appLifecycle,
+                eventName: "match_abandoned",
+                message: "Cricket match abandoned by user.",
+                metadata: ["eventCount": String(abandoned.runtime.eventCount)]
+            )
         } catch {
-            logger.error(.appLifecycle, eventName: "cricket_abandon_failed", message: "Abandon failed: \(error)")
+            logger.matchError(
+                matchId: matchId,
+                matchType: .cricket,
+                category: .appLifecycle,
+                eventName: "cricket_abandon_failed",
+                message: "Abandon failed.",
+                metadata: appErrorMetadata(for: error)
+            )
         }
     }
 
     private func submitTurnAsync() async {
         await loadSessionIfNeeded()
         guard var current = session else {
+            logger.matchError(
+                matchId: matchId,
+                matchType: .cricket,
+                eventName: "match_session_missing",
+                message: "Submit attempted without a loaded session."
+            )
             state = .error("cricket.error.sessionMissing")
             return
         }
@@ -167,6 +207,13 @@ final class CricketMatchViewModel: ObservableObject {
                 state = .readyTurn
                 return
             } catch {
+                logger.matchDebug(
+                    matchId: matchId,
+                    matchType: .cricket,
+                    eventName: "turn_submit_rejected",
+                    message: "Turn rejected by scoring engine.",
+                    metadata: appErrorMetadata(for: error)
+                )
                 state = .entryInvalid(errorMessageKey(for: error, fallback: "cricket.error.invalidTurn"))
                 return
             }
@@ -176,11 +223,26 @@ final class CricketMatchViewModel: ObservableObject {
                 state = .readyTurn
                 return
             } catch {
+                logger.matchError(
+                    matchId: matchId,
+                    matchType: .cricket,
+                    category: .persistence,
+                    eventName: "turn_persist_failed",
+                    message: "Failed to persist submitted turn.",
+                    metadata: appErrorMetadata(for: error)
+                )
                 state = .error(errorMessageKey(for: error, fallback: "error.repository.storage"))
                 return
             }
             store.save(current)
             session = current
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .cricket,
+                eventName: "turn_submitted",
+                message: "Turn accepted and persisted.",
+                metadata: matchProgressMetadata(for: current)
+            )
             if wasHumanTurn {
                 turnTotalCallerToken += 1
                 turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: submittedVisitTotal)
@@ -191,10 +253,18 @@ final class CricketMatchViewModel: ObservableObject {
                     logger: logger,
                     metadata: ["matchType": MatchType.cricket.rawValue]
                 ) {}
+                logger.matchInfo(
+                    matchId: matchId,
+                    matchType: .cricket,
+                    category: .appLifecycle,
+                    eventName: "match_completed",
+                    message: "Cricket match completed.",
+                    metadata: matchProgressMetadata(for: current)
+                )
                 state = .matchCompleted
             } else {
                 state = .closureTransition
-                try? await Task.sleep(nanoseconds: 350_000_000)
+                try? await Task.sleep(nanoseconds: 550_000_000)
                 state = .readyTurn
                 if current.runtime.status != .completed {
                     await playBotTurnIfNeeded()
@@ -219,9 +289,23 @@ final class CricketMatchViewModel: ObservableObject {
             session = undone
             state = .readyTurn
             enteredDarts.removeAll()
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .cricket,
+                eventName: "turn_undone",
+                message: "Last turn undone.",
+                metadata: matchProgressMetadata(for: undone)
+            )
         } catch is CancellationError {
             state = .readyTurn
         } catch {
+            logger.matchError(
+                matchId: matchId,
+                matchType: .cricket,
+                eventName: "turn_undo_failed",
+                message: "Undo failed.",
+                metadata: appErrorMetadata(for: error)
+            )
             state = .error(errorMessageKey(for: error, fallback: "cricket.error.undoFailed"))
         }
     }
@@ -272,6 +356,13 @@ final class CricketMatchViewModel: ObservableObject {
         if session != nil { return }
         if let existing = store.session(for: matchId) {
             session = existing
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .cricket,
+                eventName: "match_session_resumed_from_memory",
+                message: "Loaded active match session from memory.",
+                metadata: matchProgressMetadata(for: existing)
+            )
             return
         }
         do {
@@ -293,9 +384,45 @@ final class CricketMatchViewModel: ObservableObject {
             let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
             store.save(rehydrated)
             session = rehydrated
+            logger.matchInfo(
+                matchId: matchId,
+                matchType: .cricket,
+                eventName: "match_session_rehydrated",
+                message: "Rehydrated match session from snapshot.",
+                metadata: [
+                    "source": "snapshot",
+                    "eventCount": String(rehydrated.runtime.eventCount)
+                ]
+            )
         } catch {
+            logger.matchError(
+                matchId: matchId,
+                matchType: .cricket,
+                eventName: "match_session_load_failed",
+                message: "Failed to load match session.",
+                metadata: appErrorMetadata(for: error)
+            )
             state = .error(errorMessageKey(for: error, fallback: "cricket.error.sessionMissing"))
         }
+    }
+
+    private func matchProgressMetadata(for session: MatchLifecycleSession) -> [String: String] {
+        [
+            "eventCount": String(session.runtime.eventCount),
+            "legIndex": String(session.runtime.currentLegIndex),
+            "setIndex": String(session.runtime.currentSetIndex),
+            "status": session.runtime.status.rawValue
+        ]
+    }
+
+    private func appErrorMetadata(for error: Error) -> [String: String] {
+        if let appError = error as? AppError {
+            return [
+                "errorCode": appError.code.rawValue,
+                "layer": appError.layer.rawValue
+            ]
+        }
+        return ["errorCode": "unknown"]
     }
 
     private func errorMessageKey(for error: Error, fallback: String) -> String {

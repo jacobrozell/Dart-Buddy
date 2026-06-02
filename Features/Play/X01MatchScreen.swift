@@ -6,10 +6,13 @@ struct X01MatchScreen: View {
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
     let turnTotalCaller: any TurnTotalCallerService
+    let feedbackPreferences: FeedbackPreferences
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
     @State private var lastAnnouncedCheckout: String?
+    @State private var showLegWinBanner = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -46,6 +49,8 @@ struct X01MatchScreen: View {
                 Spacer()
             }
         }
+        .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+        .frame(maxWidth: .infinity)
         .background(Brand.background.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
@@ -67,7 +72,17 @@ struct X01MatchScreen: View {
             if token > 0 {
                 audio.playLegFinished()
                 postAccessibilityAnnouncement(L10n.string("play.x01.announce.legWon"))
+                showLegWinBanner = true
+                Task {
+                    try? await Task.sleep(nanoseconds: 1_200_000_000)
+                    await MainActor.run { showLegWinBanner = false }
+                }
             }
+        }
+        .onChange(of: viewModel.enteredDarts.count) { oldCount, newCount in
+            guard viewModel.isBotPlaying, newCount > oldCount else { return }
+            guard feedbackPreferences.botDartHapticsEnabled else { return }
+            haptics.playImpact()
         }
         .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in
             guard let signal else { return }
@@ -216,17 +231,19 @@ struct X01MatchScreen: View {
 
     @ViewBuilder
     private var stateBanner: some View {
-        switch viewModel.state {
-        case .bustFeedback:
-            Text(L10n.bustFeedback)
-                .font(.headline.weight(.heavy))
-                .foregroundStyle(Brand.red)
-                .multilineTextAlignment(.center)
-                .accessibilityIdentifier("bustBanner")
-        case let .entryInvalid(key), let .error(key):
-            Text(LocalizedStringKey(key)).foregroundStyle(Brand.red)
-        default:
-            EmptyView()
+        if showLegWinBanner {
+            MatchFeedbackBanner(text: L10n.x01LegWonBanner, style: .legWin)
+                .accessibilityIdentifier("legWonBanner")
+        } else {
+            switch viewModel.state {
+            case .bustFeedback:
+                MatchFeedbackBanner(text: L10n.bustFeedback, style: .bust)
+                    .accessibilityIdentifier("bustBanner")
+            case let .entryInvalid(key), let .error(key):
+                ErrorBanner(messageKey: key)
+            default:
+                EmptyView()
+            }
         }
     }
 

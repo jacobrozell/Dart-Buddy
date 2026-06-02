@@ -7,12 +7,13 @@ struct CricketMatchScreen: View {
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
     let turnTotalCaller: any TurnTotalCallerService
+    let feedbackPreferences: FeedbackPreferences
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
 
     private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 700 : .infinity
+        GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass)
     }
 
     var body: some View {
@@ -95,7 +96,8 @@ struct CricketMatchScreen: View {
         .onChange(of: viewModel.state) { _, newValue in
             switch newValue {
             case .closureTransition:
-                postAccessibilityAnnouncement(L10n.string("play.cricket.boardUpdated"))
+                haptics.playSuccess()
+                postAccessibilityAnnouncement(L10n.string("play.cricket.targetClosed"))
             case .matchCompleted:
                 audio.playMatchFinished()
                 onShowSummary()
@@ -106,6 +108,11 @@ struct CricketMatchScreen: View {
         .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in
             guard let signal else { return }
             turnTotalCaller.announceTurnTotal(signal.total)
+        }
+        .onChange(of: viewModel.enteredDarts.count) { oldCount, newCount in
+            guard viewModel.isBotPlaying, newCount > oldCount else { return }
+            guard feedbackPreferences.botDartHapticsEnabled else { return }
+            haptics.playImpact()
         }
         .task { await viewModel.onAppear() }
         .onDisappear { actionTask?.cancel() }
@@ -141,11 +148,10 @@ struct CricketMatchScreen: View {
         case .submittingTurn:
             Text(L10n.submittingTurn).foregroundStyle(.white)
         case .closureTransition:
-            Text(L10n.boardUpdated)
-                .foregroundStyle(Brand.textSecondary)
-                .accessibilityIdentifier("cricketBoardUpdatedBanner")
+            MatchFeedbackBanner(text: L10n.cricketTargetClosed, style: .cricketClosure)
+                .accessibilityIdentifier("cricketTargetClosedBanner")
         case let .entryInvalid(key), let .error(key):
-            playLocalizedText(key).foregroundStyle(DS.ColorRole.danger)
+            ErrorBanner(messageKey: key)
         case .matchCompleted:
             Text(L10n.matchCompleteRoute).foregroundStyle(.white)
         }

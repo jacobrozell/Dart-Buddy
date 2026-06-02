@@ -90,6 +90,17 @@ This section is conceptual and must not diverge from those sources.
 - Load `MatchRecord` + latest snapshot + events after snapshot.
 - Rehydrate state deterministically.
 
+## Abandon (1.0 policy)
+- Triggered when the player exits an in-progress match without completing it, or confirms **Abandon & Start** on setup when another match is already active.
+- Sets `status = abandoned`, `endedAt`, clears `currentTurnPlayerId`; snapshot is persisted for diagnostics only.
+- **Not shown** in History, Statistics, or Play home “recent games” (queries use `status = completed` only).
+- **Does not count** toward games, wins, trends, or any player aggregate in 1.0.
+- Rows may remain in local storage until **Reset All Local Data**; no abandoned-match list or purge UI in 1.0.
+
+## Active match constraint (1.0)
+- At most one `inProgress` match at a time (`fetchActiveMatch`).
+- Play tab resume banner and setup conflict flow target that record only.
+
 ---
 
 ## 6. UI Expectations
@@ -113,6 +124,7 @@ This section is conceptual and must not diverge from those sources.
 
 ## 7. Data Management Rules
 - Match/event history is immutable after completion.
+- Abandoned matches are write-once audit rows, excluded from user-visible history and stats (see **Abandon** above).
 - Profile edits never rewrite participant snapshots.
 - Hard delete of match is disallowed in MVP UI (future admin option only).
 - If a player is archived/deleted later, completed match remains readable.

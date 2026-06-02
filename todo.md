@@ -5,137 +5,162 @@ Goal: match the reference *Darts Scoreboard: Scorekeeper* app's functionality an
 Status legend: `[ ]` todo · `[~]` partial
 
 ---
+logging,Firebase?
 
-## User feedback
+## 1.0 — Still needed
 
-* What if we had a watch app? SO you could enter your throws on the watch and it connect back to the main app
-* Speak mode while playing
-Add Game Center support with acheivements
- -- play 1 game
- -- play 50 games
- -- play 100 games
- -- first triple 20
- -- 3 triple 20's in a turn
- -- bullseye hitter
- -- win by more than 100 points
- -- help me brainstorm more
+Ship blockers before App Store. Product scope is complete; remaining work is **evidence + store ops**.
 
-- [x] **Turn total caller (optional)** — After human submits a visit, speak/play visit total; Settings toggle, default off; respect sound gate.
-- [x] **Leg vs match finish SFX** — `legFinishSoundToken` uses `playMatchFinished()` today; add leg-specific sound; reserve `game_finished` for match end.
-- [x] **Bot zero visits** — `veryEasy` tier, `offBoardMissChance`, unit + mirror sim caps (in `477a2c5`).
-- [x] **X01 live darts + avg** — VM has preview stats; verify UI updates per dart in simulator; fix binding or add UI test if not.
+### QA sign-off (device)
 
----
+Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`.
 
-## Core product gaps
+- [ ] **RC smoke pass** — `specs/ReleaseGateChecklist.md` + `SmokeTestChecklist.md` on device (Release build).
+- [ ] **Core flow matrix** — Setup → X01 → summary; setup → Cricket → summary; **resume active match**; undo (both modes); history list/detail; **players archive/delete guard**; settings reset flow.
+- [ ] **Appearance matrix** — Portrait/landscape × light/dark on setup + one match screen (screenshots in sign-off doc).
+- [ ] **Accessibility evidence** — VoiceOver core flows, Dynamic Type (AXXXL), non-color meaning; log in `accessibility/wcag-2.1-aa/evidence/` + `accessibility/accessibility_todo.md` Phase 0–1.
+- [ ] **Smoke test evidence** — `specs/SmokeTestEvidenceTemplate.md` screenshots linked from sign-off.
 
-### History & statistics
+### Data & recovery (device)
 
-- [x] **Statistics: in-progress / partial stats** — Active match darts/points merge into Statistics; games/wins unchanged until complete.
-- [x] **History: player filter UI** — VM + tests exist; wire menu in `HistoryRootView` (mirror Statistics).
-- [x] **History: push filters to SwiftData** — Map mode/date (and player) into `MatchHistoryFilter` instead of fetch-500-then-filter.
-- [x] **History: pagination** — Load more / proper `emptyFiltered` when filters match nothing.
-- [x] **All Games: in-progress row** — Resume section + optional tab badge when `fetchActiveMatch` non-nil.
-- [ ] **Abandoned matches** — Optional list or purge policy (rows exist in DB, invisible in UI).
-- [x] **Home: recent completed mini-list** — Optional `UIBlueprint` entry on setup home.
-- [x] **Game detail per-player hit bars** — Per-player sector charts on game detail.
+- [x] **On-device reset wipe verification** — Full transactional wipe; relaunch clean (`Phase06-Security-Privacy-Checklist.md`).
+- [ ] **Migration recovery smoke** — Retry / export / reset paths on target runtime (upgrade or forced failure); log in `Phase06-Migration-Safety-Report.md`. Distinct from settings reset.
 
-### Match setup & play
+### App Store & release ops
 
-- [ ] **X01 total-score entry toggle** — Deferred; keep current per-dart entry.
-- [ ] **Setup: reorder + remove roster** — Drag reorder; swipe remove; keep random order.
-- [ ] **Settings: default X01/Cricket options** — Expose checkout, check-in, legs/sets, start score in Settings, or stop persisting unused fields.
-- [x] **Bot-vs-bot guard** — Warn or block START when no human selected.
-- [x] **Match Summary cold path** — Reload from `matchRepository` when `ActiveMatchStore` has no session.
-- [ ] **Cricket setup variants** — e.g. Cut Throat (`CricketSpec`).
-- [ ] **Bust / leg / set animations** — Bust is text banner only today.
-
-### UI / UX / accessibility
-
-- [ ] **iPad / landscape layouts**
-- [ ] **Accessibility pass** — Follow `accessibility/accessibility_todo.md` (Phase 0–2); status in `accessibility/wcag-2.1-aa/`.
-- [x] **Localize remaining English** — Home, History, Statistics, Match Summary, setup, game detail delete copy.
-- [x] **Cricket nav title contrast** — dark toolbar on `CricketMatchScreen` (verify in Inspector / `Manual_todo.md`)
-- [x] **X01 layout dead space** — `ViewThatFits` compact vs scroll layout; cards hug content on phone.
-- [x] **Setup flow** — Roster above sticky START inset; Add Bot separated from primary CTA.
-- [x] **Unify match exit chrome** — Shared `MatchGameplayHeader` (chevron exit) on X01 + Cricket.
-- [x] **Match Summary stat parity** — Best Out always shown; equal-width stat columns.
-- [x] **Empty-state CTAs** — History/Statistics “no games” → jump to Play.
-- [x] **Cricket one-screen fit (phone)** — Pin player header + tap pad; scroll marks grid only.
-- [x] **X01 player card legibility** — Right-column stats bumped to `.footnote`; fixed min width.
-- [x] **Theme cohesion** — Scoreboard tabs fixed dark; Settings brand form when not Light.
 - [ ] **App icon finalization** — `Media.xcassets` / `assets/app-icons/`
-- [x] **Reduce Motion on summary celebration**
-- [ ] **Cricket closure highlight** — Beyond `boardUpdated` text on `closureTransition`
-- [ ] **Bot turn pacing** — Optional stagger + per-dart haptic (settings).
-- [ ] **DesignSystem primitives** — `PrimaryActionButton`, `StatChip`, `ErrorBanner` (Phase 05 P1).
+- [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL** (`specs/AppStoreConnectSpec.md`).
+- [ ] **Privacy disclosure** — Store labels match app behavior (local-only, no ads, no tracking); validate against `Phase06-Security-Privacy-Checklist.md`.
+- [ ] **Marketing screenshots** — X01, Cricket, setup, history, stats (§8 of `AppStoreConnectSpec`; separate from smoke evidence).
+- [ ] **Release build sanity** — Release config drops debug verbosity; no sensitive data in logs.
+- [ ] **Release notes** — Finalize from `roadmap/release/Release-Notes-Template.md`; tag RC build.
 
-### Copy / quick fixes
+### Product (1.0 scope)
 
-- [x] **“Delete & Start” → abandon wording** — Behavior abandons; update `play.setup.activeConflict.*` + UITest.
-- [x] **Bust banner** — Use `L10n.bustFeedback` instead of hardcoded `"BUST"`.
-- [x] **`PlayHomeViewModel.emptyNoPlayers`** — Removed; setup roster empty state covers the UI.
-- [x] **Tab labels vs spec** — “Play” / “History” tab items; History screen title aligned with blueprint.
+- [x] **Settings: default X01/Cricket options** — Settings form exposes X01 defaults; setup reads/writes same fields.
+- [x] **Abandoned matches** — Policy: hidden from History/Statistics; no UI list; cleared on reset (`specs/MatchSpec.md` § Abandon).
+- [x] **Setup: reorder + remove roster** — Turn order list with drag reorder + swipe remove; random order still shuffles at start.
+- [x] **Document in-progress + abandoned match rules** — `specs/MatchSpec.md` (Abandon + Active match constraint).
 
----
+### Polish (1.0)
 
-## Testing
-
-- [x] **`StatisticsViewModel`** — Breakdown, player/mode/period filters, partial active match, empty state.
-- [x] **`HistoryListViewModel`** — Mode/date/player filters, pagination, DB filter mapping, empty/error states.
-- [x] **`MatchSummaryViewModel` tests** — Cold-load, missing snapshot.
-- [x] **`MigrationRecoveryViewModel` tests**
-- [x] **UI: checkout → winner → summary**
-- [x] **UI: Cricket grid scoring**
-- [x] **UI: settings sound/haptics persistence**
-- [x] **Repository contract tests** — SwiftData player/match/settings/stats contracts covered; expand as RepositorySpec evolves.
-- [ ] **Snapshot tests** — Optional post UI lock
+- [x] **Cricket closure highlight** — Target closed banner, column pulse, haptic + VO.
+- [x] **Bot turn pacing** — Settings: bot stagger + bot dart haptics; `BotTurnPacing` delays.
+- [x] **Bust / leg / set feedback** — `MatchFeedbackBanner` for bust + leg won on X01.
+- [x] **DesignSystem primitives** — `PrimaryActionButton`, `StatChip`, `ErrorBanner`, `MatchFeedbackBanner`.
+- [x] **iPad content width** — `GameplayLayout` on setup, X01, Cricket, summary.
 
 ---
 
-## Performance & data
+## 1.0 — Skip (post-1.0 or explicitly deferred)
 
-- [ ] **Profile SwiftData per-call `ModelContext`** — If scoring feels sluggish under load.
-- [ ] **Performance baselines** — `PerformanceMonitor` on history load + submit turn; fill Phase 06 report.
-- [ ] **Stats aggregate rebuild utility** — Optional dev tool if cache drift matters (no `PlayerDailyAggregate` tables in 1.0).
+Do not block 1.0 on these.
 
----
+### Deferred product
 
-## Release readiness (1.0)
+- [ ] **X01 total-score entry toggle** — Keep per-dart entry.
+- [ ] **Cricket setup variants** — Cut Throat etc. (`CricketSpec` MVP is standard only).
+- [ ] **Bust / leg / set animations** — Covered by match feedback banners; full motion pass still post-1.0.
+- [ ] **iPad / landscape layouts** — Max-width polish only; no two-column match layout.
+- [ ] **Snapshot tests** — After UI lock.
 
-- [ ] **RC smoke pass** — `specs/ReleaseGateChecklist.md` + `SmokeTestChecklist.md` on device.
-- [ ] **Manual evidence** — `SmokeTestEvidenceTemplate.md` screenshots.
-- [ ] **App Store metadata** — Icon, name, privacy disclosure (`AppStoreConnectSpec`, Phase 06 privacy checklist).
-- [ ] **On-device reset wipe verification**
-- [ ] **Commit bot tuning + Very Easy** — Done in `477a2c5`.
+### User feedback (broader than shipped caller)
 
----
+- *Animations ?* — Partially addressed via match feedback banners; broader motion pass post-1.0.
+- *Speak mode while playing* — Full caller (“180!”) is post-1.0; turn-total caller is done.
 
-## Post-1.0 / deferred
+### Performance & data (only if RC finds issues)
 
+- [ ] **Profile SwiftData per-call `ModelContext`**
+- [ ] **Performance baselines** — Launch, submitTurn, resumeMatch, history first paint on device (`Phase06-Performance-Report.md`).
+- [ ] **Stats aggregate rebuild utility**
+
+### Post-1.0 roadmap
+
+- [ ] **Game Center achievements** — `achievements.md` (2–4 day MVP; good 1.1 candidate).
 - [ ] **Firebase Auth** — `specs/FirebaseBackendAnalyticsSpec.md`
 - [ ] **Online play / Firebase SDKs** — `specs/OnlinePlaySpec.md`
 - [ ] **AI camera auto-scoring** — `AutoScoringVisionSpec`
 - [ ] **External display / AirPlay**
-- [ ] **Voice caller (“180!”)** — Beyond turn-total optional caller above
-- [ ] **Apple Watch / widgets / cloud sync** — Roadmap
+- [ ] **Voice caller (“180!”)**
+- [ ] **Apple Watch / widgets / cloud sync**
+
+### Housekeeping (non-blocking)
+
+- [ ] **TestFlight beta** — Optional pre-submission buffer; not a spec blocker.
+- [ ] **Debug launch args policy** — `-seed_demo`, `-snapshot_*`, `-ui_test_reset`
+- [ ] **XcodeGen team note** — gitignored `.xcodeproj`; no `xcuserstate` in git.
 
 ---
 
-## Housekeeping
+## Completed (reference)
 
-- [ ] **Debug launch args policy** — `-seed_demo`, `-snapshot_*`, `-ui_test_reset` (debug vs Release).
-- [ ] **XcodeGen team note** — `DartsScoreboard.xcodeproj/` gitignored; no `xcuserstate` in git.
-- [ ] **Document in-progress + abandoned match rules** — Single active `inProgress`; abandoned rows accumulate.
+<details>
+<summary>User feedback, core gaps, testing, release items already done</summary>
+
+### User feedback
+
+- [x] **Turn total caller (optional)**
+- [x] **Leg vs match finish SFX**
+- [x] **Bot zero visits** (`477a2c5`)
+- [x] **X01 live darts + avg**
+
+### History & statistics
+
+- [x] **Statistics: in-progress / partial stats**
+- [x] **History: player filter UI**
+- [x] **History: push filters to SwiftData**
+- [x] **History: pagination**
+- [x] **All Games: in-progress row**
+- [x] **Home: recent completed mini-list**
+- [x] **Game detail per-player hit bars**
+
+### Match setup & play
+
+- [x] **Bot-vs-bot guard**
+- [x] **Match Summary cold path**
+
+### UI / UX
+
+- [x] **Localize remaining English**
+- [x] **Cricket nav title contrast**
+- [x] **X01 layout dead space**
+- [x] **Setup flow**
+- [x] **Unify match exit chrome**
+- [x] **Match Summary stat parity**
+- [x] **Empty-state CTAs**
+- [x] **Cricket one-screen fit (phone)**
+- [x] **X01 player card legibility**
+- [x] **Theme cohesion**
+- [x] **Reduce Motion on summary celebration**
+
+### Copy / quick fixes
+
+- [x] **“Delete & Start” → abandon wording**
+- [x] **Bust banner** — `L10n.bustFeedback`
+- [x] **`PlayHomeViewModel.emptyNoPlayers`** removed
+- [x] **Tab labels vs spec**
+
+### Testing
+
+- [x] **`StatisticsViewModel`**, **`HistoryListViewModel`**, **`MatchSummaryViewModel`**, **`MigrationRecoveryViewModel`**
+- [x] **UI:** checkout → summary, Cricket grid, settings persistence
+- [x] **Repository contract tests**
+
+### Release
+
+- [x] **Commit bot tuning + Very Easy** (`477a2c5`)
+
+</details>
 
 ---
 
 ## Sprint order
 
-| Sprint | Focus |
-|--------|--------|
-| **A** | User feedback + commit bot tuning |
-| **B** | History discoverability (player filter, in-progress, DB filters) |
-| **C** | P4 layout + copy quick fixes |
-| **D** | Release gate + testing gaps |
-| **E** | Copy + history perf + ops evidence |
+| Sprint | Focus | Status |
+|--------|--------|--------|
+| **A–C** | Feedback, history, layout | Done |
+| **D** | QA sign-off + a11y evidence + data/recovery smoke | **Current** |
+| **E** | App Store listing + RC tag + submit | Next |
+
+**Exit criteria for 1.0:** `QA-Signoff-RC1.md` Go (no P0), privacy checklist closed, listing assets ready.

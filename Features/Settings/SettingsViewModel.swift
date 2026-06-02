@@ -66,6 +66,8 @@ final class SettingsViewModel: ObservableObject {
             defaultLegFormatRaw: current.defaultLegFormatRaw,
             defaultLegsToWin: current.defaultLegsToWin,
             defaultSetsEnabled: current.defaultSetsEnabled,
+            botStaggerEnabled: current.botStaggerEnabled,
+            botDartHapticsEnabled: current.botDartHapticsEnabled,
             updatedAt: Date()
         )
         await persist(current)
@@ -90,16 +92,52 @@ final class SettingsViewModel: ObservableObject {
             defaultLegFormatRaw: current.defaultLegFormatRaw,
             defaultLegsToWin: current.defaultLegsToWin,
             defaultSetsEnabled: current.defaultSetsEnabled,
+            botStaggerEnabled: current.botStaggerEnabled,
+            botDartHapticsEnabled: current.botDartHapticsEnabled,
             updatedAt: Date()
         )
         await persist(current)
+    }
+
+    func updateBotPacing(stagger: Bool? = nil, dartHaptics: Bool? = nil) async {
+        guard var current = settings else { return }
+        current = SettingsSummary(
+            id: current.id,
+            appearanceModeRaw: current.appearanceModeRaw,
+            hapticsEnabled: current.hapticsEnabled,
+            soundEnabled: current.soundEnabled,
+            turnTotalCallerEnabled: current.turnTotalCallerEnabled,
+            defaultMatchTypeRaw: current.defaultMatchTypeRaw,
+            defaultX01StartScore: current.defaultX01StartScore,
+            defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+            defaultLegFormatRaw: current.defaultLegFormatRaw,
+            defaultLegsToWin: current.defaultLegsToWin,
+            defaultSetsEnabled: current.defaultSetsEnabled,
+            botStaggerEnabled: stagger ?? current.botStaggerEnabled,
+            botDartHapticsEnabled: dartHaptics ?? current.botDartHapticsEnabled,
+            updatedAt: Date()
+        )
+        await persist(current)
+    }
+
+    func queueBotPacingUpdate(stagger: Bool? = nil, dartHaptics: Bool? = nil) {
+        queueMutation { await self.updateBotPacing(stagger: stagger, dartHaptics: dartHaptics) }
     }
 
     func queueFeedbackUpdate(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) {
         queueMutation { await self.updateFeedback(haptics: haptics, sound: sound, turnTotalCaller: turnTotalCaller) }
     }
 
-    func updateDefaults(matchType: String, startScore: Int, checkout: String, legs: Int, setsEnabled: Bool) async {
+    func updateDefaults(
+        matchType: String,
+        startScore: Int,
+        checkout: String,
+        checkIn: String,
+        legFormat: String,
+        legs: Int,
+        setsEnabled: Bool
+    ) async {
         guard var current = settings else { return }
         current = SettingsSummary(
             id: current.id,
@@ -110,17 +148,37 @@ final class SettingsViewModel: ObservableObject {
             defaultMatchTypeRaw: matchType,
             defaultX01StartScore: startScore,
             defaultCheckoutModeRaw: checkout,
-            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
-            defaultLegFormatRaw: current.defaultLegFormatRaw,
+            defaultCheckInModeRaw: checkIn,
+            defaultLegFormatRaw: legFormat,
             defaultLegsToWin: max(1, legs),
             defaultSetsEnabled: setsEnabled,
+            botStaggerEnabled: current.botStaggerEnabled,
+            botDartHapticsEnabled: current.botDartHapticsEnabled,
             updatedAt: Date()
         )
         await persist(current)
     }
 
-    func queueDefaultsUpdate(matchType: String, startScore: Int, checkout: String, legs: Int, setsEnabled: Bool) {
-        queueMutation { await self.updateDefaults(matchType: matchType, startScore: startScore, checkout: checkout, legs: legs, setsEnabled: setsEnabled) }
+    func queueDefaultsUpdate(
+        matchType: String,
+        startScore: Int,
+        checkout: String,
+        checkIn: String,
+        legFormat: String,
+        legs: Int,
+        setsEnabled: Bool
+    ) {
+        queueMutation {
+            await self.updateDefaults(
+                matchType: matchType,
+                startScore: startScore,
+                checkout: checkout,
+                checkIn: checkIn,
+                legFormat: legFormat,
+                legs: legs,
+                setsEnabled: setsEnabled
+            )
+        }
     }
 
     func requestReset() {

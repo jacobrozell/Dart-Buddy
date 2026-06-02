@@ -36,19 +36,22 @@ final class X01MatchViewModel: ObservableObject {
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
+    private let feedbackPreferences: FeedbackPreferences
 
     init(
         matchId: UUID,
         store: ActiveMatchStore,
         logger: any AppLogger,
         matchRepository: any MatchRepository,
-        statsRepository: any StatsRepository
+        statsRepository: any StatsRepository,
+        feedbackPreferences: FeedbackPreferences = FeedbackPreferences()
     ) {
         self.matchId = matchId
         self.store = store
         self.logger = logger
         self.matchRepository = matchRepository
         self.statsRepository = statsRepository
+        self.feedbackPreferences = feedbackPreferences
         self.session = store.session(for: matchId)
     }
 
@@ -204,6 +207,13 @@ final class X01MatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
+        logger.matchDebug(
+            matchId: matchId,
+            matchType: .x01,
+            category: .ui,
+            eventName: "match_screen_appeared",
+            message: "X01 match screen presented."
+        )
         await loadSessionIfNeeded()
         await playBotTurnIfNeeded()
     }
@@ -217,6 +227,12 @@ final class X01MatchViewModel: ObservableObject {
 
         if state == .bustFeedback { acknowledgeBustFeedback() }
         isBotPlaying = true
+        logger.matchDebug(
+            matchId: matchId,
+            matchType: .x01,
+            eventName: "bot_turn_started",
+            message: "Bot visit generation started."
+        )
 
         enteredDarts.removeAll()
         totalEntryText = ""
@@ -232,12 +248,13 @@ final class X01MatchViewModel: ObservableObject {
             rng: &rng
         )
 
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
         for dart in plannedDarts {
-            try? await Task.sleep(nanoseconds: 650_000_000)
+            try? await Task.sleep(nanoseconds: dartDelay)
             enteredDarts.append(dart)
         }
 
-        try? await Task.sleep(nanoseconds: 350_000_000)
+        try? await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
         isBotPlaying = false
         await submitTurnAsync()
     }
@@ -257,8 +274,23 @@ final class X01MatchViewModel: ObservableObject {
             )
             store.remove(matchId: matchId)
             session = abandoned
+            logger.matchInfo(
+                matchId: matchId,
+                matchType: .x01,
+                category: .appLifecycle,
+                eventName: "match_abandoned",
+                message: "X01 match abandoned by user.",
+                metadata: ["eventCount": String(abandoned.runtime.eventCount)]
+            )
         } catch {
-            logger.error(.appLifecycle, eventName: "x01_abandon_failed", message: "Abandon failed: \(error)")
+            logger.matchError(
+                matchId: matchId,
+                matchType: .x01,
+                category: .appLifecycle,
+                eventName: "x01_abandon_failed",
+                message: "Abandon failed.",
+                metadata: appErrorMetadata(for: error)
+            )
         }
     }
 
@@ -272,6 +304,12 @@ final class X01MatchViewModel: ObservableObject {
     private func submitTurnAsync() async {
         await loadSessionIfNeeded()
         guard var current = session else {
+            logger.matchError(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "match_session_missing",
+                message: "Submit attempted without a loaded session."
+            )
             state = .error("x01.error.sessionMissing")
             return
         }
@@ -296,6 +334,13 @@ final class X01MatchViewModel: ObservableObject {
                 state = .readyTurn
                 return
             } catch {
+                logger.matchDebug(
+                    matchId: matchId,
+                    matchType: .x01,
+                    eventName: "turn_submit_rejected",
+                    message: "Turn rejected by scoring engine.",
+                    metadata: appErrorMetadata(for: error)
+                )
                 state = .entryInvalid(errorMessageKey(for: error, fallback: "x01.error.invalidTurn"))
                 return
             }
@@ -305,11 +350,26 @@ final class X01MatchViewModel: ObservableObject {
                 state = .readyTurn
                 return
             } catch {
+                logger.matchError(
+                    matchId: matchId,
+                    matchType: .x01,
+                    category: .persistence,
+                    eventName: "turn_persist_failed",
+                    message: "Failed to persist submitted turn.",
+                    metadata: appErrorMetadata(for: error)
+                )
                 state = .error(errorMessageKey(for: error, fallback: "error.repository.storage"))
                 return
             }
             store.save(current)
             session = current
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "turn_submitted",
+                message: "Turn accepted and persisted.",
+                metadata: matchProgressMetadata(for: current)
+            )
             if wasHumanTurn, case let .x01Turn(event) = current.events.last?.payload {
                 turnTotalCallerToken += 1
                 turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: event.appliedTotal)
@@ -325,8 +385,23 @@ final class X01MatchViewModel: ObservableObject {
                     logger: logger,
                     metadata: ["matchType": MatchType.x01.rawValue]
                 ) {}
+                logger.matchInfo(
+                    matchId: matchId,
+                    matchType: .x01,
+                    category: .appLifecycle,
+                    eventName: "match_completed",
+                    message: "X01 match completed.",
+                    metadata: matchProgressMetadata(for: current)
+                )
                 state = .matchCompleted
             } else if case let .x01Turn(event) = current.events.last?.payload, event.isBust {
+                logger.matchDebug(
+                    matchId: matchId,
+                    matchType: .x01,
+                    eventName: "turn_bust",
+                    message: "Visit busted.",
+                    metadata: matchProgressMetadata(for: current)
+                )
                 state = .bustFeedback
             } else {
                 state = .readyTurn
@@ -355,9 +430,23 @@ final class X01MatchViewModel: ObservableObject {
             state = .readyTurn
             enteredDarts.removeAll()
             totalEntryText = ""
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "turn_undone",
+                message: "Last turn undone.",
+                metadata: matchProgressMetadata(for: undone)
+            )
         } catch is CancellationError {
             state = .readyTurn
         } catch {
+            logger.matchError(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "turn_undo_failed",
+                message: "Undo failed.",
+                metadata: appErrorMetadata(for: error)
+            )
             state = .error(errorMessageKey(for: error, fallback: "x01.error.undoFailed"))
         }
     }
@@ -408,6 +497,13 @@ final class X01MatchViewModel: ObservableObject {
         if session != nil { return }
         if let existing = store.session(for: matchId) {
             session = existing
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "match_session_resumed_from_memory",
+                message: "Loaded active match session from memory.",
+                metadata: matchProgressMetadata(for: existing)
+            )
             return
         }
         do {
@@ -429,9 +525,45 @@ final class X01MatchViewModel: ObservableObject {
             let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
             store.save(rehydrated)
             session = rehydrated
+            logger.matchInfo(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "match_session_rehydrated",
+                message: "Rehydrated match session from snapshot.",
+                metadata: [
+                    "source": "snapshot",
+                    "eventCount": String(rehydrated.runtime.eventCount)
+                ]
+            )
         } catch {
+            logger.matchError(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "match_session_load_failed",
+                message: "Failed to load match session.",
+                metadata: appErrorMetadata(for: error)
+            )
             state = .error(errorMessageKey(for: error, fallback: "x01.error.sessionMissing"))
         }
+    }
+
+    private func matchProgressMetadata(for session: MatchLifecycleSession) -> [String: String] {
+        [
+            "eventCount": String(session.runtime.eventCount),
+            "legIndex": String(session.runtime.currentLegIndex),
+            "setIndex": String(session.runtime.currentSetIndex),
+            "status": session.runtime.status.rawValue
+        ]
+    }
+
+    private func appErrorMetadata(for error: Error) -> [String: String] {
+        if let appError = error as? AppError {
+            return [
+                "errorCode": appError.code.rawValue,
+                "layer": appError.layer.rawValue
+            ]
+        }
+        return ["errorCode": "unknown"]
     }
 
     private func errorMessageKey(for error: Error, fallback: String) -> String {

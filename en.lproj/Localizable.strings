@@ -54,7 +54,7 @@
 "play.setup.players" = "Players";
 "play.setup.playersEmptyHint" = "Use Quick Add to create players, then tap each name to add them to this match.";
 "play.setup.playersSelectionHint" = "Tap each name to include that player. At least two need a checkmark.";
-"play.setup.playerRow.accessibilityHint" = "Toggles whether this player is in this match.";
+"play.setup.playerRow.accessibilityHint" = "Adds this player to the match roster.";
 "play.setup.chip.accessibilityFormat" = "%@, %@";
 "play.setup.start.disabledHint" = "Select at least two players to start.";
 "play.setup.mode.accessibilityFormat" = "%@ game mode";
@@ -150,6 +150,8 @@
 "settings.loading" = "Loading settings...";
 "settings.appearance" = "Appearance";
 "settings.gameplayDefaults" = "Gameplay Defaults";
+"settings.x01Defaults" = "X01 Defaults";
+"settings.x01Defaults.footer" = "Applied when you open New Match. Last-used setup on Start still updates these values.";
 "settings.feedback" = "Feedback";
 "settings.data" = "Data";
 "settings.about" = "About";
@@ -235,6 +237,11 @@
 "settings.feedback.sound" = "Sound";
 "settings.feedback.turnTotalCaller" = "Announce Turn Total";
 "settings.feedback.turnTotalCaller.footer" = "Speaks your visit score after you submit. Requires Sound to be on.";
+"settings.feedback.footer" = "Turn total requires Sound. Bot haptics follow the Haptics toggle.";
+"settings.feedback.botStagger" = "Bot Throw Pace";
+"settings.feedback.botDartHaptics" = "Bot Dart Haptics";
+"play.cricket.targetClosed" = "Target closed!";
+"play.x01.legWon.banner" = "Leg won!";
 "players.edit.name" = "Name";
 "players.edit.notes" = "Notes";
 "play.setup.startScore" = "Start Score";
@@ -300,6 +307,11 @@
 "play.setup.startButton" = "START";
 "play.setup.startingButton" = "STARTING…";
 "play.setup.randomOrder" = "Random order";
+"play.setup.turnOrder" = "Turn order";
+"play.setup.turnOrder.randomHint" = "Order is shuffled when you start the match.";
+"play.setup.turnOrder.rowAccessibilityFormat" = "Throwing position %d, %@";
+"play.setup.removeFromMatch" = "Remove";
+"play.setup.addToMatch" = "Add to match";
 "play.setup.addPlayers" = "Add Players";
 "play.setup.minimumRosterHint" = "Add at least two players or bots to start a match.";
 "stats.title" = "Statistics";

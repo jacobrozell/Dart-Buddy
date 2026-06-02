@@ -7,6 +7,7 @@ struct MatchSummaryScreen: View {
 
     @State private var celebrate = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
         ScrollView {
@@ -26,6 +27,7 @@ struct MatchSummaryScreen: View {
                 }
                 actions
             }
+            .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(DS.Spacing.s4)
         }
@@ -93,17 +95,7 @@ struct MatchSummaryScreen: View {
                 }
                 HStack(spacing: DS.Spacing.s3) {
                     ForEach(row.stats, id: \.label) { stat in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(stat.value)
-                                .font(.title3.weight(.bold).monospacedDigit())
-                                .foregroundStyle(.white)
-                            Text(stat.label)
-                                .font(.caption2)
-                                .foregroundStyle(Brand.textSecondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        StatChip(value: stat.value, label: LocalizedStringKey(stat.label))
                     }
                 }
             }
@@ -124,13 +116,7 @@ struct MatchSummaryScreen: View {
 
     private var actions: some View {
         VStack(spacing: DS.Spacing.s3) {
-            Button(action: onStartNewMatch) {
-                Text(L10n.summaryNewMatch)
-                    .font(.headline).foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 52)
-                    .background(Brand.red, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-            }
-            .buttonStyle(.plain)
+            PrimaryActionButton(title: L10n.summaryNewMatch, action: onStartNewMatch)
             Button(action: { onViewHistoryDetail(viewModel.matchId) }) {
                 Text(L10n.summaryViewGameStatistics)
                     .font(.headline).foregroundStyle(.white)

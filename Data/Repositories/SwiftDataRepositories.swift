@@ -594,6 +594,8 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultLegFormatRaw = settings.defaultLegFormatRaw
             record.defaultLegsToWin = settings.defaultLegsToWin
             record.defaultSetsEnabled = settings.defaultSetsEnabled
+            record.botStaggerEnabled = settings.botStaggerEnabled
+            record.botDartHapticsEnabled = settings.botDartHapticsEnabled
             record.updatedAt = settings.updatedAt
             try context.save()
             return mapSettings(record)
@@ -622,6 +624,8 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultLegFormatRaw = "firstTo"
             record.defaultLegsToWin = 3
             record.defaultSetsEnabled = false
+            record.botStaggerEnabled = true
+            record.botDartHapticsEnabled = true
             record.updatedAt = Date()
             try context.save()
         }
@@ -758,6 +762,8 @@ private func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
         defaultLegFormatRaw: record.defaultLegFormatRaw.isEmpty ? "firstTo" : record.defaultLegFormatRaw,
         defaultLegsToWin: record.defaultLegsToWin,
         defaultSetsEnabled: record.defaultSetsEnabled,
+        botStaggerEnabled: record.botStaggerEnabled,
+        botDartHapticsEnabled: record.botDartHapticsEnabled,
         updatedAt: record.updatedAt
     )
 }

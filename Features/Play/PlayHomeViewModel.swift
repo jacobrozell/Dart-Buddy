@@ -41,8 +41,19 @@ final class PlayHomeViewModel: ObservableObject {
 
             let active = try await matchRepository.fetchActiveMatch()
             if let active {
+                logger.info(
+                    .ui,
+                    eventName: "play_home_active_match",
+                    message: "Play home resolved with resumable match.",
+                    metadata: [
+                        "matchId": active.id.uuidString,
+                        "matchType": active.type.rawValue
+                    ],
+                    correlationId: active.id.uuidString
+                )
                 state = .readyWithActiveMatch(active)
             } else {
+                logger.debug(.ui, eventName: "play_home_ready", message: "Play home ready without active match.")
                 state = .readyNoActiveMatch
             }
         } catch {

@@ -10,6 +10,7 @@ struct CricketBoardView: View {
         let score: Int
         let marks: [String: Int]
         let isActive: Bool
+        var isClosureHighlight: Bool = false
     }
 
     let columns: [Column]
@@ -46,6 +47,14 @@ struct CricketBoardPlayerHeaderRow: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s2)
                     .background(column.isActive ? Brand.cardElevated : Color.clear)
+                    .overlay {
+                        if column.isClosureHighlight {
+                            RoundedRectangle(cornerRadius: DS.Radius.sm)
+                                .stroke(Brand.amber, lineWidth: 2)
+                        }
+                    }
+                    .scaleEffect(column.isClosureHighlight ? 1.03 : 1)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(columnAccessibilityLabel(column))
                     .accessibilityIdentifier(column.isActive ? "cricket_column_active" : "cricket_column")

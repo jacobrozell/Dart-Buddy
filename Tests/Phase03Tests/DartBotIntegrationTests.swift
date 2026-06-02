@@ -417,6 +417,8 @@ private actor BotFakeSettingsRepository: SettingsRepository {
         defaultLegFormatRaw: "firstTo",
         defaultLegsToWin: 3,
         defaultSetsEnabled: false,
+        botStaggerEnabled: true,
+        botDartHapticsEnabled: true,
         updatedAt: Date()
     )
 }

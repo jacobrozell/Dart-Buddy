@@ -50,6 +50,8 @@ public actor StubSettingsRepository: SettingsRepository {
         defaultLegFormatRaw: "firstTo",
         defaultLegsToWin: 3,
         defaultSetsEnabled: false,
+        botStaggerEnabled: true,
+        botDartHapticsEnabled: true,
         updatedAt: Date()
     )
 
@@ -82,6 +84,8 @@ public actor StubSettingsRepository: SettingsRepository {
             defaultLegFormatRaw: "firstTo",
             defaultLegsToWin: 3,
             defaultSetsEnabled: false,
+            botStaggerEnabled: true,
+            botDartHapticsEnabled: true,
             updatedAt: Date()
         )
     }

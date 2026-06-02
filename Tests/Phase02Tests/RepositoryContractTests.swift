@@ -141,6 +141,8 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
     let baseline = try await repos.settings.seedDefaultsIfNeeded()
     #expect(baseline.hapticsEnabled == true)
     #expect(baseline.soundEnabled == true)
+    #expect(baseline.botStaggerEnabled == true)
+    #expect(baseline.botDartHapticsEnabled == true)
 
     let updated = SettingsSummary(
         id: baseline.id,
@@ -155,6 +157,8 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
         defaultLegFormatRaw: baseline.defaultLegFormatRaw,
         defaultLegsToWin: baseline.defaultLegsToWin,
         defaultSetsEnabled: baseline.defaultSetsEnabled,
+        botStaggerEnabled: false,
+        botDartHapticsEnabled: false,
         updatedAt: baseline.updatedAt
     )
     _ = try await repos.settings.updateSettings(updated)
@@ -162,6 +166,8 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
     let reloaded = try await repos.settings.fetchSettings()
     #expect(reloaded.hapticsEnabled == false)
     #expect(reloaded.soundEnabled == false)
+    #expect(reloaded.botStaggerEnabled == false)
+    #expect(reloaded.botDartHapticsEnabled == false)
 }
 
 @Test(.tags(.integration, .stats, .swiftdata, .regression))

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SetupHomeView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ObservedObject var homeViewModel: PlayHomeViewModel
     @ObservedObject var setupViewModel: MatchSetupViewModel
     @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
@@ -31,10 +32,13 @@ struct SetupHomeView: View {
                     chipsGrid
                 }
                 rosterControls
-                playerList
+                selectedRosterSection
+                availablePlayerList
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s4)
+            .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+            .frame(maxWidth: .infinity)
         }
         .background(Brand.background.ignoresSafeArea())
         .navigationBarHidden(true)
@@ -316,28 +320,23 @@ struct SetupHomeView: View {
 
     private var startButton: some View {
         VStack(spacing: 6) {
-            Button {
+            PrimaryActionButton(
+                title: setupViewModel.isSubmitting ? L10n.setupStartingButton : L10n.setupStartButton,
+                isEnabled: setupViewModel.canStart && !setupViewModel.isSubmitting
+            ) {
                 startTask?.cancel()
                 startTask = Task {
                     if let route = await setupViewModel.startMatchRoute() {
                         onStartRoute(route)
                     }
                 }
-            } label: {
-                Text(setupViewModel.isSubmitting ? L10n.setupStartingButton : L10n.setupStartButton)
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 56)
-                    .background(setupViewModel.canStart ? Brand.red : Brand.red.opacity(0.4), in: RoundedRectangle(cornerRadius: DS.Radius.lg))
             }
-            .buttonStyle(.plain)
-            .disabled(!setupViewModel.canStart)
             .accessibilityLabel(L10n.string(setupViewModel.isSubmitting ? "play.setup.startingButton" : "play.setup.startButton"))
             .modifier(OptionalAccessibilityHint(hint: setupViewModel.canStart ? nil : L10n.string("play.setup.start.disabledHint")))
             .accessibilityIdentifier("startMatchButton")
 
             ForEach(setupViewModel.validationErrors, id: \.self) { key in
-                playLocalizedText(key).font(.footnote).foregroundStyle(Brand.red)
+                ErrorBanner(messageKey: key)
             }
         }
     }
@@ -403,22 +402,92 @@ struct SetupHomeView: View {
     }
 
     @ViewBuilder
-    private var playerList: some View {
-        if setupViewModel.availableHumans.isEmpty && setupViewModel.availableBots.isEmpty {
+    private var selectedRosterSection: some View {
+        if !setupViewModel.selectedPlayers.isEmpty {
+            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                Text(L10n.setupTurnOrder)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                if setupViewModel.randomOrder {
+                    Text(L10n.setupTurnOrderRandomHint)
+                        .font(.footnote)
+                        .foregroundStyle(Brand.textSecondary)
+                }
+                List {
+                    ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
+                        selectedRosterRow(player: player, position: index + 1)
+                            .deleteDisabled(true)
+                            .listRowBackground(Brand.card)
+                            .listRowSeparatorTint(Brand.cardElevated)
+                    }
+                    .onMove { source, destination in
+                        setupViewModel.moveSelectedPlayers(from: source, to: destination)
+                    }
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .scrollDisabled(true)
+                .environment(\.editMode, .constant(setupViewModel.randomOrder ? .inactive : .active))
+                .frame(height: CGFloat(setupViewModel.selectedPlayers.count) * 52)
+                .accessibilityIdentifier("setup_turnOrderList")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var availablePlayerList: some View {
+        if setupViewModel.availableHumans.isEmpty
+            && setupViewModel.availableBots.isEmpty
+            && setupViewModel.selectedPlayers.isEmpty {
             Text(L10n.setupMinimumRosterHint)
                 .font(.footnote)
                 .foregroundStyle(Brand.textSecondary)
-        } else {
+        } else if !setupViewModel.availableHumans.isEmpty || !setupViewModel.availableBots.isEmpty {
             VStack(alignment: .leading, spacing: DS.Spacing.s3) {
                 if !setupViewModel.availableBots.isEmpty {
                     Text(L10n.botsSectionTitle).font(.headline).foregroundStyle(.white)
                     botRosterList
                 }
                 if !setupViewModel.availableHumans.isEmpty {
-                    Text(L10n.playersSectionTitle).font(.headline).foregroundStyle(.white)
+                    Text(L10n.addToMatchSection)
+                        .font(.headline)
+                        .foregroundStyle(.white)
                     humanRosterList
                 }
             }
+        }
+    }
+
+    private func selectedRosterRow(player: PlayerSummary, position: Int) -> some View {
+        HStack(spacing: DS.Spacing.s3) {
+            Text(L10n.format("common.playerOrdinal", position))
+                .font(.caption.weight(.bold))
+                .foregroundStyle(Brand.textSecondary)
+                .frame(width: 28, alignment: .leading)
+            if player.isBot, let difficulty = player.botDifficulty {
+                Image(systemName: "cpu.fill")
+                    .foregroundStyle(botDifficultyColor(difficulty))
+            } else {
+                Image(systemName: "location.north.fill")
+                    .rotationEffect(.degrees(135))
+                    .foregroundStyle(Brand.textSecondary)
+            }
+            Text(player.name)
+                .font(.headline)
+                .foregroundStyle(.white)
+            Spacer()
+        }
+        .accessibilityLabel(
+            L10n.format("play.setup.turnOrder.rowAccessibilityFormat", position, player.name)
+        )
+        .accessibilityIdentifier("setup_selected_\(player.name)")
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                setupViewModel.removeFromSelection(player.id)
+            } label: {
+                Text(L10n.setupRemoveFromMatch)
+            }
+            .accessibilityLabel(L10n.setupRemoveFromMatch)
         }
     }
 
@@ -451,8 +520,7 @@ struct SetupHomeView: View {
     }
 
     private func rosterRow(id: UUID, name: String, difficulty: BotDifficulty?, accessibilityId: String) -> some View {
-        let isSelected = setupViewModel.selectedPlayerIds.contains(id)
-        return Button { setupViewModel.togglePlayer(id) } label: {
+        Button { setupViewModel.togglePlayer(id) } label: {
             HStack(spacing: DS.Spacing.s3) {
                 if let difficulty {
                     Image(systemName: "cpu.fill")
@@ -464,10 +532,10 @@ struct SetupHomeView: View {
                 }
                 Text(name)
                     .font(.headline)
-                    .foregroundStyle(isSelected ? .white : Brand.textSecondary)
+                    .foregroundStyle(Brand.textSecondary)
                 Spacer()
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? (difficulty.map(botDifficultyColor) ?? Brand.green) : Brand.textSecondary)
+                Image(systemName: "plus.circle")
+                    .foregroundStyle(Brand.green)
             }
             .padding(.vertical, DS.Spacing.s3)
             .contentShape(Rectangle())
@@ -475,7 +543,6 @@ struct SetupHomeView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(name)
         .accessibilityHint(L10n.string("play.setup.playerRow.accessibilityHint"))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier(accessibilityId)
     }
 

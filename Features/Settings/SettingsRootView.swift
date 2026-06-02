@@ -101,11 +101,74 @@ struct SettingsRootView: View {
             Section(L10n.gameplayDefaultsSection) {
                 Picker("settings.mode.label", selection: Binding(
                     get: { settings.defaultMatchTypeRaw },
-                    set: { viewModel.queueDefaultsUpdate(matchType: $0, startScore: settings.defaultX01StartScore, checkout: settings.defaultCheckoutModeRaw, legs: settings.defaultLegsToWin, setsEnabled: settings.defaultSetsEnabled) }
+                    set: { queueGameplayDefaults(from: settings, matchType: $0) }
                 )) {
                     Text("settings.mode.x01").tag("x01")
                     Text("settings.mode.cricket").tag("cricket")
                 }
+            }
+            .brandFormRowBackground(when: usesBrand)
+
+            Section {
+                Picker(L10n.setupChipPoints, selection: Binding(
+                    get: { settings.defaultX01StartScore },
+                    set: { queueGameplayDefaults(from: settings, startScore: $0) }
+                )) {
+                    ForEach(X01StartScores.all, id: \.self) { score in
+                        Text("\(score)").tag(score)
+                    }
+                }
+                .accessibilityIdentifier("settings_defaultStartScorePicker")
+
+                Picker(L10n.setupChipCheckOut, selection: Binding(
+                    get: { settings.defaultCheckoutModeRaw },
+                    set: { queueGameplayDefaults(from: settings, checkout: $0) }
+                )) {
+                    ForEach(X01CheckoutMode.allCases, id: \.rawValue) { mode in
+                        Text(mode.displayName).tag(mode.rawValue)
+                    }
+                }
+                .accessibilityIdentifier("settings_defaultCheckoutPicker")
+
+                Picker(L10n.setupChipCheckIn, selection: Binding(
+                    get: { settings.defaultCheckInModeRaw },
+                    set: { queueGameplayDefaults(from: settings, checkIn: $0) }
+                )) {
+                    ForEach(X01CheckInMode.allCases, id: \.rawValue) { mode in
+                        Text(mode.displayName).tag(mode.rawValue)
+                    }
+                }
+                .accessibilityIdentifier("settings_defaultCheckInPicker")
+
+                Picker(L10n.setupChipSetLeg, selection: Binding(
+                    get: { settings.defaultLegFormatRaw },
+                    set: { queueGameplayDefaults(from: settings, legFormat: $0) }
+                )) {
+                    ForEach(X01LegFormat.allCases, id: \.rawValue) { format in
+                        Text(format.displayName).tag(format.rawValue)
+                    }
+                }
+                .accessibilityIdentifier("settings_defaultLegFormatPicker")
+
+                Picker(L10n.setupChipLegs, selection: Binding(
+                    get: { settings.defaultLegsToWin },
+                    set: { queueGameplayDefaults(from: settings, legs: $0) }
+                )) {
+                    ForEach(1 ... 9, id: \.self) { count in
+                        Text("\(count)").tag(count)
+                    }
+                }
+                .accessibilityIdentifier("settings_defaultLegsPicker")
+
+                Toggle(L10n.setupChipSets, isOn: Binding(
+                    get: { settings.defaultSetsEnabled },
+                    set: { queueGameplayDefaults(from: settings, setsEnabled: $0) }
+                ))
+                .accessibilityIdentifier("settings_defaultSetsToggle")
+            } header: {
+                Text(L10n.x01DefaultsSection)
+            } footer: {
+                Text(L10n.x01DefaultsFooter)
             }
             .brandFormRowBackground(when: usesBrand)
 
@@ -125,10 +188,20 @@ struct SettingsRootView: View {
                     set: { viewModel.queueFeedbackUpdate(turnTotalCaller: $0) }
                 ))
                 .accessibilityIdentifier("settings_turnTotalCallerToggle")
+                Toggle("settings.feedback.botStagger", isOn: Binding(
+                    get: { settings.botStaggerEnabled },
+                    set: { viewModel.queueBotPacingUpdate(stagger: $0) }
+                ))
+                .accessibilityIdentifier("settings_botStaggerToggle")
+                Toggle("settings.feedback.botDartHaptics", isOn: Binding(
+                    get: { settings.botDartHapticsEnabled },
+                    set: { viewModel.queueBotPacingUpdate(dartHaptics: $0) }
+                ))
+                .accessibilityIdentifier("settings_botDartHapticsToggle")
             } header: {
                 Text(L10n.feedbackSection)
             } footer: {
-                Text("settings.feedback.turnTotalCaller.footer")
+                Text("settings.feedback.footer")
             }
             .brandFormRowBackground(when: usesBrand)
 
@@ -152,5 +225,26 @@ struct SettingsRootView: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .safeAreaPadding(.bottom, DS.Spacing.s6)
         .brandSettingsChrome(appearanceModeRaw: settings.appearanceModeRaw)
+    }
+
+    private func queueGameplayDefaults(
+        from settings: SettingsSummary,
+        matchType: String? = nil,
+        startScore: Int? = nil,
+        checkout: String? = nil,
+        checkIn: String? = nil,
+        legFormat: String? = nil,
+        legs: Int? = nil,
+        setsEnabled: Bool? = nil
+    ) {
+        viewModel.queueDefaultsUpdate(
+            matchType: matchType ?? settings.defaultMatchTypeRaw,
+            startScore: startScore ?? settings.defaultX01StartScore,
+            checkout: checkout ?? settings.defaultCheckoutModeRaw,
+            checkIn: checkIn ?? settings.defaultCheckInModeRaw,
+            legFormat: legFormat ?? settings.defaultLegFormatRaw,
+            legs: legs ?? settings.defaultLegsToWin,
+            setsEnabled: setsEnabled ?? settings.defaultSetsEnabled
+        )
     }
 }
