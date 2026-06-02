@@ -8,6 +8,9 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ## User feedback
 
+* What if we had a watch app? SO you could enter your throws on the watch and it connect back to the main app
+* Speak mode while playing
+
 - [x] **Turn total caller (optional)** — After human submits a visit, speak/play visit total; Settings toggle, default off; respect sound gate.
 - [x] **Leg vs match finish SFX** — `legFinishSoundToken` uses `playMatchFinished()` today; add leg-specific sound; reserve `game_finished` for match end.
 - [x] **Bot zero visits** — `veryEasy` tier, `offBoardMissChance`, unit + mirror sim caps (in `477a2c5`).
@@ -41,9 +44,9 @@ Status legend: `[ ]` todo · `[~]` partial
 ### UI / UX / accessibility
 
 - [ ] **iPad / landscape layouts**
-- [ ] **Accessibility pass** — Track in `accessibility/wcag-2.1-aa/`; VoiceOver on Cricket cells, score cards, pad labels (`Triple 20` not `T20`); Dynamic Type; 4-way orientation evidence.
+- [ ] **Accessibility pass** — Follow `accessibility/accessibility_todo.md` (Phase 0–2); status in `accessibility/wcag-2.1-aa/`.
 - [x] **Localize remaining English** — Home, History, Statistics, Match Summary, setup, game detail delete copy.
-- [ ] **Cricket nav title contrast**
+- [x] **Cricket nav title contrast** — dark toolbar on `CricketMatchScreen` (verify in Inspector / `Manual_todo.md`)
 - [ ] **X01 layout dead space** — Gap between cards and pad on phone.
 - [ ] **Setup flow** — Roster below START / tab bar; Add Bot vs START proximity; red START semantics.
 - [ ] **Unify match exit chrome** — X01 chevron vs Cricket Cancel.
@@ -76,7 +79,7 @@ Status legend: `[ ]` todo · `[~]` partial
 - [x] **UI: checkout → winner → summary**
 - [x] **UI: Cricket grid scoring**
 - [x] **UI: settings sound/haptics persistence**
-- [~] **Repository contract tests** — SwiftData player/match/settings/stats contracts covered; expand as RepositorySpec evolves.
+- [x] **Repository contract tests** — SwiftData player/match/settings/stats contracts covered; expand as RepositorySpec evolves.
 - [ ] **Snapshot tests** — Optional post UI lock
 
 ---
