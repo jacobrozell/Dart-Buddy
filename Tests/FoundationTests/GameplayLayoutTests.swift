@@ -12,3 +12,10 @@ func gameplayLayoutUsesFullWidthOnCompactSizeClass() {
     #expect(GameplayLayout.contentMaxWidth(horizontalSizeClass: .compact) == .infinity)
     #expect(GameplayLayout.contentMaxWidth(horizontalSizeClass: nil) == .infinity)
 }
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutMatchScreensUseFullWidthOnAllSizeClasses() {
+    #expect(GameplayLayout.matchContentMaxWidth(horizontalSizeClass: .regular) == .infinity)
+    #expect(GameplayLayout.matchContentMaxWidth(horizontalSizeClass: .compact) == .infinity)
+    #expect(GameplayLayout.matchContentMaxWidth(horizontalSizeClass: nil) == .infinity)
+}

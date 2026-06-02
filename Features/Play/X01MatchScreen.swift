@@ -49,7 +49,7 @@ struct X01MatchScreen: View {
                 Spacer()
             }
         }
-        .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+        .frame(maxWidth: GameplayLayout.matchContentMaxWidth(horizontalSizeClass: horizontalSizeClass))
         .frame(maxWidth: .infinity)
         .background(Brand.background.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)

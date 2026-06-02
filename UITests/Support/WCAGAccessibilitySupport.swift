@@ -97,6 +97,33 @@ extension XCTestCase {
         )
     }
 
+    func accessibilityElement(
+        in app: XCUIApplication,
+        identifier: String
+    ) -> XCUIElement {
+        app.descendants(matching: .any)[identifier]
+    }
+
+    func assertSelected(
+        _ element: XCUIElement,
+        identifier: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            element.waitForExistence(timeout: 10),
+            "Expected '\(identifier)' to exist",
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            element.isSelected,
+            "Expected '\(identifier)' to expose selected accessibility state",
+            file: file,
+            line: line
+        )
+    }
+
     func assertReachable(_ element: XCUIElement, identifier: String, file: StaticString = #filePath, line: UInt = #line) {
         for _ in 0 ..< 6 where element.exists == false || element.isHittable == false {
             XCUIApplication().swipeUp()
@@ -223,5 +250,34 @@ extension XCTestCase {
         XCTAssertTrue(gameCard.waitForExistence(timeout: timeout + 15))
         gameCard.tap()
         XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
+    }
+
+    func selectAliceAndBob(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        assertInteractiveElement(app.buttons["select_Alice"], identifier: "select_Alice", timeout: timeout)
+        app.buttons["select_Alice"].tap()
+        assertInteractiveElement(app.buttons["select_Bob"], identifier: "select_Bob", timeout: timeout)
+        app.buttons["select_Bob"].tap()
+    }
+
+    func startAliceVersusEasyBotMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        configureQuickX01Match(app, timeout: timeout)
+        app.buttons["select_Alice"].tap()
+        addEasyBot(from: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        start.tap()
+        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+    }
+
+    func openSeededPlayerDetail(
+        _ app: XCUIApplication,
+        playerName: String,
+        timeout: TimeInterval = 10
+    ) {
+        app.tabBars.buttons["Players"].tap()
+        let row = app.buttons["player_row_\(playerName)"]
+        XCTAssertTrue(row.waitForExistence(timeout: timeout + 5), "Expected player row for \(playerName)")
+        row.tap()
+        XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 10))
     }
 }

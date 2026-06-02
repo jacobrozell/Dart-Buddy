@@ -9,27 +9,14 @@ struct MatchSummaryScreen: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
+    private var isRegularWidth: Bool { horizontalSizeClass == .regular }
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: DS.Spacing.s4) {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .tint(Brand.green)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, DS.Spacing.s6)
-                } else if viewModel.hasResult {
-                    celebrationHeader
-                    ForEach(viewModel.playerRows) { row in
-                        playerCard(row)
-                    }
-                } else {
-                    Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(.white)
-                }
-                actions
+        GeometryReader { geometry in
+            ScrollView {
+                summaryContent
+                    .frame(minHeight: isRegularWidth ? geometry.size.height : nil)
             }
-            .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(DS.Spacing.s4)
         }
         .background(Brand.background.ignoresSafeArea())
         .navigationTitle("")
@@ -46,6 +33,30 @@ struct MatchSummaryScreen: View {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { celebrate = true }
             }
         }
+    }
+
+    private var summaryContent: some View {
+        VStack(spacing: DS.Spacing.s4) {
+            if isRegularWidth { Spacer(minLength: 0) }
+            if viewModel.isLoading {
+                ProgressView()
+                    .tint(Brand.green)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DS.Spacing.s6)
+            } else if viewModel.hasResult {
+                celebrationHeader
+                ForEach(viewModel.playerRows) { row in
+                    playerCard(row)
+                }
+            } else {
+                Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(.white)
+            }
+            actions
+            if isRegularWidth { Spacer(minLength: 0) }
+        }
+        .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+        .frame(maxWidth: .infinity, alignment: isRegularWidth ? .center : .leading)
+        .padding(DS.Spacing.s4)
     }
 
     private var celebrationHeader: some View {

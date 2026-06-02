@@ -12,10 +12,6 @@ struct CricketMatchScreen: View {
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
 
-    private var contentMaxWidth: CGFloat {
-        GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass)
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
@@ -75,7 +71,7 @@ struct CricketMatchScreen: View {
                 Spacer()
             }
         }
-        .frame(maxWidth: contentMaxWidth)
+        .frame(maxWidth: GameplayLayout.matchContentMaxWidth(horizontalSizeClass: horizontalSizeClass))
         .frame(maxWidth: .infinity)
         .background(Brand.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)

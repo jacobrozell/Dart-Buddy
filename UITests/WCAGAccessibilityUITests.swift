@@ -245,6 +245,224 @@ final class WCAGAccessibilityUITests: XCTestCase {
         assertInteractiveElement(reset, identifier: "settings_resetAllDataButton")
     }
 
+    // MARK: - Tab screens (Players, History, Statistics, Play home)
+
+    func testPlayHomePassesNameRoleValueAudit() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+    }
+
+    func testPlayersListPassesNameRoleValueAudit() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        app.tabBars.buttons["Players"].tap()
+        XCTAssertTrue(app.staticTexts["Jacob"].waitForExistence(timeout: timeout))
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+    }
+
+    func testPlayersListPassesTouchTargetAudit() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        app.tabBars.buttons["Players"].tap()
+        XCTAssertTrue(app.staticTexts["Jacob"].waitForExistence(timeout: timeout))
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
+    }
+
+    func testPlayersListRequiredControlsExposeIdentifiers() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        app.tabBars.buttons["Players"].tap()
+        let search = app.textFields.matching(
+            NSPredicate(format: "identifier == %@", "players_searchField")
+        ).firstMatch
+        assertInteractiveElement(search, identifier: "players_searchField")
+        assertInteractiveElement(app.buttons["player_row_Jacob"], identifier: "player_row_Jacob")
+        assertInteractiveElement(app.buttons["player_row_Sam"], identifier: "player_row_Sam")
+    }
+
+    func testPlayerDetailAccessibilityContract() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        openSeededPlayerDetail(app, playerName: "Jacob", timeout: timeout)
+
+        assertInteractiveElement(app.buttons["playerDetail_edit"], identifier: "playerDetail_edit")
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+    }
+
+    func testHistoryListFilterAndResumeExposeIdentifiers() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+
+        assertInteractiveElement(app.buttons["historyPlayerFilterMenu"], identifier: "historyPlayerFilterMenu")
+        let resume = app.buttons["historyResumeMatchButton"]
+        if resume.waitForExistence(timeout: 2) {
+            assertInteractiveElement(resume, identifier: "historyResumeMatchButton")
+        }
+    }
+
+    func testStatisticsFilterExposesIdentifierAndLabel() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        app.tabBars.buttons["Statistics"].tap()
+        XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
+        assertInteractiveElement(app.buttons["statsPlayerFilterMenu"], identifier: "statsPlayerFilterMenu")
+    }
+
+    func testSettingsPassesTouchTargetAudit() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players", "-ui_test_disable_feedback"])
+        app.tabBars.buttons["Settings"].tap()
+        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: timeout))
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
+    }
+
+    func testMatchSummaryPassesTouchTargetAudit() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        finishQuickX01Checkout(for: app, timeout: timeout)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
+    }
+
+    // MARK: - Gameplay semantics (spoken context, selected state, bot pad)
+
+    func testSetupTurnOrderRowsExposeSpokenLabels() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        selectAliceAndBob(from: app, timeout: timeout)
+
+        assertInteractiveElement(
+            app.staticTexts["setup_selected_Alice"].firstMatch,
+            identifier: "setup_selected_Alice"
+        )
+        assertInteractiveElement(
+            app.staticTexts["setup_selected_Bob"].firstMatch,
+            identifier: "setup_selected_Bob"
+        )
+    }
+
+    func testX01ModeChipExposesSelectedState() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertSelected(app.buttons["setup_mode_x01"], identifier: "setup_mode_x01")
+    }
+
+    func testActiveScoreCardCombinedLabelIncludesPlayerAndRemaining() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+
+        let activeCard = app.otherElements["scoreCard_active"]
+        assertInteractiveElement(activeCard, identifier: "scoreCard_active")
+        XCTAssertTrue(
+            activeCard.label.localizedCaseInsensitiveContains("Alice"),
+            "Active score card should include the current player name in its spoken summary"
+        )
+        XCTAssertTrue(
+            activeCard.label.contains("501"),
+            "Active score card should include the remaining score in its spoken summary"
+        )
+    }
+
+    func testDoubleModifierExposesSelectedStateWhenArmed() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+
+        let doubleKey = app.buttons["pad_double"]
+        doubleKey.tap()
+        assertSelected(doubleKey, identifier: "pad_double")
+    }
+
+    func testX01PadDisablesDuringBotVisit() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        startAliceVersusEasyBotMatch(from: app, timeout: timeout)
+
+        let pad = app.buttons["pad_20"]
+        pad.tap()
+        pad.tap()
+        pad.tap()
+
+        let disabledDuringBot = pad.wait(
+            for: \.isEnabled,
+            toEqual: false,
+            timeout: 5
+        )
+        XCTAssertTrue(
+            disabledDuringBot,
+            "Scoring pad should disable while the bot is throwing"
+        )
+        _ = pad.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 15)
+    }
+
+    func testMatchSummaryHeaderCombinedLabelIncludesWinner() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        finishQuickX01Checkout(for: app, timeout: timeout)
+
+        let header = app.otherElements["matchSummaryHeader"]
+        assertInteractiveElement(header, identifier: "matchSummaryHeader")
+        XCTAssertTrue(
+            header.label.localizedCaseInsensitiveContains("Alice"),
+            "Summary header should announce the winner in a single spoken element"
+        )
+    }
+
+    // MARK: - Destructive alert path (U-3.3.1)
+
+    func testHistoryDeleteAlertButtonsAreAccessible() {
+        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
+        openSeededHistoryDetail(app, timeout: timeout)
+
+        let delete = app.buttons["historyDetailDeleteButton"]
+        for _ in 0 ..< 6 where delete.exists == false || delete.isHittable == false {
+            app.swipeUp()
+        }
+        assertInteractiveElement(delete, identifier: "historyDetailDeleteButton")
+        delete.tap()
+
+        let cancel = app.alerts.buttons["Cancel"]
+        let confirm = app.alerts.buttons["Delete"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: timeout))
+        XCTAssertTrue(confirm.waitForExistence(timeout: timeout))
+        XCTAssertFalse(cancel.label.isEmpty)
+        XCTAssertFalse(confirm.label.isEmpty)
+        cancel.tap()
+    }
+
+    // MARK: - P-1.4.4 Dynamic Type (AXXXL) — additional surfaces
+
+    func testCricketMatchPadUsableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_players"],
+            contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
+        )
+        startTwoPlayerCricketMatch(from: app, timeout: timeout + 5)
+
+        assertReachable(app.buttons["cricket_20"], identifier: "cricket_20")
+        assertReachable(app.buttons["cricket_enter"], identifier: "cricket_enter")
+        assertReachable(app.otherElements["cricket_column_active"], identifier: "cricket_column_active")
+    }
+
+    func testPlayersListSearchUsableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"],
+            contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
+        )
+        app.tabBars.buttons["Players"].tap()
+        assertReachable(
+            app.textFields.matching(
+                NSPredicate(format: "identifier == %@", "players_searchField")
+            ).firstMatch,
+            identifier: "players_searchField"
+        )
+        assertReachable(app.buttons["player_row_Jacob"], identifier: "player_row_Jacob")
+    }
+
+    func testHistoryDetailCriticalControlsUsableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"],
+            contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
+        )
+        openSeededHistoryDetail(app, timeout: timeout + 5)
+
+        assertReachable(
+            app.otherElements["historyDetailResultCard"],
+            identifier: "historyDetailResultCard"
+        )
+        assertReachable(app.buttons["historyDetailTimelineToggle"], identifier: "historyDetailTimelineToggle")
+    }
+
     private func scrollToFeedbackSwitches(in app: XCUIApplication) {
         let haptics = app.switches["settings_hapticsToggle"]
         for _ in 0 ..< 4 where haptics.exists == false || haptics.isHittable == false {
