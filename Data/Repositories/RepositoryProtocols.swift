@@ -14,7 +14,7 @@ public protocol MatchRepository: Sendable {
     func createMatch(type: MatchType, configPayload: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary
     func fetchActiveMatch() async throws -> MatchSummary?
     func fetchHistory(page: Int, pageSize: Int) async throws -> [MatchSummary]
-    func fetchHistoryWithParticipants(page: Int, pageSize: Int) async throws -> [MatchHistoryRecord]
+    func fetchHistoryWithParticipants(page: Int, pageSize: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord]
     func updateMatch(_ match: MatchSummary) async throws
     func completeMatch(matchId: UUID, endedAt: Date, winnerPlayerId: UUID?) async throws -> MatchSummary
     func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary
@@ -27,6 +27,7 @@ public protocol MatchRepository: Sendable {
 
 public protocol StatsRepository: Sendable {
     func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary]
+    func fetchEvents(matchIds: [UUID]) async throws -> [MatchEventSummary]
 }
 
 public protocol SettingsRepository: Sendable {

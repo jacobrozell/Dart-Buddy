@@ -12,6 +12,16 @@ public enum MatchStatus: String, Codable, Sendable {
     case abandoned
 }
 
+public struct MatchHistoryFilter: Equatable, Sendable {
+    public var matchType: MatchType?
+    public var startedAfter: Date?
+
+    public init(matchType: MatchType? = nil, startedAfter: Date? = nil) {
+        self.matchType = matchType
+        self.startedAfter = startedAfter
+    }
+}
+
 public struct PlayerSummary: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let name: String

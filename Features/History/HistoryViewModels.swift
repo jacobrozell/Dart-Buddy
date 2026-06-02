@@ -82,7 +82,7 @@ final class HistoryListViewModel: ObservableObject {
         errorMessageKey = nil
         do {
             let mapped = try await PerformanceMonitor.measure(.historyLoad, logger: logger) {
-                try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 500)
+                try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 500, filter: MatchHistoryFilter())
             }
             let filtered = mapped.filter { record in
                 let summary = record.summary

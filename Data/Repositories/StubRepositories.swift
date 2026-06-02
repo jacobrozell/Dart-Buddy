@@ -18,7 +18,7 @@ public actor StubMatchRepository: MatchRepository {
     public func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented", debugContext: ["repository": "MatchRepository"]) }
     public func fetchActiveMatch() async throws -> MatchSummary? { nil }
     public func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    public func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] { [] }
+    public func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
     public func updateMatch(_: MatchSummary) async throws {}
     public func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented", debugContext: ["repository": "MatchRepository"]) }
     public func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented", debugContext: ["repository": "MatchRepository"]) }
@@ -32,6 +32,7 @@ public actor StubMatchRepository: MatchRepository {
 public actor StubStatsRepository: StatsRepository {
     public init() {}
     public func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
+    public func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
 }
 
 public actor StubSettingsRepository: SettingsRepository {

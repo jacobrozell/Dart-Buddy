@@ -51,44 +51,18 @@ final class StatisticsViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
-            let history = try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 1000)
-            let cutoff = periodCutoff()
-            var names: [UUID: String] = [:]
-            var inputs: [MatchStatsInput] = []
-
-            for record in history {
-                let summary = record.summary
-                guard summary.status == .completed, summary.type == mode else { continue }
-                if let cutoff, summary.startedAt < cutoff { continue }
-
-                var keys: [UUID] = []
-                for participant in record.participants {
-                    let key = participant.playerId ?? participant.id
-                    names[key] = participant.displayNameAtMatchStart
-                    keys.append(key)
-                }
-                let events = (try? await fetchEvents(matchId: summary.id)) ?? []
-                inputs.append(
-                    MatchStatsInput(
-                        type: summary.type,
-                        participantKeys: keys,
-                        winnerKey: summary.winnerPlayerId,
-                        events: events
-                    )
+            let result = try await MatchStatsLoader.load(
+                matchRepository: matchRepository,
+                statsRepository: statsRepository,
+                request: MatchStatsLoadRequest(
+                    matchType: mode,
+                    startedAfter: periodCutoff()
                 )
-            }
-
-            rows = StatsService.breakdowns(from: inputs, nameById: names)
+            )
+            rows = StatsService.breakdowns(from: result.inputs, nameById: result.namesById)
         } catch {
             rows = []
         }
-    }
-
-    private func fetchEvents(matchId: UUID) async throws -> [MatchEventEnvelope] {
-        let events = try await statsRepository.fetchEvents(matchId: matchId)
-        return try events
-            .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-            .sorted { $0.eventIndex < $1.eventIndex }
     }
 
     private func periodCutoff() -> Date? {

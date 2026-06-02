@@ -140,6 +140,7 @@ private final class SilentLogSink: LogSink, @unchecked Sendable {
 
 private actor X01FakeStatsRepository: StatsRepository {
     func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
+    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
 }
 
 private actor X01FakeMatchRepository: MatchRepository {
@@ -151,7 +152,7 @@ private actor X01FakeMatchRepository: MatchRepository {
     }
     func fetchActiveMatch() async throws -> MatchSummary? { nil }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
     func updateMatch(_: MatchSummary) async throws {}
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
         makeSummary(type: .x01, status: .completed)

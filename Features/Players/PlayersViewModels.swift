@@ -179,40 +179,23 @@ final class PlayerDetailViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
-            let history = try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 1000)
-            var x01Inputs: [MatchStatsInput] = []
-            var cricketInputs: [MatchStatsInput] = []
-
-            for record in history {
-                let summary = record.summary
-                guard summary.status == .completed else { continue }
-                let keys = record.participants.map { $0.playerId ?? $0.id }
-                guard keys.contains(playerId) else { continue }
-
-                let events = (try? await fetchEvents(matchId: summary.id)) ?? []
-                let input = MatchStatsInput(
-                    type: summary.type,
-                    participantKeys: keys,
-                    winnerKey: summary.winnerPlayerId,
-                    events: events
-                )
-                if summary.type == .x01 { x01Inputs.append(input) } else { cricketInputs.append(input) }
-            }
-
+            let x01Result = try await MatchStatsLoader.load(
+                matchRepository: matchRepository,
+                statsRepository: statsRepository,
+                request: MatchStatsLoadRequest(matchType: .x01, participantPlayerId: playerId)
+            )
+            let cricketResult = try await MatchStatsLoader.load(
+                matchRepository: matchRepository,
+                statsRepository: statsRepository,
+                request: MatchStatsLoadRequest(matchType: .cricket, participantPlayerId: playerId)
+            )
             let names = [playerId: playerName]
-            x01 = StatsService.breakdowns(from: x01Inputs, nameById: names).first { $0.playerId == playerId }
-            cricket = StatsService.breakdowns(from: cricketInputs, nameById: names).first { $0.playerId == playerId }
+            x01 = StatsService.breakdowns(from: x01Result.inputs, nameById: names).first { $0.playerId == playerId }
+            cricket = StatsService.breakdowns(from: cricketResult.inputs, nameById: names).first { $0.playerId == playerId }
         } catch {
             x01 = nil
             cricket = nil
         }
-    }
-
-    private func fetchEvents(matchId: UUID) async throws -> [MatchEventEnvelope] {
-        let events = try await statsRepository.fetchEvents(matchId: matchId)
-        return try events
-            .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-            .sorted { $0.eventIndex < $1.eventIndex }
     }
 }
 

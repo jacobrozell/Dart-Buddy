@@ -443,7 +443,7 @@ private actor BotCapturingMatchRepository: MatchRepository {
 
     func fetchActiveMatch() async throws -> MatchSummary? { nil }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
     func updateMatch(_: MatchSummary) async throws {}
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
         throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
@@ -470,7 +470,7 @@ private actor BotFakeMatchRepository: MatchRepository {
     }
     func fetchActiveMatch() async throws -> MatchSummary? { nil }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
     func updateMatch(_: MatchSummary) async throws {}
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
         MatchSummary(
@@ -493,4 +493,5 @@ private actor BotFakeMatchRepository: MatchRepository {
 
 private actor BotFakeStatsRepository: StatsRepository {
     func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
+    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
 }

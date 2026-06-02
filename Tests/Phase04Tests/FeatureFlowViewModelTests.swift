@@ -129,8 +129,9 @@ private actor StatsFakeMatchRepository: MatchRepository {
     func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fixture.summary }
     func fetchActiveMatch() async throws -> MatchSummary? { nil }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [fixture.summary] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] {
-        [MatchHistoryRecord(summary: fixture.summary, participants: fixture.participants)]
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
+        guard filter.matchType == nil || filter.matchType == fixture.summary.type else { return [] }
+        return [MatchHistoryRecord(summary: fixture.summary, participants: fixture.participants)]
     }
     func updateMatch(_: MatchSummary) async throws {}
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fixture.summary }
@@ -148,6 +149,7 @@ private actor StatsFakeStatsRepository: StatsRepository {
     private let events: [MatchEventSummary]
     init(events: [MatchEventSummary]) { self.events = events }
     func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { events }
+    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
 }
 
 @MainActor
@@ -217,7 +219,7 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { rows.first! }
     func fetchActiveMatch() async throws -> MatchSummary? { nil }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { rows }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int) async throws -> [MatchHistoryRecord] {
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
         rows.map { MatchHistoryRecord(summary: $0, participants: []) }
     }
     func updateMatch(_: MatchSummary) async throws {}

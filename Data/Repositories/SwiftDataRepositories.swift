@@ -258,14 +258,14 @@ public actor SwiftDataMatchRepository: MatchRepository {
         }
     }
 
-    public func fetchHistoryWithParticipants(page: Int, pageSize: Int) async throws -> [MatchHistoryRecord] {
+    public func fetchHistoryWithParticipants(page: Int, pageSize: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
         try dataCall {
             let context = ModelContext(container)
             let safePage = max(0, page)
             let safeSize = max(1, pageSize)
             let completedRaw = MatchStatus.completed.rawValue
             var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
-                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw },
+                predicate: completedHistoryPredicate(filter: filter, completedRaw: completedRaw),
                 sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
             )
             descriptor.fetchOffset = safePage * safeSize
@@ -479,10 +479,15 @@ public actor SwiftDataStatsRepository: StatsRepository {
     }
 
     public func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary] {
-        try dataCall {
+        try await fetchEvents(matchIds: [matchId])
+    }
+
+    public func fetchEvents(matchIds: [UUID]) async throws -> [MatchEventSummary] {
+        guard !matchIds.isEmpty else { return [] }
+        return try dataCall {
             let context = ModelContext(container)
             let descriptor = FetchDescriptor<SchemaV1.MatchEventRecord>(
-                predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId },
+                predicate: #Predicate<SchemaV1.MatchEventRecord> { matchIds.contains($0.matchId) },
                 sortBy: [SortDescriptor(\.eventIndex, order: .forward)]
             )
             return try context.fetch(descriptor).map(mapEvent)
@@ -601,12 +606,32 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
     }
 }
 
+private func completedHistoryPredicate(
+    filter: MatchHistoryFilter,
+    completedRaw: String
+) -> Predicate<SchemaV1.MatchRecord> {
+    switch (filter.matchType, filter.startedAfter) {
+    case (nil, nil):
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw }
+    case (let type?, nil):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.typeRaw == typeRaw }
+    case (nil, let startedAfter?):
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.startedAt >= startedAfter }
+    case (let type?, let startedAfter?):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter
+        }
+    }
+}
+
 private func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
     PlayerSummary(
         id: record.id,
         name: record.name,
         isArchived: record.isArchived,
-        isBot: record.isBot,
+        isBot: record.isBot ?? false,
         botDifficultyRaw: record.botDifficultyRaw,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt

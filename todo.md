@@ -33,7 +33,7 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 ### P3 — History & statistics
 
 - [x] **Wire or remove `HistoryListViewModel` filters** — Date filter wired in `HistoryRootView`; player filter matches any participant, not just winner.
-- [ ] **Statistics load performance** — `StatisticsViewModel`, `PlayerDetailViewModel`, and similar paths fetch up to **1000** history rows + per-match `fetchEvents`. Add pagination or repository-level aggregates before large histories.
+- [x] **Statistics load performance** — `MatchStatsLoader` paginates history (100/page) with DB-side type/date filters; batch `fetchEvents(matchIds:)` replaces per-match N+1 fetches in Statistics and Player Detail.
 - [x] **Statistics loading UI** — Spinner shown while `isLoading && rows.isEmpty`.
 - [x] **Cricket MPR in Statistics** — `marksPerRound` tracked in `StatsService`; MPR table in Cricket mode.
 
