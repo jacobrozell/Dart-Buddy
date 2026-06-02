@@ -13,10 +13,10 @@ final class StatisticsViewModel: ObservableObject {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .today: return "Today"
-            case .d7: return "7 Days"
-            case .d30: return "30 Days"
-            case .all: return "All time"
+            case .today: L10n.string("stats.period.today")
+            case .d7: L10n.string("stats.period.7d")
+            case .d30: L10n.string("stats.period.30d")
+            case .all: L10n.string("stats.period.all")
             }
         }
     }

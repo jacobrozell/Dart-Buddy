@@ -100,7 +100,7 @@ struct CricketMatchScreen: View {
         switch viewModel.state {
         case .readyTurn:
             if viewModel.isBotPlaying {
-                Text("Bot throwing…").foregroundStyle(Brand.amber)
+                Text(L10n.botThrowing).foregroundStyle(Brand.amber)
             } else {
                 EmptyView()
             }

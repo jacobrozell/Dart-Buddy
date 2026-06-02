@@ -2,6 +2,11 @@ import Foundation
 import SwiftUI
 
 enum L10n {
+    static let tabPlay: LocalizedStringKey = "tab.play"
+    static let tabPlayers: LocalizedStringKey = "tab.players"
+    static let tabStatistics: LocalizedStringKey = "tab.statistics"
+    static let tabHistory: LocalizedStringKey = "tab.history"
+    static let tabSettings: LocalizedStringKey = "tab.settings"
     static let errorTitle: LocalizedStringKey = "common.error.title"
     static let retry: LocalizedStringKey = "common.retry"
     static let playTitle: LocalizedStringKey = "play.title"
@@ -10,6 +15,19 @@ enum L10n {
     static let noActiveMatch: LocalizedStringKey = "play.home.noActiveMatch"
     static let resumeActiveMatch: LocalizedStringKey = "play.home.resumeActiveMatch"
     static let resumeMatch: LocalizedStringKey = "play.home.resumeButton"
+    static let appTitle: LocalizedStringKey = "play.home.appTitle"
+    static let recentGames: LocalizedStringKey = "play.home.recentGames"
+    static let setupChipPoints: LocalizedStringKey = "play.setup.chip.points"
+    static let setupChipCheckOut: LocalizedStringKey = "play.setup.chip.checkOut"
+    static let setupChipCheckIn: LocalizedStringKey = "play.setup.chip.checkIn"
+    static let setupChipSetLeg: LocalizedStringKey = "play.setup.chip.setLeg"
+    static let setupChipSets: LocalizedStringKey = "play.setup.chip.sets"
+    static let setupChipLegs: LocalizedStringKey = "play.setup.chip.legs"
+    static let setupStartButton: LocalizedStringKey = "play.setup.startButton"
+    static let setupStartingButton: LocalizedStringKey = "play.setup.startingButton"
+    static let setupRandomOrder: LocalizedStringKey = "play.setup.randomOrder"
+    static let setupAddPlayers: LocalizedStringKey = "play.setup.addPlayers"
+    static let setupMinimumRosterHint: LocalizedStringKey = "play.setup.minimumRosterHint"
     static let noPlayersGuidance: LocalizedStringKey = "play.home.noPlayersGuidance"
     static let startNewMatch: LocalizedStringKey = "play.home.startNewMatch"
     static let newMatchTitle: LocalizedStringKey = "play.setup.title"
@@ -39,6 +57,21 @@ enum L10n {
     static let historyHeaderSection: LocalizedStringKey = "history.detail.headerSection"
     static let historyTimelineSection: LocalizedStringKey = "history.detail.timelineSection"
     static let historyTimelineEmpty: LocalizedStringKey = "history.timeline.empty"
+    static let historyLoadMore: LocalizedStringKey = "history.loadMore"
+    static let historyEmptyFiltered: LocalizedStringKey = "history.empty.filtered"
+    static let historyEmptyPrompt: LocalizedStringKey = "history.empty.prompt"
+    static let historyStatusFinished: LocalizedStringKey = "history.status.finished"
+    static let historyGameStatistics: LocalizedStringKey = "history.detail.gameStatistics"
+    static let historyTurnByTurn: LocalizedStringKey = "history.detail.turnByTurn"
+    static let historyDeleteConfirmTitle: LocalizedStringKey = "history.delete.confirmTitle"
+    static let historyDeleteConfirmMessage: LocalizedStringKey = "history.delete.confirmMessage"
+    static let summaryResult: LocalizedStringKey = "play.summary.result"
+    static let summaryViewGameStatistics: LocalizedStringKey = "play.summary.viewGameStatistics"
+    static let botThrowing: LocalizedStringKey = "play.match.botThrowing"
+    static let scoringPadDouble: LocalizedStringKey = "scoring.pad.double"
+    static let scoringPadTriple: LocalizedStringKey = "scoring.pad.triple"
+    static let scoringEnter: LocalizedStringKey = "scoring.enter"
+    static let x01LeaveMatchAccessibility: LocalizedStringKey = "play.x01.leaveMatch.accessibility"
     static let playersTitle: LocalizedStringKey = "players.title"
     static let playersSectionTitle: LocalizedStringKey = "players.section.title"
     static let botsSectionTitle: LocalizedStringKey = "players.bots.section.title"
@@ -99,6 +132,18 @@ enum L10n {
     static let statsHitsInSector: LocalizedStringKey = "stats.hitsInSector"
     static let statsNoDartData: LocalizedStringKey = "stats.noDartData"
     static let statsTrendTitle: LocalizedStringKey = "stats.trend.title"
+    static let statsTitle: LocalizedStringKey = "stats.title"
+    static let statsPartialMatchBanner: LocalizedStringKey = "stats.partialMatchBanner"
+    static let statsEmptyTitle: LocalizedStringKey = "stats.empty.title"
+    static let startMatchCTA: LocalizedStringKey = "common.startMatch"
+    static let statsSectionAverageHighest: LocalizedStringKey = "stats.section.averageHighest"
+    static let statsSectionLegsCheckout: LocalizedStringKey = "stats.section.legsCheckout"
+    static let statsSectionMarksPerRound: LocalizedStringKey = "stats.section.marksPerRound"
+    static let statsTablePlayersColumn: LocalizedStringKey = "stats.table.playersColumn"
+    static let statsColumnHighest: LocalizedStringKey = "stats.column.highest"
+    static let statsColumnBestCO: LocalizedStringKey = "stats.column.bestCO"
+    static let statsColumnWinsPercent: LocalizedStringKey = "stats.column.winsPercent"
+    static let statsColumnLegs: LocalizedStringKey = "stats.column.legs"
     static let statsFilterAllPlayers: LocalizedStringKey = "stats.filter.allPlayers"
     static let playersEditAvatar: LocalizedStringKey = "players.edit.avatar"
     static let playersEditColor: LocalizedStringKey = "players.edit.color"
@@ -106,5 +151,9 @@ enum L10n {
     static func format(_ key: String, _ args: CVarArg...) -> String {
         let format = NSLocalizedString(key, comment: "")
         return String(format: format, locale: Locale.current, arguments: args)
+    }
+
+    static func string(_ key: String) -> String {
+        NSLocalizedString(key, comment: "")
     }
 }

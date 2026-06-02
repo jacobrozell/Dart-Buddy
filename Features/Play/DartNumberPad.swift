@@ -27,11 +27,11 @@ struct DartNumberPad: View {
             }
             HStack(spacing: spacing) {
                 key("0", background: Brand.key, identifier: "pad_0") { appendMiss() }
-                key("DOUBLE", background: selectedMultiplier == .double ? Brand.amber : Brand.amber.opacity(0.55), weight: .bold, identifier: "pad_double") {
+                key(L10n.string("scoring.pad.double"), background: selectedMultiplier == .double ? Brand.amber : Brand.amber.opacity(0.55), weight: .bold, identifier: "pad_double") {
                     toggle(.double)
                 }
                 .frame(maxWidth: .infinity)
-                key("TRIPLE", background: selectedMultiplier == .triple ? Brand.orange : Brand.orange.opacity(0.55), weight: .bold, identifier: "pad_triple") {
+                key(L10n.string("scoring.pad.triple"), background: selectedMultiplier == .triple ? Brand.orange : Brand.orange.opacity(0.55), weight: .bold, identifier: "pad_triple") {
                     toggle(.triple)
                 }
                 .frame(maxWidth: .infinity)
@@ -43,7 +43,7 @@ struct DartNumberPad: View {
                         .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
                 }
                 .frame(maxWidth: .infinity)
-                .accessibilityLabel("Undo")
+                .accessibilityLabel(L10n.scoringUndoLastTurn)
                 .accessibilityIdentifier("pad_undo")
             }
         }

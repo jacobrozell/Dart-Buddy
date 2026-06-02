@@ -11,15 +11,15 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .veryEasy: return "Very Easy"
-        case .easy: return "Easy"
-        case .medium: return "Medium"
-        case .hard: return "Hard"
-        case .pro: return "Pro"
+        case .veryEasy: L10n.string("bot.difficulty.veryEasy")
+        case .easy: L10n.string("bot.difficulty.easy")
+        case .medium: L10n.string("bot.difficulty.medium")
+        case .hard: L10n.string("bot.difficulty.hard")
+        case .pro: L10n.string("bot.difficulty.pro")
         }
     }
 
-    public var rosterName: String { "DartBot · \(displayName)" }
+    public var rosterName: String { L10n.format("bot.rosterNameFormat", displayName) }
 
     /// Rough per-visit scoring target when not on a finish.
     fileprivate var scoringVisitRange: ClosedRange<Int> {

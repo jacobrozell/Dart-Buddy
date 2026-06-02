@@ -41,8 +41,8 @@ Status legend: `[ ]` todo · `[~]` partial
 ### UI / UX / accessibility
 
 - [ ] **iPad / landscape layouts**
-- [ ] **Accessibility pass** — VoiceOver on Cricket cells, score cards, pad labels (`Triple 20` not `T20`); Dynamic Type; 4-way orientation evidence.
-- [ ] **Localize remaining English** — Home, History, Statistics, Match Summary, setup, game detail delete copy.
+- [ ] **Accessibility pass** — Track in `accessibility/wcag-2.1-aa/`; VoiceOver on Cricket cells, score cards, pad labels (`Triple 20` not `T20`); Dynamic Type; 4-way orientation evidence.
+- [x] **Localize remaining English** — Home, History, Statistics, Match Summary, setup, game detail delete copy.
 - [ ] **Cricket nav title contrast**
 - [ ] **X01 layout dead space** — Gap between cards and pad on phone.
 - [ ] **Setup flow** — Roster below START / tab bar; Add Bot vs START proximity; red START semantics.
@@ -74,9 +74,9 @@ Status legend: `[ ]` todo · `[~]` partial
 - [x] **`MatchSummaryViewModel` tests** — Cold-load, missing snapshot.
 - [x] **`MigrationRecoveryViewModel` tests**
 - [x] **UI: checkout → winner → summary**
-- [ ] **UI: Cricket grid scoring**
-- [ ] **UI: settings sound/haptics persistence**
-- [ ] **Repository contract tests** — `specs/RepositorySpec.md`
+- [x] **UI: Cricket grid scoring**
+- [x] **UI: settings sound/haptics persistence**
+- [~] **Repository contract tests** — SwiftData player/match/settings/stats contracts covered; expand as RepositorySpec evolves.
 - [ ] **Snapshot tests** — Optional post UI lock
 
 ---

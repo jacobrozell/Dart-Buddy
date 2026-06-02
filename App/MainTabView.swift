@@ -24,23 +24,23 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             PlayRootView(dependencies: dependencies, pendingResumeMatch: $pendingPlayResume)
                 .tag(RootTab.play)
-                .tabItem { Label("Play", systemImage: "house.fill") }
+                .tabItem { Label(L10n.tabPlay, systemImage: "house.fill") }
             PlayersRootView(dependencies: dependencies)
                 .tag(RootTab.players)
-                .tabItem { Label("Players", systemImage: "person.2.fill") }
+                .tabItem { Label(L10n.tabPlayers, systemImage: "person.2.fill") }
             StatisticsRootView(dependencies: dependencies, onStartMatch: { selectedTab = .play })
                 .tag(RootTab.statistics)
-                .tabItem { Label("Statistics", systemImage: "chart.bar.fill") }
+                .tabItem { Label(L10n.tabStatistics, systemImage: "chart.bar.fill") }
             HistoryRootView(dependencies: dependencies, onResumeActiveMatch: { match in
                 pendingPlayResume = match
                 selectedTab = .play
             }, onStartMatch: { selectedTab = .play })
                 .tag(RootTab.history)
-                .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
+                .tabItem { Label(L10n.tabHistory, systemImage: "clock.arrow.circlepath") }
                 .badge(showsActiveMatchBadge ? " " : nil)
             SettingsRootView(dependencies: dependencies)
                 .tag(RootTab.settings)
-                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
+                .tabItem { Label(L10n.tabSettings, systemImage: "gearshape.fill") }
         }
         .tint(Brand.green)
         .preferredColorScheme(preferencesStore.preferredColorScheme)

@@ -62,7 +62,11 @@ final class MatchSummaryViewModel: ObservableObject {
     var hasResult: Bool { session != nil }
 
     var typeLabel: String {
-        session?.runtime.type.rawValue.uppercased() ?? ""
+        guard let type = session?.runtime.type else { return "" }
+        switch type {
+        case .x01: return L10n.string("play.x01.title")
+        case .cricket: return L10n.string("play.cricket.title")
+        }
     }
 
     var winnerName: String? {
@@ -99,20 +103,20 @@ final class MatchSummaryViewModel: ObservableObject {
     private func stats(for breakdown: PlayerStatBreakdown, runtime: MatchRuntimeState) -> [(label: String, value: String)] {
         switch runtime.type {
         case .x01:
-            var rows: [(String, String)] = [("3-Dart Avg", String(format: "%.1f", breakdown.average3Dart))]
+            var rows: [(String, String)] = [(L10n.string("play.summary.stat.threeDartAvg"), String(format: "%.1f", breakdown.average3Dart))]
             if let player = runtime.x01State?.players.first(where: { $0.playerId == breakdown.playerId }) {
                 if runtime.x01State?.config.setsEnabled == true {
-                    rows.append(("Sets", "\(player.setsWon)"))
+                    rows.append((L10n.string("play.summary.stat.sets"), "\(player.setsWon)"))
                 }
-                rows.append(("Legs", "\(player.legsWon)"))
+                rows.append((L10n.string("play.summary.stat.legs"), "\(player.legsWon)"))
             }
             if breakdown.highestCheckout > 0 {
-                rows.append(("Best Out", "\(breakdown.highestCheckout)"))
+                rows.append((L10n.string("play.summary.stat.bestOut"), "\(breakdown.highestCheckout)"))
             }
             return rows
         case .cricket:
             let score = runtime.cricketState?.players.first(where: { $0.playerId == breakdown.playerId })?.score ?? breakdown.points
-            return [("Score", "\(score)"), ("Darts", "\(breakdown.darts)")]
+            return [(L10n.string("play.summary.stat.score"), "\(score)"), (L10n.string("play.summary.stat.darts"), "\(breakdown.darts)")]
         }
     }
 }

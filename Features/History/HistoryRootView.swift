@@ -29,15 +29,15 @@ struct HistoryRootView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    Text("History")
+                    Text(L10n.historyTitle)
                         .font(.largeTitle.weight(.heavy))
                         .foregroundStyle(.white)
 
                     BrandSegmented(
                         options: [
-                            (HistoryListViewModel.ModeFilter.all, "All Games"),
-                            (HistoryListViewModel.ModeFilter.x01, "X01"),
-                            (HistoryListViewModel.ModeFilter.cricket, "Cricket")
+                            (HistoryListViewModel.ModeFilter.all, L10n.string("history.filter.allGames")),
+                            (HistoryListViewModel.ModeFilter.x01, L10n.string("play.x01.title")),
+                            (HistoryListViewModel.ModeFilter.cricket, L10n.string("play.cricket.title"))
                         ],
                         selection: $viewModel.modeFilter
                     )
@@ -82,7 +82,7 @@ struct HistoryRootView: View {
                                     if viewModel.isLoadingMore {
                                         ProgressView().tint(Brand.green)
                                     } else {
-                                        Text("Load more")
+                                        Text(L10n.historyLoadMore)
                                             .font(.subheadline.weight(.semibold))
                                     }
                                 }
@@ -143,15 +143,15 @@ struct HistoryRootView: View {
     private var emptyListState: some View {
         VStack(spacing: DS.Spacing.s3) {
             Text(viewModel.state == .emptyFiltered && viewModel.hasActiveFilters
-                ? "No games match these filters."
-                : "No games yet. Start a match to see it here.")
+                ? L10n.historyEmptyFiltered
+                : L10n.historyEmptyPrompt)
                 .foregroundStyle(Brand.textSecondary)
                 .multilineTextAlignment(.center)
             if onStartMatch != nil,
                viewModel.state == .emptyFiltered,
                !viewModel.hasActiveFilters {
                 Button(action: { onStartMatch?() }) {
-                    Text("Start a Match")
+                    Text(L10n.startMatchCTA)
                         .font(.headline)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, minHeight: 48)
@@ -215,7 +215,7 @@ struct HistoryRootView: View {
             HStack {
                 Image(systemName: "play.circle.fill")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Resume match").font(.headline)
+                    Text(L10n.resumeMatch).font(.headline)
                     Text(match.type.rawValue.uppercased()).font(.caption).foregroundStyle(Brand.textSecondary)
                 }
                 Spacer()
@@ -242,7 +242,7 @@ struct MatchHistoryCard: View {
                     .foregroundStyle(.white)
                 Spacer()
                 if row.isFinished {
-                    StatusBadge(text: "FINISHED", color: Brand.green)
+                    StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
                 }
             }
             Text(row.configText)
@@ -257,7 +257,7 @@ struct MatchHistoryCard: View {
                         .lineLimit(1)
                     Spacer()
                     VStack(alignment: .trailing, spacing: 0) {
-                        Text("Sets: \(standing.sets)  Legs: \(standing.legs)")
+                        Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
                             .font(.caption)
                             .foregroundStyle(Brand.textSecondary)
                         Text("\(standing.score)")

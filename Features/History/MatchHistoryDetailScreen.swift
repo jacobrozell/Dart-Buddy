@@ -12,7 +12,7 @@ struct MatchHistoryDetailScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.s5) {
-                Text("Game Statistics")
+                Text(L10n.historyGameStatistics)
                     .font(.largeTitle.weight(.heavy))
                     .foregroundStyle(.white)
 
@@ -48,7 +48,7 @@ struct MatchHistoryDetailScreen: View {
             retryTask?.cancel()
             deleteTask?.cancel()
         }
-        .alert("Delete this game?", isPresented: $showDeleteConfirm) {
+        .alert(L10n.historyDeleteConfirmTitle, isPresented: $showDeleteConfirm) {
             Button(L10n.cancel, role: .cancel) {}
             Button(L10n.delete, role: .destructive) {
                 deleteTask?.cancel()
@@ -57,7 +57,7 @@ struct MatchHistoryDetailScreen: View {
                 }
             }
         } message: {
-            Text("This permanently removes the game and its stats. This cannot be undone.")
+            Text(L10n.historyDeleteConfirmMessage)
         }
     }
 
@@ -72,31 +72,31 @@ struct MatchHistoryDetailScreen: View {
     private var statTables: some View {
         if !viewModel.breakdowns.isEmpty {
             if viewModel.isX01 {
-                sectionTitle("Average & Highest Score")
+                sectionTitle(L10n.string("stats.section.averageHighest"))
                 StatTable(
-                    columns: [("3-Dart Avg", 90), ("Highest", 80)],
+                    columns: [(L10n.string("stats.threeDartAverage"), 90), (L10n.string("stats.column.highest"), 80)],
                     rows: viewModel.breakdowns
                 ) { row in
                     [String(format: "%.1f", row.average3Dart), "\(row.highestScore)"]
                 }
-                sectionTitle("Legs & Checkout")
+                sectionTitle(L10n.string("stats.section.legsCheckout"))
                 StatTable(
-                    columns: [("Legs", 60), ("Checkouts", 90), ("Best CO", 80)],
+                    columns: [(L10n.string("stats.column.legs"), 60), (L10n.string("stats.checkouts"), 90), (L10n.string("stats.column.bestCO"), 80)],
                     rows: viewModel.breakdowns
                 ) { row in
                     ["\(row.legs)", "\(row.checkouts)", row.highestCheckout > 0 ? "\(row.highestCheckout)" : "-"]
                 }
             }
-            sectionTitle("Points")
+            sectionTitle(L10n.string("stats.points"))
             StatTable(
-                columns: [("Points", 90)],
+                columns: [(L10n.string("stats.points"), 90)],
                 rows: viewModel.breakdowns
             ) { row in
                 ["\(row.points)"]
             }
-            sectionTitle("Throws")
+            sectionTitle(L10n.string("stats.throws"))
             StatTable(
-                columns: [("Throws", 70), ("Double %", 80), ("Triple %", 80)],
+                columns: [(L10n.string("stats.throws"), 70), (L10n.string("stats.doublePercent"), 80), (L10n.string("stats.triplePercent"), 80)],
                 rows: viewModel.breakdowns
             ) { row in
                 ["\(row.darts)", String(format: "%.1f%%", row.doublePercent), String(format: "%.1f%%", row.triplePercent)]
@@ -107,7 +107,7 @@ struct MatchHistoryDetailScreen: View {
     @ViewBuilder
     private var sectorSection: some View {
         if viewModel.breakdowns.contains(where: { !$0.hitsBySector.isEmpty }) {
-            sectionTitle("Hits in Sector")
+            sectionTitle(L10n.string("stats.hitsInSector"))
             PerPlayerSectorHitsSection(breakdowns: viewModel.breakdowns, mode: viewModel.matchType)
         }
     }
@@ -119,7 +119,7 @@ struct MatchHistoryDetailScreen: View {
                     .font(.headline)
                     .foregroundStyle(.white)
                 Spacer()
-                StatusBadge(text: "FINISHED", color: Brand.green)
+                StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
             }
             if !viewModel.configText.isEmpty {
                 Text(viewModel.configText)
@@ -133,7 +133,7 @@ struct MatchHistoryDetailScreen: View {
                         .foregroundStyle(standing.isWinner ? .white : Brand.textSecondary)
                     Spacer()
                     VStack(alignment: .trailing, spacing: 0) {
-                        Text("Sets: \(standing.sets)  Legs: \(standing.legs)")
+                        Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
                             .font(.caption)
                             .foregroundStyle(Brand.textSecondary)
                         Text("\(standing.score)")
@@ -154,7 +154,7 @@ struct MatchHistoryDetailScreen: View {
                 withAnimation { showTimeline.toggle() }
             } label: {
                 HStack {
-                    Text("Turn-by-turn").font(.headline).foregroundStyle(.white)
+                    Text(L10n.historyTurnByTurn).font(.headline).foregroundStyle(.white)
                     Spacer()
                     Image(systemName: showTimeline ? "chevron.up" : "chevron.down")
                         .foregroundStyle(Brand.textSecondary)

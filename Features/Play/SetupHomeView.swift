@@ -13,7 +13,7 @@ struct SetupHomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                Text("Dart Scoreboard")
+                Text(L10n.appTitle)
                     .font(.largeTitle.weight(.heavy))
                     .foregroundStyle(.white)
                     .padding(.top, DS.Spacing.s2)
@@ -63,7 +63,7 @@ struct SetupHomeView: View {
             HStack {
                 Image(systemName: "play.circle.fill")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Resume match").font(.headline)
+                    Text(L10n.resumeMatch).font(.headline)
                     Text(match.type.rawValue.uppercased()).font(.caption).foregroundStyle(Brand.textSecondary)
                 }
                 Spacer()
@@ -80,7 +80,7 @@ struct SetupHomeView: View {
 
     private var recentCompletedSection: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s3) {
-            Text("Recent Games")
+            Text(L10n.recentGames)
                 .font(.headline)
                 .foregroundStyle(.white)
 
@@ -88,7 +88,7 @@ struct SetupHomeView: View {
                 ForEach(homeViewModel.recentCompletedMatches) { match in
                     Button { onViewCompletedMatch(match.id) } label: {
                         HStack(spacing: DS.Spacing.s3) {
-                            Text(match.type == .x01 ? "X01" : "Cricket")
+                            Text(match.type == .x01 ? L10n.x01Title : L10n.cricketTitle)
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Brand.textSecondary)
                                 .frame(width: 56, alignment: .leading)
@@ -98,7 +98,7 @@ struct SetupHomeView: View {
                                     .foregroundStyle(.white)
                                     .lineLimit(1)
                                 if let winnerName = match.winnerName {
-                                    Text("\(winnerName) won")
+                                    Text(L10n.format("play.home.recentWinnerFormat", winnerName))
                                         .font(.caption)
                                         .foregroundStyle(Brand.textSecondary)
                                 }
@@ -126,15 +126,15 @@ struct SetupHomeView: View {
 
     private var modePill: some View {
         HStack(spacing: 0) {
-            modeButton("X01", mode: .x01)
-            modeButton("Cricket", mode: .cricket)
+            modeButton(L10n.x01Title, mode: .x01)
+            modeButton(L10n.cricketTitle, mode: .cricket)
         }
         .padding(4)
         .background(Brand.card, in: Capsule())
         .frame(maxWidth: .infinity)
     }
 
-    private func modeButton(_ title: String, mode: MatchSetupViewModel.SetupMode) -> some View {
+    private func modeButton(_ title: LocalizedStringKey, mode: MatchSetupViewModel.SetupMode) -> some View {
         let isSelected = setupViewModel.mode == mode
         return Button { setupViewModel.updateMode(mode) } label: {
             Text(title)
@@ -163,7 +163,7 @@ struct SetupHomeView: View {
     }
 
     private var pointsChip: some View {
-        chip(title: "Points", color: Brand.green) {
+        chip(title: L10n.setupChipPoints, color: Brand.green) {
             Menu {
                 ForEach(X01StartScores.all, id: \.self) { score in
                     Button("\(score)") {
@@ -179,7 +179,7 @@ struct SetupHomeView: View {
     }
 
     private var checkoutChip: some View {
-        chip(title: "Check-Out", color: Brand.red) {
+        chip(title: L10n.setupChipCheckOut, color: Brand.red) {
             Menu {
                 ForEach(X01CheckoutMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -195,7 +195,7 @@ struct SetupHomeView: View {
     }
 
     private var checkInChip: some View {
-        chip(title: "Check-In", color: Brand.red) {
+        chip(title: L10n.setupChipCheckIn, color: Brand.red) {
             Menu {
                 ForEach(X01CheckInMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -210,7 +210,7 @@ struct SetupHomeView: View {
     }
 
     private var legFormatChip: some View {
-        chip(title: "Set/Leg", color: Brand.green) {
+        chip(title: L10n.setupChipSetLeg, color: Brand.green) {
             Menu {
                 ForEach(X01LegFormat.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -225,7 +225,7 @@ struct SetupHomeView: View {
     }
 
     private var setsChip: some View {
-        chip(title: "Sets", color: Brand.green) {
+        chip(title: L10n.setupChipSets, color: Brand.green) {
             Menu {
                 ForEach(1 ... 5, id: \.self) { value in
                     Button("\(value)") {
@@ -241,7 +241,7 @@ struct SetupHomeView: View {
     }
 
     private var legsChip: some View {
-        chip(title: "Legs", color: Brand.green) {
+        chip(title: L10n.setupChipLegs, color: Brand.green) {
             Menu {
                 ForEach(1 ... 9, id: \.self) { value in
                     Button("\(value)") {
@@ -256,7 +256,7 @@ struct SetupHomeView: View {
         }
     }
 
-    private func chip<Content: View>(title: String, color: Color, @ViewBuilder content: () -> Content) -> some View {
+    private func chip<Content: View>(title: LocalizedStringKey, color: Color, @ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 6) {
             Text(title).font(.caption).foregroundStyle(Brand.textSecondary)
             content()
@@ -293,7 +293,7 @@ struct SetupHomeView: View {
                     }
                 }
             } label: {
-                Text(setupViewModel.isSubmitting ? "STARTING…" : "START")
+                Text(setupViewModel.isSubmitting ? L10n.setupStartingButton : L10n.setupStartButton)
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 56)
@@ -316,22 +316,20 @@ struct SetupHomeView: View {
                 HStack(spacing: 8) {
                     Image(systemName: setupViewModel.randomOrder ? "checkmark.square.fill" : "square")
                         .foregroundStyle(setupViewModel.randomOrder ? Brand.green : Brand.textSecondary)
-                    Text("Random order").foregroundStyle(.white)
+                    Text(L10n.setupRandomOrder).foregroundStyle(.white)
                 }
             }
             .buttonStyle(.plain)
             Spacer()
             HStack(spacing: DS.Spacing.s2) {
                 Menu {
-                    botMenuButton("Very Easy", difficulty: .veryEasy, color: Color(red: 0.45, green: 0.82, blue: 0.55))
-                    botMenuButton("Easy", difficulty: .easy, color: Brand.green)
-                    botMenuButton("Medium", difficulty: .medium, color: Brand.amber)
-                    botMenuButton("Hard", difficulty: .hard, color: Brand.red)
-                    botMenuButton("Pro", difficulty: .pro, color: Brand.proBot)
+                    ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
+                        botMenuButton(difficulty.displayName, difficulty: difficulty, color: botDifficultyColor(difficulty))
+                    }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "cpu")
-                        Text("Add Bot").font(.subheadline.weight(.semibold))
+                        Text(L10n.addBotTitle).font(.subheadline.weight(.semibold))
                     }
                     .foregroundStyle(.white)
                     .padding(.horizontal, DS.Spacing.s3)
@@ -342,7 +340,7 @@ struct SetupHomeView: View {
                 Button { onQuickAddPlayer() } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "person.badge.plus")
-                        Text("Add Players").font(.subheadline.weight(.semibold))
+                        Text(L10n.setupAddPlayers).font(.subheadline.weight(.semibold))
                     }
                     .foregroundStyle(.white)
                     .padding(.horizontal, DS.Spacing.s3)
@@ -371,17 +369,17 @@ struct SetupHomeView: View {
     @ViewBuilder
     private var playerList: some View {
         if setupViewModel.availableHumans.isEmpty && setupViewModel.availableBots.isEmpty {
-            Text("Add at least two players or bots to start a match.")
+            Text(L10n.setupMinimumRosterHint)
                 .font(.footnote)
                 .foregroundStyle(Brand.textSecondary)
         } else {
             VStack(alignment: .leading, spacing: DS.Spacing.s3) {
                 if !setupViewModel.availableBots.isEmpty {
-                    Text("Bots").font(.headline).foregroundStyle(.white)
+                    Text(L10n.botsSectionTitle).font(.headline).foregroundStyle(.white)
                     botRosterList
                 }
                 if !setupViewModel.availableHumans.isEmpty {
-                    Text("Players").font(.headline).foregroundStyle(.white)
+                    Text(L10n.playersSectionTitle).font(.headline).foregroundStyle(.white)
                     humanRosterList
                 }
             }

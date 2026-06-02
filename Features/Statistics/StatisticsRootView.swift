@@ -23,12 +23,12 @@ struct StatisticsRootView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    Text("Statistics")
+                    Text(L10n.statsTitle)
                         .font(.largeTitle.weight(.heavy))
                         .foregroundStyle(.white)
 
                     BrandSegmented(
-                        options: [(MatchType.x01, "X01"), (MatchType.cricket, "Cricket")],
+                        options: [(MatchType.x01, L10n.string("play.x01.title")), (MatchType.cricket, L10n.string("play.cricket.title"))],
                         selection: $viewModel.mode
                     )
 
@@ -53,24 +53,24 @@ struct StatisticsRootView: View {
                     } else {
                         gamesTable
                         if isX01 {
-                            sectionTitle("Average & Highest Score")
+                            sectionTitle(L10n.string("stats.section.averageHighest"))
                             averageTable
                             averageChart
                             if viewModel.showsTrendChart {
-                                sectionTitle(String(localized: "stats.trend.title"))
+                                sectionTitle(L10n.string("stats.trend.title"))
                                 AverageTrendChart(points: viewModel.trendPoints)
                             }
-                            sectionTitle("Legs & Checkout")
+                            sectionTitle(L10n.string("stats.section.legsCheckout"))
                             checkoutTable
                         } else {
-                            sectionTitle("Marks Per Round")
+                            sectionTitle(L10n.string("stats.section.marksPerRound"))
                             mprTable
                         }
-                        sectionTitle("Points")
+                        sectionTitle(L10n.string("stats.points"))
                         pointsTable
-                        sectionTitle("Throws")
+                        sectionTitle(L10n.string("stats.throws"))
                         throwsTable
-                        sectionTitle("Hits in Sector")
+                        sectionTitle(L10n.string("stats.hitsInSector"))
                         sectorChart
                     }
                 }
@@ -145,7 +145,7 @@ struct StatisticsRootView: View {
     private var partialStatsBanner: some View {
         HStack(spacing: DS.Spacing.s2) {
             Image(systemName: "clock.arrow.circlepath")
-            Text("Includes stats from your in-progress match.")
+            Text(L10n.statsPartialMatchBanner)
                 .font(.footnote)
         }
         .foregroundStyle(Brand.amber)
@@ -157,14 +157,14 @@ struct StatisticsRootView: View {
 
     private var emptyState: some View {
         VStack(spacing: DS.Spacing.s3) {
-            Text("No completed games yet.")
+            Text(L10n.statsEmptyTitle)
                 .foregroundStyle(Brand.textSecondary)
                 .multilineTextAlignment(.center)
             if onStartMatch != nil,
                viewModel.playerFilter == nil,
                viewModel.period == .all {
                 Button(action: { onStartMatch?() }) {
-                    Text("Start a Match")
+                    Text(L10n.startMatchCTA)
                         .font(.headline)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity, minHeight: 48)
@@ -180,8 +180,8 @@ struct StatisticsRootView: View {
 
     private var gamesTable: some View {
         StatTable(
-            title: "Games",
-            columns: [("Games", 70), ("Wins", 60), ("Wins %", 80)],
+            title: L10n.string("stats.games"),
+            columns: [(L10n.string("stats.games"), 70), (L10n.string("stats.wins"), 60), (L10n.string("stats.column.winsPercent"), 80)],
             rows: viewModel.rows
         ) { row in
             ["\(row.games)", "\(row.wins)", String(format: "%.0f%%", row.winPercent)]
@@ -190,7 +190,7 @@ struct StatisticsRootView: View {
 
     private var averageTable: some View {
         StatTable(
-            columns: [("3-Dart Avg", 90), ("Highest", 80)],
+            columns: [(L10n.string("stats.threeDartAverage"), 90), (L10n.string("stats.column.highest"), 80)],
             rows: viewModel.rows
         ) { row in
             [String(format: "%.1f", row.average3Dart), "\(row.highestScore)"]
@@ -199,7 +199,7 @@ struct StatisticsRootView: View {
 
     private var checkoutTable: some View {
         StatTable(
-            columns: [("Legs", 60), ("Checkouts", 90), ("Best CO", 80)],
+            columns: [(L10n.string("stats.column.legs"), 60), (L10n.string("stats.checkouts"), 90), (L10n.string("stats.column.bestCO"), 80)],
             rows: viewModel.rows
         ) { row in
             ["\(row.legs)", "\(row.checkouts)", row.highestCheckout > 0 ? "\(row.highestCheckout)" : "-"]
@@ -208,7 +208,7 @@ struct StatisticsRootView: View {
 
     private var mprTable: some View {
         StatTable(
-            columns: [("MPR", 80), ("Marks", 80), ("Rounds", 80)],
+            columns: [(L10n.string("stats.mpr"), 80), (L10n.string("stats.marks"), 80), (L10n.string("stats.rounds"), 80)],
             rows: viewModel.rows
         ) { row in
             [
@@ -221,7 +221,7 @@ struct StatisticsRootView: View {
 
     private var pointsTable: some View {
         StatTable(
-            columns: [("Points", 90)],
+            columns: [(L10n.string("stats.points"), 90)],
             rows: viewModel.rows
         ) { row in
             ["\(row.points)"]
@@ -230,7 +230,7 @@ struct StatisticsRootView: View {
 
     private var throwsTable: some View {
         StatTable(
-            columns: [("Throws", 70), ("Double %", 80), ("Triple %", 80)],
+            columns: [(L10n.string("stats.throws"), 70), (L10n.string("stats.doublePercent"), 80), (L10n.string("stats.triplePercent"), 80)],
             rows: viewModel.rows
         ) { row in
             ["\(row.darts)", String(format: "%.1f%%", row.doublePercent), String(format: "%.1f%%", row.triplePercent)]
@@ -301,7 +301,7 @@ struct StatTable: View {
             }
             VStack(spacing: 0) {
                 HStack {
-                    Text("Players").frame(maxWidth: .infinity, alignment: .leading)
+                    Text(L10n.statsTablePlayersColumn).frame(maxWidth: .infinity, alignment: .leading)
                     ForEach(columns, id: \.label) { column in
                         Text(column.label).frame(width: column.width, alignment: .trailing)
                     }

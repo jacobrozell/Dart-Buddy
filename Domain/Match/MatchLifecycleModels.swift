@@ -14,9 +14,9 @@ public enum X01CheckoutMode: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .singleOut: return "Straight Out"
-        case .doubleOut: return "Double Out"
-        case .masterOut: return "Master Out"
+        case .singleOut: L10n.string("x01.checkout.straightOut")
+        case .doubleOut: L10n.string("x01.checkout.doubleOut")
+        case .masterOut: L10n.string("x01.checkout.masterOut")
         }
     }
 }
@@ -28,9 +28,9 @@ public enum X01CheckInMode: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .straightIn: return "Straight In"
-        case .doubleIn: return "Double In"
-        case .masterIn: return "Master In"
+        case .straightIn: L10n.string("x01.checkin.straightIn")
+        case .doubleIn: L10n.string("x01.checkin.doubleIn")
+        case .masterIn: L10n.string("x01.checkin.masterIn")
         }
     }
 }
@@ -43,8 +43,8 @@ public enum X01LegFormat: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .firstTo: return "First to"
-        case .bestOf: return "Best of"
+        case .firstTo: L10n.string("x01.legFormat.firstTo")
+        case .bestOf: L10n.string("x01.legFormat.bestOf")
         }
     }
 }

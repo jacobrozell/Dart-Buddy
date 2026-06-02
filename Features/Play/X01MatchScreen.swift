@@ -114,9 +114,9 @@ struct X01MatchScreen: View {
                     .frame(width: 44, height: 44)
                     .background(Brand.card, in: Circle())
             }
-            .accessibilityLabel("Leave match")
+            .accessibilityLabel(L10n.x01LeaveMatchAccessibility)
             Spacer()
-            Text("X01")
+            Text(L10n.x01Title)
                 .font(.title3.weight(.bold))
                 .foregroundStyle(.white)
             Spacer()
@@ -127,7 +127,7 @@ struct X01MatchScreen: View {
                     .frame(width: 44, height: 44)
                     .background(Brand.card, in: Circle())
             }
-            .accessibilityLabel("Undo last turn")
+            .accessibilityLabel(L10n.scoringUndoLastTurn)
         }
         .padding(.horizontal, DS.Spacing.s4)
         .padding(.top, DS.Spacing.s2)
@@ -151,7 +151,7 @@ struct X01MatchScreen: View {
             .padding(.vertical, DS.Spacing.s2)
             .background(Brand.card, in: Capsule())
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("Checkout: \(route.joined(separator: ", "))")
+            .accessibilityLabel(L10n.format("play.x01.checkout.accessibilityFormat", route.joined(separator: ", ")))
             .accessibilityIdentifier("checkoutSuggestion")
         }
     }
@@ -161,7 +161,7 @@ struct X01MatchScreen: View {
         if viewModel.isBotPlaying || viewModel.isCurrentPlayerBot && viewModel.canHumanInput == false {
             HStack(spacing: 8) {
                 ProgressView().tint(Brand.amber)
-                Text("Bot throwing…")
+                Text(L10n.botThrowing)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Brand.amber)
             }
@@ -251,7 +251,7 @@ private struct PlayerScoreCard: View {
                 }
                 Spacer(minLength: DS.Spacing.s2)
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("Sets:\(setsWon)  Legs:\(legsWon)")
+                    Text(L10n.format("play.x01.setsLegsFormat", setsWon, legsWon))
                         .font(.caption)
                         .foregroundStyle(Brand.textSecondary)
                     HStack(spacing: 4) {

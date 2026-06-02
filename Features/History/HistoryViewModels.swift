@@ -51,9 +51,9 @@ final class HistoryListViewModel: ObservableObject {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .d7: return "7 Days"
-            case .d30: return "30 Days"
-            case .all: return "All time"
+            case .d7: L10n.string("stats.period.7d")
+            case .d30: L10n.string("stats.period.30d")
+            case .all: L10n.string("stats.period.all")
             }
         }
     }

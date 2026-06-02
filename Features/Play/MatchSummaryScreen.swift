@@ -21,7 +21,7 @@ struct MatchSummaryScreen: View {
                         playerCard(row)
                     }
                 } else {
-                    Text("Result").font(.title.weight(.heavy)).foregroundStyle(.white)
+                    Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(.white)
                 }
                 actions
             }
@@ -50,7 +50,7 @@ struct MatchSummaryScreen: View {
                 .opacity(celebrate ? 1 : 0)
                 .rotationEffect(.degrees(celebrate ? 0 : -25))
             if let winnerName = viewModel.winnerName {
-                Text("\(winnerName) wins!")
+                Text(L10n.format("play.summary.winsFormat", winnerName))
                     .font(.title.weight(.heavy))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
@@ -102,14 +102,14 @@ struct MatchSummaryScreen: View {
     private var actions: some View {
         VStack(spacing: DS.Spacing.s3) {
             Button(action: onStartNewMatch) {
-                Text("New Match")
+                Text(L10n.summaryNewMatch)
                     .font(.headline).foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .background(Brand.red, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
             }
             .buttonStyle(.plain)
             Button(action: { onViewHistoryDetail(viewModel.matchId) }) {
-                Text("View Game Statistics")
+                Text(L10n.summaryViewGameStatistics)
                     .font(.headline).foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))

@@ -156,11 +156,11 @@ struct CricketTapPad: View {
                         .frame(maxWidth: .infinity, minHeight: 52)
                         .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
                 }
-                .accessibilityLabel("Undo")
+                .accessibilityLabel(L10n.scoringUndoLastTurn)
                 .accessibilityIdentifier("cricket_undo")
             }
             Button(action: onSubmit) {
-                Text("ENTER")
+                Text(L10n.scoringEnter)
                     .font(.headline.weight(.bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, minHeight: 52)
