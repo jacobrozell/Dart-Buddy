@@ -41,6 +41,8 @@ Define accessibility requirements for MVP and future releases, with WCAG 2.1 AA 
 ---
 
 ## 6. Testing
+- **Compliance tracker:** `accessibility/wcag-2.1-aa/` (per-screen and criterion status; update when implementing or verifying fixes).
+- **Long-term plan:** `accessibility/accessibility_todo.md` (phased backlog).
 - Manual VoiceOver pass on all critical flows.
 - Dynamic Type checks for setup, gameplay, history, and settings.
 - Contrast audit for light and dark themes.
