@@ -79,17 +79,17 @@ Use **one primary doc per concern**. Link instead of copying checklists or backl
 
 | Concern | Authoritative | Do not duplicate in |
 |---------|---------------|---------------------|
-| Active release work | [`todo.md`](todo.md) | README, roadmap phase files |
+| Active release work | [`todo.md`](todo.md) · **[`release_checklist.md`](release_checklist.md)** (device + App Store runbook) | README, roadmap phase files |
 | Product/system requirements | [`specs/SpecGovernance.md`](specs/SpecGovernance.md) → individual specs | README feature lists, `todo.md` completed items |
 | Spec index | [`specs/README.md`](specs/README.md) | README |
-| Phase delivery history | [`roadmap/README.md`](roadmap/README.md) | `todo.md` (roadmap is historical; todo is current) |
-| Pre-coding agent brief | [`roadmap/AGENT-KICKOFF-BRIEF.md`](roadmap/AGENT-KICKOFF-BRIEF.md) | — |
+| Phase delivery history | [`roadmap/README.md`](roadmap/README.md) · [`roadmap/archive/`](roadmap/archive/README.md) | `todo.md` (roadmap is historical; todo is current) |
 | Accessibility requirements | [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md) | WCAG screen files (link only) |
 | Accessibility status roll-up | [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) | `todo.md`, README |
 | Accessibility manual checks | [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) | `SUMMARY.md` evidence detail |
 | Accessibility engineering plan | [`accessibility/accessibility_todo.md`](accessibility/accessibility_todo.md) | `Manual_todo.md` (manual vs engineering) |
-| Fast QA gate | [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md) | `SmokeTestChecklist.md` |
-| Full smoke test | [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) | `ReleaseGateChecklist.md` |
+| Fast QA gate | [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md) | `release_checklist.md`, `SmokeTestChecklist.md` |
+| Full smoke test | [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) | `release_checklist.md`, `ReleaseGateChecklist.md` |
+| Device + App Store runbook | [`release_checklist.md`](release_checklist.md) | Duplicating full matrices in `todo.md` |
 | RC sign-off evidence | [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) | `todo.md` (todo links here; matrix lives here) |
 | PR smoke evidence template | [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md) | sign-off doc |
 | Game Center (post-1.0) | [`achievements.md`](achievements.md) | `todo.md` (todo links; assessment detail here) |
@@ -97,11 +97,9 @@ Use **one primary doc per concern**. Link instead of copying checklists or backl
 
 ### Duplication audit (2026-06)
 
-Changes applied in this pass:
-
-- **README** — Dropped near/mid/long-term roadmap (duplicated `todo.md` and future specs). Added doc-role table above.
-- **`specs/README.md`** — Removed stale “Next Optional Specs” entries for docs that already exist.
-- **Accessibility cross-refs** — Fixed links that pointed at a removed `todo.md` section.
-- **`specs/SpecGovernance.md`** — Added repo-level doc ownership alongside existing spec-to-spec rules.
+- Removed duplicate inline QA prose elsewhere; **`release_checklist.md`** is the full device + App Store + Reddit runbook.
+- Archived historical roadmap/spec docs under `roadmap/archive/` and `specs/archive/`.
+- Pruned unreferenced `snapshots/`; kept AXXXL files linked from accessibility screen docs.
+- Updated specs for Statistics tab, Firebase Phase 1, and limited UI test policy.
 
 When adding documentation, extend the table above rather than restating content in multiple places.

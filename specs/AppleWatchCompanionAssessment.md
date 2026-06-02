@@ -1,7 +1,7 @@
 # Apple Watch Companion — Assessment
 
 > Assessment date: June 2026  
-> Related: `specs/AppleWatchCompanionSpec.md`, `todo.md` (user feedback), `roadmap/07-rc-launch-and-post-launch.md`
+> Related: `specs/AppleWatchCompanionSpec.md`, `todo.md` (user feedback), `roadmap/archive/phases/07-rc-launch-and-post-launch.md`
 
 ## Executive Summary
 
@@ -17,7 +17,7 @@ Recommended approach: **iPhone as source of truth** (Phase A in `AppleWatchCompa
 | Architecture readiness | Medium–High | Engines/events ready; command boundary missing |
 | Implementation effort | Medium | ~2–4 weeks for Phase A MVP |
 | Risk | Low–Medium | Connectivity edge cases, bot-turn timing |
-| Roadmap fit | Post-1.0 | Matches `roadmap/07-rc-launch-and-post-launch.md` |
+| Roadmap fit | Post-1.0 | Matches archived phase 07 launch plan |
 
 ---
 

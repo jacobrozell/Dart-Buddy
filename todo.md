@@ -5,17 +5,18 @@ Goal: match the reference *Darts Scoreboard: Scorekeeper* app's functionality an
 Status legend: `[ ]` todo · `[~]` partial
 
 ---
-logging,Firebase?
 
 ## 1.0 — Still needed
 
 Ship blockers before App Store. Product scope is complete; remaining work is **evidence + store ops**.
 
+**Master runbook:** [`release_checklist.md`](release_checklist.md) — device QA, App Store Connect, launch week, Reddit.
+
 ### QA sign-off (device)
 
-Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`.
+Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. Work through `release_checklist.md` §1–§6.
 
-- [ ] **RC smoke pass** — `specs/ReleaseGateChecklist.md` + `SmokeTestChecklist.md` on device (Release build).
+- [ ] **RC smoke pass** — `release_checklist.md` §1–§2 (or `specs/ReleaseGateChecklist.md` + `SmokeTestChecklist.md`) on device (Release build).
 - [ ] **Core flow matrix** — Setup → X01 → summary; setup → Cricket → summary; **resume active match**; undo (both modes); history list/detail; **players archive/delete guard**; settings reset flow.
 - [ ] **Appearance matrix** — Portrait/landscape × light/dark on setup + one match screen (screenshots in sign-off doc).
 - [ ] **Accessibility evidence** — VoiceOver core flows, Dynamic Type (AXXXL), non-color meaning; log in `accessibility/wcag-2.1-aa/evidence/` + `accessibility/accessibility_todo.md` Phase 0–1.
@@ -27,6 +28,8 @@ Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`.
 - [ ] **Migration recovery smoke** — Retry / export / reset paths on target runtime (upgrade or forced failure); log in `Phase06-Migration-Safety-Report.md`. Distinct from settings reset.
 
 ### App Store & release ops
+
+Work through [`release_checklist.md`](release_checklist.md) §8–§11.
 
 - [ ] **App icon finalization** — `Media.xcassets` / `assets/app-icons/`
 - [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL** (`specs/AppStoreConnectSpec.md`).
@@ -78,8 +81,8 @@ Do not block 1.0 on these.
 ### Post-1.0 roadmap
 
 - [ ] **Game Center achievements** — `achievements.md` (2–4 day MVP; good 1.1 candidate).
-- [ ] **Firebase Auth** — `specs/FirebaseBackendAnalyticsSpec.md`
-- [ ] **Online play / Firebase SDKs** — `specs/OnlinePlaySpec.md`
+- [ ] **Firebase Auth** — `specs/FirebaseBackendAnalyticsSpec.md` Phase 2
+- [ ] **Online play / Firestore sync** — `specs/OnlinePlaySpec.md`
 - [ ] **AI camera auto-scoring** — `AutoScoringVisionSpec`
 - [ ] **External display / AirPlay**
 - [ ] **Voice caller (“180!”)**

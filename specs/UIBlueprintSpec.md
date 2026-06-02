@@ -46,6 +46,7 @@ Each tab maintains its own navigation stack.
 - `MatchSummaryScreen`
 - `HistoryListScreen`
 - `HistoryDetailScreen`
+- `StatisticsScreen`
 - `PlayersListScreen`
 - `PlayerDetailScreen`
 - `PlayerEditSheet` (create/edit)
@@ -249,6 +250,28 @@ Wireframe:
 Behavior:
 - Missing player references fall back to match snapshot identity.
 - Long timelines should render lazily.
+
+## 4.7a Statistics Tab Screen
+Purpose:
+- Cross-player games table with mode/date filters and trend readouts.
+
+Wireframe:
+```text
++--------------------------------------------------+
+| Statistics                                       |
+|--------------------------------------------------|
+| Mode filter | Date filter                         |
+| [Partial data banner when applicable]            |
+|--------------------------------------------------|
+| Games table (player, W-L, avg, last played)      |
+| Trend charts / sector hits (where applicable)    |
++--------------------------------------------------+
+```
+
+Behavior:
+- Filters update table deterministically.
+- Partial-data banner explains in-progress or incomplete aggregates.
+- Empty state includes guidance to complete matches.
 
 ## 4.8 Players List Screen
 Purpose:
@@ -574,7 +597,7 @@ Each screen must define:
 
 Hard rule:
 - A screen is not "done" until all four combinations pass quick manual QA.
-- UI automation remains deferred until UI behavior is locked after MVP test feedback.
+- UI automation: limited CI smoke in `UITests/`; full per-screen automation matrix remains post-UI-lock.
 
 ---
 

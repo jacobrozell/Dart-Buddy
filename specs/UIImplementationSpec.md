@@ -11,8 +11,8 @@ This spec defines, for each MVP screen:
 - minimum validation scenarios
 
 UI automation note:
-- UI automation is out of scope for 1.0.0.
-- Any UI automation items in this spec are future tasks to execute after UI behavior is locked from MVP test feedback.
+- **1.0:** CI runs limited UI smoke (`UITests/`); items marked “future UI automation” below are post-1.0 expansion.
+- Manual RC evidence remains required for accessibility and appearance matrices.
 
 Primary reference:
 - `specs/UIBlueprintSpec.md`

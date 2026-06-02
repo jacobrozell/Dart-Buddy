@@ -1,0 +1,8 @@
+{
+  "default": {
+    "padding": 50,
+    "show_complete_frame": false,
+    "force_device_type": "iPhone 14 Pro Max",
+    "use_platform": "IOS"
+  }
+}

@@ -19,6 +19,7 @@
 - Resume active match: **Pending execution**
 - Undo flow (X01/Cricket): **Pending execution**
 - History list/detail: **Pending execution**
+- Statistics tab (filters + table): **Pending execution**
 - Players archive/delete guard: **Pending execution**
 - Settings reset flow: **Pending execution**
 
@@ -28,6 +29,7 @@
 - Resume active match: status=`Pending`, evidence=`TBD`, notes=`TBD`
 - Undo flow (X01/Cricket): status=`Pending`, evidence=`TBD`, notes=`TBD`
 - History list/detail: status=`Pending`, evidence=`TBD`, notes=`TBD`
+- Statistics tab: status=`Pending`, evidence=`TBD`, notes=`TBD`
 - Players archive/delete guard: status=`Pending`, evidence=`TBD`, notes=`TBD`
 - Settings reset flow: status=`Pending`, evidence=`TBD`, notes=`TBD`
 

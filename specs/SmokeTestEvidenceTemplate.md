@@ -22,11 +22,12 @@ Attach screenshots for each required artifact.
 
 ## Checklist
 
-- [ ] App launch + tab navigation stable
+- [ ] App launch + tab navigation stable (all five tabs)
 - [ ] Player creation works (`Smoke Alice`, `Smoke Bob`, `Smoke Carol`)
 - [ ] X01 match start, submit turn, undo
 - [ ] Cricket match start, submit turn, undo
 - [ ] History list/filter/detail loads correctly
+- [ ] Statistics tab loads; mode filter responds
 - [ ] Settings changes persist after relaunch
 - [ ] Accessibility spot check passes (`AXXXL`)
 

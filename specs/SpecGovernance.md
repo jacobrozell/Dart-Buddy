@@ -52,7 +52,9 @@ If two specs disagree, the authoritative spec above wins.
 |-----|------|------------------|
 | `README.md` | Repo entry, build steps, doc-role index | Feature specs, `todo.md` |
 | `todo.md` | Current sprint, 1.0 blockers, post-1.0 deferrals | README roadmaps, `roadmap/` phase files |
+| `release_checklist.md` | Full device QA + App Store + launch marketing runbook | Spec checklists (abbrev only) |
 | `roadmap/` | Phase delivery history and release runbooks | `todo.md` (link only) |
+| `roadmap/archive/` | Historical phase plans and one-time audits | Active docs above |
 | `accessibility/accessibility_todo.md` | A11y engineering phases | `Manual_todo.md` |
 | `accessibility/Manual_todo.md` | Human verification steps | `accessibility_todo.md`, `wcag-2.1-aa/SUMMARY.md` |
 | `accessibility/wcag-2.1-aa/` | Per-screen/criterion status + evidence links | `specs/AccessibilitySpec.md` (requirements only) |

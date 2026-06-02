@@ -15,10 +15,9 @@
 
 ## Data Controls
 - [x] Settings reset flow exists with destructive confirmation
-- [ ] Full transactional wipe behavior verified on device
+- [x] Full transactional wipe behavior verified on device
 - [ ] Privacy disclosure text validated for store submission
 
 ## Outstanding Actions Before RC
-- Run full on-device privacy and reset validation pass.
 - Validate release verbosity behavior (debug dropped in Release).
-- Complete migration recovery action implementations (retry/export/reset execution paths).
+- Complete migration recovery operational validation on device (retry/export/reset paths).

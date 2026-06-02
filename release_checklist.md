@@ -1,10 +1,13 @@
 # DartBuddy — 1.0 Release Checklist
 
-**Brand:** DartBuddy (customer-facing name, screenshots, App Store listing, support site)  
-**Technical target:** `DartsScoreboard` (Xcode scheme, bundle ID, module)  
-**Version:** `1.0.0` · **Exit criteria:** All **P0** items checked; [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) marked **Go** (no P0 defects).
+**Customer brand:** DartBuddy (App Store listing, marketing, Reddit)  
+**Technical target:** `DartsScoreboard` (Xcode scheme, bundle ID `com.jacobrozell.DartsScoreboard`, module)  
+**Version:** `1.0.0`  
+**Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
 
-Use this file as the single runbook. Detailed criteria live in linked specs — do not duplicate evidence here; link or file paths only.
+This is the **single runbook** for device QA, App Store setup, and launch marketing. Detailed criteria live in linked specs — log evidence paths here and in the sign-off doc, not duplicate prose.
+
+**Suggested order:** §0 → §1–§2 (same session) → §3–§6 (afternoon) → §7–§8 (parallel before submit) → §9 submit → §10–§11 after approval.
 
 ---
 
@@ -18,9 +21,12 @@ Use this file as the single runbook. Detailed criteria live in linked specs — 
 | Branch | |
 | Tester | |
 | Date range | |
-| Physical device(s) | (model + iOS version) |
-| Simulator(s) | |
-| Firebase plist in Release | Yes / No (analytics + Crashlytics if Yes) |
+| Physical iPhone (model + iOS) | **Required for §1–§6** |
+| iPad (optional) | |
+| Simulator used | |
+| Firebase plist in Release archive | Yes / No |
+| App Store Connect app ID | |
+| TestFlight build # (if used) | |
 
 ---
 
@@ -28,18 +34,19 @@ Use this file as the single runbook. Detailed criteria live in linked specs — 
 
 ### Engineering & CI
 
-- [ ] `main` / release branch green: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (`xcodegen generate` + `xcodebuild test`)
+- [ ] `main` / release branch green — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (`xcodegen generate` + `xcodebuild test`)
 - [ ] Local: `xcodegen generate` then **Product → Test** (`⌘U`) on `DartsScoreboard` scheme
-- [ ] `GoogleService-Info.plist` present for Release archive (from example + Firebase Console); Debug stays off analytics/Crashlytics unless `-firebase_analytics_debug`
-- [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for `com.jacobrozell.DartsScoreboard`; Release archive build log shows Crashlytics dSYM script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
-- [ ] Version / build number bumped in Xcode / `project.yml` as needed
-- [ ] **Archive** with **Release** configuration (distribution signing, not ad-hoc debug)
+- [ ] `GoogleService-Info.plist` present for Release archive (copy from [`GoogleService-Info.plist.example`](GoogleService-Info.plist.example) + Firebase Console)
+- [ ] Debug/CI/UI tests: analytics + Crashlytics **off** (launch args `-disable_firebase_analytics` / `-ui_test_reset` — not on store build)
+- [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for bundle ID; Release archive log shows dSYM upload script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
+- [ ] Version + build number set in [`project.yml`](project.yml) / Xcode (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`)
+- [ ] **Archive** with **Release** configuration + distribution signing
 
 ### Release build sanity
 
-- [ ] No debug-only verbosity in Release (logs via `AppLogger` only; no stray `print`)
-- [ ] No sensitive data in logs (player names OK for local debug policy; no tokens)
-- [ ] UI tests / manual runs: `-disable_firebase_analytics` or equivalent not required on store build (only for test runs)
+- [ ] No debug-only verbosity in Release (`AppLogger` only; no stray `print`)
+- [ ] No sensitive data in logs (no tokens; player display names OK per policy)
+- [ ] App icon present in `Media.xcassets` / finalized asset in [`assets/app-icons/`](assets/app-icons/)
 
 **P0 if CI red or Release archive fails.**
 
@@ -47,98 +54,104 @@ Use this file as the single runbook. Detailed criteria live in linked specs — 
 
 ## 1. Fast release gate (~10 min)
 
-**Build:** Release · **Device:** Physical iPhone preferred (sim OK for this pass only if blocked)  
-**Spec:** [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md)
+**Build:** Release · **Device:** Physical iPhone (simulator OK only if blocked)  
+**Pre-run:** Settings → **Reset All Local Data** → confirm → relaunch → land on **Play**.
 
-**Pre-run:** Settings → **Reset All Local Data** → relaunch → land on **Play**.
+- [ ] App launches; all five tabs work: **Play**, **Players**, **Statistics**, **History**, **Settings**
+- [ ] Create players **Smoke Alice**, **Smoke Bob** on **Players**
+- [ ] **X01:** Play → New Match → X01 → 2 players → Start → submit turn → **Undo Last Turn** → no crash
+- [ ] **Cricket:** new match → submit turn → undo → board sane
+- [ ] **History:** at least one completed row → detail loads (header + timeline)
+- [ ] **Statistics:** tab loads; mode filter changes table
+- [ ] **Settings:** toggle **Sound** → leave tab → relaunch → still persisted
+- [ ] **AXXXL spot check:** Settings → Display → Larger Text → AXXXL → New Match setup + one in-match screen — primary CTA reachable
 
-- [ ] App launches; tabs **Play**, **History**, **Players**, **Settings** work (no blank/error)
-- [ ] Create players `Smoke Alice`, `Smoke Bob`
-- [ ] X01: start match → submit turn → **Undo Last Turn** → no crash
-- [ ] Cricket: start match → submit turn → undo → board sane
-- [ ] History: completed row → detail loads (header + timeline)
-- [ ] Settings: toggle **Sound** → leave tab → relaunch → still persisted
-- [ ] **AXXXL** spot check: New Match setup + one in-match screen — primary CTA reachable
+**Decision:** [ ] **PASS** — continue · [ ] **FAIL** — fix before §2+
 
-**Decision:** [ ] **PASS** — proceed · [ ] **FAIL** — fix before any further gates
+Spec reference: [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md)
 
 ---
 
-## 2. Full smoke test (~20 min)
+## 2. Full smoke test (~20–25 min)
 
-**Build:** Release · **Devices:** iPhone (Light + Dark) + iPad (Dark) per [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md)  
-**Players:** `Smoke Alice`, `Smoke Bob`, `Smoke Carol`
-
+**Build:** Release preferred · **Devices:** iPhone (Light + Dark) + iPad Dark if available  
+**Players:** `Smoke Alice`, `Smoke Bob`, `Smoke Carol`  
 **Pre-run:** Reset all local data → relaunch.
 
 ### A. App shell
 
-- [ ] All tabs; rapid tab switch; background/foreground once — stable
+- [ ] All five tabs; rapid tab switch 2–3×; background/foreground once — stable, no blank screens
 
 ### B. Players
 
-- [ ] Add three smoke players; search `Smoke Bob`; clear search; open detail and back
+- [ ] Add three smoke players
+- [ ] Search `Smoke Bob`; clear search
+- [ ] Open player detail → back — correct tab/root
 
-### C. X01
+### C. X01 match
 
-- [ ] Setup: X01, 301 or 501, ≥2 players → start → submit → undo → submit again — no clip/overlap
+- [ ] Setup: X01, 301 or 501, ≥2 players → Start Match
+- [ ] Submit turn → Undo → submit again — state correct, no clipped controls
 
-### D. Cricket
+### D. Cricket match
 
-- [ ] New match → Cricket → submit → undo → resubmit — marks/state correct
+- [ ] Setup: Cricket, ≥2 players → Start Match
+- [ ] Enter turn via pad → submit → undo → resubmit — marks/progression correct
 
 ### E. History
 
-- [ ] Completed match visible; filters (mode + date); detail header fields + timeline
+- [ ] Completed match visible (finish one if needed)
+- [ ] Filters: mode All/X01/Cricket; date 7d/30d/All
+- [ ] Detail: mode, winner, date/duration, participants, timeline — no error state
 
-### F. Settings
+### F. Statistics
 
-- [ ] Theme, default mode, haptics, sound — persist across navigation and relaunch
+- [ ] Games table + mode/date filters respond
+- [ ] Partial-data banner only when applicable ([`specs/StatsSpec.md`](specs/StatsSpec.md))
 
-### G. Accessibility (quick)
+### G. Settings
 
-- [ ] AXXXL on setup, X01, Cricket, Settings — usable, scrollable
+- [ ] Change theme, default mode, haptics, sound
+- [ ] Persist after tab switch and relaunch; theme applies
 
-**Pass criteria:** No crashes, stuck navigation, core data loss, or hidden primary controls.
+### H. Accessibility quick pass (AXXXL)
 
-**Evidence:** Capture per [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md); store under `roadmap/release/evidence/` or link from sign-off doc.
+- [ ] Setup, X01 match, Cricket match, Statistics, Settings — scrollable, no blocked primary CTA
 
-| Artifact | Done |
-|----------|------|
-| `players-created.png` | [ ] |
-| `x01-in-match.png` | [ ] |
-| `cricket-in-match.png` | [ ] |
-| `history-detail.png` | [ ] |
-| `settings-persistence.png` | [ ] |
-| `accessibility-setup-or-match.png` (AXXXL) | [ ] |
+**Decision:** [ ] **PASS** · [ ] **FAIL**
+
+Spec reference: [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) · Evidence template: [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md)
 
 ---
 
-## 3. Core flow matrix (RC sign-off)
+## 3. Core flow matrix (physical iPhone — RC sign-off)
 
-**Build:** Release · **Physical iPhone required** for haptics/resume feel  
-**Log in:** [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) — each row `Pass` / `Fail` / `Blocked` + evidence path.
+**Build:** Release · **Log each row** in [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) as Pass/Fail/Blocked + evidence path.
 
-| Flow | Pass | Evidence / notes |
+| Flow | Done | Evidence / notes |
 |------|------|------------------|
-| Setup → X01 → **Match summary** | [ ] | |
-| Setup → Cricket → **Match summary** | [ ] | |
-| **Resume** active match (background/kill/relaunch) | [ ] | |
-| Undo (X01 + Cricket) | [ ] | |
-| History list + detail | [ ] | |
-| **Players:** archive player; **delete guard** (cannot delete in-use / confirm destructive) | [ ] | |
-| **Settings → Reset All Local Data** (confirm → relaunch clean) | [ ] | |
-| **Abandon** in-progress match (wording + hidden from history per spec) | [ ] | |
-| Bot match: pacing + pad disabled during bot turn | [ ] | |
-| Statistics tab loads with filters | [ ] | |
-| Play home: in-progress row / resume banner when applicable | [ ] | |
+| Setup → X01 → **play to Match summary** (winner + stats) | [ ] | |
+| Setup → Cricket → **play to Match summary** | [ ] | |
+| **Resume** active match (background app → kill → relaunch) | [ ] | |
+| **Undo** on X01 and Cricket (mid-match, state restores) | [ ] | |
+| **History** list + detail integrity | [ ] | |
+| **Statistics** tab — filters + table after completed games | [ ] | |
+| **Players:** archive player; **delete guard** on referenced player | [ ] | |
+| **Settings → Reset All Local Data** — confirm → clean bootstrap | [ ] | |
+| **Abandon** in-progress match — wording correct; hidden from History/Statistics ([`specs/MatchSpec.md`](specs/MatchSpec.md)) | [ ] | |
+| **Bot match:** stagger pacing; pad disabled during bot turn; bot dart haptics if enabled | [ ] | |
+| **Play home:** resume banner / in-progress row when applicable | [ ] | |
+| **X01 checkout:** finish leg with double-out (if default) — summary correct | [ ] | |
+| **Cricket closure:** close a number — banner/haptic/VO sensible | [ ] | |
+| **Setup:** drag reorder roster; swipe remove player; random order at start | [ ] | |
+| **Quick-add player** from setup → returns with refreshed roster | [ ] | |
 
 ---
 
 ## 4. Appearance matrix (4-way)
 
 **Screens:** Match **setup** + one **in-match** screen (X01 or Cricket)  
-**Log screenshots in:** QA sign-off doc + `accessibility/wcag-2.1-aa/evidence/orientation/` if filing a11y evidence.
+**Save screenshots to:** QA sign-off doc + `accessibility/wcag-2.1-aa/evidence/orientation/`
 
 | Combo | Setup | In-match |
 |-------|-------|----------|
@@ -147,7 +160,7 @@ Use this file as the single runbook. Detailed criteria live in linked specs — 
 | Landscape + Light | [ ] | [ ] |
 | Landscape + Dark | [ ] | [ ] |
 
-**iPad (optional but recommended):** `GameplayLayout` max-width — setup + one match, no broken layout.
+**iPad (recommended):** setup + one match — `GameplayLayout` max-width, no broken layout.
 
 ---
 
@@ -155,146 +168,234 @@ Use this file as the single runbook. Detailed criteria live in linked specs — 
 
 ### Settings reset (on device)
 
-- [ ] Settings → Reset → confirm → relaunch: empty players/history, Play home, no ghost active match  
-- [ ] Log result in [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md)
+- [ ] Reset → confirm → relaunch: empty players/history, Play home clean, no ghost active match
+- [ ] Log in [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md)
 
-### Migration recovery screen (manual)
+### Migration recovery (manual smoke)
 
-Architecture is ready; **device proof** of Retry / Export / Reset UX is still required ([`roadmap/reports/Phase06-Migration-Safety-Report.md`](roadmap/reports/Phase06-Migration-Safety-Report.md)).
+Architecture ready; **device proof** still required — [`roadmap/reports/Phase06-Migration-Safety-Report.md`](roadmap/reports/Phase06-Migration-Safety-Report.md).
 
 **Trigger recovery UI (pick one):**
 
-1. **Simulator / dev container:** Run app, create some data, quit. Delete or truncate `Application Support/DartsScoreboard.sqlite` (+ `-shm` / `-wal` if present). Relaunch → expect migration recovery screen.
-2. **Upgrade path (if available):** Install previous TestFlight/RC build with data → install 1.0 RC → verify data intact OR recovery screen if failure injected.
+1. **Forced failure:** Create data → quit app → delete/truncate `Application Support/DartsScoreboard.sqlite` (+ `-shm`/`-wal`) → relaunch → recovery screen.
+2. **Upgrade path:** Install prior TestFlight/RC with data → install 1.0 RC → verify intact OR recovery if failure injected.
 
 **On recovery screen:**
 
-- [ ] **Retry** — succeeds or shows retry failed without crash
-- [ ] **Export diagnostics** — file produced; share sheet / path shown
-- [ ] **Reset local data** — confirms destructive action; app reaches clean bootstrap
-- [ ] VoiceOver: retry, export, reset buttons ([`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) § Migration recovery)
+- [ ] **Retry** — succeeds or fails gracefully (no crash)
+- [ ] **Export diagnostics** — file produced; share sheet works
+- [ ] **Reset local data** — destructive confirm → clean bootstrap
+- [ ] VoiceOver: retry, export, reset ([`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) § Migration recovery)
 
-**1.0.0 first ship note:** If schema has not changed since last beta, real-user migration may be N/A — still complete (1) or document **Blocked** with reason in Phase06 report.
+**First-ship note:** If schema unchanged since last beta, real-user migration may be N/A — still run (1) or mark **Blocked** with reason in Phase06 report.
 
-### Privacy & store labels
+### Privacy & App Store labels
 
-- [ ] App Store privacy answers match app: **local-first**, no ads, no tracking IDs; analytics + crash diagnostics if Release ships Firebase ([`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md) §6, [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md))
-- [ ] In-app **Reset All Local Data** described accurately in review notes if asked
+- [ ] Privacy answers match app: **local-first**, no ads, no tracking IDs
+- [ ] If Release ships Firebase: Analytics + Crashlytics disclosed accurately ([`specs/FirebaseBackendAnalyticsSpec.md`](specs/FirebaseBackendAnalyticsSpec.md))
+- [ ] No ATT prompt (no cross-app tracking)
+- [ ] Review notes mention **Reset All Local Data** if asked
 
 ---
 
 ## 6. Accessibility evidence (P0 for sign-off)
 
 **Roll-up:** [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md)  
-**Manual list:** [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md)  
-**File evidence under:** `accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`)
+**Full manual list:** [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md)  
+**Evidence folder:** `accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`)
 
 ### VoiceOver — end-to-end (required)
 
-- [ ] Play home → setup → **X01** → summary
-- [ ] Play home → setup → **Cricket** → summary
+- [ ] Play → setup → **X01** → match summary
+- [ ] Play → setup → **Cricket** → match summary
 - [ ] Resume banner / active match when present
 - [ ] Settings reset confirmation (destructive)
 - [ ] Migration recovery (if triggered in §5)
 
-### VoiceOver — spot checks (high risk screens)
+### VoiceOver — high-risk spot checks
 
-- [ ] X01: pad, bust, checkout, bot turn
-- [ ] Cricket: board, closure, bot turn
-- [ ] History list/detail; Players list archive/delete
-- [ ] Statistics: filters + partial-data banner if shown
+- [ ] **X01:** pad, bust, checkout, bot turn disabled state
+- [ ] **Cricket:** board, closure announcement, bot turn
+- [ ] **History** list/detail; **Players** archive/delete swipe actions
+- [ ] **Statistics:** filters, partial banner, trend/table labels
+- [ ] **Player detail** + **edit** sheet save/cancel
 
 ### Dynamic Type (AXXXL)
 
 - [ ] Match setup (roster, START, chips)
 - [ ] X01 match (score + pad)
 - [ ] Cricket match (board + pad on phone)
-- [ ] History list, Settings
+- [ ] History list, Statistics, Settings
 
 ### Contrast & non-color meaning
 
-- [ ] Critical states not color-only (bust, leg won, Cricket closed target, selected roster)
-- [ ] Sample contrast check: secondary text on cards; Cricket nav title; bot banner on dark
+- [ ] Cricket closed targets understandable without relying on color alone
+- [ ] Critical status banners (bust, leg won, bot throwing) readable in Light and Dark
 
-### Reduce Motion
-
-- [ ] Match summary: no trophy spring when Reduce Motion on; content still readable
-
-**Update QA sign-off accessibility rows** when complete.
+Log results in QA sign-off **Accessibility** section.
 
 ---
 
-## 7. DartBuddy — App Store & branding
+## 7. Performance (P1 — only block ship if RC shows jank)
 
-**Positioning spec (adapt names to DartBuddy):** [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md)
+Record on **physical device**, Release build → [`roadmap/reports/Phase06-Performance-Report.md`](roadmap/reports/Phase06-Performance-Report.md).
 
-### Brand consistency
+- [ ] Cold launch → usable Play home (target: feels instant, no multi-second blank)
+- [ ] `submitTurn` perceived latency during X01/Cricket (target: immediate UI update)
+- [ ] Resume active match after relaunch
+- [ ] History first paint with ≥10 completed matches
 
-- [ ] **App Store name:** DartBuddy (or `DartBuddy: …` if subtitle in name; ≤30 chars; check availability)
-- [ ] Icon, screenshots, and in-app marketing use **DartBuddy** (not legacy “Darts Scoreboard” copy from older docs)
-- [ ] Support URL / contact live (required for review)
-- [ ] Bundle display name / localized app name aligned with DartBuddy where shown on Home Screen
+---
 
-### Listing content
+## 8. App Store Connect & assets
 
-- [ ] **Subtitle** (e.g. free X01 & Cricket scoring, no ads)
-- [ ] **Keywords** (darts, scoreboard, x01, cricket, scorekeeper — focused set)
-- [ ] **Description** — local-first, no ads, history, players, bots, accessibility
-- [ ] **Category:** Sports · **Age:** 4+ · **Price:** Free · **No IAP / no ads** for 1.0
-- [ ] **Promotional text** (optional, short)
+Reference: [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md)
+
+### Apple Developer & app record
+
+- [ ] Apple Developer Program membership active
+- [ ] App record created in App Store Connect
+- [ ] Bundle ID `com.jacobrozell.DartsScoreboard` matches Xcode
+- [ ] SKU / primary language (English) set
+
+### Listing copy (draft → final)
+
+| Field | Draft / final value | Done |
+|-------|---------------------|------|
+| **Name** (≤30 chars) | e.g. `Darts Scoreboard` or `DartBuddy` — check availability | [ ] |
+| **Subtitle** | e.g. `Free X01 & Cricket Scoring` | [ ] |
+| **Promotional text** (optional) | Short hook; updatable without review | [ ] |
+| **Description** | Value prop → features → no ads/local-first → accessibility | [ ] |
+| **Keywords** | darts, scoreboard, x01, cricket, scorekeeper, … | [ ] |
+| **Support URL** | Live page (email/GitHub/site) | [ ] |
+| **Marketing URL** (optional) | | [ ] |
+| **Copyright** | e.g. `2026 Jacob Rozell` | [ ] |
+
+### Category, pricing, rating
+
+- [ ] Primary category: **Sports**
+- [ ] Price: **Free** · No IAP · **No ads**
+- [ ] Age rating questionnaire complete (expect **4+**)
+- [ ] Export compliance: **No** custom encryption beyond Apple exempt ([`ITSAppUsesNonExemptEncryption`](project.yml) = NO)
+
+### Privacy nutrition labels
+
+- [ ] Data collected reflects Release behavior (Analytics/Crashlytics if enabled)
+- [ ] No “tracking” across apps
+- [ ] Contact info / identifiers: none linked to user for ads
+- [ ] Reconcile with [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md)
 
 ### Visual assets
 
-- [ ] **App icon** finalized in `Media.xcassets` / [`assets/app-icons/`](assets/app-icons/)
-- [ ] **Marketing screenshots** (real UI, not mocks), priority order:
-  1. X01 gameplay
-  2. Cricket board
-  3. New match setup
-  4. History
-  5. Statistics or player profile
-- [ ] Light and/or dark variants as needed; short benefit captions only
+- [ ] **App icon** 1024×1024 (no alpha, no rounded corners — Apple applies mask)
+- [ ] **iPhone 6.9"** screenshot set (use `marketing-screenshots/raw/` — **no device frames** in upload slots)
+  - [ ] X01 in-match
+  - [ ] Cricket board
+  - [ ] Match setup / Play home
+  - [ ] History
+  - [ ] Match summary or **Statistics** tab
+  - [ ] Players roster (optional 6th)
+- [ ] **iPad** screenshots (optional but recommended for `TARGETED_DEVICE_FAMILY` 1,2)
+- [ ] Preview video (optional — skip for 1.0 if not ready)
 
-### Submission package
+**Generate marketing shots:** [`marketing-screenshots/README.md`](marketing-screenshots/README.md)
 
-- [ ] Privacy nutrition labels + App Privacy questionnaire
-- [ ] Export compliance / encryption questionnaire (standard HTTPS only → typically exempt)
-- [ ] Review notes: test account not required (local-only); how to reset data; Firebase analytics + crash diagnostics note if enabled
-- [ ] **Release notes** from [`roadmap/release/Release-Notes-Template.md`](roadmap/release/Release-Notes-Template.md)
+```bash
+./Scripts/capture-marketing-screenshots.sh
+# App Store upload: marketing-screenshots/raw/ only
+# Reddit/social: marketing-screenshots/framed/ after frame-marketing-screenshots.sh
+```
 
----
+### TestFlight (optional buffer)
 
-## 8. Tag, submit, launch week
-
-### Tag & archive
-
-- [ ] Git tag (e.g. `1.0.0`) on signed-off commit
-- [ ] Upload build to App Store Connect; processing complete
-- [ ] Select build on 1.0 version record; submit for review
-
-### Optional (recommended, not blocking)
-
-- [ ] **TestFlight** external group (3–5 players, 2–3 days) before public submit
-- [ ] **Crashlytics smoke:** one intentional test crash on TestFlight/Release build; symbolicated stack in Firebase Console within ~15 minutes
-- [ ] [`roadmap/release/Launch-Week-Monitoring-Log.md`](roadmap/release/Launch-Week-Monitoring-Log.md) — owner for Day 0–7 crashes/reviews
-
-### Post-submit (do not block 1.0)
-
-- Performance baselines on device ([`roadmap/reports/Phase06-Performance-Report.md`](roadmap/reports/Phase06-Performance-Report.md)) — only if RC showed jank
-- Game Center, Firebase Auth, online play — see [`todo.md`](todo.md) § Post-1.0
+- [ ] Upload build to TestFlight
+- [ ] Internal testing pass on physical device
+- [ ] External testers (optional) — collect feedback before public submit
 
 ---
 
-## 9. Sign-off
+## 9. Submit, tag & release notes
+
+- [ ] Fill [`roadmap/release/Release-Notes-Template.md`](roadmap/release/Release-Notes-Template.md) → paste into App Store “What’s New”
+- [ ] Git tag RC/build (e.g. `1.0.0` / build N)
+- [ ] Upload Release archive via Xcode Organizer / Transporter
+- [ ] Select build in App Store Connect → **Submit for Review**
+- [ ] Complete **App Review Information** (contact, demo account N/A, notes if needed)
+- [ ] Fill §12 sign-off + [`QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) → **Go** only when P0 empty
+
+Post-submit ops: [`roadmap/release/Launch-Day-Runbook.md`](roadmap/release/Launch-Day-Runbook.md) · Hotfix gates: [`roadmap/release/Rollback-and-Hotfix-Criteria.md`](roadmap/release/Rollback-and-Hotfix-Criteria.md)
+
+---
+
+## 10. Launch week (first 48–72 hours after approval)
+
+- [ ] Confirm App Store listing live — copy **public URL**
+- [ ] Firebase Crashlytics: watch for new crash clusters
+- [ ] App Store Connect: monitor reviews daily; reply to substantive feedback
+- [ ] Log incidents in [`roadmap/release/Launch-Week-Monitoring-Log.md`](roadmap/release/Launch-Week-Monitoring-Log.md) (create entries as needed)
+- [ ] Note keyword/impression baseline for later ASO tweaks
+
+---
+
+## 11. Reddit & community launch
+
+**Timing:** After App Store approval and the listing link works — not before.
+
+### Prep (can do before approval)
+
+- [ ] Pick **primary subreddit:** r/darts (also consider r/Darts if active)
+- [ ] Secondary (space 24–48h): r/SideProject, r/iOS, r/apple — avoid same-day spam
+- [ ] Prepare **3–5 screenshots** or short screen recording (Cricket board + X01 score UI sell well)
+  - Use `marketing-screenshots/framed/` for polish; Reddit accepts gallery posts
+- [ ] Draft post (save offline; paste App Store link at publish time)
+
+### Suggested post structure
+
+**Title options (pick one):**
+
+- `I built a free, no-ads darts scoreboard for X01 & Cricket — would love feedback from actual throwers`
+- `[iOS] DartBuddy — local-first X01/Cricket scorer with history & stats (no ads)`
+
+**Body outline:**
+
+1. **Hook** — why you built it (pub night, existing apps had ads, wanted clean UI)
+2. **What it does** — X01 + Cricket, undo, bots, history, statistics, players, dark mode, VoiceOver basics
+3. **What it doesn’t** — no ads, no account required, data stays on device; online/watch deferred
+4. **Platform** — iPhone + iPad, iOS 17+
+5. **Ask** — feedback on scoring flow, Cricket UI, feature priorities
+6. **Link** — App Store URL (required once live)
+7. **Optional** — TestFlight story or “solo dev” transparency if comfortable
+
+### Post checklist
+
+- [ ] Read subreddit rules (self-promo days, flair, screenshot-only rules)
+- [ ] Use **link post** or **text post + gallery** — avoid bare URL with no context
+- [ ] Flair: “App” / “Project” / mod-approved promo if required
+- [ ] Respond to comments same day (especially bug reports and rule questions)
+- [ ] Cross-post only after primary thread has traction; customize title per sub
+- [ ] Do **not** claim features not in 1.0 (watch, online, camera scoring)
+
+### Optional follow-ups (post-1.0)
+
+- [ ] Local pub/league Facebook groups (with permission)
+- [ ] Product Hunt (separate prep — not required for 1.0)
+- [ ] Short demo clip for Reddit/Twitter if engagement is good
+
+---
+
+## 12. Sign-off
 
 | Gate | Owner | Date | Status |
 |------|-------|------|--------|
+| Pre-flight (§0) | | | |
 | Release gate (§1) | | | |
 | Full smoke (§2) | | | |
 | Core matrix (§3) | | | |
 | Appearance (§4) | | | |
 | Data / migration / privacy (§5) | | | |
 | Accessibility (§6) | | | |
-| App Store assets (§7) | | | |
+| App Store assets (§8) | | | |
+| Submitted (§9) | | | |
 
 **QA Go/No-Go:** [ ] **Go** · [ ] **No-Go**
 
@@ -308,14 +409,14 @@ Architecture is ready; **device proof** of Retry / Export / Reset UX is still re
 
 ---
 
-## 10. Explicitly out of scope for 1.0
+## 13. Explicitly out of scope for 1.0
 
 Do not delay ship for:
 
 - Game Center ([`achievements.md`](achievements.md))
 - Snapshot tests, full motion pass, X01 total-score entry, Cricket variants (Cut Throat)
 - Firebase Auth, online play, Watch/widgets, voice “180!” caller
-- `DBX-DESIGN-SYSTEM` global fail on shared components (post-MVP per a11y tracker)
+- Full UI automation matrix beyond current CI smoke
 
 ---
 
@@ -323,28 +424,15 @@ Do not delay ship for:
 
 | Need | Doc |
 |------|-----|
-| 10-min gate | [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md) |
-| 20-min smoke | [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) |
+| **This runbook** | `release_checklist.md` |
+| 10-min gate (abbrev) | [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md) |
+| 20-min smoke (abbrev) | [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) |
 | Screenshot template | [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md) |
 | QA matrix & Go/No-Go | [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) |
-| Manual a11y | [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) |
-| A11y status | [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) |
+| Manual a11y detail | [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) |
+| A11y status roll-up | [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) |
 | Privacy | [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md) |
 | Migration | [`roadmap/reports/Phase06-Migration-Safety-Report.md`](roadmap/reports/Phase06-Migration-Safety-Report.md) |
-| Store copy (update brand to DartBuddy) | [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md) |
+| Store metadata spec | [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md) |
+| Marketing screenshots | [`marketing-screenshots/README.md`](marketing-screenshots/README.md) |
 | Active backlog | [`todo.md`](todo.md) |
-
----
-
-## Suggested order (one afternoon + store day)
-
-1. §0 Pre-flight  
-2. §1 Release gate on device (Release build)  
-3. §2 Smoke + evidence screenshots  
-4. §3 Core matrix (resume, players guards, abandon)  
-5. §4 Appearance 4-way  
-6. §5 Reset + migration recovery trigger  
-7. §6 VoiceOver passes + AXXXL snapshots  
-8. Fill §9 + `QA-Signoff-RC1.md`  
-9. §7 App Store assets (can parallelize before submit)  
-10. §8 Tag & submit

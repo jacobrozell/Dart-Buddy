@@ -40,7 +40,7 @@ Expected:
 
 ## A. App Shell + Navigation
 
-1. Verify tab navigation: `Play`, `History`, `Players`, `Settings`.
+1. Verify tab navigation: `Play`, `Players`, `Statistics`, `History`, `Settings`.
 2. Switch tabs quickly 2-3 times.
 3. Background and foreground the app once.
 
@@ -122,7 +122,19 @@ Expected:
   - mode-specific summary text
 - Timeline section loads without error state.
 
-## F. Settings Persistence
+## F. Statistics Tab
+
+1. Go to `Statistics`.
+2. Verify games table and filter controls (mode, date range).
+3. Change mode filter; confirm table updates.
+4. If partial stats exist, verify banner copy (see `specs/StatsSpec.md`).
+
+Expected:
+
+- Tab loads without error state.
+- Filters respond; table remains readable on iPhone and iPad widths.
+
+## G. Settings Persistence
 
 1. In `Settings`, change:
    - Theme (`System` -> `Dark` or `Light`)
@@ -136,13 +148,14 @@ Expected:
 - Updated values persist across navigation and relaunch.
 - App theme updates as expected.
 
-## G. Accessibility Sanity (Quick)
+## H. Accessibility Sanity (Quick)
 
 1. Set content size to `accessibility-extra-extra-extra-large`.
 2. Re-check:
    - New Match setup screen
    - X01 match screen
    - Cricket match screen
+   - Statistics screen
    - Settings screen
 
 Expected:

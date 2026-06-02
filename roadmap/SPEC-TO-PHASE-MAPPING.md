@@ -8,7 +8,7 @@ Use this file to verify every spec is either implemented in `1.0.0` phases or ex
 - `NavigationSpec` -> Phase 03
 - `TechStackSpec` -> Phases 00, 01, 06
 - `SwiftData` + `DataSchemaSpec` + `RepositorySpec` -> Phases 01, 02, 06
-- `DesignSystemSpec` + `FigmaBuildPlan` + `UIBlueprintSpec` + `UIImplementationSpec` + `UIReviewChecklist` -> Phases 03, 04, 05
+- `DesignSystemSpec` + `specs/archive/FigmaBuildPlan.md` + `UIBlueprintSpec` + `UIImplementationSpec` + `UIReviewChecklist` -> Phases 03, 04, 05 (historical; see `roadmap/archive/phases/`)
 - `AccessibilitySpec` + `LocalizationSpec` -> Phases 05, 06, 07
 - `TestPlanSpec` + `SwiftTestingTagsSpec` -> Phases 02, 04, 06
 - `ReleaseOpsSpec` + `AppStoreConnectSpec` -> Phases 06, 07

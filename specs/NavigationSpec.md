@@ -12,8 +12,9 @@ Define typed navigation behavior across tabs and feature flows.
 
 Example route groups:
 - `PlayRoute`: setup, x01Match, cricketMatch, matchSummary
-- `HistoryRoute`: list, detail(matchId)
 - `PlayersRoute`: list, detail(playerId), edit(playerId?)
+- `StatisticsRoute`: root (filters and games table; no push stack in MVP)
+- `HistoryRoute`: list, detail(matchId)
 - `SettingsRoute`: root
 
 ---
@@ -32,6 +33,9 @@ Example route groups:
 ## History
 `HistoryList -> MatchDetail`
 
+## Statistics
+`StatisticsRoot` (mode/date filters, games table, partial-data banner when applicable)
+
 ---
 
 ## 4. Rules
@@ -43,5 +47,6 @@ Example route groups:
 ---
 
 ## 5. Testing
-- UI automation out of scope for 1.0.0; add route UI tests post-UI-lock
+- Limited UI tests in CI: tab smoke, marketing snapshot harness, core happy paths (see `UITests/DartsScoreboardUITests.swift`).
+- Full UI automation matrix (edge flows, accessibility suite) deferred post-1.0 UI lock.
 - Route resolution tests for deep-link readiness

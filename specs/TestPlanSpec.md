@@ -6,7 +6,7 @@ Define test strategy, ownership, and quality gates for MVP release confidence.
 Test-first policy for this project:
 - Core logic in every production file should be covered by tests as it is introduced.
 - Unit/integration coverage is mandatory in MVP delivery scope.
-- UI automation is intentionally deferred and can be phased in later.
+- Limited UI automation runs in CI; broader UI matrix deferred post-1.0.
 
 ---
 
@@ -24,13 +24,13 @@ Test-first policy for this project:
   - archive player -> setup/history behavior
 
 ## UI Tests
-- Core happy paths for each tab
-- Critical edge flows (undo, bust, checkout mode differences)
-- Accessibility smoke checks
+- Tab navigation smoke (all five tabs including Statistics)
+- Marketing screenshot harness (`-snapshot_*`, `-seed_demo` launch args)
+- Core happy paths (checkout, Cricket grid, settings persistence)
 
 UI test execution policy:
-- UI automation is out of scope for 1.0.0 implementation.
-- Treat UI automation as a future task after UI behavior is locked from test feedback and MVP stabilization.
+- **1.0:** CI runs `DartsScoreboardUITests` for regression smoke and snapshot tooling; not a substitute for manual RC evidence.
+- **Post-1.0:** Expand to full edge-flow and accessibility automation matrix after UI lock.
 - Prioritize robust unit + integration coverage first.
 
 ---
@@ -57,8 +57,8 @@ UI test execution policy:
 ---
 
 ## 5. CI Recommendations
-- Run unit + integration on PR
-- Add UI automation jobs only in the post-MVP phase (after UI contract lock).
+- Run unit + integration + UI smoke on PR (see `.github/workflows/ci.yml`)
+- Expand UI automation jobs in post-MVP phase (full edge/accessibility matrix).
 - Track coverage trend for domain and repository layers
 
 ---

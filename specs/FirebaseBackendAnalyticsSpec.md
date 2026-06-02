@@ -7,9 +7,8 @@ Define how Firebase will be introduced for backend and analytics in a phased way
 
 ## 2. Product Positioning
 - 1.0 remains fully playable offline with local persistence as source of truth.
-- 1.0 uses only the custom console-first logger (see `specs/LoggingSpec.md`), with no Firebase runtime SDKs.
-- Firebase is introduced incrementally for:
-  - analytics and crash visibility
+- 1.0 ships **Firebase Analytics** and **Firebase Crashlytics** in **Release** only, wired through `AppLogger` sinks (see `specs/LoggingSpec.md`). Debug, CI, UI tests, and placeholder plist stay off.
+- Additional Firebase services are introduced incrementally for:
   - optional sync and online services
   - future online match infrastructure
 
@@ -17,11 +16,11 @@ Define how Firebase will be introduced for backend and analytics in a phased way
 
 ## 3. Firebase Services Roadmap
 
-## Phase 1 (Post-1.0, low risk)
-- Firebase Analytics (privacy-safe event telemetry)
-- Firebase Crashlytics (crash diagnostics)
+## Phase 1 (1.0 — shipped)
+- Firebase Analytics (privacy-safe allowlisted product-health events)
+- Firebase Crashlytics (native crashes + allowlisted non-fatal logger events)
 
-## Phase 2
+## Phase 2 (Post-1.0)
 - Firebase Authentication (anonymous first, upgrade path later)
 - Firestore for cloud profile/sync metadata
 
@@ -32,16 +31,21 @@ Define how Firebase will be introduced for backend and analytics in a phased way
 ---
 
 ## 4. iOS SDK Dependencies (SPM)
-Recommended when phase starts:
+Installed per phase in `project.yml`:
+
+**Phase 1 (1.0):**
+- `FirebaseCore`
 - `FirebaseAnalytics`
 - `FirebaseCrashlytics`
+
+**Future phases:**
 - `FirebaseAuth`
 - `FirebaseFirestore`
 - `FirebaseFunctions`
 
 Rules:
 - Add only what is needed per phase; do not install all SDKs upfront.
-- Keep Firebase dependencies out of 1.0 runtime unless that phase is approved.
+- New Firebase products require spec update and explicit phase approval.
 
 ---
 

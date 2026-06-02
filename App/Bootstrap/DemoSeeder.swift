@@ -19,6 +19,10 @@ enum DemoSeeder {
             await disableFeedbackForUITest(dependencies)
         }
 
+        if arguments.contains("-snapshot_match_x01") {
+            await seedX01Snapshot(dependencies)
+        }
+
         if arguments.contains("-snapshot_match_cricket") {
             await seedCricketSnapshot(dependencies)
         }
@@ -74,6 +78,33 @@ enum DemoSeeder {
             )
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "demo_seed_failed", message: "Demo seed failed: \(error)")
+        }
+    }
+
+    /// Populates the fixed X01 match id used by the `-snapshot_match_x01`
+    /// launch route so the scoreboard renders mid-game for screenshots.
+    private static func seedX01Snapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID()
+        let config = MatchConfigPayload.x01(
+            MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+        )
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Sam", turnOrder: 1)
+        ]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .x01,
+                config: config,
+                participants: participants
+            )
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 180, darts: nil)
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 100, darts: nil)
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(.appLifecycle, eventName: "x01_snapshot_seed_failed", message: "X01 snapshot seed failed: \(error)")
         }
     }
 

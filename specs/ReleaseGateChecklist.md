@@ -14,7 +14,7 @@ If any item fails, do not ship.
 
 - [ ] **App Launch + Navigation**
   - App launches to `Play`.
-  - Tab switching (`Play`, `History`, `Players`, `Settings`) works without blank/error state.
+  - Tab switching (`Play`, `Players`, `Statistics`, `History`, `Settings`) works without blank/error state.
 
 - [ ] **Create Player**
   - Add `Smoke Alice` and `Smoke Bob` from `Players`.
@@ -34,6 +34,11 @@ If any item fails, do not ship.
   - Open `History`.
   - Confirm at least one completed match row exists.
   - Open detail screen and verify header + timeline load.
+
+- [ ] **Statistics Tab**
+  - Open `Statistics`.
+  - Confirm games table loads; mode filter responds.
+  - Partial-data banner appears only when applicable.
 
 - [ ] **Settings Persistence**
   - Toggle one setting (e.g. `Sound`).
