@@ -62,15 +62,27 @@ final class HistoryListViewModel: ObservableObject {
     @Published var dateFilter: DateFilter = .all
     @Published var playerFilter: UUID?
     @Published private(set) var rows: [HistoryListRow] = []
+    @Published private(set) var playerOptions: [PlayerSummary] = []
     @Published private(set) var state: State = .loading
     @Published private(set) var errorMessageKey: String?
 
     private let matchRepository: any MatchRepository
+    private let playerRepository: any PlayerRepository
     private let logger: (any AppLogger)?
 
-    init(matchRepository: any MatchRepository, logger: (any AppLogger)? = nil) {
+    init(
+        matchRepository: any MatchRepository,
+        playerRepository: any PlayerRepository,
+        logger: (any AppLogger)? = nil
+    ) {
         self.matchRepository = matchRepository
+        self.playerRepository = playerRepository
         self.logger = logger
+    }
+
+    var selectedPlayerName: String? {
+        guard let playerFilter else { return nil }
+        return playerOptions.first(where: { $0.id == playerFilter })?.name
     }
 
     func onAppear() async {
@@ -81,6 +93,13 @@ final class HistoryListViewModel: ObservableObject {
         state = .loading
         errorMessageKey = nil
         do {
+            playerOptions = try await playerRepository.fetchPlayers(includeArchived: true)
+                .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            if !playerOptions.isEmpty,
+               let playerFilter,
+               !playerOptions.contains(where: { $0.id == playerFilter }) {
+                self.playerFilter = nil
+            }
             let mapped = try await PerformanceMonitor.measure(.historyLoad, logger: logger) {
                 try await matchRepository.fetchHistoryWithParticipants(page: 0, pageSize: 500, filter: MatchHistoryFilter())
             }

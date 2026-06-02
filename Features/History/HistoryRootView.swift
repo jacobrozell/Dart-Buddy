@@ -11,7 +11,7 @@ struct HistoryRootView: View {
         _viewModel = StateObject(
             wrappedValue: HistoryListViewModel(
                 matchRepository: dependencies.matchRepository,
-                logger: dependencies.logger
+                playerRepository: dependencies.playerRepository
             )
         )
     }
@@ -38,6 +38,8 @@ struct HistoryRootView: View {
                         selection: $viewModel.dateFilter
                     )
 
+                    playerFilterMenu
+
                     if viewModel.state == .loading && viewModel.rows.isEmpty {
                         ProgressView()
                             .tint(Brand.green)
@@ -49,7 +51,9 @@ struct HistoryRootView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
                     } else if viewModel.rows.isEmpty {
-                        Text("No games yet. Start a match to see it here.")
+                        Text(viewModel.state == .emptyFiltered
+                            ? "No games match these filters."
+                            : "No games yet. Start a match to see it here.")
                             .foregroundStyle(Brand.textSecondary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
@@ -76,6 +80,10 @@ struct HistoryRootView: View {
                 filterTask?.cancel()
                 filterTask = Task { await viewModel.applyFilters() }
             }
+            .onChange(of: viewModel.playerFilter) { _, _ in
+                filterTask?.cancel()
+                filterTask = Task { await viewModel.applyFilters() }
+            }
             .onDisappear { filterTask?.cancel() }
             .navigationDestination(for: HistoryRoute.self) { route in
                 switch route {
@@ -98,6 +106,49 @@ struct HistoryRootView: View {
                 }
             }
         }
+    }
+
+    private var playerFilterMenu: some View {
+        Menu {
+            Button {
+                viewModel.playerFilter = nil
+            } label: {
+                if viewModel.playerFilter == nil {
+                    Label(String(localized: "stats.filter.allPlayers"), systemImage: "checkmark")
+                } else {
+                    Text(String(localized: "stats.filter.allPlayers"))
+                }
+            }
+            if !viewModel.playerOptions.isEmpty {
+                Divider()
+                ForEach(viewModel.playerOptions) { player in
+                    Button {
+                        viewModel.playerFilter = player.id
+                    } label: {
+                        if viewModel.playerFilter == player.id {
+                            Label(player.name, systemImage: "checkmark")
+                        } else {
+                            Text(player.name)
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack {
+                Image(systemName: "person.crop.circle")
+                Text(viewModel.selectedPlayerName ?? String(localized: "stats.filter.allPlayers"))
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, DS.Spacing.s3)
+            .padding(.vertical, DS.Spacing.s3)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        }
+        .accessibilityIdentifier("historyPlayerFilterMenu")
     }
 }
 

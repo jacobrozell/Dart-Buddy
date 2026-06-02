@@ -20,7 +20,7 @@ Status legend: `[ ]` todo · `[~]` partial
 ### History & statistics
 
 - [ ] **Statistics: in-progress / partial stats** — Completed games only; no mid-match or saved-incomplete surface.
-- [ ] **History: player filter UI** — VM + tests exist; wire menu in `HistoryRootView` (mirror Statistics).
+- [x] **History: player filter UI** — VM + tests exist; wire menu in `HistoryRootView` (mirror Statistics).
 - [ ] **History: push filters to SwiftData** — Map mode/date (and player) into `MatchHistoryFilter` instead of fetch-500-then-filter.
 - [ ] **History: pagination** — Load more / proper `emptyFiltered` when filters match nothing.
 - [ ] **All Games: in-progress row** — Resume section + optional tab badge when `fetchActiveMatch` non-nil.

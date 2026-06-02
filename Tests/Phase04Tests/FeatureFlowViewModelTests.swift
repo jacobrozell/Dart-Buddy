@@ -48,13 +48,84 @@ func historyFiltersByModeDeterministically() async {
                     updatedAt: now
                 )
             ]
-        )
+        ),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
     )
     vm.modeFilter = .x01
     await vm.applyFilters()
 
     #expect(vm.rows.count == 1)
     #expect(vm.rows.first?.summary.type == .x01)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .player, .regression))
+func historyFiltersByPlayer() async {
+    let alice = UUID()
+    let bob = UUID()
+    let carol = UUID()
+    let now = Date()
+    let x01Match = MatchSummary(
+        id: UUID(),
+        type: .x01,
+        status: .completed,
+        startedAt: now,
+        endedAt: now,
+        winnerPlayerId: alice,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 10,
+        createdAt: now,
+        updatedAt: now
+    )
+    let cricketMatch = MatchSummary(
+        id: UUID(),
+        type: .cricket,
+        status: .completed,
+        startedAt: now,
+        endedAt: now,
+        winnerPlayerId: carol,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 12,
+        createdAt: now,
+        updatedAt: now
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(
+            rows: [x01Match, cricketMatch],
+            participantsByMatchId: [
+                x01Match.id: [
+                    MatchParticipantSummary(id: UUID(), matchId: x01Match.id, playerId: alice, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+                    MatchParticipantSummary(id: UUID(), matchId: x01Match.id, playerId: bob, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+                ],
+                cricketMatch.id: [
+                    MatchParticipantSummary(id: UUID(), matchId: cricketMatch.id, playerId: carol, turnOrder: 0, displayNameAtMatchStart: "Carol", avatarStyleAtMatchStart: nil),
+                    MatchParticipantSummary(id: UUID(), matchId: cricketMatch.id, playerId: bob, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+                ]
+            ]
+        ),
+        playerRepository: FakeHistoryPlayerRepository(players: [
+            PlayerSummary(id: alice, name: "Alice", isArchived: false, isBot: false, botDifficultyRaw: nil, avatarStyleRaw: nil, preferredColorToken: nil, notes: nil, createdAt: now, updatedAt: now),
+            PlayerSummary(id: bob, name: "Bob", isArchived: false, isBot: false, botDifficultyRaw: nil, avatarStyleRaw: nil, preferredColorToken: nil, notes: nil, createdAt: now, updatedAt: now),
+            PlayerSummary(id: carol, name: "Carol", isArchived: false, isBot: false, botDifficultyRaw: nil, avatarStyleRaw: nil, preferredColorToken: nil, notes: nil, createdAt: now, updatedAt: now)
+        ])
+    )
+
+    await vm.applyFilters()
+    #expect(vm.rows.count == 2)
+
+    vm.playerFilter = bob
+    await vm.applyFilters()
+    #expect(vm.rows.count == 2)
+
+    vm.playerFilter = carol
+    await vm.applyFilters()
+    #expect(vm.rows.count == 1)
+    #expect(vm.rows.first?.summary.type == .cricket)
+    #expect(vm.state == .readyFiltered)
 }
 
 // MARK: - Stats / detail fixtures
@@ -241,15 +312,18 @@ func historyDetailViewModelDeletesMatch() async throws {
 
 private actor FakeHistoryMatchRepository: MatchRepository {
     let rows: [MatchSummary]
-    init(rows: [MatchSummary]) {
+    let participantsByMatchId: [UUID: [MatchParticipantSummary]]
+
+    init(rows: [MatchSummary], participantsByMatchId: [UUID: [MatchParticipantSummary]] = [:]) {
         self.rows = rows
+        self.participantsByMatchId = participantsByMatchId
     }
 
     func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { rows.first! }
     func fetchActiveMatch() async throws -> MatchSummary? { nil }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { rows }
     func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
-        rows.map { MatchHistoryRecord(summary: $0, participants: []) }
+        rows.map { MatchHistoryRecord(summary: $0, participants: participantsByMatchId[$0.id] ?? []) }
     }
     func updateMatch(_: MatchSummary) async throws {}
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { rows.first! }
@@ -259,4 +333,21 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
+}
+
+private actor FakeHistoryPlayerRepository: PlayerRepository {
+    let players: [PlayerSummary]
+
+    init(players: [PlayerSummary]) {
+        self.players = players
+    }
+
+    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
+    func createPlayer(name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func archivePlayer(playerId _: UUID) async throws {}
+    func unarchivePlayer(playerId _: UUID) async throws {}
+    func deletePlayer(playerId _: UUID) async throws {}
 }

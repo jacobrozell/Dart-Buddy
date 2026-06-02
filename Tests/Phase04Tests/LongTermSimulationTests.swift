@@ -155,7 +155,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
     #expect(aliceX01.wins == expectedWins[.x01]?[alice.id] ?? 0)
 
     // --- History list: mode filters partition the 50 games correctly ---
-    let historyVM = HistoryListViewModel(matchRepository: matchRepo)
+    let historyVM = HistoryListViewModel(matchRepository: matchRepo, playerRepository: playerRepo)
     await historyVM.applyFilters()
     #expect(historyVM.rows.count == 50)
 
