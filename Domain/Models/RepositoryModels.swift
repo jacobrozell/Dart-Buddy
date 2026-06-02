@@ -28,11 +28,24 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
     public let isArchived: Bool
     public let isBot: Bool
     public let botDifficultyRaw: String?
+    public let avatarStyleRaw: String?
+    public let preferredColorToken: String?
+    public let notes: String?
     public let createdAt: Date
     public let updatedAt: Date
 
     public var botDifficulty: BotDifficulty? {
         botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
+    }
+
+    public var avatarStyle: PlayerAvatarStyle {
+        if let avatarStyleRaw { return PlayerAvatarStyle.resolved(raw: avatarStyleRaw) }
+        return PlayerAvatarStyle.defaultForPlayer(id: id, isBot: isBot)
+    }
+
+    public var colorToken: PlayerColorToken {
+        if let preferredColorToken { return PlayerColorToken.resolved(raw: preferredColorToken) }
+        return PlayerColorToken.defaultForPlayer(id: id)
     }
 
     public init(
@@ -41,6 +54,9 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         isArchived: Bool,
         isBot: Bool = false,
         botDifficultyRaw: String? = nil,
+        avatarStyleRaw: String? = nil,
+        preferredColorToken: String? = nil,
+        notes: String? = nil,
         createdAt: Date,
         updatedAt: Date
     ) {
@@ -49,6 +65,9 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         self.isArchived = isArchived
         self.isBot = isBot
         self.botDifficultyRaw = botDifficultyRaw
+        self.avatarStyleRaw = avatarStyleRaw
+        self.preferredColorToken = preferredColorToken
+        self.notes = notes
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

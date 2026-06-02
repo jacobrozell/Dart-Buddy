@@ -22,6 +22,9 @@ public enum SchemaV1: VersionedSchema {
         public var isArchived: Bool
         public var isBot: Bool?
         public var botDifficultyRaw: String?
+        public var avatarStyleRaw: String?
+        public var preferredColorToken: String?
+        public var notes: String?
         public var createdAt: Date
         public var updatedAt: Date
 
@@ -31,6 +34,9 @@ public enum SchemaV1: VersionedSchema {
             isArchived: Bool = false,
             isBot: Bool? = nil,
             botDifficultyRaw: String? = nil,
+            avatarStyleRaw: String? = nil,
+            preferredColorToken: String? = nil,
+            notes: String? = nil,
             createdAt: Date = Date(),
             updatedAt: Date = Date()
         ) {
@@ -39,6 +45,9 @@ public enum SchemaV1: VersionedSchema {
             self.isArchived = isArchived
             self.isBot = isBot
             self.botDifficultyRaw = botDifficultyRaw
+            self.avatarStyleRaw = avatarStyleRaw
+            self.preferredColorToken = preferredColorToken
+            self.notes = notes
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }

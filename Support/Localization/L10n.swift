@@ -98,6 +98,10 @@ enum L10n {
     static let statsTriplePercent: LocalizedStringKey = "stats.triplePercent"
     static let statsHitsInSector: LocalizedStringKey = "stats.hitsInSector"
     static let statsNoDartData: LocalizedStringKey = "stats.noDartData"
+    static let statsTrendTitle: LocalizedStringKey = "stats.trend.title"
+    static let statsFilterAllPlayers: LocalizedStringKey = "stats.filter.allPlayers"
+    static let playersEditAvatar: LocalizedStringKey = "players.edit.avatar"
+    static let playersEditColor: LocalizedStringKey = "players.edit.color"
 
     static func format(_ key: String, _ args: CVarArg...) -> String {
         let format = NSLocalizedString(key, comment: "")

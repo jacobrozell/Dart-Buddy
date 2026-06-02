@@ -5,6 +5,13 @@ public protocol PlayerRepository: Sendable {
     func createPlayer(name: String) async throws -> PlayerSummary
     func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary
     func updatePlayerName(playerId: UUID, name: String) async throws -> PlayerSummary
+    func updatePlayerProfile(
+        playerId: UUID,
+        name: String,
+        avatarStyle: PlayerAvatarStyle,
+        colorToken: PlayerColorToken,
+        notes: String
+    ) async throws -> PlayerSummary
     func archivePlayer(playerId: UUID) async throws
     func unarchivePlayer(playerId: UUID) async throws
     func deletePlayer(playerId: UUID) async throws

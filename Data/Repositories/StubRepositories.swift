@@ -7,6 +7,7 @@ public actor StubPlayerRepository: PlayerRepository {
     public func createPlayer(name: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented", debugContext: ["repository": "PlayerRepository"]) }
     public func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented", debugContext: ["repository": "PlayerRepository"]) }
     public func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented", debugContext: ["repository": "PlayerRepository"]) }
+    public func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented", debugContext: ["repository": "PlayerRepository"]) }
     public func archivePlayer(playerId _: UUID) async throws {}
     public func unarchivePlayer(playerId _: UUID) async throws {}
     public func deletePlayer(playerId _: UUID) async throws {}

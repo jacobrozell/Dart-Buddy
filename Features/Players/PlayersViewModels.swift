@@ -7,6 +7,23 @@ struct EditablePlayer: Identifiable, Equatable {
     var notes: String
     var isBot: Bool
     var botDifficulty: BotDifficulty?
+    var avatarStyle: PlayerAvatarStyle
+    var colorToken: PlayerColorToken
+
+    static func from(_ summary: PlayerSummary) -> EditablePlayer {
+        EditablePlayer(
+            id: summary.id,
+            name: summary.name,
+            isArchived: summary.isArchived,
+            notes: summary.notes ?? "",
+            isBot: summary.isBot,
+            botDifficulty: summary.botDifficulty,
+            avatarStyle: summary.isBot
+                ? PlayerAvatarStyle.defaultForPlayer(id: summary.id, isBot: true)
+                : summary.avatarStyle,
+            colorToken: summary.colorToken
+        )
+    }
 }
 
 @MainActor
@@ -49,16 +66,7 @@ final class PlayersListViewModel: ObservableObject {
         errorMessageKey = nil
         do {
             let loaded = try await repository.fetchPlayers(includeArchived: true)
-            players = loaded.map {
-                EditablePlayer(
-                    id: $0.id,
-                    name: $0.name,
-                    isArchived: $0.isArchived,
-                    notes: "",
-                    isBot: $0.isBot,
-                    botDifficulty: $0.botDifficulty
-                )
-            }
+            players = loaded.map(EditablePlayer.from)
             summariesByPlayerId = try await MatchStatsLoader.buildPlayerSummaries(matchRepository: matchRepository)
             applySearch()
             state = players.isEmpty ? .empty : .ready
@@ -136,9 +144,26 @@ final class PlayersListViewModel: ObservableObject {
     func save(_ player: EditablePlayer) async {
         do {
             if players.contains(where: { $0.id == player.id }) {
-                _ = try await repository.updatePlayerName(playerId: player.id, name: player.name)
+                if player.isBot {
+                    _ = try await repository.updatePlayerName(playerId: player.id, name: player.name)
+                } else {
+                    _ = try await repository.updatePlayerProfile(
+                        playerId: player.id,
+                        name: player.name,
+                        avatarStyle: player.avatarStyle,
+                        colorToken: player.colorToken,
+                        notes: player.notes
+                    )
+                }
             } else {
                 let created = try await repository.createPlayer(name: player.name)
+                _ = try await repository.updatePlayerProfile(
+                    playerId: created.id,
+                    name: player.name,
+                    avatarStyle: player.avatarStyle,
+                    colorToken: player.colorToken,
+                    notes: player.notes
+                )
                 pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
             }
             await onAppear()
@@ -164,6 +189,7 @@ final class PlayersListViewModel: ObservableObject {
 final class PlayerDetailViewModel: ObservableObject {
     @Published private(set) var x01: PlayerStatBreakdown?
     @Published private(set) var cricket: PlayerStatBreakdown?
+    @Published private(set) var x01TrendPoints: [StatsTrendPoint] = []
     @Published private(set) var recentMatches: [RecentMatchSummary] = []
     @Published private(set) var lastPlayedAt: Date?
     @Published private(set) var isLoading = true
@@ -216,11 +242,13 @@ final class PlayerDetailViewModel: ObservableObject {
             let loadedX01 = try await x01Result
             let loadedCricket = try await cricketResult
             x01 = StatsService.breakdowns(from: loadedX01.inputs, nameById: names).first { $0.playerId == playerId }
+            x01TrendPoints = StatsService.x01TrendPoints(from: loadedX01.inputs, playerId: playerId)
             cricket = StatsService.breakdowns(from: loadedCricket.inputs, nameById: names).first { $0.playerId == playerId }
             recentMatches = try await recent
             lastPlayedAt = recentMatches.first?.playedAt
         } catch {
             x01 = nil
+            x01TrendPoints = []
             cricket = nil
             recentMatches = []
             lastPlayedAt = nil
@@ -232,9 +260,12 @@ final class PlayerDetailViewModel: ObservableObject {
 final class PlayerEditViewModel: ObservableObject {
     @Published var name = ""
     @Published var notes = ""
+    @Published var avatarStyle: PlayerAvatarStyle = .dart
+    @Published var colorToken: PlayerColorToken = .green
     @Published private(set) var validationMessage: String?
     @Published private(set) var canSave = false
 
+    let isBot: Bool
     private let existingNames: [String]
     private let editingId: UUID?
     private let originalNormalizedName: String?
@@ -242,9 +273,12 @@ final class PlayerEditViewModel: ObservableObject {
     init(existingNames: [String], editing: EditablePlayer?) {
         self.existingNames = existingNames
         self.editingId = editing?.id
+        self.isBot = editing?.isBot ?? false
         self.originalNormalizedName = editing.map { Self.normalizedName($0.name) }
         self.name = editing?.name ?? ""
         self.notes = editing?.notes ?? ""
+        self.avatarStyle = editing?.avatarStyle ?? .dart
+        self.colorToken = editing?.colorToken ?? .green
         validate()
     }
 
@@ -286,13 +320,16 @@ final class PlayerEditViewModel: ObservableObject {
     }
 
     func buildPlayer(from existing: EditablePlayer?) -> EditablePlayer {
-        EditablePlayer(
-            id: existing?.id ?? UUID(),
+        let id = existing?.id ?? UUID()
+        return EditablePlayer(
+            id: id,
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             isArchived: existing?.isArchived ?? false,
             notes: notes,
             isBot: existing?.isBot ?? false,
-            botDifficulty: existing?.botDifficulty
+            botDifficulty: existing?.botDifficulty,
+            avatarStyle: isBot ? PlayerAvatarStyle.defaultForPlayer(id: id, isBot: true) : avatarStyle,
+            colorToken: isBot ? PlayerColorToken.defaultForPlayer(id: id) : colorToken
         )
     }
 

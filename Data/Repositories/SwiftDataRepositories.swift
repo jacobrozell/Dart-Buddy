@@ -34,6 +34,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
                 createdAt: now,
                 updatedAt: now
             )
+            record.avatarStyleRaw = PlayerAvatarStyle.defaultForPlayer(id: record.id, isBot: false).rawValue
+            record.preferredColorToken = PlayerColorToken.defaultForPlayer(id: record.id).rawValue
             context.insert(record)
             try context.save()
             return mapPlayer(record)
@@ -54,6 +56,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
                 createdAt: now,
                 updatedAt: now
             )
+            record.avatarStyleRaw = PlayerAvatarStyle.defaultForPlayer(id: record.id, isBot: true).rawValue
+            record.preferredColorToken = PlayerColorToken.defaultForPlayer(id: record.id).rawValue
             context.insert(record)
             try context.save()
             return mapPlayer(record)
@@ -67,6 +71,31 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let trimmed = normalizeNameForSave(name)
             try validateName(trimmed, in: context, excludingPlayerId: playerId)
             player.name = trimmed
+            player.updatedAt = Date()
+            try context.save()
+            return mapPlayer(player)
+        }
+    }
+
+    public func updatePlayerProfile(
+        playerId: UUID,
+        name: String,
+        avatarStyle: PlayerAvatarStyle,
+        colorToken: PlayerColorToken,
+        notes: String
+    ) async throws -> PlayerSummary {
+        try dataCall {
+            let context = ModelContext(container)
+            let player = try fetchPlayerRecord(id: playerId, in: context)
+            let trimmed = normalizeNameForSave(name)
+            try validateName(trimmed, in: context, excludingPlayerId: playerId)
+            player.name = trimmed
+            if player.isBot != true {
+                player.avatarStyleRaw = avatarStyle.rawValue
+                player.preferredColorToken = colorToken.rawValue
+            }
+            let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+            player.notes = trimmedNotes.isEmpty ? nil : String(trimmedNotes.prefix(200))
             player.updatedAt = Date()
             try context.save()
             return mapPlayer(player)
@@ -633,6 +662,9 @@ private func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
         isArchived: record.isArchived,
         isBot: record.isBot ?? false,
         botDifficultyRaw: record.botDifficultyRaw,
+        avatarStyleRaw: record.avatarStyleRaw,
+        preferredColorToken: record.preferredColorToken,
+        notes: record.notes,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt
     )

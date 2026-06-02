@@ -243,6 +243,7 @@ final class MatchSetupViewModel: ObservableObject {
             let id: UUID
             let name: String
             let botDifficulty: BotDifficulty?
+            let avatarStyleRaw: String?
         }
 
         let rosterEntries: [RosterEntry] = availablePlayers
@@ -251,7 +252,8 @@ final class MatchSetupViewModel: ObservableObject {
                 RosterEntry(
                     id: player.id,
                     name: player.name,
-                    botDifficulty: player.botDifficulty
+                    botDifficulty: player.botDifficulty,
+                    avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue
                 )
             }
         let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
@@ -285,6 +287,9 @@ final class MatchSetupViewModel: ObservableObject {
                 config = .cricket(MatchConfigCricket())
             }
             let configPayload = try CodablePayloadCoder.encode(config)
+            let avatarByPlayerId = Dictionary(
+                uniqueKeysWithValues: rosterEntries.map { ($0.id, $0.avatarStyleRaw) }
+            )
             let participantsForRepository = selectedPlayers.enumerated().map { index, participant in
                 MatchParticipantSummary(
                     id: participant.id,
@@ -292,7 +297,7 @@ final class MatchSetupViewModel: ObservableObject {
                     playerId: participant.playerId,
                     turnOrder: index,
                     displayNameAtMatchStart: participant.displayNameAtMatchStart,
-                    avatarStyleAtMatchStart: nil,
+                    avatarStyleAtMatchStart: participant.playerId.flatMap { avatarByPlayerId[$0] } ?? nil,
                     botDifficultyRaw: participant.botDifficultyRaw
                 )
             }

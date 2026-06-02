@@ -1,15 +1,5 @@
 import SwiftUI
 
-private func playerBotDifficultyColor(_ difficulty: BotDifficulty?) -> Color {
-    switch difficulty {
-    case .easy: Brand.green
-    case .medium: Brand.amber
-    case .hard: Brand.red
-    case .pro: Brand.proBot
-    case .none: Brand.textSecondary
-    }
-}
-
 struct PlayersRootView: View {
     let dependencies: AppDependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -197,14 +187,7 @@ struct PlayersRootView: View {
             path.append(.detail(playerId: player.id))
         } label: {
             HStack(spacing: DS.Spacing.s3) {
-                if player.isBot {
-                    Image(systemName: "cpu.fill")
-                        .foregroundStyle(playerBotDifficultyColor(player.botDifficulty))
-                } else {
-                    Image(systemName: "location.north.fill")
-                        .rotationEffect(.degrees(135))
-                        .foregroundStyle(Brand.textSecondary)
-                }
+                PlayerAvatarChip(player: player, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(player.name)
                         .font(.headline)
@@ -212,7 +195,7 @@ struct PlayersRootView: View {
                     if let difficulty = player.botDifficulty {
                         Text(difficulty.displayName)
                             .font(.caption)
-                            .foregroundStyle(playerBotDifficultyColor(difficulty))
+                            .foregroundStyle(PlayerVisualViews.botDifficultyColor(difficulty))
                     } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
                         Text(L10n.format("players.list.record", summary.games, summary.wins))
                             .font(.caption)
@@ -245,10 +228,6 @@ struct PlayersRootView: View {
                 }
             }
         }
-    }
-
-    private func botDifficultyColor(_ difficulty: BotDifficulty?) -> Color {
-        playerBotDifficultyColor(difficulty)
     }
 
     private var searchField: some View {
@@ -306,17 +285,11 @@ private struct PlayerStatsDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                HStack {
-                    Text(player.name)
-                        .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(.white)
-                    if player.isBot {
-                        Image(systemName: "cpu.fill")
-                            .foregroundStyle(playerBotDifficultyColor(player.botDifficulty))
-                    }
-                    if player.isArchived {
-                        Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
-                    }
+                PlayerIdentityCard(player: player)
+                if player.isArchived {
+                    Text(L10n.archived)
+                        .font(.caption)
+                        .foregroundStyle(Brand.textSecondary)
                 }
 
                 if let lastPlayedText = viewModel.lastPlayedText {
@@ -437,6 +410,12 @@ private struct PlayerStatsDetailView: View {
                     .font(.headline)
                     .foregroundStyle(.white)
                 PlayerAverageChart(average: stats.average3Dart, playerName: stats.name)
+                if viewModel.x01TrendPoints.count >= 2 {
+                    Text(L10n.statsTrendTitle)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    AverageTrendChart(points: viewModel.x01TrendPoints)
+                }
             }
 
             if !stats.hitsBySector.isEmpty {
@@ -480,6 +459,14 @@ private struct PlayerEditSheet: View {
             Form {
                 TextField("players.edit.name", text: $viewModel.name)
                     .onChange(of: viewModel.name) { _, _ in viewModel.validate() }
+                if !viewModel.isBot {
+                    Section(L10n.playersEditAvatar) {
+                        AvatarStylePicker(selection: $viewModel.avatarStyle)
+                    }
+                    Section(L10n.playersEditColor) {
+                        PlayerColorTokenPicker(selection: $viewModel.colorToken)
+                    }
+                }
                 TextField("players.edit.notes", text: $viewModel.notes, axis: .vertical)
                 if let message = viewModel.validationMessage {
                     Text(message).foregroundStyle(.red).font(.footnote)

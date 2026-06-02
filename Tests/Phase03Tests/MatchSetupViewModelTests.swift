@@ -146,6 +146,7 @@ private actor FakePlayerRepository: PlayerRepository {
         )
     }
     func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
+    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
     func archivePlayer(playerId _: UUID) async throws {}
     func unarchivePlayer(playerId _: UUID) async throws {}
     func deletePlayer(playerId _: UUID) async throws {}
