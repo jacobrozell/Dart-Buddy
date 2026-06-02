@@ -267,7 +267,8 @@ Reference: [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md)
 | **Promotional text** (optional) | Short hook; updatable without review | [ ] |
 | **Description** | Value prop → features → no ads/local-first → accessibility | [ ] |
 | **Keywords** | darts, scoreboard, x01, cricket, scorekeeper, … | [ ] |
-| **Support URL** | Live page (email/GitHub/site) | [ ] |
+| **Support URL** | `https://jacobrozell.github.io/Dart-Buddy/support.html` | [ ] |
+| **Privacy Policy URL** (App Store) | `https://jacobrozell.github.io/Dart-Buddy/privacy.html` | [ ] |
 | **Marketing URL** (optional) | | [ ] |
 | **Copyright** | e.g. `2026 Jacob Rozell` | [ ] |
 
@@ -284,6 +285,50 @@ Reference: [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md)
 - [ ] No “tracking” across apps
 - [ ] Contact info / identifiers: none linked to user for ads
 - [ ] Reconcile with [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md)
+
+### Legal pages & policies (required for submit)
+
+Apple does **not** require a custom EULA for most free apps — the **Standard Apple EULA** applies unless you upload your own in App Store Connect. You **do** need hosted pages for privacy (and support) once Firebase Analytics/Crashlytics ship in Release.
+
+| Item | Required? | Notes |
+|------|-----------|--------|
+| **Privacy Policy URL** | **Yes** | App Store Connect field; must describe local storage, player names, Firebase Analytics + Crashlytics, reset/delete, no ads/tracking |
+| **Support URL** | **Yes** | Contact method or FAQ; can be same site as privacy |
+| **Custom EULA** | No (1.0) | Default: [Apple Standard EULA](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/) — only add custom terms if you need special liability/limitation language |
+| **Terms of Service** | No (1.0) | Optional unless you add accounts, IAP, or online play |
+| **In-app privacy link** | Recommended | [`specs/SecurityPrivacySpec.md`](specs/SecurityPrivacySpec.md) — Settings row → privacy policy URL (not built yet) |
+
+**Privacy policy should cover (plain language, not legal boilerplate dump):**
+
+- [ ] What stays on device (matches, players, settings — SwiftData, no account)
+- [ ] What leaves device in **Release** only: Firebase **Analytics** (allowlisted events) and **Crashlytics** (crashes + allowlisted errors)
+- [ ] What you **don’t** do: ads, cross-app tracking, selling data, IDFA/ATT
+- [ ] User controls: **Reset All Local Data** wipes local store; how to request help
+- [ ] Contact email (or support form URL)
+- [ ] “Last updated” date; bump when adding Firebase services or online features
+
+**Hosting options (pick one):**
+
+- [x] **GitHub Pages** — `docs/privacy.html` + `docs/support.html` (see [`docs/README.md`](docs/README.md))
+- [ ] Enable Pages: repo **Settings → Pages → Branch `master` → `/docs`**
+- [ ] **Privacy Policy URL:** `https://jacobrozell.github.io/Dart-Buddy/privacy.html`
+- [ ] **Support URL:** `https://jacobrozell.github.io/Dart-Buddy/support.html`
+- [ ] Verify both URLs load in a private browser before submit
+
+**App Store Connect → App Privacy questionnaire (align with policy):**
+
+- [ ] **Diagnostics** — Crash data (Crashlytics): likely Yes, not used for tracking
+- [ ] **Usage data** — Analytics events: likely Yes, not linked to identity if anonymous
+- [ ] **User content** — Player display names: stored **on device only**; declare only if questionnaire asks about data stored on device vs collected by developer (local-only names often = not “collected” by you, but be consistent with policy wording)
+- [ ] **Tracking** — No (no ATT, no ad networks)
+- [ ] Export answers or screenshot for records
+
+**EULA in App Store Connect:**
+
+- [ ] Leave **Standard Apple EULA** selected (recommended for 1.0)
+- [ ] OR upload custom EULA only if you’ve had it reviewed
+
+> Not legal advice — have a lawyer review policy/EULA if you want extra certainty; for a free local-first scorer with Firebase diagnostics, the gaps above are the usual App Store blockers.
 
 ### Visual assets
 
@@ -435,4 +480,5 @@ Do not delay ship for:
 | Migration | [`roadmap/reports/Phase06-Migration-Safety-Report.md`](roadmap/reports/Phase06-Migration-Safety-Report.md) |
 | Store metadata spec | [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md) |
 | Marketing screenshots | [`marketing-screenshots/README.md`](marketing-screenshots/README.md) |
+| Privacy & support pages | [`docs/README.md`](docs/README.md) |
 | Active backlog | [`todo.md`](todo.md) |

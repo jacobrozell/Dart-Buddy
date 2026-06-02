@@ -32,8 +32,8 @@ Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. Work th
 Work through [`release_checklist.md`](release_checklist.md) §8–§11.
 
 - [ ] **App icon finalization** — `Media.xcassets` / `assets/app-icons/`
-- [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL** (`specs/AppStoreConnectSpec.md`).
-- [ ] **Privacy disclosure** — Store labels match app behavior (local-only, no ads, no tracking); validate against `Phase06-Security-Privacy-Checklist.md`.
+- [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL**, **privacy policy URL** (`specs/AppStoreConnectSpec.md`).
+- [ ] **Privacy disclosure** — Hosted privacy policy + App Store privacy labels match app behavior (local-first, Firebase Analytics/Crashlytics in Release, no ads/tracking); validate against `Phase06-Security-Privacy-Checklist.md`.
 - [ ] **Marketing screenshots** — X01, Cricket, setup, history, stats (§8 of `AppStoreConnectSpec`; separate from smoke evidence).
 - [ ] **Release build sanity** — Release config drops debug verbosity; no sensitive data in logs.
 - [ ] **Release notes** — Finalize from `roadmap/release/Release-Notes-Template.md`; tag RC build.
