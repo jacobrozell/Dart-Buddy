@@ -52,7 +52,13 @@ public extension DefaultAppLogger {
                 NoOpRemoteAnalyticsLogSink()
             }
         let remote = FilteredLogSink(minimumLevel: .info, wrapped: remoteSink)
-        let sink = CompositeLogSink(sinks: [console, remote])
+        let crashlyticsSink: any LogSink =
+            if featureFlags.isEnabled(.enableFirebaseCrashlytics) {
+                FirebaseCrashlyticsLogSink(isCollectionEnabled: FirebaseBootstrap.isCrashlyticsCollectionEnabled)
+            } else {
+                NoOpLogSink()
+            }
+        let sink = CompositeLogSink(sinks: [console, remote, crashlyticsSink])
         #if DEBUG
         return DefaultAppLogger(minimumLevel: .debug, sink: sink)
         #else

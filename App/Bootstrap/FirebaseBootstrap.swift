@@ -16,6 +16,18 @@ public enum FirebaseBootstrap {
     }
 
     public static var isAnalyticsCollectionEnabled: Bool {
+        analyticsCollectionEnabled(featureFlags: featureFlags)
+    }
+
+    public static var isCrashlyticsCollectionEnabled: Bool {
+        crashlyticsCollectionEnabled(featureFlags: featureFlags)
+    }
+
+    public static func analyticsCollectionEnabled(featureFlags: FeatureFlagsProvider) -> Bool {
         shouldConfigure && featureFlags.isEnabled(.enableFirebaseAnalytics)
+    }
+
+    public static func crashlyticsCollectionEnabled(featureFlags: FeatureFlagsProvider) -> Bool {
+        shouldConfigure && featureFlags.isEnabled(.enableFirebaseCrashlytics)
     }
 }

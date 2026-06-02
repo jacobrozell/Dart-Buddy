@@ -33,8 +33,19 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             #else
             return true
             #endif
-        case .enableFirebaseCrashlytics,
-             .enableAppleWatchCompanion,
+        case .enableFirebaseCrashlytics:
+            if arguments.contains("-disable_firebase_analytics") || arguments.contains("-ui_test_reset") {
+                return false
+            }
+            if arguments.contains("-firebase_analytics_debug") {
+                return true
+            }
+            #if DEBUG
+            return false
+            #else
+            return true
+            #endif
+        case .enableAppleWatchCompanion,
              .enableVisionAutoScoring,
              .enableOnlinePlay,
              .enableAdvancedDiagnostics:

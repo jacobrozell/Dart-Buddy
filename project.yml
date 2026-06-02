@@ -41,6 +41,29 @@ targets:
         product: FirebaseCore
       - package: Firebase
         product: FirebaseAnalytics
+      - package: Firebase
+        product: FirebaseCrashlytics
+    postBuildScripts:
+      - name: Firebase Crashlytics
+        script: |
+          if [ "${CONFIGURATION}" != "Release" ]; then
+            exit 0
+          fi
+          if ! [ -f "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist" ]; then
+            exit 0
+          fi
+          if grep -q "REPLACE_WITH" "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleService-Info.plist" 2>/dev/null; then
+            exit 0
+          fi
+          RUN_SCRIPT="${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+          if [ ! -f "$RUN_SCRIPT" ]; then
+            echo "warning: Crashlytics run script not found at $RUN_SCRIPT"
+            exit 0
+          fi
+          "$RUN_SCRIPT"
+        inputFileLists:
+          - Scripts/FirebaseCrashlyticsInputFiles.xcfilelist
+        basedOnDependencyAnalysis: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboard

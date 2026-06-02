@@ -2,7 +2,7 @@
 
 ## MVP Baseline
 - [x] Local-first data model
-- [x] No Firebase runtime dependency introduced
+- [x] Firebase Analytics + Crashlytics in Release only (gated; no telemetry from Debug/CI/UI tests/placeholder plist)
 - [x] No ad SDKs
 - [x] No third-party tracking identifiers
 - [x] Minimal PII scope (display names)

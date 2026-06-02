@@ -11,7 +11,7 @@
   - Release owner: `TBD`
   - QA owner: `TBD`
   - iOS Eng owner: `TBD`
-- Crash signals: `Pending data`
+- Crash signals: [Firebase Crashlytics](https://console.firebase.google.com/) → Issues (crash-free users %, top fatals/non-fatals); hourly crash rate: `Pending data`
 - Severe reviews/support signals: `Pending data`
 - Core-flow health checks (setup, submit, resume, history, reset): `Pending execution`
 - Decision summary: `No decision recorded yet`
@@ -21,7 +21,7 @@
 
 ## Day 1 (Initialized)
 - Date: `TBD`
-- Crash trend vs Day 0: `Pending data`
+- Crash trend vs Day 0 (Crashlytics dashboard): `Pending data`
 - Review/support trend vs Day 0: `Pending data`
 - Top user friction points: `Pending data`
 - Patch board updates: `Pending data`

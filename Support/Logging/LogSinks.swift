@@ -35,7 +35,7 @@ public struct NoOpLogSink: LogSink {
     public func write(_ entry: LogEntry) {}
 }
 
-/// Adapter boundary for Bugsnag, Firebase Crashlytics, Firebase Analytics, etc.
+/// Adapter boundary for Bugsnag, Firebase Analytics, etc. Crashlytics uses `LogSink` directly (`FirebaseCrashlyticsLogSink`).
 /// App code never references concrete SDK types; swap this sink when a provider is enabled.
 public protocol RemoteAnalyticsLogSink: LogSink {}
 

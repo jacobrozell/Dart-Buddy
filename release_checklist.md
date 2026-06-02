@@ -20,7 +20,7 @@ Use this file as the single runbook. Detailed criteria live in linked specs — 
 | Date range | |
 | Physical device(s) | (model + iOS version) |
 | Simulator(s) | |
-| Firebase plist in Release | Yes / No (analytics allowlist only if Yes) |
+| Firebase plist in Release | Yes / No (analytics + Crashlytics if Yes) |
 
 ---
 
@@ -30,7 +30,8 @@ Use this file as the single runbook. Detailed criteria live in linked specs — 
 
 - [ ] `main` / release branch green: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (`xcodegen generate` + `xcodebuild test`)
 - [ ] Local: `xcodegen generate` then **Product → Test** (`⌘U`) on `DartsScoreboard` scheme
-- [ ] `GoogleService-Info.plist` present for Release archive (from example + Firebase Console); Debug stays off analytics unless `-firebase_analytics_debug`
+- [ ] `GoogleService-Info.plist` present for Release archive (from example + Firebase Console); Debug stays off analytics/Crashlytics unless `-firebase_analytics_debug`
+- [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for `com.jacobrozell.DartsScoreboard`; Release archive build log shows Crashlytics dSYM script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
 - [ ] Version / build number bumped in Xcode / `project.yml` as needed
 - [ ] **Archive** with **Release** configuration (distribution signing, not ad-hoc debug)
 
@@ -177,7 +178,7 @@ Architecture is ready; **device proof** of Retry / Export / Reset UX is still re
 
 ### Privacy & store labels
 
-- [ ] App Store privacy answers match app: **local-first**, no ads, no tracking IDs; analytics only if Release ships Firebase ([`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md) §6, [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md))
+- [ ] App Store privacy answers match app: **local-first**, no ads, no tracking IDs; analytics + crash diagnostics if Release ships Firebase ([`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md) §6, [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md))
 - [ ] In-app **Reset All Local Data** described accurately in review notes if asked
 
 ---
@@ -257,7 +258,7 @@ Architecture is ready; **device proof** of Retry / Export / Reset UX is still re
 
 - [ ] Privacy nutrition labels + App Privacy questionnaire
 - [ ] Export compliance / encryption questionnaire (standard HTTPS only → typically exempt)
-- [ ] Review notes: test account not required (local-only); how to reset data; analytics note if Firebase enabled
+- [ ] Review notes: test account not required (local-only); how to reset data; Firebase analytics + crash diagnostics note if enabled
 - [ ] **Release notes** from [`roadmap/release/Release-Notes-Template.md`](roadmap/release/Release-Notes-Template.md)
 
 ---
@@ -273,6 +274,7 @@ Architecture is ready; **device proof** of Retry / Export / Reset UX is still re
 ### Optional (recommended, not blocking)
 
 - [ ] **TestFlight** external group (3–5 players, 2–3 days) before public submit
+- [ ] **Crashlytics smoke:** one intentional test crash on TestFlight/Release build; symbolicated stack in Firebase Console within ~15 minutes
 - [ ] [`roadmap/release/Launch-Week-Monitoring-Log.md`](roadmap/release/Launch-Week-Monitoring-Log.md) — owner for Day 0–7 crashes/reviews
 
 ### Post-submit (do not block 1.0)

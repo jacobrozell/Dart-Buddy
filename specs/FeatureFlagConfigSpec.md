@@ -36,8 +36,8 @@ Define how runtime feature flags and environment configuration are modeled so ph
 ---
 
 ## 5. Initial Flag Set (Starter)
-- `enableFirebaseAnalytics` (default `false` in 1.0.0)
-- `enableFirebaseCrashlytics` (default `false` in 1.0.0)
+- `enableFirebaseAnalytics` (Debug default `false`, Release default `true`; off for `-disable_firebase_analytics`, `-ui_test_reset`)
+- `enableFirebaseCrashlytics` (same matrix as analytics; shares debug launch arg `-firebase_analytics_debug`)
 - `enableAppleWatchCompanion` (default `false`)
 - `enableVisionAutoScoring` (default `false`)
 - `enableOnlinePlay` (default `false`)

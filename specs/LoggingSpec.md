@@ -6,9 +6,9 @@ Define a day-1 custom logging system that is console-first in 1.0.0 and easily a
 ---
 
 ## 2. Product Constraints
-- 1.0.0 ships without Firebase runtime dependencies.
+- 1.0.0 ships Firebase Analytics and Crashlytics in **Release** only (gated by real `GoogleService-Info.plist` and feature flags; Debug/CI/UI tests off).
 - Logging must be useful in local dev/test and safe for production builds.
-- Future analytics/crash providers (including Firebase) must plug in without rewriting call sites.
+- Analytics/crash providers plug in via sinks without rewriting call sites.
 
 ---
 
@@ -36,8 +36,8 @@ Define a day-1 custom logging system that is console-first in 1.0.0 and easily a
   - developer-readable format in debug
 
 ## Future Sinks
-- `CrashAnalyticsSink` adapter (post-1.0)
-- `FirebaseCrashlyticsSink` / analytics bridge (post-1.0)
+- `CrashAnalyticsSink` adapter (alternate providers)
+- `FirebaseCrashlyticsLogSink` / `FirebaseAnalyticsLogSink` (implemented; adapter layer only imports Firebase SDKs)
 
 Critical rule:
 - App code depends only on `AppLogger`, never on concrete sink SDKs.
