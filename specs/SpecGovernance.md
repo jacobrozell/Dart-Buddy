@@ -47,6 +47,19 @@ If two specs disagree, the authoritative spec above wins.
 - Feature specs may include conceptual data snippets only with explicit link back to schema specs.
 - Prefer references over restating large sections.
 
+### 3.1 Repo-level documentation (non-spec)
+| Doc | Owns | Do not copy into |
+|-----|------|------------------|
+| `README.md` | Repo entry, build steps, doc-role index | Feature specs, `todo.md` |
+| `todo.md` | Current sprint, 1.0 blockers, post-1.0 deferrals | README roadmaps, `roadmap/` phase files |
+| `roadmap/` | Phase delivery history and release runbooks | `todo.md` (link only) |
+| `accessibility/accessibility_todo.md` | A11y engineering phases | `Manual_todo.md` |
+| `accessibility/Manual_todo.md` | Human verification steps | `accessibility_todo.md`, `wcag-2.1-aa/SUMMARY.md` |
+| `accessibility/wcag-2.1-aa/` | Per-screen/criterion status + evidence links | `specs/AccessibilitySpec.md` (requirements only) |
+| `achievements.md` | Game Center deep-dive | `todo.md` (one-line link only) |
+
+Full table with QA gates: [`README.md`](../README.md#documentation-map).
+
 ---
 
 ## 4. Change Management Rules

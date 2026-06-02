@@ -47,7 +47,9 @@
 - `specs/StatsSpec.md`
 - `specs/SettingsSpec.md`
 
-## Next Optional Specs
-- App Store metadata/release operations spec
-- Crash diagnostics/telemetry operational spec
-- Future cloud sync spec (post-1.0.0)
+## Post-1.0 / Assessment Docs (not in index above)
+- `specs/AppleWatchCompanionAssessment.md` — watch feasibility (companion spec: `AppleWatchCompanionSpec.md`)
+- `specs/OnlinePlaySpec.md`, `specs/AutoScoringVisionSpec.md`, `specs/FirebaseBackendAnalyticsSpec.md` — deferred runtime features
+- `achievements.md` — Game Center assessment (linked from `todo.md`)
+
+Active work and deferrals: [`todo.md`](../todo.md). Do not duplicate backlog items here.

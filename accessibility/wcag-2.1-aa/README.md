@@ -51,7 +51,8 @@ Shared UI used on multiple screens: [screens/_shared-components.md](screens/_sha
 - `specs/UIReviewChecklist.md` §6–7 — PR accessibility + orientation gate
 - `specs/SmokeTestChecklist.md` — AXXXL and VoiceOver smoke steps
 - `roadmap/release/QA-Signoff-RC1.md` — release evidence matrix
-- `todo.md` § UI / UX / accessibility — engineering backlog
+- `accessibility/accessibility_todo.md` — a11y engineering phases
+- `todo.md` § 1.0 QA sign-off — release accessibility evidence tasks
 
 ## Release rule
 

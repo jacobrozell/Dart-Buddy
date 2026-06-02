@@ -7,7 +7,7 @@ Strategic backlog for reaching and **maintaining** WCAG 2.1 Level AA on Dart Bud
 | `specs/AccessibilitySpec.md` | Requirements (what “done” means) |
 | `accessibility/wcag-2.1-aa/` | Per-screen + per-criterion **status** and evidence |
 | `accessibility/accessibility_todo.md` | **This file** — phased work plan |
-| `todo.md` § UI / UX / accessibility | Near-term product/layout items that affect a11y |
+| `todo.md` § 1.0 QA sign-off | Release accessibility evidence (links here for detail) |
 
 **Current baseline (2026-06-02):** All 13 MVP screens have **zero Required Fail** in code; screens remain **Partial** until manual evidence (`accessibility/Manual_todo.md`, `wcag-2.1-aa/SUMMARY.md`).
 
