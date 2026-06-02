@@ -173,29 +173,17 @@ struct StatisticsRootView: View {
     }
 
     private var sectorChart: some View {
-        let hits = viewModel.sectorHits
-        return Group {
-            if hits.isEmpty {
-                Text("No recorded dart-level data.")
-                    .font(.subheadline)
-                    .foregroundStyle(Brand.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, DS.Spacing.s4)
-            } else {
-                Chart(hits) { hit in
-                    BarMark(
-                        x: .value("Sector", StatsSectorOrder.label(hit.sector)),
-                        y: .value("Hits", hit.count)
-                    )
-                    .foregroundStyle(Brand.green)
-                }
-                .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-                .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-                .frame(height: 200)
-                .padding(DS.Spacing.s4)
-                .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        SectorHitsChart(hitsBySector: sectorHitsDictionary, mode: viewModel.mode)
+    }
+
+    private var sectorHitsDictionary: [String: Int] {
+        var totals: [String: Int] = [:]
+        for row in viewModel.rows {
+            for (sector, count) in row.hitsBySector {
+                totals[sector, default: 0] += count
             }
         }
+        return totals
     }
 }
 

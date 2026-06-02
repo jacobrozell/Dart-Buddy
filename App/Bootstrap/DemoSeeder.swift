@@ -29,7 +29,7 @@ enum DemoSeeder {
             guard existing.isEmpty else { return }
 
             let jacob = try await dependencies.playerRepository.createPlayer(name: "Jacob")
-            let bot = try await dependencies.playerRepository.createPlayer(name: "DartBot 1")
+            let bot = try await dependencies.playerRepository.createBot(difficulty: .easy)
             let sam = try await dependencies.playerRepository.createPlayer(name: "Sam")
 
             // Completed X01 game: Jacob beats Sam (301, straight out).
@@ -45,11 +45,23 @@ enum DemoSeeder {
                 complete: true
             )
 
-            // In-progress X01 game: Jacob vs DartBot 1 (301, double out).
+            // Completed Cricket game with recorded marks (Jacob ahead on points).
+            try await seedCricket(
+                dependencies: dependencies,
+                players: [(jacob, "Jacob"), (sam, "Sam")],
+                turns: [
+                    [d(.triple, 20)],
+                    [d(.single, 19)],
+                    [d(.triple, 20)]
+                ],
+                complete: true
+            )
+
+            // In-progress X01 game: Jacob vs bot (301, double out).
             try await seedX01(
                 dependencies: dependencies,
                 config: MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut),
-                players: [(jacob, "Jacob"), (bot, "DartBot 1")],
+                players: [(jacob, "Jacob"), (bot, bot.name)],
                 turns: [
                     [d(.triple, 20), d(.triple, 20), d(.triple, 20)],      // Jacob 180 -> 121
                     [d(.single, 20), d(.single, 20), d(.single, 20)]       // DartBot 60 -> 241
@@ -196,8 +208,76 @@ enum DemoSeeder {
                 endedAt: Date(),
                 winnerPlayerId: session.runtime.winnerPlayerId
             )
+        } else if !complete {
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
         }
-        let finalSession = session
-        await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+    }
+
+    private static func seedCricket(
+        dependencies: AppDependencies,
+        players: [(PlayerSummary, String)],
+        turns: [[DartInput]],
+        complete: Bool
+    ) async throws {
+        let payload = MatchConfigPayload.cricket(MatchConfigCricket())
+        let encoded = try CodablePayloadCoder.encode(payload)
+        let participantSummaries = players.enumerated().map { index, entry in
+            MatchParticipantSummary(
+                id: UUID(),
+                matchId: UUID(),
+                playerId: entry.0.id,
+                turnOrder: index,
+                displayNameAtMatchStart: entry.1,
+                avatarStyleAtMatchStart: nil
+            )
+        }
+        let persisted = try await dependencies.matchRepository.createMatch(
+            type: .cricket,
+            configPayload: encoded,
+            participants: participantSummaries
+        )
+        let lifecycleParticipants = players.enumerated().map { index, entry in
+            MatchParticipant(playerId: entry.0.id, displayNameAtMatchStart: entry.1, turnOrder: index)
+        }
+        var session = try MatchLifecycleService.createMatch(
+            matchId: persisted.id,
+            type: .cricket,
+            config: payload,
+            participants: lifecycleParticipants
+        )
+        _ = try await dependencies.matchRepository.saveSnapshot(
+            matchId: persisted.id,
+            snapshotVersion: session.latestSnapshot.payloadVersion,
+            snapshotPayload: session.latestSnapshot.payload
+        )
+
+        for darts in turns {
+            session = try MatchLifecycleService.submitCricketTurn(session: session, darts: darts)
+            if let event = session.events.last {
+                let eventPayload = try CodablePayloadCoder.encode(event)
+                _ = try await dependencies.matchRepository.appendEvent(
+                    matchId: persisted.id,
+                    eventTypeRaw: "cricketTurn",
+                    eventPayload: eventPayload
+                )
+            }
+            _ = try await dependencies.matchRepository.saveSnapshot(
+                matchId: persisted.id,
+                snapshotVersion: session.latestSnapshot.payloadVersion,
+                snapshotPayload: session.latestSnapshot.payload
+            )
+        }
+
+        if complete {
+            _ = try await dependencies.matchRepository.completeMatch(
+                matchId: persisted.id,
+                endedAt: Date(),
+                winnerPlayerId: session.runtime.winnerPlayerId ?? players.first?.0.id
+            )
+        } else {
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        }
     }
 }

@@ -27,11 +27,22 @@ final class PlayersListViewModel: ObservableObject {
     @Published private(set) var errorMessageKey: String?
 
     private let repository: any PlayerRepository
+    private let matchRepository: any MatchRepository
     private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
+    @Published private(set) var summariesByPlayerId: [UUID: PlayerListSummary] = [:]
 
-    init(repository: any PlayerRepository, pendingMatchPlayerSelections: PendingMatchPlayerSelections) {
+    init(
+        repository: any PlayerRepository,
+        matchRepository: any MatchRepository,
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections
+    ) {
         self.repository = repository
+        self.matchRepository = matchRepository
         self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
+    }
+
+    func summary(for playerId: UUID) -> PlayerListSummary? {
+        summariesByPlayerId[playerId]
     }
 
     func onAppear() async {
@@ -48,6 +59,7 @@ final class PlayersListViewModel: ObservableObject {
                     botDifficulty: $0.botDifficulty
                 )
             }
+            summariesByPlayerId = try await MatchStatsLoader.buildPlayerSummaries(matchRepository: matchRepository)
             applySearch()
             state = players.isEmpty ? .empty : .ready
         } catch is CancellationError {
@@ -152,6 +164,8 @@ final class PlayersListViewModel: ObservableObject {
 final class PlayerDetailViewModel: ObservableObject {
     @Published private(set) var x01: PlayerStatBreakdown?
     @Published private(set) var cricket: PlayerStatBreakdown?
+    @Published private(set) var recentMatches: [RecentMatchSummary] = []
+    @Published private(set) var lastPlayedAt: Date?
     @Published private(set) var isLoading = true
 
     private let playerId: UUID
@@ -175,26 +189,41 @@ final class PlayerDetailViewModel: ObservableObject {
         (x01?.games ?? 0) + (cricket?.games ?? 0) > 0
     }
 
+    var lastPlayedText: String? {
+        guard let lastPlayedAt else { return nil }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return L10n.format("players.detail.lastPlayed", formatter.localizedString(for: lastPlayedAt, relativeTo: Date()))
+    }
+
     func load() async {
         isLoading = true
         defer { isLoading = false }
         do {
-            let x01Result = try await MatchStatsLoader.load(
+            async let x01Result = MatchStatsLoader.load(
                 matchRepository: matchRepository,
                 statsRepository: statsRepository,
                 request: MatchStatsLoadRequest(matchType: .x01, participantPlayerId: playerId)
             )
-            let cricketResult = try await MatchStatsLoader.load(
+            async let cricketResult = MatchStatsLoader.load(
                 matchRepository: matchRepository,
                 statsRepository: statsRepository,
                 request: MatchStatsLoadRequest(matchType: .cricket, participantPlayerId: playerId)
             )
+            async let recent = MatchStatsLoader.recentMatches(for: playerId, matchRepository: matchRepository)
+
             let names = [playerId: playerName]
-            x01 = StatsService.breakdowns(from: x01Result.inputs, nameById: names).first { $0.playerId == playerId }
-            cricket = StatsService.breakdowns(from: cricketResult.inputs, nameById: names).first { $0.playerId == playerId }
+            let loadedX01 = try await x01Result
+            let loadedCricket = try await cricketResult
+            x01 = StatsService.breakdowns(from: loadedX01.inputs, nameById: names).first { $0.playerId == playerId }
+            cricket = StatsService.breakdowns(from: loadedCricket.inputs, nameById: names).first { $0.playerId == playerId }
+            recentMatches = try await recent
+            lastPlayedAt = recentMatches.first?.playedAt
         } catch {
             x01 = nil
             cricket = nil
+            recentMatches = []
+            lastPlayedAt = nil
         }
     }
 }

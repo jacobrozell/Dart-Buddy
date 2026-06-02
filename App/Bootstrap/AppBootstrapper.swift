@@ -11,6 +11,8 @@ public enum AppBootstrapper {
         let logger = DefaultAppLogger.makeForCurrentBuild()
         logger.info(.appLifecycle, eventName: "app_bootstrap_start", message: "Bootstrapping app dependencies.")
 
+        AppStoreReset.applyLaunchArgumentOverrides()
+
         do {
             let container = try await Task.detached(priority: .userInitiated) {
                 let container = try ModelContainerFactory.makeContainer(mode: .appDefault)

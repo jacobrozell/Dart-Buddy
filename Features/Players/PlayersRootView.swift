@@ -29,6 +29,7 @@ struct PlayersRootView: View {
         self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: PlayersListViewModel(
             repository: dependencies.playerRepository,
+            matchRepository: dependencies.matchRepository,
             pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections
         ))
     }
@@ -212,6 +213,10 @@ struct PlayersRootView: View {
                         Text(difficulty.displayName)
                             .font(.caption)
                             .foregroundStyle(playerBotDifficultyColor(difficulty))
+                    } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
+                        Text(L10n.format("players.list.record", summary.games, summary.wins))
+                            .font(.caption)
+                            .foregroundStyle(Brand.textSecondary)
                     }
                 }
                 if player.isArchived {
@@ -314,21 +319,31 @@ private struct PlayerStatsDetailView: View {
                     }
                 }
 
+                if let lastPlayedText = viewModel.lastPlayedText {
+                    Text(lastPlayedText)
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.textSecondary)
+                }
+
                 if viewModel.isLoading {
                     ProgressView().tint(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s6)
                 } else if !viewModel.hasAnyGames {
-                    Text("No completed games yet.")
+                    Text(L10n.playersDetailNoGames)
                         .foregroundStyle(Brand.textSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s6)
                 } else {
                     if let x01 = viewModel.x01, x01.games > 0 {
-                        modeSection(title: "X01", stats: x01, isX01: true)
+                        modeSection(title: L10n.x01Title, stats: x01, isX01: true)
                     }
                     if let cricket = viewModel.cricket, cricket.games > 0 {
-                        modeSection(title: "Cricket", stats: cricket, isX01: false)
+                        modeSection(title: L10n.cricketTitle, stats: cricket, isX01: false)
+                    }
+
+                    if !viewModel.recentMatches.isEmpty {
+                        recentMatchesSection
                     }
                 }
 
@@ -352,33 +367,83 @@ private struct PlayerStatsDetailView: View {
     }
 
     @ViewBuilder
-    private func modeSection(title: String, stats: PlayerStatBreakdown, isX01: Bool) -> some View {
+    private var recentMatchesSection: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            Text(L10n.playersDetailRecentMatches)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.white)
+
+            VStack(spacing: 0) {
+                ForEach(viewModel.recentMatches) { match in
+                    HStack(spacing: DS.Spacing.s3) {
+                        Text(match.type == .x01 ? "X01" : "Cricket")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Brand.textSecondary)
+                            .frame(width: 56, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(match.opponentLabel)
+                                .font(.subheadline)
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                            Text(match.playedAt, style: .date)
+                                .font(.caption)
+                                .foregroundStyle(Brand.textSecondary)
+                        }
+                        Spacer()
+                        Text(match.didWin ? L10n.playersDetailWin : L10n.playersDetailLoss)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(match.didWin ? Brand.green : Brand.red)
+                    }
+                    .padding(.horizontal, DS.Spacing.s3)
+                    .padding(.vertical, DS.Spacing.s3)
+                    if match.id != viewModel.recentMatches.last?.id {
+                        Divider().overlay(Brand.cardElevated)
+                    }
+                }
+            }
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        }
+    }
+
+    @ViewBuilder
+    private func modeSection(title: LocalizedStringKey, stats: PlayerStatBreakdown, isX01: Bool) -> some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s3) {
             Text(title)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DS.Spacing.s3) {
-                StatTile(label: "Games", value: "\(stats.games)")
-                StatTile(label: "Wins", value: "\(stats.wins) (\(String(format: "%.0f%%", stats.winPercent)))")
-                StatTile(label: "Throws", value: "\(stats.darts)")
-                StatTile(label: "Points", value: "\(stats.points)")
+                StatTile(label: L10n.statsGames, value: "\(stats.games)")
+                StatTile(label: L10n.statsWins, value: "\(stats.wins) (\(String(format: "%.0f%%", stats.winPercent)))")
+                StatTile(label: L10n.statsThrows, value: "\(stats.darts)")
+                StatTile(label: L10n.statsPoints, value: "\(stats.points)")
                 if isX01 {
-                    StatTile(label: "Legs Won", value: "\(stats.legs)")
-                    StatTile(label: "3-Dart Avg", value: String(format: "%.1f", stats.average3Dart))
-                    StatTile(label: "Highest Score", value: "\(stats.highestScore)")
-                    StatTile(label: "Checkouts", value: "\(stats.checkouts)")
-                    StatTile(label: "Best Checkout", value: stats.highestCheckout > 0 ? "\(stats.highestCheckout)" : "-")
+                    StatTile(label: L10n.statsLegsWon, value: "\(stats.legs)")
+                    StatTile(label: L10n.statsThreeDartAverage, value: String(format: "%.1f", stats.average3Dart))
+                    StatTile(label: L10n.statsHighestScore, value: "\(stats.highestScore)")
+                    StatTile(label: L10n.statsCheckouts, value: "\(stats.checkouts)")
+                    StatTile(label: L10n.statsBestCheckout, value: stats.highestCheckout > 0 ? "\(stats.highestCheckout)" : "-")
+                } else {
+                    StatTile(label: L10n.statsMPR, value: String(format: "%.2f", stats.marksPerRound))
+                    StatTile(label: L10n.statsMarks, value: "\(stats.cricketMarks)")
+                    StatTile(label: L10n.statsRounds, value: "\(stats.cricketRounds)")
                 }
-                StatTile(label: "Double %", value: String(format: "%.1f%%", stats.doublePercent))
-                StatTile(label: "Triple %", value: String(format: "%.1f%%", stats.triplePercent))
+                StatTile(label: L10n.statsDoublePercent, value: String(format: "%.1f%%", stats.doublePercent))
+                StatTile(label: L10n.statsTriplePercent, value: String(format: "%.1f%%", stats.triplePercent))
+            }
+
+            if isX01, stats.average3Dart > 0 {
+                Text(L10n.statsThreeDartAverage)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                PlayerAverageChart(average: stats.average3Dart, playerName: stats.name)
             }
 
             if !stats.hitsBySector.isEmpty {
-                Text("Hits in Sector")
+                Text(L10n.statsHitsInSector)
                     .font(.headline)
                     .foregroundStyle(.white)
-                SectorHitsView(hitsBySector: stats.hitsBySector, mode: isX01 ? .x01 : .cricket)
+                SectorHitsChart(hitsBySector: stats.hitsBySector, mode: isX01 ? .x01 : .cricket)
             }
         }
         .padding(.bottom, DS.Spacing.s3)
@@ -386,7 +451,7 @@ private struct PlayerStatsDetailView: View {
 }
 
 private struct StatTile: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: String
 
     var body: some View {
@@ -399,44 +464,6 @@ private struct StatTile: View {
                 .foregroundStyle(.white)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DS.Spacing.s3)
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-    }
-}
-
-struct SectorHitsView: View {
-    let hitsBySector: [String: Int]
-    let mode: MatchType
-
-    private var sorted: [(String, Int)] {
-        hitsBySector
-            .map { ($0.key, $0.value) }
-            .sorted { StatsSectorOrder.rank($0.0, mode: mode) < StatsSectorOrder.rank($1.0, mode: mode) }
-    }
-
-    var body: some View {
-        let maxCount = max(1, hitsBySector.values.max() ?? 1)
-        VStack(spacing: DS.Spacing.s2) {
-            ForEach(sorted, id: \.0) { sector, count in
-                HStack(spacing: DS.Spacing.s2) {
-                    Text(StatsSectorOrder.label(sector))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 44, alignment: .leading)
-                    GeometryReader { geo in
-                        Capsule()
-                            .fill(Brand.green)
-                            .frame(width: max(4, geo.size.width * CGFloat(count) / CGFloat(maxCount)))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .frame(height: 14)
-                    Text("\(count)")
-                        .font(.caption)
-                        .foregroundStyle(Brand.textSecondary)
-                        .frame(width: 40, alignment: .trailing)
-                }
-            }
-        }
         .padding(DS.Spacing.s3)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }

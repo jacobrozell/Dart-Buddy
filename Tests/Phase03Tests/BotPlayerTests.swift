@@ -16,6 +16,7 @@ func playersListCreateBotAddsPersistedBot() async {
     let repository = RecordingPlayerRepository()
     let vm = PlayersListViewModel(
         repository: repository,
+        matchRepository: RecordingMatchRepository(),
         pendingMatchPlayerSelections: PendingMatchPlayerSelections()
     )
 
@@ -56,4 +57,27 @@ private actor RecordingPlayerRepository: PlayerRepository {
     func archivePlayer(playerId _: UUID) async throws {}
     func unarchivePlayer(playerId _: UUID) async throws {}
     func deletePlayer(playerId _: UUID) async throws {}
+}
+
+private actor RecordingMatchRepository: MatchRepository {
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
 }

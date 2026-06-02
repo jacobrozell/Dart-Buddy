@@ -109,7 +109,7 @@ struct MatchHistoryDetailScreen: View {
         let combined = combinedHits
         if !combined.isEmpty {
             sectionTitle("Hits in Sector")
-            SectorHitsView(hitsBySector: combined, mode: viewModel.matchType)
+            SectorHitsChart(hitsBySector: combined, mode: viewModel.matchType)
         }
     }
 

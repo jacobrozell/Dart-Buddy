@@ -22,7 +22,7 @@ struct DartsScoreboardApp: App {
                                 return false
                             },
                             resetHandler: {
-                                resetLocalStoreFiles()
+                                AppStoreReset.deleteSQLiteStore()
                                 await refreshBootstrapResult()
                                 if case .ready = self.bootstrapResult { return true }
                                 return false
@@ -43,26 +43,5 @@ struct DartsScoreboardApp: App {
     @MainActor
     private func refreshBootstrapResult() async {
         bootstrapResult = await AppBootstrapper.bootstrap()
-    }
-
-    private func resetLocalStoreFiles() {
-        guard let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            return
-        }
-        let sqliteBase = base.appending(path: "DartsScoreboard.sqlite")
-        let candidates = [
-            sqliteBase,
-            sqliteBase.appendingPathExtension("shm"),
-            sqliteBase.appendingPathExtension("wal")
-        ]
-        for url in candidates where FileManager.default.fileExists(atPath: url.path) {
-            do {
-                try FileManager.default.removeItem(at: url)
-            } catch {
-                #if DEBUG
-                    print("Failed to remove local store file: \(url.lastPathComponent), error: \(error)")
-                #endif
-            }
-        }
     }
 }
