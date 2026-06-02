@@ -23,6 +23,9 @@ final class X01MatchViewModel: ObservableObject {
     @Published var totalEntryText = ""
     @Published private(set) var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
+    /// Increments on every leg checkout so the UI can play finish audio even when
+    /// the match continues (e.g. best-of-3 legs).
+    @Published private(set) var legFinishSoundToken = 0
 
     private let matchId: UUID
     private let store: ActiveMatchStore
@@ -84,8 +87,8 @@ final class X01MatchViewModel: ObservableObject {
                 legsWon: player.legsWon,
                 isActive: isActive,
                 visitDarts: index == state.currentPlayerIndex ? enteredDarts : [],
-                dartsThrown: dartsThrown(for: player.playerId),
-                average: average(for: player.playerId)
+                dartsThrown: previewDartsThrown(for: player.playerId, isActive: isActive),
+                average: previewAverage(for: player.playerId, isActive: isActive)
             )
         }
     }
@@ -172,12 +175,30 @@ final class X01MatchViewModel: ObservableObject {
         turnEvents(for: playerId).reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
     }
 
-    private func average(for playerId: UUID) -> Double {
+    /// In-progress visit dart count and points for the active player.
+    private func previewVisitStats(isActive: Bool) -> (darts: Int, points: Int) {
+        guard isActive, canHumanInput || isBotPlaying else { return (0, 0) }
+        switch inputMode {
+        case .dartEntry:
+            return (enteredDarts.count, enteredDarts.reduce(0) { $0 + $1.points })
+        case .totalEntry:
+            guard let value = Int(totalEntryText), (0 ... 180).contains(value) else { return (0, 0) }
+            return (3, value)
+        }
+    }
+
+    private func previewDartsThrown(for playerId: UUID, isActive: Bool) -> Int {
+        dartsThrown(for: playerId) + previewVisitStats(isActive: isActive).darts
+    }
+
+    private func previewAverage(for playerId: UUID, isActive: Bool) -> Double {
         let events = turnEvents(for: playerId)
-        let darts = events.reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
+        let committedDarts = events.reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
+        let committedPoints = events.reduce(0) { $0 + $1.appliedTotal }
+        let visit = previewVisitStats(isActive: isActive)
+        let darts = committedDarts + visit.darts
         guard darts > 0 else { return 0 }
-        let points = events.reduce(0) { $0 + $1.appliedTotal }
-        return Double(points) / Double(darts) * 3.0
+        return Double(committedPoints + visit.points) / Double(darts) * 3.0
     }
 
     func submitTurn() async {
@@ -294,6 +315,9 @@ final class X01MatchViewModel: ObservableObject {
             }
             store.save(current)
             session = current
+            if case let .x01Turn(event) = current.events.last?.payload, event.didCheckout {
+                legFinishSoundToken += 1
+            }
             if current.runtime.status == .completed {
                 PerformanceMonitor.measure(
                     .completeMatch,

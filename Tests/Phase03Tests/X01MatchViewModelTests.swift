@@ -138,6 +138,59 @@ func x01ViewModelPreviewRemainingScoreDuringVisit() async throws {
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelPreviewDartsAndAverageDuringVisit() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .dartEntry
+
+    #expect(vm.playerCards[0].dartsThrown == 0)
+    #expect(vm.playerCards[0].average == 0)
+
+    vm.enteredDarts = [
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+    ]
+    #expect(vm.playerCards[0].dartsThrown == 1)
+    #expect(vm.playerCards[0].average == 180)
+
+    vm.enteredDarts.append(DartInput(multiplier: .single, segment: .oneToTwenty(20)))
+    #expect(vm.playerCards[0].dartsThrown == 2)
+    #expect(vm.playerCards[0].average == 120)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelSignalsLegFinishSoundBeforeMatchEnds() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 3, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01FakeMatchRepository(),
+        statsRepository: X01FakeStatsRepository()
+    )
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "41"
+
+    await vm.submitTurn()
+
+    #expect(vm.legFinishSoundToken == 1)
+    #expect(vm.state == .readyTurn)
+    #expect(vm.playerCards[0].legsWon == 1)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
 func x01ViewModelUndoRevertsToReadyTurn() async throws {
     let (vm, _, store) = try makeX01ViewModel(totals: [])
     vm.inputMode = .totalEntry

@@ -84,11 +84,11 @@ struct X01MatchScreen: View {
         } message: {
             Text("play.match.exit.confirm.message")
         }
+        .onChange(of: viewModel.legFinishSoundToken) { _, token in
+            if token > 0 { audio.playMatchFinished() }
+        }
         .onChange(of: viewModel.state) { _, newValue in
-            if newValue == .matchCompleted {
-                audio.playMatchFinished()
-                onShowSummary()
-            }
+            if newValue == .matchCompleted { onShowSummary() }
         }
         .task {
             viewModel.inputMode = .dartEntry
