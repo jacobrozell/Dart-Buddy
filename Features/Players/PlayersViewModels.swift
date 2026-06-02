@@ -5,6 +5,8 @@ struct EditablePlayer: Identifiable, Equatable {
     var name: String
     var isArchived: Bool
     var notes: String
+    var isBot: Bool
+    var botDifficulty: BotDifficulty?
 }
 
 @MainActor
@@ -19,7 +21,8 @@ final class PlayersListViewModel: ObservableObject {
 
     @Published var searchText = ""
     @Published private(set) var players: [EditablePlayer] = []
-    @Published private(set) var filtered: [EditablePlayer] = []
+    @Published private(set) var filteredHumans: [EditablePlayer] = []
+    @Published private(set) var filteredBots: [EditablePlayer] = []
     @Published private(set) var state: State = .loading
     @Published private(set) var errorMessageKey: String?
 
@@ -36,7 +39,14 @@ final class PlayersListViewModel: ObservableObject {
         do {
             let loaded = try await repository.fetchPlayers(includeArchived: true)
             players = loaded.map {
-                EditablePlayer(id: $0.id, name: $0.name, isArchived: $0.isArchived, notes: "")
+                EditablePlayer(
+                    id: $0.id,
+                    name: $0.name,
+                    isArchived: $0.isArchived,
+                    notes: "",
+                    isBot: $0.isBot,
+                    botDifficulty: $0.botDifficulty
+                )
             }
             applySearch()
             state = players.isEmpty ? .empty : .ready
@@ -50,12 +60,34 @@ final class PlayersListViewModel: ObservableObject {
 
     func applySearch() {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let matched: [EditablePlayer]
         if query.isEmpty {
-            filtered = players.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-            state = players.isEmpty ? .empty : .ready
+            matched = players
         } else {
-            filtered = players.filter { $0.name.lowercased().contains(query) }
-            state = filtered.isEmpty ? .searchNoResults : .ready
+            matched = players.filter { $0.name.lowercased().contains(query) }
+        }
+        filteredHumans = matched
+            .filter { !$0.isBot }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        filteredBots = matched
+            .filter(\.isBot)
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        if players.isEmpty {
+            state = .empty
+        } else if matched.isEmpty {
+            state = .searchNoResults
+        } else {
+            state = .ready
+        }
+    }
+
+    func createBot(_ difficulty: BotDifficulty) async {
+        do {
+            _ = try await repository.createBot(difficulty: difficulty)
+            await onAppear()
+        } catch {
+            state = .error
+            errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
     }
 
@@ -246,7 +278,9 @@ final class PlayerEditViewModel: ObservableObject {
             id: existing?.id ?? UUID(),
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             isArchived: existing?.isArchived ?? false,
-            notes: notes
+            notes: notes,
+            isBot: existing?.isBot ?? false,
+            botDifficulty: existing?.botDifficulty
         )
     }
 

@@ -16,8 +16,32 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let name: String
     public let isArchived: Bool
+    public let isBot: Bool
+    public let botDifficultyRaw: String?
     public let createdAt: Date
     public let updatedAt: Date
+
+    public var botDifficulty: BotDifficulty? {
+        botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
+    }
+
+    public init(
+        id: UUID,
+        name: String,
+        isArchived: Bool,
+        isBot: Bool = false,
+        botDifficultyRaw: String? = nil,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.name = name
+        self.isArchived = isArchived
+        self.isBot = isBot
+        self.botDifficultyRaw = botDifficultyRaw
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
 }
 
 public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {

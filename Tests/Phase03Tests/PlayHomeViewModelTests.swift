@@ -86,6 +86,7 @@ private actor FakePlayerRepository: PlayerRepository {
     init(players: [PlayerSummary]) { self.players = players }
     func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
     func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
+    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { players[0] }
     func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
     func archivePlayer(playerId _: UUID) async throws {}
     func unarchivePlayer(playerId _: UUID) async throws {}

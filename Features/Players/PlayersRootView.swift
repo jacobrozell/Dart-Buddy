@@ -1,5 +1,15 @@
 import SwiftUI
 
+private func playerBotDifficultyColor(_ difficulty: BotDifficulty?) -> Color {
+    switch difficulty {
+    case .easy: Brand.green
+    case .medium: Brand.amber
+    case .hard: Brand.red
+    case .pro: Brand.proBot
+    case .none: Brand.textSecondary
+    }
+}
+
 struct PlayersRootView: View {
     let dependencies: AppDependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -38,7 +48,7 @@ struct PlayersRootView: View {
                             systemImage: "exclamationmark.triangle",
                             description: Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
                         )
-                    } else if viewModel.filtered.isEmpty {
+                    } else if viewModel.filteredHumans.isEmpty && viewModel.filteredBots.isEmpty {
                         if horizontalSizeClass == .regular {
                             VStack {
                                 ContentUnavailableView(
@@ -58,41 +68,17 @@ struct PlayersRootView: View {
                             )
                         }
                     } else {
-                        List(viewModel.filtered) { player in
-                            Button {
-                                path.append(.detail(playerId: player.id))
-                            } label: {
-                                HStack(spacing: DS.Spacing.s3) {
-                                    Image(systemName: "location.north.fill")
-                                        .rotationEffect(.degrees(135))
-                                        .foregroundStyle(Brand.textSecondary)
-                                    Text(player.name)
-                                        .font(.headline)
-                                        .foregroundStyle(.white)
-                                    if player.isArchived {
-                                        Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
+                        List {
+                            if !viewModel.filteredHumans.isEmpty {
+                                Section(L10n.playersSectionTitle) {
+                                    ForEach(viewModel.filteredHumans) { player in
+                                        playerRow(player)
                                     }
-                                    Spacer()
                                 }
-                                .contentShape(Rectangle())
                             }
-                            .listRowBackground(Brand.background)
-                            .listRowSeparatorTint(Brand.cardElevated)
-                            .swipeActions {
-                                Button(player.isArchived ? "players.unarchive" : "players.archive") {
-                                    actionTask?.cancel()
-                                    actionTask = Task { await viewModel.archiveToggle(player.id) }
-                                }.tint(.orange)
-                                Button(L10n.delete, role: .destructive) {
-                                    actionTask?.cancel()
-                                    actionTask = Task {
-                                        if !(await viewModel.delete(player.id)) {
-                                            deleteBlockedMessage = NSLocalizedString(
-                                                viewModel.errorMessageKey ?? "players.delete.blocked.message",
-                                                comment: ""
-                                            )
-                                        }
-                                    }
+                            Section(L10n.botsSectionTitle) {
+                                ForEach(viewModel.filteredBots) { bot in
+                                    playerRow(bot)
                                 }
                             }
                         }
@@ -107,7 +93,7 @@ struct PlayersRootView: View {
             .frame(maxWidth: .infinity, alignment: .center)
             .navigationTitle(L10n.playersTitle)
             .safeAreaInset(edge: .bottom) {
-                if viewModel.state != .error && viewModel.filtered.isEmpty {
+                if viewModel.state != .error && viewModel.players.isEmpty {
                     Button {
                         editingPlayer = nil
                         showEditSheet = true
@@ -121,9 +107,23 @@ struct PlayersRootView: View {
                 }
             }
             .toolbar {
-                Button {
-                    editingPlayer = nil
-                    showEditSheet = true
+                Menu {
+                    Button {
+                        editingPlayer = nil
+                        showEditSheet = true
+                    } label: {
+                        Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
+                    }
+                    Menu {
+                        ForEach(BotDifficulty.allCases, id: \.rawValue) { difficulty in
+                            Button(difficulty.displayName) {
+                                actionTask?.cancel()
+                                actionTask = Task { await viewModel.createBot(difficulty) }
+                            }
+                        }
+                    } label: {
+                        Label(L10n.addBotTitle, systemImage: "cpu")
+                    }
                 } label: {
                     Image(systemName: "plus")
                 }
@@ -191,6 +191,61 @@ struct PlayersRootView: View {
         }
     }
 
+    private func playerRow(_ player: EditablePlayer) -> some View {
+        Button {
+            path.append(.detail(playerId: player.id))
+        } label: {
+            HStack(spacing: DS.Spacing.s3) {
+                if player.isBot {
+                    Image(systemName: "cpu.fill")
+                        .foregroundStyle(playerBotDifficultyColor(player.botDifficulty))
+                } else {
+                    Image(systemName: "location.north.fill")
+                        .rotationEffect(.degrees(135))
+                        .foregroundStyle(Brand.textSecondary)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(player.name)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    if let difficulty = player.botDifficulty {
+                        Text(difficulty.displayName)
+                            .font(.caption)
+                            .foregroundStyle(playerBotDifficultyColor(difficulty))
+                    }
+                }
+                if player.isArchived {
+                    Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
+                }
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .listRowBackground(Brand.background)
+        .listRowSeparatorTint(Brand.cardElevated)
+        .swipeActions {
+            Button(player.isArchived ? "players.unarchive" : "players.archive") {
+                actionTask?.cancel()
+                actionTask = Task { await viewModel.archiveToggle(player.id) }
+            }.tint(.orange)
+            Button(L10n.delete, role: .destructive) {
+                actionTask?.cancel()
+                actionTask = Task {
+                    if !(await viewModel.delete(player.id)) {
+                        deleteBlockedMessage = NSLocalizedString(
+                            viewModel.errorMessageKey ?? "players.delete.blocked.message",
+                            comment: ""
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func botDifficultyColor(_ difficulty: BotDifficulty?) -> Color {
+        playerBotDifficultyColor(difficulty)
+    }
+
     private var searchField: some View {
         HStack(spacing: DS.Spacing.s2) {
             Image(systemName: "magnifyingglass")
@@ -250,6 +305,10 @@ private struct PlayerStatsDetailView: View {
                     Text(player.name)
                         .font(.largeTitle.weight(.heavy))
                         .foregroundStyle(.white)
+                    if player.isBot {
+                        Image(systemName: "cpu.fill")
+                            .foregroundStyle(playerBotDifficultyColor(player.botDifficulty))
+                    }
                     if player.isArchived {
                         Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
                     }
@@ -276,9 +335,11 @@ private struct PlayerStatsDetailView: View {
                 HStack(spacing: DS.Spacing.s3) {
                     Button(L10n.edit, action: onEdit)
                         .buttonStyle(.bordered)
-                    Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
-                        .buttonStyle(.bordered)
-                        .tint(.orange)
+                    if !player.isBot {
+                        Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
+                            .buttonStyle(.bordered)
+                            .tint(.orange)
+                    }
                 }
                 .padding(.top, DS.Spacing.s2)
             }

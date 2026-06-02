@@ -75,6 +75,9 @@
 "history.detail.headerSection" = "Header";
 "history.detail.timelineSection" = "Event Timeline";
 "players.title" = "Players";
+"players.section.title" = "Players";
+"players.bots.section.title" = "Bots";
+"players.bots.add.title" = "Add Bot";
 "players.empty.title" = "No players";
 "players.empty.description" = "Add a player to start matches.";
 "players.archived" = "Archived";

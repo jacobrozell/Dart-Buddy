@@ -30,6 +30,27 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let record = SchemaV1.PlayerRecord(
                 name: trimmed,
                 isArchived: false,
+                isBot: false,
+                createdAt: now,
+                updatedAt: now
+            )
+            context.insert(record)
+            try context.save()
+            return mapPlayer(record)
+        }
+    }
+
+    public func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
+        try dataCall {
+            let context = ModelContext(container)
+            let existing = try context.fetch(FetchDescriptor<SchemaV1.PlayerRecord>())
+            let name = BotNaming.nextDefaultName(difficulty: difficulty, existingNames: existing.map(\.name))
+            let now = Date()
+            let record = SchemaV1.PlayerRecord(
+                name: name,
+                isArchived: false,
+                isBot: true,
+                botDifficultyRaw: difficulty.rawValue,
                 createdAt: now,
                 updatedAt: now
             )
@@ -585,6 +606,8 @@ private func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
         id: record.id,
         name: record.name,
         isArchived: record.isArchived,
+        isBot: record.isBot,
+        botDifficultyRaw: record.botDifficultyRaw,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt
     )

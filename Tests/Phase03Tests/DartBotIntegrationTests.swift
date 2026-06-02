@@ -12,7 +12,7 @@ func setupAllowsHumanPlusBot() async {
     let vm = botSetupViewModel(players: players, store: store)
     await vm.onAppear()
     vm.togglePlayer(players[0].id)
-    vm.addBot(.hard)
+    await vm.addBot(.hard)
 
     #expect(vm.selectedParticipantCount == 2)
     #expect(vm.canStart)
@@ -34,8 +34,8 @@ func setupAllowsHumanPlusBot() async {
 func setupAllowsTwoBotsWithoutHumans() async {
     let vm = botSetupViewModel(players: [], store: ActiveMatchStore())
     await vm.onAppear()
-    vm.addBot(.easy)
-    vm.addBot(.medium)
+    await vm.addBot(.easy)
+    await vm.addBot(.medium)
 
     #expect(vm.selectedParticipantCount == 2)
     #expect(vm.canStart)
@@ -47,7 +47,7 @@ func setupAllowsTwoBotsWithoutHumans() async {
 func setupRejectsSingleBot() async {
     let vm = botSetupViewModel(players: [], store: ActiveMatchStore())
     await vm.onAppear()
-    vm.addBot(.easy)
+    await vm.addBot(.easy)
     vm.revalidate()
 
     #expect(!vm.canStart)
@@ -59,11 +59,11 @@ func setupRejectsSingleBot() async {
 func setupRemoveBotUpdatesValidation() async {
     let vm = botSetupViewModel(players: [], store: ActiveMatchStore())
     await vm.onAppear()
-    vm.addBot(.easy)
-    vm.addBot(.medium)
-    let botId = vm.selectedBots[0].id
+    await vm.addBot(.easy)
+    await vm.addBot(.medium)
+    let botId = vm.availableBots[0].id
 
-    vm.removeBot(botId)
+    vm.togglePlayer(botId)
     vm.revalidate()
 
     #expect(vm.selectedParticipantCount == 1)
@@ -372,10 +372,24 @@ private final class BotSilentLogSink: LogSink, @unchecked Sendable {
 }
 
 private actor BotFakePlayerRepository: PlayerRepository {
-    let players: [PlayerSummary]
+    private var players: [PlayerSummary]
     init(players: [PlayerSummary]) { self.players = players }
     func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
     func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
+    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
+        let name = BotNaming.nextDefaultName(difficulty: difficulty, existingNames: players.map(\.name))
+        let bot = PlayerSummary(
+            id: UUID(),
+            name: name,
+            isArchived: false,
+            isBot: true,
+            botDifficultyRaw: difficulty.rawValue,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        players.append(bot)
+        return bot
+    }
     func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
     func archivePlayer(playerId _: UUID) async throws {}
     func unarchivePlayer(playerId _: UUID) async throws {}

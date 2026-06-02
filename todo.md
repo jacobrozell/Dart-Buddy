@@ -27,7 +27,7 @@ Senior iOS / feature-set review. Items are ranked **impact → effort** unless n
 ### P2 — Data model & bots
 
 - [x] Persist `botDifficultyRaw` on match participants — `SchemaV1.MatchParticipantRecord` + repository mapping; written on match create.
-- [ ] **Bot identity in stats** — Bots use ephemeral `SetupBot.id` as `playerId`; may create orphan stat keys separate from `PlayerRecord`. Decide: exclude bots from player aggregates or use stable bot pseudo-IDs.
+- [x] **Bot identity in stats** — Bots are `PlayerRecord` rows with stable UUIDs (`isBot` + `botDifficultyRaw`); listed under Bots in Players and selectable on setup.
 - [x] **Replace-active-match deletes DB row** — `confirmReplaceActiveMatch` now abandons via `MatchLifecycleService` instead of `deleteMatch`.
 
 ### P3 — History & statistics
@@ -187,7 +187,7 @@ Issues found on re-scan beyond the first audit:
 - [ ] **`HistoryListViewModel.dateFilter` / `playerFilter` dead** — Implemented, not bound to UI; player filter logic incorrect for future use.
 - [ ] **`MatchSummaryViewModel` store-only** — No reload from `matchRepository` if `ActiveMatchStore` cleared.
 - [x] **`confirmReplaceActiveMatch` uses `deleteMatch`** — Now abandons in place.
-- [ ] **Bot ephemeral UUIDs in stats** — May pollute player-level statistics (see P2).
+- [x] **Bot ephemeral UUIDs in stats** — Bots persist as player records with stable IDs.
 - [ ] **No `SettingsViewModel` / `MigrationRecoveryViewModel` tests** — `SettingsViewModel` covered; `MigrationRecoveryViewModel` still open.
 - [ ] **Repository contract tests missing** — Per `RepositorySpec.md`
 - [ ] **`try!` in test helpers only** — Acceptable in tests; avoid in app code (currently clean)

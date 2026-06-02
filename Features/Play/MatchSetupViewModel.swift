@@ -12,16 +12,8 @@ final class MatchSetupViewModel: ObservableObject {
         var id: String { rawValue }
     }
 
-    struct SetupBot: Identifiable, Equatable {
-        let id: UUID
-        let difficulty: BotDifficulty
-
-        var displayName: String { difficulty.rosterName }
-    }
-
     @Published var mode: SetupMode = .x01
     @Published var selectedPlayerIds: Set<UUID> = []
-    @Published var selectedBots: [SetupBot] = []
     @Published var availablePlayers: [PlayerSummary] = []
     @Published var x01StartScore: Int = 501
     @Published var x01LegsToWin: Int = 3
@@ -96,18 +88,29 @@ final class MatchSetupViewModel: ObservableObject {
         revalidate()
     }
 
-    func addBot(_ difficulty: BotDifficulty) {
-        selectedBots.append(SetupBot(id: UUID(), difficulty: difficulty))
-        revalidate()
+    var availableHumans: [PlayerSummary] {
+        availablePlayers.filter { !$0.isBot }
     }
 
-    func removeBot(_ id: UUID) {
-        selectedBots.removeAll { $0.id == id }
-        revalidate()
+    var availableBots: [PlayerSummary] {
+        availablePlayers.filter(\.isBot)
+    }
+
+    func addBot(_ difficulty: BotDifficulty) async {
+        do {
+            let created = try await playerRepository.createBot(difficulty: difficulty)
+            if !availablePlayers.contains(where: { $0.id == created.id }) {
+                availablePlayers.append(created)
+            }
+            selectedPlayerIds.insert(created.id)
+            revalidate()
+        } catch {
+            validationErrors = [(error as? AppError)?.userMessageKey ?? "setup.error.load"]
+        }
     }
 
     var selectedParticipantCount: Int {
-        selectedPlayerIds.count + selectedBots.count
+        selectedPlayerIds.count
     }
 
     func updateMode(_ mode: SetupMode) {
@@ -242,12 +245,15 @@ final class MatchSetupViewModel: ObservableObject {
             let botDifficulty: BotDifficulty?
         }
 
-        var rosterEntries: [RosterEntry] = availablePlayers
+        let rosterEntries: [RosterEntry] = availablePlayers
             .filter { selectedPlayerIds.contains($0.id) }
-            .map { RosterEntry(id: $0.id, name: $0.name, botDifficulty: nil) }
-        rosterEntries += selectedBots.map {
-            RosterEntry(id: $0.id, name: $0.displayName, botDifficulty: $0.difficulty)
-        }
+            .map { player in
+                RosterEntry(
+                    id: player.id,
+                    name: player.name,
+                    botDifficulty: player.botDifficulty
+                )
+            }
         let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
         let selectedPlayers = orderedRoster
             .enumerated()

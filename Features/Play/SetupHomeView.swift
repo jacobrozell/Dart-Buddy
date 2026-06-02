@@ -302,7 +302,8 @@ struct SetupHomeView: View {
 
     private func botMenuButton(_ title: String, difficulty: BotDifficulty, color: Color) -> some View {
         Button {
-            setupViewModel.addBot(difficulty)
+            startTask?.cancel()
+            startTask = Task { await setupViewModel.addBot(difficulty) }
         } label: {
             Label {
                 Text(title)
@@ -314,55 +315,76 @@ struct SetupHomeView: View {
 
     @ViewBuilder
     private var playerList: some View {
-        Text("Players").font(.headline).foregroundStyle(.white)
-        if setupViewModel.availablePlayers.isEmpty && setupViewModel.selectedBots.isEmpty {
+        if setupViewModel.availableHumans.isEmpty && setupViewModel.availableBots.isEmpty {
             Text("Add at least two players or bots to start a match.")
                 .font(.footnote)
                 .foregroundStyle(Brand.textSecondary)
         } else {
-            VStack(spacing: 0) {
-                ForEach(setupViewModel.selectedBots) { bot in
-                    Button { setupViewModel.removeBot(bot.id) } label: {
-                        HStack(spacing: DS.Spacing.s3) {
-                            Image(systemName: "cpu.fill")
-                                .foregroundStyle(botDifficultyColor(bot.difficulty))
-                            Text(bot.displayName)
-                                .font(.headline)
-                                .foregroundStyle(.white)
-                            Spacer()
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(botDifficultyColor(bot.difficulty))
-                        }
-                        .padding(.vertical, DS.Spacing.s3)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("select_bot_\(bot.difficulty.rawValue)")
-                    Divider().overlay(Brand.cardElevated)
+            VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+                if !setupViewModel.availableBots.isEmpty {
+                    Text("Bots").font(.headline).foregroundStyle(.white)
+                    botRosterList
                 }
-                ForEach(setupViewModel.availablePlayers) { player in
-                    let isSelected = setupViewModel.selectedPlayerIds.contains(player.id)
-                    Button { setupViewModel.togglePlayer(player.id) } label: {
-                        HStack(spacing: DS.Spacing.s3) {
-                            Image(systemName: "location.north.fill")
-                                .rotationEffect(.degrees(135))
-                                .foregroundStyle(Brand.textSecondary)
-                            Text(player.name)
-                                .font(.headline)
-                                .foregroundStyle(isSelected ? .white : Brand.textSecondary)
-                            Spacer()
-                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                                .foregroundStyle(isSelected ? Brand.green : Brand.textSecondary)
-                        }
-                        .padding(.vertical, DS.Spacing.s3)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("select_\(player.name)")
-                    Divider().overlay(Brand.cardElevated)
+                if !setupViewModel.availableHumans.isEmpty {
+                    Text("Players").font(.headline).foregroundStyle(.white)
+                    humanRosterList
                 }
             }
         }
+    }
+
+    private var botRosterList: some View {
+        VStack(spacing: 0) {
+            ForEach(setupViewModel.availableBots) { bot in
+                rosterRow(
+                    id: bot.id,
+                    name: bot.name,
+                    difficulty: bot.botDifficulty,
+                    accessibilityId: "select_bot_\(bot.botDifficultyRaw ?? "unknown")"
+                )
+                Divider().overlay(Brand.cardElevated)
+            }
+        }
+    }
+
+    private var humanRosterList: some View {
+        VStack(spacing: 0) {
+            ForEach(setupViewModel.availableHumans) { player in
+                rosterRow(
+                    id: player.id,
+                    name: player.name,
+                    difficulty: nil,
+                    accessibilityId: "select_\(player.name)"
+                )
+                Divider().overlay(Brand.cardElevated)
+            }
+        }
+    }
+
+    private func rosterRow(id: UUID, name: String, difficulty: BotDifficulty?, accessibilityId: String) -> some View {
+        let isSelected = setupViewModel.selectedPlayerIds.contains(id)
+        return Button { setupViewModel.togglePlayer(id) } label: {
+            HStack(spacing: DS.Spacing.s3) {
+                if let difficulty {
+                    Image(systemName: "cpu.fill")
+                        .foregroundStyle(botDifficultyColor(difficulty))
+                } else {
+                    Image(systemName: "location.north.fill")
+                        .rotationEffect(.degrees(135))
+                        .foregroundStyle(Brand.textSecondary)
+                }
+                Text(name)
+                    .font(.headline)
+                    .foregroundStyle(isSelected ? .white : Brand.textSecondary)
+                Spacer()
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? (difficulty.map(botDifficultyColor) ?? Brand.green) : Brand.textSecondary)
+            }
+            .padding(.vertical, DS.Spacing.s3)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(accessibilityId)
     }
 
     private func botDifficultyColor(_ difficulty: BotDifficulty) -> Color {

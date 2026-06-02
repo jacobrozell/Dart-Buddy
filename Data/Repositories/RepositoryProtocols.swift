@@ -3,6 +3,7 @@ import Foundation
 public protocol PlayerRepository: Sendable {
     func fetchPlayers(includeArchived: Bool) async throws -> [PlayerSummary]
     func createPlayer(name: String) async throws -> PlayerSummary
+    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary
     func updatePlayerName(playerId: UUID, name: String) async throws -> PlayerSummary
     func archivePlayer(playerId: UUID) async throws
     func unarchivePlayer(playerId: UUID) async throws

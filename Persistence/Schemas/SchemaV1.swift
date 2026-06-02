@@ -20,6 +20,8 @@ public enum SchemaV1: VersionedSchema {
         @Attribute(.unique) public var id: UUID
         public var name: String
         public var isArchived: Bool
+        public var isBot: Bool
+        public var botDifficultyRaw: String?
         public var createdAt: Date
         public var updatedAt: Date
 
@@ -27,12 +29,16 @@ public enum SchemaV1: VersionedSchema {
             id: UUID = UUID(),
             name: String,
             isArchived: Bool = false,
+            isBot: Bool = false,
+            botDifficultyRaw: String? = nil,
             createdAt: Date = Date(),
             updatedAt: Date = Date()
         ) {
             self.id = id
             self.name = name
             self.isArchived = isArchived
+            self.isBot = isBot
+            self.botDifficultyRaw = botDifficultyRaw
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }
