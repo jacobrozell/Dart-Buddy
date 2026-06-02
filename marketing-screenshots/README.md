@@ -20,8 +20,26 @@ FRAME_COLOR="Cosmic Orange" ./Scripts/frame-marketing-screenshots.sh
 
 | Folder | Use |
 |--------|-----|
-| `raw/` | Upload to **App Store Connect** (no bezels) |
+| `raw/` | iPhone → **App Store Connect** (no bezels) |
+| `ipad/raw/` | iPad 12.9" / 13" → **App Store Connect** |
 | `framed/` | Website, social, press kit (with bezels) |
+
+## App Store Connect dimensions
+
+Upload **`raw/`** only (no device frames). For the **6.5" Display** slot, Apple accepts portrait:
+
+- **1284 × 2778** (default after capture — `Scripts/app-store-screenshot-size.sh`)
+- **1242 × 2688** — `APP_STORE_WIDTH=1242 APP_STORE_HEIGHT=2688 ./Scripts/capture-marketing-screenshots.sh`
+
+iPhone 17 Pro simulators capture **1206 × 2622**; the capture script resizes to the size above unless `APP_STORE_RESIZE=0`.
+
+For the **6.9" Display** slot, capture on **iPhone 17 Pro Max** (native **1320 × 2868**) and set `APP_STORE_RESIZE=0`, or use `APP_STORE_WIDTH=1320 APP_STORE_HEIGHT=2868` if you need an exact export from a smaller device.
+
+Fix existing PNGs without re-capturing:
+
+```bash
+./Scripts/app-store-screenshot-size.sh resize marketing-screenshots/raw/*.png
+```
 
 ## Screens captured (App Store priority)
 
@@ -31,6 +49,18 @@ FRAME_COLOR="Cosmic Orange" ./Scripts/frame-marketing-screenshots.sh
 4. **History** — completed matches (`-seed_demo -snapshot_tab history`)
 5. **Match summary** — post-game stats (`-snapshot_match_summary`)
 6. **Players** — roster (`-seed_demo -snapshot_tab players`)
+7. **Statistics** — leaderboards (`-seed_demo -snapshot_tab statistics`)
+
+## iPad (12.9" / 13" Displays)
+
+App Store accepts portrait **2064 × 2752** or **2048 × 2732** (and matching landscape sizes).
+
+```bash
+./Scripts/capture-ipad-marketing-screenshots.sh
+# → marketing-screenshots/ipad/raw/*.png
+```
+
+Uses **iPad Pro 13-inch** simulator (native **2064×2752**). Upload from `ipad/raw/` only — no device frames.
 
 ## Options
 
@@ -38,11 +68,14 @@ FRAME_COLOR="Cosmic Orange" ./Scripts/frame-marketing-screenshots.sh
 # Light mode set
 APPEARANCE=light ./Scripts/capture-marketing-screenshots.sh
 
-# 6.9" display (App Store “iPhone 6.9\"” slot)
-SIM_NAME="iPhone 17 Pro Max" ./Scripts/capture-marketing-screenshots.sh
+# 6.9" display (1320×2868 native; disable auto-resize)
+SIM_NAME="iPhone 17 Pro Max" APP_STORE_RESIZE=0 ./Scripts/capture-marketing-screenshots.sh
 
-# iPad (optional)
-SIM_NAME="iPad Pro 13-inch (M4)" ./Scripts/capture-marketing-screenshots.sh
+# Alternate 6.5" size (1242×2688)
+APP_STORE_WIDTH=1242 APP_STORE_HEIGHT=2688 ./Scripts/capture-marketing-screenshots.sh
+
+# iPad 12.9" / 13" (2064×2752 — native on iPad Pro 13-inch simulator)
+./Scripts/capture-ipad-marketing-screenshots.sh
 ```
 
 ## Launch arguments reference

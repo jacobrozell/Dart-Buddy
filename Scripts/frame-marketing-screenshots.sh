@@ -81,10 +81,11 @@ for shot in "$RAW_DIR"/*.png; do
   fi
 
   if [[ "$ROUND_RADIUS" -gt 0 ]]; then
-    magick "$work" \
+    # DstIn + alpha set (not CopyOpacity/-alpha off) — the latter zeroes RGB and yields a black screen.
+    magick "$work" -alpha set \
       \( -size "${SHOT_W}x${SHOT_H}" xc:none \
           -draw "roundrectangle 0,0,$((SHOT_W - 1)),$((SHOT_H - 1)),${ROUND_RADIUS},${ROUND_RADIUS}" \) \
-      -alpha off -compose CopyOpacity -composite "$work"
+      -compose DstIn -composite "$work"
   fi
 
   # DstOver: screenshot under the bezel; PNG32 preserves transparency outside the device.

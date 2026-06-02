@@ -6,12 +6,18 @@
 #   APPEARANCE=light ./Scripts/capture-marketing-screenshots.sh
 #   SIM_NAME="iPhone 17 Pro Max" ./Scripts/capture-marketing-screenshots.sh
 #
-# Output: marketing-screenshots/raw/*.png
+# Output: marketing-screenshots/raw/*.png (resized for App Store Connect by default)
 # Then run: ./Scripts/frame-marketing-screenshots.sh
+#
+# App Store 6.5" slot requires 1284×2778 or 1242×2688. iPhone 17 Pro captures 1206×2622;
+# set APP_STORE_RESIZE=0 to keep native pixels (e.g. for local framing only).
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=app-store-screenshot-size.sh
+source "$SCRIPT_DIR/app-store-screenshot-size.sh"
 SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
 APPEARANCE="${APPEARANCE:-dark}"
 OUT_DIR="${OUT_DIR:-$ROOT/marketing-screenshots/raw}"
@@ -20,11 +26,12 @@ SCHEME="DartsScoreboard"
 PROJECT="$ROOT/DartsScoreboard.xcodeproj"
 DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/marketing-screenshots}"
 LAUNCH_DELAY="${LAUNCH_DELAY:-2.5}"
+APP_STORE_RESIZE="${APP_STORE_RESIZE:-1}"
 
 COMMON_ARGS=(-ui_test_reset -ui_test_disable_feedback -disable_firebase_analytics)
 
 slugify() {
-  echo "$1" | tr ' ' '-' | tr '[:upper:]' '[:lower:]'
+  echo "$1" | tr ' ' '-' | tr -d '()' | tr '[:upper:]' '[:lower:]'
 }
 
 echo "→ Project: $ROOT"
@@ -94,6 +101,9 @@ capture() {
   xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" "${args[@]}" >/dev/null
   sleep "$LAUNCH_DELAY"
   xcrun simctl io "$SIM_UDID" screenshot "$OUT_DIR/$filename"
+  if [[ "$APP_STORE_RESIZE" == 1 ]]; then
+    app_store_resize_png "$OUT_DIR/$filename"
+  fi
 }
 
 DEVICE_SLUG="$(slugify "$SIM_NAME")"
@@ -117,8 +127,15 @@ capture "${DEVICE_SLUG}-05-match-summary-${APPEARANCE}.png" \
 capture "${DEVICE_SLUG}-06-players-${APPEARANCE}.png" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab players
 
+capture "${DEVICE_SLUG}-07-statistics-${APPEARANCE}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab statistics
+
 echo ""
-echo "Done. Raw screenshots:"
+first_png="$(ls -1 "$OUT_DIR"/*.png | head -1)"
+echo "Done. Raw screenshots ($(magick identify -format '%wx%h' "$first_png")):"
 ls -1 "$OUT_DIR"/*.png
+if [[ "$APP_STORE_RESIZE" == 1 ]]; then
+  echo "App Store export size: ${APP_STORE_WIDTH}×${APP_STORE_HEIGHT}"
+fi
 echo ""
 echo "Next: ./Scripts/frame-marketing-screenshots.sh"

@@ -333,21 +333,21 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 ### Visual assets
 
 - [ ] **App icon** 1024×1024 (no alpha, no rounded corners — Apple applies mask)
-- [ ] **iPhone 6.9"** screenshot set (use `marketing-screenshots/raw/` — **no device frames** in upload slots)
+- [ ] **iPhone screenshots** in `marketing-screenshots/raw/` (**no device frames**; default **1284×2778** for 6.5" slot — see `marketing-screenshots/README.md`)
   - [ ] X01 in-match
   - [ ] Cricket board
   - [ ] Match setup / Play home
   - [ ] History
   - [ ] Match summary or **Statistics** tab
   - [ ] Players roster (optional 6th)
-- [ ] **iPad** screenshots (optional but recommended for `TARGETED_DEVICE_FAMILY` 1,2)
+- [ ] **iPad** screenshots (`marketing-screenshots/ipad/raw/` — **2064×2752**, `./Scripts/capture-ipad-marketing-screenshots.sh`)
 - [ ] Preview video (optional — skip for 1.0 if not ready)
 
 **Generate marketing shots:** [`marketing-screenshots/README.md`](marketing-screenshots/README.md)
 
 ```bash
-./Scripts/capture-marketing-screenshots.sh
-# App Store upload: marketing-screenshots/raw/ only
+./Scripts/capture-marketing-screenshots.sh   # exports 1284×2778 for App Store 6.5"
+# App Store upload: marketing-screenshots/raw/ only (not framed/)
 # Reddit/social: marketing-screenshots/framed/ after frame-marketing-screenshots.sh
 ```
 
@@ -458,7 +458,8 @@ Post-submit ops: [`roadmap/release/Launch-Day-Runbook.md`](roadmap/release/Launc
 
 Do not delay ship for:
 
-- Game Center ([`achievements.md`](achievements.md))
+- Game Center ([`FutureIdeas/achievements.md`](FutureIdeas/achievements.md))
+- Play reminders ([`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md))
 - Snapshot tests, full motion pass, X01 total-score entry, Cricket variants (Cut Throat)
 - Firebase Auth, online play, Watch/widgets, voice “180!” caller
 - Full UI automation matrix beyond current CI smoke

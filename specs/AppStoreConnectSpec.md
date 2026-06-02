@@ -121,6 +121,11 @@ Asset guidance:
 - Keep text overlays short and benefit-driven
 - Include dark/light examples if useful
 
+Portrait upload sizes (App Store Connect):
+- **6.5" Display:** 1284×2778 or 1242×2688 (no device bezels). Capture script resizes from iPhone 17 Pro simulator output; see `marketing-screenshots/README.md`.
+- **6.9" Display:** 1320×2868 or 1290×2796 when required — use iPhone 17 Pro Max with `APP_STORE_RESIZE=0`, or upload scaled assets per Connect UI.
+- **iPad 12.9" / 13":** 2064×2752 or 2048×2732 portrait (`./Scripts/capture-ipad-marketing-screenshots.sh` → `marketing-screenshots/ipad/raw/`).
+
 ---
 
 ## 9. App Store Presence and Launch Plan
