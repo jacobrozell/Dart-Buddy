@@ -233,6 +233,33 @@ final class DartsScoreboardUITests: XCTestCase {
         )
     }
 
+    // MARK: - Key path: live dart boxes, visit total, and average update per dart
+
+    func testX01LiveDartsAndAverageUpdatePerDart() {
+        let app = launchApp(["-seed_players"])
+
+        app.buttons["select_Alice"].tap()
+        app.buttons["select_Bob"].tap()
+        app.buttons["startMatchButton"].tap()
+
+        let twenty = app.buttons["pad_20"]
+        XCTAssertTrue(twenty.waitForExistence(timeout: timeout))
+        twenty.tap()
+
+        XCTAssertEqual(app.staticTexts["scoreCard_remaining"].label, "481")
+        XCTAssertEqual(app.staticTexts["scoreCard_visitTotal"].label, "20")
+        XCTAssertEqual(app.staticTexts["scoreCard_dartsThrown"].label, "1")
+        XCTAssertEqual(app.staticTexts["scoreCard_average"].label, "60.00")
+        XCTAssertEqual(app.staticTexts["scoreCard_dartSlot_0"].label, "20")
+
+        twenty.tap()
+        XCTAssertEqual(app.staticTexts["scoreCard_remaining"].label, "461")
+        XCTAssertEqual(app.staticTexts["scoreCard_visitTotal"].label, "40")
+        XCTAssertEqual(app.staticTexts["scoreCard_dartsThrown"].label, "2")
+        XCTAssertEqual(app.staticTexts["scoreCard_average"].label, "60.00")
+        XCTAssertEqual(app.staticTexts["scoreCard_dartSlot_1"].label, "20")
+    }
+
     // MARK: - Key path: undo a dart on the scoring pad
 
     func testUndoRemovesEnteredDart() {

@@ -10,8 +10,8 @@ Status legend: `[ ]` todo · `[~]` partial
 
 - [x] **Turn total caller (optional)** — After human submits a visit, speak/play visit total; Settings toggle, default off; respect sound gate.
 - [x] **Leg vs match finish SFX** — `legFinishSoundToken` uses `playMatchFinished()` today; add leg-specific sound; reserve `game_finished` for match end.
-- [~] **Bot zero visits** — WIP (uncommitted): `veryEasy` tier, `offBoardMissChance`, unit + mirror sim caps. Land before calling done.
-- [ ] **X01 live darts + avg** — VM has preview stats; verify UI updates per dart in simulator; fix binding or add UI test if not.
+- [x] **Bot zero visits** — WIP (uncommitted): `veryEasy` tier, `offBoardMissChance`, unit + mirror sim caps. Land before calling done.
+- [x] **X01 live darts + avg** — VM has preview stats; verify UI updates per dart in simulator; fix binding or add UI test if not.
 
 ---
 

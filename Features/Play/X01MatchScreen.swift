@@ -229,6 +229,7 @@ private struct PlayerScoreCard: View {
                     Text("\(score)")
                         .font(.system(size: 40, weight: .heavy, design: .rounded))
                         .foregroundStyle(.white)
+                        .accessibilityIdentifier(isActive ? "scoreCard_remaining" : "")
                     Text(name)
                         .font(.subheadline)
                         .foregroundStyle(isActive ? Brand.green : Brand.textSecondary)
@@ -239,11 +240,13 @@ private struct PlayerScoreCard: View {
                     HStack(spacing: 6) {
                         ForEach(0 ..< 3, id: \.self) { slot in
                             dartBox(slot < visitDarts.count ? dartLabel(visitDarts[slot]) : nil)
+                                .accessibilityIdentifier(isActive ? "scoreCard_dartSlot_\(slot)" : "")
                         }
                     }
                     Text("\(visitTotal)")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Brand.textSecondary)
+                        .accessibilityIdentifier(isActive ? "scoreCard_visitTotal" : "")
                 }
                 Spacer(minLength: DS.Spacing.s2)
                 VStack(alignment: .trailing, spacing: 4) {
@@ -255,11 +258,13 @@ private struct PlayerScoreCard: View {
                         Text("\(dartsThrown)").font(.caption.weight(.semibold))
                     }
                     .foregroundStyle(Brand.textSecondary)
+                    .accessibilityIdentifier(isActive ? "scoreCard_dartsThrown" : "")
                     HStack(spacing: 4) {
                         Image(systemName: "chart.bar.fill").font(.caption2)
                         Text(String(format: "%.2f", average)).font(.caption.weight(.semibold))
                     }
                     .foregroundStyle(Brand.textSecondary)
+                    .accessibilityIdentifier(isActive ? "scoreCard_average" : "")
                 }
             }
             .padding(DS.Spacing.s3)

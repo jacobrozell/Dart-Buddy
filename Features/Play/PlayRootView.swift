@@ -44,32 +44,16 @@ struct PlayRootView: View {
                 case .setup:
                     EmptyView()
                 case let .x01Match(matchId):
-                    X01MatchScreen(
-                        viewModel: X01MatchViewModel(
-                            matchId: matchId,
-                            store: dependencies.activeMatchStore,
-                            logger: dependencies.logger,
-                            matchRepository: dependencies.matchRepository,
-                            statsRepository: dependencies.statsRepository
-                        ),
-                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) },
-                        audio: dependencies.audioFeedbackService,
-                        haptics: dependencies.hapticsService,
-                        turnTotalCaller: dependencies.turnTotalCallerService
+                    X01MatchRouteView(
+                        matchId: matchId,
+                        dependencies: dependencies,
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
                 case let .cricketMatch(matchId):
-                    CricketMatchScreen(
-                        viewModel: CricketMatchViewModel(
-                            matchId: matchId,
-                            store: dependencies.activeMatchStore,
-                            logger: dependencies.logger,
-                            matchRepository: dependencies.matchRepository,
-                            statsRepository: dependencies.statsRepository
-                        ),
-                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) },
-                        audio: dependencies.audioFeedbackService,
-                        haptics: dependencies.hapticsService,
-                        turnTotalCaller: dependencies.turnTotalCallerService
+                    CricketMatchRouteView(
+                        matchId: matchId,
+                        dependencies: dependencies,
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
                 case let .matchSummary(matchId):
                     MatchSummaryScreen(
@@ -132,5 +116,69 @@ struct PlayRootView: View {
             return .matchSummary(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000003") ?? UUID())
         }
         return nil
+    }
+}
+
+private struct X01MatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: X01MatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: X01MatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository
+            )
+        )
+    }
+
+    var body: some View {
+        X01MatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            turnTotalCaller: dependencies.turnTotalCallerService
+        )
+    }
+}
+
+private struct CricketMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: CricketMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: CricketMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository
+            )
+        )
+    }
+
+    var body: some View {
+        CricketMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            turnTotalCaller: dependencies.turnTotalCallerService
+        )
     }
 }
