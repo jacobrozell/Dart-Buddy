@@ -96,6 +96,8 @@ public enum MatchStatsLoader {
                     let envelopes = decodeEvents(eventsByMatchId[record.summary.id] ?? [])
                     inputs.append(
                         MatchStatsInput(
+                            matchId: record.summary.id,
+                            playedAt: record.summary.endedAt ?? record.summary.startedAt,
                             type: record.summary.type,
                             participantKeys: keys,
                             winnerKey: record.summary.winnerPlayerId,

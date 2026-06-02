@@ -103,7 +103,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
     #expect(activeMatch == nil)
 
     // --- Statistics: X01 leaderboard recomputed from raw events ---
-    let x01Stats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo)
+    let x01Stats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo, playerRepository: playerRepo)
     x01Stats.mode = .x01
     x01Stats.period = .all
     await x01Stats.load()
@@ -123,7 +123,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
     #expect(x01Stats.sectorHits.contains { $0.sector == "20" && $0.count > 0 })
 
     // --- Statistics: Cricket leaderboard ---
-    let cricketStats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo)
+    let cricketStats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo, playerRepository: playerRepo)
     cricketStats.mode = .cricket
     cricketStats.period = .all
     await cricketStats.load()
@@ -134,7 +134,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
     }
 
     // --- Time-window filter: "Today" must include matches played just now ---
-    let todayStats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo)
+    let todayStats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo, playerRepository: playerRepo)
     todayStats.mode = .x01
     todayStats.period = .today
     await todayStats.load()

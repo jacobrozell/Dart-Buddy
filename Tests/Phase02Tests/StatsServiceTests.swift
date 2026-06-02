@@ -174,3 +174,34 @@ func breakdownsAggregateGamesAcrossMatches() throws {
     #expect(p.wins == 1)
     #expect(abs(p.winPercent - 50) < 0.0001)
 }
+
+@Test(.tags(.unit, .stats, .regression))
+func x01TrendPointsOrdersMatchesChronologically() throws {
+    let player = UUID()
+    let other = UUID()
+    let early = Date(timeIntervalSince1970: 1_000_000)
+    let late = Date(timeIntervalSince1970: 2_000_000)
+
+    func makeSession() throws -> [MatchEventEnvelope] {
+        var session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+            participants: [
+                MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 0),
+                MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 1)
+            ]
+        )
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+        return session.events
+    }
+
+    let matches = [
+        MatchStatsInput(matchId: UUID(), playedAt: late, type: .x01, participantKeys: [player, other], winnerKey: player, events: try makeSession()),
+        MatchStatsInput(matchId: UUID(), playedAt: early, type: .x01, participantKeys: [player, other], winnerKey: player, events: try makeSession())
+    ]
+    let trend = StatsService.x01TrendPoints(from: matches, playerId: player)
+    #expect(trend.count == 2)
+    #expect(trend[0].date == early)
+    #expect(trend[1].date == late)
+    #expect(trend[0].average3Dart > 0)
+}

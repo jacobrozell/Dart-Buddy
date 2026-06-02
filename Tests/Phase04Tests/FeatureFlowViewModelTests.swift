@@ -152,13 +152,25 @@ private actor StatsFakeStatsRepository: StatsRepository {
     func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
 }
 
+private actor StatsFakePlayerRepository: PlayerRepository {
+    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { [] }
+    func createPlayer(name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
+    func archivePlayer(playerId _: UUID) async throws {}
+    func unarchivePlayer(playerId _: UUID) async throws {}
+    func deletePlayer(playerId _: UUID) async throws {}
+}
+
 @MainActor
 @Test(.tags(.integration, .stats, .x01, .regression))
 func statisticsViewModelComputesBreakdownRows() async throws {
     let fixture = try makeCompletedX01Fixture()
     let vm = StatisticsViewModel(
         matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        statsRepository: StatsFakeStatsRepository(events: fixture.events),
+        playerRepository: StatsFakePlayerRepository()
     )
     await vm.load()
 
@@ -168,6 +180,23 @@ func statisticsViewModelComputesBreakdownRows() async throws {
     #expect(jacob.points == 301)
     #expect(jacob.highestScore == 180)
     #expect(!vm.sectorHits.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .stats, .player, .regression))
+func statisticsViewModelFiltersToSinglePlayer() async throws {
+    let fixture = try makeCompletedX01Fixture()
+    let vm = StatisticsViewModel(
+        matchRepository: StatsFakeMatchRepository(fixture: fixture),
+        statsRepository: StatsFakeStatsRepository(events: fixture.events),
+        playerRepository: StatsFakePlayerRepository()
+    )
+    vm.playerFilter = fixture.jacob
+    await vm.load()
+
+    #expect(vm.rows.count == 1)
+    #expect(vm.rows.first?.playerId == fixture.jacob)
+    #expect(vm.rows.first?.wins == 1)
 }
 
 @MainActor

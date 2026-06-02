@@ -45,6 +45,47 @@ struct SectorHitsChart: View {
     }
 }
 
+struct AverageTrendChart: View {
+    let points: [StatsTrendPoint]
+
+    var body: some View {
+        Chart(points) { point in
+            LineMark(
+                x: .value("Date", point.date),
+                y: .value("Average", point.average3Dart)
+            )
+            .foregroundStyle(Brand.green)
+            .interpolationMethod(.catmullRom)
+            PointMark(
+                x: .value("Date", point.date),
+                y: .value("Average", point.average3Dart)
+            )
+            .foregroundStyle(Brand.green)
+        }
+        .chartXAxis {
+            AxisMarks(values: .automatic) { _ in
+                AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+                    .foregroundStyle(Brand.textSecondary)
+            }
+        }
+        .chartYAxis {
+            AxisMarks { _ in
+                AxisValueLabel().foregroundStyle(Brand.textSecondary)
+            }
+        }
+        .frame(height: 200)
+        .padding(DS.Spacing.s4)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "stats.trend.title"))
+        .accessibilityValue(trendAccessibilityValue)
+    }
+
+    private var trendAccessibilityValue: String {
+        points.map { String(format: "%.1f", $0.average3Dart) }.joined(separator: ", ")
+    }
+}
+
 struct PlayerAverageChart: View {
     let average: Double
     let playerName: String

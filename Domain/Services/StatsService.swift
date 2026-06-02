@@ -98,16 +98,39 @@ public struct PlayerStatBreakdown: Identifiable, Equatable, Sendable {
 
 /// Describes a single completed match used as input for stat aggregation.
 public struct MatchStatsInput: Sendable {
+    public let matchId: UUID
+    public let playedAt: Date
     public let type: MatchType
     public let participantKeys: [UUID]
     public let winnerKey: UUID?
     public let events: [MatchEventEnvelope]
 
-    public init(type: MatchType, participantKeys: [UUID], winnerKey: UUID?, events: [MatchEventEnvelope]) {
+    public init(
+        matchId: UUID = UUID(),
+        playedAt: Date = Date(),
+        type: MatchType,
+        participantKeys: [UUID],
+        winnerKey: UUID?,
+        events: [MatchEventEnvelope]
+    ) {
+        self.matchId = matchId
+        self.playedAt = playedAt
         self.type = type
         self.participantKeys = participantKeys
         self.winnerKey = winnerKey
         self.events = events
+    }
+}
+
+public struct StatsTrendPoint: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    public let date: Date
+    public let average3Dart: Double
+
+    public init(id: UUID, date: Date, average3Dart: Double) {
+        self.id = id
+        self.date = date
+        self.average3Dart = average3Dart
     }
 }
 
@@ -179,6 +202,28 @@ public enum StatsService {
             if $0.games != $1.games { return $0.games > $1.games }
             return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
         }
+    }
+
+    /// Per-match X01 3-dart averages for one player, ordered oldest to newest.
+    public static func x01TrendPoints(from matches: [MatchStatsInput], playerId: UUID) -> [StatsTrendPoint] {
+        matches
+            .filter { $0.type == .x01 && $0.participantKeys.contains(playerId) }
+            .sorted { $0.playedAt < $1.playedAt }
+            .compactMap { match -> StatsTrendPoint? in
+                var points = 0
+                var darts = 0
+                for envelope in match.events {
+                    guard case let .x01Turn(turn) = envelope.payload, turn.playerId == playerId else { continue }
+                    points += turn.appliedTotal
+                    darts += turn.effectiveDartsThrown
+                }
+                guard darts > 0 else { return nil }
+                return StatsTrendPoint(
+                    id: match.matchId,
+                    date: match.playedAt,
+                    average3Dart: x01Average3Dart(totalPointsScored: points, totalDartsThrown: darts)
+                )
+            }
     }
 
     public static func recomputePlayerAggregates(from completedSessions: [MatchLifecycleSession]) -> [UUID: PlayerAggregateStats] {

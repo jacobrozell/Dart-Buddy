@@ -10,7 +10,8 @@ struct StatisticsRootView: View {
         self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: StatisticsViewModel(
             matchRepository: dependencies.matchRepository,
-            statsRepository: dependencies.statsRepository
+            statsRepository: dependencies.statsRepository,
+            playerRepository: dependencies.playerRepository
         ))
     }
 
@@ -34,6 +35,8 @@ struct StatisticsRootView: View {
                         selection: $viewModel.period
                     )
 
+                    playerFilterMenu
+
                     if viewModel.isLoading && viewModel.rows.isEmpty {
                         ProgressView()
                             .tint(Brand.green)
@@ -47,6 +50,10 @@ struct StatisticsRootView: View {
                             sectionTitle("Average & Highest Score")
                             averageTable
                             averageChart
+                            if viewModel.showsTrendChart {
+                                sectionTitle(String(localized: "stats.trend.title"))
+                                AverageTrendChart(points: viewModel.trendPoints)
+                            }
                             sectionTitle("Legs & Checkout")
                             checkoutTable
                         } else {
@@ -69,6 +76,7 @@ struct StatisticsRootView: View {
             .task { await viewModel.load() }
             .onChange(of: viewModel.mode) { _, _ in reload() }
             .onChange(of: viewModel.period) { _, _ in reload() }
+            .onChange(of: viewModel.playerFilter) { _, _ in reload() }
             .onDisappear { loadTask?.cancel() }
         }
     }
@@ -76,6 +84,48 @@ struct StatisticsRootView: View {
     private func reload() {
         loadTask?.cancel()
         loadTask = Task { await viewModel.load() }
+    }
+
+    private var playerFilterMenu: some View {
+        Menu {
+            Button {
+                viewModel.playerFilter = nil
+            } label: {
+                if viewModel.playerFilter == nil {
+                    Label(String(localized: "stats.filter.allPlayers"), systemImage: "checkmark")
+                } else {
+                    Text(String(localized: "stats.filter.allPlayers"))
+                }
+            }
+            if !viewModel.playerOptions.isEmpty {
+                Divider()
+                ForEach(viewModel.playerOptions) { player in
+                    Button {
+                        viewModel.playerFilter = player.id
+                    } label: {
+                        if viewModel.playerFilter == player.id {
+                            Label(player.name, systemImage: "checkmark")
+                        } else {
+                            Text(player.name)
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack {
+                Image(systemName: "person.crop.circle")
+                Text(viewModel.selectedPlayerName ?? String(localized: "stats.filter.allPlayers"))
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, DS.Spacing.s3)
+            .padding(.vertical, DS.Spacing.s3)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        }
     }
 
     private func sectionTitle(_ text: String) -> some View {

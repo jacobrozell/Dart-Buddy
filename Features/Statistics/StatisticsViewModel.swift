@@ -23,15 +23,34 @@ final class StatisticsViewModel: ObservableObject {
 
     @Published var mode: MatchType = .x01
     @Published var period: Period = .all
+    /// `nil` = all players; otherwise filters to one player.
+    @Published var playerFilter: UUID?
     @Published private(set) var rows: [PlayerStatBreakdown] = []
+    @Published private(set) var trendPoints: [StatsTrendPoint] = []
+    @Published private(set) var playerOptions: [PlayerSummary] = []
     @Published private(set) var isLoading = false
 
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
+    private let playerRepository: any PlayerRepository
 
-    init(matchRepository: any MatchRepository, statsRepository: any StatsRepository) {
+    init(
+        matchRepository: any MatchRepository,
+        statsRepository: any StatsRepository,
+        playerRepository: any PlayerRepository
+    ) {
         self.matchRepository = matchRepository
         self.statsRepository = statsRepository
+        self.playerRepository = playerRepository
+    }
+
+    var selectedPlayerName: String? {
+        guard let playerFilter else { return nil }
+        return playerOptions.first(where: { $0.id == playerFilter })?.name
+    }
+
+    var showsTrendChart: Bool {
+        mode == .x01 && playerFilter != nil && trendPoints.count >= 2
     }
 
     /// Sectors hit across all listed players, ordered by board value, for charting.
@@ -51,17 +70,34 @@ final class StatisticsViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
+            playerOptions = try await playerRepository.fetchPlayers(includeArchived: true)
+                .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            if !playerOptions.isEmpty,
+               let playerFilter,
+               !playerOptions.contains(where: { $0.id == playerFilter }) {
+                self.playerFilter = nil
+            }
+            let activePlayerFilter = self.playerFilter
             let result = try await MatchStatsLoader.load(
                 matchRepository: matchRepository,
                 statsRepository: statsRepository,
                 request: MatchStatsLoadRequest(
                     matchType: mode,
-                    startedAfter: periodCutoff()
+                    startedAfter: periodCutoff(),
+                    participantPlayerId: activePlayerFilter
                 )
             )
-            rows = StatsService.breakdowns(from: result.inputs, nameById: result.namesById)
+            var breakdowns = StatsService.breakdowns(from: result.inputs, nameById: result.namesById)
+            if let activePlayerFilter {
+                breakdowns = breakdowns.filter { $0.playerId == activePlayerFilter }
+                trendPoints = StatsService.x01TrendPoints(from: result.inputs, playerId: activePlayerFilter)
+            } else {
+                trendPoints = []
+            }
+            rows = breakdowns
         } catch {
             rows = []
+            trendPoints = []
         }
     }
 
