@@ -91,7 +91,7 @@ struct PlayerIdentityCard: View {
                         Circle()
                             .fill(accent)
                             .frame(width: 10, height: 10)
-                        Text(LocalizedStringKey("players.identity.color.\(player.colorToken.rawValue)"))
+                        Text(player.colorToken.displayName)
                             .font(.subheadline)
                             .foregroundStyle(Brand.textSecondary)
                     }
@@ -142,7 +142,7 @@ struct AvatarStylePicker: View {
                         .background(isSelected ? Brand.green : Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(LocalizedStringKey("players.avatar.\(style.rawValue)"))
+                .accessibilityLabel(style.displayName)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
@@ -172,7 +172,7 @@ struct PlayerColorTokenPicker: View {
                         .frame(minWidth: 44, minHeight: 44)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(LocalizedStringKey("players.identity.color.\(token.rawValue)"))
+                .accessibilityLabel(token.displayName)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }

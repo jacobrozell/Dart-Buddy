@@ -19,6 +19,10 @@ public enum PlayerAvatarStyle: String, CaseIterable, Codable, Sendable, Identifi
         }
     }
 
+    public var displayName: String {
+        L10n.string("players.avatar.\(rawValue)")
+    }
+
     public static func resolved(raw: String?) -> PlayerAvatarStyle {
         raw.flatMap(PlayerAvatarStyle.init(rawValue:)) ?? .dart
     }
@@ -39,6 +43,10 @@ public enum PlayerColorToken: String, CaseIterable, Codable, Sendable, Identifia
     case teal
 
     public var id: String { rawValue }
+
+    public var displayName: String {
+        L10n.string("players.identity.color.\(rawValue)")
+    }
 
     public static func resolved(raw: String?) -> PlayerColorToken {
         raw.flatMap(PlayerColorToken.init(rawValue:)) ?? .green
