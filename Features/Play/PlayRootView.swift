@@ -77,7 +77,8 @@ struct PlayRootView: View {
                             matchRepository: dependencies.matchRepository,
                             statsRepository: dependencies.statsRepository
                         ),
-                        matchId: matchId
+                        matchId: matchId,
+                        onDeleted: { path.removeAll() }
                     )
                 case .quickAddPlayer:
                     QuickAddPlayerScreen(repository: dependencies.playerRepository) { created in

@@ -300,6 +300,55 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["New Match"].waitForExistence(timeout: timeout))
     }
 
+    // MARK: - Key path: deleting from post-match stats returns to Play home
+
+    func testPostMatchStatsDeleteReturnsToPlayHome() {
+        let app = launchApp(["-seed_players"])
+        configureQuickX01Match(app)
+
+        app.buttons["select_Alice"].tap()
+        app.buttons["Add Bot"].tap()
+        XCTAssertTrue(app.buttons["Easy"].waitForExistence(timeout: timeout))
+        app.buttons["Easy"].tap()
+        XCTAssertTrue(app.buttons["select_bot_easy"].waitForExistence(timeout: timeout + 5))
+        app.buttons["startMatchButton"].tap()
+
+        let twenty = app.buttons["pad_20"]
+        XCTAssertTrue(twenty.waitForExistence(timeout: timeout))
+        twenty.tap()
+        twenty.tap()
+        twenty.tap()
+        _ = twenty.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 10)
+
+        app.buttons["pad_double"].tap()
+        app.buttons["pad_20"].tap()
+        app.buttons["pad_1"].tap()
+
+        XCTAssertTrue(app.otherElements["matchSummaryHeader"].waitForExistence(timeout: timeout + 5))
+
+        app.buttons["View Game Statistics"].tap()
+        XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
+
+        scrollToDeleteButton(app)
+        app.buttons["historyDetailDeleteButton"].tap()
+        let confirm = app.alerts.buttons["Delete"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: timeout))
+        confirm.tap()
+
+        XCTAssertTrue(
+            app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
+            "Deleting from post-match stats should return to Play home"
+        )
+        XCTAssertFalse(
+            app.staticTexts["Game Statistics"].waitForExistence(timeout: 2),
+            "Stats screen should be dismissed after delete"
+        )
+        XCTAssertFalse(
+            app.staticTexts["Alice wins!"].waitForExistence(timeout: 2),
+            "Match summary should be dismissed after delete"
+        )
+    }
+
     // MARK: - Game detail: per-player sector charts
 
     func testGameDetailShowsPerPlayerSectorCharts() {
@@ -392,6 +441,14 @@ final class DartsScoreboardUITests: XCTestCase {
         for _ in 0 ..< 4 where haptics.exists == false || haptics.isHittable == false {
             app.swipeUp()
         }
+    }
+
+    private func scrollToDeleteButton(_ app: XCUIApplication) {
+        let delete = app.buttons["historyDetailDeleteButton"]
+        for _ in 0 ..< 6 where delete.exists == false || delete.isHittable == false {
+            app.swipeUp()
+        }
+        XCTAssertTrue(delete.waitForExistence(timeout: timeout), "Delete button should be reachable after scrolling")
     }
 
     // MARK: - Key path: undo a dart on the scoring pad
