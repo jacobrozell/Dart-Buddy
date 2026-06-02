@@ -71,6 +71,36 @@ func cricketViewModelCompletesMatchOnFinalClose() async throws {
 
 @MainActor
 @Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelReflectsMarksOnBoardAfterSubmit() async throws {
+    let (vm, _) = try makeCricketViewModel()
+    await vm.onAppear()
+    vm.enteredDarts = [triple(20)]
+
+    await vm.submitTurn()
+
+    let aliceColumn = try #require(vm.boardColumns.first)
+    #expect(aliceColumn.marks["20"] == 3)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelUndoRevertsLastTurn() async throws {
+    let (vm, store) = try makeCricketViewModel()
+    await vm.onAppear()
+    vm.enteredDarts = [triple(20)]
+    await vm.submitTurn()
+    #expect(vm.session?.events.count == 1)
+
+    await vm.undoLastTurn()
+
+    #expect(vm.state == .readyTurn)
+    #expect(vm.session?.events.isEmpty == true)
+    #expect((vm.boardColumns.first?.marks["20"] ?? 0) == 0)
+    #expect(store.session(for: vm.session!.runtime.matchId)?.events.isEmpty == true)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelSurfacesErrorWhenPersistenceFails() async throws {
     let (vm, _) = try makeCricketViewModel(failAppend: true)
     vm.enteredDarts = [triple(20)]

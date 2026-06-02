@@ -171,6 +171,7 @@ private struct StatsFixture {
     let summary: MatchSummary
     let participants: [MatchParticipantSummary]
     let events: [MatchEventSummary]
+    let snapshot: MatchSnapshotSummary
 }
 
 private func makeCompletedX01Fixture() throws -> StatsFixture {
@@ -222,7 +223,14 @@ private func makeCompletedX01Fixture() throws -> StatsFixture {
             createdAt: now
         )
     }
-    return StatsFixture(matchId: matchId, jacob: jacob, sam: sam, summary: summary, participants: participants, events: events)
+    let snapshot = MatchSnapshotSummary(
+        id: UUID(),
+        matchId: matchId,
+        snapshotVersion: session.latestSnapshot.payloadVersion,
+        snapshotPayload: session.latestSnapshot.payload,
+        updatedAt: now
+    )
+    return StatsFixture(matchId: matchId, jacob: jacob, sam: sam, summary: summary, participants: participants, events: events, snapshot: snapshot)
 }
 
 private actor StatsFakeMatchRepository: MatchRepository {
@@ -242,7 +250,9 @@ private actor StatsFakeMatchRepository: MatchRepository {
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fixture.summary }
     func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
     func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
+        matchId == fixture.matchId ? fixture.snapshot : nil
+    }
     func fetchMatch(matchId: UUID) async throws -> MatchSummary? { matchId == fixture.matchId ? fixture.summary : nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { fixture.participants }
     func deleteMatch(matchId: UUID) async throws { deletedIds.append(matchId) }
@@ -342,6 +352,24 @@ func historyDetailViewModelDeletesMatch() async throws {
     let deleted = await vm.deleteMatch()
     #expect(deleted)
     #expect(await repo.wasDeleted(fixture.matchId))
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .stats, .regression))
+func historyDetailViewModelLoadsBreakdownsForCompletedMatch() async throws {
+    let fixture = try makeCompletedX01Fixture()
+    let vm = HistoryDetailViewModel(
+        matchId: fixture.matchId,
+        matchRepository: StatsFakeMatchRepository(fixture: fixture),
+        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+    )
+    await vm.onAppear()
+
+    #expect(vm.state == "ready")
+    #expect(vm.breakdowns.count == 2)
+    #expect(vm.isX01)
+    #expect(!vm.configText.isEmpty)
+    #expect(vm.standings.count == 2)
 }
 
 private actor FakeHistoryMatchRepository: MatchRepository {

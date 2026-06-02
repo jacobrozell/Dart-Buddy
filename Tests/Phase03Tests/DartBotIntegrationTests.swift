@@ -31,15 +31,15 @@ func setupAllowsHumanPlusBot() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .match, .regression))
-func setupAllowsTwoBotsWithoutHumans() async {
+func setupRejectsTwoBotsWithoutHumans() async {
     let vm = botSetupViewModel(players: [], store: ActiveMatchStore())
     await vm.onAppear()
     await vm.addBot(.easy)
     await vm.addBot(.medium)
 
     #expect(vm.selectedParticipantCount == 2)
-    #expect(vm.canStart)
-    #expect(vm.validationErrors.isEmpty)
+    #expect(vm.canStart == false)
+    #expect(vm.validationErrors.contains("setup.validation.requiresHuman"))
 }
 
 @MainActor

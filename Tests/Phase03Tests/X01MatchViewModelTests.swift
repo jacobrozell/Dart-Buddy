@@ -171,6 +171,7 @@ func x01ViewModelSignalsLegFinishSoundBeforeMatchEnds() async throws {
         ]
     )
     session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 30, darts: nil)
     let store = ActiveMatchStore()
     store.save(session)
     let vm = X01MatchViewModel(
@@ -264,4 +265,17 @@ private actor X01FakeMatchRepository: MatchRepository {
             eventCount: 0, createdAt: Date(), updatedAt: Date()
         )
     }
+}
+
+@Test func dartSpokenAccessibilityUsesFullMultiplierNames() {
+    let triple20 = DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+    #expect(triple20.spokenAccessibilityName == L10n.format("scoring.dart.triple.accessibility", 20))
+    #expect(
+        DartInput.padKeyAccessibilityLabel(segmentValue: 20, armedMultiplier: .triple)
+            == L10n.format("scoring.dart.triple.accessibility", 20)
+    )
+    #expect(
+        DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: .double)
+            == L10n.string("scoring.dart.doubleBull.accessibility")
+    )
 }

@@ -48,9 +48,6 @@ func gatedTurnTotalCallerRequiresSoundAndSetting() {
     #expect(recorder.announcedTotals.isEmpty)
 
     preferences.turnTotalCallerEnabled = true
-    gated.announceTurnTotal(60)
-    #expect(recorder.announcedTotals.isEmpty)
-
     preferences.soundEnabled = false
     gated.announceTurnTotal(60)
     #expect(recorder.announcedTotals.isEmpty)

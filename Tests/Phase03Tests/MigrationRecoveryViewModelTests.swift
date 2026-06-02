@@ -28,6 +28,7 @@ func migrationRecoveryRetrySuccessReturnsToReady() async {
     )
 
     vm.tapRetry()
+    await waitUntil { vm.state == .retryInProgress }
     await waitUntil { vm.state == .ready }
 
     #expect(retryCount == 1)
