@@ -29,6 +29,7 @@ final class StatisticsViewModel: ObservableObject {
     @Published private(set) var trendPoints: [StatsTrendPoint] = []
     @Published private(set) var playerOptions: [PlayerSummary] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var includesPartialActiveMatch = false
 
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
@@ -68,6 +69,7 @@ final class StatisticsViewModel: ObservableObject {
 
     func load() async {
         isLoading = true
+        includesPartialActiveMatch = false
         defer { isLoading = false }
         do {
             playerOptions = try await playerRepository.fetchPlayers(includeArchived: true)
@@ -78,19 +80,40 @@ final class StatisticsViewModel: ObservableObject {
                 self.playerFilter = nil
             }
             let activePlayerFilter = self.playerFilter
+            let cutoff = periodCutoff()
             let result = try await MatchStatsLoader.load(
                 matchRepository: matchRepository,
                 statsRepository: statsRepository,
                 request: MatchStatsLoadRequest(
                     matchType: mode,
-                    startedAfter: periodCutoff(),
+                    startedAfter: cutoff,
                     participantPlayerId: activePlayerFilter
                 )
             )
-            var breakdowns = StatsService.breakdowns(from: result.inputs, nameById: result.namesById)
+            var inputs = result.inputs
+            var nameById = result.namesById
+
+            if let active = try await matchRepository.fetchActiveMatch(),
+               active.type == mode,
+               matchesPeriodFilter(active, cutoff: cutoff),
+               try await matchesPlayerFilter(active, playerId: activePlayerFilter),
+               let partial = try await MatchStatsLoader.loadPartialActiveMatchInput(
+                   matchRepository: matchRepository,
+                   statsRepository: statsRepository,
+                   activeMatch: active
+               ) {
+                inputs.append(contentsOf: partial.inputs)
+                for (key, name) in partial.namesById {
+                    nameById[key] = name
+                }
+                includesPartialActiveMatch = true
+            }
+
+            var breakdowns = StatsService.breakdowns(from: inputs, nameById: nameById)
             if let activePlayerFilter {
                 breakdowns = breakdowns.filter { $0.playerId == activePlayerFilter }
-                trendPoints = StatsService.x01TrendPoints(from: result.inputs, playerId: activePlayerFilter)
+                let completedInputs = inputs.filter { !$0.isPartial }
+                trendPoints = StatsService.x01TrendPoints(from: completedInputs, playerId: activePlayerFilter)
             } else {
                 trendPoints = []
             }
@@ -98,6 +121,7 @@ final class StatisticsViewModel: ObservableObject {
         } catch {
             rows = []
             trendPoints = []
+            includesPartialActiveMatch = false
         }
     }
 
@@ -113,6 +137,17 @@ final class StatisticsViewModel: ObservableObject {
         case .d30:
             return calendar.date(byAdding: .day, value: -30, to: Date())
         }
+    }
+
+    private func matchesPeriodFilter(_ active: MatchSummary, cutoff: Date?) -> Bool {
+        guard let cutoff else { return true }
+        return active.startedAt >= cutoff
+    }
+
+    private func matchesPlayerFilter(_ active: MatchSummary, playerId: UUID?) async throws -> Bool {
+        guard let playerId else { return true }
+        let participants = try await matchRepository.fetchParticipants(matchId: active.id)
+        return participants.contains { ($0.playerId ?? $0.id) == playerId }
     }
 }
 

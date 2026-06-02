@@ -45,22 +45,13 @@ final class MatchSummaryViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
+            guard let rehydrated = try await MatchStatsLoader.rehydrateSession(
+                matchId: matchId,
+                matchRepository: matchRepository,
+                statsRepository: statsRepository
+            ) else {
                 return
             }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
             store.save(rehydrated)
             session = rehydrated
         } catch {

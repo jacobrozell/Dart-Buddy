@@ -19,7 +19,7 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ### History & statistics
 
-- [ ] **Statistics: in-progress / partial stats** — Completed games only; no mid-match or saved-incomplete surface.
+- [x] **Statistics: in-progress / partial stats** — Active match darts/points merge into Statistics; games/wins unchanged until complete.
 - [x] **History: player filter UI** — VM + tests exist; wire menu in `HistoryRootView` (mirror Statistics).
 - [x] **History: push filters to SwiftData** — Map mode/date (and player) into `MatchHistoryFilter` instead of fetch-500-then-filter.
 - [x] **History: pagination** — Load more / proper `emptyFiltered` when filters match nothing.
@@ -30,7 +30,7 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ### Match setup & play
 
-- [ ] **X01 total-score entry toggle** — Remove forced `.dartEntry` on appear; segmented per-dart vs visit total.
+- [ ] **X01 total-score entry toggle** — Deferred; keep current per-dart entry.
 - [ ] **Setup: reorder + remove roster** — Drag reorder; swipe remove; keep random order.
 - [ ] **Settings: default X01/Cricket options** — Expose checkout, check-in, legs/sets, start score in Settings, or stop persisting unused fields.
 - [x] **Bot-vs-bot guard** — Warn or block START when no human selected.
@@ -69,9 +69,9 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ## Testing
 
-- [~] **`StatisticsViewModel`** — `statisticsViewModelComputesBreakdownRows` / player filter exist; add period cutoff, mode filter, empty state.
+- [x] **`StatisticsViewModel`** — Breakdown, player/mode/period filters, partial active match, empty state.
 - [x] **`HistoryListViewModel`** — Mode/date/player filters, pagination, DB filter mapping, empty/error states.
-- [~] **`MatchSummaryViewModel` tests** — Cold-load from repository covered; add error/empty paths.
+- [x] **`MatchSummaryViewModel` tests** — Cold-load, missing snapshot.
 - [ ] **`MigrationRecoveryViewModel` tests**
 - [ ] **UI: checkout → winner → summary**
 - [ ] **UI: Cricket grid scoring**

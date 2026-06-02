@@ -39,6 +39,10 @@ struct StatisticsRootView: View {
 
                     playerFilterMenu
 
+                    if viewModel.includesPartialActiveMatch {
+                        partialStatsBanner
+                    }
+
                     if viewModel.isLoading && viewModel.rows.isEmpty {
                         ProgressView()
                             .tint(Brand.green)
@@ -136,6 +140,19 @@ struct StatisticsRootView: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.top, DS.Spacing.s2)
+    }
+
+    private var partialStatsBanner: some View {
+        HStack(spacing: DS.Spacing.s2) {
+            Image(systemName: "clock.arrow.circlepath")
+            Text("Includes stats from your in-progress match.")
+                .font(.footnote)
+        }
+        .foregroundStyle(Brand.amber)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Spacing.s3)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityIdentifier("statsPartialMatchBanner")
     }
 
     private var emptyState: some View {

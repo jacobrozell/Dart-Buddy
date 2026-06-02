@@ -96,7 +96,7 @@ public struct PlayerStatBreakdown: Identifiable, Equatable, Sendable {
     }
 }
 
-/// Describes a single completed match used as input for stat aggregation.
+/// Describes a single match used as input for stat aggregation.
 public struct MatchStatsInput: Sendable {
     public let matchId: UUID
     public let playedAt: Date
@@ -104,6 +104,8 @@ public struct MatchStatsInput: Sendable {
     public let participantKeys: [UUID]
     public let winnerKey: UUID?
     public let events: [MatchEventEnvelope]
+    /// When true, dart/point totals are included but games/wins are not incremented.
+    public let isPartial: Bool
 
     public init(
         matchId: UUID = UUID(),
@@ -111,7 +113,8 @@ public struct MatchStatsInput: Sendable {
         type: MatchType,
         participantKeys: [UUID],
         winnerKey: UUID?,
-        events: [MatchEventEnvelope]
+        events: [MatchEventEnvelope],
+        isPartial: Bool = false
     ) {
         self.matchId = matchId
         self.playedAt = playedAt
@@ -119,6 +122,7 @@ public struct MatchStatsInput: Sendable {
         self.participantKeys = participantKeys
         self.winnerKey = winnerKey
         self.events = events
+        self.isPartial = isPartial
     }
 }
 
@@ -155,8 +159,10 @@ public enum StatsService {
         for match in matches {
             for key in Set(match.participantKeys) {
                 var entry = breakdown(for: key)
-                entry.games += 1
-                if match.winnerKey == key { entry.wins += 1 }
+                if !match.isPartial {
+                    entry.games += 1
+                    if match.winnerKey == key { entry.wins += 1 }
+                }
                 byPlayer[key] = entry
             }
 
@@ -207,7 +213,7 @@ public enum StatsService {
     /// Per-match X01 3-dart averages for one player, ordered oldest to newest.
     public static func x01TrendPoints(from matches: [MatchStatsInput], playerId: UUID) -> [StatsTrendPoint] {
         matches
-            .filter { $0.type == .x01 && $0.participantKeys.contains(playerId) }
+            .filter { $0.type == .x01 && !$0.isPartial && $0.participantKeys.contains(playerId) }
             .sorted { $0.playedAt < $1.playedAt }
             .compactMap { match -> StatsTrendPoint? in
                 var points = 0

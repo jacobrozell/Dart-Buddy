@@ -176,6 +176,35 @@ func breakdownsAggregateGamesAcrossMatches() throws {
 }
 
 @Test(.tags(.unit, .stats, .regression))
+func breakdownsPartialMatchCountsThrowsButNotGames() throws {
+    let jacob = UUID()
+    let sam = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: jacob, displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: sam, displayNameAtMatchStart: "Sam", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+
+    let input = MatchStatsInput(
+        type: .x01,
+        participantKeys: [jacob, sam],
+        winnerKey: nil,
+        events: session.events,
+        isPartial: true
+    )
+    let rows = StatsService.breakdowns(from: [input], nameById: [jacob: "Jacob", sam: "Sam"])
+    let j = try #require(rows.first { $0.playerId == jacob })
+    #expect(j.games == 0)
+    #expect(j.wins == 0)
+    #expect(j.darts == 3)
+    #expect(j.points == 60)
+}
+
+@Test(.tags(.unit, .stats, .regression))
 func x01TrendPointsOrdersMatchesChronologically() throws {
     let player = UUID()
     let other = UUID()

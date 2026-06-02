@@ -242,6 +242,60 @@ public enum MatchStatsLoader {
         }
     }
 
+    public static func rehydrateSession(
+        matchId: UUID,
+        matchRepository: any MatchRepository,
+        statsRepository: any StatsRepository
+    ) async throws -> MatchLifecycleSession? {
+        guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
+            return nil
+        }
+        let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
+        let events = try await statsRepository.fetchEvents(matchId: matchId)
+        let envelopes = try events
+            .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
+            .sorted { $0.eventIndex < $1.eventIndex }
+        let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
+        let snapshot = MatchSnapshot(
+            payloadVersion: snapshotSummary.snapshotVersion,
+            eventCount: runtime.eventCount,
+            createdAt: snapshotSummary.updatedAt,
+            payload: snapshotSummary.snapshotPayload
+        )
+        return try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
+    }
+
+    public static func loadPartialActiveMatchInput(
+        matchRepository: any MatchRepository,
+        statsRepository: any StatsRepository,
+        activeMatch: MatchSummary
+    ) async throws -> MatchStatsLoadResult? {
+        guard activeMatch.status == .inProgress else { return nil }
+        guard let session = try await rehydrateSession(
+            matchId: activeMatch.id,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository
+        ) else { return nil }
+
+        let runtime = session.runtime
+        var namesById: [UUID: String] = [:]
+        let keys = runtime.participants.map { participant in
+            let key = participant.playerId ?? participant.id
+            namesById[key] = participant.displayNameAtMatchStart
+            return key
+        }
+        let input = MatchStatsInput(
+            matchId: activeMatch.id,
+            playedAt: activeMatch.startedAt,
+            type: runtime.type,
+            participantKeys: keys,
+            winnerKey: nil,
+            events: session.events,
+            isPartial: true
+        )
+        return MatchStatsLoadResult(inputs: [input], namesById: namesById)
+    }
+
     public static func decodeEvents(_ summaries: [MatchEventSummary]) -> [MatchEventEnvelope] {
         (try? summaries
             .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
