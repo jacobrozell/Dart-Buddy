@@ -118,6 +118,26 @@ func x01ViewModelErrorsWhenSessionUnavailable() async throws {
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelPreviewRemainingScoreDuringVisit() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .dartEntry
+
+    #expect(vm.playerCards[0].score == 301)
+
+    vm.enteredDarts = [
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+    ]
+    #expect(vm.playerCards[0].score == 241)
+
+    vm.enteredDarts.append(DartInput(multiplier: .single, segment: .oneToTwenty(20)))
+    #expect(vm.playerCards[0].score == 221)
+
+    vm.enteredDarts.removeLast()
+    #expect(vm.playerCards[0].score == 241)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
 func x01ViewModelUndoRevertsToReadyTurn() async throws {
     let (vm, _, store) = try makeX01ViewModel(totals: [])
     vm.inputMode = .totalEntry

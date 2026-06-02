@@ -79,7 +79,7 @@ final class X01MatchViewModel: ObservableObject {
             return PlayerCard(
                 id: player.playerId,
                 name: name(for: player.playerId, fallbackIndex: index),
-                score: player.remainingScore,
+                score: previewRemainingScore(for: player, isActive: isActive),
                 setsWon: player.setsWon,
                 legsWon: player.legsWon,
                 isActive: isActive,
@@ -88,6 +88,19 @@ final class X01MatchViewModel: ObservableObject {
                 average: average(for: player.playerId)
             )
         }
+    }
+
+    /// Live remaining score while the active player is entering their visit.
+    private func previewRemainingScore(for player: X01PlayerState, isActive: Bool) -> Int {
+        guard isActive, canHumanInput || isBotPlaying else { return player.remainingScore }
+        let visitTotal: Int
+        switch inputMode {
+        case .dartEntry:
+            visitTotal = enteredDarts.reduce(0) { $0 + $1.points }
+        case .totalEntry:
+            visitTotal = Int(totalEntryText) ?? 0
+        }
+        return player.remainingScore - visitTotal
     }
 
     /// Checkout route for the active player, shown only when a turn is armed and
@@ -99,8 +112,9 @@ final class X01MatchViewModel: ObservableObject {
               x01State.winnerPlayerId == nil else { return nil }
         let player = x01State.players[x01State.currentPlayerIndex]
         let dartsLeft = max(1, 3 - enteredDarts.count)
+        let previewRemaining = previewRemainingScore(for: player, isActive: true)
         return CheckoutSuggester.suggestion(
-            remaining: player.remainingScore,
+            remaining: previewRemaining,
             mode: x01State.config.checkoutMode,
             dartsAvailable: dartsLeft
         )
