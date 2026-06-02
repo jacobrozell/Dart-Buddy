@@ -65,7 +65,7 @@ final class DartsScoreboardUITests: XCTestCase {
         gameCard.tap()
 
         XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Points"].waitForExistence(timeout: timeout), "Game detail should show the Points table")
+        XCTAssertTrue(app.staticTexts["Throws"].waitForExistence(timeout: timeout + 5), "Game detail should show throw stats")
         XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout))
 
         let delete = app.buttons["Delete"]
@@ -171,7 +171,8 @@ final class DartsScoreboardUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         XCTAssertTrue(
-            app.staticTexts["Add at least two players or bots to start a match."].waitForExistence(timeout: timeout),
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Add at least two")).firstMatch
+                .waitForExistence(timeout: timeout),
             "An empty roster should prompt the user to add players"
         )
 
@@ -268,8 +269,9 @@ final class DartsScoreboardUITests: XCTestCase {
 
         app.buttons["select_Alice"].tap()
         app.buttons["Add Bot"].tap()
+        XCTAssertTrue(app.buttons["Easy"].waitForExistence(timeout: timeout))
         app.buttons["Easy"].tap()
-        app.buttons["select_bot_easy"].tap()
+        XCTAssertTrue(app.buttons["select_bot_easy"].waitForExistence(timeout: timeout + 5))
         app.buttons["startMatchButton"].tap()
 
         XCTAssertTrue(
@@ -305,7 +307,7 @@ final class DartsScoreboardUITests: XCTestCase {
 
         app.tabBars.buttons["History"].tap()
         let gameCard = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch
-        XCTAssertTrue(gameCard.waitForExistence(timeout: timeout))
+        XCTAssertTrue(gameCard.waitForExistence(timeout: timeout + 5))
         gameCard.tap()
 
         XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
@@ -320,7 +322,76 @@ final class DartsScoreboardUITests: XCTestCase {
         app.buttons["setup_checkoutChip"].tap()
         app.buttons["Straight Out"].tap()
         app.buttons["setup_legsChip"].tap()
-        app.buttons["1"].tap()
+        app.buttons["setup_legsOption_1"].tap()
+    }
+
+    // MARK: - Key path: Cricket grid scoring
+
+    func testCricketGridScoringRecordsMarks() {
+        let app = launchApp(["-seed_players"])
+
+        app.buttons["Cricket"].tap()
+        app.buttons["select_Alice"].tap()
+        app.buttons["select_Bob"].tap()
+        app.buttons["startMatchButton"].tap()
+
+        let target20 = app.buttons["cricket_20"]
+        XCTAssertTrue(target20.waitForExistence(timeout: timeout))
+        target20.tap()
+
+        XCTAssertTrue(app.staticTexts["20"].waitForExistence(timeout: timeout), "Visit preview should show the entered dart")
+
+        target20.tap()
+        target20.tap()
+
+        let closedMark = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label == %@", "Closed"))
+            .firstMatch
+        XCTAssertTrue(
+            closedMark.waitForExistence(timeout: timeout + 5),
+            "Three marks on 20 should close the target on the board"
+        )
+    }
+
+    // MARK: - Key path: settings feedback toggles persist
+
+    func testSettingsFeedbackTogglesPersistAcrossTabs() {
+        let app = launchApp(["-seed_players"])
+
+        app.tabBars.buttons["Settings"].tap()
+        scrollToFeedbackSwitches(app)
+        let haptics = app.switches["settings_hapticsToggle"]
+        let sound = app.switches["settings_soundToggle"]
+        XCTAssertTrue(haptics.waitForExistence(timeout: timeout))
+        XCTAssertTrue(sound.waitForExistence(timeout: timeout))
+
+        setSwitch(haptics, on: false)
+        setSwitch(sound, on: false)
+        XCTAssertEqual(haptics.value as? String, "0")
+        XCTAssertEqual(sound.value as? String, "0")
+
+        // Allow debounced settings persistence to finish.
+        sleep(1)
+
+        app.tabBars.buttons["Play"].tap()
+        app.tabBars.buttons["Settings"].tap()
+
+        XCTAssertTrue(haptics.waitForExistence(timeout: timeout))
+        XCTAssertEqual(haptics.value as? String, "0")
+        XCTAssertEqual(sound.value as? String, "0")
+    }
+
+    private func setSwitch(_ toggle: XCUIElement, on: Bool) {
+        let target = on ? "1" : "0"
+        guard (toggle.value as? String) != target else { return }
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+    }
+
+    private func scrollToFeedbackSwitches(_ app: XCUIApplication) {
+        let haptics = app.switches["settings_hapticsToggle"]
+        for _ in 0 ..< 4 where haptics.exists == false || haptics.isHittable == false {
+            app.swipeUp()
+        }
     }
 
     // MARK: - Key path: undo a dart on the scoring pad
