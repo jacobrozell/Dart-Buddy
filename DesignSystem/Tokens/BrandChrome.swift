@@ -10,7 +10,7 @@ private struct BrandScoreboardChrome: ViewModifier {
     }
 }
 
-private struct BrandSettingsNavigationChrome: ViewModifier {
+private struct BrandSettingsScreenChrome: ViewModifier {
     let appearanceModeRaw: String
 
     private var usesBrandPalette: Bool {
@@ -18,15 +18,18 @@ private struct BrandSettingsNavigationChrome: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        if usesBrandPalette {
-            content
-                .preferredColorScheme(AppAppearancePolicy.settingsColorScheme(appearanceModeRaw: appearanceModeRaw))
-                .toolbarBackground(Brand.background, for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
-                .toolbarColorScheme(.dark, for: .navigationBar)
-        } else {
-            content
-        }
+        content
+            .preferredColorScheme(AppAppearancePolicy.settingsColorScheme(appearanceModeRaw: appearanceModeRaw))
+            .background(screenBackground.ignoresSafeArea())
+            .toolbarBackground(screenBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(usesBrandPalette ? .dark : .light, for: .navigationBar)
+    }
+
+    private var screenBackground: Color {
+        usesBrandPalette
+            ? Brand.background
+            : Color(uiColor: .systemGroupedBackground)
     }
 }
 
@@ -39,9 +42,7 @@ private struct BrandSettingsFormChrome: ViewModifier {
 
     func body(content: Content) -> some View {
         if usesBrandPalette {
-            content
-                .scrollContentBackground(.hidden)
-                .background(Brand.background.ignoresSafeArea())
+            content.scrollContentBackground(.hidden)
         } else {
             content
         }
@@ -67,8 +68,8 @@ extension View {
         modifier(BrandScoreboardChrome(appearanceModeRaw: appearanceModeRaw))
     }
 
-    func brandSettingsNavigationChrome(appearanceModeRaw: String) -> some View {
-        modifier(BrandSettingsNavigationChrome(appearanceModeRaw: appearanceModeRaw))
+    func brandSettingsScreenChrome(appearanceModeRaw: String) -> some View {
+        modifier(BrandSettingsScreenChrome(appearanceModeRaw: appearanceModeRaw))
     }
 
     func brandSettingsFormChrome(appearanceModeRaw: String) -> some View {

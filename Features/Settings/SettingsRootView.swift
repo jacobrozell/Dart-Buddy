@@ -61,7 +61,6 @@ struct SettingsRootView: View {
                 }
             }
             .navigationTitle(L10n.settingsTitle)
-            .brandSettingsNavigationChrome(appearanceModeRaw: preferences.appearanceModeRaw)
             .task { await viewModel.onAppear() }
             .confirmationDialog(
                 L10n.resetConfirmTitle,
@@ -91,11 +90,12 @@ struct SettingsRootView: View {
                 viewModel.cancelPendingWork()
             }
         }
+        .brandSettingsScreenChrome(appearanceModeRaw: preferences.appearanceModeRaw)
     }
 
     @ViewBuilder
     private func settingsForm(_ settings: SettingsSummary) -> some View {
-        let usesBrand = AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: settings.appearanceModeRaw)
+        let usesBrand = AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
 
         Form {
             Section {
@@ -177,12 +177,6 @@ struct SettingsRootView: View {
                     }
                 }
                 .accessibilityIdentifier("settings_defaultLegsPicker")
-
-                Toggle(L10n.setupChipSets, isOn: Binding(
-                    get: { settings.defaultSetsEnabled },
-                    set: { queueGameplayDefaults(from: settings, setsEnabled: $0) }
-                ))
-                .accessibilityIdentifier("settings_defaultSetsToggle")
             } header: {
                 Text(L10n.x01DefaultsSection)
             } footer: {
@@ -256,7 +250,7 @@ struct SettingsRootView: View {
         .frame(maxWidth: contentMaxWidth)
         .frame(maxWidth: .infinity, alignment: .center)
         .safeAreaPadding(.bottom, DS.Spacing.s6)
-        .brandSettingsFormChrome(appearanceModeRaw: settings.appearanceModeRaw)
+        .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
     }
 
     private func queueGameplayDefaults(
@@ -266,8 +260,7 @@ struct SettingsRootView: View {
         checkout: String? = nil,
         checkIn: String? = nil,
         legFormat: String? = nil,
-        legs: Int? = nil,
-        setsEnabled: Bool? = nil
+        legs: Int? = nil
     ) {
         viewModel.queueDefaultsUpdate(
             matchType: matchType ?? settings.defaultMatchTypeRaw,
@@ -275,8 +268,7 @@ struct SettingsRootView: View {
             checkout: checkout ?? settings.defaultCheckoutModeRaw,
             checkIn: checkIn ?? settings.defaultCheckInModeRaw,
             legFormat: legFormat ?? settings.defaultLegFormatRaw,
-            legs: legs ?? settings.defaultLegsToWin,
-            setsEnabled: setsEnabled ?? settings.defaultSetsEnabled
+            legs: legs ?? settings.defaultLegsToWin
         )
     }
 }
