@@ -12,10 +12,15 @@ Test-first policy for this project:
 
 ## 2. Test Layers
 
-## Unit Tests
+## Unit Tests (`Tests/Unit/`)
 - Domain engines (`X01Engine`, `CricketEngine`, `StatsService`)
 - Validation utilities
 - Repository mapping/parsing logic
+- View models and long-run simulations
+
+## Accessibility Tests (`Tests/Accessibility/`)
+- WCAG contrast ratios for design tokens and gameplay chrome
+- Accessibility label contracts for core controls
 
 ## Integration Tests
 - End-to-end feature flows with persistence:
@@ -23,7 +28,7 @@ Test-first policy for this project:
   - app relaunch -> resume match
   - archive player -> setup/history behavior
 
-## UI Tests
+## UI Tests (`Tests/UI/`)
 - Tab navigation smoke (all five tabs including Statistics)
 - Marketing screenshot harness (`-snapshot_*`, `-seed_demo` launch args)
 - Core happy paths (checkout, Cricket grid, settings persistence)

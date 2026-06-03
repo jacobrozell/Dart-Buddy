@@ -65,7 +65,7 @@ See [`DesignSystem/README.md`](DesignSystem/README.md) for the full rule set.
 ## Accessibility
 
 Interactive controls expose a stable `accessibilityIdentifier` (consumed by
-`UITests/WCAGAccessibilityUITests.swift`) and a spoken `accessibilityLabel`.
+`Tests/UI/WCAGAccessibilityUITests.swift`) and a spoken `accessibilityLabel`.
 Prefer Dynamic Type styles over fixed `.font(.system(size:))`. Requirements live
 in [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md).
 
@@ -76,9 +76,13 @@ hard-coded display text in views.
 
 ## Tests
 
-Add or update tests with behavior changes. Tests are organized by phase under
-`Tests/`; domain logic belongs in `Tests/Phase02Tests`, view-model behavior in
-`Tests/Phase03Tests`. Run with `⌘U` or:
+Add or update tests with behavior changes. All sources live under `Tests/` by layer:
+
+- `Tests/Unit/` — engines, view models, repositories, migrations, policy
+- `Tests/Accessibility/` — WCAG contrast and label contracts (Swift Testing)
+- `Tests/UI/` — navigation smoke, snapshots, XCTest accessibility audits (UI test target)
+
+Run with `⌘U` or:
 
 ```bash
 xcodebuild test -scheme DartsScoreboard \

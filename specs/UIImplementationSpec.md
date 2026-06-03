@@ -11,7 +11,7 @@ This spec defines, for each MVP screen:
 - minimum validation scenarios
 
 UI automation note:
-- **1.0:** CI runs limited UI smoke (`UITests/`); items marked “future UI automation” below are post-1.0 expansion.
+- **1.0:** CI runs limited UI smoke (`Tests/UI/`); items marked “future UI automation” below are post-1.0 expansion.
 - Manual RC evidence remains required for accessibility and appearance matrices.
 
 Primary reference:

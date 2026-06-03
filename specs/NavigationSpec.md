@@ -47,6 +47,6 @@ Example route groups:
 ---
 
 ## 5. Testing
-- Limited UI tests in CI: tab smoke, marketing snapshot harness, core happy paths (see `UITests/DartsScoreboardUITests.swift`).
+- Limited UI tests in CI: tab smoke, marketing snapshot harness, core happy paths (see `Tests/UI/DartsScoreboardUITests.swift`).
 - Full UI automation matrix (edge flows, accessibility suite) deferred post-1.0 UI lock.
 - Route resolution tests for deep-link readiness

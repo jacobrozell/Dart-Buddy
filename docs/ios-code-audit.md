@@ -115,12 +115,10 @@ Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibili
 
 | Layer | Location | Role |
 |-------|----------|------|
-| Domain | `Tests/Phase02Tests/` | Engines, scoring, lifecycle |
-| ViewModels | `Tests/Phase03Tests/` | Feature VM behavior |
-| Long-run | `Tests/Phase04Tests/` | Bots, statistics flows |
-| Foundation | `Tests/FoundationTests/` | Policy, prefs, a11y labels |
-| UI smoke | `UITests/DartsScoreboardUITests.swift` | Core journeys |
-| WCAG | `UITests/WCAGAccessibilityUITests.swift` | Automated audits + ID contracts |
+| Unit | `Tests/Unit/` | Engines, VMs, repos, policy, simulations |
+| Accessibility | `Tests/Accessibility/` | WCAG contrast + label contracts |
+| UI smoke | `Tests/UI/DartsScoreboardUITests.swift` | Core journeys |
+| WCAG UI | `Tests/UI/WCAGAccessibilityUITests.swift` | Automated audits + ID contracts |
 
 ---
 

@@ -185,8 +185,8 @@ Linked `todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
 
 ### 3.3 Automation (post–UI-lock)
 
-- [x] XCTest: assert `accessibilityIdentifier` presence on `startMatchButton`, `pad_20`, `scoreCard_active`, settings toggles (`UITests/WCAGAccessibilityUITests.swift`).
-- [x] Tag tests `@Tag(.accessibility)` (`Tests/FoundationTests/WCAGAccessibilityLabelTests.swift`).
+- [x] XCTest: assert `accessibilityIdentifier` presence on `startMatchButton`, `pad_20`, `scoreCard_active`, settings toggles (`Tests/UI/WCAGAccessibilityUITests.swift`).
+- [x] Tag tests `@Tag(.accessibility)` (`Tests/Accessibility/WCAGAccessibilityLabelTests.swift`).
 - [ ] Optional: snapshot tests at **Large** and **AXXXL** content size for core screens.
 
 ### 3.4 VoiceOver scripts (repeatable QA)
@@ -280,4 +280,4 @@ Adjust to release date; **do not ship 1.0** with Phase 0 open on core gameplay.
 |------|--------|
 | 2026-06-01 | Initial long-term plan |
 | 2026-06-01 | Phase 0.1–0.2, 0.4: X01 pad/score card, announcements, summary reduce motion + VO |
-| 2026-06-03 | Contrast audit (P-1.4.3): added `Brand.redAccent` (white-text CTA/error banner now 4.80:1, was 3.94/3.47); added `Brand.inkOnBright` for labels on bright fills (armed DOUBLE/TRIPLE pad keys, cricket ENTER, setup chips, empty-state Start CTAs — dark mode was 1.85–2.97:1, now 6–10:1); bot-turn + partial-stats banners and `StatusBadge` converted to tinted pills (amber/accent on light surfaces was ~1.6–2.9:1). Evidence regenerated in `evidence/contrast/`; Swift regression tests added in `Tests/FoundationTests/WCAGContrastTests.swift`. |
+| 2026-06-03 | Contrast audit (P-1.4.3): added `Brand.redAccent` (white-text CTA/error banner now 4.80:1, was 3.94/3.47); added `Brand.inkOnBright` for labels on bright fills (armed DOUBLE/TRIPLE pad keys, cricket ENTER, setup chips, empty-state Start CTAs — dark mode was 1.85–2.97:1, now 6–10:1); bot-turn + partial-stats banners and `StatusBadge` converted to tinted pills (amber/accent on light surfaces was ~1.6–2.9:1). Evidence regenerated in `evidence/contrast/`; Swift regression tests added in `Tests/Accessibility/WCAGContrastTests.swift`. |
