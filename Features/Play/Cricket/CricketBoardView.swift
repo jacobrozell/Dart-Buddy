@@ -1,5 +1,9 @@
 import SwiftUI
 
+private enum CricketBoardMetrics {
+    static let activeColumnFill = Brand.cardElevated.opacity(0.35)
+}
+
 /// Authentic Cricket scoreboard: a marks grid (20–15 + Bull) with one column
 /// per player, standard slash / cross / circle marks, and a tap-to-mark input
 /// pad. Replaces the X01-style dart pad that Cricket previously borrowed.
@@ -20,8 +24,7 @@ struct CricketBoardView: View {
             CricketBoardPlayerHeaderRow(columns: columns)
             CricketBoardMarksGrid(columns: columns)
         }
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+        .background(Brand.card)
     }
 }
 
@@ -46,10 +49,10 @@ struct CricketBoardPlayerHeaderRow: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s2)
-                    .background(column.isActive ? Brand.cardElevated : Color.clear)
+                    .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
                     .overlay {
                         if column.isClosureHighlight {
-                            RoundedRectangle(cornerRadius: DS.Radius.sm)
+                            Rectangle()
                                 .stroke(Brand.amber, lineWidth: 2)
                         }
                     }
@@ -61,8 +64,6 @@ struct CricketBoardPlayerHeaderRow: View {
                 }
             }
         }
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 
     private func columnAccessibilityLabel(_ column: CricketBoardView.Column) -> String {
@@ -92,14 +93,12 @@ struct CricketBoardMarksGrid: View {
                         )
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s2)
-                        .background(column.isActive ? Brand.cardElevated.opacity(0.4) : Color.clear)
+                        .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
                     }
                 }
                 Divider().overlay(Brand.cardElevated)
             }
         }
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 
     private func label(for target: CricketTarget) -> String {
@@ -177,7 +176,7 @@ struct CricketTapPad: View {
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
-    private let spacing: CGFloat = 6
+    private var spacing: CGFloat { ScoringPadStyle.compactSpacing }
     private let numberRows: [[String]] = [
         ["20", "19", "18"],
         ["17", "16", "15"]
@@ -190,60 +189,60 @@ struct CricketTapPad: View {
                 HStack(spacing: spacing) {
                     ForEach(row, id: \.self) { value in
                         let segment = Int(value) ?? 0
-                        key(
-                            value,
-                            background: Brand.key,
-                            identifier: "cricket_\(value)",
+                        ScoringPadKey(
+                            title: value,
+                            minHeight: keyMinHeight,
                             accessibilityLabel: DartInput.padKeyAccessibilityLabel(
                                 segmentValue: segment,
                                 armedMultiplier: selectedMultiplier
                             ),
-                            accessibilityHint: L10n.string("scoring.segment.hint")
-                        ) {
-                            appendNumber(segment)
-                        }
+                            accessibilityHint: L10n.string("scoring.segment.hint"),
+                            identifier: "cricket_\(value)",
+                            action: { appendNumber(segment) }
+                        )
                     }
                 }
             }
             HStack(spacing: spacing) {
-                key(
-                    L10n.string("scoring.pad.bullLabel"),
-                    background: Brand.key,
-                    identifier: "cricket_bull",
+                ScoringPadKey(
+                    title: L10n.string("scoring.pad.bullLabel"),
+                    minHeight: keyMinHeight,
                     accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
-                    accessibilityHint: L10n.string("scoring.segment.hint")
-                ) { appendBull() }
-                key(
-                    L10n.string("scoring.pad.missLabel"),
-                    background: Brand.key,
-                    identifier: "cricket_miss",
+                    accessibilityHint: L10n.string("scoring.segment.hint"),
+                    identifier: "cricket_bull",
+                    action: appendBull
+                )
+                ScoringPadKey(
+                    title: L10n.string("scoring.pad.missLabel"),
+                    minHeight: keyMinHeight,
                     accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
-                    accessibilityHint: L10n.string("scoring.segment.hint")
-                ) { appendMiss() }
+                    accessibilityHint: L10n.string("scoring.segment.hint"),
+                    identifier: "cricket_miss",
+                    action: appendMiss
+                )
+                Color.clear
+                    .frame(maxWidth: .infinity, minHeight: keyMinHeight)
+                    .accessibilityHidden(true)
             }
             HStack(spacing: spacing) {
                 modifierKey(.double, identifier: "cricket_double")
                 modifierKey(.triple, identifier: "cricket_triple")
-                Button(action: undo) {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(Brand.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: keyMinHeight)
-                        .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
-                }
-                .accessibilityLabel(L10n.scoringUndoLastTurn)
-                .accessibilityIdentifier("cricket_undo")
+                ScoringPadIconKey(
+                    systemImage: "arrow.uturn.backward",
+                    minHeight: keyMinHeight,
+                    accessibilityLabel: L10n.string("scoring.undoLastTurn"),
+                    identifier: "cricket_undo",
+                    action: undo
+                )
             }
             Button(action: onSubmit) {
                 Text(L10n.scoringEnter)
                     .font(.headline.weight(.bold))
-                    // Dark ink on the solid green fill (white fails AA in dark mode); the dimmed
-                    // disabled fill is dark enough to keep adaptive text.
                     .foregroundStyle(canSubmit ? Brand.inkOnBright : Brand.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .frame(maxWidth: .infinity, minHeight: keyMinHeight)
-                    .background(canSubmit ? Brand.green : Brand.green.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
+                    .background(canSubmit ? Brand.green : Brand.green.opacity(0.4), in: ScoringPadStyle.keyShape)
             }
             .disabled(!canSubmit)
             .accessibilityLabel(L10n.scoringEnter)
@@ -261,7 +260,7 @@ struct CricketTapPad: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: visitSlotMinHeight)
-                    .background(Brand.dartBox, in: RoundedRectangle(cornerRadius: 6))
+                    .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
             }
         }
         .accessibilityElement(children: .ignore)
@@ -291,45 +290,19 @@ struct CricketTapPad: View {
         // Armed modifier = solid bright fill; dark ink stays legible in dark mode where white
         // would fail AA. Idle (dimmed) fill keeps adaptive text.
         let foreground: Color = (isSelected && multiplier != .single) ? Brand.inkOnBright : Brand.textPrimary
-        return key(
-            title,
+        return ScoringPadKey(
+            title: title,
             background: background,
             foreground: foreground,
-            weight: .bold,
-            identifier: identifier,
+            font: .body.weight(.bold),
+            minHeight: keyMinHeight,
             accessibilityLabel: multiplierAccessibilityLabel(multiplier),
             accessibilityHint: modifierHint(multiplier, isSelected: isSelected),
-            isSelected: isSelected
-        ) {
-            toggle(multiplier)
-        }
+            isSelected: isSelected,
+            identifier: identifier,
+            action: { toggle(multiplier) }
+        )
         .frame(maxWidth: .infinity)
-    }
-
-    private func key(
-        _ title: String,
-        background: Color,
-        foreground: Color = Brand.textPrimary,
-        weight: Font.Weight = .semibold,
-        identifier: String,
-        accessibilityLabel: String? = nil,
-        accessibilityHint: String? = nil,
-        isSelected: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.body.weight(weight))
-                .foregroundStyle(foreground)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: keyMinHeight)
-                .background(background, in: RoundedRectangle(cornerRadius: 8))
-        }
-        .accessibilityLabel(accessibilityLabel ?? title)
-        .modifier(OptionalAccessibilityHint(hint: accessibilityHint))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityIdentifier(identifier)
     }
 
     private func multiplierAccessibilityLabel(_ multiplier: DartMultiplier) -> String {
