@@ -65,6 +65,7 @@
 "history.loadMore.accessibility" = "Load more games";
 "players.search.accessibility" = "Search players";
 "players.row.accessibilityFormat" = "%@%@";
+"players.row.accessibilityHint" = "Shows player details.";
 "players.row.botSuffix" = ", bot %@";
 "players.row.archivedSuffix" = ", archived";
 "settings.reset.accessibility" = "Reset all data";
