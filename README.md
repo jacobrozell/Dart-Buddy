@@ -1,6 +1,6 @@
 # Dart Buddy
 
-<img src="Media.xcassets/AppIcon.appiconset/AppIcon.png" alt="Dart Buddy app icon" width="120" />
+<img src="Resources/Media.xcassets/AppIcon.appiconset/AppIcon.png" alt="Dart Buddy app icon" width="120" />
 
 **Dart Buddy** is a local-first iOS scorekeeper for X01 and Cricket darts. The Xcode target and Swift module are named **DartsScoreboard** (`import DartsScoreboard`).
 
@@ -21,7 +21,7 @@ xcodegen generate
 open DartsScoreboard.xcodeproj
 ```
 
-Copy `GoogleService-Info.plist.example` to `GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS).
+Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS).
 
 **Analytics (1.0):** Release builds with a real `GoogleService-Info.plist` send a small allowlist of product-health events (`app_open`, `match_started`, `match_completed`, `turn_submitted`, `undo_used`, etc.) via the existing `AppLogger` → Firebase Analytics sink. Debug builds stay off unless you add the launch argument `-firebase_analytics_debug`. UI tests pass `-disable_firebase_analytics`.
 
@@ -61,6 +61,7 @@ High-level summary only — authoritative rules are in feature specs:
 | `Data/` | Repository protocols and SwiftData implementations |
 | `Persistence/` | Schema, migrations, container factory |
 | `DesignSystem/` | Tokens, shared components, gameplay layout |
+| `Resources/` | Asset catalog, `en.lproj` strings, Firebase plist template |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
 | `specs/` | Product and system specifications |

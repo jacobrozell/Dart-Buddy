@@ -13,11 +13,11 @@ Define internationalization and localization strategy from day one so future lan
 ---
 
 ## 3. Required Baseline Artifacts
-- `en.lproj/Localizable.strings`
+- `Resources/en.lproj/Localizable.strings`
 - Optional structured tables by domain (recommended as app grows):
-  - `en.lproj/Gameplay.strings`
-  - `en.lproj/Settings.strings`
-  - `en.lproj/Errors.strings`
+  - `Resources/en.lproj/Gameplay.strings`
+  - `Resources/en.lproj/Settings.strings`
+  - `Resources/en.lproj/Errors.strings`
 
 Key rule:
 - English strings file is the source of truth for all keys.

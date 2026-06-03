@@ -180,7 +180,7 @@ private enum FeedbackAudioSession {
     }
 }
 
-/// Plays sound effects loaded from the `Media.xcassets` data assets. Players are
+/// Plays sound effects loaded from the `Resources/Media.xcassets` data assets. Players are
 /// preloaded once and reused; playback is dispatched to the main thread.
 public final class BundledAudioFeedbackService: AudioFeedbackService, @unchecked Sendable {
     private static let hitAssetNames = ["dart_hit_1", "dart_hit_2", "dart_hit_3"]
