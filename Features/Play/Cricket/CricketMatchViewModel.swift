@@ -83,20 +83,21 @@ final class CricketMatchViewModel: ObservableObject {
         let isInProgress = session.runtime.status == .inProgress
         let highlightClosure = self.state == .closureTransition
         return state.players.enumerated().map { index, player in
-            CricketBoardView.Column(
+            let participant = participant(for: player.playerId)
+            return CricketBoardView.Column(
                 id: player.playerId,
-                name: name(for: player.playerId, fallbackIndex: index),
+                name: participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: index),
                 score: player.score,
                 marks: player.marks,
                 isActive: index == state.currentPlayerIndex && isInProgress,
+                colorToken: participant?.colorToken ?? PlayerColorToken.defaultForPlayer(id: player.playerId),
                 isClosureHighlight: highlightClosure && index == state.currentPlayerIndex
             )
         }
     }
 
-    private func name(for playerId: UUID, fallbackIndex: Int) -> String {
-        let participant = session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-        return participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: fallbackIndex)
+    private func participant(for playerId: UUID) -> MatchParticipant? {
+        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
     func submitTurn() async {

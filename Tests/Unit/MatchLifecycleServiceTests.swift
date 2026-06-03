@@ -196,3 +196,32 @@ func lifecycleResumePreservesCricketInnerBull() throws {
     #expect(resumed.runtime.cricketState == expectedState)
     #expect(resumed.runtime.cricketState?.players[0].marks["bull"] == 3)
 }
+
+@Test(.tags(.unit, .match, .cricket, .critical, .regression, .offline))
+func lifecycleResumeThreePlayerCricketMidBoard() throws {
+    let participants = cricketParticipants(count: 3, names: ["P1", "P2", "P3"])
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: participants
+    )
+
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.triple(20)], timestamp: Date(timeIntervalSince1970: 10))
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.single(20)], timestamp: Date(timeIntervalSince1970: 20))
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.single(19)], timestamp: Date(timeIntervalSince1970: 30))
+    let snapshot = session.latestSnapshot
+
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.triple(19)], timestamp: Date(timeIntervalSince1970: 40))
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.miss()], timestamp: Date(timeIntervalSince1970: 50))
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.single(18)], timestamp: Date(timeIntervalSince1970: 60))
+    let expectedState = session.runtime.cricketState
+    #expect(expectedState?.currentPlayerIndex == 0)
+    #expect(expectedState?.players[0].marks["20"] == 3)
+    #expect(expectedState?.players[1].marks["20"] == 1)
+
+    let tailEvents = session.events.filter { $0.eventIndex >= snapshot.eventCount }
+    let resumed = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
+
+    #expect(resumed.runtime.cricketState == expectedState)
+    #expect(resumed.runtime.cricketState?.currentPlayerIndex == 0)
+}

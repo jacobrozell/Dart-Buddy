@@ -330,6 +330,7 @@ final class MatchSetupViewModel: ObservableObject {
             let name: String
             let botDifficulty: BotDifficulty?
             let avatarStyleRaw: String?
+            let colorTokenRaw: String
         }
 
         let rosterEntries: [RosterEntry] = selectedPlayers.map { player in
@@ -337,7 +338,8 @@ final class MatchSetupViewModel: ObservableObject {
                 id: player.id,
                 name: player.name,
                 botDifficulty: player.botDifficulty,
-                avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue
+                avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue,
+                colorTokenRaw: player.colorToken.rawValue
             )
         }
         let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
@@ -348,7 +350,8 @@ final class MatchSetupViewModel: ObservableObject {
                     playerId: entry.id,
                     displayNameAtMatchStart: entry.name,
                     turnOrder: index,
-                    botDifficultyRaw: entry.botDifficulty?.rawValue
+                    botDifficultyRaw: entry.botDifficulty?.rawValue,
+                    preferredColorTokenAtMatchStart: entry.colorTokenRaw
                 )
             }
         do {

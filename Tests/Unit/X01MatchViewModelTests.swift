@@ -131,6 +131,69 @@ func x01ViewModelShowsBustFeedbackOnInvalidDoubleOutFinish() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelPlayerCardsCarryParticipantColor() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(
+                playerId: p0,
+                displayNameAtMatchStart: "A",
+                turnOrder: 0,
+                preferredColorTokenAtMatchStart: PlayerColorToken.blue.rawValue
+            ),
+            MatchParticipant(
+                playerId: p1,
+                displayNameAtMatchStart: "B",
+                turnOrder: 1,
+                preferredColorTokenAtMatchStart: PlayerColorToken.coral.rawValue
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01FakeMatchRepository(),
+        statsRepository: X01FakeStatsRepository()
+    )
+    await vm.onAppear()
+
+    #expect(vm.playerCards[0].colorToken == .blue)
+    #expect(vm.playerCards[1].colorToken == .coral)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelPlayerCardsFallbackColorForLegacyParticipants() async throws {
+    let p0 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0)
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01FakeMatchRepository(),
+        statsRepository: X01FakeStatsRepository()
+    )
+    await vm.onAppear()
+
+    #expect(vm.playerCards[0].colorToken == PlayerColorToken.defaultForPlayer(id: p0))
+}
+
+@MainActor
 @Test(.tags(.integration, .x01, .match, .critical, .regression))
 func x01ViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws {
     let p0 = UUID()
@@ -442,6 +505,139 @@ func x01ViewModelSignalsTurnTotalCallerForHumanVisit() async throws {
     await vm.submitTurn()
 
     #expect(vm.turnTotalCallerSignal?.total == 60)
+}
+
+/// Three T20 darts for dart-entry visit tests.
+private let x01TripleTwentyVisit: [DartInput] = [
+    DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+    DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+    DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+]
+
+@MainActor
+private func makeThreePlayerX01ViewModel(
+    preloadedTotals: [Int] = []
+) throws -> X01MatchViewModel {
+    let p0 = UUID()
+    let p1 = UUID()
+    let p2 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1),
+            MatchParticipant(playerId: p2, displayNameAtMatchStart: "C", turnOrder: 2)
+        ]
+    )
+    for total in preloadedTotals {
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+    }
+    let store = ActiveMatchStore()
+    store.save(session)
+    return X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01FakeMatchRepository(),
+        statsRepository: X01FakeStatsRepository()
+    )
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelPersistsCompletedVisitUntilRoundAdvances() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = x01TripleTwentyVisit
+
+    await vm.submitTurn()
+
+    #expect(vm.x01State?.currentPlayerIndex == 1)
+    #expect(vm.playerCards[0].visitDarts.count == 3)
+    #expect(vm.playerCards[1].visitDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelClearsVisitSlotsWhenRoundWraps() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = x01TripleTwentyVisit
+    await vm.submitTurn()
+
+    vm.enteredDarts = x01TripleTwentyVisit
+    await vm.submitTurn()
+
+    #expect(vm.x01State?.currentPlayerIndex == 0)
+    #expect(vm.playerCards[0].visitDarts.isEmpty)
+    #expect(vm.playerCards[1].visitDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelShowsPartialRoundVisitsForThreePlayers() async throws {
+    let vm = try makeThreePlayerX01ViewModel()
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = x01TripleTwentyVisit
+    await vm.submitTurn()
+
+    vm.enteredDarts = x01TripleTwentyVisit
+    await vm.submitTurn()
+
+    #expect(vm.x01State?.currentPlayerIndex == 2)
+    #expect(vm.playerCards[0].visitDarts.count == 3)
+    #expect(vm.playerCards[1].visitDarts.count == 3)
+    #expect(vm.playerCards[2].visitDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelUndoClearsPersistedRoundVisit() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = x01TripleTwentyVisit
+    await vm.submitTurn()
+    #expect(vm.playerCards[0].visitDarts.count == 3)
+
+    await vm.undoLastTurn()
+
+    #expect(vm.x01State?.currentPlayerIndex == 0)
+    #expect(vm.playerCards[0].visitDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelClearsVisitSlotsAtLegBoundary() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 3, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 30, darts: nil)
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01FakeMatchRepository(),
+        statsRepository: X01FakeStatsRepository()
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [DartInput(multiplier: .single, segment: .oneToTwenty(11))]
+
+    await vm.submitTurn()
+
+    #expect(vm.x01State?.currentPlayerIndex == 1)
+    #expect(vm.x01State?.legIndex == 1)
+    #expect(vm.playerCards.allSatisfy { $0.visitDarts.isEmpty })
 }
 
 @MainActor

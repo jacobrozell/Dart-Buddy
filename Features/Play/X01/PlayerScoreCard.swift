@@ -8,6 +8,7 @@ struct PlayerScoreCard: View {
     let setsWon: Int
     let legsWon: Int
     let isActive: Bool
+    let colorToken: PlayerColorToken
     let visitDarts: [DartInput]
     let dartsThrown: Int
     let average: Double
@@ -16,10 +17,14 @@ struct PlayerScoreCard: View {
     @ScaledMetric(relativeTo: .largeTitle) private var scoreFontSize: CGFloat = 40
     @ScaledMetric(relativeTo: .caption) private var dartBoxSize: CGFloat = 38
 
+    private var accentColor: Color {
+        PlayerVisualViews.accentColor(token: colorToken)
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             Rectangle()
-                .fill(isActive ? Brand.green : Color.clear)
+                .fill(isActive ? accentColor : Color.clear)
                 .frame(width: 6)
             Group {
                 if dynamicTypeSize.isAccessibilitySize {
@@ -73,7 +78,7 @@ struct PlayerScoreCard: View {
                 .accessibilityIdentifier(isActive ? "scoreCard_remaining" : "")
             Text(name)
                 .font(.subheadline)
-                .foregroundStyle(isActive ? Brand.green : Brand.textSecondary)
+                .foregroundStyle(isActive ? accentColor : Brand.textSecondary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.85)
         }
@@ -90,7 +95,7 @@ struct PlayerScoreCard: View {
             Text("\(visitTotal)")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Brand.textSecondary)
-                .accessibilityIdentifier(isActive ? "scoreCard_visitTotal" : "")
+                .accessibilityIdentifier(showsVisitTotalAccessibility ? "scoreCard_visitTotal" : "")
         }
     }
 
@@ -126,6 +131,10 @@ struct PlayerScoreCard: View {
 
     private var visitTotal: Int {
         visitDarts.reduce(0) { $0 + $1.points }
+    }
+
+    private var showsVisitTotalAccessibility: Bool {
+        isActive || !visitDarts.isEmpty
     }
 
     private var accessibilitySummary: String {

@@ -176,6 +176,7 @@ enum DemoSeeder {
             guard existing.isEmpty else { return }
             _ = try await dependencies.playerRepository.createPlayer(name: "Alice")
             _ = try await dependencies.playerRepository.createPlayer(name: "Bob")
+            _ = try await dependencies.playerRepository.createPlayer(name: "Carol")
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "seed_players_failed", message: "Seed players failed: \(error)")
         }

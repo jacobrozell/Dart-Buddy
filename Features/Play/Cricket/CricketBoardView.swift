@@ -14,6 +14,7 @@ struct CricketBoardView: View {
         let score: Int
         let marks: [String: Int]
         let isActive: Bool
+        let colorToken: PlayerColorToken
         var isClosureHighlight: Bool = false
     }
 
@@ -40,7 +41,11 @@ struct CricketBoardPlayerHeaderRow: View {
                     VStack(spacing: 2) {
                         Text(column.name)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(column.isActive ? Brand.green : Brand.textPrimary)
+                            .foregroundStyle(
+                                column.isActive
+                                    ? PlayerVisualViews.accentColor(token: column.colorToken)
+                                    : Brand.textPrimary
+                            )
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
                         Text("\(column.score)")
@@ -89,7 +94,8 @@ struct CricketBoardMarksGrid: View {
                     ForEach(columns) { column in
                         CricketMarkCell(
                             targetLabel: label(for: target),
-                            marks: column.marks[target.rawValue] ?? 0
+                            marks: column.marks[target.rawValue] ?? 0,
+                            colorToken: column.colorToken
                         )
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s2)
@@ -111,12 +117,15 @@ extension CricketBoardView {
 }
 
 /// Standard cricket mark glyph: "/" for one, "X" for two, and a circled "X"
-/// (closed) for three. Closed marks turn green to read at a glance.
+/// (closed) for three. Closed marks use the column player's identity color.
 struct CricketMarkCell: View {
     let targetLabel: String
     let marks: Int
+    let colorToken: PlayerColorToken
 
-    private var tint: Color { marks >= 3 ? Brand.green : Brand.textPrimary }
+    private var tint: Color {
+        marks >= 3 ? PlayerVisualViews.accentColor(token: colorToken) : Brand.textPrimary
+    }
 
     var body: some View {
         ZStack {
