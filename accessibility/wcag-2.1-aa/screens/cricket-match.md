@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Screen ID | `cricket-match` |
-| Primary source | `Features/Play/CricketMatchScreen.swift`, `CricketBoardView.swift` |
+| Primary source | `Features/Play/Cricket/CricketMatchScreen.swift`, `Features/Play/Cricket/CricketBoardView.swift` |
 | Core flow | Yes |
 | Last verified | 2026-06-02 |
 | Screen status | `Partial` |

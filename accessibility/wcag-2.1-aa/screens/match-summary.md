@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Screen ID | `match-summary` |
-| Primary source | `Features/Play/MatchSummaryScreen.swift` |
+| Primary source | `Features/Play/Shared/MatchSummaryScreen.swift` |
 | Core flow | Yes |
 | Last verified | 2026-06-01 |
 | Screen status | `Partial` |

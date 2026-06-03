@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Screen ID | `play-home` |
-| Primary source | `Features/Play/PlayRootView.swift`, `SetupHomeView.swift` |
+| Primary source | `Features/Play/Setup/PlayRootView.swift`, `Features/Play/Setup/SetupHomeView.swift` |
 | Core flow | Yes |
 | Last verified | 2026-06-02 |
 | Screen status | `Partial` |

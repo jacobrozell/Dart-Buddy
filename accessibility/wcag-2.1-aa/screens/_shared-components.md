@@ -4,10 +4,10 @@ Cross-screen UI that affects multiple WCAG rows. Update here when fixing pad, bo
 
 | Component | Source | Used on |
 |-----------|--------|---------|
-| `DartNumberPad` | `Features/Play/DartNumberPad.swift` | `x01-match` |
-| `CricketBoardView` / `CricketMarkCell` | `Features/Play/CricketBoardView.swift` | `cricket-match` |
-| `CricketTapPad` | `Features/Play/CricketBoardView.swift` | `cricket-match` |
-| `BrandSegmented` | `Features/Components/BrandControls.swift` | setup, history, statistics |
+| `DartNumberPad` | `Features/Play/X01/DartNumberPad.swift` | `x01-match` |
+| `CricketBoardView` / `CricketMarkCell` | `Features/Play/Cricket/CricketBoardView.swift` | `cricket-match` |
+| `CricketTapPad` | `Features/Play/Cricket/CricketBoardView.swift` | `cricket-match` |
+| `BrandSegmented` | `DesignSystem/Components/BrandControls.swift` | setup, history, statistics |
 | `StatTable` | `Features/Statistics/StatisticsRootView.swift` | statistics, history-detail |
 | `SectorHitsChart` / trend charts | `Features/Statistics/StatsChartViews.swift` | history-detail, statistics, player-detail |
 | `Brand` tokens | `DesignSystem/Tokens/BrandTheme.swift` | all dark gameplay surfaces |

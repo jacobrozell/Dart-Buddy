@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Screen ID | `x01-match` |
-| Primary source | `Features/Play/X01MatchScreen.swift`, `DartNumberPad.swift` |
+| Primary source | `Features/Play/X01/X01MatchScreen.swift`, `Features/Play/X01/DartNumberPad.swift` |
 | Core flow | Yes |
 | Last verified | 2026-06-01 |
 | Screen status | `Partial` |

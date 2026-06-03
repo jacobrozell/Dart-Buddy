@@ -229,6 +229,6 @@ Legend: **Impl** = implementation effort · **Hidden** = hide until unlocked · 
 |------|------|
 | Turn / dart events | `Domain/Engines/X01Engine.swift`, `Domain/Engines/CricketEngine.swift` |
 | Stat aggregation | `Domain/Services/StatsService.swift` |
-| Match completion | `Features/Play/X01MatchViewModel.swift`, `Features/Play/CricketMatchViewModel.swift` |
+| Match completion | `Features/Play/X01/X01MatchViewModel.swift`, `Features/Play/Cricket/CricketMatchViewModel.swift` |
 | Bot detection | `Domain/Models/RepositoryModels.swift` (`isBot`, `botDifficulty`) |
 | Post-1.0 online | `specs/OnlinePlaySpec.md`, `specs/FirebaseBackendAnalyticsSpec.md` |

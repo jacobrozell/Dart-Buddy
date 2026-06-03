@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Screen ID | `match-setup` |
-| Primary source | `Features/Play/SetupHomeView.swift` |
+| Primary source | `Features/Play/Setup/SetupHomeView.swift` |
 | Core flow | Yes |
 | Last verified | 2026-06-02 |
 | Screen status | `Partial` |

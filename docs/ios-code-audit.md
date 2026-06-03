@@ -58,7 +58,7 @@ new code has a standard to match.
 | B2 | **`ThemeTokens` unused** | Removed; was dead code. |
 | B3 | **`ScoringPadLabels` in DesignSystem** | Acceptable for now; if Play grows, move to `Features/Play/`. |
 | B4 | **Large SwiftUI files** | Done. Split via extension / dedicated files: `SetupHomeView` → `SetupHomeView+OptionChips.swift` (614→445); `PlayersRootView` → `PlayerDetailView.swift` (558→331); `X01MatchScreen` → `PlayerScoreCard.swift` (443→282). |
-| B7 | **Duplicate turn-submit flows** | Done (branch `claude/b7-turn-submit-helper`). Shared scaffolding extracted to `Features/Play/MatchTurnSupport.swift`: `MatchTurnSubmitter` runs engine-submit → persist → save → log and returns an `Outcome`; each view model maps the outcome to its own state (bust vs. closure, caller tokens, completion). Pure helpers (`matchSummary`, `matchProgressMetadata`, `appErrorMetadata`, `errorMessageKey`) moved to the `MatchTurnSupport` namespace. Removed ~180 lines of duplication (X01 VM 599→509, Cricket VM 476→386). Behavior-preserving; verify with the unit suite. |
+| B7 | **Duplicate turn-submit flows** | Done (branch `claude/b7-turn-submit-helper`). Shared scaffolding extracted to `Features/Play/Shared/MatchTurnSupport.swift`: `MatchTurnSubmitter` runs engine-submit → persist → save → log and returns an `Outcome`; each view model maps the outcome to its own state (bust vs. closure, caller tokens, completion). Pure helpers (`matchSummary`, `matchProgressMetadata`, `appErrorMetadata`, `errorMessageKey`) moved to the `MatchTurnSupport` namespace. Removed ~180 lines of duplication (X01 VM 599→509, Cricket VM 476→386). Behavior-preserving; verify with the unit suite. |
 | B8 | **Monolithic repository** | Done. `SwiftDataRepositories.swift` (~798 lines) split into `SwiftDataPlayerRepository`, `SwiftDataMatchRepository`, `SwiftDataStatsRepository`, `SwiftDataSettingsRepository`, and a shared `SwiftDataRepositorySupport.swift` (mappers + `dataCall`). |
 | B5 | **Settings tab bar bleed** | Verify on device; `SettingsRootView` already uses `.safeAreaPadding(.bottom)`. If bleed persists, add tab-bar-aware inset via `safeAreaInset(edge: .bottom)` on the `Form`. |
 | B6 | **Migration recovery styling** | Migrated to `Brand` + `DS.Spacing` for consistency with recovery UX on brand shell. |
@@ -77,7 +77,7 @@ new code has a standard to match.
 
 | Spec name | Repo path | Notes |
 |-----------|-----------|-------|
-| PlayFeature | `Features/Play/` | Setup, X01, Cricket, summary, play home |
+| PlayFeature | `Features/Play/{Setup,X01,Cricket,Shared}/` | Setup, X01, Cricket, summary, play home |
 | HistoryFeature | `Features/History/` | List + detail |
 | PlayersFeature | `Features/Players/` | List, detail, edit, visuals |
 | SettingsFeature | `Features/Settings/` | Form + `SettingsViewModel` |
