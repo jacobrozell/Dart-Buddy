@@ -16,6 +16,12 @@ enum PlayerVisualViews {
         case .blue: Color(red: 0.35, green: 0.55, blue: 0.95)
         case .purple: Brand.proBot
         case .teal: Color(red: 0.25, green: 0.78, blue: 0.78)
+        case .orange: Brand.orange
+        case .pink: Color(red: 0.95, green: 0.35, blue: 0.55)
+        case .indigo: Color(red: 0.35, green: 0.35, blue: 0.85)
+        case .cyan: Color(red: 0.20, green: 0.75, blue: 0.95)
+        case .lime: Color(red: 0.55, green: 0.78, blue: 0.22)
+        case .coral: Color(red: 0.98, green: 0.50, blue: 0.45)
         }
     }
 

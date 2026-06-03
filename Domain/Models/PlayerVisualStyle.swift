@@ -6,6 +6,11 @@ public enum PlayerAvatarStyle: String, CaseIterable, Codable, Sendable, Identifi
     case trophy
     case flame
     case star
+    case crown
+    case bolt
+    case heart
+    case medal
+    case shield
 
     public var id: String { rawValue }
 
@@ -16,6 +21,11 @@ public enum PlayerAvatarStyle: String, CaseIterable, Codable, Sendable, Identifi
         case .trophy: "trophy.fill"
         case .flame: "flame.fill"
         case .star: "star.fill"
+        case .crown: "crown.fill"
+        case .bolt: "bolt.fill"
+        case .heart: "heart.fill"
+        case .medal: "medal.fill"
+        case .shield: "shield.fill"
         }
     }
 
@@ -41,6 +51,12 @@ public enum PlayerColorToken: String, CaseIterable, Codable, Sendable, Identifia
     case blue
     case purple
     case teal
+    case orange
+    case pink
+    case indigo
+    case cyan
+    case lime
+    case coral
 
     public var id: String { rawValue }
 

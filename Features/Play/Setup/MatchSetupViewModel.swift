@@ -124,6 +124,16 @@ final class MatchSetupViewModel: ObservableObject {
         availablePlayers.filter { $0.isBot && !selectedPlayerIds.contains($0.id) }
     }
 
+    var isRosterEmpty: Bool {
+        availableHumans.isEmpty && availableBots.isEmpty && selectedPlayers.isEmpty
+    }
+
+    /// Validation messages shown in the UI; defers minimum-player copy when the roster is still empty.
+    var displayValidationErrors: [String] {
+        guard isRosterEmpty else { return validationErrors }
+        return validationErrors.filter { $0 != "setup.validation.minimumPlayers" }
+    }
+
     private func appendToSelection(_ id: UUID) {
         guard !selectedPlayerIds.contains(id) else { return }
         selectedPlayerIds.append(id)

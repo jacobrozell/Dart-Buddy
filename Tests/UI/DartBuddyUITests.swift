@@ -214,9 +214,13 @@ final class DartBuddyUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         XCTAssertTrue(
-            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Add at least two")).firstMatch
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Add Players")).firstMatch
                 .waitForExistence(timeout: timeout),
-            "An empty roster should prompt the user to add players"
+            "An empty roster should guide the user to add players"
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)["errorBanner"].firstMatch.exists,
+            "Minimum-player validation should not duplicate the empty-roster hint"
         )
 
         let start = app.buttons["startMatchButton"]

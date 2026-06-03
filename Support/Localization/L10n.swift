@@ -33,7 +33,6 @@ enum L10n {
     static let cricketTargetClosed: LocalizedStringKey = "play.cricket.targetClosed"
     static let x01LegWonBanner: LocalizedStringKey = "play.x01.legWon.banner"
     static let setupAddPlayers: LocalizedStringKey = "play.setup.addPlayers"
-    static let setupMinimumRosterHint: LocalizedStringKey = "play.setup.minimumRosterHint"
     static let noPlayersGuidance: LocalizedStringKey = "play.home.noPlayersGuidance"
     static let startNewMatch: LocalizedStringKey = "play.home.startNewMatch"
     static let newMatchTitle: LocalizedStringKey = "play.setup.title"
