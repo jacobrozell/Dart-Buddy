@@ -186,8 +186,9 @@ final class SettingsViewModel: ObservableObject {
     private func persist(_ next: SettingsSummary) async {
         state = .saving
         do {
-            settings = try await repository.updateSettings(next)
-            userPreferencesStore.apply(settings!)
+            let updated = try await repository.updateSettings(next)
+            settings = updated
+            userPreferencesStore.apply(updated)
             state = .ready
         } catch is CancellationError {
             state = .ready

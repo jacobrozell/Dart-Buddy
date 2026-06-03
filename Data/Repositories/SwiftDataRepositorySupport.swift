@@ -1,0 +1,144 @@
+import Foundation
+import SwiftData
+
+// Shared mapping helpers and the throwing-call wrapper used by the SwiftData repositories.
+// Module-internal so each repository file can reuse them.
+
+func historyMatchPredicate(
+    filter: MatchHistoryFilter,
+    completedRaw: String,
+    restrictedToMatchIds matchIds: [UUID]?
+) -> Predicate<SchemaV1.MatchRecord> {
+    switch (filter.matchType, filter.startedAfter, matchIds) {
+    case (nil, nil, nil):
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw }
+    case (nil, nil, let ids?):
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && ids.contains($0.id) }
+    case (let type?, nil, nil):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.typeRaw == typeRaw }
+    case (let type?, nil, let ids?):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && ids.contains($0.id)
+        }
+    case (nil, let startedAfter?, nil):
+        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.startedAt >= startedAfter }
+    case (nil, let startedAfter?, let ids?):
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.startedAt >= startedAfter && ids.contains($0.id)
+        }
+    case (let type?, let startedAfter?, nil):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter
+        }
+    case (let type?, let startedAfter?, let ids?):
+        let typeRaw = type.rawValue
+        return #Predicate<SchemaV1.MatchRecord> {
+            $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter && ids.contains($0.id)
+        }
+    }
+}
+
+func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
+    PlayerSummary(
+        id: record.id,
+        name: record.name,
+        isArchived: record.isArchived,
+        isBot: record.isBot ?? false,
+        botDifficultyRaw: record.botDifficultyRaw,
+        avatarStyleRaw: record.avatarStyleRaw,
+        preferredColorToken: record.preferredColorToken,
+        notes: record.notes,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt
+    )
+}
+
+func mapMatch(_ record: SchemaV1.MatchRecord) -> MatchSummary {
+    MatchSummary(
+        id: record.id,
+        type: MatchType(rawValue: record.typeRaw) ?? .x01,
+        status: MatchStatus(rawValue: record.statusRaw) ?? .notStarted,
+        startedAt: record.startedAt,
+        endedAt: record.endedAt,
+        winnerPlayerId: record.winnerPlayerId,
+        currentTurnPlayerId: record.currentTurnPlayerId,
+        currentLegIndex: record.currentLegIndex,
+        currentSetIndex: record.currentSetIndex,
+        eventCount: record.eventCount,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt
+    )
+}
+
+func mapEvent(_ record: SchemaV1.MatchEventRecord) -> MatchEventSummary {
+    MatchEventSummary(
+        id: record.id,
+        matchId: record.matchId,
+        eventIndex: record.eventIndex,
+        eventTypeRaw: record.eventTypeRaw,
+        eventPayload: record.eventPayload,
+        createdAt: record.createdAt
+    )
+}
+
+func mapSnapshot(_ record: SchemaV1.MatchSnapshotRecord) -> MatchSnapshotSummary {
+    MatchSnapshotSummary(
+        id: record.id,
+        matchId: record.matchId,
+        snapshotVersion: record.snapshotVersion,
+        snapshotPayload: record.snapshotPayload,
+        updatedAt: record.updatedAt
+    )
+}
+
+func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
+    SettingsSummary(
+        id: record.id,
+        appearanceModeRaw: record.appearanceModeRaw,
+        hapticsEnabled: record.hapticsEnabled,
+        soundEnabled: record.soundEnabled,
+        turnTotalCallerEnabled: record.turnTotalCallerEnabled,
+        defaultMatchTypeRaw: record.defaultMatchTypeRaw,
+        defaultX01StartScore: record.defaultX01StartScore,
+        defaultCheckoutModeRaw: record.defaultCheckoutModeRaw,
+        defaultCheckInModeRaw: record.defaultCheckInModeRaw.isEmpty ? "straightIn" : record.defaultCheckInModeRaw,
+        defaultLegFormatRaw: record.defaultLegFormatRaw.isEmpty ? "firstTo" : record.defaultLegFormatRaw,
+        defaultLegsToWin: record.defaultLegsToWin,
+        defaultSetsEnabled: record.defaultSetsEnabled,
+        botStaggerEnabled: record.botStaggerEnabled ?? true,
+        botDartHapticsEnabled: record.botDartHapticsEnabled ?? true,
+        updatedAt: record.updatedAt
+    )
+}
+
+func mapParticipant(_ record: SchemaV1.MatchParticipantRecord) -> MatchParticipantSummary {
+    MatchParticipantSummary(
+        id: record.id,
+        matchId: record.matchId,
+        playerId: record.playerId,
+        turnOrder: record.turnOrder,
+        displayNameAtMatchStart: record.displayNameAtMatchStart,
+        avatarStyleAtMatchStart: record.avatarStyleAtMatchStart,
+        botDifficultyRaw: record.botDifficultyRaw
+    )
+}
+
+func dataCall<T>(_ block: () throws -> T) throws -> T {
+    do {
+        return try block()
+    } catch let error as AppError {
+        throw error
+    } catch {
+        throw AppError(
+            code: .storageUnavailable,
+            layer: .data,
+            severity: .error,
+            isRecoverable: true,
+            userMessageKey: "error.repository.storage",
+            underlyingError: error
+        )
+    }
+}

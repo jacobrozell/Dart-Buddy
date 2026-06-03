@@ -7,6 +7,9 @@ enum BotTurnPacing {
     static let staggeredSubmitNanoseconds: UInt64 = 350_000_000
     static let fastSubmitNanoseconds: UInt64 = 180_000_000
 
+    /// Pause that lets the Cricket closure banner register before returning to the ready state.
+    static let cricketClosureTransitionNanoseconds: UInt64 = 550_000_000
+
     static func dartDelayNanoseconds(staggerEnabled: Bool) -> UInt64 {
         staggerEnabled ? staggeredDartNanoseconds : fastDartNanoseconds
     }
