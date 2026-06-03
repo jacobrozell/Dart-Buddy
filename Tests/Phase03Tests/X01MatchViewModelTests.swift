@@ -36,11 +36,45 @@ private func makeX01ViewModel(
     return (vm, matchId, store)
 }
 
+/// Leaves player 0 on 40 remaining with player 1 to throw (301 start, alternating visits).
+private let x01TotalsPlayer0OnForty: [Int] = [180, 0, 81, 0]
+
+@MainActor
+private func makeHumanBotX01ViewModel(preloadedTotals: [Int] = []) throws -> X01MatchViewModel {
+    let humanId = UUID()
+    let botId = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: humanId, displayNameAtMatchStart: "Human", turnOrder: 0),
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            )
+        ]
+    )
+    for total in preloadedTotals {
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+    }
+    let store = ActiveMatchStore()
+    store.save(session)
+    return X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01FakeMatchRepository(),
+        statsRepository: X01FakeStatsRepository()
+    )
+}
+
 @MainActor
 @Test(.tags(.integration, .x01, .match, .critical, .regression))
 func x01ViewModelEntersBustFeedbackOnOverflow() async throws {
     // Player 0 sits on 40 remaining; entering 100 overflows -> bust.
-    let (vm, _, _) = try makeX01ViewModel(totals: [180, 0, 81, 0])
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
     vm.inputMode = .totalEntry
     vm.totalEntryText = "100"
 
@@ -52,7 +86,7 @@ func x01ViewModelEntersBustFeedbackOnOverflow() async throws {
 @MainActor
 @Test(.tags(.integration, .x01, .match, .critical, .regression))
 func x01ViewModelCompletesMatchOnCheckout() async throws {
-    let (vm, _, store) = try makeX01ViewModel(totals: [180, 0, 81, 0])
+    let (vm, _, store) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
     vm.inputMode = .totalEntry
     vm.totalEntryText = "40"
 
@@ -67,15 +101,97 @@ func x01ViewModelCompletesMatchOnCheckout() async throws {
 @Test(.tags(.integration, .x01, .match, .critical, .regression))
 func x01ViewModelAllowsOpponentInputDuringBustFeedback() async throws {
     // Player 0 on 40; a 50 visit busts and passes to player 1.
-    let (vm, _, _) = try makeX01ViewModel(totals: [180, 0, 81, 0])
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
     vm.inputMode = .totalEntry
     vm.totalEntryText = "50"
 
     await vm.submitTurn()
 
     #expect(vm.state == .bustFeedback)
+    #expect(vm.x01State?.currentPlayerIndex == 1)
     #expect(vm.isCurrentPlayerBot == false)
     #expect(vm.canHumanInput)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelOpponentCompletesTurnDuringBustFeedback() async throws {
+    // Regression: the next human must score without manually dismissing the bust banner.
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "50"
+    await vm.submitTurn()
+    #expect(vm.state == .bustFeedback)
+
+    vm.totalEntryText = "60"
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn)
+    #expect(vm.session?.events.count == 6)
+    if case let .x01Turn(event) = vm.session?.events.last?.payload {
+        #expect(event.appliedTotal == 60)
+    } else {
+        Issue.record("Expected last event to be an X01 turn")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelPreviewUpdatesDuringBustFeedbackForActiveHuman() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "50"
+    await vm.submitTurn()
+    #expect(vm.state == .bustFeedback)
+    #expect(vm.x01State?.currentPlayerIndex == 1)
+
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [DartInput(multiplier: .triple, segment: .oneToTwenty(20))]
+
+    #expect(vm.canHumanInput)
+    #expect(vm.playerCards[1].score == 241)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelBlocksPadWhileBotTurnPendingAfterHumanBust() async throws {
+    // Human bust is persisted via lifecycle; bot is up but has not thrown in this VM yet.
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Human", turnOrder: 0),
+            MatchParticipant(
+                playerId: UUID(),
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            )
+        ]
+    )
+    for total in x01TotalsPlayer0OnForty {
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+    }
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 50, darts: nil)
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01FakeMatchRepository(),
+        statsRepository: X01FakeStatsRepository()
+    )
+
+    #expect(vm.isCurrentPlayerBot)
+    #expect(!vm.canHumanInput)
+
+    await vm.playBotTurnIfNeeded()
+
+    #expect(vm.state == .readyTurn)
+    #expect(!vm.isCurrentPlayerBot)
+    #expect(vm.canHumanInput)
+    #expect(vm.session?.events.count == 6)
 }
 
 @MainActor
@@ -83,7 +199,7 @@ func x01ViewModelAllowsOpponentInputDuringBustFeedback() async throws {
 func x01ViewModelResumesPlayAfterBust() async throws {
     // Regression: a busted turn must not strand the board. Acknowledging the
     // bust returns to readyTurn so the next visit can be scored.
-    let (vm, _, _) = try makeX01ViewModel(totals: [180, 0, 81, 0])
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
     vm.inputMode = .totalEntry
     vm.totalEntryText = "100"
     await vm.submitTurn()

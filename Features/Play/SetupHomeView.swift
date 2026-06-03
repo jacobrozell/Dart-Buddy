@@ -458,9 +458,11 @@ struct SetupHomeView: View {
                 List {
                     ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
                         selectedRosterRow(player: player, position: index + 1)
-                            .deleteDisabled(true)
                             .listRowBackground(Brand.card)
                             .listRowSeparatorTint(Brand.cardElevated)
+                    }
+                    .onDelete { offsets in
+                        setupViewModel.removeSelectedPlayers(at: offsets)
                     }
                     .onMove { source, destination in
                         setupViewModel.moveSelectedPlayers(from: source, to: destination)
@@ -470,7 +472,8 @@ struct SetupHomeView: View {
                 .scrollContentBackground(.hidden)
                 .scrollDisabled(true)
                 .environment(\.editMode, .constant(setupViewModel.randomOrder ? .inactive : .active))
-                .frame(height: CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight)
+                .frame(minHeight: CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("setup_turnOrderList")
             }
         }
@@ -502,27 +505,43 @@ struct SetupHomeView: View {
 
     private func selectedRosterRow(player: PlayerSummary, position: Int) -> some View {
         HStack(spacing: DS.Spacing.s3) {
-            Text(L10n.format("common.playerOrdinal", position))
-                .font(.caption.weight(.bold))
-                .foregroundStyle(Brand.textSecondary)
-                .frame(width: 28, alignment: .leading)
-            if player.isBot, let difficulty = player.botDifficulty {
-                Image(systemName: "cpu.fill")
-                    .foregroundStyle(botDifficultyColor(difficulty))
-            } else {
-                Image(systemName: "location.north.fill")
-                    .rotationEffect(.degrees(135))
+            HStack(spacing: DS.Spacing.s3) {
+                Text(L10n.format("common.playerOrdinal", position))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(Brand.textSecondary)
+                    .frame(width: 28, alignment: .leading)
+                if player.isBot, let difficulty = player.botDifficulty {
+                    Image(systemName: "cpu.fill")
+                        .foregroundStyle(botDifficultyColor(difficulty))
+                } else {
+                    Image(systemName: "location.north.fill")
+                        .rotationEffect(.degrees(135))
+                        .foregroundStyle(Brand.textSecondary)
+                }
+                Text(player.name)
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
             }
-            Text(player.name)
-                .font(.headline)
-                .foregroundStyle(Brand.textPrimary)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                L10n.format("play.setup.turnOrder.rowAccessibilityFormat", position, player.name)
+            )
+            .accessibilityIdentifier("setup_selected_\(player.name)")
             Spacer()
+            Button {
+                setupViewModel.removeFromSelection(player.id)
+            } label: {
+                Image(systemName: "minus.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(.red)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.setupRemoveFromMatch)
+            .accessibilityIdentifier("setup_remove_\(player.name)")
         }
-        .accessibilityLabel(
-            L10n.format("play.setup.turnOrder.rowAccessibilityFormat", position, player.name)
-        )
-        .accessibilityIdentifier("setup_selected_\(player.name)")
+        .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
+            setupViewModel.removeFromSelection(player.id)
+        }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 setupViewModel.removeFromSelection(player.id)

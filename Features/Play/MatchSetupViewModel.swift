@@ -103,6 +103,14 @@ final class MatchSetupViewModel: ObservableObject {
         selectedPlayerIds.move(fromOffsets: source, toOffset: destination)
     }
 
+    func removeSelectedPlayers(at offsets: IndexSet) {
+        for index in offsets.sorted(by: >) {
+            guard selectedPlayerIds.indices.contains(index) else { continue }
+            selectedPlayerIds.remove(at: index)
+        }
+        revalidate()
+    }
+
     var selectedPlayers: [PlayerSummary] {
         selectedPlayerIds.compactMap { id in
             availablePlayers.first { $0.id == id }

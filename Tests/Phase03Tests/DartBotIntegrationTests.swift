@@ -458,6 +458,53 @@ func x01ViewModelBotContinuesAfterHumanBust() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelHumanCanSubmitAfterBotBust() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 301,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .singleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(playerId: botId, displayNameAtMatchStart: BotDifficulty.easy.rosterName, turnOrder: 0, botDifficultyRaw: BotDifficulty.easy.rawValue),
+            MatchParticipant(playerId: humanId, displayNameAtMatchStart: "Human", turnOrder: 1)
+        ]
+    )
+    for total in [180, 0, 81, 0] {
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+    }
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 50, darts: nil)
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+    #expect(vm.isCurrentPlayerBot == false)
+    #expect(vm.canHumanInput)
+    #expect(vm.session?.events.count == 5)
+
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "60"
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn)
+    // Human visit plus auto bot reply when the turn passes back to the bot.
+    #expect(vm.session?.events.count == 7)
+}
+
+@MainActor
 @Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelDetectsActiveBotTurn() throws {
     let humanId = UUID()

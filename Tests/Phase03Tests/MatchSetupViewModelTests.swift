@@ -78,6 +78,93 @@ func setupMoveSelectedPlayersReordersTurnOrder() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .regression))
+func setupRemoveSelectedPlayersAtOffsets() async {
+    let players = [makePlayer("A"), makePlayer("B"), makePlayer("C")]
+    let vm = makeSetupViewModel(players: players)
+    await vm.onAppear()
+    selectAll(players, in: vm)
+
+    vm.removeSelectedPlayers(at: IndexSet(integer: 1))
+
+    #expect(vm.selectedPlayers.map(\.name) == ["A", "C"])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupRemoveFromSelectionReturnsPlayerToAvailableRoster() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let vm = makeSetupViewModel(players: players)
+    await vm.onAppear()
+    vm.togglePlayer(players[0].id)
+    vm.togglePlayer(players[1].id)
+
+    vm.removeFromSelection(players[1].id)
+
+    #expect(vm.selectedPlayers.map(\.name) == ["A"])
+    #expect(vm.availableHumans.map(\.name) == ["B"])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupRemoveSelectedPlayersBlocksStartBelowMinimum() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let vm = makeSetupViewModel(players: players)
+    await vm.onAppear()
+    vm.togglePlayer(players[0].id)
+    vm.togglePlayer(players[1].id)
+
+    vm.removeSelectedPlayers(at: IndexSet(integer: 1))
+
+    #expect(vm.selectedParticipantCount == 1)
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.minimumPlayers"))
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupRemoveMultipleSelectedPlayersAtOffsets() async {
+    let players = [makePlayer("A"), makePlayer("B"), makePlayer("C"), makePlayer("D")]
+    let vm = makeSetupViewModel(players: players)
+    await vm.onAppear()
+    selectAll(players, in: vm)
+
+    vm.removeSelectedPlayers(at: IndexSet([1, 2]))
+
+    #expect(vm.selectedPlayers.map(\.name) == ["A", "D"])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupRemoveLastSelectedPlayerClearsTurnOrder() async {
+    let players = [makePlayer("A")]
+    let vm = makeSetupViewModel(players: players)
+    await vm.onAppear()
+    vm.togglePlayer(players[0].id)
+
+    vm.removeFromSelection(players[0].id)
+
+    #expect(vm.selectedPlayerIds.isEmpty)
+    #expect(vm.selectedPlayers.isEmpty)
+    #expect(vm.availableHumans.map(\.name) == ["A"])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupTogglePlayerRemovesFromTurnOrderWhenAlreadySelected() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let vm = makeSetupViewModel(players: players)
+    await vm.onAppear()
+    vm.togglePlayer(players[0].id)
+    vm.togglePlayer(players[1].id)
+
+    vm.togglePlayer(players[0].id)
+
+    #expect(vm.selectedPlayers.map(\.name) == ["B"])
+    #expect(vm.availableHumans.map(\.name) == ["A"])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
 func setupStartMatchUsesManualTurnOrder() async {
     let players = [makePlayer("A"), makePlayer("B")]
     let repo = TurnOrderCapturingMatchRepository()
@@ -202,6 +289,24 @@ func setupConfirmReplaceAbandonsActiveMatchThenStarts() async {
     #expect(!vm.showActiveMatchConflict)
     #expect(await repo.abandonedCount == 1)
     #expect(await repo.deletedCount == 0)
+}
+
+@MainActor
+private func makeSetupViewModel(players: [PlayerSummary]) -> MatchSetupViewModel {
+    MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+}
+
+@MainActor
+private func selectAll(_ players: [PlayerSummary], in vm: MatchSetupViewModel) {
+    for player in players {
+        vm.togglePlayer(player.id)
+    }
 }
 
 private func makePlayer(_ name: String) -> PlayerSummary {

@@ -235,6 +235,51 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout + 5))
     }
 
+    // MARK: - Turn order: remove a staged player without restarting
+
+    func testRemovePlayerFromTurnOrderRestoresAvailableRoster() {
+        let app = launchApp(["-seed_players"])
+
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+
+        let selectAlice = app.buttons["select_Alice"]
+        XCTAssertTrue(selectAlice.waitForExistence(timeout: timeout))
+        selectAlice.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Alice"].waitForExistence(timeout: timeout))
+
+        let selectBob = app.buttons["select_Bob"]
+        XCTAssertTrue(selectBob.waitForExistence(timeout: timeout))
+        if !selectBob.isHittable {
+            app.swipeUp()
+        }
+        selectBob.tap()
+
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+
+        removePlayerFromTurnOrder(named: "Alice", in: app)
+
+        XCTAssertFalse(
+            app.descendants(matching: .any)["setup_selected_Alice"].waitForExistence(timeout: 2),
+            "Alice should leave the turn order list after removal"
+        )
+        XCTAssertTrue(app.buttons["select_Alice"].waitForExistence(timeout: timeout), "Alice should return to the available roster")
+        XCTAssertFalse(start.isEnabled, "START should disable when only one player remains staged")
+
+        removePlayerFromTurnOrder(named: "Bob", in: app)
+
+        XCTAssertFalse(
+            app.descendants(matching: .any)["setup_selected_Bob"].waitForExistence(timeout: 2),
+            "Bob should leave the turn order list after removal"
+        )
+        XCTAssertTrue(app.buttons["select_Bob"].waitForExistence(timeout: timeout), "Bob should return to the available roster")
+        XCTAssertFalse(start.isEnabled, "START should stay disabled with no staged players")
+
+        app.buttons["select_Alice"].tap()
+        app.buttons["select_Bob"].tap()
+        waitForStartEnabled(start, timeout: timeout)
+    }
+
     // MARK: - Validation: START requires two selected players
 
     func testStartRequiresTwoSelectedPlayers() {
@@ -410,6 +455,43 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(hapticsAfter.waitForExistence(timeout: timeout))
         XCTAssertTrue(waitForSwitch(hapticsAfter, on: false, timeout: timeout), "Haptics toggle should stay off after tab change")
         XCTAssertTrue(waitForSwitch(soundAfter, on: false, timeout: timeout), "Sound toggle should stay off after tab change")
+    }
+
+    private func removePlayerFromTurnOrder(named name: String, in app: XCUIApplication) {
+        let removeButton = app.buttons["setup_remove_\(name)"]
+        if removeButton.waitForExistence(timeout: 2) {
+            removeButton.tap()
+            return
+        }
+
+        let turnOrderRow = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier == 'setup_selected_\(name)'")
+        ).firstMatch
+        if turnOrderRow.waitForExistence(timeout: 2) {
+            turnOrderRow.swipeLeft()
+            let remove = app.buttons["Remove"].firstMatch
+            XCTAssertTrue(remove.waitForExistence(timeout: timeout), "Turn order row should expose Remove when swiped")
+            remove.tap()
+            return
+        }
+
+        let rowByLabel = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS[c] %@ AND label CONTAINS[c] %@", "Throwing position", name)
+        ).firstMatch
+        if rowByLabel.waitForExistence(timeout: 2) {
+            rowByLabel.swipeLeft()
+            let remove = app.buttons["Remove"].firstMatch
+            XCTAssertTrue(remove.waitForExistence(timeout: timeout), "Turn order row should expose Remove when swiped")
+            remove.tap()
+            return
+        }
+
+        let cell = app.tables.cells.containing(NSPredicate(format: "label CONTAINS[c] %@", name)).firstMatch
+        XCTAssertTrue(cell.waitForExistence(timeout: timeout), "Expected \(name) in the turn order list")
+        cell.swipeLeft()
+        let remove = app.buttons["Remove"].firstMatch
+        XCTAssertTrue(remove.waitForExistence(timeout: timeout), "Turn order row should expose Remove when swiped")
+        remove.tap()
     }
 
     private func addEasyBot(from app: XCUIApplication) {
