@@ -83,6 +83,7 @@ final class X01MatchViewModel: ObservableObject {
         let setsWon: Int
         let legsWon: Int
         let isActive: Bool
+        let colorToken: PlayerColorToken
         let visitDarts: [DartInput]
         let dartsThrown: Int
         let average: Double
@@ -93,16 +94,22 @@ final class X01MatchViewModel: ObservableObject {
     var playerCards: [PlayerCard] {
         guard let session, let state = session.runtime.x01State else { return [] }
         let isInProgress = session.runtime.status == .inProgress
+        let completedRoundVisits = currentRoundVisitDarts(session: session, state: state)
         return state.players.enumerated().map { index, player in
             let isActive = index == state.currentPlayerIndex && isInProgress
+            let visitDarts = isActive
+                ? enteredDarts
+                : (completedRoundVisits[player.playerId] ?? [])
+            let participant = participant(for: player.playerId)
             return PlayerCard(
                 id: player.playerId,
-                name: name(for: player.playerId, fallbackIndex: index),
+                name: participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: index),
                 score: previewRemainingScore(for: player, isActive: isActive),
                 setsWon: player.setsWon,
                 legsWon: player.legsWon,
                 isActive: isActive,
-                visitDarts: index == state.currentPlayerIndex ? enteredDarts : [],
+                colorToken: participant?.colorToken ?? PlayerColorToken.defaultForPlayer(id: player.playerId),
+                visitDarts: visitDarts,
                 dartsThrown: previewDartsThrown(for: player.playerId, isActive: isActive),
                 average: previewAverage(for: player.playerId, isActive: isActive)
             )
@@ -165,9 +172,34 @@ final class X01MatchViewModel: ObservableObject {
         )
     }
 
-    private func name(for playerId: UUID, fallbackIndex: Int) -> String {
-        let participant = session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-        return participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: fallbackIndex)
+    private func participant(for playerId: UUID) -> MatchParticipant? {
+        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
+    }
+
+    /// Completed visits in the current scoring round (one full rotation through
+    /// `state.players`), derived from turn events for the active leg/set.
+    private func currentRoundVisitDarts(
+        session: MatchLifecycleSession,
+        state: X01State
+    ) -> [UUID: [DartInput]] {
+        guard state.currentPlayerIndex > 0 else { return [:] }
+
+        let legEvents: [X01TurnEvent] = session.events.compactMap { envelope in
+            guard case let .x01Turn(event) = envelope.payload,
+                  event.legIndex == state.legIndex,
+                  event.setIndex == state.setIndex else { return nil }
+            return event
+        }
+
+        guard legEvents.count >= state.currentPlayerIndex else { return [:] }
+
+        let recentEvents = Array(legEvents.suffix(state.currentPlayerIndex))
+        var visits: [UUID: [DartInput]] = [:]
+        for (index, event) in recentEvents.enumerated() {
+            guard state.players[index].playerId == event.playerId else { return [:] }
+            visits[event.playerId] = event.reconstructedDarts
+        }
+        return visits
     }
 
     private func turnEvents(for playerId: UUID) -> [X01TurnEvent] {

@@ -65,6 +65,17 @@ public struct X01TurnEvent: Codable, Equatable, Identifiable, Sendable {
     /// Darts thrown this visit, falling back to the recorded dart detail for
     /// legacy events that predate `dartsThrown`.
     public var effectiveDartsThrown: Int { dartsThrown ?? darts.count }
+
+    /// Per-dart inputs reconstructed from persisted dart events (replay and UI).
+    public var reconstructedDarts: [DartInput] {
+        darts.map { dartEvent in
+            DartInput(
+                multiplier: DartMultiplier(rawValue: dartEvent.multiplierRaw) ?? .single,
+                segment: x01ParseSegmentRaw(dartEvent.segmentRaw),
+                isMiss: dartEvent.wasMiss
+            )
+        }
+    }
 }
 
 public struct X01TurnOutcome: Sendable {
@@ -250,14 +261,12 @@ public enum X01Engine {
     public static func replay(config: MatchConfigX01, playerIds: [UUID], events: [X01TurnEvent]) throws -> X01State {
         var state = try makeInitialState(config: config, playerIds: playerIds)
         for event in events {
-            let reconstructedDarts = event.darts.map { dartEvent in
-                DartInput(
-                    multiplier: DartMultiplier(rawValue: dartEvent.multiplierRaw) ?? .single,
-                    segment: parseSegmentRaw(dartEvent.segmentRaw),
-                    isMiss: dartEvent.wasMiss
-                )
-            }
-            state = try submitTurn(state: state, enteredTotal: event.enteredTotal, darts: reconstructedDarts, timestamp: event.timestamp).updatedState
+            state = try submitTurn(
+                state: state,
+                enteredTotal: event.enteredTotal,
+                darts: event.reconstructedDarts,
+                timestamp: event.timestamp
+            ).updatedState
         }
         return state
     }
@@ -326,16 +335,20 @@ public enum X01Engine {
     }
 
     private static func parseSegmentRaw(_ raw: String) -> DartSegment {
-        if let value = Int(raw), (1 ... 20).contains(value) {
-            return .oneToTwenty(value)
-        }
-        switch raw {
-        case "outerBull":
-            return .outerBull
-        case "innerBull":
-            return .innerBull
-        default:
-            return .miss
-        }
+        x01ParseSegmentRaw(raw)
+    }
+}
+
+fileprivate func x01ParseSegmentRaw(_ raw: String) -> DartSegment {
+    if let value = Int(raw), (1 ... 20).contains(value) {
+        return .oneToTwenty(value)
+    }
+    switch raw {
+    case "outerBull":
+        return .outerBull
+    case "innerBull":
+        return .innerBull
+    default:
+        return .miss
     }
 }

@@ -100,4 +100,38 @@ final class CricketMatchUITests: DartBuddyUITestCase {
             "Three marks on 20 should close the target on the board"
         )
     }
+
+    func testThreePlayerCricketMatchContinuesAfterFirstPlayerClosesAllTargets() {
+        let app = launchApp(["-seed_players"])
+
+        startThreePlayerCricketMatch(from: app)
+
+        closeAllCricketTargets(in: app, timeout: timeout)
+
+        XCTAssertFalse(
+            app.otherElements["matchSummaryHeader"].waitForExistence(timeout: 2),
+            "Match should not end until every player has closed all targets"
+        )
+        waitForActivePlayer("Bob", in: app, timeout: timeout + 10)
+        XCTAssertTrue(app.buttons["cricket_20"].isEnabled, "Opponent should still be able to score")
+    }
+
+    func testThreePlayerCricketMatchEndsWhenAllPlayersCloseAllTargets() {
+        let app = launchApp(["-seed_players"])
+
+        startThreePlayerCricketMatch(from: app)
+
+        closeAllCricketTargets(in: app, timeout: timeout)
+        waitForActivePlayer("Bob", in: app, timeout: timeout + 10)
+
+        closeAllCricketTargets(in: app, timeout: timeout)
+        waitForActivePlayer("Carol", in: app, timeout: timeout + 10)
+
+        closeAllCricketTargets(in: app, timeout: timeout)
+
+        XCTAssertTrue(
+            app.otherElements["matchSummaryHeader"].waitForExistence(timeout: timeout + 10),
+            "Match should end once every player has closed all targets"
+        )
+    }
 }

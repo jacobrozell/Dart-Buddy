@@ -67,6 +67,7 @@ Define X01 gameplay, rule variants, UI behavior, and persistence for MVP with bo
 - Successful submit triggers subtle haptic
 - Bust shows short transient message
 - When checkout is possible, surface hint state (non-blocking)
+- Each player score card shows the current visit's dart slots for every player who has thrown in the current scoring round (one full rotation through all players). When the turn wraps back to player 1, all visit slots clear. A new leg clears all visit slots.
 
 ---
 
@@ -124,6 +125,7 @@ This schema enables future checkout heatmaps and progression charts.
 ## UI
 - Input panel validation states
 - Checkout mode label accuracy
+- Completed visit darts persist on score cards until the scoring round advances
 
 ---
 

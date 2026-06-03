@@ -149,6 +149,7 @@ Behavior:
 - Bust feedback is visible, short-lived, and non-color-only.
 - Successful commit triggers haptic (if enabled).
 - Undo restores exactly one accepted turn.
+- Each player score card shows visit dart slots for every player who has completed a visit in the current scoring round; all slots clear when the turn wraps to player 1 or a new leg begins.
 
 ## 4.4 Cricket Match Screen
 Purpose:

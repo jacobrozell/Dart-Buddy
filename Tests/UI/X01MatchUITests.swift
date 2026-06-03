@@ -106,4 +106,25 @@ final class X01MatchUITests: DartBuddyUITestCase {
         app.buttons["pad_undo"].tap()
         XCTAssertTrue(app.staticTexts["501, Double Out, First to 3 Legs"].exists)
     }
+
+    func testCompletedVisitPersistsOnInactiveScoreCard() {
+        let app = launchApp(["-seed_players"])
+
+        app.buttons["select_Alice"].tap()
+        app.buttons["select_Bob"].tap()
+        app.buttons["startMatchButton"].tap()
+
+        scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
+        _ = waitForPadReady(app, timeout: timeout + 5)
+
+        XCTAssertTrue(app.otherElements["scoreCard_active"].waitForExistence(timeout: timeout))
+
+        let aliceVisitTotal = app.staticTexts.matching(
+            NSPredicate(format: "identifier == %@ AND label == %@", "scoreCard_visitTotal", "60")
+        ).firstMatch
+        XCTAssertTrue(
+            aliceVisitTotal.waitForExistence(timeout: timeout),
+            "Alice's completed visit should remain visible after Bob's turn begins"
+        )
+    }
 }

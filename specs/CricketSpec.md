@@ -42,7 +42,7 @@ If multiple players tie for the highest score, the earliest seat in turn order w
 - Columns: one per player
 - Cell state visual:
   - open marks (0..2)
-  - closed state (3+)
+  - closed state (3+): per-player identity color (from roster `PlayerColorToken`), not a global green
   - should include color + iconography (not color-only)
 
 ## Input Panel
@@ -101,8 +101,8 @@ If multiple players tie for the highest score, the earliest seat in turn order w
 - Match completion tie/lead conditions
 
 ## Integration
-- Complete match with 3+ players
-- Resume from mid-board state
+- Complete match with 3+ players — `CricketEngineProgressionTests` (`cricketCompletesWhenAllThreePlayersCloseAllTargets`, `cricketRotatesTurnOrderThroughThreePlayers`, …), `CricketMatchViewModelTests` (`cricketViewModelCompletesWhenAllThreePlayersCloseAllTargets`), `CricketMatchUITests` (`testThreePlayerCricketMatchEndsWhenAllPlayersCloseAllTargets`)
+- Resume from mid-board state — `MatchLifecycleServiceTests` (`lifecycleResumeThreePlayerCricketMidBoard`)
 
 ## UI
 - Board state rendering correctness

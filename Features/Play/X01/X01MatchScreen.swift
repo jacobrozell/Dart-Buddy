@@ -174,6 +174,7 @@ struct X01MatchScreen: View {
                     setsWon: card.setsWon,
                     legsWon: card.legsWon,
                     isActive: card.isActive,
+                    colorToken: card.colorToken,
                     visitDarts: card.visitDarts,
                     dartsThrown: card.dartsThrown,
                     average: card.average

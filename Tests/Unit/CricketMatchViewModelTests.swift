@@ -4,26 +4,17 @@ import Testing
 
 // State-machine coverage for the live Cricket match view model using in-memory fakes.
 
-private func triple(_ value: Int) -> DartInput { DartInput(multiplier: .triple, segment: .oneToTwenty(value)) }
-private func single(_ value: Int) -> DartInput { DartInput(multiplier: .single, segment: .oneToTwenty(value)) }
-private func cricketMiss() -> DartInput { DartInput(multiplier: .single, segment: .miss, isMiss: true) }
-private let cricketInnerBull = DartInput(multiplier: .single, segment: .innerBull)
-private let cricketOuterBull = DartInput(multiplier: .single, segment: .outerBull)
-
 @MainActor
 private func makeCricketViewModel(
+    participantCount: Int = 2,
     preTurns: [[DartInput]] = [],
     failAppend: Bool = false
 ) throws -> (vm: CricketMatchViewModel, store: ActiveMatchStore) {
-    let p0 = UUID()
-    let p1 = UUID()
+    let participants = cricketParticipants(count: participantCount)
     var session = try MatchLifecycleService.createMatch(
         type: .cricket,
         config: .cricket(MatchConfigCricket()),
-        participants: [
-            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
-            MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
-        ]
+        participants: participants
     )
     for darts in preTurns {
         session = try MatchLifecycleService.submitCricketTurn(session: session, darts: darts)
@@ -53,7 +44,7 @@ func cricketViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws 
             MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
         ]
     )
-    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [triple(20)])
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.triple(20)])
     let matchId = session.runtime.matchId
     let snapshot = session.latestSnapshot
     let snapshotSummary = MatchSnapshotSummary(
@@ -95,7 +86,7 @@ func cricketViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws 
 @Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelSkipsClosureTransitionWhenTargetNotClosed() async throws {
     let (vm, _) = try makeCricketViewModel()
-    vm.enteredDarts = [single(20)]
+    vm.enteredDarts = [CricketTestDarts.single(20)]
 
     let submitTask = Task { await vm.submitTurn() }
 
@@ -119,12 +110,12 @@ func cricketViewModelSkipsClosureTransitionWhenTargetNotClosed() async throws {
 @Test(.tags(.integration, .cricket, .match, .critical, .regression))
 func cricketViewModelDoesNotCompleteWhenOnlyFirstPlayerClosesAllTargets() async throws {
     let (vm, store) = try makeCricketViewModel(preTurns: [
-        [triple(20), triple(19), triple(18)],
-        [cricketMiss(), cricketMiss(), cricketMiss()],
-        [triple(17), triple(16), triple(15)],
-        [cricketMiss(), cricketMiss(), cricketMiss()]
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()]
     ])
-    vm.enteredDarts = [cricketInnerBull, cricketOuterBull]
+    vm.enteredDarts = [CricketTestDarts.innerBull, CricketTestDarts.outerBull]
 
     await vm.submitTurn()
 
@@ -136,17 +127,144 @@ func cricketViewModelDoesNotCompleteWhenOnlyFirstPlayerClosesAllTargets() async 
 @Test(.tags(.integration, .cricket, .match, .critical, .regression))
 func cricketViewModelCompletesWhenAllPlayersCloseAllTargets() async throws {
     let (vm, store) = try makeCricketViewModel(preTurns: [
-        [triple(20), triple(19), triple(18)],
-        [cricketMiss(), cricketMiss(), cricketMiss()],
-        [triple(17), triple(16), triple(15)],
-        [cricketMiss(), cricketMiss(), cricketMiss()],
-        [cricketInnerBull, cricketOuterBull],
-        [triple(20), triple(19), triple(18)],
-        [cricketMiss(), cricketMiss(), cricketMiss()],
-        [triple(17), triple(16), triple(15)],
-        [cricketMiss(), cricketMiss(), cricketMiss()]
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.innerBull, CricketTestDarts.outerBull],
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()]
     ])
-    vm.enteredDarts = [cricketInnerBull, cricketOuterBull]
+    vm.enteredDarts = [CricketTestDarts.innerBull, CricketTestDarts.outerBull]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .matchCompleted)
+    #expect(store.completedSessions().count == 1)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelBoardColumnsCarryParticipantColor() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(
+                playerId: p0,
+                displayNameAtMatchStart: "A",
+                turnOrder: 0,
+                preferredColorTokenAtMatchStart: PlayerColorToken.blue.rawValue
+            ),
+            MatchParticipant(
+                playerId: p1,
+                displayNameAtMatchStart: "B",
+                turnOrder: 1,
+                preferredColorTokenAtMatchStart: PlayerColorToken.coral.rawValue
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = CricketMatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        matchRepository: CricketFakeMatchRepository(),
+        statsRepository: CricketFakeStatsRepository()
+    )
+    await vm.onAppear()
+
+    #expect(vm.boardColumns[0].colorToken == .blue)
+    #expect(vm.boardColumns[1].colorToken == .coral)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelBoardColumnsFallbackColorForLegacyParticipants() async throws {
+    let p0 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0)
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = CricketMatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        matchRepository: CricketFakeMatchRepository(),
+        statsRepository: CricketFakeStatsRepository()
+    )
+    await vm.onAppear()
+
+    #expect(vm.boardColumns[0].colorToken == PlayerColorToken.defaultForPlayer(id: p0))
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelBoardColumnsMatchThreeParticipants() async throws {
+    let (vm, _) = try makeCricketViewModel(participantCount: 3)
+    await vm.onAppear()
+
+    #expect(vm.boardColumns.count == 3)
+    let activeCount = vm.boardColumns.filter(\.isActive).count
+    #expect(activeCount == 1)
+    #expect(vm.boardColumns[vm.cricketState!.currentPlayerIndex].isActive)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .critical, .regression))
+func cricketViewModelDoesNotCompleteWhenOnlyOneOfThreePlayersCloses() async throws {
+    let (vm, store) = try makeCricketViewModel(participantCount: 3, preTurns: [
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()]
+    ])
+    vm.enteredDarts = [CricketTestDarts.innerBull, CricketTestDarts.outerBull]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn)
+    #expect(store.completedSessions().isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .critical, .regression))
+func cricketViewModelCompletesWhenAllThreePlayersCloseAllTargets() async throws {
+    let (vm, store) = try makeCricketViewModel(participantCount: 3, preTurns: [
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.innerBull, CricketTestDarts.outerBull],
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.innerBull, CricketTestDarts.outerBull],
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()]
+    ])
+    vm.enteredDarts = [CricketTestDarts.innerBull, CricketTestDarts.outerBull]
 
     await vm.submitTurn()
 
@@ -159,7 +277,7 @@ func cricketViewModelCompletesWhenAllPlayersCloseAllTargets() async throws {
 func cricketViewModelReflectsMarksOnBoardAfterSubmit() async throws {
     let (vm, _) = try makeCricketViewModel()
     await vm.onAppear()
-    vm.enteredDarts = [triple(20)]
+    vm.enteredDarts = [CricketTestDarts.triple(20)]
 
     await vm.submitTurn()
 
@@ -172,7 +290,7 @@ func cricketViewModelReflectsMarksOnBoardAfterSubmit() async throws {
 func cricketViewModelUndoRevertsLastTurn() async throws {
     let (vm, store) = try makeCricketViewModel()
     await vm.onAppear()
-    vm.enteredDarts = [triple(20)]
+    vm.enteredDarts = [CricketTestDarts.triple(20)]
     await vm.submitTurn()
     #expect(vm.session?.events.count == 1)
 
@@ -188,7 +306,7 @@ func cricketViewModelUndoRevertsLastTurn() async throws {
 @Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelSurfacesErrorWhenPersistenceFails() async throws {
     let (vm, _) = try makeCricketViewModel(failAppend: true)
-    vm.enteredDarts = [triple(20)]
+    vm.enteredDarts = [CricketTestDarts.triple(20)]
 
     await vm.submitTurn()
 

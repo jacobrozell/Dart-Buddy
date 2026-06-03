@@ -146,6 +146,8 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
     public let turnOrder: Int
     /// Present when this participant is a computer opponent.
     public let botDifficultyRaw: String?
+    /// Snapshot of roster identity color at match start; optional for legacy in-progress matches.
+    public let preferredColorTokenAtMatchStart: String?
 
     public var botDifficulty: BotDifficulty? {
         botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
@@ -153,18 +155,27 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
 
     public var isBot: Bool { botDifficulty != nil }
 
+    public var colorToken: PlayerColorToken {
+        if let raw = preferredColorTokenAtMatchStart {
+            return PlayerColorToken.resolved(raw: raw)
+        }
+        return PlayerColorToken.defaultForPlayer(id: playerId ?? id)
+    }
+
     public init(
         id: UUID = UUID(),
         playerId: UUID?,
         displayNameAtMatchStart: String,
         turnOrder: Int,
-        botDifficultyRaw: String? = nil
+        botDifficultyRaw: String? = nil,
+        preferredColorTokenAtMatchStart: String? = nil
     ) {
         self.id = id
         self.playerId = playerId
         self.displayNameAtMatchStart = displayNameAtMatchStart
         self.turnOrder = turnOrder
         self.botDifficultyRaw = botDifficultyRaw
+        self.preferredColorTokenAtMatchStart = preferredColorTokenAtMatchStart
     }
 }
 
