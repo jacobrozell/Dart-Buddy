@@ -30,6 +30,66 @@ func playerRepositoryRejectsDuplicateNames() async throws {
 }
 
 @Test(.tags(.integration, .player, .swiftdata, .regression))
+func playerRepositoryRejectsDeleteWhenParticipantExists() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.x01(MatchConfigX01(
+        startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut
+    )))
+    let matchId = UUID()
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    _ = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+
+    do {
+        try await repos.player.deletePlayer(playerId: alice.id)
+        Issue.record("Expected delete to be blocked when player has match history")
+    } catch let error as AppError {
+        #expect(error.userMessageKey == "players.delete.blocked.message")
+    }
+
+    let players = try await repos.player.fetchPlayers(includeArchived: true)
+    #expect(players.contains(where: { $0.id == alice.id }))
+}
+
+@Test(.tags(.integration, .match, .swiftdata, .critical, .regression))
+func matchRepositoryHistoryExcludesAbandonedMatches() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.x01(MatchConfigX01(
+        startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut
+    )))
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    let created = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+    let abandoned = MatchSummary(
+        id: created.id,
+        type: created.type,
+        status: .abandoned,
+        startedAt: created.startedAt,
+        endedAt: Date(),
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: created.currentLegIndex,
+        currentSetIndex: created.currentSetIndex,
+        eventCount: created.eventCount,
+        createdAt: created.createdAt,
+        updatedAt: Date()
+    )
+    try await repos.match.updateMatch(abandoned)
+
+    #expect(try await repos.match.fetchActiveMatch() == nil)
+    #expect(try await repos.match.fetchHistory(page: 0, pageSize: 10).isEmpty)
+    #expect(try await repos.match.fetchHistoryWithParticipants(page: 0, pageSize: 10, filter: MatchHistoryFilter()).isEmpty)
+}
+
+@Test(.tags(.integration, .player, .swiftdata, .regression))
 func playerRepositoryHidesArchivedPlayersByDefault() async throws {
     let repos = try makeRepositories()
     let alice = try await repos.player.createPlayer(name: "Alice")

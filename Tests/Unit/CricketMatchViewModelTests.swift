@@ -41,6 +41,57 @@ private func makeCricketViewModel(
 }
 
 @MainActor
+@Test(.tags(.integration, .cricket, .match, .critical, .regression))
+func cricketViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [triple(20)])
+    let matchId = session.runtime.matchId
+    let snapshot = session.latestSnapshot
+    let snapshotSummary = MatchSnapshotSummary(
+        id: UUID(),
+        matchId: matchId,
+        snapshotVersion: snapshot.payloadVersion,
+        snapshotPayload: snapshot.payload,
+        updatedAt: Date()
+    )
+    let eventSummaries = try session.events.map { envelope in
+        MatchEventSummary(
+            id: UUID(),
+            matchId: matchId,
+            eventIndex: envelope.eventIndex,
+            eventTypeRaw: "cricketTurn",
+            eventPayload: try CodablePayloadCoder.encode(envelope),
+            createdAt: envelope.timestamp
+        )
+    }
+    let store = ActiveMatchStore()
+    let vm = CricketMatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        matchRepository: CricketRehydratingFakeMatchRepository(snapshot: snapshotSummary),
+        statsRepository: CricketRehydratingFakeStatsRepository(events: eventSummaries)
+    )
+
+    #expect(vm.session == nil)
+    await vm.onAppear()
+
+    #expect(vm.session?.events.count == 1)
+    let firstColumn = try #require(vm.boardColumns.first)
+    #expect(firstColumn.marks["20"] == 3)
+    #expect(store.session(for: matchId) != nil)
+}
+
+@MainActor
 @Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelSkipsClosureTransitionWhenTargetNotClosed() async throws {
     let (vm, _) = try makeCricketViewModel()
@@ -131,6 +182,55 @@ func cricketViewModelSurfacesErrorWhenPersistenceFails() async throws {
 
 private final class CricketSilentLogSink: LogSink, @unchecked Sendable {
     func write(_: LogEntry) {}
+}
+
+private actor CricketRehydratingFakeStatsRepository: StatsRepository {
+    let events: [MatchEventSummary]
+
+    init(events: [MatchEventSummary]) { self.events = events }
+
+    func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary] {
+        events.filter { $0.matchId == matchId }
+    }
+
+    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
+}
+
+private actor CricketRehydratingFakeMatchRepository: MatchRepository {
+    let snapshot: MatchSnapshotSummary
+
+    init(snapshot: MatchSnapshotSummary) { self.snapshot = snapshot }
+
+    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        makeSummary(type: type, status: .inProgress)
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        makeSummary(type: .cricket, status: .completed)
+    }
+    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
+        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
+    }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
+        snapshot.matchId == matchId ? snapshot : nil
+    }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
+
+    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
+        MatchSummary(
+            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 0, createdAt: Date(), updatedAt: Date()
+        )
+    }
 }
 
 private actor CricketFakeStatsRepository: StatsRepository {

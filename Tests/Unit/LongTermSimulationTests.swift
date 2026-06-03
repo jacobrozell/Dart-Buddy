@@ -2,7 +2,134 @@ import Foundation
 import Testing
 @testable import DartBuddy
 
-/// Simulates a long-term user who plays ~50 games across both modes and then
+/// End-to-end integration for the primary user journey: configure a match on setup,
+/// play it through the live view model (including cold-start rehydration), then
+/// read the finished game from History and Statistics.
+@MainActor
+@Test(.tags(.integration, .setupFlow, .match, .history, .stats, .x01, .critical, .regression))
+func setupPlayCompleteHistoryFlowPersistsEndToEnd() async throws {
+    let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
+    let playerRepo = SwiftDataPlayerRepository(container: container)
+    let matchRepo = SwiftDataMatchRepository(container: container)
+    let statsRepo = SwiftDataStatsRepository(container: container)
+    let settingsRepo = SwiftDataSettingsRepository(container: container)
+    let store = ActiveMatchStore()
+
+    let alice = try await playerRepo.createPlayer(name: "Alice")
+    let bob = try await playerRepo.createPlayer(name: "Bob")
+
+    let setupVM = MatchSetupViewModel(
+        playerRepository: playerRepo,
+        settingsRepository: settingsRepo,
+        matchRepository: matchRepo,
+        activeMatchStore: store,
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: IntegrationSilentLogSink())
+    )
+    await setupVM.onAppear()
+    setupVM.randomOrder = false
+    setupVM.togglePlayer(alice.id)
+    setupVM.togglePlayer(bob.id)
+    setupVM.x01StartScore = 301
+    setupVM.x01CheckoutMode = .singleOut
+    setupVM.x01LegsToWin = 1
+
+    guard case let .x01Match(matchId) = await setupVM.startMatchRoute() else {
+        Issue.record("Expected setup to return an X01 match route")
+        return
+    }
+
+    #expect(try await matchRepo.fetchActiveMatch()?.id == matchId)
+    #expect(store.session(for: matchId) != nil)
+
+    let liveVM = X01MatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: IntegrationSilentLogSink()),
+        matchRepository: matchRepo,
+        statsRepository: statsRepo
+    )
+    await liveVM.onAppear()
+    liveVM.inputMode = .dartEntry
+    liveVM.enteredDarts = IntegrationTurns.first301[0]
+    await liveVM.submitTurn()
+    #expect(liveVM.playerCards[0].score == 121)
+
+    // Simulate app relaunch: in-memory session store is empty but SwiftData still has the match.
+    store.remove(matchId: matchId)
+    #expect(store.session(for: matchId) == nil)
+
+    let resumedVM = X01MatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: IntegrationSilentLogSink()),
+        matchRepository: matchRepo,
+        statsRepository: statsRepo
+    )
+    await resumedVM.onAppear()
+    #expect(resumedVM.playerCards[0].score == 121)
+    #expect(resumedVM.session?.events.count == 1)
+
+    resumedVM.inputMode = .dartEntry
+    for darts in IntegrationTurns.first301.dropFirst() {
+        resumedVM.enteredDarts = darts
+        await resumedVM.submitTurn()
+    }
+
+    #expect(resumedVM.state == .matchCompleted)
+    #expect(try await matchRepo.fetchActiveMatch() == nil)
+
+    let history = try await matchRepo.fetchHistory(page: 0, pageSize: 10)
+    #expect(history.count == 1)
+    #expect(history.first?.winnerPlayerId == alice.id)
+
+    let historyVM = HistoryListViewModel(matchRepository: matchRepo, playerRepository: playerRepo)
+    await historyVM.applyFilters()
+    #expect(historyVM.rows.count == 1)
+    #expect(historyVM.rows.first?.standings.contains { $0.isWinner && $0.name == "Alice" } == true)
+
+    let detailVM = HistoryDetailViewModel(
+        matchId: matchId,
+        matchRepository: matchRepo,
+        statsRepository: statsRepo
+    )
+    await detailVM.onAppear()
+    #expect(detailVM.isX01)
+    #expect(detailVM.breakdowns.count == 2)
+
+    let statsVM = StatisticsViewModel(
+        matchRepository: matchRepo,
+        statsRepository: statsRepo,
+        playerRepository: playerRepo
+    )
+    statsVM.mode = .x01
+    statsVM.period = .all
+    await statsVM.load()
+    let aliceRow = try #require(statsVM.rows.first { $0.playerId == alice.id })
+    #expect(aliceRow.games == 1)
+    #expect(aliceRow.wins == 1)
+    let bobRow = try #require(statsVM.rows.first { $0.playerId == bob.id })
+    #expect(bobRow.games == 1)
+    #expect(bobRow.wins == 0)
+}
+
+private enum IntegrationTurns {
+    static func d(_ multiplier: DartMultiplier, _ value: Int) -> DartInput {
+        DartInput(multiplier: multiplier, segment: .oneToTwenty(value))
+    }
+
+    /// 301 single-out, first seat checks out on its second visit.
+    static let first301: [[DartInput]] = [
+        [d(.triple, 20), d(.triple, 20), d(.triple, 20)],
+        [d(.triple, 20), d(.single, 20), d(.single, 20)],
+        [d(.triple, 20), d(.triple, 20), d(.single, 1)]
+    ]
+}
+
+private final class IntegrationSilentLogSink: LogSink, @unchecked Sendable {
+    func write(_: LogEntry) {}
+}
+
 /// inspects every read surface (Statistics, Player detail, History). The whole
 /// flow runs through the real SwiftData repositories + lifecycle service, so it
 /// exercises the same persistence and recompute-on-read path the app uses.
