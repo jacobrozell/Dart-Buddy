@@ -12,43 +12,83 @@ struct DartNumberPad: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
 
-    private let spacing: CGFloat = 6
-    private let rows: [[Int]] = [
+    private var usesAccessibilityLayout: Bool {
+        GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    private var padSpacing: CGFloat {
+        usesAccessibilityLayout ? 8 : 6
+    }
+
+    private var displayKeyMinHeight: CGFloat {
+        usesAccessibilityLayout ? min(keyMinHeight, 56) : keyMinHeight
+    }
+
+    private let compactRows: [[Int]] = [
         [1, 2, 3, 4, 5, 6, 7],
         [8, 9, 10, 11, 12, 13, 14],
         [15, 16, 17, 18, 19, 20, 25]
     ]
 
+    private let accessibilitySegments: [Int] = Array(1 ... 20) + [25]
+
     var body: some View {
-        VStack(spacing: spacing) {
-            ForEach(rows, id: \.self) { row in
-                HStack(spacing: spacing) {
+        if usesAccessibilityLayout {
+            accessibilityPad
+        } else {
+            compactPad
+        }
+    }
+
+    private var compactPad: some View {
+        VStack(spacing: padSpacing) {
+            ForEach(compactRows, id: \.self) { row in
+                HStack(spacing: padSpacing) {
                     ForEach(row, id: \.self) { value in
                         numberKey(value)
                     }
                 }
             }
-            HStack(spacing: spacing) {
-                key(
-                    "0",
-                    background: Brand.key,
-                    identifier: "pad_0",
-                    accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
-                    accessibilityHint: L10n.string("scoring.segment.hint")
-                ) { appendMiss() }
-                modifierKey(.double, identifier: "pad_double")
-                modifierKey(.triple, identifier: "pad_triple")
-                Button(action: undo) {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(Brand.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: keyMinHeight)
-                        .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
+            controlRow
+        }
+    }
+
+    private var accessibilityPad: some View {
+        let columns = Array(
+            repeating: GridItem(.flexible(), spacing: padSpacing),
+            count: GameplayLayout.scoringPadColumnCount(dynamicTypeSize: dynamicTypeSize)
+        )
+        return VStack(spacing: padSpacing) {
+            LazyVGrid(columns: columns, spacing: padSpacing) {
+                ForEach(accessibilitySegments, id: \.self) { value in
+                    numberKey(value)
                 }
-                .frame(maxWidth: .infinity)
-                .accessibilityLabel(L10n.scoringUndoLastTurn)
-                .accessibilityIdentifier("pad_undo")
             }
+            controlRow
+        }
+    }
+
+    private var controlRow: some View {
+        HStack(spacing: padSpacing) {
+            key(
+                "0",
+                background: Brand.key,
+                identifier: "pad_0",
+                accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
+                accessibilityHint: L10n.string("scoring.segment.hint")
+            ) { appendMiss() }
+            modifierKey(.double, identifier: "pad_double")
+            modifierKey(.triple, identifier: "pad_triple")
+            Button(action: undo) {
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Brand.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: displayKeyMinHeight)
+                    .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityLabel(L10n.scoringUndoLastTurn)
+            .accessibilityIdentifier("pad_undo")
         }
     }
 
@@ -110,11 +150,11 @@ struct DartNumberPad: View {
     ) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.body.weight(weight))
+                .font(usesAccessibilityLayout ? .title3.weight(weight) : .body.weight(weight))
                 .foregroundStyle(foreground)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: keyMinHeight)
+                .minimumScaleFactor(usesAccessibilityLayout ? 0.85 : 0.7)
+                .frame(maxWidth: .infinity, minHeight: displayKeyMinHeight)
                 .background(background, in: RoundedRectangle(cornerRadius: 8))
         }
         .accessibilityLabel(accessibilityLabel ?? title)

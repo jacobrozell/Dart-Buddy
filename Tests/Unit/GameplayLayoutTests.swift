@@ -27,3 +27,9 @@ func gameplayLayoutUsesAccessibilityMatchScoringOnlyAtAXSizes() {
     #expect(GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: .accessibility1) == true)
     #expect(GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: .accessibility5) == true)
 }
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutScoringPadUsesFourColumnsAtAXSizes() {
+    #expect(GameplayLayout.scoringPadColumnCount(dynamicTypeSize: .large) == 7)
+    #expect(GameplayLayout.scoringPadColumnCount(dynamicTypeSize: .accessibility3) == 4)
+}

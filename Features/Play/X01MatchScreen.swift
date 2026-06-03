@@ -154,20 +154,17 @@ struct X01MatchScreen: View {
         .frame(maxHeight: .infinity)
     }
 
-    /// Scrollable score + banners; pad stays pinned so both remain reachable at AX sizes.
+    /// Scrollable score, banners, and pad so nothing clips at accessibility text sizes.
     private func accessibilityScoringStack(state: X01State) -> some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: DS.Spacing.s2) {
-                    playerCardsStack
-                        .padding(.top, DS.Spacing.s2)
-                    statusBanners
-                }
+        ScrollView {
+            VStack(spacing: DS.Spacing.s2) {
+                playerCardsStack
+                    .padding(.top, DS.Spacing.s2)
+                statusBanners
+                scoringPad(state: state)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            scoringPad(state: state)
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var playerCardsStack: some View {

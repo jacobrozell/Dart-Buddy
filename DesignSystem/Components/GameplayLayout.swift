@@ -11,8 +11,13 @@ enum GameplayLayout {
         .infinity
     }
 
-    /// X01 uses a scrollable score region with a pinned pad at accessibility text sizes (AX1–AX5).
+    /// X01/Cricket scoring uses alternate layout at accessibility text sizes (AX1–AX5).
     static func usesAccessibilityMatchScoringLayout(dynamicTypeSize: DynamicTypeSize) -> Bool {
         dynamicTypeSize.isAccessibilitySize
+    }
+
+    /// Number-pad columns: fewer columns at AX sizes so labels stay legible.
+    static func scoringPadColumnCount(dynamicTypeSize: DynamicTypeSize) -> Int {
+        usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) ? 4 : 7
     }
 }
