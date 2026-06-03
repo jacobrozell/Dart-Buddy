@@ -228,12 +228,17 @@ struct PlayersRootView: View {
                     Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
                 }
                 Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
         }
         .listRowBackground(Brand.background)
         .listRowSeparatorTint(Brand.cardElevated)
         .accessibilityLabel(playerRowAccessibilityLabel(player))
+        .accessibilityHint(L10n.string("players.row.accessibilityHint"))
         .accessibilityIdentifier(player.botDifficulty == nil ? "player_row_\(player.name)" : "player_row_bot_\(player.id.uuidString)")
         .swipeActions {
             Button(player.isArchived ? "players.unarchive" : "players.archive") {
