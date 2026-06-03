@@ -58,6 +58,9 @@ App Store accepts portrait **2064 × 2752** or **2048 × 2732** (and matching la
 ```bash
 ./Scripts/capture-ipad-marketing-screenshots.sh
 # → marketing-screenshots/ipad/raw/*.png
+
+# Light mode (captured 2026-06-02)
+APPEARANCE=light ./Scripts/capture-ipad-marketing-screenshots.sh
 ```
 
 Uses **iPad Pro 13-inch** simulator (native **2064×2752**). Upload from `ipad/raw/` only — no device frames.
@@ -65,7 +68,7 @@ Uses **iPad Pro 13-inch** simulator (native **2064×2752**). Upload from `ipad/r
 ## Options
 
 ```bash
-# Light mode set
+# Light mode set (captured 2026-06-02 → raw/*-light.png)
 APPEARANCE=light ./Scripts/capture-marketing-screenshots.sh
 
 # 6.9" display (1320×2868 native; disable auto-resize)
