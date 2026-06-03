@@ -36,7 +36,7 @@ struct SetupHomeView: View {
                 }
                 rosterControls
                 if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
-                   !setupViewModel.validationErrors.isEmpty {
+                   !setupViewModel.displayValidationErrors.isEmpty {
                     setupInlineValidationHints
                 }
                 selectedRosterSection
@@ -193,14 +193,11 @@ struct SetupHomeView: View {
                 }
             }
             .accessibilityLabel(L10n.string(setupViewModel.isSubmitting ? "play.setup.startingButton" : "play.setup.startButton"))
-            .modifier(OptionalAccessibilityHint(hint: SetupValidationMessages.startButtonAccessibilityHint(
-                canStart: setupViewModel.canStart,
-                validationErrors: setupViewModel.validationErrors
-            )))
+            .modifier(OptionalAccessibilityHint(hint: setupStartAccessibilityHint))
             .accessibilityIdentifier("startMatchButton")
 
             if !GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
-                ForEach(setupViewModel.validationErrors, id: \.self) { key in
+                ForEach(setupViewModel.displayValidationErrors, id: \.self) { key in
                     ErrorBanner(messageKey: key)
                 }
             }
@@ -209,11 +206,22 @@ struct SetupHomeView: View {
 
     private var setupInlineValidationHints: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            ForEach(setupViewModel.validationErrors, id: \.self) { key in
+            ForEach(setupViewModel.displayValidationErrors, id: \.self) { key in
                 SetupValidationHint(messageKey: key)
             }
         }
         .accessibilityIdentifier("setupValidationHints")
+    }
+
+    private var setupStartAccessibilityHint: String? {
+        guard !setupViewModel.canStart else { return nil }
+        if setupViewModel.isRosterEmpty {
+            return L10n.string("play.setup.playersEmptyHint")
+        }
+        return SetupValidationMessages.startButtonAccessibilityHint(
+            canStart: setupViewModel.canStart,
+            validationErrors: setupViewModel.validationErrors
+        )
     }
 
     private var rosterControls: some View {
@@ -340,10 +348,8 @@ struct SetupHomeView: View {
 
     @ViewBuilder
     private var availablePlayerList: some View {
-        if setupViewModel.availableHumans.isEmpty
-            && setupViewModel.availableBots.isEmpty
-            && setupViewModel.selectedPlayers.isEmpty {
-            Text(L10n.setupMinimumRosterHint)
+        if setupViewModel.isRosterEmpty {
+            Text(L10n.setupPlayersEmptyHint)
                 .font(.footnote)
                 .foregroundStyle(Brand.textSecondary)
         } else if !setupViewModel.availableHumans.isEmpty || !setupViewModel.availableBots.isEmpty {

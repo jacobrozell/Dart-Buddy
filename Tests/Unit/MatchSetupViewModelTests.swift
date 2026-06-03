@@ -89,6 +89,26 @@ func setupValidationRequiresMinimumPlayers() async {
 
     #expect(!vm.canStart)
     #expect(vm.validationErrors.contains("setup.validation.minimumPlayers"))
+    #expect(!vm.isRosterEmpty)
+    #expect(vm.displayValidationErrors.contains("setup.validation.minimumPlayers"))
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func displayValidationErrorsHidesMinimumPlayersWhenRosterEmpty() async {
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: []),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.revalidate()
+
+    #expect(vm.isRosterEmpty)
+    #expect(vm.validationErrors.contains("setup.validation.minimumPlayers"))
+    #expect(vm.displayValidationErrors.isEmpty)
 }
 
 @MainActor
