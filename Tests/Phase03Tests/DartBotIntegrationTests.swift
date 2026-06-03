@@ -298,6 +298,166 @@ func x01ViewModelBotTurnSubmitsVisit() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01OnAppearRestartsBotAfterInterruptedTurn() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = true
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
+    )
+
+    let interrupted = Task { await vm.playBotTurnIfNeeded() }
+    try await Task.sleep(nanoseconds: 30_000_000)
+    interrupted.cancel()
+    _ = await interrupted.result
+
+    #expect(vm.session?.events.count == 0)
+    #expect(!vm.isBotPlaying)
+
+    await vm.onAppear()
+
+    #expect(vm.session?.events.count == 1)
+    #expect(!vm.isBotPlaying)
+    #expect(vm.canHumanInput)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01UndoBackToBotTurnRestartsBot() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+
+    await vm.playBotTurnIfNeeded()
+    #expect(vm.session?.events.count == 1)
+
+    await vm.undoLastTurn()
+
+    #expect(vm.session?.events.count == 1)
+    #expect(!vm.isBotPlaying)
+    #expect(vm.isCurrentPlayerBot == false)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelBotContinuesAfterHumanBust() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 301,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .singleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 0
+            ),
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            )
+        ]
+    )
+    for total in [180, 0, 81, 0] {
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+    }
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "50"
+
+    await vm.submitTurn()
+
+    #expect(vm.session?.events.count == 6)
+    #expect(vm.isCurrentPlayerBot == false)
+    #expect(vm.state == .readyTurn)
+}
+
+@MainActor
 @Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelDetectsActiveBotTurn() throws {
     let humanId = UUID()

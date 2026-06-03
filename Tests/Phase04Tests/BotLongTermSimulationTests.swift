@@ -601,7 +601,7 @@ func botLongTermCheckoutSuccessScalesWithDifficulty() {
 
 @Test(.tags(.integration, .cricket, .performance, .regression))
 func botLongTermCricketMarksScaleWithDifficulty() throws {
-    let rounds = 25
+    let rounds = 60
     var veryEasyMarks = 0
     var easyMarks = 0
     var mediumMarks = 0

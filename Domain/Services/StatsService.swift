@@ -178,26 +178,25 @@ public enum StatsService {
                         entry.legs += 1
                         if turn.startRemaining > entry.highestCheckout { entry.highestCheckout = turn.startRemaining }
                     }
-                    for dart in turn.darts where !dart.wasMiss {
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
                         if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
                         if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                        entry.hitsBySector[dart.segmentRaw, default: 0] += 1
                     }
                     byPlayer[turn.playerId] = entry
                 case let .cricketTurn(turn):
                     var entry = breakdown(for: turn.playerId)
                     entry.points += turn.totalPointsAdded
                     entry.cricketRounds += 1
-                    for touch in turn.targetsTouched where !touch.wasMiss {
+                    for touch in turn.targetsTouched {
                         entry.darts += 1
+                        entry.hitsBySector[HitsBySectorKeys.key(for: touch), default: 0] += 1
+                        guard !touch.wasMiss else { continue }
                         entry.cricketMarks += touch.marksAdded
                         if touch.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
                         if touch.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                        entry.hitsBySector[touch.targetRaw, default: 0] += 1
                     }
-                    // Count missed darts toward total throws as well.
-                    let misses = turn.targetsTouched.filter(\.wasMiss).count
-                    entry.darts += misses
                     byPlayer[turn.playerId] = entry
                 }
             }
@@ -272,5 +271,22 @@ public enum StatsService {
             aggregates[playerId, default: PlayerAggregateStats()].x01Average3Dart = x01Average3Dart(totalPointsScored: points, totalDartsThrown: darts)
         }
         return aggregates
+    }
+
+    /// Sector keys for `hitsBySector` aggregation (`0` = miss, aligned with the scoring pad).
+    private enum HitsBySectorKeys {
+        static let miss = "0"
+
+        static func key(for dart: X01DartEvent) -> String {
+            dart.wasMiss ? miss : normalized(dart.segmentRaw)
+        }
+
+        static func key(for touch: CricketDartTouch) -> String {
+            touch.wasMiss ? miss : normalized(touch.targetRaw)
+        }
+
+        private static func normalized(_ raw: String) -> String {
+            raw == "miss" ? miss : raw
+        }
     }
 }

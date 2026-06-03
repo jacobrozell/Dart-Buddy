@@ -110,6 +110,48 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    fileprivate func cricketHitChance(intendedMultiplier: DartMultiplier) -> Double {
+        switch (self, intendedMultiplier) {
+        case (.veryEasy, .triple): return 0.04
+        case (.veryEasy, .double): return 0.09
+        case (.veryEasy, .single): return 0.20
+        case (.easy, .triple): return 0.11
+        case (.easy, .double): return 0.17
+        case (.easy, .single): return 0.30
+        case (.medium, .triple): return 0.20
+        case (.medium, .double): return 0.26
+        case (.medium, .single): return 0.36
+        case (.hard, .triple): return 0.26
+        case (.hard, .double): return 0.32
+        case (.hard, .single): return 0.42
+        case (.pro, .triple): return 0.32
+        case (.pro, .double): return 0.38
+        case (.pro, .single): return 0.50
+        }
+    }
+
+    /// Off-board miss after failing the intended Cricket bed (within the miss branch).
+    fileprivate var cricketOffBoardMissChance: Double {
+        switch self {
+        case .veryEasy: 0.34
+        case .easy: 0.28
+        case .medium: 0.22
+        case .hard: 0.18
+        case .pro: 0.14
+        }
+    }
+
+    /// Lands on a non-Cricket segment (1–14) so the visit records zero marks.
+    fileprivate var cricketWrongBedChance: Double {
+        switch self {
+        case .veryEasy: 0.42
+        case .easy: 0.36
+        case .medium: 0.30
+        case .hard: 0.24
+        case .pro: 0.20
+        }
+    }
+
     /// When a planned dart would bust, chance the bot throws it anyway instead of
     /// substituting a safe single (higher tiers still bust less often).
     fileprivate var riskyDartWhenWouldBustChance: Double {
@@ -248,7 +290,7 @@ public enum DartBotEngine {
                 difficulty: difficulty,
                 rng: &rng
             )
-            let resolved = resolveDart(intended: intended, difficulty: difficulty, rng: &rng)
+            let resolved = resolveCricketDart(intended: intended, difficulty: difficulty, rng: &rng)
             darts.append(resolved)
 
             if let targetRaw = resolved.segment.cricketTargetRaw {
@@ -353,11 +395,80 @@ public enum DartBotEngine {
                     return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
                 }
                 return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
-            case .hard, .pro:
-                return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
+            case .hard:
+                if Double.random(in: 0 ... 1, using: &rng) < 0.58 {
+                    return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
+                }
+                if Double.random(in: 0 ... 1, using: &rng) < 0.55 {
+                    return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
+                }
+                return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
+            case .pro:
+                if Double.random(in: 0 ... 1, using: &rng) < 0.68 {
+                    return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
+                }
+                if Double.random(in: 0 ... 1, using: &rng) < 0.5 {
+                    return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
+                }
+                return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
             }
         }
         return boardGlanceDart(near: DartInput(multiplier: .single, segment: .oneToTwenty(20)), rng: &rng)
+    }
+
+    private static func resolveCricketDart(
+        intended: DartInput,
+        difficulty: BotDifficulty,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        guard intended.isMiss == false else {
+            return intended
+        }
+
+        let roll = Double.random(in: 0 ... 1, using: &rng)
+        let hitChance = min(0.90, difficulty.cricketHitChance(intendedMultiplier: intended.multiplier))
+        if roll < hitChance {
+            return intended
+        }
+
+        let missRoll = Double.random(in: 0 ... 1, using: &rng)
+        if missRoll < difficulty.cricketOffBoardMissChance {
+            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        }
+        if missRoll < difficulty.cricketOffBoardMissChance + difficulty.cricketWrongBedChance {
+            return cricketWrongBedDart(rng: &rng)
+        }
+
+        return cricketPartialMissDart(intended: intended, rng: &rng)
+    }
+
+    private static func cricketWrongBedDart(rng: inout some RandomNumberGenerator) -> DartInput {
+        let face = Int.random(in: 1 ... 14, using: &rng)
+        return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+    }
+
+    /// Near-miss that may still clip a Cricket bed, but often wastes the dart.
+    private static func cricketPartialMissDart(
+        intended: DartInput,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        if Double.random(in: 0 ... 1, using: &rng) < 0.55 {
+            return cricketWrongBedDart(rng: &rng)
+        }
+
+        switch intended.segment {
+        case let .oneToTwenty(value):
+            let cricketNeighbors = (15 ... 20).filter { $0 != value }
+            if let neighbor = cricketNeighbors.randomElement(using: &rng) {
+                return DartInput(multiplier: .single, segment: .oneToTwenty(neighbor))
+            }
+            return DartInput(multiplier: .single, segment: .oneToTwenty(value))
+        case .innerBull, .outerBull:
+            let face = Int.random(in: 1 ... 14, using: &rng)
+            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        case .miss:
+            return intended
+        }
     }
 
     private static func resolveDart(

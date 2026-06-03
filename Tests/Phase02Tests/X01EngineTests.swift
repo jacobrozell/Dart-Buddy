@@ -17,6 +17,21 @@ func x01SingleOutCheckoutCompletesMatch() throws {
 }
 
 @Test(.tags(.unit, .x01, .critical, .offline, .regression))
+func x01CompletedMatchPreservesFinalRemainingScores() throws {
+    let players = [UUID(), UUID()]
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)
+    var state = try X01Engine.makeInitialState(config: config, playerIds: players)
+
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 180, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 100, darts: nil).updatedState
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 121, darts: nil).updatedState
+
+    #expect(state.isComplete)
+    #expect(state.players[0].remainingScore == 0)
+    #expect(state.players[1].remainingScore == 201)
+}
+
+@Test(.tags(.unit, .x01, .critical, .offline, .regression))
 func x01DoubleOutInvalidFinishBecomesBust() throws {
     let players = [UUID(), UUID()]
     let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)

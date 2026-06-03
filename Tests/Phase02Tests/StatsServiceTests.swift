@@ -146,6 +146,69 @@ func breakdownsComputeCricketHitsAndPoints() throws {
     #expect(abs(two.marksPerRound - 1.0) < 0.0001)
 }
 
+@Test(.tags(.unit, .stats, .x01, .regression))
+func breakdownsCountMissesInSectorZero() throws {
+    let player = UUID()
+    let other = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 0),
+            MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(
+        session: session,
+        enteredTotal: nil,
+        darts: [
+            DartInput(multiplier: .single, segment: .miss, isMiss: true),
+            DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        ]
+    )
+
+    let input = MatchStatsInput(
+        type: .x01,
+        participantKeys: [player, other],
+        winnerKey: nil,
+        events: session.events
+    )
+    let rows = StatsService.breakdowns(from: [input], nameById: [player: "Player", other: "Other"])
+    let p = try #require(rows.first { $0.playerId == player })
+    #expect(p.hitsBySector["0"] == 2)
+    #expect(p.hitsBySector["20"] == 1)
+}
+
+@Test(.tags(.unit, .stats, .cricket, .regression))
+func breakdownsCountCricketMissesInSectorZero() throws {
+    let player = UUID()
+    let other = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 0),
+            MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitCricketTurn(
+        session: session,
+        darts: [DartInput(multiplier: .triple, segment: .oneToTwenty(14))]
+    )
+
+    let input = MatchStatsInput(
+        type: .cricket,
+        participantKeys: [player, other],
+        winnerKey: nil,
+        events: session.events
+    )
+    let rows = StatsService.breakdowns(from: [input], nameById: [player: "Player", other: "Other"])
+    let p = try #require(rows.first { $0.playerId == player })
+    #expect(p.hitsBySector["0"] == 1)
+    #expect(p.darts == 1)
+}
+
 @Test(.tags(.unit, .stats, .regression))
 func breakdownsAggregateGamesAcrossMatches() throws {
     let player = UUID()

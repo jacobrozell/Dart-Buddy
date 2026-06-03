@@ -5,6 +5,7 @@ import Testing
 // State-machine coverage for the live Cricket match view model using in-memory fakes.
 
 private func triple(_ value: Int) -> DartInput { DartInput(multiplier: .triple, segment: .oneToTwenty(value)) }
+private func single(_ value: Int) -> DartInput { DartInput(multiplier: .single, segment: .oneToTwenty(value)) }
 private func cricketMiss() -> DartInput { DartInput(multiplier: .single, segment: .miss, isMiss: true) }
 private let cricketInnerBull = DartInput(multiplier: .single, segment: .innerBull)
 private let cricketOuterBull = DartInput(multiplier: .single, segment: .outerBull)
@@ -41,12 +42,24 @@ private func makeCricketViewModel(
 
 @MainActor
 @Test(.tags(.integration, .cricket, .match, .regression))
-func cricketViewModelEntersClosureTransitionOnNormalTurn() async throws {
+func cricketViewModelSkipsClosureTransitionWhenTargetNotClosed() async throws {
     let (vm, _) = try makeCricketViewModel()
-    vm.enteredDarts = [triple(20)]
+    vm.enteredDarts = [single(20)]
 
-    await vm.submitTurn()
+    let submitTask = Task { await vm.submitTurn() }
 
+    var sawClosure = false
+    for _ in 0 ..< 60 {
+        if vm.state == .closureTransition {
+            sawClosure = true
+            break
+        }
+        try await Task.sleep(nanoseconds: 20_000_000)
+    }
+
+    await submitTask.value
+
+    #expect(sawClosure == false)
     #expect(vm.state == .readyTurn)
     #expect(vm.enteredDarts.isEmpty)
 }

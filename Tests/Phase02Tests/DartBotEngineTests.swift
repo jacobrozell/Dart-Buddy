@@ -156,7 +156,33 @@ import Testing
     #expect(outcome.event.isBust == false || outcome.event.appliedTotal >= 0)
 }
 
-@Test func dartBotEngine_cricketTargetsValidSegments() {
+@Test func dartBotEngine_cricketTurnProducesZeroMarkDarts() {
+    let players = [UUID(), UUID()]
+    let state = try! CricketEngine.makeInitialState(
+        config: MatchConfigCricket(),
+        playerIds: players
+    )
+    var zeroMarkDarts = 0
+    let samples = 300
+
+    for seed in 0 ..< samples {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed + 400))
+        let darts = DartBotEngine.generateCricketTurn(
+            state: state,
+            playerIndex: 0,
+            difficulty: .medium,
+            rng: &rng
+        )
+        zeroMarkDarts += darts.filter { dart in
+            dart.isMiss || dart.segment.cricketTargetRaw == nil
+        }.count
+    }
+
+    let rate = Double(zeroMarkDarts) / Double(samples * 3)
+    #expect(rate >= 0.18)
+}
+
+@Test func dartBotEngine_cricketResolvedDartsStayOnBoard() {
     let players = [UUID(), UUID()]
     let state = try! CricketEngine.makeInitialState(
         config: MatchConfigCricket(),
@@ -171,7 +197,12 @@ import Testing
     )
     for dart in darts {
         if dart.isMiss { continue }
-        #expect(dart.segment.cricketTargetRaw != nil || dart.segment == .innerBull || dart.segment == .outerBull)
+        switch dart.segment {
+        case .oneToTwenty, .innerBull, .outerBull:
+            break
+        case .miss:
+            Issue.record("Non-miss dart used miss segment")
+        }
     }
 }
 

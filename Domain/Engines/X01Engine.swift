@@ -190,7 +190,6 @@ public enum X01Engine {
         if didCheckout {
             updated.players[playerIndex].legsWon += 1
             updated.legIndex += 1
-            resetLeg(&updated)
             if updated.players[playerIndex].legsWon >= effectiveLegsToWin(updated.config) {
                 if updated.config.setsEnabled {
                     updated.players[playerIndex].setsWon += 1
@@ -206,6 +205,9 @@ public enum X01Engine {
                     updated.winnerPlayerId = updated.players[playerIndex].playerId
                     updated.isComplete = true
                 }
+            }
+            if !updated.isComplete {
+                resetLeg(&updated)
             }
         }
 

@@ -13,6 +13,198 @@ func playerEditValidationRejectsDuplicateName() {
 }
 
 @MainActor
+@Test(.tags(.unit, .player, .regression))
+func playerEditValidationAllowsUnchangedNameWhenEditing() {
+    let aliceId = UUID()
+    let editing = EditablePlayer(
+        id: aliceId,
+        name: "Alice",
+        isArchived: false,
+        notes: "",
+        isBot: false,
+        botDifficulty: nil,
+        avatarStyle: .dart,
+        colorToken: .green
+    )
+    let vm = PlayerEditViewModel(existingNames: ["Alice", "Bob"], editing: editing)
+    vm.name = "Alice"
+    vm.validate()
+    #expect(vm.canSave)
+    #expect(vm.validationMessage == nil)
+}
+
+@MainActor
+@Test(.tags(.unit, .player, .regression))
+func playerEditValidationRejectsRenameToExistingName() {
+    let editing = EditablePlayer(
+        id: UUID(),
+        name: "Alice",
+        isArchived: false,
+        notes: "",
+        isBot: false,
+        botDifficulty: nil,
+        avatarStyle: .dart,
+        colorToken: .green
+    )
+    let vm = PlayerEditViewModel(existingNames: ["Alice", "Bob"], editing: editing)
+    vm.name = "Bob"
+    vm.validate()
+    #expect(!vm.canSave)
+    #expect(vm.validationMessage == "player.validation.duplicateName")
+}
+
+@MainActor
+@Test(.tags(.unit, .player, .regression))
+func playerEditBuildPlayerPreservesIdentityWhenEditing() {
+    let editing = EditablePlayer(
+        id: UUID(),
+        name: "Alice",
+        isArchived: true,
+        notes: "note",
+        isBot: false,
+        botDifficulty: nil,
+        avatarStyle: .trophy,
+        colorToken: .amber
+    )
+    let vm = PlayerEditViewModel(existingNames: ["Alice"], editing: editing)
+    vm.name = "Alicia"
+    vm.notes = "updated"
+    vm.avatarStyle = .star
+    vm.colorToken = .blue
+
+    let built = vm.buildPlayer(from: editing)
+    #expect(built.id == editing.id)
+    #expect(built.name == "Alicia")
+    #expect(built.isArchived)
+    #expect(built.notes == "updated")
+    #expect(built.avatarStyle == .star)
+    #expect(built.colorToken == .blue)
+}
+
+@MainActor
+@Test(.tags(.integration, .player, .regression))
+func playersListSaveUpdatesExistingPlayerProfile() async {
+    let repository = UpdatingPlayerRepository()
+    let aliceId = UUID()
+    let alice = PlayerSummary(
+        id: aliceId,
+        name: "Alice",
+        isArchived: false,
+        isBot: false,
+        botDifficultyRaw: nil,
+        avatarStyleRaw: PlayerAvatarStyle.dart.rawValue,
+        preferredColorToken: PlayerColorToken.green.rawValue,
+        notes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    await repository.seed(players: [alice])
+
+    let vm = PlayersListViewModel(
+        repository: repository,
+        matchRepository: PlayerListTestMatchRepository(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+
+    var edited = EditablePlayer.from(alice)
+    edited.name = "Alicia"
+    edited.notes = "Captain"
+    edited.avatarStyle = .star
+    edited.colorToken = .blue
+    await vm.save(edited)
+
+    let update = await repository.lastProfileUpdate()
+    #expect(update?.playerId == aliceId)
+    #expect(update?.name == "Alicia")
+    #expect(update?.notes == "Captain")
+    #expect(update?.avatarStyle == .star)
+    #expect(update?.colorToken == .blue)
+    #expect(vm.players.first(where: { $0.id == aliceId })?.name == "Alicia")
+}
+
+private actor UpdatingPlayerRepository: PlayerRepository {
+    struct ProfileUpdate: Equatable {
+        let playerId: UUID
+        let name: String
+        let avatarStyle: PlayerAvatarStyle
+        let colorToken: PlayerColorToken
+        let notes: String
+    }
+
+    private var players: [PlayerSummary] = []
+    private var lastUpdate: ProfileUpdate?
+
+    func seed(players: [PlayerSummary]) {
+        self.players = players
+    }
+
+    func lastProfileUpdate() -> ProfileUpdate? { lastUpdate }
+
+    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
+    func createPlayer(name _: String) async throws -> PlayerSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
+    func updatePlayerProfile(
+        playerId: UUID,
+        name: String,
+        avatarStyle: PlayerAvatarStyle,
+        colorToken: PlayerColorToken,
+        notes: String
+    ) async throws -> PlayerSummary {
+        lastUpdate = ProfileUpdate(playerId: playerId, name: name, avatarStyle: avatarStyle, colorToken: colorToken, notes: notes)
+        guard let index = players.firstIndex(where: { $0.id == playerId }) else {
+            throw AppError(code: .notFound, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notFound")
+        }
+        let existing = players[index]
+        let updated = PlayerSummary(
+            id: existing.id,
+            name: name,
+            isArchived: existing.isArchived,
+            isBot: existing.isBot,
+            botDifficultyRaw: existing.botDifficultyRaw,
+            avatarStyleRaw: avatarStyle.rawValue,
+            preferredColorToken: colorToken.rawValue,
+            notes: notes.isEmpty ? nil : notes,
+            createdAt: existing.createdAt,
+            updatedAt: Date()
+        )
+        players[index] = updated
+        return updated
+    }
+    func archivePlayer(playerId _: UUID) async throws {}
+    func unarchivePlayer(playerId _: UUID) async throws {}
+    func deletePlayer(playerId _: UUID) async throws {}
+}
+
+private actor PlayerListTestMatchRepository: MatchRepository {
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
+}
+
+@MainActor
 @Test(.tags(.integration, .history, .match, .regression))
 func historyFiltersByModeDeterministically() async {
     let now = Date()

@@ -65,6 +65,21 @@ func x01ViewModelCompletesMatchOnCheckout() async throws {
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelAllowsOpponentInputDuringBustFeedback() async throws {
+    // Player 0 on 40; a 50 visit busts and passes to player 1.
+    let (vm, _, _) = try makeX01ViewModel(totals: [180, 0, 81, 0])
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "50"
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .bustFeedback)
+    #expect(vm.isCurrentPlayerBot == false)
+    #expect(vm.canHumanInput)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
 func x01ViewModelResumesPlayAfterBust() async throws {
     // Regression: a busted turn must not strand the board. Acknowledging the
     // bust returns to readyTurn so the next visit can be scored.
