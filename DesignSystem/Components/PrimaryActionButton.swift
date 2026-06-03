@@ -9,9 +9,14 @@ struct PrimaryActionButton: View {
         Button(action: action) {
             Text(title)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(isEnabled ? Brand.textOnAccent : Brand.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
                 .frame(maxWidth: .infinity, minHeight: 56)
-                .background(isEnabled ? Brand.red : Brand.red.opacity(0.4), in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                .background(
+                    isEnabled ? Brand.red : Brand.cardElevated,
+                    in: RoundedRectangle(cornerRadius: DS.Radius.lg)
+                )
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)

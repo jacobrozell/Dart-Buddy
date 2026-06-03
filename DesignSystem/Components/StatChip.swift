@@ -8,7 +8,7 @@ struct StatChip: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(value)
                 .font(.title3.weight(.bold).monospacedDigit())
-                .foregroundStyle(.white)
+                .foregroundStyle(Brand.textPrimary)
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(Brand.textSecondary)

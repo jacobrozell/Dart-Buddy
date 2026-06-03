@@ -11,10 +11,12 @@ public final class FeedbackPreferences: @unchecked Sendable {
 
 @MainActor
 public final class UserPreferencesStore: ObservableObject {
+    @Published private(set) var appearanceModeRaw = "system"
     @Published private(set) var preferredColorScheme: ColorScheme?
     let feedback = FeedbackPreferences()
 
     func apply(_ settings: SettingsSummary) {
+        appearanceModeRaw = settings.appearanceModeRaw
         preferredColorScheme = AppAppearancePolicy.colorScheme(for: settings.appearanceModeRaw)
         feedback.hapticsEnabled = settings.hapticsEnabled
         feedback.soundEnabled = settings.soundEnabled

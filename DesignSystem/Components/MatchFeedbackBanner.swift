@@ -12,6 +12,7 @@ struct MatchFeedbackBanner: View {
     var animate: Bool = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @State private var pulse = false
     @State private var shakePhase: CGFloat = 0
 
@@ -33,18 +34,15 @@ struct MatchFeedbackBanner: View {
     }
 
     private var foregroundColor: Color {
-        switch style {
-        case .bust: Brand.red
-        case .legWin: Brand.green
-        case .cricketClosure: Brand.amber
-        }
+        Brand.textPrimary
     }
 
     private var backgroundColor: Color {
+        let fillOpacity: Double = colorScheme == .dark ? 0.32 : 0.22
         switch style {
-        case .bust: Brand.red.opacity(0.18)
-        case .legWin: Brand.green.opacity(0.2)
-        case .cricketClosure: Brand.amber.opacity(0.2)
+        case .bust: return Brand.red.opacity(fillOpacity)
+        case .legWin: return Brand.green.opacity(fillOpacity)
+        case .cricketClosure: return Brand.amber.opacity(fillOpacity)
         }
     }
 

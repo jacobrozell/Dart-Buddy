@@ -1,21 +1,52 @@
 import SwiftUI
+import UIKit
 
-/// Brand palette tuned to match the dark "Dart Scoreboard" reference look:
-/// near-black surfaces, a vivid green accent, and a red primary action.
+/// Brand palette for the scoreboard UI. Surfaces and text adapt to light/dark appearance;
+/// accent colors stay consistent for gameplay recognition.
 enum Brand {
-    static let background = Color(red: 0.04, green: 0.04, blue: 0.05)
-    static let card = Color(red: 0.11, green: 0.11, blue: 0.12)
-    static let cardElevated = Color(red: 0.16, green: 0.16, blue: 0.17)
-    static let dartBox = Color(red: 0.02, green: 0.02, blue: 0.02)
+    private static func dynamic(light: UIColor, dark: UIColor) -> Color {
+        Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark ? dark : light
+        })
+    }
 
-    static let green = Color(red: 0.26, green: 0.80, blue: 0.40)
+    static let background = dynamic(
+        light: UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1),
+        dark: UIColor(red: 0.04, green: 0.04, blue: 0.05, alpha: 1)
+    )
+    static let card = dynamic(
+        light: UIColor(red: 1, green: 1, blue: 1, alpha: 1),
+        dark: UIColor(red: 0.11, green: 0.11, blue: 0.12, alpha: 1)
+    )
+    static let cardElevated = dynamic(
+        light: UIColor(red: 0.92, green: 0.92, blue: 0.94, alpha: 1),
+        dark: UIColor(red: 0.16, green: 0.16, blue: 0.17, alpha: 1)
+    )
+    static let dartBox = dynamic(
+        light: UIColor(red: 0.88, green: 0.88, blue: 0.90, alpha: 1),
+        dark: UIColor(red: 0.02, green: 0.02, blue: 0.02, alpha: 1)
+    )
+
+    static let green = Color(red: 0.20, green: 0.68, blue: 0.32)
     static let red = Color(red: 0.90, green: 0.28, blue: 0.24)
     static let amber = Color(red: 0.96, green: 0.70, blue: 0.12)
     static let orange = Color(red: 0.93, green: 0.45, blue: 0.13)
     static let proBot = Color(red: 0.62, green: 0.38, blue: 0.98)
 
-    static let key = Color(red: 0.27, green: 0.27, blue: 0.29)
+    static let key = dynamic(
+        light: UIColor(red: 0.90, green: 0.90, blue: 0.92, alpha: 1),
+        dark: UIColor(red: 0.27, green: 0.27, blue: 0.29, alpha: 1)
+    )
 
-    static let textPrimary = Color.white
-    static let textSecondary = Color.white.opacity(0.55)
+    static let textPrimary = dynamic(
+        light: UIColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1),
+        dark: UIColor.white
+    )
+    static let textSecondary = dynamic(
+        light: UIColor(red: 0.35, green: 0.35, blue: 0.38, alpha: 1),
+        dark: UIColor(white: 1, alpha: 0.55)
+    )
+
+    /// Foreground on saturated accent fills (primary CTA, selected chips, error banner).
+    static let textOnAccent = Color.white
 }

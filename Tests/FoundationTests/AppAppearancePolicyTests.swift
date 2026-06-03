@@ -2,11 +2,6 @@ import Testing
 @testable import DartsScoreboard
 
 @Test(.tags(.unit, .settings, .regression))
-func appearancePolicyScoreboardTabsAlwaysDark() {
-    #expect(AppAppearancePolicy.scoreboardColorScheme == .dark)
-}
-
-@Test(.tags(.unit, .settings, .regression))
 func appearancePolicySettingsBrandPaletteWhenNotLight() {
     #expect(AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: "dark"))
     #expect(AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: "system"))

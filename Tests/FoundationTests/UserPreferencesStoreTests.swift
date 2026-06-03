@@ -28,5 +28,6 @@ func userPreferencesStoreAppliesBotPacingFromSettings() {
 
     #expect(store.feedback.botStaggerEnabled == false)
     #expect(store.feedback.botDartHapticsEnabled == false)
+    #expect(store.appearanceModeRaw == "dark")
     #expect(store.preferredColorScheme == .dark)
 }
