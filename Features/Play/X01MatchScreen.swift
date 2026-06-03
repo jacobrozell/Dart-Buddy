@@ -35,19 +35,26 @@ struct X01MatchScreen: View {
 
             if let state = viewModel.x01State {
                 Text(viewModel.configSummary ?? "")
-                    .font(.subheadline)
+                    .font(dynamicTypeSize.isAccessibilitySize ? .caption : .subheadline)
                     .foregroundStyle(Brand.textSecondary)
-                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 2)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 2)
                     .minimumScaleFactor(0.85)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.bottom, DS.Spacing.s2)
 
-                ViewThatFits(in: .vertical) {
-                    compactScoringStack(state: state)
-                    scrollableScoringStack(state: state)
+                Group {
+                    if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
+                        accessibilityScoringStack(state: state)
+                    } else {
+                        ViewThatFits(in: .vertical) {
+                            compactScoringStack(state: state)
+                            scrollableScoringStack(state: state)
+                        }
+                    }
                 }
+                .frame(maxHeight: .infinity)
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
@@ -139,10 +146,28 @@ struct X01MatchScreen: View {
                 playerCardsStack
                     .padding(.top, DS.Spacing.s2)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             statusBanners
                 .padding(.vertical, DS.Spacing.s2)
             scoringPad(state: state)
         }
+        .frame(maxHeight: .infinity)
+    }
+
+    /// Scrollable score + banners; pad stays pinned so both remain reachable at AX sizes.
+    private func accessibilityScoringStack(state: X01State) -> some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: DS.Spacing.s2) {
+                    playerCardsStack
+                        .padding(.top, DS.Spacing.s2)
+                    statusBanners
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            scoringPad(state: state)
+        }
+        .frame(maxHeight: .infinity)
     }
 
     private var playerCardsStack: some View {

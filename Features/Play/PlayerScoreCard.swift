@@ -56,10 +56,18 @@ struct PlayerScoreCard: View {
         }
     }
 
+    private var displayScoreFontSize: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? min(scoreFontSize, 56) : scoreFontSize
+    }
+
+    private var displayDartBoxSize: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? min(dartBoxSize, 44) : dartBoxSize
+    }
+
     private var scoreNameColumn: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(score)")
-                .font(.system(size: scoreFontSize, weight: .heavy, design: .rounded))
+                .font(.system(size: displayScoreFontSize, weight: .heavy, design: .rounded))
                 .foregroundStyle(Brand.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -139,11 +147,11 @@ struct PlayerScoreCard: View {
 
     private func dartBox(_ label: String?) -> some View {
         Text(label ?? "")
-            .font(.system(size: max(13, dartBoxSize * 0.4), weight: .bold, design: .rounded))
+            .font(.system(size: max(13, displayDartBoxSize * 0.4), weight: .bold, design: .rounded))
             .foregroundStyle(Brand.textPrimary)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
-            .frame(width: dartBoxSize, height: dartBoxSize)
+            .frame(width: displayDartBoxSize, height: displayDartBoxSize)
             .background(Brand.dartBox, in: RoundedRectangle(cornerRadius: 6))
     }
 
