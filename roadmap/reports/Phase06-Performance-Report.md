@@ -8,13 +8,13 @@
 
 ## Instrumentation Added
 - `submitTurn` timing in:
-  - `Features/Play/X01MatchViewModel.swift`
-  - `Features/Play/CricketMatchViewModel.swift`
+  - `Features/Play/X01/X01MatchViewModel.swift`
+  - `Features/Play/Cricket/CricketMatchViewModel.swift`
 - `resumeMatch` timing in:
-  - `Features/Play/PlayHomeViewModel.swift`
+  - `Features/Play/Setup/PlayHomeViewModel.swift`
 - `completeMatch` timing hooks in:
-  - `Features/Play/X01MatchViewModel.swift`
-  - `Features/Play/CricketMatchViewModel.swift`
+  - `Features/Play/X01/X01MatchViewModel.swift`
+  - `Features/Play/Cricket/CricketMatchViewModel.swift`
 - `historyLoad` timing in:
   - `Features/History/HistoryViewModels.swift`
 - Shared measurement utility:

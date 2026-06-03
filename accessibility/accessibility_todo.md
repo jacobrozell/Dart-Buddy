@@ -45,7 +45,7 @@ Phases are sequential for **first App Store quality gate**, but Phase 3 engineer
 
 Track in: `wcag-2.1-aa/screens/_shared-components.md`
 
-- [x] **DartNumberPad** — `accessibilityLabel` per key: full dart name (`Triple 20`, `Double bull`, `Miss`) including active DOUBLE/TRIPLE modifier in label or hint (`Features/Play/DartNumberPad.swift`).
+- [x] **DartNumberPad** — `accessibilityLabel` per key: full dart name (`Triple 20`, `Double bull`, `Miss`) including active DOUBLE/TRIPLE modifier in label or hint (`Features/Play/X01/DartNumberPad.swift`).
 - [x] **DartNumberPad** — `accessibilityHint` on modifier keys when armed (e.g. “Next number will be tripled”).
 - [x] **PlayerScoreCard** — Single combined element: name, remaining, active turn, visit darts (spoken, not only `T20`), sets/legs, average (`X01MatchScreen.swift`).
 - [x] **Live feedback** — Announce bust, checkout suggestion change, leg win (`AccessibilityNotification` on `X01MatchScreen`); manual VO verification pending.

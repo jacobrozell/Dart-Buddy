@@ -37,8 +37,8 @@ Current targets in `DartsScoreboard.xcodeproj`:
 ViewModels own UI state, call `MatchLifecycleService` directly, then persist via `MatchRepository`. This works for iPhone but watch needs a **single command entry point** on the phone side.
 
 Key files:
-- `Features/Play/X01MatchViewModel.swift` — submit/undo/persist loop
-- `Features/Play/CricketMatchViewModel.swift` — same pattern
+- `Features/Play/X01/X01MatchViewModel.swift` — submit/undo/persist loop
+- `Features/Play/Cricket/CricketMatchViewModel.swift` — same pattern
 - `Domain/Services/MatchLifecycleService.swift` — deterministic turn submission
 - `Support/State/ActiveMatchStore.swift` — in-memory session cache (iPhone only)
 
@@ -48,8 +48,8 @@ Pure Foundation — no SwiftUI/SwiftData in `Domain/`. `DartInput`, `MatchEventE
 
 ### UI components
 
-- `Features/Play/DartNumberPad.swift` — 7-column X01 grid (~52pt keys)
-- `Features/Play/CricketBoardView.swift` (`CricketTapPad`) — 3-column layout
+- `Features/Play/X01/DartNumberPad.swift` — 7-column X01 grid (~52pt keys)
+- `Features/Play/Cricket/CricketBoardView.swift` (`CricketTapPad`) — 3-column layout
 
 Both are iPhone-sized. Watch needs a separate, simplified layout.
 

@@ -35,9 +35,9 @@ Layering is one-directional: `App` → `Features` → `Domain` / `Data`. See
 - **Avoid force operations.** No `try!`, `as!`, or `!` unwraps on dynamic values.
   Capture the result of a throwing call in a local instead of force-unwrapping a
   property afterward. (`URL(string:)!` on a verified literal constant is the only
-  accepted exception — see `Support/AppLinks.swift`.)
+  accepted exception — see `Support/Navigation/AppLinks.swift`.)
 - **No magic numbers** for timing or layout that carries meaning. Name them —
-  bot/animation delays live in `Support/BotTurnPacing.swift`, spacing/radius in
+  bot/animation delays live in `Support/Gameplay/BotTurnPacing.swift`, spacing/radius in
   `DesignSystem/Tokens`.
 - **Comments explain *why*, not *what*.** Skip doc comments that restate the
   declaration. Reserve `// MARK:` for files with genuinely distinct sections.

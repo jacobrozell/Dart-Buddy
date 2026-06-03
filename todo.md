@@ -129,7 +129,7 @@ Work below is **blocked on your call** — not just time on device. Everything e
 | **Subtitle** | e.g. `Free X01 & Cricket Scoring` vs `No Ads Darts Scorekeeper` (≤30 chars). |
 | **Keywords & promo copy** | Starter set in spec §5 — finalize description + promotional text. |
 | **Screenshot set** | Framed iPhone set exists (`marketing-screenshots/framed/`); decide **order**, **light vs dark only**, and whether **iPad** uploads are in scope for 1.0. |
-| **Support & privacy URLs** | Code points to GitHub Pages (`Support/AppLinks.swift`); confirm pages are live and copy is final before Connect upload. |
+| **Support & privacy URLs** | Code points to GitHub Pages (`Support/Navigation/AppLinks.swift`); confirm pages are live and copy is final before Connect upload. |
 | **Buy Developer a Coffee** | Link is on in Settings — keep, change URL, or remove for 1.0. |
 
 ### Privacy & compliance
