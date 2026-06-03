@@ -117,11 +117,11 @@ extension DartBuddyUITestCase {
     }
 
     func startThreePlayerCricketMatch(from app: XCUIApplication) {
+        ensurePlayTab(app, timeout: timeout)
         app.buttons["setup_mode_cricket"].tap()
         selectAliceBobAndCarol(from: app)
         let start = app.buttons["startMatchButton"]
-        XCTAssertTrue(start.waitForExistence(timeout: timeout))
-        XCTAssertTrue(start.wait(for: \.isEnabled, toEqual: true, timeout: timeout))
+        waitForStartEnabled(start, timeout: timeout)
         start.tap()
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
     }
