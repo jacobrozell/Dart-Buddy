@@ -471,7 +471,7 @@ struct SetupHomeView: View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 .scrollDisabled(true)
-                .environment(\.editMode, .constant(setupViewModel.randomOrder ? .inactive : .active))
+                .environment(\.editMode, .constant(.active))
                 .frame(minHeight: CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("setup_turnOrderList")
@@ -528,16 +528,6 @@ struct SetupHomeView: View {
             )
             .accessibilityIdentifier("setup_selected_\(player.name)")
             Spacer()
-            Button {
-                setupViewModel.removeFromSelection(player.id)
-            } label: {
-                Image(systemName: "minus.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(.red)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(L10n.setupRemoveFromMatch)
-            .accessibilityIdentifier("setup_remove_\(player.name)")
         }
         .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
             setupViewModel.removeFromSelection(player.id)

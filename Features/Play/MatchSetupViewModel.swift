@@ -99,7 +99,6 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     func moveSelectedPlayers(from source: IndexSet, to destination: Int) {
-        guard !randomOrder else { return }
         selectedPlayerIds.move(fromOffsets: source, toOffset: destination)
     }
 
