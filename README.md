@@ -1,6 +1,6 @@
 # Dart Buddy
 
-![App Icon Concept](assets/app-icons/appstore-icon-concept-4.png)
+<img src="Media.xcassets/AppIcon.appiconset/AppIcon.png" alt="Dart Buddy app icon" width="120" />
 
 **Dart Buddy** is a local-first iOS scorekeeper for X01 and Cricket darts. The Xcode target and Swift module are named **DartsScoreboard** (`import DartsScoreboard`).
 
@@ -75,36 +75,16 @@ High-level summary only — authoritative rules are in feature specs:
 
 ## Documentation map
 
-Use **one primary doc per concern**. Link instead of copying checklists or backlogs.
+Each concern has one authoritative doc. Link to it rather than restating its content elsewhere.
 
-| Concern | Authoritative | Do not duplicate in |
-|---------|---------------|---------------------|
-| Active release work | [`todo.md`](todo.md) · **[`release_checklist.md`](release_checklist.md)** (device + App Store runbook) | README, roadmap phase files |
-| Product/system requirements | [`specs/SpecGovernance.md`](specs/SpecGovernance.md) → individual specs | README feature lists, `todo.md` completed items |
-| Spec index | [`specs/README.md`](specs/README.md) | README |
-| Phase delivery history | [`roadmap/README.md`](roadmap/README.md) · [`roadmap/archive/`](roadmap/archive/README.md) | `todo.md` (roadmap is historical; todo is current) |
-| Accessibility requirements | [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md) | WCAG screen files (link only) |
-| Accessibility status roll-up | [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) | `todo.md`, README |
-| Accessibility manual checks | [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) | `SUMMARY.md` evidence detail |
-| Accessibility engineering plan | [`accessibility/accessibility_todo.md`](accessibility/accessibility_todo.md) | `Manual_todo.md` (manual vs engineering) |
-| Dark / light mode tracker | [`accessibility/dark-light-mode.md`](accessibility/dark-light-mode.md) | Root `darkmodelightmode.md` (redirect only) |
-| iOS code audit (engineering) | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) | `todo.md` UX audit bullets |
-| Design system tokens | [`DesignSystem/README.md`](DesignSystem/README.md) | Feature Swift files |
-| Fast QA gate | [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md) | `release_checklist.md`, `SmokeTestChecklist.md` |
-| Full smoke test | [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) | `release_checklist.md`, `ReleaseGateChecklist.md` |
-| Device + App Store runbook | [`release_checklist.md`](release_checklist.md) | Duplicating full matrices in `todo.md` |
-| RC sign-off evidence | [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) | `todo.md` (todo links here; matrix lives here) |
-| PR smoke evidence template | [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md) | sign-off doc |
-| Post-1.0 assessments | [`FutureIdeas/`](FutureIdeas/) | `todo.md` § Post-1.0 (one-line links only) |
-| Game Center (post-1.0) | [`FutureIdeas/achievements.md`](FutureIdeas/achievements.md) | `FutureIdeas/` |
-| Play reminders (post-1.0) | [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) | `FutureIdeas/` |
-| Post-1.0 backlog | [`todo.md`](todo.md) § Post-1.0 + feature specs | README (removed) |
-
-### Duplication audit (2026-06)
-
-- Removed duplicate inline QA prose elsewhere; **`release_checklist.md`** is the full device + App Store + Reddit runbook.
-- Archived historical roadmap/spec docs under `roadmap/archive/` and `specs/archive/`.
-- Pruned unreferenced `snapshots/`; kept AXXXL files linked from accessibility screen docs.
-- Updated specs for Statistics tab, Firebase Phase 1, and limited UI test policy.
-
-When adding documentation, extend the table above rather than restating content in multiple places.
+| Concern | Start here |
+|---------|------------|
+| Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md)) |
+| Active release work | [`todo.md`](todo.md) |
+| Device + App Store runbook | [`release_checklist.md`](release_checklist.md) |
+| Contributing & code style | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+| iOS code audit | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) |
+| Design system tokens | [`DesignSystem/README.md`](DesignSystem/README.md) |
+| Accessibility (requirements / status / manual) | [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md) · [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) · [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) |
+| Phase delivery history | [`roadmap/README.md`](roadmap/README.md) |
+| Post-1.0 ideas | [`FutureIdeas/`](FutureIdeas/) |

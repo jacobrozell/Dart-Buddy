@@ -1,6 +1,6 @@
 # iOS code audit (senior review)
 
-**Date:** 2026-06-02  
+**Last reviewed:** 2026-06-03  
 **Scope:** SwiftUI app shell, features, design system, accessibility test harness, documentation hygiene.
 
 This is the engineering audit companion to the UX audit in [`todo.md`](../todo.md) § UI/UX audit. It does not duplicate release QA checklists — use [`release_checklist.md`](../release_checklist.md) for ship evidence.
@@ -9,17 +9,23 @@ This is the engineering audit companion to the UX audit in [`todo.md`](../todo.m
 
 ## Executive summary
 
-The codebase is **production-shaped**: clear layer boundaries (`App` → `Features` → `Domain` / `Data`), MVVM in features, pure domain engines, repository isolation, and a strong automated WCAG UI test suite. Remaining work is mostly **consistency** (tokens, typography at AXXXL), **evidence** (manual VoiceOver / device matrix), and **doc placement** — not architectural rewrites.
+The codebase is production-shaped: clear one-directional layer boundaries
+(`App` → `Features` → `Domain` / `Data`), MVVM in features, pure domain engines,
+repository isolation behind protocols, and an automated WCAG UI test suite.
+There are no dead-code, force-try, force-cast, or stray-`print` problems. The
+remaining engineering work is **consistency and decomposition**, not
+architectural rewrites:
 
-| Area | Grade | Notes |
-|------|-------|-------|
-| Architecture & boundaries | A | Matches [`specs/ArchitectureSpec.md`](../specs/ArchitectureSpec.md) |
-| Domain / testability | A | Engines and lifecycle tested by phase |
-| SwiftUI / MVVM | A− | ViewModels own state; a few large views (setup, X01) |
-| Design system | B+ | `Brand` + `DS` split is intentional but needs discipline |
-| Accessibility (automated) | A | 40/40 `WCAGAccessibilityUITests` |
-| Accessibility (manual) | Incomplete | AXXXL evidence, VO spot-checks in `accessibility/` |
-| Documentation | B+ | Good spec governance; trackers were scattered (now consolidated) |
+- A few files carry too much: the monolithic `SwiftDataRepositories` and the
+  near-duplicate turn-submit flows in the X01 / Cricket view models are the main
+  structural smells (see P2 below).
+- A handful of feature views are long; they are already decomposed into focused
+  subviews, so the win is file-splitting for readability, not restructuring.
+- Manual accessibility evidence (VoiceOver, AXXXL, device matrix) is still open
+  and tracked under `accessibility/`.
+
+Conventions are now written down in [`CONTRIBUTING.md`](../CONTRIBUTING.md) so
+new code has a standard to match.
 
 ---
 
@@ -51,7 +57,9 @@ The codebase is **production-shaped**: clear layer boundaries (`App` → `Featur
 | B1 | **Dual token systems** | **`Brand`** = scoreboard palette (light/dark). **`DS`** = spacing/radius + semantic colors for native surfaces. Do not mix `DS.ColorRole` on brand screens — use `Brand.textSecondary` (see `DesignSystem/README.md`). |
 | B2 | **`ThemeTokens` unused** | Removed; was dead code. |
 | B3 | **`ScoringPadLabels` in DesignSystem** | Acceptable for now; if Play grows, move to `Features/Play/`. |
-| B4 | **Large SwiftUI files** | `SetupHomeView`, `PlayersRootView`, `X01MatchScreen` — consider extracting subviews (setup sections, player row, score column) when touching those files next. |
+| B4 | **Large SwiftUI files** | Done. Split via extension / dedicated files: `SetupHomeView` → `SetupHomeView+OptionChips.swift` (614→445); `PlayersRootView` → `PlayerDetailView.swift` (558→331); `X01MatchScreen` → `PlayerScoreCard.swift` (443→282). |
+| B7 | **Duplicate turn-submit flows** (open) | `X01MatchViewModel.submitTurnAsync()` (~112 lines) and `CricketMatchViewModel.submitTurnAsync()` (~107 lines) share near-identical cancellation / logging / persistence scaffolding, but branch on different view-state types and mode-specific logic (bust vs. closure, input modes, caller tokens). A shared helper needs a generic/protocol abstraction over the core scoring path — **left open intentionally**: it touches behavior and should be done with the unit suite green, not blind. |
+| B8 | **Monolithic repository** | Done. `SwiftDataRepositories.swift` (~798 lines) split into `SwiftDataPlayerRepository`, `SwiftDataMatchRepository`, `SwiftDataStatsRepository`, `SwiftDataSettingsRepository`, and a shared `SwiftDataRepositorySupport.swift` (mappers + `dataCall`). |
 | B5 | **Settings tab bar bleed** | Verify on device; `SettingsRootView` already uses `.safeAreaPadding(.bottom)`. If bleed persists, add tab-bar-aware inset via `safeAreaInset(edge: .bottom)` on the `Form`. |
 | B6 | **Migration recovery styling** | Migrated to `Brand` + `DS.Spacing` for consistency with recovery UX on brand shell. |
 
@@ -121,3 +129,5 @@ Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibili
 | Date | Change |
 |------|--------|
 | 2026-06-02 | Initial audit; consolidated dark/light tracker; DesignSystem README; removed `ThemeTokens`; aligned `MigrationRecoveryView` styling |
+| 2026-06-03 | Refinement pass: added `CONTRIBUTING.md` (codified house style); removed a force-unwrap in `SettingsViewModel`; named the Cricket closure-transition delay in `BotTurnPacing`; split `SetupHomeView` option chips into an extension file; slimmed the README documentation map and fixed its broken banner image; removed the `darkmodelightmode.md` redirect stub. |
+| 2026-06-03 | Decomposition pass: split `PlayersRootView` (→ `PlayerDetailView.swift`) and `X01MatchScreen` (→ `PlayerScoreCard.swift`); split the monolithic `SwiftDataRepositories.swift` into per-model repository files plus `SwiftDataRepositorySupport.swift` (B4, B8 done). B7 (shared turn-submit helper) left open pending a green test run. |
