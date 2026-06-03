@@ -90,10 +90,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let trimmed = normalizeNameForSave(name)
             try validateName(trimmed, in: context, excludingPlayerId: playerId)
             player.name = trimmed
-            if player.isBot != true {
-                player.avatarStyleRaw = avatarStyle.rawValue
-                player.preferredColorToken = colorToken.rawValue
-            }
+            player.avatarStyleRaw = avatarStyle.rawValue
+            player.preferredColorToken = colorToken.rawValue
             let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
             player.notes = trimmedNotes.isEmpty ? nil : String(trimmedNotes.prefix(200))
             player.updatedAt = Date()

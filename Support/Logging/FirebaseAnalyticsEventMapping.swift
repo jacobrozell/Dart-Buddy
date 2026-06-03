@@ -17,6 +17,7 @@ public enum FirebaseAnalyticsEventMapping {
         "match_completed",
         "turn_submitted",
         "turn_undone",
+        "dart_undone",
         "match_abandoned",
         "match_start_failed",
         "turn_persist_failed",
@@ -41,7 +42,8 @@ public enum FirebaseAnalyticsEventMapping {
 
     private static let firebaseNameOverrides: [String: String] = [
         "app_bootstrap_ready": "app_open",
-        "turn_undone": "undo_used"
+        "turn_undone": "undo_used",
+        "dart_undone": "undo_used"
     ]
 
     public static func map(_ entry: LogEntry, appVersion: String?) -> FirebaseAnalyticsEvent? {

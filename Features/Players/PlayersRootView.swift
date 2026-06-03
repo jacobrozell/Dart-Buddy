@@ -154,6 +154,7 @@ struct PlayersRootView: View {
                 case let .detail(playerId):
                     PlayerDetailView(
                         player: viewModel.player(id: playerId),
+                        existingNames: viewModel.players.map(\.name),
                         dependencies: dependencies,
                         onEdit: {
                             guard let player = viewModel.player(id: playerId) else { return }
@@ -162,17 +163,26 @@ struct PlayersRootView: View {
                         onArchiveToggle: {
                             actionTask?.cancel()
                             actionTask = Task { await viewModel.archiveToggle(playerId) }
+                        },
+                        onSave: { player in
+                            actionTask?.cancel()
+                            actionTask = Task { await viewModel.save(player) }
                         }
                     )
                 case let .edit(playerId):
                     PlayerDetailView(
                         player: playerId.flatMap { viewModel.player(id: $0) },
+                        existingNames: viewModel.players.map(\.name),
                         dependencies: dependencies,
                         onEdit: {
                             guard let id = playerId, let player = viewModel.player(id: id) else { return }
                             playerSheet = .edit(player)
                         },
-                        onArchiveToggle: {}
+                        onArchiveToggle: {},
+                        onSave: { player in
+                            actionTask?.cancel()
+                            actionTask = Task { await viewModel.save(player) }
+                        }
                     )
                 }
             }
@@ -210,14 +220,12 @@ struct PlayersRootView: View {
         } label: {
             HStack(spacing: DS.Spacing.s3) {
                 PlayerAvatarChip(player: player, size: 40)
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(player.name)
                         .font(.headline)
                         .foregroundStyle(Brand.textPrimary)
                     if let difficulty = player.botDifficulty {
-                        Text(difficulty.displayName)
-                            .font(.caption)
-                            .foregroundStyle(PlayerVisualViews.botDifficultyColor(difficulty))
+                        BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
                     } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
                         Text(L10n.format("players.list.record", summary.games, summary.wins))
                             .font(.caption)
@@ -302,12 +310,22 @@ private struct PlayerEditSheet: View {
                     .accessibilityLabel(L10n.string("players.edit.name.accessibility"))
                     .accessibilityIdentifier("playerEdit_name")
                     .onChange(of: viewModel.name) { _, _ in viewModel.validate() }
-                if !viewModel.isBot {
-                    Section(L10n.playersEditAvatar) {
-                        AvatarStylePicker(selection: $viewModel.avatarStyle)
+                Section(L10n.playersEditAvatar) {
+                    AvatarStylePicker(selection: $viewModel.avatarStyle)
+                }
+                Section(L10n.playersEditColor) {
+                    PlayerColorTokenPicker(selection: $viewModel.colorToken)
+                }
+                if viewModel.isBot, let difficulty = existing?.botDifficulty {
+                    Section(L10n.botDifficultyLabel) {
+                        BotDifficultyBadge(difficulty: difficulty)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .listRowBackground(Brand.card)
                     }
-                    Section(L10n.playersEditColor) {
-                        PlayerColorTokenPicker(selection: $viewModel.colorToken)
+                    Section(L10n.botStatsSection) {
+                        BotDifficultyStatsSection(profile: difficulty.displayProfile, showsHeader: false)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                            .listRowBackground(Color.clear)
                     }
                 }
                 TextField("players.edit.notes", text: $viewModel.notes, axis: .vertical)
@@ -316,7 +334,11 @@ private struct PlayerEditSheet: View {
                     Text(message).foregroundStyle(.red).font(.footnote)
                 }
             }
-            .navigationTitle(existing == nil ? L10n.addPlayerTitle : L10n.editPlayerTitle)
+            .navigationTitle(
+                existing == nil
+                    ? L10n.addPlayerTitle
+                    : (existing?.isBot == true ? L10n.editBotTitle : L10n.editPlayerTitle)
+            )
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(L10n.cancel) { dismiss() }

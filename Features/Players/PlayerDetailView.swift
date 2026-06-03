@@ -2,21 +2,144 @@ import SwiftUI
 
 struct PlayerDetailView: View {
     let player: EditablePlayer?
+    let existingNames: [String]
     let dependencies: AppDependencies
     let onEdit: () -> Void
     let onArchiveToggle: () -> Void
+    let onSave: (EditablePlayer) -> Void
 
     var body: some View {
         Group {
             if let player {
-                PlayerStatsDetailView(player: player, dependencies: dependencies, onEdit: onEdit, onArchiveToggle: onArchiveToggle)
+                if player.isBot, let difficulty = player.botDifficulty {
+                    BotDetailView(
+                        player: player,
+                        difficulty: difficulty,
+                        existingNames: existingNames,
+                        dependencies: dependencies,
+                        onSave: onSave
+                    )
+                } else {
+                    PlayerStatsDetailView(
+                        player: player,
+                        dependencies: dependencies,
+                        onEdit: onEdit,
+                        onArchiveToggle: onArchiveToggle
+                    )
+                }
             } else {
                 ContentUnavailableView(L10n.playerNotFound, systemImage: "person.crop.circle.badge.exclamationmark")
                     .brandScoreboardEmptyState()
             }
         }
-        .navigationTitle(L10n.playerDetailTitle)
+        .navigationTitle(player?.isBot == true ? L10n.botDetailTitle : L10n.playerDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct BotDetailView: View {
+    let player: EditablePlayer
+    let difficulty: BotDifficulty
+    let existingNames: [String]
+    let dependencies: AppDependencies
+    let onSave: (EditablePlayer) -> Void
+
+    @StateObject private var editViewModel: PlayerEditViewModel
+    @StateObject private var statsViewModel: PlayerDetailViewModel
+
+    init(
+        player: EditablePlayer,
+        difficulty: BotDifficulty,
+        existingNames: [String],
+        dependencies: AppDependencies,
+        onSave: @escaping (EditablePlayer) -> Void
+    ) {
+        self.player = player
+        self.difficulty = difficulty
+        self.existingNames = existingNames
+        self.dependencies = dependencies
+        self.onSave = onSave
+        _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
+        _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
+            playerId: player.id,
+            playerName: player.name,
+            matchRepository: dependencies.matchRepository,
+            statsRepository: dependencies.statsRepository
+        ))
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                BotIdentityCard(
+                    name: editViewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? player.name : editViewModel.name,
+                    avatarStyle: editViewModel.avatarStyle,
+                    colorToken: editViewModel.colorToken,
+                    difficulty: difficulty,
+                    notes: editViewModel.notes
+                )
+
+                BotDifficultyStatsSection(profile: difficulty.displayProfile)
+
+                customizationSection
+
+                PlayerDetailStatsContent(viewModel: statsViewModel)
+            }
+            .padding(.horizontal, DS.Spacing.s4)
+            .padding(.bottom, DS.Spacing.s6)
+        }
+        .background(Brand.background.ignoresSafeArea())
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button(L10n.save) {
+                    onSave(editViewModel.buildPlayer(from: player))
+                }
+                .disabled(!editViewModel.canSave)
+                .accessibilityLabel(L10n.string("players.bots.save.accessibility"))
+                .accessibilityIdentifier("botDetail_save")
+            }
+        }
+        .task { await statsViewModel.load() }
+    }
+
+    private var customizationSection: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            Text(L10n.botCustomizationSection)
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+
+            VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+                TextField("players.edit.name", text: $editViewModel.name)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel(L10n.string("players.edit.name.accessibility"))
+                    .accessibilityIdentifier("botDetail_name")
+                    .onChange(of: editViewModel.name) { _, _ in editViewModel.validate() }
+
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    Text(L10n.playersEditAvatar)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                    AvatarStylePicker(selection: $editViewModel.avatarStyle)
+                }
+
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    Text(L10n.playersEditColor)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                    PlayerColorTokenPicker(selection: $editViewModel.colorToken)
+                }
+
+                TextField("players.edit.notes", text: $editViewModel.notes, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel(L10n.string("players.edit.notes.accessibility"))
+
+                if let message = editViewModel.validationMessage {
+                    Text(message).foregroundStyle(.red).font(.footnote)
+                }
+            }
+            .padding(DS.Spacing.s4)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        }
     }
 }
 
@@ -25,7 +148,6 @@ private struct PlayerStatsDetailView: View {
     let onEdit: () -> Void
     let onArchiveToggle: () -> Void
     @StateObject private var viewModel: PlayerDetailViewModel
-    @State private var loadTask: Task<Void, Never>?
 
     init(player: EditablePlayer, dependencies: AppDependencies, onEdit: @escaping () -> Void, onArchiveToggle: @escaping () -> Void) {
         self.player = player
@@ -49,33 +171,7 @@ private struct PlayerStatsDetailView: View {
                         .foregroundStyle(Brand.textSecondary)
                 }
 
-                if let lastPlayedText = viewModel.lastPlayedText {
-                    Text(lastPlayedText)
-                        .font(.subheadline)
-                        .foregroundStyle(Brand.textSecondary)
-                }
-
-                if viewModel.isLoading {
-                    ProgressView().tint(Brand.textPrimary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, DS.Spacing.s6)
-                } else if !viewModel.hasAnyGames {
-                    Text(L10n.playersDetailNoGames)
-                        .foregroundStyle(Brand.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, DS.Spacing.s6)
-                } else {
-                    if let x01 = viewModel.x01, x01.games > 0 {
-                        modeSection(title: L10n.x01Title, stats: x01, isX01: true)
-                    }
-                    if let cricket = viewModel.cricket, cricket.games > 0 {
-                        modeSection(title: L10n.cricketTitle, stats: cricket, isX01: false)
-                    }
-
-                    if !viewModel.recentMatches.isEmpty {
-                        recentMatchesSection
-                    }
-                }
+                PlayerDetailStatsContent(viewModel: viewModel)
 
                 HStack(spacing: DS.Spacing.s3) {
                     Button(L10n.edit, action: onEdit)
@@ -83,15 +179,13 @@ private struct PlayerStatsDetailView: View {
                         .tint(Brand.green)
                         .accessibilityLabel(L10n.string("players.detail.edit.accessibility"))
                         .accessibilityIdentifier("playerDetail_edit")
-                    if !player.isBot {
-                        Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
-                            .buttonStyle(.bordered)
-                            .tint(Brand.orange)
-                            .accessibilityLabel(
-                                L10n.string(player.isArchived ? "players.detail.unarchive.accessibility" : "players.detail.archive.accessibility")
-                            )
-                            .accessibilityIdentifier("playerDetail_archive")
-                    }
+                    Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
+                        .buttonStyle(.bordered)
+                        .tint(Brand.orange)
+                        .accessibilityLabel(
+                            L10n.string(player.isArchived ? "players.detail.unarchive.accessibility" : "players.detail.archive.accessibility")
+                        )
+                        .accessibilityIdentifier("playerDetail_archive")
                 }
                 .padding(.top, DS.Spacing.s2)
             }
@@ -100,7 +194,42 @@ private struct PlayerStatsDetailView: View {
         }
         .background(Brand.background.ignoresSafeArea())
         .task { await viewModel.load() }
-        .onDisappear { loadTask?.cancel() }
+    }
+}
+
+private struct PlayerDetailStatsContent: View {
+    @ObservedObject var viewModel: PlayerDetailViewModel
+
+    var body: some View {
+        Group {
+            if let lastPlayedText = viewModel.lastPlayedText {
+                Text(lastPlayedText)
+                    .font(.subheadline)
+                    .foregroundStyle(Brand.textSecondary)
+            }
+
+            if viewModel.isLoading {
+                ProgressView().tint(Brand.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DS.Spacing.s6)
+            } else if !viewModel.hasAnyGames {
+                Text(L10n.playersDetailNoGames)
+                    .foregroundStyle(Brand.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DS.Spacing.s6)
+            } else {
+                if let x01 = viewModel.x01, x01.games > 0 {
+                    modeSection(title: L10n.x01Title, stats: x01, isX01: true)
+                }
+                if let cricket = viewModel.cricket, cricket.games > 0 {
+                    modeSection(title: L10n.cricketTitle, stats: cricket, isX01: false)
+                }
+
+                if !viewModel.recentMatches.isEmpty {
+                    recentMatchesSection
+                }
+            }
+        }
     }
 
     @ViewBuilder

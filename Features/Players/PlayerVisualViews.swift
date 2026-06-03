@@ -1,11 +1,8 @@
 import SwiftUI
 
 enum PlayerVisualViews {
-    static func accentColor(token: PlayerColorToken, isBot: Bool, botDifficulty: BotDifficulty?) -> Color {
-        if isBot, let botDifficulty {
-            return botDifficultyColor(botDifficulty)
-        }
-        return color(for: token)
+    static func accentColor(token: PlayerColorToken) -> Color {
+        color(for: token)
     }
 
     static func color(for token: PlayerColorToken) -> Color {
@@ -37,32 +34,76 @@ enum PlayerVisualViews {
     }
 }
 
-struct PlayerAvatarChip: View {
-    let player: EditablePlayer
-    var size: CGFloat = 44
+struct BotDifficultyBadge: View {
+    let difficulty: BotDifficulty
+    var prominence: Prominence = .standard
+
+    enum Prominence {
+        case standard
+        case compact
+    }
+
+    private var difficultyColor: Color {
+        PlayerVisualViews.botDifficultyColor(difficulty)
+    }
+
+    var body: some View {
+        HStack(spacing: prominence == .compact ? 4 : 6) {
+            Image(systemName: "cpu.fill")
+                .font(prominence == .compact ? .caption2.weight(.semibold) : .caption.weight(.semibold))
+            Text(difficulty.displayName)
+                .font(prominence == .compact ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
+        }
+        .foregroundStyle(difficultyColor)
+        .padding(.horizontal, prominence == .compact ? DS.Spacing.s2 : DS.Spacing.s3)
+        .padding(.vertical, prominence == .compact ? 4 : 6)
+        .background(difficultyColor.opacity(0.15), in: Capsule())
+        .overlay(Capsule().strokeBorder(difficultyColor.opacity(0.35), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L10n.format("players.bots.difficulty.accessibilityFormat", difficulty.displayName))
+    }
+}
+
+struct PlayerRosterAvatar: View {
+    let avatarStyle: PlayerAvatarStyle
+    let colorToken: PlayerColorToken
+    var size: CGFloat = 32
 
     private var accent: Color {
-        PlayerVisualViews.accentColor(
-            token: player.colorToken,
-            isBot: player.isBot,
-            botDifficulty: player.botDifficulty
-        )
+        PlayerVisualViews.accentColor(token: colorToken)
     }
 
     var body: some View {
         ZStack {
             Circle()
                 .fill(accent.opacity(0.22))
-            if player.isBot {
-                Image(systemName: "cpu.fill")
-                    .font(.system(size: size * 0.38, weight: .semibold))
-                    .foregroundStyle(accent)
-            } else {
-                Image(systemName: player.avatarStyle.symbolName)
-                    .font(.system(size: size * 0.38, weight: .semibold))
-                    .foregroundStyle(accent)
-                    .rotationEffect(player.avatarStyle == .dart ? .degrees(135) : .zero)
-            }
+            Image(systemName: avatarStyle.symbolName)
+                .font(.system(size: size * 0.38, weight: .semibold))
+                .foregroundStyle(accent)
+                .rotationEffect(avatarStyle == .dart ? .degrees(135) : .zero)
+        }
+        .frame(width: size, height: size)
+        .overlay(Circle().strokeBorder(accent.opacity(0.55), lineWidth: 1.5))
+        .accessibilityHidden(true)
+    }
+}
+
+struct PlayerAvatarChip: View {
+    let player: EditablePlayer
+    var size: CGFloat = 44
+
+    private var accent: Color {
+        PlayerVisualViews.accentColor(token: player.colorToken)
+    }
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(accent.opacity(0.22))
+            Image(systemName: player.avatarStyle.symbolName)
+                .font(.system(size: size * 0.38, weight: .semibold))
+                .foregroundStyle(accent)
+                .rotationEffect(player.avatarStyle == .dart ? .degrees(135) : .zero)
         }
         .frame(width: size, height: size)
         .overlay(Circle().strokeBorder(accent.opacity(0.55), lineWidth: 1.5))
@@ -70,15 +111,205 @@ struct PlayerAvatarChip: View {
     }
 }
 
+struct BotDifficultyStatsSection: View {
+    let profile: BotDifficultyDisplayProfile
+    var showsHeader: Bool = true
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            if showsHeader {
+                Text(L10n.botStatsSection)
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
+            }
+
+            modeCard(title: L10n.x01Title) {
+                BotStatRow(
+                    labelKey: "players.bots.stats.scoringVisitRange",
+                    value: BotDifficultyDisplayProfile.range(profile.x01.scoringVisitMin, profile.x01.scoringVisitMax)
+                )
+                statDivider
+                hitChanceRows(profile.x01.hitChances)
+                statDivider
+                BotStatRow(
+                    labelKey: "players.bots.stats.checkoutAttemptRate",
+                    value: BotDifficultyDisplayProfile.percent(profile.x01.checkoutAttemptChance)
+                )
+                BotStatRow(
+                    labelKey: "players.bots.stats.offBoardMiss",
+                    value: BotDifficultyDisplayProfile.percent(profile.x01.offBoardMissChance)
+                )
+                BotStatRow(
+                    labelKey: "players.bots.stats.bustRisk",
+                    value: BotDifficultyDisplayProfile.percent(profile.x01.riskyBustChance)
+                )
+                BotStatRow(
+                    labelKey: "players.bots.stats.triplePreference",
+                    value: BotDifficultyDisplayProfile.percent(profile.x01.triplePreference)
+                )
+                BotStatRow(
+                    labelKey: "players.bots.stats.checkInBoost",
+                    value: BotDifficultyDisplayProfile.percent(profile.x01.checkInHitBoost, signed: true)
+                )
+                if profile.x01.innerBullAimChance > 0 {
+                    BotStatRow(
+                        labelKey: "players.bots.stats.innerBullAim",
+                        value: BotDifficultyDisplayProfile.percent(profile.x01.innerBullAimChance)
+                    )
+                }
+                if profile.x01.masterInTripleOpenerChance > 0 {
+                    BotStatRow(
+                        labelKey: "players.bots.stats.masterInTriple",
+                        value: BotDifficultyDisplayProfile.percent(profile.x01.masterInTripleOpenerChance)
+                    )
+                }
+            }
+
+            modeCard(title: L10n.cricketTitle) {
+                hitChanceRows(profile.cricket.hitChances)
+                statDivider
+                BotStatRow(
+                    labelKey: "players.bots.stats.offBoardMiss",
+                    value: BotDifficultyDisplayProfile.percent(profile.cricket.offBoardMissChance)
+                )
+                BotStatRow(
+                    labelKey: "players.bots.stats.wrongBed",
+                    value: BotDifficultyDisplayProfile.percent(profile.cricket.wrongBedChance)
+                )
+            }
+
+            Text(L10n.botStatsFooter)
+                .font(.caption)
+                .foregroundStyle(Brand.textSecondary)
+        }
+    }
+
+    @ViewBuilder
+    private func modeCard(title: LocalizedStringKey, @ViewBuilder content: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Brand.textSecondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 0) {
+                content()
+            }
+            .padding(.horizontal, DS.Spacing.s3)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        }
+    }
+
+    @ViewBuilder
+    private func hitChanceRows(_ chances: BotDifficultyDisplayProfile.HitChances) -> some View {
+        BotStatRow(
+            labelKey: "players.bots.stats.hitChanceSingle",
+            value: BotDifficultyDisplayProfile.percent(chances.single)
+        )
+        BotStatRow(
+            labelKey: "players.bots.stats.hitChanceDouble",
+            value: BotDifficultyDisplayProfile.percent(chances.double)
+        )
+        BotStatRow(
+            labelKey: "players.bots.stats.hitChanceTriple",
+            value: BotDifficultyDisplayProfile.percent(chances.triple)
+        )
+    }
+
+    private var statDivider: some View {
+        Divider().overlay(Brand.cardElevated)
+    }
+}
+
+private struct BotStatRow: View {
+    let labelKey: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(LocalizedStringKey(labelKey))
+                .font(.subheadline)
+                .foregroundStyle(Brand.textSecondary)
+            Spacer(minLength: DS.Spacing.s3)
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Brand.textPrimary)
+                .monospacedDigit()
+        }
+        .padding(.vertical, DS.Spacing.s2)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L10n.format("stats.statTile.accessibilityFormat", L10n.string(labelKey), value))
+    }
+}
+
+struct BotIdentityCard: View {
+    let name: String
+    let avatarStyle: PlayerAvatarStyle
+    let colorToken: PlayerColorToken
+    let difficulty: BotDifficulty
+    var notes: String = ""
+
+    private var accent: Color {
+        PlayerVisualViews.accentColor(token: colorToken)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            HStack(spacing: DS.Spacing.s4) {
+                PlayerRosterAvatar(avatarStyle: avatarStyle, colorToken: colorToken, size: 72)
+                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                    Text(name)
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(Brand.textPrimary)
+                    HStack(spacing: DS.Spacing.s2) {
+                        Circle()
+                            .fill(accent)
+                            .frame(width: 10, height: 10)
+                        Text(colorToken.displayName)
+                            .font(.subheadline)
+                            .foregroundStyle(Brand.textSecondary)
+                    }
+                    if !notes.isEmpty {
+                        Text(notes)
+                            .font(.caption)
+                            .foregroundStyle(Brand.textSecondary)
+                            .lineLimit(2)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+
+            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                Text(L10n.botDifficultyLabel)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .textCase(.uppercase)
+                BotDifficultyBadge(difficulty: difficulty)
+            }
+        }
+        .padding(DS.Spacing.s4)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.Radius.md)
+                .strokeBorder(accent.opacity(0.35), lineWidth: 1)
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            L10n.format(
+                "players.bots.identity.accessibilityFormat",
+                name,
+                colorToken.displayName,
+                difficulty.displayName
+            )
+        )
+    }
+}
+
 struct PlayerIdentityCard: View {
     let player: EditablePlayer
 
     private var accent: Color {
-        PlayerVisualViews.accentColor(
-            token: player.colorToken,
-            isBot: player.isBot,
-            botDifficulty: player.botDifficulty
-        )
+        PlayerVisualViews.accentColor(token: player.colorToken)
     }
 
     var body: some View {
@@ -88,19 +319,13 @@ struct PlayerIdentityCard: View {
                 Text(player.name)
                     .font(.title2.weight(.bold))
                     .foregroundStyle(Brand.textPrimary)
-                if player.isBot, let difficulty = player.botDifficulty {
-                    Text(difficulty.displayName)
+                HStack(spacing: DS.Spacing.s2) {
+                    Circle()
+                        .fill(accent)
+                        .frame(width: 10, height: 10)
+                    Text(player.colorToken.displayName)
                         .font(.subheadline)
-                        .foregroundStyle(PlayerVisualViews.botDifficultyColor(difficulty))
-                } else {
-                    HStack(spacing: DS.Spacing.s2) {
-                        Circle()
-                            .fill(accent)
-                            .frame(width: 10, height: 10)
-                        Text(player.colorToken.displayName)
-                            .font(.subheadline)
-                            .foregroundStyle(Brand.textSecondary)
-                    }
+                        .foregroundStyle(Brand.textSecondary)
                 }
                 if !player.notes.isEmpty {
                     Text(player.notes)
@@ -118,15 +343,7 @@ struct PlayerIdentityCard: View {
                 .strokeBorder(accent.opacity(0.35), lineWidth: 1)
         )
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(playerIdentityAccessibilityLabel)
-    }
-
-    private var playerIdentityAccessibilityLabel: String {
-        var suffix = ""
-        if player.isBot, let difficulty = player.botDifficulty {
-            suffix = L10n.format("players.row.botSuffix", difficulty.displayName)
-        }
-        return L10n.format("players.detail.identity.accessibilityFormat", player.name, suffix)
+        .accessibilityLabel(L10n.format("players.detail.identity.accessibilityFormat", player.name, ""))
     }
 }
 

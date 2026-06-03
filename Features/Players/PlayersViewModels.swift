@@ -18,9 +18,7 @@ struct EditablePlayer: Identifiable, Equatable {
             notes: summary.notes ?? "",
             isBot: summary.isBot,
             botDifficulty: summary.botDifficulty,
-            avatarStyle: summary.isBot
-                ? PlayerAvatarStyle.defaultForPlayer(id: summary.id, isBot: true)
-                : summary.avatarStyle,
+            avatarStyle: summary.avatarStyle,
             colorToken: summary.colorToken
         )
     }
@@ -144,17 +142,13 @@ final class PlayersListViewModel: ObservableObject {
     func save(_ player: EditablePlayer) async {
         do {
             if players.contains(where: { $0.id == player.id }) {
-                if player.isBot {
-                    _ = try await repository.updatePlayerName(playerId: player.id, name: player.name)
-                } else {
-                    _ = try await repository.updatePlayerProfile(
-                        playerId: player.id,
-                        name: player.name,
-                        avatarStyle: player.avatarStyle,
-                        colorToken: player.colorToken,
-                        notes: player.notes
-                    )
-                }
+                _ = try await repository.updatePlayerProfile(
+                    playerId: player.id,
+                    name: player.name,
+                    avatarStyle: player.avatarStyle,
+                    colorToken: player.colorToken,
+                    notes: player.notes
+                )
             } else {
                 let created = try await repository.createPlayer(name: player.name)
                 _ = try await repository.updatePlayerProfile(
@@ -328,8 +322,8 @@ final class PlayerEditViewModel: ObservableObject {
             notes: notes,
             isBot: existing?.isBot ?? false,
             botDifficulty: existing?.botDifficulty,
-            avatarStyle: isBot ? PlayerAvatarStyle.defaultForPlayer(id: id, isBot: true) : avatarStyle,
-            colorToken: isBot ? PlayerColorToken.defaultForPlayer(id: id) : colorToken
+            avatarStyle: avatarStyle,
+            colorToken: colorToken
         )
     }
 
