@@ -32,13 +32,26 @@ struct BrandSegmented<T: Hashable>: View {
 }
 
 /// A "FINISHED" style status pill.
+///
+/// Renders as a tinted capsule rather than bare colored text: a saturated accent used directly
+/// as small-text foreground fails WCAG AA on at least one appearance (e.g. green on the white
+/// light-mode card is ~2.9:1). The tint carries the color cue while `textPrimary` keeps the
+/// label at AA contrast in both light and dark mode.
 struct StatusBadge: View {
     let text: String
     let color: Color
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Text(text)
             .font(.caption.weight(.bold))
-            .foregroundStyle(color)
+            .foregroundStyle(Brand.textPrimary)
+            .padding(.horizontal, DS.Spacing.s2)
+            .padding(.vertical, 2)
+            .background(
+                color.opacity(colorScheme == .dark ? 0.30 : 0.20),
+                in: Capsule()
+            )
     }
 }

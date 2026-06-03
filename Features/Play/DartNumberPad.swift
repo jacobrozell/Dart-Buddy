@@ -78,9 +78,14 @@ struct DartNumberPad: View {
                 return Brand.key
             }
         }()
+        // When armed the fill is a solid bright color (amber/orange); dark ink keeps the label
+        // legible in dark mode where white would drop below AA. The dimmed idle fill is dark
+        // enough that adaptive text stays the better choice.
+        let foreground: Color = (isSelected && multiplier != .single) ? Brand.inkOnBright : Brand.textPrimary
         return key(
             title,
             background: background,
+            foreground: foreground,
             weight: .bold,
             identifier: identifier,
             accessibilityLabel: multiplierAccessibilityLabel(multiplier),
@@ -95,6 +100,7 @@ struct DartNumberPad: View {
     private func key(
         _ title: String,
         background: Color,
+        foreground: Color = Brand.textPrimary,
         weight: Font.Weight = .semibold,
         identifier: String,
         accessibilityLabel: String? = nil,
@@ -105,7 +111,7 @@ struct DartNumberPad: View {
         Button(action: action) {
             Text(title)
                 .font(.body.weight(weight))
-                .foregroundStyle(Brand.textPrimary)
+                .foregroundStyle(foreground)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, minHeight: keyMinHeight)
