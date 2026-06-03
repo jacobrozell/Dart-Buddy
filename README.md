@@ -9,7 +9,7 @@ Product behavior and UX contracts live under [`specs/`](specs/README.md). This f
 ## Status (1.0 RC)
 
 - **Product:** MVP scope complete — play, players, history, statistics, settings.
-- **Remaining for App Store:** QA sign-off, accessibility evidence, migration recovery smoke, listing assets — tracked in [`todo.md`](todo.md).
+- **Remaining for App Store:** QA sign-off, accessibility evidence, migration recovery smoke, listing assets — tracked in [`docs/release/todo.md`](docs/release/todo.md).
 
 ## Getting started
 
@@ -64,6 +64,7 @@ High-level summary only — authoritative rules are in feature specs:
 | `Resources/` | Asset catalog, `en.lproj` strings, Firebase plist template |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
+| `docs/release/` | Active backlog (`todo.md`) and App Store runbook (`release_checklist.md`) |
 | `specs/` | Product and system specifications |
 | `roadmap/` | Phase delivery plan and release artifacts |
 | `accessibility/` | WCAG 2.1 AA tracker and manual verification |
@@ -81,8 +82,8 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 | Concern | Start here |
 |---------|------------|
 | Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md)) |
-| Active release work | [`todo.md`](todo.md) |
-| Device + App Store runbook | [`release_checklist.md`](release_checklist.md) |
+| Active release work | [`docs/release/todo.md`](docs/release/todo.md) |
+| Device + App Store runbook | [`docs/release/release_checklist.md`](docs/release/release_checklist.md) |
 | Contributing & code style | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | iOS code audit | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) |
 | Design system tokens | [`DesignSystem/README.md`](DesignSystem/README.md) |

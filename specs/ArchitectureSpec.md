@@ -112,5 +112,6 @@ Authoritative folder names (XcodeGen `project.yml` sources):
 | Support | `Support/` | L10n helpers, logging, preferences, feature flags |
 | Tests | `Tests/Unit/`, `Tests/Accessibility/`, `Tests/UI/` | Unit + a11y regression; UI smoke + WCAG audits |
 
+**Release backlog & runbook:** [`docs/release/todo.md`](../docs/release/todo.md) · [`docs/release/release_checklist.md`](../docs/release/release_checklist.md)  
 **Engineering audit (grades, P1–P3 findings):** [`docs/ios-code-audit.md`](../docs/ios-code-audit.md)  
 **Appearance / contrast tracker:** [`accessibility/dark-light-mode.md`](../accessibility/dark-light-mode.md)

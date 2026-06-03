@@ -17,7 +17,7 @@
 | P-1.3.2 | Untested | | |
 | P-1.3.4 | Untested | iPad max width 760 | |
 | P-1.4.1 | Pass | | |
-| P-1.4.3 | Untested | Light form vs dark tabs (`todo.md`) | `snapshots/iphone17-settings-dark-axxxl-contrast.png` (link only) |
+| P-1.4.3 | Untested | Light form vs dark tabs (`docs/release/todo.md`) | `snapshots/iphone17-settings-dark-axxxl-contrast.png` (link only) |
 | P-1.4.4 | Untested | | |
 | P-1.4.10 | Untested | | |
 | P-1.4.11 | Untested | | |

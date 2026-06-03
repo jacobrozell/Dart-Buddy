@@ -15,7 +15,7 @@
 | P-1.1.1 | Pass | Checkout banner combined label; pad/score use spoken dart names | |
 | P-1.3.1 | Pass | `PlayerScoreCard` single combined VO element | |
 | P-1.3.2 | Partial | Expected order score cards → checkout → pad; manual VO pass pending | |
-| P-1.3.4 | Untested | Dead space / landscape (`todo.md`) | |
+| P-1.3.4 | Untested | Dead space / landscape (`docs/release/todo.md`) | |
 | P-1.4.1 | Partial | Active player: green bar + name color + “Your turn” in label | |
 | P-1.4.3 | Untested | Secondary stats `.caption` on card | |
 | P-1.4.4 | Partial | Score 40pt / pad 17pt fixed; deferred to Phase 1 AXXXL | `snapshots/iphone17-match-x01-dark-axxxl-v3.png` (link only) |

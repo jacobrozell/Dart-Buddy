@@ -2,7 +2,7 @@
 
 Progress log for scoreboard theming (`Brand.*`), Settings appearance policy, and light-mode QA.
 
-**Related:** `Support/State/AppAppearancePolicy.swift`, `DesignSystem/Tokens/BrandTheme.swift`, `DesignSystem/README.md`, `accessibility/Manual_todo.md` (contrast), `release_checklist.md` §4 (4-way matrix).
+**Related:** `Support/State/AppAppearancePolicy.swift`, `DesignSystem/Tokens/BrandTheme.swift`, `DesignSystem/README.md`, `accessibility/Manual_todo.md` (contrast), `docs/release/release_checklist.md` §4 (4-way matrix).
 
 **Legend:** `[ ]` todo · `[~]` in progress · `[x]` done
 
@@ -65,7 +65,7 @@ Progress log for scoreboard theming (`Brand.*`), Settings appearance policy, and
 
 ### P4 — Evidence (ship)
 
-- [x] 4-way matrix screenshots (`release_checklist.md` §4) → `accessibility/wcag-2.1-aa/evidence/orientation/`
+- [x] 4-way matrix screenshots (`docs/release/release_checklist.md` §4) → `accessibility/wcag-2.1-aa/evidence/orientation/`
 - [x] Log contrast samples under `accessibility/wcag-2.1-aa/evidence/contrast/`
 - [x] Update `accessibility/wcag-2.1-aa/SUMMARY.md` DBX-CONTRAST-MODES rows
 

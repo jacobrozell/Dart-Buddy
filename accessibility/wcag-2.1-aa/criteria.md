@@ -13,7 +13,7 @@ Dart Buddy extensions (**DBX-***) come from `specs/AccessibilitySpec.md` and `sp
 | P-1.1.1 | 1.1.1 Non-text Content | A | Yes | SF Symbols and charts have text alternatives; decorative icons hidden or ignored | Partial | X01 pad keys labeled; charts + Cricket pad still partial |
 | P-1.3.1 | 1.3.1 Info and Relationships | A | Yes | Headings, lists, and grouped controls expose structure to VoiceOver | Partial | Forms/lists OK; gameplay cards fragmented |
 | P-1.3.2 | 1.3.2 Meaningful Sequence | A | Yes | VoiceOver order matches visual priority (score → input → actions) | Untested | Manual VO pass per screen |
-| P-1.3.4 | 1.3.4 Orientation | AA | Yes | Portrait and landscape complete core tasks | Untested | `todo.md`: iPad/landscape layouts open |
+| P-1.3.4 | 1.3.4 Orientation | AA | Yes | Portrait and landscape complete core tasks | Untested | `docs/release/todo.md`: iPad/landscape layouts open |
 | P-1.4.1 | 1.4.1 Use of Color | A | Yes | State not conveyed by color alone (icons, text, patterns) | Partial | Cricket marks strong; X01 active bar + color |
 | P-1.4.3 | 1.4.3 Contrast (Minimum) | AA | Yes | 4.5:1 normal text, 3:1 large text on backgrounds | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 | P-1.4.4 | 1.4.4 Resize Text | AA | Yes | Dynamic Type through accessibility sizes; critical scores legible | Partial | Fixed `.system(size:)` on pad and score cards |

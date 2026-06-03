@@ -2,7 +2,7 @@
 
 Historical planning and one-time audit docs from the 1.0.0 build. **Not active execution paths.**
 
-Active release work: [`todo.md`](../../todo.md), [`roadmap/release/`](../release/), QA gates in [`specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateChecklist.md).
+Active release work: [`docs/release/todo.md`](../../docs/release/todo.md), [`roadmap/release/`](../release/), QA gates in [`specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateChecklist.md).
 
 | Path | Why archived |
 |------|----------------|

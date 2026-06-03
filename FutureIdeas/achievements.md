@@ -1,6 +1,6 @@
 # Game Center Achievements — Assessment & Catalog
 
-Assessment for [todo.md](../todo.md) item: *Add Game Center support with achievements*.
+Assessment for [todo.md](../docs/release/todo.md) item: *Add Game Center support with achievements*.
 
 ---
 

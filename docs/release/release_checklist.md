@@ -3,7 +3,7 @@
 **Customer brand:** Dart Buddy (App Store listing, marketing, Reddit)  
 **Technical target:** `DartsScoreboard` (Xcode scheme, bundle ID `com.jacobrozell.DartsScoreboard`, module)  
 **Version:** `1.0.0`  
-**Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
+**Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
 
 This is the **single runbook** for device QA, App Store setup, and launch marketing. Detailed criteria live in linked specs — log evidence paths here and in the sign-off doc, not duplicate prose.
 
@@ -34,19 +34,19 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 
 ### Engineering & CI
 
-- [ ] `main` / release branch green — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (`xcodegen generate` + `xcodebuild test`)
+- [ ] `main` / release branch green — [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (`xcodegen generate` + `xcodebuild test`)
 - [ ] Local: `xcodegen generate` then **Product → Test** (`⌘U`) on `DartsScoreboard` scheme
-- [ ] `GoogleService-Info.plist` present for Release archive (copy from [`Resources/GoogleService-Info.plist.example`](Resources/GoogleService-Info.plist.example) + Firebase Console)
+- [ ] `GoogleService-Info.plist` present for Release archive (copy from [`Resources/GoogleService-Info.plist.example`](../../Resources/GoogleService-Info.plist.example) + Firebase Console)
 - [ ] Debug/CI/UI tests: analytics + Crashlytics **off** (launch args `-disable_firebase_analytics` / `-ui_test_reset` — not on store build)
 - [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for bundle ID; Release archive log shows dSYM upload script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
-- [ ] Version + build number set in [`project.yml`](project.yml) / Xcode (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`)
+- [ ] Version + build number set in [`project.yml`](../../project.yml) / Xcode (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`)
 - [ ] **Archive** with **Release** configuration + distribution signing
 
 ### Release build sanity
 
 - [ ] No debug-only verbosity in Release (`AppLogger` only; no stray `print`)
 - [ ] No sensitive data in logs (no tokens; player display names OK per policy)
-- [ ] App icon present in `Resources/Media.xcassets` / finalized asset in [`assets/app-icons/`](assets/app-icons/)
+- [ ] App icon present in `Resources/Media.xcassets` / finalized asset in [`assets/app-icons/`](../../assets/app-icons/)
 
 **P0 if CI red or Release archive fails.**
 
@@ -68,7 +68,7 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 
 **Decision:** [ ] **PASS** — continue · [ ] **FAIL** — fix before §2+
 
-Spec reference: [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md)
+Spec reference: [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateChecklist.md)
 
 ---
 
@@ -107,7 +107,7 @@ Spec reference: [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md)
 ### F. Statistics
 
 - [ ] Games table + mode/date filters respond
-- [ ] Partial-data banner only when applicable ([`specs/StatsSpec.md`](specs/StatsSpec.md))
+- [ ] Partial-data banner only when applicable ([`../../specs/StatsSpec.md`](../../specs/StatsSpec.md))
 
 ### G. Settings
 
@@ -120,13 +120,13 @@ Spec reference: [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md)
 
 **Decision:** [ ] **PASS** · [ ] **FAIL**
 
-Spec reference: [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) · Evidence template: [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md)
+Spec reference: [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestChecklist.md) · Evidence template: [`../../specs/SmokeTestEvidenceTemplate.md`](../../specs/SmokeTestEvidenceTemplate.md)
 
 ---
 
 ## 3. Core flow matrix (physical iPhone — RC sign-off)
 
-**Build:** Release · **Log each row** in [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) as Pass/Fail/Blocked + evidence path.
+**Build:** Release · **Log each row** in [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) as Pass/Fail/Blocked + evidence path.
 
 | Flow | Done | Evidence / notes |
 |------|------|------------------|
@@ -138,7 +138,7 @@ Spec reference: [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) · 
 | **Statistics** tab — filters + table after completed games | [ ] | |
 | **Players:** archive player; **delete guard** on referenced player | [ ] | |
 | **Settings → Reset All Local Data** — confirm → clean bootstrap | [ ] | |
-| **Abandon** in-progress match — wording correct; hidden from History/Statistics ([`specs/MatchSpec.md`](specs/MatchSpec.md)) | [ ] | |
+| **Abandon** in-progress match — wording correct; hidden from History/Statistics ([`../../specs/MatchSpec.md`](../../specs/MatchSpec.md)) | [ ] | |
 | **Bot match:** stagger pacing; pad disabled during bot turn; bot dart haptics if enabled | [ ] | |
 | **Play home:** resume banner / in-progress row when applicable | [ ] | |
 | **X01 checkout:** finish leg with double-out (if default) — summary correct | [ ] | |
@@ -151,7 +151,7 @@ Spec reference: [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) · 
 ## 4. Appearance matrix (4-way)
 
 **Screens:** Match **setup** + one **in-match** screen (X01 or Cricket)  
-**Save screenshots to:** QA sign-off doc + `accessibility/wcag-2.1-aa/evidence/orientation/` (captured 2026-06-02; see `README.md` there; re-run `./Scripts/capture-appearance-matrix.sh`)
+**Save screenshots to:** QA sign-off doc + `../../accessibility/wcag-2.1-aa/evidence/orientation/` (captured 2026-06-02; see `README.md` there; re-run `./Scripts/capture-appearance-matrix.sh`)
 
 | Combo | Setup | In-match |
 |-------|-------|----------|
@@ -169,11 +169,11 @@ Spec reference: [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) · 
 ### Settings reset (on device)
 
 - [ ] Reset → confirm → relaunch: empty players/history, Play home clean, no ghost active match
-- [ ] Log in [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md)
+- [ ] Log in [`../../roadmap/reports/Phase06-Security-Privacy-Checklist.md`](../../roadmap/reports/Phase06-Security-Privacy-Checklist.md)
 
 ### Migration recovery (manual smoke)
 
-Architecture ready; **device proof** still required — [`roadmap/reports/Phase06-Migration-Safety-Report.md`](roadmap/reports/Phase06-Migration-Safety-Report.md).
+Architecture ready; **device proof** still required — [`../../roadmap/reports/Phase06-Migration-Safety-Report.md`](../../roadmap/reports/Phase06-Migration-Safety-Report.md).
 
 **Trigger recovery UI (pick one):**
 
@@ -185,14 +185,14 @@ Architecture ready; **device proof** still required — [`roadmap/reports/Phase0
 - [ ] **Retry** — succeeds or fails gracefully (no crash)
 - [ ] **Export diagnostics** — file produced; share sheet works
 - [ ] **Reset local data** — destructive confirm → clean bootstrap
-- [ ] VoiceOver: retry, export, reset ([`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) § Migration recovery)
+- [ ] VoiceOver: retry, export, reset ([`../../accessibility/Manual_todo.md`](../../accessibility/Manual_todo.md) § Migration recovery)
 
 **First-ship note:** If schema unchanged since last beta, real-user migration may be N/A — still run (1) or mark **Blocked** with reason in Phase06 report.
 
 ### Privacy & App Store labels
 
 - [ ] Privacy answers match app: **local-first**, no ads, no tracking IDs
-- [ ] If Release ships Firebase: Analytics + Crashlytics disclosed accurately ([`specs/FirebaseBackendAnalyticsSpec.md`](specs/FirebaseBackendAnalyticsSpec.md))
+- [ ] If Release ships Firebase: Analytics + Crashlytics disclosed accurately ([`../../specs/FirebaseBackendAnalyticsSpec.md`](../../specs/FirebaseBackendAnalyticsSpec.md))
 - [ ] No ATT prompt (no cross-app tracking)
 - [ ] Review notes mention **Reset All Local Data** if asked
 
@@ -200,9 +200,9 @@ Architecture ready; **device proof** still required — [`roadmap/reports/Phase0
 
 ## 6. Accessibility evidence (P0 for sign-off)
 
-**Roll-up:** [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md)  
-**Full manual list:** [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md)  
-**Evidence folder:** `accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`)
+**Roll-up:** [`../../accessibility/wcag-2.1-aa/SUMMARY.md`](../../accessibility/wcag-2.1-aa/SUMMARY.md)  
+**Full manual list:** [`../../accessibility/Manual_todo.md`](../../accessibility/Manual_todo.md)  
+**Evidence folder:** `../../accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`)
 
 ### VoiceOver — end-to-end (required)
 
@@ -238,7 +238,7 @@ Log results in QA sign-off **Accessibility** section.
 
 ## 7. Performance (P1 — only block ship if RC shows jank)
 
-Record on **physical device**, Release build → [`roadmap/reports/Phase06-Performance-Report.md`](roadmap/reports/Phase06-Performance-Report.md).
+Record on **physical device**, Release build → [`../../roadmap/reports/Phase06-Performance-Report.md`](../../roadmap/reports/Phase06-Performance-Report.md).
 
 - [ ] Cold launch → usable Play home (target: feels instant, no multi-second blank)
 - [ ] `submitTurn` perceived latency during X01/Cricket (target: immediate UI update)
@@ -249,7 +249,7 @@ Record on **physical device**, Release build → [`roadmap/reports/Phase06-Perfo
 
 ## 8. App Store Connect & assets
 
-Reference: [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md)
+Reference: [`../../specs/AppStoreConnectSpec.md`](../../specs/AppStoreConnectSpec.md)
 
 ### Apple Developer & app record
 
@@ -277,14 +277,14 @@ Reference: [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md)
 - [ ] Primary category: **Sports**
 - [ ] Price: **Free** · No IAP · **No ads**
 - [ ] Age rating questionnaire complete (expect **4+**)
-- [ ] Export compliance: **No** custom encryption beyond Apple exempt ([`ITSAppUsesNonExemptEncryption`](project.yml) = NO)
+- [ ] Export compliance: **No** custom encryption beyond Apple exempt ([`ITSAppUsesNonExemptEncryption`](../../project.yml) = NO)
 
 ### Privacy nutrition labels
 
 - [ ] Data collected reflects Release behavior (Analytics/Crashlytics if enabled)
 - [ ] No “tracking” across apps
 - [ ] Contact info / identifiers: none linked to user for ads
-- [ ] Reconcile with [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md)
+- [ ] Reconcile with [`../../roadmap/reports/Phase06-Security-Privacy-Checklist.md`](../../roadmap/reports/Phase06-Security-Privacy-Checklist.md)
 
 ### Legal pages & policies (required for submit)
 
@@ -296,7 +296,7 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 | **Support URL** | **Yes** | Contact method or FAQ; can be same site as privacy |
 | **Custom EULA** | No (1.0) | Default: [Apple Standard EULA](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/) — only add custom terms if you need special liability/limitation language |
 | **Terms of Service** | No (1.0) | Optional unless you add accounts, IAP, or online play |
-| **In-app privacy link** | Recommended | [`specs/SecurityPrivacySpec.md`](specs/SecurityPrivacySpec.md) — Settings row → privacy policy URL (not built yet) |
+| **In-app privacy link** | Recommended | [`../../specs/SecurityPrivacySpec.md`](../../specs/SecurityPrivacySpec.md) — Settings row → privacy policy URL (not built yet) |
 
 **Privacy policy should cover (plain language, not legal boilerplate dump):**
 
@@ -309,7 +309,7 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 
 **Hosting options (pick one):**
 
-- [x] **GitHub Pages** — `docs/privacy.html` + `docs/support.html` (see [`docs/README.md`](docs/README.md))
+- [x] **GitHub Pages** — `docs/privacy.html` + `docs/support.html` (see [`docs/README.md`](../README.md))
 - [ ] Enable Pages: repo **Settings → Pages → Branch `master` → `/docs`**
 - [ ] **Privacy Policy URL:** `https://jacobrozell.github.io/Dart-Buddy/privacy.html`
 - [ ] **Support URL:** `https://jacobrozell.github.io/Dart-Buddy/support.html`
@@ -343,7 +343,7 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 - [ ] **iPad** screenshots (`marketing-screenshots/ipad/raw/` — **2064×2752**, `./Scripts/capture-ipad-marketing-screenshots.sh`)
 - [ ] Preview video (optional — skip for 1.0 if not ready)
 
-**Generate marketing shots:** [`marketing-screenshots/README.md`](marketing-screenshots/README.md)
+**Generate marketing shots:** [`marketing-screenshots/README.md`](../../marketing-screenshots/README.md)
 
 ```bash
 ./Scripts/capture-marketing-screenshots.sh   # exports 1284×2778 for App Store 6.5"
@@ -361,14 +361,14 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 
 ## 9. Submit, tag & release notes
 
-- [ ] Fill [`roadmap/release/Release-Notes-Template.md`](roadmap/release/Release-Notes-Template.md) → paste into App Store “What’s New”
+- [ ] Fill [`../../roadmap/release/Release-Notes-Template.md`](../../roadmap/release/Release-Notes-Template.md) → paste into App Store “What’s New”
 - [ ] Git tag RC/build (e.g. `1.0.0` / build N)
 - [ ] Upload Release archive via Xcode Organizer / Transporter
 - [ ] Select build in App Store Connect → **Submit for Review**
 - [ ] Complete **App Review Information** (contact, demo account N/A, notes if needed)
-- [ ] Fill §12 sign-off + [`QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) → **Go** only when P0 empty
+- [ ] Fill §12 sign-off + [`QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) → **Go** only when P0 empty
 
-Post-submit ops: [`roadmap/release/Launch-Day-Runbook.md`](roadmap/release/Launch-Day-Runbook.md) · Hotfix gates: [`roadmap/release/Rollback-and-Hotfix-Criteria.md`](roadmap/release/Rollback-and-Hotfix-Criteria.md)
+Post-submit ops: [`../../roadmap/release/Launch-Day-Runbook.md`](../../roadmap/release/Launch-Day-Runbook.md) · Hotfix gates: [`../../roadmap/release/Rollback-and-Hotfix-Criteria.md`](../../roadmap/release/Rollback-and-Hotfix-Criteria.md)
 
 ---
 
@@ -377,7 +377,7 @@ Post-submit ops: [`roadmap/release/Launch-Day-Runbook.md`](roadmap/release/Launc
 - [ ] Confirm App Store listing live — copy **public URL**
 - [ ] Firebase Crashlytics: watch for new crash clusters
 - [ ] App Store Connect: monitor reviews daily; reply to substantive feedback
-- [ ] Log incidents in [`roadmap/release/Launch-Week-Monitoring-Log.md`](roadmap/release/Launch-Week-Monitoring-Log.md) (create entries as needed)
+- [ ] Log incidents in [`../../roadmap/release/Launch-Week-Monitoring-Log.md`](../../roadmap/release/Launch-Week-Monitoring-Log.md) (create entries as needed)
 - [ ] Note keyword/impression baseline for later ASO tweaks
 
 ---
@@ -450,7 +450,7 @@ Post-submit ops: [`roadmap/release/Launch-Day-Runbook.md`](roadmap/release/Launc
 |----|-------------|-------|--------|
 | | | | |
 
-**Authoritative sign-off doc:** [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md)
+**Authoritative sign-off doc:** [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md)
 
 ---
 
@@ -458,8 +458,8 @@ Post-submit ops: [`roadmap/release/Launch-Day-Runbook.md`](roadmap/release/Launc
 
 Do not delay ship for:
 
-- Game Center ([`FutureIdeas/achievements.md`](FutureIdeas/achievements.md))
-- Play reminders ([`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md))
+- Game Center ([`FutureIdeas/achievements.md`](../../FutureIdeas/achievements.md))
+- Play reminders ([`FutureIdeas/play-reminders.md`](../../FutureIdeas/play-reminders.md))
 - Snapshot tests, full motion pass, X01 total-score entry, Cricket variants (Cut Throat)
 - Firebase Auth, online play, Watch/widgets, voice “180!” caller
 - Full UI automation matrix beyond current CI smoke
@@ -471,15 +471,15 @@ Do not delay ship for:
 | Need | Doc |
 |------|-----|
 | **This runbook** | `release_checklist.md` |
-| 10-min gate (abbrev) | [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md) |
-| 20-min smoke (abbrev) | [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) |
-| Screenshot template | [`specs/SmokeTestEvidenceTemplate.md`](specs/SmokeTestEvidenceTemplate.md) |
-| QA matrix & Go/No-Go | [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md) |
-| Manual a11y detail | [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) |
-| A11y status roll-up | [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) |
-| Privacy | [`roadmap/reports/Phase06-Security-Privacy-Checklist.md`](roadmap/reports/Phase06-Security-Privacy-Checklist.md) |
-| Migration | [`roadmap/reports/Phase06-Migration-Safety-Report.md`](roadmap/reports/Phase06-Migration-Safety-Report.md) |
-| Store metadata spec | [`specs/AppStoreConnectSpec.md`](specs/AppStoreConnectSpec.md) |
-| Marketing screenshots | [`marketing-screenshots/README.md`](marketing-screenshots/README.md) |
-| Privacy & support pages | [`docs/README.md`](docs/README.md) |
+| 10-min gate (abbrev) | [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateChecklist.md) |
+| 20-min smoke (abbrev) | [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestChecklist.md) |
+| Screenshot template | [`../../specs/SmokeTestEvidenceTemplate.md`](../../specs/SmokeTestEvidenceTemplate.md) |
+| QA matrix & Go/No-Go | [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) |
+| Manual a11y detail | [`../../accessibility/Manual_todo.md`](../../accessibility/Manual_todo.md) |
+| A11y status roll-up | [`../../accessibility/wcag-2.1-aa/SUMMARY.md`](../../accessibility/wcag-2.1-aa/SUMMARY.md) |
+| Privacy | [`../../roadmap/reports/Phase06-Security-Privacy-Checklist.md`](../../roadmap/reports/Phase06-Security-Privacy-Checklist.md) |
+| Migration | [`../../roadmap/reports/Phase06-Migration-Safety-Report.md`](../../roadmap/reports/Phase06-Migration-Safety-Report.md) |
+| Store metadata spec | [`../../specs/AppStoreConnectSpec.md`](../../specs/AppStoreConnectSpec.md) |
+| Marketing screenshots | [`marketing-screenshots/README.md`](../../marketing-screenshots/README.md) |
+| Privacy & support pages | [`docs/README.md`](../README.md) |
 | Active backlog | [`todo.md`](todo.md) |
