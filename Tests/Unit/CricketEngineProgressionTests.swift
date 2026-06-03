@@ -51,7 +51,7 @@ func cricketCompletesWhenAllThreePlayersCloseAllTargets() throws {
     var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
 
     for playerIndex in 0 ..< players.count {
-        state = try CricketTestDarts.closeAllTargets(state)
+        state = try CricketTestDarts.closeAllTargetsForCurrentPlayer(state, playerCount: players.count)
         if playerIndex < players.count - 1 {
             #expect(!state.isComplete)
             #expect(state.winnerPlayerId == nil)
@@ -241,7 +241,7 @@ func cricketDoesNotCompleteWhenOnlyOneOfThreePlayersClosesAllTargets() throws {
     let players = cricketPlayerIds(count: 3)
     var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
 
-    state = try CricketTestDarts.closeAllTargets(state)
+    state = try CricketTestDarts.closeAllTargetsForCurrentPlayer(state, playerCount: players.count)
 
     #expect(!state.isComplete)
     #expect(state.winnerPlayerId == nil)
@@ -253,9 +253,7 @@ func cricketThreeWayTieBreakUsesEarliestSeat() throws {
     let players = cricketPlayerIds(count: 3)
     var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
 
-    for _ in players {
-        state = try CricketTestDarts.closeAllTargets(state)
-    }
+    state = try CricketTestDarts.runSynchronizedCloseSweep(state, playerCount: players.count)
 
     #expect(state.isComplete)
     #expect(state.players.allSatisfy { $0.score == 0 })
@@ -301,4 +299,28 @@ func cricketReplayReconstructsThreePlayerState() throws {
 
     let replayed = try CricketEngine.replay(config: config, playerIds: players, events: events)
     #expect(replayed == state)
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketUIEquivalentThreePlayerSynchronizedSweepCompletesMatch() throws {
+    let players = cricketPlayerIds(count: 3)
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+    let uiBullClose: [DartInput] = [
+        DartInput(multiplier: .single, segment: .innerBull),
+        DartInput(multiplier: .single, segment: .outerBull)
+    ]
+    let sweeps: [[DartInput]] = [
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        uiBullClose
+    ]
+    var sweepsDone = Array(repeating: 0, count: players.count)
+    for _ in 0 ..< (players.count * sweeps.count) {
+        let idx = state.currentPlayerIndex
+        state = try CricketTestDarts.submit(state, sweeps[sweepsDone[idx]])
+        sweepsDone[idx] += 1
+    }
+
+    #expect(state.isComplete)
+    #expect(state.winnerPlayerId == players[0])
 }

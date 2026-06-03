@@ -24,11 +24,36 @@ enum CricketTestDarts {
         try CricketEngine.submitTurn(state: state, darts: darts).updatedState
     }
 
-    static func closeAllTargets(_ state: CricketState) throws -> CricketState {
+    /// Closes all targets for whoever is up, skipping `(playerCount - 1)` opponents between each close visit.
+    static func closeAllTargetsForCurrentPlayer(_ state: CricketState, playerCount: Int) throws -> CricketState {
+        let skipTurns = max(0, playerCount - 1)
         var state = state
         state = try submit(state, [triple(20), triple(19), triple(18)])
+        for _ in 0 ..< skipTurns {
+            state = try submit(state, [miss(), miss(), miss()])
+        }
         state = try submit(state, [triple(17), triple(16), triple(15)])
+        for _ in 0 ..< skipTurns {
+            state = try submit(state, [miss(), miss(), miss()])
+        }
         state = try submit(state, [innerBull, outerBull])
+        return state
+    }
+
+    /// Each player runs the same close sweep in turn order (no overflow scoring when kept in sync).
+    static func runSynchronizedCloseSweep(_ state: CricketState, playerCount: Int) throws -> CricketState {
+        let sweeps: [[DartInput]] = [
+            [triple(20), triple(19), triple(18)],
+            [triple(17), triple(16), triple(15)],
+            [innerBull, outerBull]
+        ]
+        var state = state
+        var sweepsDone = Array(repeating: 0, count: playerCount)
+        for _ in 0 ..< (playerCount * sweeps.count) {
+            let idx = state.currentPlayerIndex
+            state = try submit(state, sweeps[sweepsDone[idx]])
+            sweepsDone[idx] += 1
+        }
         return state
     }
 }

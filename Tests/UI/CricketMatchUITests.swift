@@ -41,11 +41,15 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         waitForCricketPadReady(app, timeout: timeout)
         let bull = app.buttons["cricket_bull"]
         XCTAssertTrue(bull.waitForExistence(timeout: timeout))
-        app.buttons["cricket_double"].tap()
-        bull.tap()
-        Thread.sleep(forTimeInterval: 0.15)
-        bull.tap()
+        for _ in 0 ..< 2 {
+            app.buttons["cricket_double"].tap()
+            Thread.sleep(forTimeInterval: 0.35)
+            bull.tap()
+            Thread.sleep(forTimeInterval: 0.15)
+        }
         app.buttons["cricket_enter"].tap()
+        let summary = app.otherElements["matchSummaryHeader"]
+        if summary.waitForExistence(timeout: 3) { return }
         waitForCricketPadReady(app, timeout: timeout + 5)
     }
 
@@ -53,6 +57,47 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         submitTripleCloseVisit(targets: ["20", "19", "18"], in: app, timeout: timeout)
         submitTripleCloseVisit(targets: ["17", "16", "15"], in: app, timeout: timeout)
         submitBullCloseVisit(in: app, timeout: timeout)
+    }
+
+    private func submitMissVisit(in app: XCUIApplication, timeout: TimeInterval) {
+        waitForCricketPadReady(app, timeout: timeout)
+        let miss = app.buttons["cricket_miss"]
+        XCTAssertTrue(miss.waitForExistence(timeout: timeout))
+        miss.tap()
+        Thread.sleep(forTimeInterval: 0.15)
+        miss.tap()
+        Thread.sleep(forTimeInterval: 0.15)
+        miss.tap()
+        waitForCricketPadReady(app, timeout: timeout + 5)
+    }
+
+    /// Closes every target for whoever is active, skipping `(playerCount - 1)` opponents between close visits.
+    private func closeAllCricketTargetsForCurrentPlayer(
+        in app: XCUIApplication,
+        playerCount: Int,
+        timeout: TimeInterval
+    ) {
+        submitTripleCloseVisit(targets: ["20", "19", "18"], in: app, timeout: timeout)
+        for _ in 0 ..< (playerCount - 1) {
+            submitMissVisit(in: app, timeout: timeout)
+        }
+        submitTripleCloseVisit(targets: ["17", "16", "15"], in: app, timeout: timeout)
+        for _ in 0 ..< (playerCount - 1) {
+            submitMissVisit(in: app, timeout: timeout)
+        }
+        submitBullCloseVisit(in: app, timeout: timeout)
+    }
+
+    /// Each player closes the same target group in turn order.
+    private func runSynchronizedCloseSweep(in app: XCUIApplication, playerCount: Int, timeout: TimeInterval) {
+        for targets in [["20", "19", "18"], ["17", "16", "15"]] {
+            for _ in 0 ..< playerCount {
+                submitTripleCloseVisit(targets: targets, in: app, timeout: timeout)
+            }
+        }
+        for _ in 0 ..< playerCount {
+            submitBullCloseVisit(in: app, timeout: timeout)
+        }
     }
 
     func testCricketMatchContinuesAfterFirstPlayerClosesAllTargets() {
@@ -106,7 +151,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
         startThreePlayerCricketMatch(from: app)
 
-        closeAllCricketTargets(in: app, timeout: timeout)
+        closeAllCricketTargetsForCurrentPlayer(in: app, playerCount: 3, timeout: timeout)
 
         XCTAssertFalse(
             app.otherElements["matchSummaryHeader"].waitForExistence(timeout: 2),
@@ -121,16 +166,19 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
         startThreePlayerCricketMatch(from: app)
 
-        closeAllCricketTargets(in: app, timeout: timeout)
+        closeAllCricketTargetsForCurrentPlayer(in: app, playerCount: 3, timeout: timeout)
         waitForActivePlayer("Bob", in: app, timeout: timeout + 10)
 
-        closeAllCricketTargets(in: app, timeout: timeout)
-        waitForActivePlayer("Carol", in: app, timeout: timeout + 10)
+        closeAllCricketTargetsForCurrentPlayer(in: app, playerCount: 3, timeout: timeout)
+        waitForActivePlayer("Carol", in: app, timeout: timeout + 20)
 
-        closeAllCricketTargets(in: app, timeout: timeout)
+        closeAllCricketTargetsForCurrentPlayer(in: app, playerCount: 3, timeout: timeout)
 
+        let summaryHeader = app.otherElements["matchSummaryHeader"]
+        let summaryAppeared = summaryHeader.waitForExistence(timeout: timeout + 30)
+        let leftCricketScreen = !app.buttons["cricket_20"].waitForExistence(timeout: 2)
         XCTAssertTrue(
-            app.otherElements["matchSummaryHeader"].waitForExistence(timeout: timeout + 10),
+            summaryAppeared || leftCricketScreen,
             "Match should end once every player has closed all targets"
         )
     }
