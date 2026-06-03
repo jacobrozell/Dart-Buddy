@@ -29,6 +29,10 @@ enum Brand {
 
     static let green = Color(red: 0.20, green: 0.68, blue: 0.32)
     static let red = Color(red: 0.90, green: 0.28, blue: 0.24)
+    /// Deeper red used only as a **solid fill behind white text** (primary CTA, error
+    /// banner). Meets WCAG 2.1 AA 4.5:1 with `textOnAccent`; `red` itself is reserved for
+    /// foreground/tint accents where it must also stay legible as red text on dark surfaces.
+    static let redAccent = Color(red: 0.84, green: 0.20, blue: 0.18)
     static let amber = Color(red: 0.96, green: 0.70, blue: 0.12)
     static let orange = Color(red: 0.93, green: 0.45, blue: 0.13)
     static let proBot = Color(red: 0.62, green: 0.38, blue: 0.98)
@@ -49,4 +53,9 @@ enum Brand {
 
     /// Foreground on saturated accent fills (primary CTA, selected chips, error banner).
     static let textOnAccent = Color.white
+
+    /// Fixed dark ink for labels that sit on **bright** brand fills (amber/green/orange pad
+    /// keys, ENTER, selected setup chips). Unlike `textPrimary` it does **not** flip to white
+    /// in dark mode, where white-on-bright fails WCAG AA. Light mode is unchanged.
+    static let inkOnBright = Color(red: 0.08, green: 0.08, blue: 0.10)
 }

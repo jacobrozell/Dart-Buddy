@@ -9,26 +9,35 @@ WCAG 2.1 AA: **4.5:1** normal text, **3:1** large text.
 | light: textPrimary on card | 18.35:1 | PASS | PASS |
 | light: textSecondary on background | 6.22:1 | PASS | PASS |
 | light: textSecondary on card | 6.94:1 | PASS | PASS |
-| light: textOnAccent on red (CTA) | 3.94:1 | FAIL | PASS |
-| light: textOnAccent on error banner fill | 3.47:1 | FAIL | PASS |
+| light: textOnAccent on redAccent (CTA) | 4.80:1 | PASS | PASS |
+| light: textOnAccent on redAccent error banner | 4.80:1 | PASS | PASS |
 | light: textPrimary on bust banner fill | 12.45:1 | PASS | PASS |
 | light: textPrimary on leg-win banner fill | 13.42:1 | PASS | PASS |
+| light: textPrimary on bot-turn amber pill (bg) | 14.62:1 | PASS | PASS |
+| light: textPrimary on partial-stats amber pill (card) | 16.00:1 | PASS | PASS |
+| light: inkOnBright on amber fill (armed DOUBLE key) | 9.92:1 | PASS | PASS |
+| light: inkOnBright on green fill (ENTER) | 6.32:1 | PASS | PASS |
+| light: inkOnBright on orange fill (armed TRIPLE key) | 6.18:1 | PASS | PASS |
 | light: textPrimary on cardElevated (selected avatar) | 15.43:1 | PASS | PASS |
 | dark: textPrimary on background | 19.77:1 | PASS | PASS |
 | dark: textPrimary on card | 17.00:1 | PASS | PASS |
 | dark: textSecondary on background | 6.26:1 | PASS | PASS |
 | dark: textSecondary on card | 5.96:1 | PASS | PASS |
-| dark: textOnAccent on red (CTA) | 3.94:1 | FAIL | PASS |
-| dark: textOnAccent on error banner fill | 4.84:1 | PASS | PASS |
+| dark: textOnAccent on redAccent (CTA) | 4.80:1 | PASS | PASS |
+| dark: textOnAccent on redAccent error banner | 4.80:1 | PASS | PASS |
 | dark: textPrimary on bust banner fill | 13.61:1 | PASS | PASS |
 | dark: textPrimary on leg-win banner fill | 11.98:1 | PASS | PASS |
+| dark: textPrimary on bot-turn amber pill (bg) | 9.85:1 | PASS | PASS |
+| dark: textPrimary on partial-stats amber pill (card) | 8.15:1 | PASS | PASS |
+| dark: inkOnBright on amber fill (armed DOUBLE key) | 9.92:1 | PASS | PASS |
+| dark: inkOnBright on green fill (ENTER) | 6.32:1 | PASS | PASS |
+| dark: inkOnBright on orange fill (armed TRIPLE key) | 6.18:1 | PASS | PASS |
 | dark: textPrimary on cardElevated (selected avatar) | 14.52:1 | PASS | PASS |
 
 ## Result
 
-**Review required** for pairs marked FAIL (normal text):
-- light: textOnAccent on red (CTA)
-- light: textOnAccent on error banner fill
-- dark: textOnAccent on red (CTA)
+All logged primary-surface pairs meet **4.5:1** for normal text (or are decorative/large-only).
+
+Manual follow-up: verify in Accessibility Inspector on device/simulator screenshots in `evidence/orientation/`.
 
 Related: `DBX-CONTRAST-MODES`, `accessibility/dark-light-mode.md` P4.

@@ -14,7 +14,7 @@ struct PrimaryActionButton: View {
                 .minimumScaleFactor(0.75)
                 .frame(maxWidth: .infinity, minHeight: 56)
                 .background(
-                    isEnabled ? Brand.red : Brand.cardElevated,
+                    isEnabled ? Brand.redAccent : Brand.cardElevated,
                     in: RoundedRectangle(cornerRadius: DS.Radius.lg)
                 )
         }
