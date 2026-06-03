@@ -19,16 +19,14 @@ struct X01MatchScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
-                Text(L10n.x01Title)
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(Brand.textPrimary)
+                BrandMatchScreenTitle(title: L10n.x01Title)
             } trailing: {
                 Button { runUndo() } label: {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
                         .foregroundStyle(Brand.green)
                         .frame(width: 44, height: 44)
-                        .background(Brand.card, in: Circle())
+                        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
                 .accessibilityLabel(L10n.scoringUndoLastTurn)
             }
@@ -233,7 +231,7 @@ struct X01MatchScreen: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, DS.Spacing.s2)
-            .background(Brand.card, in: Capsule())
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(L10n.format("play.x01.checkout.accessibilityFormat", labels.joined(separator: ", ")))
             .accessibilityIdentifier("checkoutSuggestion")
@@ -255,7 +253,7 @@ struct X01MatchScreen: View {
             .padding(.horizontal, DS.Spacing.s4)
             .background(
                 Brand.amber.opacity(colorScheme == .dark ? 0.32 : 0.22),
-                in: Capsule()
+                in: RoundedRectangle(cornerRadius: DS.Radius.sm)
             )
             .frame(maxWidth: .infinity)
             .padding(.vertical, DS.Spacing.s1)
@@ -298,7 +296,7 @@ struct X01MatchScreen: View {
 
     private func runUndo() {
         actionTask?.cancel()
-        actionTask = Task { await viewModel.undoLastTurn() }
+        actionTask = Task { await viewModel.undoLastDart() }
     }
 
     private func playDartFeedback(_ dart: DartInput) {

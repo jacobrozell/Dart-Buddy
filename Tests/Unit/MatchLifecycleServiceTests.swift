@@ -29,6 +29,62 @@ func lifecycleUndoRevertsLastTurnDeterministically() throws {
 }
 
 @Test(.tags(.unit, .match, .critical, .regression, .offline))
+func lifecycleUndoLastDartReopensVisitWithRemainingDarts() throws {
+    let player1 = UUID()
+    let player2 = UUID()
+    let participants = [
+        MatchParticipant(playerId: player1, displayNameAtMatchStart: "P1", turnOrder: 0),
+        MatchParticipant(playerId: player2, displayNameAtMatchStart: "P2", turnOrder: 1)
+    ]
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: participants
+    )
+
+    let darts = [
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+    ]
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: nil, darts: darts)
+
+    let result = try MatchLifecycleService.undoLastDart(session: session)
+
+    #expect(session.runtime.eventCount == 1)
+    #expect(result.session.runtime.eventCount == 0)
+    #expect(result.restoredDarts.count == 2)
+    #expect(result.restoredDarts.allSatisfy { $0.multiplier == .triple && $0.segment == .oneToTwenty(20) })
+    #expect(result.session.runtime.x01State?.players[0].remainingScore == 301)
+    #expect(result.session.runtime.x01State?.currentPlayerIndex == 0)
+}
+
+@Test(.tags(.unit, .match, .critical, .regression, .offline))
+func lifecycleUndoLastDartRemovesSingleDartTurnEntirely() throws {
+    let player1 = UUID()
+    let player2 = UUID()
+    let participants = [
+        MatchParticipant(playerId: player1, displayNameAtMatchStart: "P1", turnOrder: 0),
+        MatchParticipant(playerId: player2, displayNameAtMatchStart: "P2", turnOrder: 1)
+    ]
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: participants
+    )
+    session = try MatchLifecycleService.submitCricketTurn(
+        session: session,
+        darts: [DartInput(multiplier: .triple, segment: .oneToTwenty(20))]
+    )
+
+    let result = try MatchLifecycleService.undoLastDart(session: session)
+
+    #expect(result.session.runtime.eventCount == 0)
+    #expect(result.restoredDarts.isEmpty)
+    #expect(result.session.runtime.cricketState?.players[0].marks["20"] == 0)
+}
+
+@Test(.tags(.unit, .match, .critical, .regression, .offline))
 func lifecycleResumeFromSnapshotPlusTailEventsIsDeterministic() throws {
     let player1 = UUID()
     let player2 = UUID()

@@ -76,6 +76,12 @@ public struct MatchLifecycleSession: Sendable {
     public var latestSnapshot: MatchSnapshot
 }
 
+public struct UndoLastDartResult: Sendable {
+    public let session: MatchLifecycleSession
+    /// Remaining darts from the reverted visit, ready for continued entry.
+    public let restoredDarts: [DartInput]
+}
+
 public enum MatchLifecycleService {
     public static let snapshotInterval = 3
 
@@ -184,6 +190,38 @@ public enum MatchLifecycleService {
             startedAt: session.runtime.startedAt,
             events: trimmed
         )
+    }
+
+    /// Reverts the last accepted throw. When the last turn recorded per-dart detail,
+    /// the visit is reopened with the remaining darts; otherwise the whole turn is removed.
+    public static func undoLastDart(session: MatchLifecycleSession) throws -> UndoLastDartResult {
+        guard let last = session.events.last else {
+            return UndoLastDartResult(session: session, restoredDarts: [])
+        }
+        guard let darts = darts(from: last.payload), darts.count > 1 else {
+            let undone = try undoLastTurn(session: session)
+            return UndoLastDartResult(session: undone, restoredDarts: [])
+        }
+        let restoredDarts = Array(darts.dropLast())
+        let undone = try undoLastTurn(session: session)
+        return UndoLastDartResult(session: undone, restoredDarts: restoredDarts)
+    }
+
+    private static func darts(from payload: MatchEventPayload) -> [DartInput]? {
+        switch payload {
+        case let .x01Turn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map {
+                DartInput(
+                    multiplier: DartMultiplier(rawValue: $0.multiplierRaw) ?? .single,
+                    segment: mapX01SegmentRaw($0.segmentRaw),
+                    isMiss: $0.wasMiss
+                )
+            }
+        case let .cricketTurn(turn):
+            guard !turn.targetsTouched.isEmpty else { return nil }
+            return turn.targetsTouched.map(CricketEngine.dartInput(from:))
+        }
     }
 
     public static func rehydrate(snapshot: MatchSnapshot, tailEvents: [MatchEventEnvelope]) throws -> MatchLifecycleSession {

@@ -218,6 +218,10 @@ final class X01MatchViewModel: ObservableObject {
         await undoLastTurnAsync()
     }
 
+    func undoLastDart() async {
+        await undoLastDartAsync()
+    }
+
     func onAppear() async {
         logger.matchDebug(
             matchId: matchId,
@@ -438,6 +442,46 @@ final class X01MatchViewModel: ObservableObject {
                 metadata: MatchTurnSupport.matchProgressMetadata(for: undone)
             )
             await playBotTurnIfNeeded()
+        } catch is CancellationError {
+            state = .readyTurn
+        } catch {
+            logger.matchError(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "turn_undo_failed",
+                message: "Undo failed.",
+                metadata: MatchTurnSupport.appErrorMetadata(for: error)
+            )
+            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "x01.error.undoFailed"))
+        }
+    }
+
+    private func undoLastDartAsync() async {
+        await loadSessionIfNeeded()
+        guard let current = session else { return }
+        do {
+            let result = try MatchLifecycleService.undoLastDart(session: current)
+            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: result.session.runtime))
+            _ = try await matchRepository.saveSnapshot(
+                matchId: matchId,
+                snapshotVersion: result.session.latestSnapshot.payloadVersion,
+                snapshotPayload: result.session.latestSnapshot.payload
+            )
+            store.save(result.session)
+            session = result.session
+            state = .readyTurn
+            enteredDarts = result.restoredDarts
+            totalEntryText = ""
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "dart_undone",
+                message: "Last throw undone.",
+                metadata: MatchTurnSupport.matchProgressMetadata(for: result.session)
+            )
+            if result.restoredDarts.isEmpty {
+                await playBotTurnIfNeeded()
+            }
         } catch is CancellationError {
             state = .readyTurn
         } catch {
