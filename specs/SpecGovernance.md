@@ -59,6 +59,7 @@ If two specs disagree, the authoritative spec above wins.
 | `accessibility/Manual_todo.md` | Human verification steps | `accessibility_todo.md`, `wcag-2.1-aa/SUMMARY.md` |
 | `accessibility/wcag-2.1-aa/` | Per-screen/criterion status + evidence links | `specs/AccessibilitySpec.md` (requirements only) |
 | `FutureIdeas/` | Post-1.0 feature assessments (Game Center, play reminders, …) | `docs/release/todo.md` (one-line links only) |
+| `FutureIdeas/backlog.md` | Post-1.0 product backlog (short ideas) | `docs/release/todo.md` |
 | `FutureIdeas/achievements.md` | Game Center deep-dive | `docs/release/todo.md` |
 | `FutureIdeas/play-reminders.md` | Local play reminder notifications | `docs/release/todo.md` |
 
