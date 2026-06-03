@@ -150,15 +150,7 @@ struct HistoryRootView: View {
             if onStartMatch != nil,
                viewModel.state == .emptyFiltered,
                !viewModel.hasActiveFilters {
-                Button(action: { onStartMatch?() }) {
-                    Text(L10n.startMatchCTA)
-                        .font(.headline)
-                        .foregroundStyle(Brand.inkOnBright)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("emptyStateStartMatchButton")
+                StartMatchCTAButton(action: { onStartMatch?() })
             }
         }
         .frame(maxWidth: .infinity)

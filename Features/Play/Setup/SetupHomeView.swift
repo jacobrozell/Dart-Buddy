@@ -17,9 +17,7 @@ struct SetupHomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                Text(L10n.appTitle)
-                    .font(.largeTitle.weight(.heavy))
-                    .foregroundStyle(Brand.textPrimary)
+                BrandRootScreenTitle(title: L10n.appTitle)
                     .padding(.top, DS.Spacing.s2)
 
                 if case let .readyWithActiveMatch(match) = homeViewModel.state {
@@ -30,7 +28,7 @@ struct SetupHomeView: View {
                     recentCompletedSection
                 }
 
-                modePill
+                modeSelector
                 if setupViewModel.mode == .x01 {
                     chipsGrid
                 }
@@ -92,8 +90,8 @@ struct SetupHomeView: View {
             }
             .foregroundStyle(Brand.textPrimary)
             .padding(DS.Spacing.s4)
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-                .overlay(RoundedRectangle(cornerRadius: DS.Radius.md).stroke(Brand.green, lineWidth: 2))
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.sm).stroke(Brand.green, lineWidth: 2))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
@@ -149,34 +147,26 @@ struct SetupHomeView: View {
                     }
                 }
             }
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
         }
     }
 
-    private var modePill: some View {
-        HStack(spacing: 0) {
-            modeButton(L10n.x01Title, mode: .x01)
-            modeButton(L10n.cricketTitle, mode: .cricket)
-        }
-        .padding(4)
-        .background(Brand.card, in: Capsule())
+    private var modeSelector: some View {
+        BrandSegmented(
+            options: [
+                (.x01, L10n.string("play.x01.title")),
+                (.cricket, L10n.string("play.cricket.title"))
+            ],
+            selection: Binding(
+                get: { setupViewModel.mode },
+                set: { setupViewModel.updateMode($0) }
+            ),
+            accessibilityIdentifiers: [
+                .x01: "setup_mode_x01",
+                .cricket: "setup_mode_cricket"
+            ]
+        )
         .frame(maxWidth: .infinity)
-    }
-
-    private func modeButton(_ title: LocalizedStringKey, mode: MatchSetupViewModel.SetupMode) -> some View {
-        let isSelected = setupViewModel.mode == mode
-        return Button { setupViewModel.updateMode(mode) } label: {
-            Text(title)
-                .font(.headline)
-                .foregroundStyle(Brand.textPrimary)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .padding(.vertical, DS.Spacing.s2)
-                .background(isSelected ? Brand.cardElevated : Color.clear, in: Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(L10n.format("play.setup.mode.accessibilityFormat", L10n.string(mode == .x01 ? "play.x01.title" : "play.cricket.title")))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityIdentifier(mode == .x01 ? "setup_mode_x01" : "setup_mode_cricket")
     }
 
     private var startButton: some View {
@@ -260,7 +250,7 @@ struct SetupHomeView: View {
         HStack(spacing: DS.Spacing.s2) {
             Menu {
                 ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
-                    botMenuButton(difficulty.displayName, difficulty: difficulty, color: botDifficultyColor(difficulty))
+                    botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
                 }
             } label: {
                 HStack(spacing: 6) {
@@ -271,8 +261,8 @@ struct SetupHomeView: View {
                 .padding(.horizontal, DS.Spacing.s3)
                 .padding(.vertical, DS.Spacing.s3)
                 .frame(minHeight: 44)
-                .background(Brand.cardElevated, in: Capsule())
-                .overlay(Capsule().stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
+                .background(Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.sm).stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
             }
             .accessibilityLabel(L10n.addBotTitle)
             Button { onQuickAddPlayer() } label: {
@@ -283,7 +273,7 @@ struct SetupHomeView: View {
                 .foregroundStyle(Brand.textPrimary)
                 .padding(.horizontal, DS.Spacing.s3)
                 .padding(.vertical, DS.Spacing.s2)
-                .background(Brand.green, in: Capsule())
+                .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(L10n.setupAddPlayers)
@@ -375,14 +365,11 @@ struct SetupHomeView: View {
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Brand.textSecondary)
                     .frame(width: 28, alignment: .leading)
-                if player.isBot, let difficulty = player.botDifficulty {
-                    Image(systemName: "cpu.fill")
-                        .foregroundStyle(botDifficultyColor(difficulty))
-                } else {
-                    Image(systemName: "location.north.fill")
-                        .rotationEffect(.degrees(135))
-                        .foregroundStyle(Brand.textSecondary)
-                }
+                PlayerRosterAvatar(
+                    avatarStyle: player.avatarStyle,
+                    colorToken: player.colorToken,
+                    size: 28
+                )
                 Text(player.name)
                     .font(.headline)
                     .foregroundStyle(Brand.textPrimary)
@@ -393,6 +380,9 @@ struct SetupHomeView: View {
             )
             .accessibilityIdentifier("setup_selected_\(player.name)")
             Spacer()
+            if let difficulty = player.botDifficulty {
+                BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
+            }
             if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
                 Button {
                     setupViewModel.removeFromSelection(player.id)
@@ -425,9 +415,7 @@ struct SetupHomeView: View {
         VStack(spacing: 0) {
             ForEach(setupViewModel.availableBots) { bot in
                 rosterRow(
-                    id: bot.id,
-                    name: bot.name,
-                    difficulty: bot.botDifficulty,
+                    player: bot,
                     accessibilityId: "select_bot_\(bot.botDifficultyRaw ?? "unknown")"
                 )
                 Divider().overlay(Brand.cardElevated)
@@ -439,9 +427,7 @@ struct SetupHomeView: View {
         VStack(spacing: 0) {
             ForEach(setupViewModel.availableHumans) { player in
                 rosterRow(
-                    id: player.id,
-                    name: player.name,
-                    difficulty: nil,
+                    player: player,
                     accessibilityId: "select_\(player.name)"
                 )
                 Divider().overlay(Brand.cardElevated)
@@ -449,21 +435,21 @@ struct SetupHomeView: View {
         }
     }
 
-    private func rosterRow(id: UUID, name: String, difficulty: BotDifficulty?, accessibilityId: String) -> some View {
-        Button { setupViewModel.togglePlayer(id) } label: {
+    private func rosterRow(player: PlayerSummary, accessibilityId: String) -> some View {
+        Button { setupViewModel.togglePlayer(player.id) } label: {
             HStack(spacing: DS.Spacing.s3) {
-                if let difficulty {
-                    Image(systemName: "cpu.fill")
-                        .foregroundStyle(botDifficultyColor(difficulty))
-                } else {
-                    Image(systemName: "location.north.fill")
-                        .rotationEffect(.degrees(135))
-                        .foregroundStyle(Brand.textSecondary)
-                }
-                Text(name)
+                PlayerRosterAvatar(
+                    avatarStyle: player.avatarStyle,
+                    colorToken: player.colorToken,
+                    size: 28
+                )
+                Text(player.name)
                     .font(.headline)
                     .foregroundStyle(Brand.textSecondary)
                 Spacer()
+                if let difficulty = player.botDifficulty {
+                    BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
+                }
                 Image(systemName: "plus.circle")
                     .foregroundStyle(Brand.green)
             }
@@ -471,9 +457,16 @@ struct SetupHomeView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(name)
+        .accessibilityLabel(nameAccessibilityLabel(for: player))
         .accessibilityHint(L10n.string("play.setup.playerRow.accessibilityHint"))
         .accessibilityIdentifier(accessibilityId)
+    }
+
+    private func nameAccessibilityLabel(for player: PlayerSummary) -> String {
+        if let difficulty = player.botDifficulty {
+            return L10n.format("players.bots.roster.accessibilityFormat", player.name, difficulty.displayName)
+        }
+        return player.name
     }
 
     private func recentMatchAccessibilityLabel(_ match: CompletedMatchPreview) -> String {
@@ -484,16 +477,6 @@ struct SetupHomeView: View {
 
     private var turnOrderListHeight: CGFloat {
         CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight
-    }
-
-    private func botDifficultyColor(_ difficulty: BotDifficulty) -> Color {
-        switch difficulty {
-        case .veryEasy: Color(red: 0.45, green: 0.82, blue: 0.55)
-        case .easy: Brand.green
-        case .medium: Brand.amber
-        case .hard: Brand.red
-        case .pro: Brand.proBot
-        }
     }
 
     private var setupStickyShadowColor: Color {

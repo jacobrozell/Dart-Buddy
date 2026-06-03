@@ -24,9 +24,7 @@ struct StatisticsRootView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    Text(L10n.statsTitle)
-                        .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(Brand.textPrimary)
+                    BrandRootScreenTitle(title: L10n.statsTitle)
 
                     BrandSegmented(
                         options: [(MatchType.x01, L10n.string("play.x01.title")), (MatchType.cricket, L10n.string("play.cricket.title"))],
@@ -178,15 +176,7 @@ struct StatisticsRootView: View {
             if onStartMatch != nil,
                viewModel.playerFilter == nil,
                viewModel.period == .all {
-                Button(action: { onStartMatch?() }) {
-                    Text(L10n.startMatchCTA)
-                        .font(.headline)
-                        .foregroundStyle(Brand.inkOnBright)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("emptyStateStartMatchButton")
+                StartMatchCTAButton(action: { onStartMatch?() })
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)

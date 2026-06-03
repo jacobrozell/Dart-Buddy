@@ -122,8 +122,7 @@ struct MatchSummaryScreen: View {
             .padding(DS.Spacing.s3)
             Spacer(minLength: 0)
         }
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(playerRowAccessibilityLabel(row))
     }
