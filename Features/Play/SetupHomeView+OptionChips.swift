@@ -152,7 +152,9 @@ extension SetupHomeView {
     private func chipBox(_ text: String, color: Color, showsMenuIndicator: Bool = false) -> some View {
         Text(text)
             .font(.headline.weight(.bold))
-            .foregroundStyle(Brand.textPrimary)
+            // Chips use solid bright brand fills; dark ink keeps the value legible in dark mode
+            // where adaptive white text would fail AA. Light mode is unchanged.
+            .foregroundStyle(Brand.inkOnBright)
             .lineLimit(1)
             .minimumScaleFactor(0.6)
             .frame(maxWidth: .infinity, minHeight: dynamicTypeSize.isAccessibilitySize ? 56 : 48)
@@ -162,7 +164,7 @@ extension SetupHomeView {
                 if showsMenuIndicator {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(Brand.textPrimary.opacity(0.85))
+                        .foregroundStyle(Brand.inkOnBright.opacity(0.85))
                         .padding(5)
                 }
             }

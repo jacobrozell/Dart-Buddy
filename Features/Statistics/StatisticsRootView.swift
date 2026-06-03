@@ -6,6 +6,7 @@ struct StatisticsRootView: View {
     var onStartMatch: (() -> Void)?
     @StateObject private var viewModel: StatisticsViewModel
     @State private var loadTask: Task<Void, Never>?
+    @Environment(\.colorScheme) private var colorScheme
 
     init(dependencies: AppDependencies, onStartMatch: (() -> Void)? = nil) {
         self.dependencies = dependencies
@@ -155,10 +156,15 @@ struct StatisticsRootView: View {
             Text(L10n.statsPartialMatchBanner)
                 .font(.footnote)
         }
-        .foregroundStyle(Brand.amber)
+        // Amber text on the white card fails AA contrast in light mode; use primary text on
+        // an amber-tinted surface so the warning stays legible (icon + tint = non-color cue).
+        .foregroundStyle(Brand.textPrimary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(DS.Spacing.s3)
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .background(
+            Brand.amber.opacity(colorScheme == .dark ? 0.32 : 0.22),
+            in: RoundedRectangle(cornerRadius: DS.Radius.md)
+        )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(L10n.string("stats.partialMatchBanner.accessibility"))
         .accessibilityIdentifier("statsPartialMatchBanner")
@@ -175,7 +181,7 @@ struct StatisticsRootView: View {
                 Button(action: { onStartMatch?() }) {
                     Text(L10n.startMatchCTA)
                         .font(.headline)
-                        .foregroundStyle(Brand.textPrimary)
+                        .foregroundStyle(Brand.inkOnBright)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
                 }

@@ -10,6 +10,7 @@ struct X01MatchScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
     @State private var lastAnnouncedCheckout: String?
@@ -220,14 +221,22 @@ struct X01MatchScreen: View {
     @ViewBuilder
     private var botTurnBanner: some View {
         if viewModel.isBotPlaying || viewModel.isCurrentPlayerBot && viewModel.canHumanInput == false {
+            // Amber-on-background fails AA contrast in light mode, so the banner sits on an
+            // amber-tinted pill with primary-text foreground (legible in both appearances).
             HStack(spacing: 8) {
-                ProgressView().tint(Brand.amber)
+                ProgressView().tint(Brand.textPrimary)
                 Text(L10n.botThrowing)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Brand.amber)
+                    .foregroundStyle(Brand.textPrimary)
             }
-            .frame(maxWidth: .infinity)
             .padding(.vertical, DS.Spacing.s2)
+            .padding(.horizontal, DS.Spacing.s4)
+            .background(
+                Brand.amber.opacity(colorScheme == .dark ? 0.32 : 0.22),
+                in: Capsule()
+            )
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, DS.Spacing.s1)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(L10n.string("play.match.botThrowing"))
         }

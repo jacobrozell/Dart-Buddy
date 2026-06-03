@@ -54,8 +54,10 @@ LIGHT = {
     "textPrimary": RGB.from_u8(20, 20, 26),
     "textSecondary": RGB.from_u8(89, 89, 97),  # 0.35 sRGB per BrandTheme
     "red": RGB.from_u8(230, 71, 61),
+    "redAccent": RGB.from_u8(214, 51, 46),  # solid fill behind white text (CTA, error)
     "green": RGB.from_u8(51, 173, 82),
     "amber": RGB.from_u8(245, 179, 31),
+    "orange": RGB.from_u8(237, 115, 33),
 }
 
 DARK = {
@@ -64,8 +66,10 @@ DARK = {
     "cardElevated": RGB.from_u8(41, 41, 43),
     "textPrimary": RGB.from_u8(255, 255, 255),
     "red": RGB.from_u8(230, 71, 61),
+    "redAccent": RGB.from_u8(214, 51, 46),  # solid fill behind white text (CTA, error)
     "green": RGB.from_u8(51, 173, 82),
     "amber": RGB.from_u8(245, 179, 31),
+    "orange": RGB.from_u8(237, 115, 33),
 }
 
 
@@ -79,12 +83,16 @@ def samples_for_mode(name: str, palette: dict[str, RGB]) -> list[tuple[str, RGB,
         secondary_on_bg = white.blend_over(bg, 0.55)
         secondary_on_card = white.blend_over(card, 0.55)
     red, green, amber = palette["red"], palette["green"], palette["amber"]
+    red_accent = palette["redAccent"]
     on_accent = RGB.from_u8(255, 255, 255)
+    ink_on_bright = RGB.from_u8(20, 20, 26)  # Brand.inkOnBright (fixed dark ink, both modes)
 
     fill_light = 0.22 if name == "light" else 0.32
     bust_bg = red.blend_over(bg, fill_light)
     leg_bg = green.blend_over(bg, fill_light)
-    error_bg = red.blend_over(bg, 0.88)
+    # Bot-turn / partial-stats warning banners: textPrimary on an amber tint (over bg and card).
+    amber_banner_bg = amber.blend_over(bg, fill_light)
+    amber_banner_card = amber.blend_over(card, fill_light)
 
     secondary_rows = (
         [
@@ -102,10 +110,18 @@ def samples_for_mode(name: str, palette: dict[str, RGB]) -> list[tuple[str, RGB,
         (f"{name}: textPrimary on background", primary, bg, False),
         (f"{name}: textPrimary on card", primary, card, False),
         *secondary_rows,
-        (f"{name}: textOnAccent on red (CTA)", on_accent, red, False),
-        (f"{name}: textOnAccent on error banner fill", on_accent, error_bg, False),
+        (f"{name}: textOnAccent on redAccent (CTA)", on_accent, red_accent, False),
+        (f"{name}: textOnAccent on redAccent error banner", on_accent, red_accent, False),
         (f"{name}: textPrimary on bust banner fill", primary, bust_bg, False),
         (f"{name}: textPrimary on leg-win banner fill", primary, leg_bg, False),
+        (f"{name}: textPrimary on bot-turn amber pill (bg)", primary, amber_banner_bg, False),
+        (f"{name}: textPrimary on partial-stats amber pill (card)", primary, amber_banner_card, False),
+        # Labels on solid saturated fills (armed pad modifier keys, ENTER, selected setup chips).
+        # These ship with `inkOnBright` (fixed dark ink): `textPrimary` would flip to white in
+        # dark mode where amber=1.85:1, green=2.90:1, orange=2.97:1 all fail even large-text 3:1.
+        (f"{name}: inkOnBright on amber fill (armed DOUBLE key)", ink_on_bright, amber, False),
+        (f"{name}: inkOnBright on green fill (ENTER)", ink_on_bright, green, False),
+        (f"{name}: inkOnBright on orange fill (armed TRIPLE key)", ink_on_bright, palette["orange"], False),
         (f"{name}: textPrimary on cardElevated (selected avatar)", primary, palette["cardElevated"], False),
     ]
 

@@ -9,6 +9,7 @@ struct CricketMatchScreen: View {
     let turnTotalCaller: any TurnTotalCallerService
     let feedbackPreferences: FeedbackPreferences
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
 
@@ -134,8 +135,16 @@ struct CricketMatchScreen: View {
         switch viewModel.state {
         case .readyTurn:
             if viewModel.isBotPlaying {
+                // Amber-on-background fails AA contrast in light mode; tinted pill + primary
+                // text keeps the bot turn indicator legible in both appearances.
                 Text(L10n.botThrowing)
-                    .foregroundStyle(Brand.amber)
+                    .foregroundStyle(Brand.textPrimary)
+                    .padding(.vertical, DS.Spacing.s2)
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .background(
+                        Brand.amber.opacity(colorScheme == .dark ? 0.32 : 0.22),
+                        in: Capsule()
+                    )
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel(L10n.string("play.match.botThrowing"))
             } else {
