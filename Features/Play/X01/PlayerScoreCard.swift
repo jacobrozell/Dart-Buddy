@@ -30,8 +30,7 @@ struct PlayerScoreCard: View {
             }
             .padding(DS.Spacing.s3)
         }
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
         .accessibilityIdentifier(isActive ? "scoreCard_active" : "scoreCard")
@@ -152,7 +151,7 @@ struct PlayerScoreCard: View {
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .frame(width: displayDartBoxSize, height: displayDartBoxSize)
-            .background(Brand.dartBox, in: RoundedRectangle(cornerRadius: 6))
+            .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
     }
 
     private func dartLabel(_ dart: DartInput) -> String {

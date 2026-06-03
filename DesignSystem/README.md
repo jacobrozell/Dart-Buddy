@@ -26,10 +26,20 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 | Component | Role |
 |-----------|------|
 | `PrimaryActionButton` | Full-width CTA (START, primary actions) |
+| `StartMatchCTAButton` | Empty-state “Start a Match” CTA (Statistics, History) |
+| `BrandRootScreenTitle` / `BrandMatchScreenTitle` | Tab root vs in-match titles |
+| `BrandSegmented` | Square-corner segmented control (mode, stats period) |
+| `ScoringPadKey` / `ScoringPadStyle` | Shared square scoring-pad keys (X01 + Cricket) |
 | `ErrorBanner` | Inline validation / error strip |
 | `MatchFeedbackBanner` | Leg/bust/checkout feedback |
 | `StatChip` | Compact stat label |
 | `GameplayLayout` | Width helpers |
+
+### Scoreboard shape policy
+
+- **Scoring pad keys:** square (`Rectangle` via `ScoringPadStyle.keyShape`).
+- **Cards, chips, banners, CTAs:** `DS.Radius.sm` (`RoundedRectangle`), not capsules.
+- **Visit dart slots:** `DS.Radius.xs` (6pt).
 
 ## Related docs
 

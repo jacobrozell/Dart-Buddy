@@ -1,14 +1,16 @@
 import SwiftUI
 
-/// Capsule segmented control matching the reference app's pill toggles.
+/// Segmented control for scoreboard screens (mode, stats period, etc.).
 struct BrandSegmented<T: Hashable>: View {
     let options: [(value: T, title: String)]
     @Binding var selection: T
+    var accessibilityIdentifiers: [T: String] = [:]
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(options.indices, id: \.self) { index in
                 let option = options[index]
+                let isSelected = selection == option.value
                 Button {
                     selection = option.value
                 } label: {
@@ -19,24 +21,23 @@ struct BrandSegmented<T: Hashable>: View {
                         .minimumScaleFactor(0.8)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s2)
-                        .background(selection == option.value ? Brand.cardElevated : Color.clear, in: Capsule())
+                        .background(
+                            isSelected ? Brand.cardElevated : Color.clear,
+                            in: RoundedRectangle(cornerRadius: DS.Radius.sm)
+                        )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(option.title)
-                .accessibilityAddTraits(selection == option.value ? .isSelected : [])
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .modifier(OptionalAccessibilityIdentifier(identifier: accessibilityIdentifiers[option.value]))
             }
         }
         .padding(4)
-        .background(Brand.card, in: Capsule())
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
     }
 }
 
-/// A "FINISHED" style status pill.
-///
-/// Renders as a tinted capsule rather than bare colored text: a saturated accent used directly
-/// as small-text foreground fails WCAG AA on at least one appearance (e.g. green on the white
-/// light-mode card is ~2.9:1). The tint carries the color cue while `textPrimary` keeps the
-/// label at AA contrast in both light and dark mode.
+/// A "FINISHED" style status badge.
 struct StatusBadge: View {
     let text: String
     let color: Color
@@ -51,7 +52,7 @@ struct StatusBadge: View {
             .padding(.vertical, 2)
             .background(
                 color.opacity(colorScheme == .dark ? 0.30 : 0.20),
-                in: Capsule()
+                in: RoundedRectangle(cornerRadius: DS.Radius.sm)
             )
     }
 }

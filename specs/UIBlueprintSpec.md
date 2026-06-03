@@ -121,6 +121,8 @@ Behavior:
 Purpose:
 - Real-time X01 scoring and turn progression.
 
+**Visual model:** One **player score card** per participant (remaining score, visit slots, sets/legs, averages). Active turn is shown via the green name label and left accent bar — not a shared target grid.
+
 Wireframe:
 ```text
 +--------------------------------------------------+
@@ -151,6 +153,8 @@ Behavior:
 ## 4.4 Cricket Match Screen
 Purpose:
 - Real-time Cricket mark and points tracking.
+
+**Visual model:** One **unified target board** (`CricketBoardView`: player header row + marks grid 20–15 + Bull). Active turn uses a single column highlight on header and mark cells — not X01-style score cards.
 
 Wireframe:
 ```text

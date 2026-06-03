@@ -6,7 +6,7 @@ import SwiftUI
 struct DartNumberPad: View {
     @Binding var enteredDarts: [DartInput]
     @Binding var selectedMultiplier: DartMultiplier
-    /// Called when undo is tapped while the current visit has no darts yet.
+    /// Called when undo is tapped with an empty in-progress visit to revert the last accepted throw.
     let onUndoTurn: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -17,7 +17,7 @@ struct DartNumberPad: View {
     }
 
     private var padSpacing: CGFloat {
-        usesAccessibilityLayout ? 8 : 6
+        usesAccessibilityLayout ? ScoringPadStyle.accessibilitySpacing : ScoringPadStyle.compactSpacing
     }
 
     private var displayKeyMinHeight: CGFloat {
@@ -70,39 +70,39 @@ struct DartNumberPad: View {
 
     private var controlRow: some View {
         HStack(spacing: padSpacing) {
-            key(
-                "0",
-                background: Brand.key,
-                identifier: "pad_0",
+            ScoringPadKey(
+                title: "0",
+                minHeight: displayKeyMinHeight,
                 accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
-                accessibilityHint: L10n.string("scoring.segment.hint")
-            ) { appendMiss() }
+                accessibilityHint: L10n.string("scoring.segment.hint"),
+                identifier: "pad_0",
+                action: appendMiss
+            )
             modifierKey(.double, identifier: "pad_double")
             modifierKey(.triple, identifier: "pad_triple")
-            Button(action: undo) {
-                Image(systemName: "arrow.uturn.backward")
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(Brand.textPrimary)
-                    .frame(maxWidth: .infinity, minHeight: displayKeyMinHeight)
-                    .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
-            }
-            .frame(maxWidth: .infinity)
-            .accessibilityLabel(L10n.scoringUndoLastTurn)
-            .accessibilityIdentifier("pad_undo")
+            ScoringPadIconKey(
+                systemImage: "arrow.uturn.backward",
+                minHeight: displayKeyMinHeight,
+                accessibilityLabel: L10n.string("scoring.undoLastTurn"),
+                identifier: "pad_undo",
+                action: undo
+            )
         }
     }
 
     private func numberKey(_ value: Int) -> some View {
-        key(
-            String(value),
-            background: Brand.key,
-            identifier: "pad_\(value)",
+        ScoringPadKey(
+            title: String(value),
+            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
+            minHeight: displayKeyMinHeight,
             accessibilityLabel: DartInput.padKeyAccessibilityLabel(
                 segmentValue: value,
                 armedMultiplier: selectedMultiplier
             ),
-            accessibilityHint: L10n.string("scoring.segment.hint")
-        ) { append(value) }
+            accessibilityHint: L10n.string("scoring.segment.hint"),
+            identifier: "pad_\(value)",
+            action: { append(value) }
+        )
     }
 
     private func modifierKey(_ multiplier: DartMultiplier, identifier: String) -> some View {
@@ -118,49 +118,20 @@ struct DartNumberPad: View {
                 return Brand.key
             }
         }()
-        // When armed the fill is a solid bright color (amber/orange); dark ink keeps the label
-        // legible in dark mode where white would drop below AA. The dimmed idle fill is dark
-        // enough that adaptive text stays the better choice.
         let foreground: Color = (isSelected && multiplier != .single) ? Brand.inkOnBright : Brand.textPrimary
-        return key(
-            title,
+        return ScoringPadKey(
+            title: title,
             background: background,
             foreground: foreground,
-            weight: .bold,
-            identifier: identifier,
+            font: usesAccessibilityLayout ? .title3.weight(.bold) : .body.weight(.bold),
+            minHeight: displayKeyMinHeight,
             accessibilityLabel: multiplierAccessibilityLabel(multiplier),
             accessibilityHint: modifierHint(multiplier, isSelected: isSelected),
-            isSelected: isSelected
-        ) {
-            toggle(multiplier)
-        }
+            isSelected: isSelected,
+            identifier: identifier,
+            action: { toggle(multiplier) }
+        )
         .frame(maxWidth: .infinity)
-    }
-
-    private func key(
-        _ title: String,
-        background: Color,
-        foreground: Color = Brand.textPrimary,
-        weight: Font.Weight = .semibold,
-        identifier: String,
-        accessibilityLabel: String? = nil,
-        accessibilityHint: String? = nil,
-        isSelected: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(usesAccessibilityLayout ? .title3.weight(weight) : .body.weight(weight))
-                .foregroundStyle(foreground)
-                .lineLimit(1)
-                .minimumScaleFactor(usesAccessibilityLayout ? 0.85 : 0.7)
-                .frame(maxWidth: .infinity, minHeight: displayKeyMinHeight)
-                .background(background, in: RoundedRectangle(cornerRadius: 8))
-        }
-        .accessibilityLabel(accessibilityLabel ?? title)
-        .modifier(OptionalAccessibilityHint(hint: accessibilityHint))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityIdentifier(identifier)
     }
 
     private func multiplierAccessibilityLabel(_ multiplier: DartMultiplier) -> String {
