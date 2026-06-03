@@ -294,7 +294,7 @@ final class CricketMatchViewModel: ObservableObject {
                 )
                 if didCloseTarget {
                     state = .closureTransition
-                    try? await Task.sleep(nanoseconds: 550_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureTransitionNanoseconds)
                 }
                 state = .readyTurn
                 if current.runtime.status != .completed {
