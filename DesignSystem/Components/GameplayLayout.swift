@@ -20,4 +20,9 @@ enum GameplayLayout {
     static func scoringPadColumnCount(dynamicTypeSize: DynamicTypeSize) -> Int {
         usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) ? 4 : 7
     }
+
+    /// Play setup home uses alternate layout at accessibility text sizes (AX1–AX5).
+    static func usesAccessibilitySetupHomeLayout(dynamicTypeSize: DynamicTypeSize) -> Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
 }
