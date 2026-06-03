@@ -15,11 +15,11 @@ Dart Buddy extensions (**DBX-***) come from `specs/AccessibilitySpec.md` and `sp
 | P-1.3.2 | 1.3.2 Meaningful Sequence | A | Yes | VoiceOver order matches visual priority (score → input → actions) | Untested | Manual VO pass per screen |
 | P-1.3.4 | 1.3.4 Orientation | AA | Yes | Portrait and landscape complete core tasks | Untested | `todo.md`: iPad/landscape layouts open |
 | P-1.4.1 | 1.4.1 Use of Color | A | Yes | State not conveyed by color alone (icons, text, patterns) | Partial | Cricket marks strong; X01 active bar + color |
-| P-1.4.3 | 1.4.3 Contrast (Minimum) | AA | Yes | 4.5:1 normal text, 3:1 large text on backgrounds | Untested | Audit `Brand.textSecondary`, amber banners, Cricket chrome |
+| P-1.4.3 | 1.4.3 Contrast (Minimum) | AA | Yes | 4.5:1 normal text, 3:1 large text on backgrounds | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 | P-1.4.4 | 1.4.4 Resize Text | AA | Yes | Dynamic Type through accessibility sizes; critical scores legible | Partial | Fixed `.system(size:)` on pad and score cards |
 | P-1.4.10 | 1.4.10 Reflow | AA | Yes | No horizontal scroll for content at 320px width equivalent | Untested | Landscape gameplay layout |
 | P-1.4.11 | 1.4.11 Non-text Contrast | AA | Yes | UI control boundaries vs adjacent colors ≥ 3:1 | Untested | Pad keys, chips, toggles |
-| DBX-CONTRAST-MODES | — | — | Yes | Light and dark both pass P-1.4.3 on primary surfaces | Untested | Settings light vs Play dark cohesion |
+| DBX-CONTRAST-MODES | — | — | Yes | Light and dark both pass P-1.4.3 on primary surfaces | Partial | Token audit + orientation matrix; CTA uses large type |
 
 ---
 

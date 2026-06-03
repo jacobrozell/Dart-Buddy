@@ -8,9 +8,9 @@ Place verification artifacts here or link to repo paths.
 evidence/
   voiceover/          # Notes or short screen recordings per flow
                       # e.g. x01-ax-spotcheck-2026-06-02.md, cricket-ax-spotcheck-2026-06-02.md
-  dynamic-type/       # AXXXL screenshots (or link snapshots/*-axxxl-*)
-  contrast/           # Inspector exports or annotated screenshots
-  orientation/        # portrait|landscape × light|dark
+  dynamic-type/       # AXXXL PNGs + README (source: accessibility/screenshots/)
+  contrast/           # brand-token-samples-2026-06-02.md (computed ratios)
+  orientation/        # 4-way matrix README + PNGs (setup + X01)
   reduce-motion/      # Before/after summary screen
 ```
 

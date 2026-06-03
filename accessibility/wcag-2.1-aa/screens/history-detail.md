@@ -29,7 +29,7 @@
 | U-3.3.1 | Pass | Error state + retry | |
 | U-3.3.2 | N/A | | |
 | R-4.1.2 | Pass | Result, delete, timeline IDs + labels | |
-| DBX-CONTRAST-MODES | Untested | | |
+| DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 

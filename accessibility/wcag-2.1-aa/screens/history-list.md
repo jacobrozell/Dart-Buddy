@@ -29,7 +29,7 @@
 | U-3.3.1 | N/A | | |
 | U-3.3.2 | N/A | | |
 | R-4.1.2 | Pass | IDs + row/filter/resume labels | |
-| DBX-CONTRAST-MODES | Untested | | |
+| DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 

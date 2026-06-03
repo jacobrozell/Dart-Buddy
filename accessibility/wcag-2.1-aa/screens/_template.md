@@ -29,7 +29,7 @@
 | U-3.3.1 | Untested | | |
 | U-3.3.2 | Untested | | |
 | R-4.1.2 | Untested | | |
-| DBX-CONTRAST-MODES | Untested | | |
+| DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 

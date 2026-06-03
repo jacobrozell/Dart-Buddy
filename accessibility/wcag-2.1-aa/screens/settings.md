@@ -29,7 +29,7 @@
 | U-3.3.1 | Partial | Reset confirmation dialog (system) | |
 | U-3.3.2 | Pass | Section headers/footers | |
 | R-4.1.2 | Pass | Feedback toggles + reset button IDs/labels | |
-| DBX-CONTRAST-MODES | Partial | Theme picker affects app; verify both modes | |
+| DBX-CONTRAST-MODES | Partial | Token audit + Settings light native form; `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 

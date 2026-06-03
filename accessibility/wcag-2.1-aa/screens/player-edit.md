@@ -29,7 +29,7 @@
 | U-3.3.1 | Partial | Validation errors as text | |
 | U-3.3.2 | Pass | Name and notes accessibility labels | |
 | R-4.1.2 | Pass | `.isSelected` traits; field labels | |
-| DBX-CONTRAST-MODES | Untested | | |
+| DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 

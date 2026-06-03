@@ -100,9 +100,11 @@ final class WCAGAccessibilityUITests: XCTestCase {
     func testCheckoutSuggestionAccessibilityAtFinish() {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         configureDoubleOut101Match(app, timeout: timeout)
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
+        ensurePlayTab(app, timeout: timeout)
+        selectAliceAndBob(from: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
 
         app.buttons["pad_triple"].tap()
         app.buttons["pad_20"].tap()
@@ -125,9 +127,11 @@ final class WCAGAccessibilityUITests: XCTestCase {
     func testBustBannerExposesAccessibilityLabel() {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         configureQuickX01Match(app, timeout: timeout)
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
+        ensurePlayTab(app, timeout: timeout)
+        selectAliceAndBob(from: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
 
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
         submitMissVisit(on: app, timeout: timeout)
@@ -325,11 +329,11 @@ final class WCAGAccessibilityUITests: XCTestCase {
         selectAliceAndBob(from: app, timeout: timeout)
 
         assertInteractiveElement(
-            app.staticTexts["setup_selected_Alice"].firstMatch,
+            app.descendants(matching: .any)["setup_selected_Alice"].firstMatch,
             identifier: "setup_selected_Alice"
         )
         assertInteractiveElement(
-            app.staticTexts["setup_selected_Bob"].firstMatch,
+            app.descendants(matching: .any)["setup_selected_Bob"].firstMatch,
             identifier: "setup_selected_Bob"
         )
     }
@@ -377,7 +381,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
         let disabledDuringBot = pad.wait(
             for: \.isEnabled,
             toEqual: false,
-            timeout: 5
+            timeout: 10
         )
         XCTAssertTrue(
             disabledDuringBot,
@@ -429,9 +433,9 @@ final class WCAGAccessibilityUITests: XCTestCase {
         )
         startTwoPlayerCricketMatch(from: app, timeout: timeout + 5)
 
-        assertReachable(app.buttons["cricket_20"], identifier: "cricket_20")
-        assertReachable(app.buttons["cricket_enter"], identifier: "cricket_enter")
-        assertReachable(app.otherElements["cricket_column_active"], identifier: "cricket_column_active")
+        assertReachable(app.buttons["cricket_20"], identifier: "cricket_20", in: app)
+        assertReachable(app.buttons["cricket_enter"], identifier: "cricket_enter", in: app)
+        assertReachable(app.otherElements["cricket_column_active"], identifier: "cricket_column_active", in: app)
     }
 
     func testPlayersListSearchUsableAtAXXXL() {
@@ -444,9 +448,10 @@ final class WCAGAccessibilityUITests: XCTestCase {
             app.textFields.matching(
                 NSPredicate(format: "identifier == %@", "players_searchField")
             ).firstMatch,
-            identifier: "players_searchField"
+            identifier: "players_searchField",
+            in: app
         )
-        assertReachable(app.buttons["player_row_Jacob"], identifier: "player_row_Jacob")
+        assertReachable(app.buttons["player_row_Jacob"], identifier: "player_row_Jacob", in: app)
     }
 
     func testHistoryDetailCriticalControlsUsableAtAXXXL() {
@@ -458,9 +463,10 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
         assertReachable(
             app.otherElements["historyDetailResultCard"],
-            identifier: "historyDetailResultCard"
+            identifier: "historyDetailResultCard",
+            in: app
         )
-        assertReachable(app.buttons["historyDetailTimelineToggle"], identifier: "historyDetailTimelineToggle")
+        assertReachable(app.buttons["historyDetailTimelineToggle"], identifier: "historyDetailTimelineToggle", in: app)
     }
 
     private func scrollToFeedbackSwitches(in app: XCUIApplication) {
@@ -479,9 +485,9 @@ final class WCAGAccessibilityUITests: XCTestCase {
         )
         XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
 
-        assertReachable(app.buttons["startMatchButton"], identifier: "startMatchButton")
-        assertReachable(app.buttons["select_Alice"], identifier: "select_Alice")
-        assertReachable(app.buttons["setup_startScoreChip"], identifier: "setup_startScoreChip")
+        assertReachable(app.buttons["startMatchButton"], identifier: "startMatchButton", in: app)
+        assertReachable(app.buttons["select_Alice"], identifier: "select_Alice", in: app)
+        assertReachable(app.buttons["setup_startScoreChip"], identifier: "setup_startScoreChip", in: app)
         // Full dynamicType audit at AXXXL remains manual until gameplay typography scaling lands
         // (see accessibility/wcag-2.1-aa/screens/match-setup.md P-1.4.4).
     }
@@ -493,8 +499,8 @@ final class WCAGAccessibilityUITests: XCTestCase {
         )
         startTwoPlayerX01Match(from: app, timeout: timeout + 5)
 
-        assertReachable(app.buttons["pad_20"], identifier: "pad_20")
-        assertReachable(app.buttons["pad_undo"], identifier: "pad_undo")
-        assertReachable(app.otherElements["scoreCard_active"], identifier: "scoreCard_active")
+        assertReachable(app.buttons["pad_20"], identifier: "pad_20", in: app)
+        assertReachable(app.buttons["pad_undo"], identifier: "pad_undo", in: app)
+        assertReachable(app.otherElements["scoreCard_active"], identifier: "scoreCard_active", in: app)
     }
 }

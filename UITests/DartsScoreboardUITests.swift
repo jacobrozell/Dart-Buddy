@@ -54,6 +54,29 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout), "Player detail should show hits in sector")
     }
 
+    func testEditPlayerUpdatesProfile() {
+        let app = launchApp(["-seed_demo"])
+
+        app.tabBars.buttons["Players"].tap()
+        XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
+        app.buttons["player_row_Jacob"].tap()
+        XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 10))
+
+        app.buttons["playerDetail_edit"].tap()
+        let nameField = app.textFields["playerEdit_name"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: timeout), "Edit sheet should expose the name field")
+        nameField.tap()
+        nameField.clearAndEnterText("Jake")
+
+        let save = app.buttons["playerEdit_save"]
+        XCTAssertTrue(save.waitForExistence(timeout: timeout))
+        XCTAssertTrue(save.isEnabled, "Save should be enabled for a unique renamed player")
+        save.tap()
+
+        XCTAssertTrue(app.buttons["player_row_Jake"].waitForExistence(timeout: timeout + 10), "List should show the renamed player")
+        XCTAssertFalse(app.buttons["player_row_Jacob"].exists, "Old player row label should be gone after rename")
+    }
+
     // MARK: - Key path: game detail surfaces stats and can be deleted
 
     func testGameDetailShowsStatsAndDeletes() {
@@ -144,10 +167,11 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["select_Jacob"].waitForExistence(timeout: timeout))
         app.buttons["select_Jacob"].tap()
         app.buttons["select_Sam"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Jacob"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Sam"].waitForExistence(timeout: timeout))
 
         let start = app.buttons["startMatchButton"]
-        XCTAssertTrue(start.waitForExistence(timeout: timeout))
-        XCTAssertTrue(start.isEnabled, "START should be enabled with two players selected")
+        waitForStartEnabled(start, timeout: timeout + 5)
         start.tap()
 
         let alert = app.alerts["Game in Progress"]
@@ -245,6 +269,7 @@ final class DartsScoreboardUITests: XCTestCase {
 
     func testX01LiveDartsAndAverageUpdatePerDart() {
         let app = launchApp(["-seed_players"])
+        ensurePlayTab(app, timeout: timeout)
 
         app.buttons["select_Alice"].tap()
         app.buttons["select_Bob"].tap()
@@ -272,34 +297,8 @@ final class DartsScoreboardUITests: XCTestCase {
 
     func testCheckoutShowsWinnerSummary() {
         let app = launchApp(["-seed_players"])
-        configureQuickX01Match(app)
+        finishQuickX01Checkout(for: app, timeout: timeout)
 
-        app.buttons["select_Alice"].tap()
-        addEasyBot(from: app)
-        app.buttons["startMatchButton"].tap()
-
-        XCTAssertTrue(
-            app.staticTexts["101, Straight Out, First to 1 Leg"].waitForExistence(timeout: timeout),
-            "Board should reflect the quick-match configuration"
-        )
-
-        let twenty = app.buttons["pad_20"]
-        XCTAssertTrue(twenty.waitForExistence(timeout: timeout))
-        twenty.tap()
-        twenty.tap()
-        twenty.tap()
-
-        // Wait for the bot visit to finish and return control to Alice on 41 remaining.
-        let padReady = twenty.waitForExistence(timeout: timeout + 10)
-        XCTAssertTrue(padReady)
-        _ = twenty.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 10)
-
-        app.buttons["pad_double"].tap()
-        app.buttons["pad_20"].tap()
-        app.buttons["pad_1"].tap()
-
-        let summaryHeader = app.otherElements["matchSummaryHeader"]
-        XCTAssertTrue(summaryHeader.waitForExistence(timeout: timeout + 5), "Match summary should appear after checkout")
         XCTAssertTrue(app.staticTexts["Alice wins!"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["New Match"].waitForExistence(timeout: timeout))
     }
@@ -308,26 +307,7 @@ final class DartsScoreboardUITests: XCTestCase {
 
     func testPostMatchStatsDeleteReturnsToPlayHome() {
         let app = launchApp(["-seed_players"])
-        configureQuickX01Match(app)
-
-        app.buttons["select_Alice"].tap()
-        addEasyBot(from: app)
-        app.buttons["startMatchButton"].tap()
-
-        let twenty = app.buttons["pad_20"]
-        XCTAssertTrue(twenty.waitForExistence(timeout: timeout))
-        twenty.tap()
-        twenty.tap()
-        twenty.tap()
-
-        if !app.otherElements["matchSummaryHeader"].waitForExistence(timeout: 3) {
-            _ = twenty.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 10)
-            app.buttons["pad_double"].tap()
-            app.buttons["pad_20"].tap()
-            app.buttons["pad_1"].tap()
-        }
-
-        XCTAssertTrue(app.otherElements["matchSummaryHeader"].waitForExistence(timeout: timeout + 5))
+        finishQuickX01Checkout(for: app, timeout: timeout)
 
         app.buttons["View Game Statistics"].tap()
         XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
@@ -373,8 +353,8 @@ final class DartsScoreboardUITests: XCTestCase {
         app.buttons["101"].tap()
         app.buttons["setup_checkoutChip"].tap()
         app.buttons["Straight Out"].tap()
-        app.buttons["setup_legsChip"].tap()
-        app.buttons["setup_legsOption_1"].tap()
+        tapMenuChip("setup_legsChip", in: app, timeout: timeout)
+        selectMenuOption(identifier: "setup_legsOption_1", title: "1", in: app, timeout: timeout)
     }
 
     // MARK: - Key path: Cricket grid scoring
@@ -436,19 +416,11 @@ final class DartsScoreboardUITests: XCTestCase {
         let addBot = app.buttons["Add Bot"]
         XCTAssertTrue(addBot.waitForExistence(timeout: timeout))
         addBot.tap()
-        let easy = app.buttons["add_bot_easy"]
-        XCTAssertTrue(easy.waitForExistence(timeout: timeout))
-        easy.tap()
-        let botRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Easy Bot")).firstMatch
+        selectMenuOption(identifier: "add_bot_easy", title: "Easy", in: app, timeout: timeout)
+        let botRow = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'setup_selected_' AND label CONTAINS[c] %@", "Easy")
+        ).firstMatch
         XCTAssertTrue(botRow.waitForExistence(timeout: timeout + 10))
-    }
-
-    @discardableResult
-    private func waitForSwitch(_ toggle: XCUIElement, on: Bool, timeout: TimeInterval = 5) -> Bool {
-        let target = on ? "1" : "0"
-        let predicate = NSPredicate(format: "value == %@", target)
-        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: toggle)
-        return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
     }
 
     private func scrollToHistoryStats(_ app: XCUIApplication) {

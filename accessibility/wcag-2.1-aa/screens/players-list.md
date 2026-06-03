@@ -29,7 +29,7 @@
 | U-3.3.1 | Partial | Delete blocked message | |
 | U-3.3.2 | Pass | `players_searchField` label | |
 | R-4.1.2 | Pass | Search + `player_row_*` labels | |
-| DBX-CONTRAST-MODES | Untested | | |
+| DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 

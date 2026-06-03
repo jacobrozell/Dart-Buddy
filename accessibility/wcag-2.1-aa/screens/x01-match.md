@@ -29,7 +29,7 @@
 | U-3.3.1 | Pass | `L10n.bustFeedback` banner + `AccessibilityNotification` on bust | |
 | U-3.3.2 | Pass | Pad multiplier hints when armed; bot-turn pad hint when disabled | |
 | R-4.1.2 | Pass | Pad labels/hints/traits; combined score card; identifiers retained | See `_shared-components.md` |
-| DBX-CONTRAST-MODES | Untested | Dark gameplay only on this screen | |
+| DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md`; matrix `evidence/orientation/` |
 
 ## Open work
 

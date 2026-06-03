@@ -29,7 +29,7 @@
 | U-3.3.1 | Pass | `boardUpdated` banner + announcement on closure | |
 | U-3.3.2 | Pass | Pad multiplier hints; closure text + announcement | |
 | R-4.1.2 | Pass | Column, pad, mark labels; identifiers retained | |
-| DBX-CONTRAST-MODES | Untested | | |
+| DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 

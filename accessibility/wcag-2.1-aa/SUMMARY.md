@@ -1,7 +1,7 @@
 # WCAG 2.1 AA rollup
 
 **Last updated:** 2026-06-02  
-**Overall release status:** `Not compliant` — engineering pass complete on all MVP screens; **manual evidence** still required (`accessibility/Manual_todo.md`).
+**Overall release status:** `Not compliant` — engineering pass complete on all MVP screens; **manual VoiceOver / AXXXL** still required (`accessibility/Manual_todo.md`). Contrast token audit + 4-way orientation matrix captured 2026-06-02.
 
 ## Screen status
 
@@ -29,17 +29,18 @@
 | Criterion ID | Global status | Primary fix |
 |--------------|---------------|-------------|
 | P-1.4.4 | Partial | Semantic type / `@ScaledMetric` on gameplay typography |
-| P-1.4.3 | Untested | Contrast audit on `Brand.textSecondary` |
+| P-1.4.3 | Partial | Token audit `evidence/contrast/brand-token-samples-2026-06-02.md`; CTA large-text |
+| DBX-CONTRAST-MODES | Partial | Primary surfaces pass; Settings light native vs brand tabs |
 | DBX-REDUCE-MOTION | Partial | Summary gated; manual evidence pending |
 | DBX-DESIGN-SYSTEM | Fail | DesignSystem default a11y API (post-MVP) |
-| P-1.3.4 / P-1.4.10 | Untested | Landscape + iPad layouts |
+| P-1.3.4 / P-1.4.10 | Partial | 4-way matrix `evidence/orientation/` (setup + X01) |
 
 ## Evidence checklist (release)
 
 - [ ] VoiceOver — core + tab flows (`accessibility/Manual_todo.md`)
 - [ ] Dynamic Type — AXXXL on setup, X01, Cricket, history, settings
-- [ ] Contrast — light + dark samples logged
-- [ ] Orientation — 4 combinations per `specs/SmokeTestChecklist.md`
+- [x] Contrast — light + dark samples logged (`evidence/contrast/brand-token-samples-2026-06-02.md`)
+- [x] Orientation — 4 combinations (`evidence/orientation/README.md`)
 - [ ] Reduce Motion — summary screen (Settings check)
 
 ## Changelog
@@ -50,3 +51,4 @@
 | 2026-06-01 | Phase 0: X01 pad/score card, live announcements, match summary reduce motion + VO |
 | 2026-06-02 | Phase 0.3 Cricket; AX spot-checks |
 | 2026-06-02 | Phase 2: all tab + setup screens — labels/IDs; no Required Fail on screen trackers |
+| 2026-06-02 | P4: brand contrast samples + 4-way orientation matrix; light marketing raw set |
