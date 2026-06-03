@@ -324,9 +324,15 @@ struct SetupHomeView: View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 .scrollDisabled(true)
-                .environment(\.editMode, .constant(.active))
-                .frame(minHeight: CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight)
-                .fixedSize(horizontal: false, vertical: true)
+                .environment(
+                    \.editMode,
+                    .constant(
+                        GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
+                            ? .inactive
+                            : .active
+                    )
+                )
+                .frame(height: turnOrderListHeight)
                 .accessibilityIdentifier("setup_turnOrderList")
             }
         }
@@ -381,17 +387,19 @@ struct SetupHomeView: View {
             )
             .accessibilityIdentifier("setup_selected_\(player.name)")
             Spacer()
-            Button {
-                setupViewModel.removeFromSelection(player.id)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(Brand.textSecondary)
+            if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
+                Button {
+                    setupViewModel.removeFromSelection(player.id)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(Brand.textSecondary)
+                }
+                .buttonStyle(.plain)
+                .frame(minWidth: 44, minHeight: 44)
+                .accessibilityLabel(L10n.setupRemoveFromMatch)
+                .accessibilityIdentifier("setup_remove_\(player.name)")
             }
-            .buttonStyle(.plain)
-            .frame(minWidth: 44, minHeight: 44)
-            .accessibilityLabel(L10n.setupRemoveFromMatch)
-            .accessibilityIdentifier("setup_remove_\(player.name)")
         }
         .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
             setupViewModel.removeFromSelection(player.id)
@@ -466,6 +474,10 @@ struct SetupHomeView: View {
         let mode = match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
         let winner = match.winnerName.map { L10n.format("play.home.recentWinnerFormat", $0) } ?? ""
         return L10n.format("play.home.recentMatchAccessibilityFormat", mode, match.participantsLabel, winner)
+    }
+
+    private var turnOrderListHeight: CGFloat {
+        CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight
     }
 
     private func botDifficultyColor(_ difficulty: BotDifficulty) -> Color {

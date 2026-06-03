@@ -3,6 +3,77 @@ import Testing
 @testable import DartBuddy
 
 @MainActor
+@Test(.tags(.integration, .setupFlow, .settings, .regression))
+func setupOnAppearAppliesSettingsDefaults() async {
+    let settings = SettingsSummary(
+        id: UUID(),
+        appearanceModeRaw: "system",
+        hapticsEnabled: true,
+        soundEnabled: true,
+        turnTotalCallerEnabled: false,
+        defaultMatchTypeRaw: MatchType.cricket.rawValue,
+        defaultX01StartScore: 601,
+        defaultCheckoutModeRaw: X01CheckoutMode.masterOut.rawValue,
+        defaultCheckInModeRaw: X01CheckInMode.doubleIn.rawValue,
+        defaultLegFormatRaw: X01LegFormat.firstTo.rawValue,
+        defaultLegsToWin: 5,
+        defaultSetsEnabled: true,
+        botStaggerEnabled: true,
+        botDartHapticsEnabled: true,
+        updatedAt: Date()
+    )
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        settingsRepository: FakeSettingsRepository(settings: settings),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+
+    await vm.onAppear()
+
+    #expect(vm.mode == .cricket)
+    #expect(vm.x01StartScore == 601)
+    #expect(vm.x01CheckoutMode == .masterOut)
+    #expect(vm.x01CheckInMode == .doubleIn)
+    #expect(vm.x01LegsToWin == 5)
+    #expect(vm.x01SetsEnabled == true)
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .settings, .regression))
+func setupOnAppearFallsBackTo501WhenStartScoreUnsupported() async {
+    let settings = SettingsSummary(
+        id: UUID(),
+        appearanceModeRaw: "system",
+        hapticsEnabled: true,
+        soundEnabled: true,
+        turnTotalCallerEnabled: false,
+        defaultMatchTypeRaw: MatchType.x01.rawValue,
+        defaultX01StartScore: 701,
+        defaultCheckoutModeRaw: X01CheckoutMode.doubleOut.rawValue,
+        defaultCheckInModeRaw: X01CheckInMode.straightIn.rawValue,
+        defaultLegFormatRaw: X01LegFormat.firstTo.rawValue,
+        defaultLegsToWin: 3,
+        defaultSetsEnabled: false,
+        botStaggerEnabled: true,
+        botDartHapticsEnabled: true,
+        updatedAt: Date()
+    )
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        settingsRepository: FakeSettingsRepository(settings: settings),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+
+    await vm.onAppear()
+
+    #expect(vm.x01StartScore == 501)
+}
+
+@MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupValidationRequiresMinimumPlayers() async {
     let vm = MatchSetupViewModel(
@@ -337,6 +408,28 @@ private actor FakePlayerRepository: PlayerRepository {
 }
 
 private actor FakeSettingsRepository: SettingsRepository {
+    private let settings: SettingsSummary
+
+    init(settings: SettingsSummary? = nil) {
+        self.settings = settings ?? SettingsSummary(
+            id: UUID(),
+            appearanceModeRaw: "system",
+            hapticsEnabled: true,
+            soundEnabled: true,
+            turnTotalCallerEnabled: false,
+            defaultMatchTypeRaw: "x01",
+            defaultX01StartScore: 501,
+            defaultCheckoutModeRaw: "doubleOut",
+            defaultCheckInModeRaw: "straightIn",
+            defaultLegFormatRaw: "firstTo",
+            defaultLegsToWin: 3,
+            defaultSetsEnabled: false,
+            botStaggerEnabled: true,
+            botDartHapticsEnabled: true,
+            updatedAt: Date()
+        )
+    }
+
     func fetchSettings() async throws -> SettingsSummary {
         settings
     }
@@ -352,24 +445,6 @@ private actor FakeSettingsRepository: SettingsRepository {
     func resetPreferencesToDefaults() async throws {}
 
     func resetAllLocalData() async throws {}
-
-    private let settings = SettingsSummary(
-        id: UUID(),
-        appearanceModeRaw: "system",
-        hapticsEnabled: true,
-        soundEnabled: true,
-        turnTotalCallerEnabled: false,
-        defaultMatchTypeRaw: "x01",
-        defaultX01StartScore: 501,
-        defaultCheckoutModeRaw: "doubleOut",
-        defaultCheckInModeRaw: "straightIn",
-        defaultLegFormatRaw: "firstTo",
-        defaultLegsToWin: 3,
-        defaultSetsEnabled: false,
-        botStaggerEnabled: true,
-        botDartHapticsEnabled: true,
-        updatedAt: Date()
-    )
 }
 
 private actor TurnOrderCapturingMatchRepository: MatchRepository {

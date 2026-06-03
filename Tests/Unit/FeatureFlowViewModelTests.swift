@@ -83,6 +83,39 @@ func playerEditBuildPlayerPreservesIdentityWhenEditing() {
 
 @MainActor
 @Test(.tags(.integration, .player, .regression))
+func playersListDeleteReturnsFalseWhenRepositoryBlocks() async {
+    let aliceId = UUID()
+    let alice = PlayerSummary(
+        id: aliceId,
+        name: "Alice",
+        isArchived: false,
+        isBot: false,
+        botDifficultyRaw: nil,
+        avatarStyleRaw: nil,
+        preferredColorToken: nil,
+        notes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let repository = BlockingDeletePlayerRepository()
+    await repository.seed(players: [alice])
+
+    let vm = PlayersListViewModel(
+        repository: repository,
+        matchRepository: PlayerListTestMatchRepository(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+
+    let deleted = await vm.delete(aliceId)
+
+    #expect(deleted == false)
+    #expect(vm.errorMessageKey == "players.delete.blocked.message")
+    #expect(vm.players.contains(where: { $0.id == aliceId }))
+}
+
+@MainActor
+@Test(.tags(.integration, .player, .regression))
 func playersListSaveUpdatesExistingPlayerProfile() async {
     let repository = UpdatingPlayerRepository()
     let aliceId = UUID()
@@ -121,6 +154,35 @@ func playersListSaveUpdatesExistingPlayerProfile() async {
     #expect(update?.avatarStyle == .star)
     #expect(update?.colorToken == .blue)
     #expect(vm.players.first(where: { $0.id == aliceId })?.name == "Alicia")
+}
+
+private actor BlockingDeletePlayerRepository: PlayerRepository {
+    private var players: [PlayerSummary] = []
+
+    func seed(players: [PlayerSummary]) {
+        self.players = players
+    }
+
+    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
+    func createPlayer(name _: String) async throws -> PlayerSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
+    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
+    func archivePlayer(playerId _: UUID) async throws {}
+    func unarchivePlayer(playerId _: UUID) async throws {}
+    func deletePlayer(playerId _: UUID) async throws {
+        throw AppError(
+            code: .conflict,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "players.delete.blocked.message"
+        )
+    }
 }
 
 private actor UpdatingPlayerRepository: PlayerRepository {
