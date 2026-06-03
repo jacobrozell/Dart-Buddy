@@ -49,7 +49,7 @@
 ## Exact Unblock Steps (Environment/Tooling)
 - Use a local Xcode/iOS runtime where app builds and runs.
 - Build release candidate:
-  - `xcodebuild -scheme DartsScoreboard -configuration Release -destination "platform=iOS Simulator,name=iPhone 15" build`
+  - `xcodebuild -scheme DartBuddy -configuration Release -destination "platform=iOS Simulator,name=iPhone 15" build`
 - Run validation on at least one physical device + one simulator configuration.
 - Capture evidence directly in:
   - `roadmap/release/QA-Signoff-RC1.md`

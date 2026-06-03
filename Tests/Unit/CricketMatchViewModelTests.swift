@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 // State-machine coverage for the live Cricket match view model using in-memory fakes.
 

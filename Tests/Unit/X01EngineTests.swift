@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Test(.tags(.unit, .x01, .critical, .offline, .regression))
 func x01SingleOutCheckoutCompletesMatch() throws {

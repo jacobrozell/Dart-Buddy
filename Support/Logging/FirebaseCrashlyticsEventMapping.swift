@@ -1,7 +1,7 @@
 import Foundation
 
 public enum FirebaseCrashlyticsEventMapping {
-    private static let errorDomain = "com.jacobrozell.DartsScoreboard.logger"
+    private static let errorDomain = "com.jacobrozell.DartBuddy.logger"
 
     private static let allowlistedLogEvents: Set<String> = [
         "app_bootstrap_migration_failure",

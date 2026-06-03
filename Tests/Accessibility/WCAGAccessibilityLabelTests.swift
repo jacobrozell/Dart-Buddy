@@ -1,5 +1,5 @@
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 /// Unit-level WCAG 2.1 checks for O-2.5.3 (Label in Name) and R-4.1.2 spoken values
 /// that UI automation cannot infer from layout alone.

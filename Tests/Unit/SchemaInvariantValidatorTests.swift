@@ -1,5 +1,5 @@
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Test(.tags(.migration, .swiftdata, .critical, .regression))
 func contiguousEventIndexValidatorAcceptsSequentialIndexes() {

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 // Extended coverage for Cricket win detection, overflow scoring rules,
 // round advancement, dart limits, and replay determinism.

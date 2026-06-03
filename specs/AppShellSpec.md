@@ -6,7 +6,7 @@ Define root app composition: launch behavior, tab structure, routing entry point
 ---
 
 ## 2. Root Structure
-- `DartsScoreboardApp` initializes dependency container and model container.
+- `DartBuddyApp` initializes dependency container and model container.
 - Root view is `MainTabView`.
 - Tabs (order in `MainTabView`):
   - `Play`

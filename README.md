@@ -2,7 +2,7 @@
 
 <img src="Resources/Media.xcassets/AppIcon.appiconset/AppIcon.png" alt="Dart Buddy app icon" width="120" />
 
-**Dart Buddy** is a local-first iOS scorekeeper for X01 and Cricket darts. The Xcode target and Swift module are named **DartsScoreboard** (`import DartsScoreboard`).
+**Dart Buddy** is a local-first iOS scorekeeper for X01 and Cricket darts. The Xcode target and Swift module are named **DartBuddy** (`import DartBuddy`).
 
 Product behavior and UX contracts live under [`specs/`](specs/README.md). This file is the repo entry point — not a second spec.
 
@@ -18,10 +18,12 @@ Requirements: Xcode 16+, iOS 17+, [XcodeGen](https://github.com/yonaskolb/XcodeG
 ```bash
 brew install xcodegen   # if needed
 xcodegen generate
-open DartsScoreboard.xcodeproj
+open DartBuddy.xcodeproj
 ```
 
-Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS).
+Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS). The example uses bundle ID `com.jacobrozell.DartBuddy` — add or update the iOS app in Firebase to match before shipping.
+
+> **App Store continuity:** Changing the bundle ID from `com.jacobrozell.DartsScoreboard` means a new App Store listing (not an in-place update). To keep the existing listing, set `PRODUCT_BUNDLE_IDENTIFIER` back to the old value in `project.yml` and regenerate.
 
 **Analytics (1.0):** Release builds with a real `GoogleService-Info.plist` send a small allowlist of product-health events (`app_open`, `match_started`, `match_completed`, `turn_submitted`, `undo_used`, etc.) via the existing `AppLogger` → Firebase Analytics sink. Debug builds stay off unless you add the launch argument `-firebase_analytics_debug`. UI tests pass `-disable_firebase_analytics`.
 
@@ -30,15 +32,15 @@ Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-In
 Run tests: **Product → Test** (`⌘U`), or:
 
 ```bash
-xcodebuild test -scheme DartsScoreboard \
+xcodebuild test -scheme DartBuddy \
   -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
-> `DartsScoreboard.xcodeproj` is generated locally and not committed. Regenerate after pulling `project.yml` changes.
+> `DartBuddy.xcodeproj` is generated locally and not committed. Regenerate after pulling `project.yml` changes.
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: installs XcodeGen, regenerates the project, then `xcodebuild test` on the `DartsScoreboard` scheme (unit + UI tests) using an available iPhone simulator on the macOS runner.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: installs XcodeGen, regenerates the project, then `xcodebuild test` on the `DartBuddy` scheme (unit + UI tests) using an available iPhone simulator on the macOS runner.
 
 ## What the app does
 
@@ -71,7 +73,7 @@ High-level summary only — authoritative rules are in feature specs:
 
 ## App flow
 
-1. `App/DartsScoreboardApp.swift` bootstraps dependencies.
+1. `App/DartBuddyApp.swift` bootstraps dependencies.
 2. `App/MainTabView.swift` presents Play, Players, Statistics, History, and Settings tabs.
 3. Feature root views own their view models and navigation.
 

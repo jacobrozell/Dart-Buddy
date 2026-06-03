@@ -85,7 +85,7 @@ Add or update tests with behavior changes. All sources live under `Tests/` by la
 Run with `⌘U` or:
 
 ```bash
-xcodebuild test -scheme DartsScoreboard \
+xcodebuild test -scheme DartBuddy \
   -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 

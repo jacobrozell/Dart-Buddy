@@ -1,7 +1,7 @@
 # Dart Buddy — 1.0 Release Checklist
 
 **Customer brand:** Dart Buddy (App Store listing, marketing, Reddit)  
-**Technical target:** `DartsScoreboard` (Xcode scheme, bundle ID `com.jacobrozell.DartsScoreboard`, module)  
+**Technical target:** `DartBuddy` (Xcode scheme, bundle ID `com.jacobrozell.DartBuddy`, module)  
 **Version:** `1.0.0`  
 **Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
 
@@ -35,7 +35,7 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 ### Engineering & CI
 
 - [ ] `main` / release branch green — [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (`xcodegen generate` + `xcodebuild test`)
-- [ ] Local: `xcodegen generate` then **Product → Test** (`⌘U`) on `DartsScoreboard` scheme
+- [ ] Local: `xcodegen generate` then **Product → Test** (`⌘U`) on `DartBuddy` scheme
 - [ ] `GoogleService-Info.plist` present for Release archive (copy from [`Resources/GoogleService-Info.plist.example`](../../Resources/GoogleService-Info.plist.example) + Firebase Console)
 - [ ] Debug/CI/UI tests: analytics + Crashlytics **off** (launch args `-disable_firebase_analytics` / `-ui_test_reset` — not on store build)
 - [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for bundle ID; Release archive log shows dSYM upload script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
@@ -177,7 +177,7 @@ Architecture ready; **device proof** still required — [`../../roadmap/reports/
 
 **Trigger recovery UI (pick one):**
 
-1. **Forced failure:** Create data → quit app → delete/truncate `Application Support/DartsScoreboard.sqlite` (+ `-shm`/`-wal`) → relaunch → recovery screen.
+1. **Forced failure:** Create data → quit app → delete/truncate `Application Support/DartBuddy.sqlite` (+ `-shm`/`-wal`) → relaunch → recovery screen.
 2. **Upgrade path:** Install prior TestFlight/RC with data → install 1.0 RC → verify intact OR recovery if failure injected.
 
 **On recovery screen:**
@@ -255,7 +255,7 @@ Reference: [`../../specs/AppStoreConnectSpec.md`](../../specs/AppStoreConnectSpe
 
 - [ ] Apple Developer Program membership active
 - [ ] App record created in App Store Connect
-- [ ] Bundle ID `com.jacobrozell.DartsScoreboard` matches Xcode
+- [ ] Bundle ID `com.jacobrozell.DartBuddy` matches Xcode
 - [ ] SKU / primary language (English) set
 
 ### Listing copy (draft → final)

@@ -46,7 +46,7 @@ final class MigrationRecoveryViewModel: ObservableObject {
             recoverable=\(context.error.isRecoverable)
             """
             let fileURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("DartsScoreboard-Migration-Diagnostics.txt")
+                .appendingPathComponent("DartBuddy-Migration-Diagnostics.txt")
             do {
                 try text.write(to: fileURL, atomically: true, encoding: .utf8)
                 state = .exportCompleted(fileURL.path)

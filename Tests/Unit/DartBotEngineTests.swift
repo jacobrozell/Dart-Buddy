@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Test func dartBotEngine_generatesThreeX01Darts() {
     var rng = SeededRandomNumberGenerator(seed: 42)

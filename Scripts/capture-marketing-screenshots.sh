@@ -21,9 +21,9 @@ source "$SCRIPT_DIR/app-store-screenshot-size.sh"
 SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
 APPEARANCE="${APPEARANCE:-dark}"
 OUT_DIR="${OUT_DIR:-$ROOT/marketing-screenshots/raw}"
-BUNDLE_ID="com.jacobrozell.DartsScoreboard"
-SCHEME="DartsScoreboard"
-PROJECT="$ROOT/DartsScoreboard.xcodeproj"
+BUNDLE_ID="com.jacobrozell.DartBuddy"
+SCHEME="DartBuddy"
+PROJECT="$ROOT/DartBuddy.xcodeproj"
 DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/marketing-screenshots}"
 LAUNCH_DELAY="${LAUNCH_DELAY:-2.5}"
 APP_STORE_RESIZE="${APP_STORE_RESIZE:-1}"
@@ -81,7 +81,7 @@ xcodebuild \
   -derivedDataPath "$DERIVED_DATA" \
   build
 
-APP_PATH="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/DartsScoreboard.app"
+APP_PATH="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/DartBuddy.app"
 if [[ ! -d "$APP_PATH" ]]; then
   echo "Build succeeded but app not found at $APP_PATH" >&2
   exit 1

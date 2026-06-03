@@ -1,6 +1,6 @@
 import SwiftData
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Test(.tags(.unit, .settings, .swiftdata, .regression))
 func legacySettingsWithoutBotColumnsDefaultToEnabled() async throws {
