@@ -45,7 +45,7 @@ Recommended keys:
 - `defaultX01StartScore`
 - `defaultCheckoutMode`
 - `defaultLegsToWin`
-- `defaultSetsEnabled`
+- `defaultSetsEnabled` (persisted from last Play setup on Start; no Settings UI control)
 
 ---
 

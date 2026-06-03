@@ -9,7 +9,7 @@ Shared visual primitives for **DartsScoreboard**. Feature code should not hardco
 | **`Brand`** | `Tokens/BrandTheme.swift` | Scoreboard UI: backgrounds, cards, accents, text on brand surfaces |
 | **`DS`** | `Tokens/DesignTokens.swift` | Spacing (`DS.Spacing`), corner radius (`DS.Radius`), and **semantic** colors for native UI (`DS.ColorRole`) |
 | **`AppAppearancePolicy`** | `Support/State/AppAppearancePolicy.swift` | Maps user theme to `preferredColorScheme` and Settings chrome |
-| **Chrome modifiers** | `Tokens/BrandChrome.swift` | `.brandScoreboardChrome`, `.brandSettingsFormChrome`, empty-state styling |
+| **Chrome modifiers** | `Tokens/BrandChrome.swift` | `.brandScoreboardChrome`, `.brandSettingsScreenChrome`, `.brandSettingsFormChrome`, empty-state styling |
 | **`GameplayLayout`** | `Components/GameplayLayout.swift` | iPad max width for list/setup screens |
 | **`DynamicTypeSize` / `ScoringPadLabels`** | `Tokens/DynamicTypeLayout.swift` | AXXXL pad labels |
 
