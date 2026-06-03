@@ -23,10 +23,15 @@
 "setup.error.load" = "Unable to load setup data.";
 "setup.error.start" = "Unable to start match.";
 "setup.validation.minimumPlayers" = "Select at least two players (tap + next to each name to add them to Turn order).";
+"setup.validation.minimumPlayers.short" = "Select at least two players.";
 "setup.validation.requiresHuman" = "Select at least one human player to start a match.";
+"setup.validation.requiresHuman.short" = "Add at least one human player.";
 "setup.validation.invalidStartScore" = "Invalid start score.";
+"setup.validation.invalidStartScore.short" = "Invalid start score.";
 "setup.validation.invalidLegs" = "Leg count must be at least 1.";
+"setup.validation.invalidLegs.short" = "Leg count must be at least 1.";
 "setup.validation.invalidSets" = "Set count must be at least 1.";
+"setup.validation.invalidSets.short" = "Set count must be at least 1.";
 "x01.error.sessionMissing" = "Could not load the current X01 session.";
 "x01.error.invalidTurn" = "That turn entry is not valid for X01.";
 "x01.error.undoFailed" = "Could not undo the last X01 turn.";

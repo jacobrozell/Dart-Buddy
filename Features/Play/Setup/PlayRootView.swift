@@ -43,6 +43,7 @@ struct PlayRootView: View {
                 onQuickAddPlayer: { path.append(.quickAddPlayer) },
                 onViewCompletedMatch: { matchId in path.append(.historyDetail(matchId: matchId)) }
             )
+            .uiTestAccessibilityDynamicTypeOverride()
             .navigationDestination(for: PlayRoute.self) { route in
                 switch route {
                 case .setup:

@@ -35,6 +35,10 @@ struct SetupHomeView: View {
                     chipsGrid
                 }
                 rosterControls
+                if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
+                   !setupViewModel.validationErrors.isEmpty {
+                    setupInlineValidationHints
+                }
                 selectedRosterSection
                 availablePlayerList
             }
@@ -189,13 +193,27 @@ struct SetupHomeView: View {
                 }
             }
             .accessibilityLabel(L10n.string(setupViewModel.isSubmitting ? "play.setup.startingButton" : "play.setup.startButton"))
-            .modifier(OptionalAccessibilityHint(hint: setupViewModel.canStart ? nil : L10n.string("play.setup.start.disabledHint")))
+            .modifier(OptionalAccessibilityHint(hint: SetupValidationMessages.startButtonAccessibilityHint(
+                canStart: setupViewModel.canStart,
+                validationErrors: setupViewModel.validationErrors
+            )))
             .accessibilityIdentifier("startMatchButton")
 
-            ForEach(setupViewModel.validationErrors, id: \.self) { key in
-                ErrorBanner(messageKey: key)
+            if !GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
+                ForEach(setupViewModel.validationErrors, id: \.self) { key in
+                    ErrorBanner(messageKey: key)
+                }
             }
         }
+    }
+
+    private var setupInlineValidationHints: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            ForEach(setupViewModel.validationErrors, id: \.self) { key in
+                SetupValidationHint(messageKey: key)
+            }
+        }
+        .accessibilityIdentifier("setupValidationHints")
     }
 
     private var rosterControls: some View {
@@ -363,6 +381,17 @@ struct SetupHomeView: View {
             )
             .accessibilityIdentifier("setup_selected_\(player.name)")
             Spacer()
+            Button {
+                setupViewModel.removeFromSelection(player.id)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(Brand.textSecondary)
+            }
+            .buttonStyle(.plain)
+            .frame(minWidth: 44, minHeight: 44)
+            .accessibilityLabel(L10n.setupRemoveFromMatch)
+            .accessibilityIdentifier("setup_remove_\(player.name)")
         }
         .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
             setupViewModel.removeFromSelection(player.id)
@@ -374,6 +403,7 @@ struct SetupHomeView: View {
                 Text(L10n.setupRemoveFromMatch)
             }
             .accessibilityLabel(L10n.setupRemoveFromMatch)
+            .accessibilityIdentifier("setup_remove_\(player.name)")
         }
     }
 
