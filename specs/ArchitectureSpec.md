@@ -108,7 +108,8 @@ Authoritative folder names (XcodeGen `project.yml` sources):
 | Data | `Data/Repositories/` | Protocols + SwiftData implementations |
 | Persistence | `Persistence/` | Schema, migrations, container factory |
 | DesignSystem | `DesignSystem/` | `Brand`, `DS`, shared components — see `DesignSystem/README.md` |
-| Support | `Support/` | L10n, logging, preferences, feature flags |
+| Resources | `Resources/` | Asset catalog, `en.lproj`, Firebase plist |
+| Support | `Support/` | L10n helpers, logging, preferences, feature flags |
 | Tests | `Tests/Unit/`, `Tests/Accessibility/`, `Tests/UI/` | Unit + a11y regression; UI smoke + WCAG audits |
 
 **Engineering audit (grades, P1–P3 findings):** [`docs/ios-code-audit.md`](../docs/ios-code-audit.md)  

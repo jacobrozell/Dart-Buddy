@@ -31,7 +31,7 @@ jobs:
           xcode-version: '26.2'
 
       - name: Prepare Firebase config
-        run: cp GoogleService-Info.plist.example GoogleService-Info.plist
+        run: cp Resources/GoogleService-Info.plist.example Resources/GoogleService-Info.plist
 
       - name: Install CI tools
         run: brew install xcodegen xcbeautify
@@ -112,7 +112,7 @@ jobs:
           xcode-version: '26.2'
 
       - name: Prepare Firebase config
-        run: cp GoogleService-Info.plist.example GoogleService-Info.plist
+        run: cp Resources/GoogleService-Info.plist.example Resources/GoogleService-Info.plist
 
       - name: Restore SPM Cache
         id: spm-cache

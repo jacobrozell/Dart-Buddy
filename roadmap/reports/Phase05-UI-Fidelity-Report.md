@@ -20,7 +20,7 @@
 - Token layer expanded and used in feature views:
   - `DesignSystem/Tokens/DesignTokens.swift`
 - Localization baseline added:
-  - `en.lproj/Localizable.strings`
+  - `Resources/en.lproj/Localizable.strings`
   - `Support/Localization/L10n.swift`
 - User-facing UI text migrated to keys in app/feature views.
 - Accessibility labels/hints added for gameplay-critical scoring controls.

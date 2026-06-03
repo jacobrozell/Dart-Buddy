@@ -29,11 +29,11 @@ targets:
       - path: Features
       - path: Persistence
       - path: Support
-      - path: Media.xcassets
-      - path: en.lproj/Localizable.strings
+      - path: Resources/Media.xcassets
+      - path: Resources/en.lproj/Localizable.strings
         type: file
         buildPhase: resources
-      - path: GoogleService-Info.plist
+      - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources
     dependencies:

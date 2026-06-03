@@ -71,7 +71,7 @@ in [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md).
 
 ## Localization
 
-User-facing strings go through `L10n` and `en.lproj/Localizable.strings` — no
+User-facing strings go through `L10n` and `Resources/en.lproj/Localizable.strings` — no
 hard-coded display text in views.
 
 ## Tests

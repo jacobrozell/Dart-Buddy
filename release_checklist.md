@@ -36,7 +36,7 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 
 - [ ] `main` / release branch green — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (`xcodegen generate` + `xcodebuild test`)
 - [ ] Local: `xcodegen generate` then **Product → Test** (`⌘U`) on `DartsScoreboard` scheme
-- [ ] `GoogleService-Info.plist` present for Release archive (copy from [`GoogleService-Info.plist.example`](GoogleService-Info.plist.example) + Firebase Console)
+- [ ] `GoogleService-Info.plist` present for Release archive (copy from [`Resources/GoogleService-Info.plist.example`](Resources/GoogleService-Info.plist.example) + Firebase Console)
 - [ ] Debug/CI/UI tests: analytics + Crashlytics **off** (launch args `-disable_firebase_analytics` / `-ui_test_reset` — not on store build)
 - [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for bundle ID; Release archive log shows dSYM upload script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
 - [ ] Version + build number set in [`project.yml`](project.yml) / Xcode (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`)
@@ -46,7 +46,7 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 
 - [ ] No debug-only verbosity in Release (`AppLogger` only; no stray `print`)
 - [ ] No sensitive data in logs (no tokens; player display names OK per policy)
-- [ ] App icon present in `Media.xcassets` / finalized asset in [`assets/app-icons/`](assets/app-icons/)
+- [ ] App icon present in `Resources/Media.xcassets` / finalized asset in [`assets/app-icons/`](assets/app-icons/)
 
 **P0 if CI red or Release archive fails.**
 

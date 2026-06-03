@@ -146,7 +146,7 @@ Mirror in `SettingsSummary` as non-optional with repository mapping defaults.
 | Title | Time for darts |
 | Body | Start a match and keep your game sharp. |
 
-Localize via `en.lproj/Localizable.strings` (`settings.reminders.*`, `notification.playReminder.*`).
+Localize via `Resources/en.lproj/Localizable.strings` (`settings.reminders.*`, `notification.playReminder.*`).
 
 ### Analytics events (allowlist)
 

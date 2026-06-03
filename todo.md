@@ -30,7 +30,7 @@ Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. Work th
 
 Work through [`release_checklist.md`](release_checklist.md) §8–§11.
 
-- [ ] **App icon finalization** — `Media.xcassets` / `assets/app-icons/`
+- [ ] **App icon finalization** — `Resources/Media.xcassets` / `assets/app-icons/`
 - [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL**, **privacy policy URL** (`specs/AppStoreConnectSpec.md`).
 - [ ] **Privacy disclosure** — Hosted privacy policy + App Store privacy labels match app behavior (local-first, Firebase Analytics/Crashlytics in Release, no ads/tracking); validate against `Phase06-Security-Privacy-Checklist.md`.
 - [ ] **Marketing screenshots** — X01, Cricket, setup, history, stats (§8 of `AppStoreConnectSpec`; separate from smoke evidence).
@@ -124,7 +124,7 @@ Work below is **blocked on your call** — not just time on device. Everything e
 
 | Decision | Options / notes |
 |----------|-----------------|
-| **App icon** | Pick one from `assets/app-icons/` (5 concepts) → export into `Media.xcassets/AppIcon.appiconset/`. |
+| **App icon** | Pick one from `assets/app-icons/` (5 concepts) → export into `Resources/Media.xcassets/AppIcon.appiconset/`. |
 | **Display name** | Default `Dart Buddy`; backups in `AppStoreConnectSpec.md` §3 if name taken. |
 | **Subtitle** | e.g. `Free X01 & Cricket Scoring` vs `No Ads Darts Scorekeeper` (≤30 chars). |
 | **Keywords & promo copy** | Starter set in spec §5 — finalize description + promotional text. |
