@@ -492,6 +492,59 @@ final class WCAGAccessibilityUITests: XCTestCase {
         // (see accessibility/wcag-2.1-aa/screens/match-setup.md P-1.4.4).
     }
 
+    func testSetupValidationUsesInlineHintsAtAccessibilityTextSizes() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_players"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+        )
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertFalse(start.isEnabled)
+
+        let inlineHints = app.descendants(matching: .any)["setupValidationHints"]
+        assertReachable(inlineHints, identifier: "setupValidationHints", in: app)
+
+        XCTAssertTrue(
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Select at least two players.")).firstMatch
+                .waitForExistence(timeout: timeout),
+            "Inline hint should show compact copy at accessibility text sizes"
+        )
+
+        XCTAssertTrue(
+            inlineHints.label.contains("two players"),
+            "Inline hints should expose the full validation message to VoiceOver"
+        )
+
+        XCTAssertFalse(
+            app.descendants(matching: .any)["errorBanner"].firstMatch.exists,
+            "Footer error banner should not appear at accessibility text sizes"
+        )
+    }
+
+    func testSetupValidationUsesFooterBannerAtDefaultTextSizes() {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertFalse(start.isEnabled)
+
+        let footerBanner = app.descendants(matching: .any)["errorBanner"]
+        XCTAssertTrue(
+            footerBanner.firstMatch.waitForExistence(timeout: timeout),
+            "Default text size should keep validation in the sticky footer"
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)["setupValidationHints"].exists,
+            "Inline validation container should only appear at accessibility text sizes"
+        )
+    }
+
     func testX01MatchScorePadUsableAtAXXXL() {
         let app = launchForAccessibility(
             extraArguments: ["-seed_players"],
