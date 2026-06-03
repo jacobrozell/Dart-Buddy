@@ -228,7 +228,7 @@ Document in [`specs/FirebaseBackendAnalyticsSpec.md`](../specs/FirebaseBackendAn
 |------|------|
 | Settings UI | `Features/Settings/SettingsRootView.swift` |
 | Settings VM | `Features/Settings/SettingsViewModel.swift` |
-| Settings persistence | `Persistence/Schemas/SchemaV1.swift`, `Data/Repositories/SwiftDataRepositories.swift` |
+| Settings persistence | `Persistence/Schemas/SchemaV1.swift`, `Data/Repositories/SwiftDataSettingsRepository.swift` |
 | Settings spec | `specs/SettingsSpec.md` |
 | App bootstrap | `App/Bootstrap/AppBootstrapper.swift`, `App/Bootstrap/AppDelegate.swift` |
 | Feature flags | `Support/FeatureFlags/FeatureFlag.swift`, `LocalFeatureFlagsProvider.swift` |
