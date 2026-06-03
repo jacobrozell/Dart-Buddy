@@ -34,7 +34,7 @@ extension SetupHomeView {
     }
 
     private var pointsChip: some View {
-        chip(title: L10n.setupChipPoints, color: Brand.green) {
+        chip(title: L10n.setupChipPoints, color: Brand.key) {
             Menu {
                 ForEach(X01StartScores.all, id: \.self) { score in
                     Button("\(score)") {
@@ -43,7 +43,7 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox("\(setupViewModel.x01StartScore)", color: Brand.green, showsMenuIndicator: true)
+                chipBox("\(setupViewModel.x01StartScore)", color: Brand.key, showsMenuIndicator: true)
             }
             .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.points", "\(setupViewModel.x01StartScore)"))
             .accessibilityIdentifier("setup_startScoreChip")
@@ -51,7 +51,7 @@ extension SetupHomeView {
     }
 
     private var checkoutChip: some View {
-        chip(title: L10n.setupChipCheckOut, color: Brand.red) {
+        chip(title: L10n.setupChipCheckOut, color: Brand.key) {
             Menu {
                 ForEach(X01CheckoutMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -60,7 +60,7 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(setupViewModel.x01CheckoutMode.displayName, color: Brand.red, showsMenuIndicator: true)
+                chipBox(setupViewModel.x01CheckoutMode.displayName, color: Brand.key, showsMenuIndicator: true)
             }
             .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.checkOut", setupViewModel.x01CheckoutMode.displayName))
             .accessibilityIdentifier("setup_checkoutChip")
@@ -68,7 +68,7 @@ extension SetupHomeView {
     }
 
     private var checkInChip: some View {
-        chip(title: L10n.setupChipCheckIn, color: Brand.red) {
+        chip(title: L10n.setupChipCheckIn, color: Brand.key) {
             Menu {
                 ForEach(X01CheckInMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -77,7 +77,7 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(setupViewModel.x01CheckInMode.displayName, color: Brand.red, showsMenuIndicator: true)
+                chipBox(setupViewModel.x01CheckInMode.displayName, color: Brand.key, showsMenuIndicator: true)
             }
             .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.checkIn", setupViewModel.x01CheckInMode.displayName))
             .accessibilityIdentifier("setup_checkInChip")
@@ -85,7 +85,7 @@ extension SetupHomeView {
     }
 
     private var legFormatChip: some View {
-        chip(title: L10n.setupChipSetLeg, color: Brand.green) {
+        chip(title: L10n.setupChipSetLeg, color: Brand.key) {
             Menu {
                 ForEach(X01LegFormat.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -94,7 +94,7 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(setupViewModel.x01LegFormat.displayName, color: Brand.green, showsMenuIndicator: true)
+                chipBox(setupViewModel.x01LegFormat.displayName, color: Brand.key, showsMenuIndicator: true)
             }
             .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.setLeg", setupViewModel.x01LegFormat.displayName))
             .accessibilityIdentifier("setup_setLegChip")
@@ -102,7 +102,7 @@ extension SetupHomeView {
     }
 
     private var setsChip: some View {
-        chip(title: L10n.setupChipSets, color: Brand.green) {
+        chip(title: L10n.setupChipSets, color: Brand.key) {
             Menu {
                 ForEach(1 ... 5, id: \.self) { value in
                     Button("\(value)") {
@@ -112,7 +112,7 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.green, showsMenuIndicator: true)
+                chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.key, showsMenuIndicator: true)
             }
             .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.sets", "\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)"))
             .accessibilityIdentifier("setup_setsChip")
@@ -120,7 +120,7 @@ extension SetupHomeView {
     }
 
     private var legsChip: some View {
-        chip(title: L10n.setupChipLegs, color: Brand.green) {
+        chip(title: L10n.setupChipLegs, color: Brand.key) {
             Menu {
                 ForEach(1 ... 9, id: \.self) { value in
                     Button("\(value)") {
@@ -130,7 +130,7 @@ extension SetupHomeView {
                     .accessibilityIdentifier("setup_legsOption_\(value)")
                 }
             } label: {
-                chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.green, showsMenuIndicator: true)
+                chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.key, showsMenuIndicator: true)
             }
             .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.legs", "\(setupViewModel.x01LegsToWin)"))
             .accessibilityIdentifier("setup_legsChip")
@@ -154,7 +154,7 @@ extension SetupHomeView {
             .font(.headline.weight(.bold))
             // Chips use solid bright brand fills; dark ink keeps the value legible in dark mode
             // where adaptive white text would fail AA. Light mode is unchanged.
-            .foregroundStyle(Brand.inkOnBright)
+            .foregroundStyle(Brand.textPrimary)
             .lineLimit(1)
             .minimumScaleFactor(0.6)
             .frame(maxWidth: .infinity, minHeight: dynamicTypeSize.isAccessibilitySize ? 56 : 48)
@@ -164,7 +164,7 @@ extension SetupHomeView {
                 if showsMenuIndicator {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(Brand.inkOnBright.opacity(0.85))
+                        .foregroundStyle(Brand.textSecondary)
                         .padding(5)
                 }
             }

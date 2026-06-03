@@ -30,7 +30,7 @@ struct MatchGameplayHeader<Title: View, Trailing: View>: View {
                     .font(.headline.weight(.bold))
                     .foregroundStyle(Brand.green)
                     .frame(width: 44, height: 44)
-                    .background(Brand.card, in: Circle())
+                    .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             }
             .accessibilityLabel(exitAccessibilityLabel)
             Spacer()
