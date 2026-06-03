@@ -170,10 +170,9 @@ public enum CricketEngine {
             )
         }
 
-        if isPlayerClosedAllTargets(updated.players[playerIndex]) &&
-            updated.players[playerIndex].score >= updated.players.map(\.score).max() ?? 0 {
+        if allPlayersClosedAllTargets(updated.players) {
             updated.isComplete = true
-            updated.winnerPlayerId = playerId
+            updated.winnerPlayerId = winnerPlayerId(in: updated.players)
         }
 
         if !updated.isComplete {
@@ -250,6 +249,16 @@ public enum CricketEngine {
 
     private static func isPlayerClosedAllTargets(_ player: CricketPlayerState) -> Bool {
         CricketTarget.allCases.allSatisfy { (player.marks[$0.rawValue] ?? 0) >= 3 }
+    }
+
+    private static func allPlayersClosedAllTargets(_ players: [CricketPlayerState]) -> Bool {
+        players.allSatisfy(isPlayerClosedAllTargets)
+    }
+
+    /// Highest score wins when the board is fully closed; ties go to the earliest seat.
+    private static func winnerPlayerId(in players: [CricketPlayerState]) -> UUID? {
+        guard let maxScore = players.map(\.score).max() else { return nil }
+        return players.first { $0.score == maxScore }?.playerId
     }
 
     private static func cricketTarget(from raw: String) -> CricketTarget? {
