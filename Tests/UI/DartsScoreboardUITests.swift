@@ -73,6 +73,11 @@ final class DartsScoreboardUITests: XCTestCase {
         XCTAssertTrue(save.isEnabled, "Save should be enabled for a unique renamed player")
         save.tap()
 
+        let back = app.navigationBars.buttons.element(boundBy: 0)
+        if back.waitForExistence(timeout: timeout) {
+            back.tap()
+        }
+
         XCTAssertTrue(app.buttons["player_row_Jake"].waitForExistence(timeout: timeout + 10), "List should show the renamed player")
         XCTAssertFalse(app.buttons["player_row_Jacob"].exists, "Old player row label should be gone after rename")
     }
@@ -488,6 +493,18 @@ final class DartsScoreboardUITests: XCTestCase {
 
         let cell = app.tables.cells.containing(NSPredicate(format: "label CONTAINS[c] %@", name)).firstMatch
         XCTAssertTrue(cell.waitForExistence(timeout: timeout), "Expected \(name) in the turn order list")
+
+        // Turn order list uses edit mode; delete via minus then confirm.
+        let minus = cell.buttons.element(boundBy: 0)
+        if minus.waitForExistence(timeout: 2) {
+            minus.tap()
+            let delete = app.buttons["Delete"].firstMatch
+            if delete.waitForExistence(timeout: timeout) {
+                delete.tap()
+                return
+            }
+        }
+
         cell.swipeLeft()
         let remove = app.buttons["Remove"].firstMatch
         XCTAssertTrue(remove.waitForExistence(timeout: timeout), "Turn order row should expose Remove when swiped")

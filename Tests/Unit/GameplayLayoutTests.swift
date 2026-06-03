@@ -33,3 +33,11 @@ func gameplayLayoutScoringPadUsesFourColumnsAtAXSizes() {
     #expect(GameplayLayout.scoringPadColumnCount(dynamicTypeSize: .large) == 7)
     #expect(GameplayLayout.scoringPadColumnCount(dynamicTypeSize: .accessibility3) == 4)
 }
+
+@Test(.tags(.unit, .regression, .accessibility))
+func gameplayLayoutUsesAccessibilitySetupHomeOnlyAtAXSizes() {
+    #expect(GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: .large) == false)
+    #expect(GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: .xxxLarge) == false)
+    #expect(GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: .accessibility1) == true)
+    #expect(GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: .accessibility5) == true)
+}

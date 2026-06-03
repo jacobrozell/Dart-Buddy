@@ -19,6 +19,8 @@ enum WCAGAccessibilityAuditProfile {
 enum AccessibilityTestLaunch {
     static let defaultArguments = ["-ui_test_reset", "-disable_firebase_analytics"]
     static let axxxlContentSizeCategory = "UIAccessibilityExtraExtraExtraLargeCategory"
+    /// Forces accessibility Dynamic Type layout branches under UI test (see `UITestDynamicTypeOverride` in app target).
+    static let accessibilityTextSizeArguments = ["-ui_test_accessibility_text_size"]
 }
 
 extension XCTestCase {
