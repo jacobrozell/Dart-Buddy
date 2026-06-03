@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CI_XCODE_PROJECT: DartsScoreboard.xcodeproj
-  CI_XCODE_SCHEME: DartsScoreboard
+  CI_XCODE_PROJECT: DartBuddy.xcodeproj
+  CI_XCODE_SCHEME: DartBuddy
   CI_PACKAGES_ROOT: .packages
   SIM_DESTINATION: platform=iOS Simulator,name=iPhone 17
 
@@ -92,7 +92,7 @@ jobs:
         with:
           name: test-products
           path: |
-            DartsScoreboard.xcodeproj
+            DartBuddy.xcodeproj
             DerivedData/Build/Products
           retention-days: 1
 

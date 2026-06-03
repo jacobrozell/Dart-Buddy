@@ -102,7 +102,7 @@ Authoritative folder names (XcodeGen `project.yml` sources):
 
 | Layer | Path | Contents |
 |-------|------|----------|
-| App shell | `App/` | `DartsScoreboardApp`, `MainTabView`, bootstrap, migration recovery |
+| App shell | `App/` | `DartBuddyApp`, `MainTabView`, bootstrap, migration recovery |
 | Features | `Features/{Play/{Setup,X01,Cricket,Shared},History,Players,Statistics,Settings}/` | SwiftUI + ViewModels per tab/flow |
 | Domain | `Domain/` | Engines, services, scoring models |
 | Data | `Data/Repositories/` | Protocols + SwiftData implementations |

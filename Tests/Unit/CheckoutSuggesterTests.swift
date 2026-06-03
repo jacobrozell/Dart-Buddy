@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 /// Validates checkout suggestions are correct (sum to the score, finish legally)
 /// and match the conventional routes for the well-known finishes.

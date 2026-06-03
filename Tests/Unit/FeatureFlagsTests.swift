@@ -1,5 +1,5 @@
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Test(.tags(.unit, .regression))
 func firebaseAnalyticsDisabledForUITestResetArgument() {

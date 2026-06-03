@@ -2,7 +2,7 @@ import XCTest
 
 /// UI tests for the key user paths of the dart scoreboard.
 /// Each test launches with a deterministic, freshly-reset data state.
-final class DartsScoreboardUITests: XCTestCase {
+final class DartBuddyUITests: XCTestCase {
     private let timeout: TimeInterval = 10
 
     override func setUp() {

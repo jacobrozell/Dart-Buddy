@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Test(.tags(.unit, .logging, .regression))
 func mapsAllowlistedFaultToNonFatalError() {
@@ -16,7 +16,7 @@ func mapsAllowlistedFaultToNonFatalError() {
 
     let error = FirebaseCrashlyticsEventMapping.nonFatalError(for: entry, appVersion: "1.0.0")
 
-    #expect(error?.domain == "com.jacobrozell.DartsScoreboard.logger")
+    #expect(error?.domain == "com.jacobrozell.DartBuddy.logger")
     #expect(error?.code == 1001)
     #expect(error?.userInfo["event_name"] as? String == "app_bootstrap_migration_failure")
     #expect(error?.userInfo["log_category"] as? String == "migration")

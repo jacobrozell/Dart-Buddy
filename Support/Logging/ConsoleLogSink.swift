@@ -8,7 +8,7 @@ public protocol LogSink: Sendable {
 public struct ConsoleLogSink: LogSink {
     private let subsystem: String
 
-    public init(subsystem: String = "com.darts-scoreboard.app") {
+    public init(subsystem: String = "com.jacobrozell.DartBuddy") {
         self.subsystem = subsystem
     }
 

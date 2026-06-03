@@ -27,10 +27,10 @@ Recommended approach: **iPhone as source of truth** (Phase A in `AppleWatchCompa
 
 iOS app + unit/UI tests only. No watch extension, no shared Swift package.
 
-Current targets in `DartsScoreboard.xcodeproj`:
-- `DartsScoreboard` (iOS)
-- `DartsScoreboardTests`
-- `DartsScoreboardUITests`
+Current targets in `DartBuddy.xcodeproj`:
+- `DartBuddy` (iOS)
+- `DartBuddyTests`
+- `DartBuddyUITests`
 
 ### Scoring flow (iPhone)
 

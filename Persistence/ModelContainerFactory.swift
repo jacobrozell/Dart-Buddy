@@ -32,7 +32,7 @@ public enum ModelContainerFactory {
         case .appDefault:
             return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
                 .first?
-                .appending(path: "DartsScoreboard.sqlite")
+                .appending(path: "DartBuddy.sqlite")
         case .inMemory:
             return nil
         case let .customURL(url):

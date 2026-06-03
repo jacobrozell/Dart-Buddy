@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.jacobrozell.DartsScoreboard</string>
+	<string>com.jacobrozell.DartBuddy</string>
 	<key>PROJECT_ID</key>
 	<string>REPLACE_WITH_FIREBASE_PROJECT_ID</string>
 	<key>STORAGE_BUCKET</key>

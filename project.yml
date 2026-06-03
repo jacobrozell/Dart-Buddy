@@ -1,4 +1,4 @@
-name: DartsScoreboard
+name: DartBuddy
 attributes:
   ORGANIZATIONNAME: Jacob Rozell
 packages:
@@ -18,7 +18,7 @@ settings:
     DEVELOPMENT_TEAM: 7JT2JB89AV
     CODE_SIGN_STYLE: Automatic
 targets:
-  DartsScoreboard:
+  DartBuddy:
     type: application
     platform: iOS
     sources:
@@ -66,12 +66,12 @@ targets:
         basedOnDependencyAnalysis: false
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboard
-        PRODUCT_NAME: DartsScoreboard
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartBuddy
+        PRODUCT_NAME: DartBuddy
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: DartBuddy
+        INFOPLIST_KEY_CFBundleDisplayName: Dart Buddy
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.sports
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
@@ -90,9 +90,9 @@ targets:
         MARKETING_VERSION: 1.0.0
     scheme:
       testTargets:
-        - DartsScoreboardTests
-        - DartsScoreboardUITests
-  DartsScoreboardTests:
+        - DartBuddyTests
+        - DartBuddyUITests
+  DartBuddyTests:
     type: bundle.unit-test
     platform: iOS
     sources:
@@ -100,18 +100,18 @@ targets:
       - path: Tests/Accessibility
       - path: Tests/TestTags.swift
     dependencies:
-      - target: DartsScoreboard
+      - target: DartBuddy
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-  DartsScoreboardUITests:
+  DartBuddyUITests:
     type: bundle.ui-testing
     platform: iOS
     sources:
       - path: Tests/UI
     dependencies:
-      - target: DartsScoreboard
+      - target: DartBuddy
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        TEST_TARGET_NAME: DartsScoreboard
+        TEST_TARGET_NAME: DartBuddy

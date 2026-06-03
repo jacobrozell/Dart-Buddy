@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 // Extended coverage for X01 multi-leg / multi-set progression, valid checkouts,
 // replay determinism, and input validation. Complements X01EngineTests.

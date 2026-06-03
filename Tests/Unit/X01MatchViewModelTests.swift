@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 // State-machine coverage for the live X01 match view model using in-memory fakes.
 

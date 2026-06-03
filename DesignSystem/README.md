@@ -1,6 +1,6 @@
 # DesignSystem
 
-Shared visual primitives for **DartsScoreboard**. Feature code should not hardcode spacing or brand colors outside these tokens.
+Shared visual primitives for **DartBuddy**. Feature code should not hardcode spacing or brand colors outside these tokens.
 
 ## Token layers
 

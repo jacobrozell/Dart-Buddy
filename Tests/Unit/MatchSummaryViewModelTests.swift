@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @MainActor
 @Test(.tags(.integration, .match, .regression))

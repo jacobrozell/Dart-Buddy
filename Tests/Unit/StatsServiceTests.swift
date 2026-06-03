@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Test(.tags(.unit, .stats, .offline, .regression))
 func statsServiceComputesX01AverageFromEvents() throws {

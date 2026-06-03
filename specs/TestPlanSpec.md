@@ -34,7 +34,7 @@ Test-first policy for this project:
 - Core happy paths (checkout, Cricket grid, settings persistence)
 
 UI test execution policy:
-- **1.0:** CI runs `DartsScoreboardUITests` for regression smoke and snapshot tooling; not a substitute for manual RC evidence.
+- **1.0:** CI runs `DartBuddyUITests` for regression smoke and snapshot tooling; not a substitute for manual RC evidence.
 - **Post-1.0:** Expand to full edge-flow and accessibility automation matrix after UI lock.
 - Prioritize robust unit + integration coverage first.
 

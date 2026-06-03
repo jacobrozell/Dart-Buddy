@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 // Unit coverage for the lowest-level scoring primitive shared by both engines.
 

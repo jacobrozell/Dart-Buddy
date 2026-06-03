@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 private func single(_ v: Int) -> DartInput { DartInput(multiplier: .single, segment: .oneToTwenty(v)) }
 private func dbl(_ v: Int) -> DartInput { DartInput(multiplier: .double, segment: .oneToTwenty(v)) }

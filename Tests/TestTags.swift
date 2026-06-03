@@ -1,5 +1,5 @@
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 extension Tag {
     @Tag static var unit: Self

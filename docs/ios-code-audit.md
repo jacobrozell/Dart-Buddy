@@ -31,7 +31,7 @@ new code has a standard to match.
 
 ## What is working well
 
-1. **Bootstrap & recovery** — `DartsScoreboardApp` gates on `AppBootstrapper`; migration failure routes to `MigrationRecoveryView` without silent data loss.
+1. **Bootstrap & recovery** — `DartBuddyApp` gates on `AppBootstrapper`; migration failure routes to `MigrationRecoveryView` without silent data loss.
 2. **Dependency injection** — `AppDependencies` wired once; features receive protocols, not concrete SwiftData types in views.
 3. **Domain purity** — `X01Engine`, `CricketEngine`, `MatchLifecycleService` stay framework-agnostic; ViewModels orchestrate IO.
 4. **Appearance policy** — `AppAppearancePolicy` centralizes light/dark/system vs Settings chrome; `BrandChrome` modifiers avoid copy-paste.
@@ -117,7 +117,7 @@ Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibili
 |-------|----------|------|
 | Unit | `Tests/Unit/` | Engines, VMs, repos, policy, simulations |
 | Accessibility | `Tests/Accessibility/` | WCAG contrast + label contracts |
-| UI smoke | `Tests/UI/DartsScoreboardUITests.swift` | Core journeys |
+| UI smoke | `Tests/UI/DartBuddyUITests.swift` | Core journeys |
 | WCAG UI | `Tests/UI/WCAGAccessibilityUITests.swift` | Automated audits + ID contracts |
 
 ---

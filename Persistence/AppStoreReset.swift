@@ -5,7 +5,7 @@ enum AppStoreReset {
         guard let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             return
         }
-        let sqliteBase = base.appending(path: "DartsScoreboard.sqlite")
+        let sqliteBase = base.appending(path: "DartBuddy.sqlite")
         let candidates = [
             sqliteBase,
             sqliteBase.appendingPathExtension("shm"),

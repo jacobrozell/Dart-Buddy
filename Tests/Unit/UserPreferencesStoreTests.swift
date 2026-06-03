@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @MainActor
 @Test(.tags(.unit, .settings, .regression))

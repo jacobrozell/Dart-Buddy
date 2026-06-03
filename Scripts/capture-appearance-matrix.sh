@@ -11,9 +11,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
 OUT_DIR="${OUT_DIR:-$ROOT/accessibility/wcag-2.1-aa/evidence/orientation}"
-BUNDLE_ID="com.jacobrozell.DartsScoreboard"
-SCHEME="DartsScoreboard"
-PROJECT="$ROOT/DartsScoreboard.xcodeproj"
+BUNDLE_ID="com.jacobrozell.DartBuddy"
+SCHEME="DartBuddy"
+PROJECT="$ROOT/DartBuddy.xcodeproj"
 DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/appearance-matrix}"
 LAUNCH_DELAY="${LAUNCH_DELAY:-2.5}"
 
@@ -90,7 +90,7 @@ xcodebuild \
   -derivedDataPath "$DERIVED_DATA" \
   build
 
-APP_PATH="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/DartsScoreboard.app"
+APP_PATH="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/DartBuddy.app"
 if [[ ! -d "$APP_PATH" ]]; then
   echo "Build succeeded but app not found at $APP_PATH" >&2
   exit 1

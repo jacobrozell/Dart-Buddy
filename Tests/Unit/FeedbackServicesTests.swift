@@ -1,5 +1,5 @@
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 private final class RecordingTurnTotalCaller: TurnTotalCallerService, @unchecked Sendable {
     private(set) var announcedTotals: [Int] = []

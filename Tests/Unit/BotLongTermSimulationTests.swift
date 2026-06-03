@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 /// Long-run bot simulations for 501 double-out (and Cricket marks).
 ///

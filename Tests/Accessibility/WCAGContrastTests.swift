@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 /// WCAG 2.1 contrast math for brand tokens on gameplay surfaces (P-1.4.3, P-1.4.11).
 @Suite("WCAG contrast ratios", .tags(.unit, .accessibility, .regression))

@@ -1,5 +1,5 @@
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 @Suite("Setup validation messages", .tags(.unit, .accessibility, .setupFlow, .regression))
 struct SetupValidationMessagesTests {

@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct DartsScoreboardApp: App {
+struct DartBuddyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var bootstrapResult: AppBootstrapResult?
 

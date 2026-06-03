@@ -16,9 +16,9 @@ SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
 APPEARANCE="${APPEARANCE:-dark}"
 CONTENT_SIZE="${CONTENT_SIZE:-accessibility-extra-extra-extra-large}"
 OUT_DIR="${OUT_DIR:-$ROOT/accessibility/screenshots}"
-BUNDLE_ID="com.jacobrozell.DartsScoreboard"
-SCHEME="DartsScoreboard"
-PROJECT="$ROOT/DartsScoreboard.xcodeproj"
+BUNDLE_ID="com.jacobrozell.DartBuddy"
+SCHEME="DartBuddy"
+PROJECT="$ROOT/DartBuddy.xcodeproj"
 DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/accessibility-screenshots}"
 LAUNCH_DELAY="${LAUNCH_DELAY:-4}"
 
@@ -77,7 +77,7 @@ xcodebuild \
   -derivedDataPath "$DERIVED_DATA" \
   build
 
-APP_PATH="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/DartsScoreboard.app"
+APP_PATH="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/DartBuddy.app"
 if [[ ! -d "$APP_PATH" ]]; then
   echo "Build succeeded but app not found at $APP_PATH" >&2
   exit 1

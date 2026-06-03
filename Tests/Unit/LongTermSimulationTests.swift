@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DartsScoreboard
+@testable import DartBuddy
 
 /// Simulates a long-term user who plays ~50 games across both modes and then
 /// inspects every read surface (Statistics, Player detail, History). The whole
