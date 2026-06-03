@@ -11,6 +11,7 @@ public actor StubPlayerRepository: PlayerRepository {
     public func archivePlayer(playerId _: UUID) async throws {}
     public func unarchivePlayer(playerId _: UUID) async throws {}
     public func deletePlayer(playerId _: UUID) async throws {}
+    public func importPlayers(_ rows: [PlayerCSV.ImportRow]) async throws -> PlayerImportResult { PlayerImportResult(imported: 0, skipped: rows.count) }
 }
 
 public actor StubMatchRepository: MatchRepository {

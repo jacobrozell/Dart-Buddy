@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsRootView: View {
     let dependencies: AppDependencies
@@ -6,7 +7,10 @@ struct SettingsRootView: View {
     @ObservedObject private var preferences: UserPreferencesStore
     @State private var path: [SettingsRoute] = []
     @StateObject private var viewModel: SettingsViewModel
+    @StateObject private var dataTransfer: SettingsDataTransferViewModel
     @State private var retryTask: Task<Void, Never>?
+    @State private var isImportingCSV = false
+    @State private var templateFileURL: URL?
 
     private var contentMaxWidth: CGFloat {
         horizontalSizeClass == .regular ? 760 : .infinity
@@ -21,6 +25,12 @@ struct SettingsRootView: View {
                 logger: dependencies.logger,
                 activeMatchStore: dependencies.activeMatchStore,
                 userPreferencesStore: dependencies.userPreferencesStore
+            )
+        )
+        _dataTransfer = StateObject(
+            wrappedValue: SettingsDataTransferViewModel(
+                playerRepository: dependencies.playerRepository,
+                logger: dependencies.logger
             )
         )
     }
@@ -223,6 +233,35 @@ struct SettingsRootView: View {
             }
             .brandFormRowBackground(when: usesBrand)
 
+            Section {
+                Button {
+                    isImportingCSV = true
+                } label: {
+                    Label(L10n.csvImport, systemImage: "square.and.arrow.down")
+                }
+                .disabled(dataTransfer.isImporting)
+                .accessibilityIdentifier("settings_importCSVButton")
+
+                if let templateFileURL {
+                    ShareLink(item: templateFileURL) {
+                        Label(L10n.csvTemplate, systemImage: "doc.badge.plus")
+                    }
+                    .accessibilityIdentifier("settings_downloadCSVTemplateButton")
+                }
+
+                if let resultMessage = dataTransfer.resultMessage {
+                    Text(resultMessage)
+                        .font(.footnote)
+                        .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
+                        .accessibilityIdentifier("settings_csvImportResult")
+                }
+            } header: {
+                Text(L10n.csvSection)
+            } footer: {
+                Text(L10n.csvFooter)
+            }
+            .brandFormRowBackground(when: usesBrand)
+
             Section(L10n.dataSection) {
                 Button(L10n.resetAllData, role: .destructive) {
                     viewModel.requestReset()
@@ -257,6 +296,18 @@ struct SettingsRootView: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .safeAreaPadding(.bottom, DS.Spacing.s6)
         .brandSettingsFormChrome(appearanceModeRaw: settings.appearanceModeRaw)
+        .task {
+            if templateFileURL == nil {
+                templateFileURL = dataTransfer.makeTemplateFileURL()
+            }
+        }
+        .fileImporter(
+            isPresented: $isImportingCSV,
+            allowedContentTypes: [.commaSeparatedText, .plainText],
+            allowsMultipleSelection: false
+        ) { result in
+            dataTransfer.handleImportSelection(result)
+        }
     }
 
     private func queueGameplayDefaults(

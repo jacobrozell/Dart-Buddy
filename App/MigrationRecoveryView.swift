@@ -36,6 +36,23 @@ struct MigrationRecoveryView: View {
                     .accessibilityLabel(L10n.string("migration.export.accessibility"))
                     .accessibilityIdentifier("migration_export")
             }
+            if viewModel.context.options.canExportData {
+                Button(L10n.migrationExportCSV) { viewModel.tapExportData() }
+                    .accessibilityLabel(L10n.string("migration.exportCSV.accessibility"))
+                    .accessibilityIdentifier("migration_exportCSV")
+                if case let .dataExportCompleted(url) = viewModel.state {
+                    ShareLink(item: url) {
+                        Label(L10n.migrationExportCSV, systemImage: "square.and.arrow.up")
+                    }
+                    .accessibilityIdentifier("migration_exportCSVShare")
+                }
+                if case let .dataExportFailed(messageKey) = viewModel.state {
+                    Text(LocalizedStringKey(messageKey))
+                        .font(.footnote)
+                        .foregroundStyle(Brand.textSecondary)
+                        .accessibilityIdentifier("migration_exportCSVError")
+                }
+            }
             if viewModel.context.options.canResetData {
                 Button(L10n.migrationReset, role: .destructive) { viewModel.tapResetLocalData() }
                     .accessibilityLabel(L10n.string("migration.reset.accessibility"))

@@ -146,6 +146,69 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         }
     }
 
+    public func importPlayers(_ rows: [PlayerCSV.ImportRow]) async throws -> PlayerImportResult {
+        try dataCall {
+            let context = ModelContext(container)
+            let existing = try context.fetch(FetchDescriptor<SchemaV1.PlayerRecord>())
+            var seenNames = Set(existing.map { normalizeForComparison($0.name) })
+
+            var imported = 0
+            var skipped = 0
+            let now = Date()
+
+            for row in rows {
+                let name = normalizeNameForSave(row.name)
+                let normalized = normalizeForComparison(name)
+                guard !name.isEmpty, name.count <= 32, !seenNames.contains(normalized) else {
+                    skipped += 1
+                    continue
+                }
+
+                let isBot = row.isBot
+                let record = SchemaV1.PlayerRecord(
+                    name: name,
+                    isArchived: false,
+                    isBot: isBot,
+                    botDifficultyRaw: isBot ? resolvedBotDifficulty(row.botDifficultyRaw).rawValue : nil,
+                    createdAt: now,
+                    updatedAt: now
+                )
+                record.avatarStyleRaw = resolvedAvatarStyle(row.avatarStyleRaw, id: record.id, isBot: isBot).rawValue
+                record.preferredColorToken = resolvedColorToken(row.colorTokenRaw, id: record.id).rawValue
+                if let notes = row.notes?.trimmingCharacters(in: .whitespacesAndNewlines), !notes.isEmpty {
+                    record.notes = String(notes.prefix(200))
+                }
+                context.insert(record)
+                seenNames.insert(normalized)
+                imported += 1
+            }
+
+            if imported > 0 {
+                try context.save()
+            }
+            return PlayerImportResult(imported: imported, skipped: skipped)
+        }
+    }
+
+    private func resolvedBotDifficulty(_ raw: String?) -> BotDifficulty {
+        guard let raw else { return .medium }
+        return BotDifficulty(rawValue: raw) ?? BotDifficulty(rawValue: raw.lowercased()) ?? .medium
+    }
+
+    private func resolvedAvatarStyle(_ raw: String?, id: UUID, isBot: Bool) -> PlayerAvatarStyle {
+        if let raw, let style = PlayerAvatarStyle(rawValue: raw) ?? PlayerAvatarStyle(rawValue: raw.lowercased()) {
+            return style
+        }
+        return PlayerAvatarStyle.defaultForPlayer(id: id, isBot: isBot)
+    }
+
+    private func resolvedColorToken(_ raw: String?, id: UUID) -> PlayerColorToken {
+        if let raw, let token = PlayerColorToken(rawValue: raw) ?? PlayerColorToken(rawValue: raw.lowercased()) {
+            return token
+        }
+        return PlayerColorToken.defaultForPlayer(id: id)
+    }
+
     private func fetchPlayerRecord(id: UUID, in context: ModelContext) throws -> SchemaV1.PlayerRecord {
         let descriptor = FetchDescriptor<SchemaV1.PlayerRecord>(
             predicate: #Predicate<SchemaV1.PlayerRecord> { $0.id == id }

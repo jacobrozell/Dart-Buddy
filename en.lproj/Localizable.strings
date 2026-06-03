@@ -155,6 +155,16 @@
 "settings.feedback" = "Feedback";
 "settings.data" = "Data";
 "settings.about" = "About";
+"settings.csv.section" = "Import & Export";
+"settings.csv.footer" = "Import players from a CSV file, or download a template to see the expected format.";
+"settings.csv.import" = "Import CSV Data";
+"settings.csv.template" = "Download CSV Template";
+"settings.csv.import.inProgress" = "Importing players…";
+"settings.csv.import.result" = "Imported %1$d players. Skipped %2$d duplicate or invalid rows.";
+"settings.csv.import.error.read" = "Couldn't read the selected file.";
+"settings.csv.import.error.format" = "The file isn't a valid CSV. Make sure it has a \"name\" column.";
+"settings.csv.import.error.empty" = "No players were found in the file.";
+"settings.csv.import.error.save" = "Couldn't save the imported players.";
 "settings.resetAllData" = "Reset All Local Data";
 "settings.reset.confirmTitle" = "Reset all local data?";
 "settings.reset.confirmMessage" = "This clears players, matches, and settings on this device.";
@@ -163,6 +173,10 @@
 "migration.message" = "The app could not open local data. You can retry, export diagnostics, or reset local data.";
 "migration.retry" = "Retry";
 "migration.export" = "Export Diagnostics";
+"migration.exportCSV" = "Export CSV Data";
+"migration.exportCSV.accessibility" = "Export player data as CSV";
+"migration.exportCSV.empty" = "No player data could be exported.";
+"migration.exportCSV.failed" = "Couldn't export player data.";
 "migration.reset" = "Reset Local Data";
 "scoring.backspace" = "Backspace";
 "scoring.clearTurn" = "Clear Turn";

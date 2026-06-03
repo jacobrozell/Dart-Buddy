@@ -8,6 +8,9 @@ final class MigrationRecoveryViewModel: ObservableObject {
         case retryFailed
         case exportInProgress
         case exportCompleted(String)
+        case dataExportInProgress
+        case dataExportCompleted(URL)
+        case dataExportFailed(String)
         case resetInProgress
         case resetCompleted
     }
@@ -52,6 +55,20 @@ final class MigrationRecoveryViewModel: ObservableObject {
                 state = .exportCompleted(fileURL.path)
             } catch {
                 state = .ready
+            }
+        }
+    }
+
+    func tapExportData() {
+        Task {
+            state = .dataExportInProgress
+            do {
+                let url = try PlayerCSVRecoveryExporter.exportRoster()
+                state = .dataExportCompleted(url)
+            } catch PlayerCSVRecoveryExporter.ExportError.noPlayers {
+                state = .dataExportFailed("migration.exportCSV.empty")
+            } catch {
+                state = .dataExportFailed("migration.exportCSV.failed")
             }
         }
     }
