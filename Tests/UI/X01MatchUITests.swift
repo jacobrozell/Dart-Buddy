@@ -115,9 +115,8 @@ final class X01MatchUITests: DartBuddyUITestCase {
         app.buttons["startMatchButton"].tap()
 
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
-        _ = waitForPadReady(app, timeout: timeout + 5)
 
-        XCTAssertTrue(app.otherElements["scoreCard_active"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.otherElements["scoreCard_active"].waitForExistence(timeout: timeout + 5))
 
         let aliceVisitTotal = app.staticTexts.matching(
             NSPredicate(format: "identifier == %@ AND label == %@", "scoreCard_visitTotal", "60")

@@ -630,12 +630,12 @@ func x01ViewModelClearsVisitSlotsAtLegBoundary() async throws {
         matchRepository: X01FakeMatchRepository(),
         statsRepository: X01FakeStatsRepository()
     )
-    vm.inputMode = .dartEntry
-    vm.enteredDarts = [DartInput(multiplier: .single, segment: .oneToTwenty(11))]
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "41"
 
     await vm.submitTurn()
 
-    #expect(vm.x01State?.currentPlayerIndex == 1)
+    #expect(vm.legFinishSoundToken == 1)
     #expect(vm.x01State?.legIndex == 1)
     #expect(vm.playerCards.allSatisfy { $0.visitDarts.isEmpty })
 }
