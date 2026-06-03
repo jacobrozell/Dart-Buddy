@@ -96,7 +96,9 @@ targets:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - path: Tests
+      - path: Tests/Unit
+      - path: Tests/Accessibility
+      - path: Tests/TestTags.swift
     dependencies:
       - target: DartsScoreboard
     settings:
@@ -106,7 +108,7 @@ targets:
     type: bundle.ui-testing
     platform: iOS
     sources:
-      - path: UITests
+      - path: Tests/UI
     dependencies:
       - target: DartsScoreboard
     settings:

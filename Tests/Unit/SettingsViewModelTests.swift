@@ -149,8 +149,7 @@ func settingsUpdateDefaultsChangesMatchType() async {
         checkout: "singleOut",
         checkIn: "doubleIn",
         legFormat: "bestOf",
-        legs: 5,
-        setsEnabled: true
+        legs: 5
     )
 
     #expect(vm.settings?.defaultMatchTypeRaw == "cricket")
@@ -159,7 +158,7 @@ func settingsUpdateDefaultsChangesMatchType() async {
     #expect(vm.settings?.defaultCheckInModeRaw == "doubleIn")
     #expect(vm.settings?.defaultLegFormatRaw == "bestOf")
     #expect(vm.settings?.defaultLegsToWin == 5)
-    #expect(vm.settings?.defaultSetsEnabled == true)
+    #expect(vm.settings?.defaultSetsEnabled == false)
 }
 
 @MainActor

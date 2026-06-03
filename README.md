@@ -62,7 +62,7 @@ High-level summary only — authoritative rules are in feature specs:
 | `Persistence/` | Schema, migrations, container factory |
 | `DesignSystem/` | Tokens, shared components, gameplay layout |
 | `Support/` | Localization, logging, preferences, utilities |
-| `Tests/` | Unit and integration tests by phase |
+| `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
 | `specs/` | Product and system specifications |
 | `roadmap/` | Phase delivery plan and release artifacts |
 | `accessibility/` | WCAG 2.1 AA tracker and manual verification |

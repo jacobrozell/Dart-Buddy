@@ -599,7 +599,7 @@ Each screen must define:
 
 Hard rule:
 - A screen is not "done" until all four combinations pass quick manual QA.
-- UI automation: limited CI smoke in `UITests/`; full per-screen automation matrix remains post-UI-lock.
+- UI automation: limited CI smoke in `Tests/UI/`; full per-screen automation matrix remains post-UI-lock.
 
 ---
 

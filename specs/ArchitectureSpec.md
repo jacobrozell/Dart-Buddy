@@ -109,7 +109,7 @@ Authoritative folder names (XcodeGen `project.yml` sources):
 | Persistence | `Persistence/` | Schema, migrations, container factory |
 | DesignSystem | `DesignSystem/` | `Brand`, `DS`, shared components — see `DesignSystem/README.md` |
 | Support | `Support/` | L10n, logging, preferences, feature flags |
-| Tests | `Tests/`, `UITests/` | Phase-tagged unit tests; smoke + WCAG UI tests |
+| Tests | `Tests/Unit/`, `Tests/Accessibility/`, `Tests/UI/` | Unit + a11y regression; UI smoke + WCAG audits |
 
 **Engineering audit (grades, P1–P3 findings):** [`docs/ios-code-audit.md`](../docs/ios-code-audit.md)  
 **Appearance / contrast tracker:** [`accessibility/dark-light-mode.md`](../accessibility/dark-light-mode.md)

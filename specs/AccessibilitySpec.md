@@ -47,7 +47,7 @@ Define accessibility requirements for MVP and future releases, with WCAG 2.1 AA 
 - Dynamic Type checks for setup, gameplay, history, and settings.
 - Contrast audit for light and dark themes.
 - Manual orientation pass (portrait and landscape) for setup, gameplay, history, and settings.
-- Automated regression: `UITests/WCAGAccessibilityUITests.swift` (Xcode `performAccessibilityAudit` + identifier contracts on core screens).
+- Automated regression: `Tests/UI/WCAGAccessibilityUITests.swift` (Xcode `performAccessibilityAudit` + identifier contracts on core screens).
 
 ---
 

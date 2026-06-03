@@ -3,7 +3,7 @@
 ## MVP Baselines (Locked)
 - Landscape and portrait are both required in MVP.
 - Accessibility target is WCAG 2.1 AA.
-- CI runs limited UI smoke tests (`UITests/`); full UI automation matrix is post-1.0.
+- CI runs limited UI smoke tests (`Tests/UI/`); full UI automation matrix is post-1.0.
 - App naming direction avoids "Lite" branding.
 
 ## Product and System Specs
