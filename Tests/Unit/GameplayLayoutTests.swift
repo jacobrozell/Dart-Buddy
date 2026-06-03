@@ -19,3 +19,11 @@ func gameplayLayoutMatchScreensUseFullWidthOnAllSizeClasses() {
     #expect(GameplayLayout.matchContentMaxWidth(horizontalSizeClass: .compact) == .infinity)
     #expect(GameplayLayout.matchContentMaxWidth(horizontalSizeClass: nil) == .infinity)
 }
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutUsesAccessibilityMatchScoringOnlyAtAXSizes() {
+    #expect(GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: .large) == false)
+    #expect(GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: .xxxLarge) == false)
+    #expect(GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: .accessibility1) == true)
+    #expect(GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: .accessibility5) == true)
+}

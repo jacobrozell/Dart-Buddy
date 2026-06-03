@@ -10,4 +10,9 @@ enum GameplayLayout {
     static func matchContentMaxWidth(horizontalSizeClass: UserInterfaceSizeClass?) -> CGFloat {
         .infinity
     }
+
+    /// X01 uses a scrollable score region with a pinned pad at accessibility text sizes (AX1–AX5).
+    static func usesAccessibilityMatchScoringLayout(dynamicTypeSize: DynamicTypeSize) -> Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
 }
