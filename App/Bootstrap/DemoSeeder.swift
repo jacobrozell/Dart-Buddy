@@ -11,6 +11,10 @@ enum DemoSeeder {
             try? await dependencies.settingsRepository.resetPreferencesToDefaults()
         }
 
+        if let appearanceMode = launchAppearanceMode(from: arguments) {
+            await applyAppearanceMode(appearanceMode, dependencies: dependencies)
+        }
+
         if arguments.contains("-seed_players") {
             await seedPlayersOnly(dependencies)
         }
@@ -174,6 +178,51 @@ enum DemoSeeder {
             _ = try await dependencies.playerRepository.createPlayer(name: "Bob")
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "seed_players_failed", message: "Seed players failed: \(error)")
+        }
+    }
+
+    private static func launchAppearanceMode(from arguments: [String]) -> String? {
+        guard let index = arguments.firstIndex(of: "-appearance_mode"),
+              arguments.indices.contains(index + 1) else {
+            return nil
+        }
+        let mode = arguments[index + 1]
+        switch mode {
+        case "system", "light", "dark":
+            return mode
+        default:
+            return nil
+        }
+    }
+
+    private static func applyAppearanceMode(_ mode: String, dependencies: AppDependencies) async {
+        do {
+            let current = try await dependencies.settingsRepository.fetchSettings()
+            let updated = SettingsSummary(
+                id: current.id,
+                appearanceModeRaw: mode,
+                hapticsEnabled: current.hapticsEnabled,
+                soundEnabled: current.soundEnabled,
+                turnTotalCallerEnabled: current.turnTotalCallerEnabled,
+                defaultMatchTypeRaw: current.defaultMatchTypeRaw,
+                defaultX01StartScore: current.defaultX01StartScore,
+                defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+                defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+                defaultLegFormatRaw: current.defaultLegFormatRaw,
+                defaultLegsToWin: current.defaultLegsToWin,
+                defaultSetsEnabled: current.defaultSetsEnabled,
+                botStaggerEnabled: current.botStaggerEnabled,
+                botDartHapticsEnabled: current.botDartHapticsEnabled,
+                updatedAt: Date()
+            )
+            _ = try await dependencies.settingsRepository.updateSettings(updated)
+            await MainActor.run { dependencies.userPreferencesStore.apply(updated) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "appearance_mode_launch_override_failed",
+                message: "Failed to apply launch appearance mode \(mode): \(error)"
+            )
         }
     }
 

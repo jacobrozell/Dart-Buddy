@@ -9,6 +9,7 @@ struct X01MatchScreen: View {
     let feedbackPreferences: FeedbackPreferences
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
     @State private var lastAnnouncedCheckout: String?
@@ -19,7 +20,7 @@ struct X01MatchScreen: View {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 Text(L10n.x01Title)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
             } trailing: {
                 Button { runUndo() } label: {
                     Image(systemName: "arrow.uturn.backward")
@@ -35,6 +36,9 @@ struct X01MatchScreen: View {
                 Text(viewModel.configSummary ?? "")
                     .font(.subheadline)
                     .foregroundStyle(Brand.textSecondary)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 2)
+                    .minimumScaleFactor(0.85)
+                    .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.bottom, DS.Spacing.s2)
@@ -45,7 +49,7 @@ struct X01MatchScreen: View {
                 }
             } else {
                 Spacer()
-                ProgressView().tint(.white)
+                ProgressView().tint(Brand.textPrimary)
                 Spacer()
             }
         }
@@ -200,7 +204,7 @@ struct X01MatchScreen: View {
                     .foregroundStyle(Brand.green)
                 Text(labels.joined(separator: "  "))
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
@@ -287,54 +291,21 @@ private struct PlayerScoreCard: View {
     let dartsThrown: Int
     let average: Double
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .largeTitle) private var scoreFontSize: CGFloat = 40
+    @ScaledMetric(relativeTo: .caption) private var dartBoxSize: CGFloat = 38
+
     var body: some View {
         HStack(spacing: 0) {
             Rectangle()
                 .fill(isActive ? Brand.green : Color.clear)
                 .frame(width: 6)
-            HStack(alignment: .center, spacing: DS.Spacing.s3) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(score)")
-                        .font(.system(size: 40, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
-                        .accessibilityIdentifier(isActive ? "scoreCard_remaining" : "")
-                    Text(name)
-                        .font(.subheadline)
-                        .foregroundStyle(isActive ? Brand.green : Brand.textSecondary)
-                        .lineLimit(1)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    accessibilityBody
+                } else {
+                    compactBody
                 }
-                Spacer(minLength: DS.Spacing.s2)
-                VStack(spacing: 4) {
-                    HStack(spacing: 6) {
-                        ForEach(0 ..< 3, id: \.self) { slot in
-                            dartBox(slot < visitDarts.count ? dartLabel(visitDarts[slot]) : nil)
-                                .accessibilityIdentifier(isActive ? "scoreCard_dartSlot_\(slot)" : "")
-                        }
-                    }
-                    Text("\(visitTotal)")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Brand.textSecondary)
-                        .accessibilityIdentifier(isActive ? "scoreCard_visitTotal" : "")
-                }
-                Spacer(minLength: DS.Spacing.s2)
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text(L10n.format("play.x01.setsLegsFormat", setsWon, legsWon))
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(Brand.textSecondary)
-                    HStack(spacing: 4) {
-                        Image(systemName: "scope").font(.footnote)
-                        Text("\(dartsThrown)").font(.footnote.weight(.semibold))
-                    }
-                    .foregroundStyle(Brand.textSecondary)
-                    .accessibilityIdentifier(isActive ? "scoreCard_dartsThrown" : "")
-                    HStack(spacing: 4) {
-                        Image(systemName: "chart.bar.fill").font(.footnote)
-                        Text(String(format: "%.2f", average)).font(.footnote.weight(.semibold))
-                    }
-                    .foregroundStyle(Brand.textSecondary)
-                    .accessibilityIdentifier(isActive ? "scoreCard_average" : "")
-                }
-                .frame(minWidth: 72, alignment: .trailing)
             }
             .padding(DS.Spacing.s3)
         }
@@ -343,6 +314,86 @@ private struct PlayerScoreCard: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
         .accessibilityIdentifier(isActive ? "scoreCard_active" : "scoreCard")
+    }
+
+    private var compactBody: some View {
+        HStack(alignment: .center, spacing: DS.Spacing.s3) {
+            scoreNameColumn
+            Spacer(minLength: DS.Spacing.s2)
+            visitColumn
+            Spacer(minLength: DS.Spacing.s2)
+            statsColumn
+        }
+    }
+
+    private var accessibilityBody: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            scoreNameColumn
+            visitColumn
+            statsColumn
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var scoreNameColumn: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("\(score)")
+                .font(.system(size: scoreFontSize, weight: .heavy, design: .rounded))
+                .foregroundStyle(Brand.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .accessibilityIdentifier(isActive ? "scoreCard_remaining" : "")
+            Text(name)
+                .font(.subheadline)
+                .foregroundStyle(isActive ? Brand.green : Brand.textSecondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+        }
+    }
+
+    private var visitColumn: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 6) {
+                ForEach(0 ..< 3, id: \.self) { slot in
+                    dartBox(slot < visitDarts.count ? dartLabel(visitDarts[slot]) : nil)
+                        .accessibilityIdentifier(isActive ? "scoreCard_dartSlot_\(slot)" : "")
+                }
+            }
+            Text("\(visitTotal)")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Brand.textSecondary)
+                .accessibilityIdentifier(isActive ? "scoreCard_visitTotal" : "")
+        }
+    }
+
+    private var statsColumn: some View {
+        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: 6) {
+            setsLegsLabels
+            HStack(spacing: 4) {
+                Image(systemName: "scope").font(.footnote)
+                Text("\(dartsThrown)").font(.footnote.weight(.semibold))
+            }
+            .foregroundStyle(Brand.textSecondary)
+            .accessibilityIdentifier(isActive ? "scoreCard_dartsThrown" : "")
+            HStack(spacing: 4) {
+                Image(systemName: "chart.bar.fill").font(.footnote)
+                Text(String(format: "%.2f", average)).font(.footnote.weight(.semibold))
+            }
+            .foregroundStyle(Brand.textSecondary)
+            .accessibilityIdentifier(isActive ? "scoreCard_average" : "")
+        }
+        .frame(minWidth: dynamicTypeSize.isAccessibilitySize ? nil : 72, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing)
+    }
+
+    private var setsLegsLabels: some View {
+        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: 2) {
+            Text(L10n.format("play.x01.setsCountFormat", setsWon))
+            Text(L10n.format("play.x01.legsCountFormat", legsWon))
+        }
+        .font(.footnote.weight(.semibold))
+        .foregroundStyle(Brand.textSecondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
     }
 
     private var visitTotal: Int {
@@ -367,9 +418,11 @@ private struct PlayerScoreCard: View {
 
     private func dartBox(_ label: String?) -> some View {
         Text(label ?? "")
-            .font(.system(size: 15, weight: .bold, design: .rounded))
-            .foregroundStyle(.white)
-            .frame(width: 38, height: 38)
+            .font(.system(size: max(13, dartBoxSize * 0.4), weight: .bold, design: .rounded))
+            .foregroundStyle(Brand.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .frame(width: dartBoxSize, height: dartBoxSize)
             .background(Brand.dartBox, in: RoundedRectangle(cornerRadius: 6))
     }
 

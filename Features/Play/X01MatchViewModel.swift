@@ -140,7 +140,10 @@ final class X01MatchViewModel: ObservableObject {
     }
 
     var canHumanInput: Bool {
-        isCurrentPlayerBot == false && isBotPlaying == false && state == .readyTurn
+        guard isCurrentPlayerBot == false, isBotPlaying == false else { return false }
+        // Opponent bust feedback must not freeze the pad; the screen dismisses the
+        // banner when the active human starts their visit.
+        return state == .readyTurn || state == .bustFeedback
     }
 
     var currentBotDifficulty: BotDifficulty? {
@@ -215,7 +218,19 @@ final class X01MatchViewModel: ObservableObject {
             message: "X01 match screen presented."
         )
         await loadSessionIfNeeded()
+        reconcileInterruptedBotPlayback()
         await playBotTurnIfNeeded()
+    }
+
+    /// Clears transient bot UI when the screen reappears after a cancelled bot task
+    /// (e.g. tab switch or save-and-exit while the bot was throwing).
+    private func reconcileInterruptedBotPlayback() {
+        isBotPlaying = false
+        enteredDarts.removeAll()
+        totalEntryText = ""
+        if state == .submittingTurn {
+            state = .readyTurn
+        }
     }
 
     /// Generates and submits a bot visit when it is the bot's turn.
@@ -227,6 +242,7 @@ final class X01MatchViewModel: ObservableObject {
 
         if state == .bustFeedback { acknowledgeBustFeedback() }
         isBotPlaying = true
+        defer { isBotPlaying = false }
         logger.matchDebug(
             matchId: matchId,
             matchType: .x01,
@@ -250,12 +266,19 @@ final class X01MatchViewModel: ObservableObject {
 
         let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
         for dart in plannedDarts {
-            try? await Task.sleep(nanoseconds: dartDelay)
+            do {
+                try await Task.sleep(nanoseconds: dartDelay)
+            } catch {
+                return
+            }
             enteredDarts.append(dart)
         }
 
-        try? await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        isBotPlaying = false
+        do {
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+        } catch {
+            return
+        }
         await submitTurnAsync()
     }
 
@@ -437,6 +460,7 @@ final class X01MatchViewModel: ObservableObject {
                 message: "Last turn undone.",
                 metadata: matchProgressMetadata(for: undone)
             )
+            await playBotTurnIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {

@@ -14,7 +14,7 @@ struct BrandSegmented<T: Hashable>: View {
                 } label: {
                     Text(option.title)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .frame(maxWidth: .infinity)

@@ -9,6 +9,9 @@ struct DartNumberPad: View {
     /// Called when undo is tapped while the current visit has no darts yet.
     let onUndoTurn: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
+
     private let spacing: CGFloat = 6
     private let rows: [[Int]] = [
         [1, 2, 3, 4, 5, 6, 7],
@@ -33,13 +36,13 @@ struct DartNumberPad: View {
                     accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
                     accessibilityHint: L10n.string("scoring.segment.hint")
                 ) { appendMiss() }
-                modifierKey(.double, title: L10n.string("scoring.pad.double"), identifier: "pad_double")
-                modifierKey(.triple, title: L10n.string("scoring.pad.triple"), identifier: "pad_triple")
+                modifierKey(.double, identifier: "pad_double")
+                modifierKey(.triple, identifier: "pad_triple")
                 Button(action: undo) {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .foregroundStyle(Brand.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: keyMinHeight)
                         .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
                 }
                 .frame(maxWidth: .infinity)
@@ -62,7 +65,8 @@ struct DartNumberPad: View {
         ) { append(value) }
     }
 
-    private func modifierKey(_ multiplier: DartMultiplier, title: String, identifier: String) -> some View {
+    private func modifierKey(_ multiplier: DartMultiplier, identifier: String) -> some View {
+        let title = ScoringPadLabels.modifierTitle(multiplier, dynamicTypeSize: dynamicTypeSize)
         let isSelected = selectedMultiplier == multiplier
         let background: Color = {
             switch multiplier {
@@ -100,11 +104,11 @@ struct DartNumberPad: View {
     ) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 17, weight: weight))
-                .foregroundStyle(.white)
+                .font(.body.weight(weight))
+                .foregroundStyle(Brand.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: 52)
+                .frame(maxWidth: .infinity, minHeight: keyMinHeight)
                 .background(background, in: RoundedRectangle(cornerRadius: 8))
         }
         .accessibilityLabel(accessibilityLabel ?? title)

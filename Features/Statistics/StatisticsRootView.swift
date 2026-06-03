@@ -25,7 +25,7 @@ struct StatisticsRootView: View {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
                     Text(L10n.statsTitle)
                         .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
 
                     BrandSegmented(
                         options: [(MatchType.x01, L10n.string("play.x01.title")), (MatchType.cricket, L10n.string("play.cricket.title"))],
@@ -127,7 +127,7 @@ struct StatisticsRootView: View {
                     .font(.caption.weight(.semibold))
             }
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.textPrimary)
             .padding(.horizontal, DS.Spacing.s3)
             .padding(.vertical, DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
@@ -144,7 +144,7 @@ struct StatisticsRootView: View {
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
             .font(.title2.weight(.bold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.textPrimary)
             .frame(maxWidth: .infinity)
             .padding(.top, DS.Spacing.s2)
     }
@@ -175,7 +175,7 @@ struct StatisticsRootView: View {
                 Button(action: { onStartMatch?() }) {
                     Text(L10n.startMatchCTA)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
                 }
@@ -260,7 +260,7 @@ struct StatisticsRootView: View {
             }
         }
         .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-        .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(.white) } }
+        .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textPrimary) } }
         .frame(height: CGFloat(viewModel.rows.count) * 44 + 24)
         .padding(DS.Spacing.s4)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
@@ -279,7 +279,8 @@ struct StatisticsRootView: View {
         var totals: [String: Int] = [:]
         for row in viewModel.rows {
             for (sector, count) in row.hitsBySector {
-                totals[sector, default: 0] += count
+                let key = StatsSectorOrder.normalizedSectorKey(sector)
+                totals[key, default: 0] += count
             }
         }
         return totals
@@ -310,7 +311,7 @@ struct StatTable: View {
             if let title {
                 Text(title)
                     .font(.title2.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                     .frame(maxWidth: .infinity)
             }
             VStack(spacing: 0) {
@@ -329,13 +330,13 @@ struct StatTable: View {
                     let cells = values(row)
                     HStack {
                         Text("\(index + 1). \(row.name)")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Brand.textPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .lineLimit(1)
                         ForEach(Array(columns.enumerated()), id: \.offset) { columnIndex, column in
                             Text(columnIndex < cells.count ? cells[columnIndex] : "-")
                                 .frame(width: column.width, alignment: .trailing)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Brand.textPrimary)
                         }
                     }
                     .font(.subheadline)

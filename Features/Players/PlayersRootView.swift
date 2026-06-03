@@ -1,12 +1,25 @@
 import SwiftUI
 
+/// Drives the create/edit sheet so presentation always carries the intended player snapshot.
+private struct PlayerSheetPresentation: Identifiable {
+    let id: UUID
+    let editing: EditablePlayer?
+
+    static func add() -> PlayerSheetPresentation {
+        PlayerSheetPresentation(id: UUID(), editing: nil)
+    }
+
+    static func edit(_ player: EditablePlayer) -> PlayerSheetPresentation {
+        PlayerSheetPresentation(id: player.id, editing: player)
+    }
+}
+
 struct PlayersRootView: View {
     let dependencies: AppDependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var path: [PlayersRoute] = []
     @StateObject private var viewModel: PlayersListViewModel
-    @State private var editingPlayer: EditablePlayer?
-    @State private var showEditSheet = false
+    @State private var playerSheet: PlayerSheetPresentation?
     @State private var deleteBlockedMessage: String?
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
@@ -38,7 +51,9 @@ struct PlayersRootView: View {
                             L10n.errorTitle,
                             systemImage: "exclamationmark.triangle",
                             description: Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
+                                .foregroundStyle(Brand.textSecondary)
                         )
+                        .brandScoreboardEmptyState()
                     } else if viewModel.filteredHumans.isEmpty && viewModel.filteredBots.isEmpty {
                         if horizontalSizeClass == .regular {
                             VStack {
@@ -46,17 +61,21 @@ struct PlayersRootView: View {
                                     L10n.playersEmptyTitle,
                                     systemImage: "person.2",
                                     description: Text(L10n.playersEmptyDescription)
+                                        .foregroundStyle(Brand.textSecondary)
                                 )
+                                .brandScoreboardEmptyState()
                             }
                             .frame(maxWidth: 560)
                             .padding(.vertical, DS.Spacing.s6)
-                            .background(DS.ColorRole.backgroundSecondary, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
                         } else {
                             ContentUnavailableView(
                                 L10n.playersEmptyTitle,
                                 systemImage: "person.2",
                                 description: Text(L10n.playersEmptyDescription)
+                                    .foregroundStyle(Brand.textSecondary)
                             )
+                            .brandScoreboardEmptyState()
                         }
                     } else {
                         List {
@@ -86,12 +105,12 @@ struct PlayersRootView: View {
             .safeAreaInset(edge: .bottom) {
                 if viewModel.state != .error && viewModel.players.isEmpty {
                     Button {
-                        editingPlayer = nil
-                        showEditSheet = true
+                        playerSheet = .add()
                     } label: {
                         Text(L10n.addPlayerTitle)
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(Brand.green)
                     .controlSize(.large)
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.vertical, DS.Spacing.s2)
@@ -100,8 +119,7 @@ struct PlayersRootView: View {
             .toolbar {
                 Menu {
                     Button {
-                        editingPlayer = nil
-                        showEditSheet = true
+                        playerSheet = .add()
                     } label: {
                         Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
                     }
@@ -123,6 +141,7 @@ struct PlayersRootView: View {
                         retryTask?.cancel()
                         retryTask = Task { await viewModel.onAppear() }
                     }
+                    .tint(Brand.green)
                 }
             }
             .task {
@@ -137,8 +156,8 @@ struct PlayersRootView: View {
                         player: viewModel.player(id: playerId),
                         dependencies: dependencies,
                         onEdit: {
-                            editingPlayer = viewModel.player(id: playerId)
-                            showEditSheet = true
+                            guard let player = viewModel.player(id: playerId) else { return }
+                            playerSheet = .edit(player)
                         },
                         onArchiveToggle: {
                             actionTask?.cancel()
@@ -149,18 +168,21 @@ struct PlayersRootView: View {
                     PlayerDetailView(
                         player: playerId.flatMap { viewModel.player(id: $0) },
                         dependencies: dependencies,
-                        onEdit: { showEditSheet = true },
+                        onEdit: {
+                            guard let id = playerId, let player = viewModel.player(id: id) else { return }
+                            playerSheet = .edit(player)
+                        },
                         onArchiveToggle: {}
                     )
                 }
             }
-            .sheet(isPresented: $showEditSheet) {
+            .sheet(item: $playerSheet) { presentation in
                 PlayerEditSheet(
                     viewModel: PlayerEditViewModel(
                         existingNames: viewModel.players.map(\.name),
-                        editing: editingPlayer
+                        editing: presentation.editing
                     ),
-                    existing: editingPlayer,
+                    existing: presentation.editing,
                     onSave: { player in
                         actionTask?.cancel()
                         actionTask = Task { await viewModel.save(player) }
@@ -191,7 +213,7 @@ struct PlayersRootView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(player.name)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
                     if let difficulty = player.botDifficulty {
                         Text(difficulty.displayName)
                             .font(.caption)
@@ -248,15 +270,16 @@ struct PlayersRootView: View {
     private var searchField: some View {
         HStack(spacing: DS.Spacing.s2) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(DS.ColorRole.textSecondary)
+                .foregroundStyle(Brand.textSecondary)
             TextField(L10n.string("players.search.placeholder"), text: $viewModel.searchText)
+                .foregroundStyle(Brand.textPrimary)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .accessibilityLabel(L10n.string("players.search.accessibility"))
         }
         .padding(.horizontal, DS.Spacing.s3)
         .padding(.vertical, DS.Spacing.s2)
-        .background(DS.ColorRole.backgroundSecondary, in: Capsule())
+        .background(Brand.cardElevated, in: Capsule())
         .accessibilityIdentifier("players_searchField")
     }
 }
@@ -273,6 +296,7 @@ private struct PlayerDetailView: View {
                 PlayerStatsDetailView(player: player, dependencies: dependencies, onEdit: onEdit, onArchiveToggle: onArchiveToggle)
             } else {
                 ContentUnavailableView(L10n.playerNotFound, systemImage: "person.crop.circle.badge.exclamationmark")
+                    .brandScoreboardEmptyState()
             }
         }
         .navigationTitle(L10n.playerDetailTitle)
@@ -316,7 +340,7 @@ private struct PlayerStatsDetailView: View {
                 }
 
                 if viewModel.isLoading {
-                    ProgressView().tint(.white)
+                    ProgressView().tint(Brand.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s6)
                 } else if !viewModel.hasAnyGames {
@@ -340,12 +364,13 @@ private struct PlayerStatsDetailView: View {
                 HStack(spacing: DS.Spacing.s3) {
                     Button(L10n.edit, action: onEdit)
                         .buttonStyle(.bordered)
+                        .tint(Brand.green)
                         .accessibilityLabel(L10n.string("players.detail.edit.accessibility"))
                         .accessibilityIdentifier("playerDetail_edit")
                     if !player.isBot {
                         Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
                             .buttonStyle(.bordered)
-                            .tint(.orange)
+                            .tint(Brand.orange)
                             .accessibilityLabel(
                                 L10n.string(player.isArchived ? "players.detail.unarchive.accessibility" : "players.detail.archive.accessibility")
                             )
@@ -367,7 +392,7 @@ private struct PlayerStatsDetailView: View {
         VStack(alignment: .leading, spacing: DS.Spacing.s3) {
             Text(L10n.playersDetailRecentMatches)
                 .font(.title2.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Brand.textPrimary)
 
             VStack(spacing: 0) {
                 ForEach(viewModel.recentMatches) { match in
@@ -379,7 +404,7 @@ private struct PlayerStatsDetailView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(match.opponentLabel)
                                 .font(.subheadline)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Brand.textPrimary)
                                 .lineLimit(1)
                             Text(match.playedAt, style: .date)
                                 .font(.caption)
@@ -415,7 +440,7 @@ private struct PlayerStatsDetailView: View {
         VStack(alignment: .leading, spacing: DS.Spacing.s3) {
             Text(title)
                 .font(.title2.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Brand.textPrimary)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DS.Spacing.s3) {
                 StatTile(labelKey: "stats.games", value: "\(stats.games)")
@@ -440,12 +465,12 @@ private struct PlayerStatsDetailView: View {
             if isX01, stats.average3Dart > 0 {
                 Text(L10n.statsThreeDartAverage)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                 PlayerAverageChart(average: stats.average3Dart, playerName: stats.name)
                 if viewModel.x01TrendPoints.count >= 2 {
                     Text(L10n.statsTrendTitle)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
                     AverageTrendChart(points: viewModel.x01TrendPoints)
                 }
             }
@@ -453,7 +478,7 @@ private struct PlayerStatsDetailView: View {
             if !stats.hitsBySector.isEmpty {
                 Text(L10n.statsHitsInSector)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                 SectorHitsChart(hitsBySector: stats.hitsBySector, mode: isX01 ? .x01 : .cricket)
             }
         }
@@ -472,7 +497,7 @@ private struct StatTile: View {
                 .foregroundStyle(Brand.textSecondary)
             Text(value)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Brand.textPrimary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(DS.Spacing.s3)
@@ -497,6 +522,7 @@ private struct PlayerEditSheet: View {
             Form {
                 TextField("players.edit.name", text: $viewModel.name)
                     .accessibilityLabel(L10n.string("players.edit.name.accessibility"))
+                    .accessibilityIdentifier("playerEdit_name")
                     .onChange(of: viewModel.name) { _, _ in viewModel.validate() }
                 if !viewModel.isBot {
                     Section(L10n.playersEditAvatar) {

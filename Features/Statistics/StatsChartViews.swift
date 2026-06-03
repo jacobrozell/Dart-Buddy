@@ -7,7 +7,12 @@ struct SectorHitsChart: View {
     var height: CGFloat = 200
 
     private var hits: [SectorHit] {
-        hitsBySector
+        var merged: [String: Int] = [:]
+        for (sector, count) in hitsBySector {
+            let key = StatsSectorOrder.normalizedSectorKey(sector)
+            merged[key, default: 0] += count
+        }
+        return merged
             .map { SectorHit(sector: $0.key, count: $0.value) }
             .sorted { StatsSectorOrder.rank($0.sector, mode: mode) < StatsSectorOrder.rank($1.sector, mode: mode) }
     }
@@ -55,7 +60,7 @@ struct PerPlayerSectorHitsSection: View {
                 VStack(alignment: .leading, spacing: DS.Spacing.s2) {
                     Text(row.name)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
                     SectorHitsChart(
                         hitsBySector: row.hitsBySector,
                         mode: mode,
@@ -135,7 +140,7 @@ struct PlayerAverageChart: View {
             }
         }
         .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-        .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(.white) } }
+        .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textPrimary) } }
         .frame(height: 72)
         .padding(DS.Spacing.s4)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))

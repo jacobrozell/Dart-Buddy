@@ -59,7 +59,8 @@ final class StatisticsViewModel: ObservableObject {
         var totals: [String: Int] = [:]
         for row in rows {
             for (sector, count) in row.hitsBySector {
-                totals[sector, default: 0] += count
+                let key = StatsSectorOrder.normalizedSectorKey(sector)
+                totals[key, default: 0] += count
             }
         }
         return totals
@@ -152,8 +153,24 @@ final class StatisticsViewModel: ObservableObject {
 }
 
 enum StatsSectorOrder {
+    /// Chart/storage key for misses (matches number-pad `0`).
+    static let missSectorKey = "0"
+
+    static func normalizedSectorKey(_ raw: String) -> String {
+        raw == "miss" ? missSectorKey : raw
+    }
+
+    static func normalizedSectorKey(for dart: X01DartEvent) -> String {
+        dart.wasMiss ? missSectorKey : normalizedSectorKey(dart.segmentRaw)
+    }
+
+    static func normalizedSectorKey(for touch: CricketDartTouch) -> String {
+        touch.wasMiss ? missSectorKey : normalizedSectorKey(touch.targetRaw)
+    }
+
     /// Ordering for charting: bull last for X01, board values descending otherwise.
     static func rank(_ sector: String, mode: MatchType) -> Int {
+        let sector = normalizedSectorKey(sector)
         switch sector {
         case "innerBull": return 100
         case "outerBull", "bull": return 99
@@ -164,6 +181,7 @@ enum StatsSectorOrder {
     }
 
     static func label(_ sector: String) -> String {
+        let sector = normalizedSectorKey(sector)
         switch sector {
         case "innerBull": return L10n.string("stats.sector.bull")
         case "outerBull": return "25"

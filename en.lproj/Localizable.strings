@@ -22,7 +22,7 @@
 "player.validation.duplicateName" = "A player with this name already exists.";
 "setup.error.load" = "Unable to load setup data.";
 "setup.error.start" = "Unable to start match.";
-"setup.validation.minimumPlayers" = "Select at least two players (tap names until they show a checkmark).";
+"setup.validation.minimumPlayers" = "Select at least two players (tap + next to each name to add them to Turn order).";
 "setup.validation.requiresHuman" = "Select at least one human player to start a match.";
 "setup.validation.invalidStartScore" = "Invalid start score.";
 "setup.validation.invalidLegs" = "Leg count must be at least 1.";
@@ -53,7 +53,7 @@
 "play.setup.mode" = "Mode";
 "play.setup.players" = "Players";
 "play.setup.playersEmptyHint" = "Use Quick Add to create players, then tap each name to add them to this match.";
-"play.setup.playersSelectionHint" = "Tap each name to include that player. At least two need a checkmark.";
+"play.setup.playersSelectionHint" = "Tap + next to each name to add them to Turn order. You need at least two players.";
 "play.setup.playerRow.accessibilityHint" = "Adds this player to the match roster.";
 "play.setup.chip.accessibilityFormat" = "%@, %@";
 "play.setup.start.disabledHint" = "Select at least two players to start.";
@@ -205,6 +205,7 @@
 "settings.theme.system" = "System";
 "settings.theme.light" = "Light";
 "settings.theme.dark" = "Dark";
+"settings.theme.footer" = "Light and Dark set the scoreboard theme on Play, History, Players, and Statistics. System follows your device for those tabs. Settings uses a light appearance only when you choose Light; otherwise Settings stays on the dark style.";
 "settings.mode.x01" = "X01";
 "settings.mode.cricket" = "Cricket";
 "settings.about.value" = "Dart Buddy · Version 1.0";
@@ -349,6 +350,10 @@
 "play.match.botThrowing" = "Bot throwing…";
 "scoring.pad.double" = "DOUBLE";
 "scoring.pad.triple" = "TRIPLE";
+"scoring.pad.double.short" = "Dbl";
+"scoring.pad.triple.short" = "Tri";
+"play.x01.setsCountFormat" = "Sets: %d";
+"play.x01.legsCountFormat" = "Legs: %d";
 "scoring.enter" = "ENTER";
 "play.x01.leaveMatch.accessibility" = "Leave match";
 "play.x01.checkout.accessibilityFormat" = "Checkout: %@";

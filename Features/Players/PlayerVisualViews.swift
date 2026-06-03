@@ -81,7 +81,7 @@ struct PlayerIdentityCard: View {
             VStack(alignment: .leading, spacing: DS.Spacing.s1) {
                 Text(player.name)
                     .font(.title2.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                 if player.isBot, let difficulty = player.botDifficulty {
                     Text(difficulty.displayName)
                         .font(.subheadline)
@@ -136,10 +136,16 @@ struct AvatarStylePicker: View {
                 } label: {
                     Image(systemName: style.symbolName)
                         .font(.title3)
-                        .foregroundStyle(isSelected ? Brand.background : Brand.textSecondary)
+                        .foregroundStyle(isSelected ? Brand.textPrimary : Brand.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .padding(.vertical, DS.Spacing.s3)
-                        .background(isSelected ? Brand.green : Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                        .background(Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                        .overlay {
+                            if isSelected {
+                                RoundedRectangle(cornerRadius: DS.Radius.sm)
+                                    .strokeBorder(Brand.green, lineWidth: 2)
+                            }
+                        }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(style.displayName)
@@ -166,7 +172,7 @@ struct PlayerColorTokenPicker: View {
                             if isSelected {
                                 Image(systemName: "checkmark")
                                     .font(.caption.weight(.bold))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(Brand.textOnAccent)
                             }
                         }
                         .frame(minWidth: 44, minHeight: 44)

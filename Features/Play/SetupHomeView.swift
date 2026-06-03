@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SetupHomeView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var rosterRowHeight: CGFloat = 52
     @ObservedObject var homeViewModel: PlayHomeViewModel
     @ObservedObject var setupViewModel: MatchSetupViewModel
     @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
@@ -16,7 +19,7 @@ struct SetupHomeView: View {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
                 Text(L10n.appTitle)
                     .font(.largeTitle.weight(.heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                     .padding(.top, DS.Spacing.s2)
 
                 if case let .readyWithActiveMatch(match) = homeViewModel.state {
@@ -49,7 +52,7 @@ struct SetupHomeView: View {
                 .padding(.bottom, DS.Spacing.s2)
                 .background {
                     Brand.background
-                        .shadow(color: .black.opacity(0.25), radius: 10, y: -4)
+                        .shadow(color: setupStickyShadowColor, radius: 10, y: -4)
                         .ignoresSafeArea(edges: .bottom)
                 }
         }
@@ -83,7 +86,7 @@ struct SetupHomeView: View {
                 Spacer()
                 Image(systemName: "chevron.right").foregroundStyle(Brand.textSecondary)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.textPrimary)
             .padding(DS.Spacing.s4)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
                 .overlay(RoundedRectangle(cornerRadius: DS.Radius.md).stroke(Brand.green, lineWidth: 2))
@@ -103,7 +106,7 @@ struct SetupHomeView: View {
         VStack(alignment: .leading, spacing: DS.Spacing.s3) {
             Text(L10n.recentGames)
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Brand.textPrimary)
 
             VStack(spacing: 0) {
                 ForEach(homeViewModel.recentCompletedMatches) { match in
@@ -116,7 +119,7 @@ struct SetupHomeView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(match.participantsLabel)
                                     .font(.subheadline)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(Brand.textPrimary)
                                     .lineLimit(1)
                                 if let winnerName = match.winnerName {
                                     Text(L10n.format("play.home.recentWinnerFormat", winnerName))
@@ -161,8 +164,8 @@ struct SetupHomeView: View {
         return Button { setupViewModel.updateMode(mode) } label: {
             Text(title)
                 .font(.headline)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
+                .foregroundStyle(Brand.textPrimary)
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.vertical, DS.Spacing.s2)
                 .background(isSelected ? Brand.cardElevated : Color.clear, in: Capsule())
         }
@@ -172,17 +175,32 @@ struct SetupHomeView: View {
         .accessibilityIdentifier(mode == .x01 ? "setup_mode_x01" : "setup_mode_cricket")
     }
 
+    @ViewBuilder
     private var chipsGrid: some View {
-        VStack(spacing: DS.Spacing.s3) {
-            HStack(spacing: DS.Spacing.s3) {
+        if dynamicTypeSize.isAccessibilitySize {
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
+                spacing: DS.Spacing.s3
+            ) {
                 pointsChip
                 checkoutChip
                 setsChip
-            }
-            HStack(spacing: DS.Spacing.s3) {
                 legFormatChip
                 checkInChip
                 legsChip
+            }
+        } else {
+            VStack(spacing: DS.Spacing.s3) {
+                HStack(spacing: DS.Spacing.s3) {
+                    pointsChip
+                    checkoutChip
+                    setsChip
+                }
+                HStack(spacing: DS.Spacing.s3) {
+                    legFormatChip
+                    checkInChip
+                    legsChip
+                }
             }
         }
     }
@@ -293,7 +311,11 @@ struct SetupHomeView: View {
 
     private func chip<Content: View>(title: LocalizedStringKey, color: Color, @ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 6) {
-            Text(title).font(.caption).foregroundStyle(Brand.textSecondary)
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(Brand.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             content()
         }
         .frame(maxWidth: .infinity)
@@ -302,17 +324,17 @@ struct SetupHomeView: View {
     private func chipBox(_ text: String, color: Color, showsMenuIndicator: Bool = false) -> some View {
         Text(text)
             .font(.headline.weight(.bold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.textPrimary)
             .lineLimit(1)
             .minimumScaleFactor(0.6)
-            .frame(maxWidth: .infinity, minHeight: 48)
+            .frame(maxWidth: .infinity, minHeight: dynamicTypeSize.isAccessibilitySize ? 56 : 48)
             .padding(.horizontal, 4)
             .background(color, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             .overlay(alignment: .topTrailing) {
                 if showsMenuIndicator {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(Brand.textPrimary.opacity(0.85))
                         .padding(5)
                 }
             }
@@ -342,50 +364,69 @@ struct SetupHomeView: View {
     }
 
     private var rosterControls: some View {
-        HStack {
-            Button { setupViewModel.randomOrder.toggle() } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: setupViewModel.randomOrder ? "checkmark.square.fill" : "square")
-                        .foregroundStyle(setupViewModel.randomOrder ? Brand.green : Brand.textSecondary)
-                    Text(L10n.setupRandomOrder).foregroundStyle(.white)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+                    randomOrderToggle
+                    rosterActionButtons
                 }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(L10n.setupRandomOrder)
-            .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
-            Spacer()
-            HStack(spacing: DS.Spacing.s2) {
-                Menu {
-                    ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
-                        botMenuButton(difficulty.displayName, difficulty: difficulty, color: botDifficultyColor(difficulty))
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "cpu")
-                        Text(L10n.addBotTitle).font(.subheadline.weight(.semibold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, DS.Spacing.s3)
-                    .padding(.vertical, DS.Spacing.s2)
-                    .background(Brand.cardElevated, in: Capsule())
-                    .overlay(Capsule().stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
+            } else {
+                HStack {
+                    randomOrderToggle
+                    Spacer()
+                    rosterActionButtons
                 }
-                .accessibilityLabel(L10n.addBotTitle)
-                Button { onQuickAddPlayer() } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "person.badge.plus")
-                        Text(L10n.setupAddPlayers).font(.subheadline.weight(.semibold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, DS.Spacing.s3)
-                    .padding(.vertical, DS.Spacing.s2)
-                    .background(Brand.green, in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(L10n.setupAddPlayers)
             }
         }
         .padding(.top, DS.Spacing.s2)
+    }
+
+    private var randomOrderToggle: some View {
+        Button { setupViewModel.randomOrder.toggle() } label: {
+            HStack(spacing: 8) {
+                Image(systemName: setupViewModel.randomOrder ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(setupViewModel.randomOrder ? Brand.green : Brand.textSecondary)
+                Text(L10n.setupRandomOrder).foregroundStyle(Brand.textPrimary)
+            }
+            .frame(minHeight: 44, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L10n.setupRandomOrder)
+        .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
+    }
+
+    private var rosterActionButtons: some View {
+        HStack(spacing: DS.Spacing.s2) {
+            Menu {
+                ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
+                    botMenuButton(difficulty.displayName, difficulty: difficulty, color: botDifficultyColor(difficulty))
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "cpu")
+                    Text(L10n.addBotTitle).font(.subheadline.weight(.semibold))
+                }
+                .foregroundStyle(Brand.textPrimary)
+                .padding(.horizontal, DS.Spacing.s3)
+                .padding(.vertical, DS.Spacing.s3)
+                .frame(minHeight: 44)
+                .background(Brand.cardElevated, in: Capsule())
+                .overlay(Capsule().stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
+            }
+            .accessibilityLabel(L10n.addBotTitle)
+            Button { onQuickAddPlayer() } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "person.badge.plus")
+                    Text(L10n.setupAddPlayers).font(.subheadline.weight(.semibold))
+                }
+                .foregroundStyle(Brand.textPrimary)
+                .padding(.horizontal, DS.Spacing.s3)
+                .padding(.vertical, DS.Spacing.s2)
+                .background(Brand.green, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.setupAddPlayers)
+        }
     }
 
     private func botMenuButton(_ title: String, difficulty: BotDifficulty, color: Color) -> some View {
@@ -408,7 +449,7 @@ struct SetupHomeView: View {
             VStack(alignment: .leading, spacing: DS.Spacing.s2) {
                 Text(L10n.setupTurnOrder)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                 if setupViewModel.randomOrder {
                     Text(L10n.setupTurnOrderRandomHint)
                         .font(.footnote)
@@ -429,7 +470,7 @@ struct SetupHomeView: View {
                 .scrollContentBackground(.hidden)
                 .scrollDisabled(true)
                 .environment(\.editMode, .constant(setupViewModel.randomOrder ? .inactive : .active))
-                .frame(height: CGFloat(setupViewModel.selectedPlayers.count) * 52)
+                .frame(height: CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight)
                 .accessibilityIdentifier("setup_turnOrderList")
             }
         }
@@ -446,13 +487,13 @@ struct SetupHomeView: View {
         } else if !setupViewModel.availableHumans.isEmpty || !setupViewModel.availableBots.isEmpty {
             VStack(alignment: .leading, spacing: DS.Spacing.s3) {
                 if !setupViewModel.availableBots.isEmpty {
-                    Text(L10n.botsSectionTitle).font(.headline).foregroundStyle(.white)
+                    Text(L10n.botsSectionTitle).font(.headline).foregroundStyle(Brand.textPrimary)
                     botRosterList
                 }
                 if !setupViewModel.availableHumans.isEmpty {
                     Text(L10n.addToMatchSection)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
                     humanRosterList
                 }
             }
@@ -475,7 +516,7 @@ struct SetupHomeView: View {
             }
             Text(player.name)
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Brand.textPrimary)
             Spacer()
         }
         .accessibilityLabel(
@@ -565,5 +606,9 @@ struct SetupHomeView: View {
         case .hard: Brand.red
         case .pro: Brand.proBot
         }
+    }
+
+    private var setupStickyShadowColor: Color {
+        colorScheme == .light ? .black.opacity(0.08) : .black.opacity(0.25)
     }
 }

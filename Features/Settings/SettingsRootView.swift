@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsRootView: View {
     let dependencies: AppDependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @ObservedObject private var preferences: UserPreferencesStore
     @State private var path: [SettingsRoute] = []
     @StateObject private var viewModel: SettingsViewModel
     @State private var retryTask: Task<Void, Never>?
@@ -13,6 +14,7 @@ struct SettingsRootView: View {
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
+        _preferences = ObservedObject(wrappedValue: dependencies.userPreferencesStore)
         _viewModel = StateObject(
             wrappedValue: SettingsViewModel(
                 repository: dependencies.settingsRepository,
@@ -35,6 +37,14 @@ struct SettingsRootView: View {
                             L10n.errorTitle,
                             systemImage: "exclamationmark.triangle",
                             description: Text(LocalizedStringKey(messageKey))
+                                .foregroundStyle(
+                                    AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
+                                        ? Brand.textSecondary
+                                        : DS.ColorRole.textSecondary
+                                )
+                        )
+                        .brandScoreboardEmptyState(
+                            when: AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
                         )
                         .overlay(alignment: .bottom) {
                             Button(L10n.retry) {
@@ -42,6 +52,7 @@ struct SettingsRootView: View {
                                 retryTask = Task { await viewModel.onAppear() }
                             }
                             .buttonStyle(.borderedProminent)
+                            .tint(Brand.green)
                             .padding(.bottom, DS.Spacing.s6)
                         }
                     default:
@@ -50,6 +61,7 @@ struct SettingsRootView: View {
                 }
             }
             .navigationTitle(L10n.settingsTitle)
+            .brandSettingsNavigationChrome(appearanceModeRaw: preferences.appearanceModeRaw)
             .task { await viewModel.onAppear() }
             .confirmationDialog(
                 L10n.resetConfirmTitle,
@@ -86,7 +98,7 @@ struct SettingsRootView: View {
         let usesBrand = AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: settings.appearanceModeRaw)
 
         Form {
-            Section(L10n.appearanceSection) {
+            Section {
                 Picker("settings.theme.label", selection: Binding(
                     get: { settings.appearanceModeRaw },
                     set: { viewModel.queueAppearanceUpdate($0) }
@@ -94,6 +106,12 @@ struct SettingsRootView: View {
                     Text("settings.theme.system").tag("system")
                     Text("settings.theme.light").tag("light")
                     Text("settings.theme.dark").tag("dark")
+                }
+            } header: {
+                Text(L10n.appearanceSection)
+            } footer: {
+                if settings.appearanceModeRaw != "dark" {
+                    Text("settings.theme.footer")
                 }
             }
             .brandFormRowBackground(when: usesBrand)
@@ -238,7 +256,7 @@ struct SettingsRootView: View {
         .frame(maxWidth: contentMaxWidth)
         .frame(maxWidth: .infinity, alignment: .center)
         .safeAreaPadding(.bottom, DS.Spacing.s6)
-        .brandSettingsChrome(appearanceModeRaw: settings.appearanceModeRaw)
+        .brandSettingsFormChrome(appearanceModeRaw: settings.appearanceModeRaw)
     }
 
     private func queueGameplayDefaults(

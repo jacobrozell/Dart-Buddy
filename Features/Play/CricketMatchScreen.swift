@@ -17,7 +17,7 @@ struct CricketMatchScreen: View {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 Text(L10n.cricketTitle)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
             }
 
             if let state = viewModel.cricketState {
@@ -67,7 +67,7 @@ struct CricketMatchScreen: View {
                 .padding(.bottom, DS.Spacing.s2)
             } else {
                 Spacer()
-                ProgressView().tint(.white)
+                ProgressView().tint(Brand.textPrimary)
                 Spacer()
             }
         }
@@ -142,14 +142,14 @@ struct CricketMatchScreen: View {
                 EmptyView()
             }
         case .submittingTurn:
-            Text(L10n.submittingTurn).foregroundStyle(.white)
+            Text(L10n.submittingTurn).foregroundStyle(Brand.textPrimary)
         case .closureTransition:
             MatchFeedbackBanner(text: L10n.cricketTargetClosed, style: .cricketClosure)
                 .accessibilityIdentifier("cricketTargetClosedBanner")
         case let .entryInvalid(key), let .error(key):
             ErrorBanner(messageKey: key)
         case .matchCompleted:
-            Text(L10n.matchCompleteRoute).foregroundStyle(.white)
+            Text(L10n.matchCompleteRoute).foregroundStyle(Brand.textPrimary)
         }
     }
 }

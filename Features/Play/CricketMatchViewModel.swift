@@ -107,7 +107,17 @@ final class CricketMatchViewModel: ObservableObject {
             message: "Cricket match screen presented."
         )
         await loadSessionIfNeeded()
+        reconcileInterruptedBotPlayback()
         await playBotTurnIfNeeded()
+    }
+
+    /// Clears transient bot UI when the screen reappears after a cancelled bot task.
+    private func reconcileInterruptedBotPlayback() {
+        isBotPlaying = false
+        enteredDarts.removeAll()
+        if state == .submittingTurn {
+            state = .readyTurn
+        }
     }
 
     func playBotTurnIfNeeded() async {
@@ -117,6 +127,7 @@ final class CricketMatchViewModel: ObservableObject {
               let cricketState = session?.runtime.cricketState else { return }
 
         isBotPlaying = true
+        defer { isBotPlaying = false }
         logger.matchDebug(
             matchId: matchId,
             matchType: .cricket,
@@ -135,12 +146,19 @@ final class CricketMatchViewModel: ObservableObject {
 
         let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
         for dart in plannedDarts {
-            try? await Task.sleep(nanoseconds: dartDelay)
+            do {
+                try await Task.sleep(nanoseconds: dartDelay)
+            } catch {
+                return
+            }
             enteredDarts.append(dart)
         }
 
-        try? await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        isBotPlaying = false
+        do {
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+        } catch {
+            return
+        }
         await submitTurnAsync()
     }
 
@@ -194,6 +212,11 @@ final class CricketMatchViewModel: ObservableObject {
         state = .submittingTurn
         let wasHumanTurn = currentBotDifficulty == nil
         let submittedVisitTotal = enteredDarts.reduce(0) { $0 + $1.points }
+        let throwingPlayerIndex = current.runtime.cricketState?.currentPlayerIndex
+        let marksBeforeTurn = current.runtime.cricketState.flatMap { state in
+            guard let index = throwingPlayerIndex else { return nil as [String: Int]? }
+            return state.players[index].marks
+        }
         do {
             do {
                 current = try PerformanceMonitor.measure(
@@ -263,8 +286,16 @@ final class CricketMatchViewModel: ObservableObject {
                 )
                 state = .matchCompleted
             } else {
-                state = .closureTransition
-                try? await Task.sleep(nanoseconds: 550_000_000)
+                let didCloseTarget = Self.didCloseAnyCricketTarget(
+                    before: marksBeforeTurn,
+                    after: throwingPlayerIndex.flatMap { index in
+                        current.runtime.cricketState?.players[index].marks
+                    }
+                )
+                if didCloseTarget {
+                    state = .closureTransition
+                    try? await Task.sleep(nanoseconds: 550_000_000)
+                }
                 state = .readyTurn
                 if current.runtime.status != .completed {
                     await playBotTurnIfNeeded()
@@ -296,6 +327,7 @@ final class CricketMatchViewModel: ObservableObject {
                 message: "Last turn undone.",
                 metadata: matchProgressMetadata(for: undone)
             )
+            await playBotTurnIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {
@@ -430,5 +462,15 @@ final class CricketMatchViewModel: ObservableObject {
             return appError.userMessageKey
         }
         return fallback
+    }
+
+    private static func didCloseAnyCricketTarget(before: [String: Int]?, after: [String: Int]?) -> Bool {
+        guard let before, let after else { return false }
+        return CricketTarget.allCases.contains { target in
+            let key = target.rawValue
+            let prior = before[key] ?? 0
+            let next = after[key] ?? 0
+            return prior < 3 && next >= 3
+        }
     }
 }

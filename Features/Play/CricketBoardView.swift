@@ -37,12 +37,12 @@ struct CricketBoardPlayerHeaderRow: View {
                     VStack(spacing: 2) {
                         Text(column.name)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(column.isActive ? Brand.green : .white)
+                            .foregroundStyle(column.isActive ? Brand.green : Brand.textPrimary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
                         Text("\(column.score)")
                             .font(.title3.weight(.heavy))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Brand.textPrimary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s2)
@@ -117,7 +117,7 @@ struct CricketMarkCell: View {
     let targetLabel: String
     let marks: Int
 
-    private var tint: Color { marks >= 3 ? Brand.green : .white }
+    private var tint: Color { marks >= 3 ? Brand.green : Brand.textPrimary }
 
     var body: some View {
         ZStack {
@@ -173,6 +173,10 @@ struct CricketTapPad: View {
     let onSubmit: () -> Void
     let onUndoTurn: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
+    @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
+
     private let spacing: CGFloat = 6
     private let numberRows: [[String]] = [
         ["20", "19", "18"],
@@ -218,13 +222,13 @@ struct CricketTapPad: View {
                 ) { appendMiss() }
             }
             HStack(spacing: spacing) {
-                modifierKey(.double, title: L10n.string("scoring.pad.double"), identifier: "cricket_double")
-                modifierKey(.triple, title: L10n.string("scoring.pad.triple"), identifier: "cricket_triple")
+                modifierKey(.double, identifier: "cricket_double")
+                modifierKey(.triple, identifier: "cricket_triple")
                 Button(action: undo) {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .foregroundStyle(Brand.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: keyMinHeight)
                         .background(Brand.red, in: RoundedRectangle(cornerRadius: 8))
                 }
                 .accessibilityLabel(L10n.scoringUndoLastTurn)
@@ -233,8 +237,10 @@ struct CricketTapPad: View {
             Button(action: onSubmit) {
                 Text(L10n.scoringEnter)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .foregroundStyle(Brand.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity, minHeight: keyMinHeight)
                     .background(canSubmit ? Brand.green : Brand.green.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
             }
             .disabled(!canSubmit)
@@ -248,9 +254,11 @@ struct CricketTapPad: View {
         HStack(spacing: 6) {
             ForEach(0 ..< 3, id: \.self) { slot in
                 Text(slot < enteredDarts.count ? dartLabel(enteredDarts[slot]) : "")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .font(.caption.weight(.bold).monospacedDigit())
+                    .foregroundStyle(Brand.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, minHeight: visitSlotMinHeight)
                     .background(Brand.dartBox, in: RoundedRectangle(cornerRadius: 6))
             }
         }
@@ -265,7 +273,8 @@ struct CricketTapPad: View {
         return L10n.format("scoring.visitDartsFormat", names.joined(separator: ", "))
     }
 
-    private func modifierKey(_ multiplier: DartMultiplier, title: String, identifier: String) -> some View {
+    private func modifierKey(_ multiplier: DartMultiplier, identifier: String) -> some View {
+        let title = ScoringPadLabels.modifierTitle(multiplier, dynamicTypeSize: dynamicTypeSize)
         let isSelected = selectedMultiplier == multiplier
         let background: Color = {
             switch multiplier {
@@ -303,11 +312,11 @@ struct CricketTapPad: View {
     ) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 17, weight: weight))
-                .foregroundStyle(.white)
+                .font(.body.weight(weight))
+                .foregroundStyle(Brand.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: 52)
+                .frame(maxWidth: .infinity, minHeight: keyMinHeight)
                 .background(background, in: RoundedRectangle(cornerRadius: 8))
         }
         .accessibilityLabel(accessibilityLabel ?? title)

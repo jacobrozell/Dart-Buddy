@@ -18,13 +18,14 @@ struct MigrationRecoveryView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
             Text(L10n.migrationTitle)
                 .font(.title2)
                 .bold()
+                .foregroundStyle(Brand.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             Text(L10n.migrationMessage)
-                .foregroundStyle(DS.ColorRole.textSecondary)
+                .foregroundStyle(Brand.textSecondary)
             if viewModel.context.options.canRetry {
                 Button(L10n.migrationRetry) { viewModel.tapRetry() }
                     .accessibilityLabel(L10n.string("migration.retry.accessibility"))
@@ -42,19 +43,21 @@ struct MigrationRecoveryView: View {
             }
             Text(L10n.format("migration.errorKeyFormat", viewModel.context.error.userMessageKey))
                 .font(.footnote)
-                .foregroundStyle(DS.ColorRole.textSecondary)
+                .foregroundStyle(Brand.textSecondary)
                 .accessibilityIdentifier("migration_errorKey")
             Text(L10n.format("migration.stateFormat", String(describing: viewModel.state)))
                 .font(.footnote)
-                .foregroundStyle(DS.ColorRole.textSecondary)
+                .foregroundStyle(Brand.textSecondary)
             if case let .exportCompleted(path) = viewModel.state {
                 Text(L10n.format("migration.diagnosticsExported", path))
                     .font(.footnote)
-                    .foregroundStyle(DS.ColorRole.textSecondary)
+                    .foregroundStyle(Brand.textSecondary)
                     .accessibilityIdentifier("migration_exportPath")
             }
         }
-        .padding(24)
+        .padding(DS.Spacing.s6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Brand.background.ignoresSafeArea())
         .accessibilityElement(children: .contain)
     }
 }

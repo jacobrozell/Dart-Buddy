@@ -31,7 +31,7 @@ struct HistoryRootView: View {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
                     Text(L10n.historyTitle)
                         .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
 
                     BrandSegmented(
                         options: [
@@ -153,7 +153,7 @@ struct HistoryRootView: View {
                 Button(action: { onStartMatch?() }) {
                     Text(L10n.startMatchCTA)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
                 }
@@ -200,7 +200,7 @@ struct HistoryRootView: View {
                     .font(.caption.weight(.semibold))
             }
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.textPrimary)
             .padding(.horizontal, DS.Spacing.s3)
             .padding(.vertical, DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
@@ -227,7 +227,7 @@ struct HistoryRootView: View {
                 Spacer()
                 Image(systemName: "chevron.right").foregroundStyle(Brand.textSecondary)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.textPrimary)
             .padding(DS.Spacing.s4)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
             .overlay(RoundedRectangle(cornerRadius: DS.Radius.md).stroke(Brand.green, lineWidth: 2))
@@ -252,7 +252,7 @@ struct MatchHistoryCard: View {
             HStack {
                 Text(row.dateText)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                 Spacer()
                 if row.isFinished {
                     StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
@@ -266,16 +266,18 @@ struct MatchHistoryCard: View {
                 HStack(alignment: .center) {
                     Text("\(index + 1). \(standing.name)")
                         .font(.body.weight(standing.isWinner ? .semibold : .regular))
-                        .foregroundStyle(standing.isWinner ? .white : Brand.textSecondary)
+                        .foregroundStyle(standing.isWinner ? Brand.textPrimary : Brand.textSecondary)
                         .lineLimit(1)
                     Spacer()
                     VStack(alignment: .trailing, spacing: 0) {
-                        Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
-                            .font(.caption)
-                            .foregroundStyle(Brand.textSecondary)
+                        if row.summary.type == .x01 {
+                            Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
+                                .font(.caption)
+                                .foregroundStyle(Brand.textSecondary)
+                        }
                         Text("\(standing.score)")
                             .font(.title3.weight(.bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Brand.textPrimary)
                     }
                 }
                 .padding(.top, 2)

@@ -31,11 +31,11 @@ struct MatchHistoryDetailScreen: View {
             VStack(alignment: .leading, spacing: DS.Spacing.s5) {
                 Text(L10n.historyGameStatistics)
                     .font(.largeTitle.weight(.heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 if viewModel.state == "loading" {
-                    ProgressView().tint(.white)
+                    ProgressView().tint(Brand.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s6)
                 } else if viewModel.state == "error" {
@@ -82,7 +82,7 @@ struct MatchHistoryDetailScreen: View {
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
             .font(.title2.weight(.bold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Brand.textPrimary)
             .frame(maxWidth: .infinity)
     }
 
@@ -135,7 +135,7 @@ struct MatchHistoryDetailScreen: View {
             HStack {
                 Text(viewModel.dateText)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                 Spacer()
                 StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
             }
@@ -148,15 +148,17 @@ struct MatchHistoryDetailScreen: View {
                 HStack {
                     Text("\(index + 1). \(standing.name)")
                         .font(.body.weight(standing.isWinner ? .semibold : .regular))
-                        .foregroundStyle(standing.isWinner ? .white : Brand.textSecondary)
+                        .foregroundStyle(standing.isWinner ? Brand.textPrimary : Brand.textSecondary)
                     Spacer()
                     VStack(alignment: .trailing, spacing: 0) {
-                        Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
-                            .font(.caption)
-                            .foregroundStyle(Brand.textSecondary)
+                        if viewModel.isX01 {
+                            Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
+                                .font(.caption)
+                                .foregroundStyle(Brand.textSecondary)
+                        }
                         Text("\(standing.score)")
                             .font(.title3.weight(.bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Brand.textPrimary)
                     }
                 }
             }
@@ -175,7 +177,7 @@ struct MatchHistoryDetailScreen: View {
                 withAnimation { showTimeline.toggle() }
             } label: {
                 HStack {
-                    Text(L10n.historyTurnByTurn).font(.headline).foregroundStyle(.white)
+                    Text(L10n.historyTurnByTurn).font(.headline).foregroundStyle(Brand.textPrimary)
                     Spacer()
                     Image(systemName: showTimeline ? "chevron.up" : "chevron.down")
                         .foregroundStyle(Brand.textSecondary)

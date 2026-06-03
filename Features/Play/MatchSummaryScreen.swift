@@ -8,6 +8,7 @@ struct MatchSummaryScreen: View {
     @State private var celebrate = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @ScaledMetric(relativeTo: .largeTitle) private var trophySize: CGFloat = 56
 
     private var isRegularWidth: Bool { horizontalSizeClass == .regular }
 
@@ -15,7 +16,7 @@ struct MatchSummaryScreen: View {
         GeometryReader { geometry in
             ScrollView {
                 summaryContent
-                    .frame(minHeight: isRegularWidth ? geometry.size.height : nil)
+                    .frame(minHeight: geometry.size.height)
             }
         }
         .background(Brand.background.ignoresSafeArea())
@@ -49,8 +50,9 @@ struct MatchSummaryScreen: View {
                     playerCard(row)
                 }
             } else {
-                Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(.white)
+                Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(Brand.textPrimary)
             }
+            if !isRegularWidth { Spacer(minLength: DS.Spacing.s4) }
             actions
             if isRegularWidth { Spacer(minLength: 0) }
         }
@@ -62,7 +64,7 @@ struct MatchSummaryScreen: View {
     private var celebrationHeader: some View {
         VStack(spacing: DS.Spacing.s2) {
             Image(systemName: "trophy.fill")
-                .font(.system(size: 56))
+                .font(.system(size: trophySize))
                 .foregroundStyle(Brand.amber)
                 .scaleEffect(celebrate ? 1 : (reduceMotion ? 1 : 0.4))
                 .opacity(celebrate ? 1 : (reduceMotion ? 1 : 0))
@@ -71,7 +73,7 @@ struct MatchSummaryScreen: View {
             if let winnerName = viewModel.winnerName {
                 Text(L10n.format("play.summary.winsFormat", winnerName))
                     .font(.title.weight(.heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.textPrimary)
                     .multilineTextAlignment(.center)
             }
             Text(viewModel.typeLabel)
@@ -102,11 +104,18 @@ struct MatchSummaryScreen: View {
                     }
                     Text(row.name)
                         .font(.headline)
-                        .foregroundStyle(row.isWinner ? Brand.amber : .white)
+                        .foregroundStyle(row.isWinner ? Brand.amber : Brand.textPrimary)
                 }
-                HStack(spacing: DS.Spacing.s3) {
-                    ForEach(row.stats, id: \.label) { stat in
-                        StatChip(value: stat.value, label: LocalizedStringKey(stat.label))
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: DS.Spacing.s3) {
+                        ForEach(row.stats, id: \.label) { stat in
+                            StatChip(value: stat.value, label: LocalizedStringKey(stat.label))
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                        ForEach(row.stats, id: \.label) { stat in
+                            StatChip(value: stat.value, label: LocalizedStringKey(stat.label))
+                        }
                     }
                 }
             }
@@ -130,7 +139,7 @@ struct MatchSummaryScreen: View {
             PrimaryActionButton(title: L10n.summaryNewMatch, action: onStartNewMatch)
             Button(action: { onViewHistoryDetail(viewModel.matchId) }) {
                 Text(L10n.summaryViewGameStatistics)
-                    .font(.headline).foregroundStyle(.white)
+                    .font(.headline).foregroundStyle(Brand.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
             }
