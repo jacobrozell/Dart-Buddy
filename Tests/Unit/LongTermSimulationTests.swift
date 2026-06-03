@@ -194,7 +194,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
         played += 1
     }
 
-    // 5 Cricket games (first seat closes everything).
+    // 5 Cricket games (first seat closes everything, then opponent closes for completion).
     for index in 0 ..< 5 {
         let (a, b) = pairs[index % pairs.count]
         let ordered = index.isMultiple(of: 2) ? [a, b] : [b, a]
@@ -333,13 +333,18 @@ private enum Turns {
         [d(.triple, 20), d(.triple, 19), d(.double, 12)]  // P0 141 checkout (double out) -> win
     ]
 
-    /// Cricket: first seat closes 20-15 + bull while the opponent misses.
+    /// Cricket: first seat closes 20-15 + bull while the opponent misses, then opponent closes all.
     static let cricketSweep: [[DartInput]] = [
         [d(.triple, 20), d(.triple, 19), d(.triple, 18)], // P0 closes 20,19,18
         [miss, miss, miss],                               // P1
         [d(.triple, 17), d(.triple, 16), d(.triple, 15)], // P0 closes 17,16,15
         [miss, miss, miss],                               // P1
-        [innerBull, innerBull]                            // P0 closes bull -> win
+        [innerBull, innerBull],                           // P0 closes bull
+        [d(.triple, 20), d(.triple, 19), d(.triple, 18)], // P1 closes 20,19,18
+        [miss, miss, miss],                               // P0
+        [d(.triple, 17), d(.triple, 16), d(.triple, 15)], // P1 closes 17,16,15
+        [miss, miss, miss],                               // P0
+        [innerBull, innerBull]                            // P1 closes bull -> match ends
     ]
 
     /// 301 single-out, first-to-2-legs, first seat sweeps both legs (total entry).

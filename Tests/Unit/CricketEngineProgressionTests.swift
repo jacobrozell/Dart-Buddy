@@ -18,20 +18,113 @@ private func submit(_ state: CricketState, _ darts: [DartInput]) throws -> Crick
 }
 
 @Test(.tags(.unit, .cricket, .critical, .offline, .regression))
-func cricketDetectsWinWhenAllTargetsClosedAndLeading() throws {
+func cricketDoesNotCompleteWhenOnlyFirstPlayerClosesAllTargets() throws {
     let players = twoCricketPlayers()
     var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
 
-    state = try submit(state, [triple(20), triple(19), triple(18)]) // p0 closes 20/19/18
-    state = try submit(state, [miss(), miss(), miss()])             // p1
-    state = try submit(state, [triple(17), triple(16), triple(15)]) // p0 closes 17/16/15
-    state = try submit(state, [miss(), miss(), miss()])             // p1
+    state = try submit(state, [triple(20), triple(19), triple(18)])
+    state = try submit(state, [miss(), miss(), miss()])
+    state = try submit(state, [triple(17), triple(16), triple(15)])
+    state = try submit(state, [miss(), miss(), miss()])
 
-    let outcome = try CricketEngine.submitTurn(state: state, darts: [innerBull, outerBull]) // closes bull
+    let outcome = try CricketEngine.submitTurn(state: state, darts: [innerBull, outerBull])
+    #expect(!outcome.updatedState.isComplete)
+    #expect(outcome.updatedState.winnerPlayerId == nil)
+    #expect(outcome.updatedState.currentPlayerIndex == 1)
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketCompletesWhenAllPlayersClosedAllTargetsHighestScoreWins() throws {
+    let players = twoCricketPlayers()
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+
+    state = try submit(state, [triple(20), triple(19), triple(18)])
+    state = try submit(state, [miss(), miss(), miss()])
+    state = try submit(state, [triple(17), triple(16), triple(15)])
+    state = try submit(state, [miss(), miss(), miss()])
+    state = try submit(state, [innerBull, outerBull])
+    #expect(!state.isComplete)
+
+    state = try submit(state, [triple(20), triple(19), triple(18)])
+    state = try submit(state, [miss(), miss(), miss()])
+    state = try submit(state, [triple(17), triple(16), triple(15)])
+    state = try submit(state, [miss(), miss(), miss()])
+
+    let outcome = try CricketEngine.submitTurn(state: state, darts: [innerBull, outerBull])
     #expect(outcome.updatedState.isComplete)
     #expect(outcome.updatedState.winnerPlayerId == players[0])
-    // No overflow points were ever earned because opponent stayed open on already-closed targets.
     #expect(outcome.updatedState.players[0].score == 0)
+    #expect(outcome.updatedState.players[1].score == 0)
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketCompletesOnlyAfterEveryPlayerClosesAllTargetsThreePlayers() throws {
+    let players = [UUID(), UUID(), UUID()]
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+
+    let sweeps: [[DartInput]] = [
+        [triple(20), triple(19), triple(18)],
+        [triple(17), triple(16), triple(15)],
+        [innerBull, outerBull]
+    ]
+    var sweepsDone = Array(repeating: 0, count: players.count)
+
+    for turn in 0 ..< (players.count * sweeps.count) {
+        let idx = state.currentPlayerIndex
+        state = try submit(state, sweeps[sweepsDone[idx]])
+        sweepsDone[idx] += 1
+        if turn < (players.count * sweeps.count) - 1 {
+            #expect(!state.isComplete)
+        }
+    }
+
+    #expect(state.isComplete)
+    #expect(state.winnerPlayerId == players[0])
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketUIEquivalentTwoPlayerCloseSequenceCompletesMatch() throws {
+    let players = twoCricketPlayers()
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+
+    let closeNumbers: [DartInput] = [triple(20), triple(19), triple(18)]
+    let closeLowNumbers: [DartInput] = [triple(17), triple(16), triple(15)]
+    let closeBull: [DartInput] = [
+        DartInput(multiplier: .single, segment: .innerBull),
+        DartInput(multiplier: .single, segment: .innerBull)
+    ]
+
+    for _ in players {
+        state = try submit(state, closeNumbers)
+        state = try submit(state, closeLowNumbers)
+        state = try submit(state, closeBull)
+    }
+
+    #expect(state.isComplete)
+    #expect(state.winnerPlayerId == players[0])
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketHighestScoreWinsWhenBoardFullyClosedNotFirstFinisher() throws {
+    let players = twoCricketPlayers()
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+
+    state = try submit(state, [triple(20)])
+    state = try submit(state, [miss(), miss(), miss()])
+    state = try submit(state, [triple(20)])
+    #expect(state.players[0].score == 60)
+
+    state = try submit(state, [triple(20), triple(19), triple(18)])
+    state = try submit(state, [triple(20), triple(19), triple(18)])
+    state = try submit(state, [triple(17), triple(16), triple(15)])
+    state = try submit(state, [triple(17), triple(16), triple(15)])
+    state = try submit(state, [innerBull, outerBull])
+    state = try submit(state, [innerBull, outerBull])
+
+    #expect(state.isComplete)
+    #expect(state.winnerPlayerId == players[0])
+    #expect(state.players[0].score == 60)
+    #expect(state.players[1].score == 0)
 }
 
 @Test(.tags(.unit, .cricket, .critical, .offline, .regression))

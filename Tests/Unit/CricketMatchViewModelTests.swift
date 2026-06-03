@@ -117,15 +117,36 @@ func cricketViewModelSkipsClosureTransitionWhenTargetNotClosed() async throws {
 
 @MainActor
 @Test(.tags(.integration, .cricket, .match, .critical, .regression))
-func cricketViewModelCompletesMatchOnFinalClose() async throws {
-    // Pre-close everything for player 0 except the bull; opponent throws misses.
+func cricketViewModelDoesNotCompleteWhenOnlyFirstPlayerClosesAllTargets() async throws {
     let (vm, store) = try makeCricketViewModel(preTurns: [
         [triple(20), triple(19), triple(18)],
         [cricketMiss(), cricketMiss(), cricketMiss()],
         [triple(17), triple(16), triple(15)],
         [cricketMiss(), cricketMiss(), cricketMiss()]
     ])
-    vm.enteredDarts = [cricketInnerBull, cricketOuterBull] // closes the bull (2 + 1 marks)
+    vm.enteredDarts = [cricketInnerBull, cricketOuterBull]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn)
+    #expect(store.completedSessions().isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .critical, .regression))
+func cricketViewModelCompletesWhenAllPlayersCloseAllTargets() async throws {
+    let (vm, store) = try makeCricketViewModel(preTurns: [
+        [triple(20), triple(19), triple(18)],
+        [cricketMiss(), cricketMiss(), cricketMiss()],
+        [triple(17), triple(16), triple(15)],
+        [cricketMiss(), cricketMiss(), cricketMiss()],
+        [cricketInnerBull, cricketOuterBull],
+        [triple(20), triple(19), triple(18)],
+        [cricketMiss(), cricketMiss(), cricketMiss()],
+        [triple(17), triple(16), triple(15)],
+        [cricketMiss(), cricketMiss(), cricketMiss()]
+    ])
+    vm.enteredDarts = [cricketInnerBull, cricketOuterBull]
 
     await vm.submitTurn()
 

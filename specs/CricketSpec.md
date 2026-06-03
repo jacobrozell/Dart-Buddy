@@ -19,9 +19,9 @@ Define Cricket gameplay rules, board UI, input model, and persistence for the iP
 ## 3. Rules Engine
 
 ## Match Completion Rule
-Player wins when:
-1. all Cricket targets are closed by that player, and
-2. player score is greater than or equal to every opponent score.
+The match ends when every player has closed all Cricket targets (`20` through `15` and `bull`).
+The winner is the player with the highest score at that moment.
+If multiple players tie for the highest score, the earliest seat in turn order wins.
 
 ## Mark Processing
 - Single/Double/Triple contribute 1/2/3 marks on target
