@@ -163,6 +163,76 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
         case .pro: 0.12
         }
     }
+
+    public var displayProfile: BotDifficultyDisplayProfile {
+        BotDifficultyDisplayProfile(
+            x01: .init(
+                scoringVisitMin: scoringVisitRange.lowerBound,
+                scoringVisitMax: scoringVisitRange.upperBound,
+                hitChances: .init(
+                    single: hitChance(intendedMultiplier: .single),
+                    double: hitChance(intendedMultiplier: .double),
+                    triple: hitChance(intendedMultiplier: .triple)
+                ),
+                checkoutAttemptChance: checkoutAttemptChance,
+                offBoardMissChance: offBoardMissChance,
+                riskyBustChance: riskyDartWhenWouldBustChance,
+                triplePreference: prefersTripleOnScoringSegment,
+                checkInHitBoost: checkInHitBoost,
+                innerBullAimChance: innerBullAimChance,
+                masterInTripleOpenerChance: masterInTripleOpenerChance
+            ),
+            cricket: .init(
+                hitChances: .init(
+                    single: cricketHitChance(intendedMultiplier: .single),
+                    double: cricketHitChance(intendedMultiplier: .double),
+                    triple: cricketHitChance(intendedMultiplier: .triple)
+                ),
+                offBoardMissChance: cricketOffBoardMissChance,
+                wrongBedChance: cricketWrongBedChance
+            )
+        )
+    }
+}
+
+public struct BotDifficultyDisplayProfile: Equatable, Sendable {
+    public struct HitChances: Equatable, Sendable {
+        public let single: Double
+        public let double: Double
+        public let triple: Double
+    }
+
+    public struct X01: Equatable, Sendable {
+        public let scoringVisitMin: Int
+        public let scoringVisitMax: Int
+        public let hitChances: HitChances
+        public let checkoutAttemptChance: Double
+        public let offBoardMissChance: Double
+        public let riskyBustChance: Double
+        public let triplePreference: Double
+        public let checkInHitBoost: Double
+        public let innerBullAimChance: Double
+        public let masterInTripleOpenerChance: Double
+    }
+
+    public struct Cricket: Equatable, Sendable {
+        public let hitChances: HitChances
+        public let offBoardMissChance: Double
+        public let wrongBedChance: Double
+    }
+
+    public let x01: X01
+    public let cricket: Cricket
+
+    public static func percent(_ value: Double, signed: Bool = false) -> String {
+        let formatted = String(format: "%.0f%%", value * 100)
+        if signed, value > 0 { return "+\(formatted)" }
+        return formatted
+    }
+
+    public static func range(_ min: Int, _ max: Int) -> String {
+        "\(min)–\(max)"
+    }
 }
 
 public enum DartBotEngine {
