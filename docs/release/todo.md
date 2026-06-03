@@ -90,8 +90,9 @@ Do not block 1.0 on these.
 
 ### Post-1.0 roadmap
 
+- [ ] **Product backlog** — [`FutureIdeas/backlog.md`](../../FutureIdeas/backlog.md) (CSV export on recovery, a11y gameplay layout, Edit Player colors/symbols, bot names/colors, custom bots, more game types, DE/NL localization).
 - [ ] **Game Center achievements** — [`FutureIdeas/achievements.md`](FutureIdeas/achievements.md) (2–4 day MVP; good 1.1 candidate).
-- [ ] **Play reminders** — [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) (local notifications + Settings; 1–2 day MVP).
+- [ ] **Play reminders / push** — [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) (local notifications + Settings; 1–2 day MVP).
 - [ ] **Firebase Auth** — `../../specs/FirebaseBackendAnalyticsSpec.md` Phase 2
 - [ ] **Online play / Firestore sync** — `../../specs/OnlinePlaySpec.md`
 - [ ] **AI camera auto-scoring** — `AutoScoringVisionSpec`
