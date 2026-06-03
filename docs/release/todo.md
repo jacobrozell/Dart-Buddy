@@ -14,13 +14,13 @@ Ship blockers before App Store. Product scope is complete; remaining work is **e
 
 ### QA sign-off (device)
 
-Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. Work through `release_checklist.md` §1–§6.
+Close `../../roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. Work through `release_checklist.md` §1–§6.
 
-- [ ] **RC smoke pass** — `release_checklist.md` §1–§2 (or `specs/ReleaseGateChecklist.md` + `SmokeTestChecklist.md`) on device (Release build).
+- [ ] **RC smoke pass** — `release_checklist.md` §1–§2 (or `../../specs/ReleaseGateChecklist.md` + `SmokeTestChecklist.md`) on device (Release build).
 - [ ] **Core flow matrix** — Setup → X01 → summary; setup → Cricket → summary; **resume active match**; undo (both modes); history list/detail; **players archive/delete guard**; settings reset flow.
 - [ ] **Appearance matrix** — Portrait/landscape × light/dark on setup + one match screen (screenshots in sign-off doc).
-- [ ] **Accessibility evidence** — VoiceOver core flows, Dynamic Type (AXXXL), non-color meaning; log in `accessibility/wcag-2.1-aa/evidence/` + `accessibility/accessibility_todo.md` Phase 0–1.
-- [ ] **Smoke test evidence** — `specs/SmokeTestEvidenceTemplate.md` screenshots linked from sign-off.
+- [ ] **Accessibility evidence** — VoiceOver core flows, Dynamic Type (AXXXL), non-color meaning; log in `../../accessibility/wcag-2.1-aa/evidence/` + `../../accessibility/accessibility_todo.md` Phase 0–1.
+- [ ] **Smoke test evidence** — `../../specs/SmokeTestEvidenceTemplate.md` screenshots linked from sign-off.
 
 ### Data & recovery (device)
 
@@ -31,18 +31,18 @@ Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. Work th
 Work through [`release_checklist.md`](release_checklist.md) §8–§11.
 
 - [ ] **App icon finalization** — `Resources/Media.xcassets` / `assets/app-icons/`
-- [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL**, **privacy policy URL** (`specs/AppStoreConnectSpec.md`).
+- [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL**, **privacy policy URL** (`../../specs/AppStoreConnectSpec.md`).
 - [ ] **Privacy disclosure** — Hosted privacy policy + App Store privacy labels match app behavior (local-first, Firebase Analytics/Crashlytics in Release, no ads/tracking); validate against `Phase06-Security-Privacy-Checklist.md`.
 - [ ] **Marketing screenshots** — X01, Cricket, setup, history, stats (§8 of `AppStoreConnectSpec`; separate from smoke evidence).
 - [ ] **Release build sanity** — Release config drops debug verbosity; no sensitive data in logs.
-- [ ] **Release notes** — Finalize from `roadmap/release/Release-Notes-Template.md`; tag RC build.
+- [ ] **Release notes** — Finalize from `../../roadmap/release/Release-Notes-Template.md`; tag RC build.
 
 ### Product (1.0 scope)
 
 
 ### UI/UX audit (2026-06-02 — MCP simulator + WCAG suite)
 
-Full audit via XcodeBuildMCP + iOS Simulator MCP. **40/40** `WCAGAccessibilityUITests` passed; manual VO / contrast / AXXXL evidence still required (`todo.md` § QA sign-off). Engineering review: [`docs/ios-code-audit.md`](docs/ios-code-audit.md).
+Full audit via XcodeBuildMCP + iOS Simulator MCP. **40/40** `WCAGAccessibilityUITests` passed; manual VO / contrast / AXXXL evidence still required (`todo.md` § QA sign-off). Engineering review: [`ios-code-audit.md`](../ios-code-audit.md).
 
 #### P1 — High-impact UX
 - [ ] **Statistics: bot with 0 games but non-zero averages** — Partial-stats banner helps; table still confusing when in-progress match includes bots.
@@ -92,8 +92,8 @@ Do not block 1.0 on these.
 
 - [ ] **Game Center achievements** — [`FutureIdeas/achievements.md`](FutureIdeas/achievements.md) (2–4 day MVP; good 1.1 candidate).
 - [ ] **Play reminders** — [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) (local notifications + Settings; 1–2 day MVP).
-- [ ] **Firebase Auth** — `specs/FirebaseBackendAnalyticsSpec.md` Phase 2
-- [ ] **Online play / Firestore sync** — `specs/OnlinePlaySpec.md`
+- [ ] **Firebase Auth** — `../../specs/FirebaseBackendAnalyticsSpec.md` Phase 2
+- [ ] **Online play / Firestore sync** — `../../specs/OnlinePlaySpec.md`
 - [ ] **AI camera auto-scoring** — `AutoScoringVisionSpec`
 - [ ] **External display / AirPlay**
 - [ ] **Voice caller (“180!”)**
@@ -118,7 +118,7 @@ Work below is **blocked on your call** — not just time on device. Everything e
 | **Go / no-go for RC submit** | After `QA-Signoff-RC1.md` is filled — accept remaining P1/P2 polish vs hold for fixes. |
 | **TestFlight before App Store** | Optional buffer (`todo.md` § Skip). Skip = submit straight to review. |
 | **RC build number** | Which Release build gets tagged `1.0.0-rc1` / final `1.0.0`. |
-| **Launch-week hotfix bar** | What counts as P0 post-ship (`roadmap/release/Rollback-and-Hotfix-Criteria.md`). |
+| **Launch-week hotfix bar** | What counts as P0 post-ship (`../../roadmap/release/Rollback-and-Hotfix-Criteria.md`). |
 
 ### App Store & branding
 

@@ -50,17 +50,17 @@ If two specs disagree, the authoritative spec above wins.
 ### 3.1 Repo-level documentation (non-spec)
 | Doc | Owns | Do not copy into |
 |-----|------|------------------|
-| `README.md` | Repo entry, build steps, doc-role index | Feature specs, `todo.md` |
-| `todo.md` | Current sprint, 1.0 blockers, post-1.0 deferrals | README roadmaps, `roadmap/` phase files |
-| `release_checklist.md` | Full device QA + App Store + launch marketing runbook | Spec checklists (abbrev only) |
-| `roadmap/` | Phase delivery history and release runbooks | `todo.md` (link only) |
+| `README.md` | Repo entry, build steps, doc-role index | Feature specs, `docs/release/todo.md` |
+| `docs/release/todo.md` | Current sprint, 1.0 blockers, post-1.0 deferrals | README roadmaps, `roadmap/` phase files |
+| `docs/release/release_checklist.md` | Full device QA + App Store + launch marketing runbook | Spec checklists (abbrev only) |
+| `roadmap/` | Phase delivery history and release runbooks | `docs/release/todo.md` (link only) |
 | `roadmap/archive/` | Historical phase plans and one-time audits | Active docs above |
 | `accessibility/accessibility_todo.md` | A11y engineering phases | `Manual_todo.md` |
 | `accessibility/Manual_todo.md` | Human verification steps | `accessibility_todo.md`, `wcag-2.1-aa/SUMMARY.md` |
 | `accessibility/wcag-2.1-aa/` | Per-screen/criterion status + evidence links | `specs/AccessibilitySpec.md` (requirements only) |
-| `FutureIdeas/` | Post-1.0 feature assessments (Game Center, play reminders, …) | `todo.md` (one-line links only) |
-| `FutureIdeas/achievements.md` | Game Center deep-dive | `todo.md` |
-| `FutureIdeas/play-reminders.md` | Local play reminder notifications | `todo.md` |
+| `FutureIdeas/` | Post-1.0 feature assessments (Game Center, play reminders, …) | `docs/release/todo.md` (one-line links only) |
+| `FutureIdeas/achievements.md` | Game Center deep-dive | `docs/release/todo.md` |
+| `FutureIdeas/play-reminders.md` | Local play reminder notifications | `docs/release/todo.md` |
 
 Full table with QA gates: [`README.md`](../README.md#documentation-map).
 

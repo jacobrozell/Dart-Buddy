@@ -1,13 +1,13 @@
 # Roadmap
 
-**Status:** 1.0 MVP implementation complete. Remaining work is QA evidence and App Store ops — see [`todo.md`](../todo.md).
+**Status:** 1.0 MVP implementation complete. Remaining work is QA evidence and App Store ops — see [`docs/release/todo.md`](../docs/release/todo.md).
 
 ## Active release artifacts
 
 | Doc | Role |
 |-----|------|
-| [`todo.md`](../todo.md) | Current sprint and ship blockers |
-| [`release_checklist.md`](../release_checklist.md) | **Master runbook** — device QA, App Store, Reddit launch |
+| [`docs/release/todo.md`](../docs/release/todo.md) | Current sprint and ship blockers |
+| [`docs/release/release_checklist.md`](../docs/release/release_checklist.md) | **Master runbook** — device QA, App Store, Reddit launch |
 | [`roadmap/release/QA-Signoff-RC1.md`](release/QA-Signoff-RC1.md) | RC Go/No-Go matrix and evidence |
 | [`roadmap/release/Launch-Day-Runbook.md`](release/Launch-Day-Runbook.md) | Launch-day ops |
 | [`roadmap/release/Rollback-and-Hotfix-Criteria.md`](release/Rollback-and-Hotfix-Criteria.md) | Hotfix gates |

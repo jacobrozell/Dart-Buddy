@@ -1,6 +1,6 @@
 # Play Reminders — Assessment & Spec
 
-Assessment for [todo.md](../todo.md) item: *Push notifications — simple reminder to play a game of darts once a week, configurable in Settings, integrated with Firebase.*
+Assessment for [todo.md](../docs/release/todo.md) item: *Push notifications — simple reminder to play a game of darts once a week, configurable in Settings, integrated with Firebase.*
 
 ---
 

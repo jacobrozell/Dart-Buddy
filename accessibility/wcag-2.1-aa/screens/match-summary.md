@@ -13,7 +13,7 @@
 | ID | Status | Implementation notes | Evidence |
 |----|--------|----------------------|----------|
 | P-1.1.1 | Pass | Trophy decorative; header/stats use explicit `accessibilityLabel` | |
-| P-1.3.1 | Partial | Each player row one combined element; column parity UX open (`todo.md`) | |
+| P-1.3.1 | Partial | Each player row one combined element; column parity UX open (`docs/release/todo.md`) | |
 | P-1.3.2 | Untested | Manual VO pass pending | |
 | P-1.3.4 | Untested | | |
 | P-1.4.1 | Pass | Winner/loser text | |

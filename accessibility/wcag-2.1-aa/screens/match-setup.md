@@ -36,7 +36,7 @@
 - [x] Add accessibility labels on option chips
 - [x] Roster row: label + selected state + hint
 - [ ] Verify AXXXL without clipping START or chips
-- [ ] Landscape: roster below tab bar issue (`todo.md`)
+- [ ] Landscape: roster below tab bar issue (`docs/release/todo.md`)
 - [ ] Manual VoiceOver pass
 
 ## Verification log

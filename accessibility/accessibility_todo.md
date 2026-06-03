@@ -7,7 +7,7 @@ Strategic backlog for reaching and **maintaining** WCAG 2.1 Level AA on Dart Bud
 | `specs/AccessibilitySpec.md` | Requirements (what “done” means) |
 | `accessibility/wcag-2.1-aa/` | Per-screen + per-criterion **status** and evidence |
 | `accessibility/accessibility_todo.md` | **This file** — phased work plan |
-| `todo.md` § 1.0 QA sign-off | Release accessibility evidence (links here for detail) |
+| `docs/release/todo.md` § 1.0 QA sign-off | Release accessibility evidence (links here for detail) |
 
 **Current baseline (2026-06-02):** All 13 MVP screens have **zero Required Fail** in code; screens remain **Partial** until manual evidence (`accessibility/Manual_todo.md`, `wcag-2.1-aa/SUMMARY.md`).
 
@@ -117,7 +117,7 @@ Track in: `wcag-2.1-aa/evidence/`
 
 ### 1.3 Dynamic Type (core only)
 
-- [ ] AXXXL: remaining score and pad remain usable (may require layout work from `todo.md` X01 dead space / card legibility).
+- [ ] AXXXL: remaining score and pad remain usable (may require layout work from `docs/release/todo.md` X01 dead space / card legibility).
 - [ ] Introduce scaled typography helper (see Phase 3.1) at least on pad + remaining score.
 
 **Validates:** P-1.4.4 on core flow.
@@ -132,7 +132,7 @@ Track in: `wcag-2.1-aa/evidence/`
 
 ### 2.1 Layout and orientation (feeds WCAG, not only UX)
 
-Linked `todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
+Linked `docs/release/todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
 
 - [ ] iPad / landscape layouts.
 - [ ] Cricket one-screen fit (phone); X01 layout dead space.
@@ -156,7 +156,7 @@ Linked `todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
 
 ### 2.3 Theme and appearance cohesion
 
-- [ ] **Theme cohesion** — Settings vs Play when user prefers dark (`todo.md`) — DBX-CONTRAST-MODES across app.
+- [ ] **Theme cohesion** — Settings vs Play when user prefers dark (`docs/release/todo.md`) — DBX-CONTRAST-MODES across app.
 - [ ] Re-run contrast audit on **light** settings surfaces and **dark** play surfaces.
 
 **Phase 2 done when:** All 13 screen trackers `Screen status: Pass`; `SUMMARY.md` **Overall release status** → `Compliant (MVP scope)`; evidence checklist in `SUMMARY.md` fully checked.
@@ -177,7 +177,7 @@ Linked `todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
 
 ### 3.2 DesignSystem accessibility contract
 
-- [ ] `PrimaryActionButton`, `StatChip`, `ErrorBanner` with default label, hint, identifier (`todo.md`).
+- [ ] `PrimaryActionButton`, `StatChip`, `ErrorBanner` with default label, hint, identifier (`docs/release/todo.md`).
 - [ ] `BrandControls` / chips: expose selected state in accessibility value.
 - [ ] PR template: “uses DS component” → a11y props not reimplemented ad hoc.
 
@@ -225,11 +225,11 @@ Linked `todo.md` items — complete before signing P-1.3.4 / P-1.4.10:
 
 ---
 
-## Workstreams ↔ `todo.md` crosswalk
+## Workstreams ↔ `docs/release/todo.md` crosswalk
 
 These product tasks are **accessibility dependencies** — schedule with Phase 1–2:
 
-| `todo.md` item | WCAG impact |
+| `docs/release/todo.md` item | WCAG impact |
 |----------------|-------------|
 | iPad / landscape layouts | P-1.3.4, P-1.4.10 |
 | Accessibility pass (tracker) | All Phase 0–2 |

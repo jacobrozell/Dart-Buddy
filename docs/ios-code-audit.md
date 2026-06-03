@@ -3,7 +3,7 @@
 **Last reviewed:** 2026-06-03  
 **Scope:** SwiftUI app shell, features, design system, accessibility test harness, documentation hygiene.
 
-This is the engineering audit companion to the UX audit in [`todo.md`](../todo.md) § UI/UX audit. It does not duplicate release QA checklists — use [`release_checklist.md`](../release_checklist.md) for ship evidence.
+This is the engineering audit companion to the UX audit in [`todo.md`](release/todo.md) § UI/UX audit. It does not duplicate release QA checklists — use [`release_checklist.md`](release/release_checklist.md) for ship evidence.
 
 ---
 
@@ -48,7 +48,7 @@ new code has a standard to match.
 |----|---------|----------------|
 | A1 | Manual a11y evidence still open | Complete `accessibility/Manual_todo.md` + link in `QA-Signoff-RC1.md` |
 | A2 | Hardcoded display sizes at AXXXL | `MatchSummaryScreen`, `X01MatchScreen` use `.font(.system(size:))`; prefer `relativeTo:` or cap scale with `@Environment(\.dynamicTypeSize)` |
-| A3 | Statistics bot edge case | Product decision in `todo.md` § Owner decisions |
+| A3 | Statistics bot edge case | Product decision in `docs/release/todo.md` § Owner decisions |
 
 ### P2 — Consistency (code health)
 
