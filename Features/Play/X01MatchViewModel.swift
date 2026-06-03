@@ -37,6 +37,7 @@ final class X01MatchViewModel: ObservableObject {
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
     private let feedbackPreferences: FeedbackPreferences
+    private let turnSubmitter: MatchTurnSubmitter
 
     init(
         matchId: UUID,
@@ -52,6 +53,14 @@ final class X01MatchViewModel: ObservableObject {
         self.matchRepository = matchRepository
         self.statsRepository = statsRepository
         self.feedbackPreferences = feedbackPreferences
+        self.turnSubmitter = MatchTurnSubmitter(
+            matchId: matchId,
+            matchType: .x01,
+            eventTypeRaw: "x01Turn",
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository
+        )
         self.session = store.session(for: matchId)
     }
 
@@ -289,7 +298,7 @@ final class X01MatchViewModel: ObservableObject {
         guard let current = session, current.runtime.status == .inProgress else { return }
         do {
             let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(matchSummary(from: abandoned.runtime))
+            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
             _ = try await matchRepository.saveSnapshot(
                 matchId: matchId,
                 snapshotVersion: abandoned.latestSnapshot.payloadVersion,
@@ -312,7 +321,7 @@ final class X01MatchViewModel: ObservableObject {
                 category: .appLifecycle,
                 eventName: "x01_abandon_failed",
                 message: "Abandon failed.",
-                metadata: appErrorMetadata(for: error)
+                metadata: MatchTurnSupport.appErrorMetadata(for: error)
             )
         }
     }
@@ -326,7 +335,7 @@ final class X01MatchViewModel: ObservableObject {
 
     private func submitTurnAsync() async {
         await loadSessionIfNeeded()
-        guard var current = session else {
+        guard let current = session else {
             logger.matchError(
                 matchId: matchId,
                 matchType: .x01,
@@ -338,71 +347,39 @@ final class X01MatchViewModel: ObservableObject {
         }
         state = .submittingTurn
         let wasHumanTurn = currentBotDifficulty == nil
-        do {
-            let total = inputMode == .totalEntry ? Int(totalEntryText) : nil
-            let darts = inputMode == .dartEntry ? enteredDarts : nil
-            do {
-                current = try PerformanceMonitor.measure(
-                    .submitTurn,
-                    logger: logger,
-                    metadata: ["matchType": MatchType.x01.rawValue]
-                ) {
-                    try MatchLifecycleService.submitX01Turn(
-                        session: current,
-                        enteredTotal: total,
-                        darts: darts
-                    )
-                }
-            } catch is CancellationError {
-                state = .readyTurn
-                return
-            } catch {
-                logger.matchDebug(
-                    matchId: matchId,
-                    matchType: .x01,
-                    eventName: "turn_submit_rejected",
-                    message: "Turn rejected by scoring engine.",
-                    metadata: appErrorMetadata(for: error)
-                )
-                state = .entryInvalid(errorMessageKey(for: error, fallback: "x01.error.invalidTurn"))
-                return
-            }
-            do {
-                try await persistProgress(current)
-            } catch is CancellationError {
-                state = .readyTurn
-                return
-            } catch {
-                logger.matchError(
-                    matchId: matchId,
-                    matchType: .x01,
-                    category: .persistence,
-                    eventName: "turn_persist_failed",
-                    message: "Failed to persist submitted turn.",
-                    metadata: appErrorMetadata(for: error)
-                )
-                state = .error(errorMessageKey(for: error, fallback: "error.repository.storage"))
-                return
-            }
-            store.save(current)
-            session = current
-            logger.matchDebug(
-                matchId: matchId,
-                matchType: .x01,
-                eventName: "turn_submitted",
-                message: "Turn accepted and persisted.",
-                metadata: matchProgressMetadata(for: current)
+        let total = inputMode == .totalEntry ? Int(totalEntryText) : nil
+        let darts = inputMode == .dartEntry ? enteredDarts : nil
+
+        let outcome = await turnSubmitter.submitTurn(
+            from: current,
+            invalidTurnFallbackKey: "x01.error.invalidTurn"
+        ) {
+            try MatchLifecycleService.submitX01Turn(
+                session: current,
+                enteredTotal: total,
+                darts: darts
             )
-            if wasHumanTurn, case let .x01Turn(event) = current.events.last?.payload {
+        }
+
+        switch outcome {
+        case .cancelled:
+            state = .readyTurn
+        case let .rejected(messageKey):
+            state = .entryInvalid(messageKey)
+        case let .persistFailed(messageKey):
+            state = .error(messageKey)
+        case let .succeeded(updated):
+            session = updated
+            if wasHumanTurn, case let .x01Turn(event) = updated.events.last?.payload {
                 turnTotalCallerToken += 1
                 turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: event.appliedTotal)
             }
-            if case let .x01Turn(event) = current.events.last?.payload,
+            if case let .x01Turn(event) = updated.events.last?.payload,
                event.didCheckout,
-               current.runtime.status != .completed {
+               updated.runtime.status != .completed {
                 legFinishSoundToken += 1
             }
-            if current.runtime.status == .completed {
+            if updated.runtime.status == .completed {
                 PerformanceMonitor.measure(
                     .completeMatch,
                     logger: logger,
@@ -414,16 +391,16 @@ final class X01MatchViewModel: ObservableObject {
                     category: .appLifecycle,
                     eventName: "match_completed",
                     message: "X01 match completed.",
-                    metadata: matchProgressMetadata(for: current)
+                    metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
                 )
                 state = .matchCompleted
-            } else if case let .x01Turn(event) = current.events.last?.payload, event.isBust {
+            } else if case let .x01Turn(event) = updated.events.last?.payload, event.isBust {
                 logger.matchDebug(
                     matchId: matchId,
                     matchType: .x01,
                     eventName: "turn_bust",
                     message: "Visit busted.",
-                    metadata: matchProgressMetadata(for: current)
+                    metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
                 )
                 state = .bustFeedback
             } else {
@@ -431,7 +408,7 @@ final class X01MatchViewModel: ObservableObject {
             }
             enteredDarts.removeAll()
             totalEntryText = ""
-            if current.runtime.status != .completed {
+            if updated.runtime.status != .completed {
                 await playBotTurnIfNeeded()
             }
         }
@@ -442,7 +419,7 @@ final class X01MatchViewModel: ObservableObject {
         guard let current = session else { return }
         do {
             let undone = try MatchLifecycleService.undoLastTurn(session: current)
-            try await matchRepository.updateMatch(matchSummary(from: undone.runtime))
+            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: undone.runtime))
             _ = try await matchRepository.saveSnapshot(
                 matchId: matchId,
                 snapshotVersion: undone.latestSnapshot.payloadVersion,
@@ -458,7 +435,7 @@ final class X01MatchViewModel: ObservableObject {
                 matchType: .x01,
                 eventName: "turn_undone",
                 message: "Last turn undone.",
-                metadata: matchProgressMetadata(for: undone)
+                metadata: MatchTurnSupport.matchProgressMetadata(for: undone)
             )
             await playBotTurnIfNeeded()
         } catch is CancellationError {
@@ -469,52 +446,10 @@ final class X01MatchViewModel: ObservableObject {
                 matchType: .x01,
                 eventName: "turn_undo_failed",
                 message: "Undo failed.",
-                metadata: appErrorMetadata(for: error)
+                metadata: MatchTurnSupport.appErrorMetadata(for: error)
             )
-            state = .error(errorMessageKey(for: error, fallback: "x01.error.undoFailed"))
+            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "x01.error.undoFailed"))
         }
-    }
-
-    private func persistProgress(_ current: MatchLifecycleSession) async throws {
-        if let event = current.events.last, event.eventIndex >= 0 {
-            let payload = try CodablePayloadCoder.encode(event)
-            _ = try await matchRepository.appendEvent(
-                matchId: matchId,
-                eventTypeRaw: "x01Turn",
-                eventPayload: payload
-            )
-        }
-        _ = try await matchRepository.saveSnapshot(
-            matchId: matchId,
-            snapshotVersion: current.latestSnapshot.payloadVersion,
-            snapshotPayload: current.latestSnapshot.payload
-        )
-        if current.runtime.status == .completed {
-            _ = try await matchRepository.completeMatch(
-                matchId: matchId,
-                endedAt: current.runtime.endedAt ?? Date(),
-                winnerPlayerId: current.runtime.winnerPlayerId
-            )
-        } else {
-            try await matchRepository.updateMatch(matchSummary(from: current.runtime))
-        }
-    }
-
-    private func matchSummary(from runtime: MatchRuntimeState) -> MatchSummary {
-        MatchSummary(
-            id: runtime.matchId,
-            type: runtime.type,
-            status: MatchStatus(rawValue: runtime.status.rawValue) ?? .inProgress,
-            startedAt: runtime.startedAt,
-            endedAt: runtime.endedAt,
-            winnerPlayerId: runtime.winnerPlayerId,
-            currentTurnPlayerId: runtime.currentTurnPlayerId,
-            currentLegIndex: runtime.currentLegIndex,
-            currentSetIndex: runtime.currentSetIndex,
-            eventCount: runtime.eventCount,
-            createdAt: runtime.startedAt,
-            updatedAt: Date()
-        )
     }
 
     private func loadSessionIfNeeded() async {
@@ -526,7 +461,7 @@ final class X01MatchViewModel: ObservableObject {
                 matchType: .x01,
                 eventName: "match_session_resumed_from_memory",
                 message: "Loaded active match session from memory.",
-                metadata: matchProgressMetadata(for: existing)
+                metadata: MatchTurnSupport.matchProgressMetadata(for: existing)
             )
             return
         }
@@ -565,35 +500,10 @@ final class X01MatchViewModel: ObservableObject {
                 matchType: .x01,
                 eventName: "match_session_load_failed",
                 message: "Failed to load match session.",
-                metadata: appErrorMetadata(for: error)
+                metadata: MatchTurnSupport.appErrorMetadata(for: error)
             )
-            state = .error(errorMessageKey(for: error, fallback: "x01.error.sessionMissing"))
+            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "x01.error.sessionMissing"))
         }
     }
 
-    private func matchProgressMetadata(for session: MatchLifecycleSession) -> [String: String] {
-        [
-            "eventCount": String(session.runtime.eventCount),
-            "legIndex": String(session.runtime.currentLegIndex),
-            "setIndex": String(session.runtime.currentSetIndex),
-            "status": session.runtime.status.rawValue
-        ]
-    }
-
-    private func appErrorMetadata(for error: Error) -> [String: String] {
-        if let appError = error as? AppError {
-            return [
-                "errorCode": appError.code.rawValue,
-                "layer": appError.layer.rawValue
-            ]
-        }
-        return ["errorCode": "unknown"]
-    }
-
-    private func errorMessageKey(for error: Error, fallback: String) -> String {
-        if let appError = error as? AppError {
-            return appError.userMessageKey
-        }
-        return fallback
-    }
 }
