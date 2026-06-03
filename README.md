@@ -87,6 +87,9 @@ Use **one primary doc per concern**. Link instead of copying checklists or backl
 | Accessibility status roll-up | [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) | `todo.md`, README |
 | Accessibility manual checks | [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) | `SUMMARY.md` evidence detail |
 | Accessibility engineering plan | [`accessibility/accessibility_todo.md`](accessibility/accessibility_todo.md) | `Manual_todo.md` (manual vs engineering) |
+| Dark / light mode tracker | [`accessibility/dark-light-mode.md`](accessibility/dark-light-mode.md) | Root `darkmodelightmode.md` (redirect only) |
+| iOS code audit (engineering) | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) | `todo.md` UX audit bullets |
+| Design system tokens | [`DesignSystem/README.md`](DesignSystem/README.md) | Feature Swift files |
 | Fast QA gate | [`specs/ReleaseGateChecklist.md`](specs/ReleaseGateChecklist.md) | `release_checklist.md`, `SmokeTestChecklist.md` |
 | Full smoke test | [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) | `release_checklist.md`, `ReleaseGateChecklist.md` |
 | Device + App Store runbook | [`release_checklist.md`](release_checklist.md) | Duplicating full matrices in `todo.md` |

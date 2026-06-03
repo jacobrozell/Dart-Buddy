@@ -93,3 +93,23 @@ Logging implementation details are defined in `specs/LoggingSpec.md`.
 - Keep scoring actions command-based (`submitTurn`, `undo`) rather than view-driven mutations.
 - Ensure all accepted score actions become deterministic events so watch-originated input works identically.
 - See `specs/AppleWatchCompanionSpec.md`.
+
+---
+
+## 9. Codebase map (repo layout)
+
+Authoritative folder names (XcodeGen `project.yml` sources):
+
+| Layer | Path | Contents |
+|-------|------|----------|
+| App shell | `App/` | `DartsScoreboardApp`, `MainTabView`, bootstrap, migration recovery |
+| Features | `Features/{Play,History,Players,Statistics,Settings,Components}/` | SwiftUI + ViewModels per tab/flow |
+| Domain | `Domain/` | Engines, services, scoring models |
+| Data | `Data/Repositories/` | Protocols + SwiftData implementations |
+| Persistence | `Persistence/` | Schema, migrations, container factory |
+| DesignSystem | `DesignSystem/` | `Brand`, `DS`, shared components — see `DesignSystem/README.md` |
+| Support | `Support/` | L10n, logging, preferences, feature flags |
+| Tests | `Tests/`, `UITests/` | Phase-tagged unit tests; smoke + WCAG UI tests |
+
+**Engineering audit (grades, P1–P3 findings):** [`docs/ios-code-audit.md`](../docs/ios-code-audit.md)  
+**Appearance / contrast tracker:** [`accessibility/dark-light-mode.md`](../accessibility/dark-light-mode.md)

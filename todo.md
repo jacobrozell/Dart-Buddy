@@ -24,7 +24,6 @@ Close `roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. Work th
 
 ### Data & recovery (device)
 
-- [x] **On-device reset wipe verification** — Full transactional wipe; relaunch clean (`Phase06-Security-Privacy-Checklist.md`).
 - [ ] **Migration recovery smoke** — Retry / export / reset paths on target runtime (upgrade or forced failure); log in `Phase06-Migration-Safety-Report.md`. Distinct from settings reset.
 
 ### App Store & release ops
@@ -40,18 +39,29 @@ Work through [`release_checklist.md`](release_checklist.md) §8–§11.
 
 ### Product (1.0 scope)
 
-- [x] **Settings: default X01/Cricket options** — Settings form exposes X01 defaults; setup reads/writes same fields.
-- [x] **Abandoned matches** — Policy: hidden from History/Statistics; no UI list; cleared on reset (`specs/MatchSpec.md` § Abandon).
-- [x] **Setup: reorder + remove roster** — Turn order list with drag reorder + swipe remove; random order still shuffles at start.
-- [x] **Document in-progress + abandoned match rules** — `specs/MatchSpec.md` (Abandon + Active match constraint).
+
+### UI/UX audit (2026-06-02 — MCP simulator + WCAG suite)
+
+Full audit via XcodeBuildMCP + iOS Simulator MCP. **40/40** `WCAGAccessibilityUITests` passed; manual VO / contrast / AXXXL evidence still required (`todo.md` § QA sign-off). Engineering review: [`docs/ios-code-audit.md`](docs/ios-code-audit.md).
+
+#### P1 — High-impact UX
+- [ ] **Statistics: bot with 0 games but non-zero averages** — Partial-stats banner helps; table still confusing when in-progress match includes bots.
+- [ ] **Setup cognitive load** — Consider collapsing advanced X01 chips (Check-In, Set/Leg) behind “Advanced”.
+
+#### P2 — Polish & consistency
+
+- [ ] **Tab bar content bleed** — Settings scroll appeared under Play tab label on simulator; verify safe-area / tab-bar padding on device.
+
+- [ ] **X01 keypad density on small phones** — 7-column grid; validate on SE-class devices.
+- [ ] **Dynamic Type at AXXXL** — Hardcoded trophy/score sizes (`MatchSummaryScreen`, `X01MatchScreen`); manual evidence still needed.
+
+
+#### Audit — working well (no action)
+
+- X01/Cricket gameplay hierarchy, checkout suggestion, turn indicators, match summary celebration, filter patterns on History/Statistics, automated WCAG regression suite.
 
 ### Polish (1.0)
 
-- [x] **Cricket closure highlight** — Target closed banner, column pulse, haptic + VO.
-- [x] **Bot turn pacing** — Settings: bot stagger + bot dart haptics; `BotTurnPacing` delays.
-- [x] **Bust / leg / set feedback** — `MatchFeedbackBanner` for bust + leg won on X01.
-- [x] **DesignSystem primitives** — `PrimaryActionButton`, `StatChip`, `ErrorBanner`, `MatchFeedbackBanner`.
-- [x] **iPad content width** — `GameplayLayout` on setup, X01, Cricket, summary.
 
 ---
 
@@ -97,65 +107,61 @@ Do not block 1.0 on these.
 
 ---
 
-## Completed (reference)
+## Owner decisions (1.0)
 
-<details>
-<summary>User feedback, core gaps, testing, release items already done</summary>
+Work below is **blocked on your call** — not just time on device. Everything else in §1.0 is execution (run checklists, capture evidence, upload assets).
 
-### User feedback
+### Ship gate
 
-- [x] **Turn total caller (optional)**
-- [x] **Leg vs match finish SFX**
-- [x] **Bot zero visits** (`477a2c5`)
-- [x] **X01 live darts + avg**
+| Decision | Options / notes |
+|----------|-----------------|
+| **Go / no-go for RC submit** | After `QA-Signoff-RC1.md` is filled — accept remaining P1/P2 polish vs hold for fixes. |
+| **TestFlight before App Store** | Optional buffer (`todo.md` § Skip). Skip = submit straight to review. |
+| **RC build number** | Which Release build gets tagged `1.0.0-rc1` / final `1.0.0`. |
+| **Launch-week hotfix bar** | What counts as P0 post-ship (`roadmap/release/Rollback-and-Hotfix-Criteria.md`). |
 
-### History & statistics
+### App Store & branding
 
-- [x] **Statistics: in-progress / partial stats**
-- [x] **History: player filter UI**
-- [x] **History: push filters to SwiftData**
-- [x] **History: pagination**
-- [x] **All Games: in-progress row**
-- [x] **Home: recent completed mini-list**
-- [x] **Game detail per-player hit bars**
+| Decision | Options / notes |
+|----------|-----------------|
+| **App icon** | Pick one from `assets/app-icons/` (5 concepts) → export into `Media.xcassets/AppIcon.appiconset/`. |
+| **Display name** | Default `Dart Buddy`; backups in `AppStoreConnectSpec.md` §3 if name taken. |
+| **Subtitle** | e.g. `Free X01 & Cricket Scoring` vs `No Ads Darts Scorekeeper` (≤30 chars). |
+| **Keywords & promo copy** | Starter set in spec §5 — finalize description + promotional text. |
+| **Screenshot set** | Framed iPhone set exists (`marketing-screenshots/framed/`); decide **order**, **light vs dark only**, and whether **iPad** uploads are in scope for 1.0. |
+| **Support & privacy URLs** | Code points to GitHub Pages (`Support/AppLinks.swift`); confirm pages are live and copy is final before Connect upload. |
+| **Buy Developer a Coffee** | Link is on in Settings — keep, change URL, or remove for 1.0. |
 
-### Match setup & play
+### Privacy & compliance
 
-- [x] **Bot-vs-bot guard**
-- [x] **Match Summary cold path**
+| Decision | Options / notes |
+|----------|-----------------|
+| **App Store privacy labels** | Confirm Analytics + Crashlytics (Release only, no ads/tracking) match `Phase06-Security-Privacy-Checklist.md`. |
+| **Hosted privacy policy** | Must match labels and in-app behavior before submit. |
 
-### UI / UX
+### Product UX (optional for 1.0 — ship as-is or fix first)
 
-- [x] **Localize remaining English**
-- [x] **Cricket nav title contrast**
-- [x] **X01 layout dead space**
-- [x] **Setup flow**
-- [x] **Unify match exit chrome**
-- [x] **Match Summary stat parity**
-- [x] **Empty-state CTAs**
-- [x] **Cricket one-screen fit (phone)**
-- [x] **X01 player card legibility**
-- [x] **Theme cohesion**
-- [x] **Reduce Motion on summary celebration**
+| Decision | Options / notes |
+|----------|-----------------|
+| **Statistics: bot, 0 games, non-zero avg** | Exclude bots from table until 1 completed game · show `—` for avg · keep banner-only · other. |
+| **Setup: advanced X01 chips** | Collapse Check-In / Set-Leg behind “Advanced” · leave flat · default expanded vs collapsed. |
+| **Tab bar content bleed** | Verify on **physical device** first; if real, choose safe-area padding vs scroll inset fix. |
+| **X01 keypad on SE-class phones** | Accept 7-column density · reduce columns · larger hit targets (layout change). |
+| **Dynamic Type AXXXL** | Ship with current trophy/score sizes + manual a11y evidence · or require typography pass before submit. |
 
-### Copy / quick fixes
+### Post-1.0 (no 1.0 blocker — pick when planning 1.1)
 
-- [x] **“Delete & Start” → abandon wording**
-- [x] **Bust banner** — `L10n.bustFeedback`
-- [x] **`PlayHomeViewModel.emptyNoPlayers`** removed
-- [x] **Tab labels vs spec**
+| Decision | Notes |
+|----------|--------|
+| **First 1.1 feature** | Game Center achievements vs play reminders vs other (`FutureIdeas/`). |
+| **X01 total-score entry** | Currently deferred; per-dart only for 1.0. |
+| **Cricket variants** | Standard only for 1.0; Cut Throat etc. later. |
 
-### Testing
+### Conditional (only if QA / RC finds issues)
 
-- [x] **`StatisticsViewModel`**, **`HistoryListViewModel`**, **`MatchSummaryViewModel`**, **`MigrationRecoveryViewModel`**
-- [x] **UI:** checkout → summary, Cricket grid, settings persistence
-- [x] **Repository contract tests**
-
-### Release
-
-- [x] **Commit bot tuning + Very Easy** (`477a2c5`)
-
-</details>
+- Performance work (`Phase06-Performance-Report.md`) — if baselines fail.
+- SwiftData `ModelContext` profiling — if jank observed.
+- Stats aggregate rebuild utility — if data inconsistency found.
 
 ---
 

@@ -151,14 +151,14 @@ Spec reference: [`specs/SmokeTestChecklist.md`](specs/SmokeTestChecklist.md) · 
 ## 4. Appearance matrix (4-way)
 
 **Screens:** Match **setup** + one **in-match** screen (X01 or Cricket)  
-**Save screenshots to:** QA sign-off doc + `accessibility/wcag-2.1-aa/evidence/orientation/`
+**Save screenshots to:** QA sign-off doc + `accessibility/wcag-2.1-aa/evidence/orientation/` (captured 2026-06-02; see `README.md` there; re-run `./Scripts/capture-appearance-matrix.sh`)
 
 | Combo | Setup | In-match |
 |-------|-------|----------|
-| Portrait + Light | [ ] | [ ] |
-| Portrait + Dark | [ ] | [ ] |
-| Landscape + Light | [ ] | [ ] |
-| Landscape + Dark | [ ] | [ ] |
+| Portrait + Light | [x] | [x] |
+| Portrait + Dark | [x] | [x] |
+| Landscape + Light | [x] | [x] |
+| Landscape + Dark | [x] | [x] |
 
 **iPad (recommended):** setup + one match — `GameplayLayout` max-width, no broken layout.
 

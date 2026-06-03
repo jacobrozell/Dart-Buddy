@@ -23,9 +23,11 @@ Primary references:
 ## 2. Global UI Architecture
 
 ## 2.1 Tab Structure
+Tab order (left → right) as implemented in `MainTabView`:
 - `Play`
-- `History`
 - `Players`
+- `Statistics`
+- `History` (shows active-match badge when a match is resumable and the tab is not selected)
 - `Settings`
 
 Each tab maintains its own navigation stack.
