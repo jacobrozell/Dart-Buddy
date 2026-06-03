@@ -55,6 +55,41 @@ struct WCAGContrastTests {
         )
         #expect(ratio >= 3.0)
     }
+
+    // MARK: - Accessible accent fills (added in a11y audit)
+
+    private static let white = WCAGContrastMath.RGB(1, 1, 1)
+    private static let inkOnBright = WCAGContrastMath.RGB(0.08, 0.08, 0.10)
+    private static let redAccent = WCAGContrastMath.RGB(0.84, 0.20, 0.18)
+    private static let amber = WCAGContrastMath.RGB(0.96, 0.70, 0.12)
+    private static let green = WCAGContrastMath.RGB(0.20, 0.68, 0.32)
+    private static let orange = WCAGContrastMath.RGB(0.93, 0.45, 0.13)
+
+    @Test("White text on redAccent (CTA / error banner) meets AA normal text")
+    func textOnRedAccent() {
+        let ratio = WCAGContrastMath.contrastRatio(foreground: Self.white, background: Self.redAccent)
+        #expect(ratio >= 4.5)
+    }
+
+    @Test("inkOnBright on bright brand fills meets AA normal text in both modes")
+    func inkOnBrightFills() {
+        for fill in [Self.amber, Self.green, Self.orange] {
+            let ratio = WCAGContrastMath.contrastRatio(foreground: Self.inkOnBright, background: fill)
+            #expect(ratio >= 4.5)
+        }
+    }
+
+    @Test("Warning pill text on amber tint stays AA in dark mode")
+    func textOnAmberTintDark() {
+        // Bot-turn / partial-stats banners: textPrimary (white in dark) on amber@0.32 over bg.
+        let tint = WCAGContrastMath.composite(
+            foreground: Self.amber,
+            background: Self.background,
+            opacity: 0.32
+        )
+        let ratio = WCAGContrastMath.contrastRatio(foreground: Self.white, background: tint)
+        #expect(ratio >= 4.5)
+    }
 }
 
 enum WCAGContrastMath {

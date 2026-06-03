@@ -237,7 +237,9 @@ struct CricketTapPad: View {
             Button(action: onSubmit) {
                 Text(L10n.scoringEnter)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(Brand.textPrimary)
+                    // Dark ink on the solid green fill (white fails AA in dark mode); the dimmed
+                    // disabled fill is dark enough to keep adaptive text.
+                    .foregroundStyle(canSubmit ? Brand.inkOnBright : Brand.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .frame(maxWidth: .infinity, minHeight: keyMinHeight)
@@ -286,9 +288,13 @@ struct CricketTapPad: View {
                 return Brand.key
             }
         }()
+        // Armed modifier = solid bright fill; dark ink stays legible in dark mode where white
+        // would fail AA. Idle (dimmed) fill keeps adaptive text.
+        let foreground: Color = (isSelected && multiplier != .single) ? Brand.inkOnBright : Brand.textPrimary
         return key(
             title,
             background: background,
+            foreground: foreground,
             weight: .bold,
             identifier: identifier,
             accessibilityLabel: multiplierAccessibilityLabel(multiplier),
@@ -303,6 +309,7 @@ struct CricketTapPad: View {
     private func key(
         _ title: String,
         background: Color,
+        foreground: Color = Brand.textPrimary,
         weight: Font.Weight = .semibold,
         identifier: String,
         accessibilityLabel: String? = nil,
@@ -313,7 +320,7 @@ struct CricketTapPad: View {
         Button(action: action) {
             Text(title)
                 .font(.body.weight(weight))
-                .foregroundStyle(Brand.textPrimary)
+                .foregroundStyle(foreground)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity, minHeight: keyMinHeight)

@@ -153,7 +153,7 @@ struct HistoryRootView: View {
                 Button(action: { onStartMatch?() }) {
                     Text(L10n.startMatchCTA)
                         .font(.headline)
-                        .foregroundStyle(Brand.textPrimary)
+                        .foregroundStyle(Brand.inkOnBright)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
                 }
