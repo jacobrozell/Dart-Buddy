@@ -15,7 +15,9 @@ public enum AppBootstrapper {
 
         do {
             let container = try await Task.detached(priority: .userInitiated) {
-                let container = try ModelContainerFactory.makeContainer(mode: .appDefault)
+                let container = try ModelContainerFactory.makeContainer(
+                    mode: ModelContainerFactory.storageModeForCurrentProcess()
+                )
                 try validateSchemaInvariants(in: container)
                 return container
             }.value
