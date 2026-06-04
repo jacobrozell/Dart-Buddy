@@ -514,3 +514,7 @@
 "play.rules.cricket.cutThroatScore.body" = "Overflow points are credited to opponents who have not closed that target—the more marks you add, the more points they receive.\n\nWhen the board is fully closed, the leg ends. Lowest total score wins the leg.";
 "play.rules.cricket.noScore.title" = "No score (points off)";
 "play.rules.cricket.noScore.body" = "Marks still close targets, but no points are scored. The leg ends when you close all targets on your turn—you win that leg immediately.";
+"app.update.title" = "Update Available";
+"app.update.message" = "A new version of Dart Buddy is on the App Store.";
+"app.update.update" = "Update";
+"app.update.notNow" = "Not Now";

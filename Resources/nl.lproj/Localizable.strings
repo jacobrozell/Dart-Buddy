@@ -514,3 +514,7 @@
 "play.rules.cricket.cutThroatScore.body" = "Overschotpunten gaan naar tegenstanders die dat doel nog niet hebben gesloten—meer markeringen betekent meer punten voor hen.\n\nMet het bord volledig gesloten eindigt de leg. De laagste score wint.";
 "play.rules.cricket.noScore.title" = "Geen score (punten uit)";
 "play.rules.cricket.noScore.body" = "Markeringen sluiten nog steeds doelen, maar er worden geen punten gescoord. De leg eindigt wanneer jij in je beurt alle doelen sluit—je wint die leg meteen.";
+"app.update.title" = "Update beschikbaar";
+"app.update.message" = "Er staat een nieuwe versie van Dart Buddy in de App Store.";
+"app.update.update" = "Bijwerken";
+"app.update.notNow" = "Niet nu";

@@ -173,6 +173,10 @@ enum L10n {
     static let statsFilterAllPlayers: LocalizedStringKey = "stats.filter.allPlayers"
     static let playersEditAvatar: LocalizedStringKey = "players.edit.avatar"
     static let playersEditColor: LocalizedStringKey = "players.edit.color"
+    static let updateAvailableTitle: LocalizedStringKey = "app.update.title"
+    static let updateAvailableMessage: LocalizedStringKey = "app.update.message"
+    static let updateAvailableUpdate: LocalizedStringKey = "app.update.update"
+    static let updateAvailableNotNow: LocalizedStringKey = "app.update.notNow"
 
     static func format(_ key: String, _ args: CVarArg...) -> String {
         let format = NSLocalizedString(key, comment: "")

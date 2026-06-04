@@ -78,6 +78,16 @@ Rules:
 - Keep keyword list focused; avoid irrelevant stuffing
 - Revisit after real search analytics data
 
+## App Store Connect identifiers
+- **Bundle ID:** `com.jacobrozell.DartBuddy`
+- **App Store Connect app ID:** `6775713346` (canonical in `AppLinks.appStoreAppID`)
+- **Public listing URL:** `https://apps.apple.com/app/id6775713346`
+
+## In-app update availability
+- Shipped in 1.x: optional update prompt on main tab load — see [`AppShellSpec.md`](AppShellSpec.md) §6.
+- Uses Apple’s public iTunes Lookup API; no third-party SDK.
+- Prompt appears only after a **released** App Store version is newer than the installed build (TestFlight-only builds do not trigger it).
+
 ## Promotional Text (example)
 - `A simple, free darts scoreboard for X01 and Cricket. Fast input, clean UI, match history, and no ads.`
 
