@@ -18,4 +18,9 @@ enum CricketSetupPreferences {
         defaults.set(pointsEnabled, forKey: pointsEnabledKey)
         defaults.set(scoringMode.rawValue, forKey: scoringModeKey)
     }
+
+    static func clearStored(userDefaults: UserDefaults = .standard) {
+        userDefaults.removeObject(forKey: pointsEnabledKey)
+        userDefaults.removeObject(forKey: scoringModeKey)
+    }
 }

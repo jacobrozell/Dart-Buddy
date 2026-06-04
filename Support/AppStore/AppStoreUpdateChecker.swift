@@ -56,6 +56,10 @@ struct AppStoreUpdateChecker: Sendable {
         userDefaults.set(offer.storeVersion, forKey: Self.dismissedStoreVersionKey)
     }
 
+    static func clearPersistedState(userDefaults: UserDefaults = .standard) {
+        userDefaults.removeObject(forKey: dismissedStoreVersionKey)
+    }
+
     private func shouldPrompt(forStoreVersion storeVersion: String) -> Bool {
         guard let dismissedVersion = userDefaults.string(forKey: Self.dismissedStoreVersionKey) else {
             return true

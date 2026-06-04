@@ -24,6 +24,7 @@ struct DartBuddyApp: App {
                             },
                             resetHandler: {
                                 AppStoreReset.deleteSQLiteStore()
+                                LocalAppStateReset.clearAllPersistedAuxiliaryState()
                                 await refreshBootstrapResult()
                                 if case .ready = self.bootstrapResult { return true }
                                 return false

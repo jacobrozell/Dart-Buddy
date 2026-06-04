@@ -46,7 +46,30 @@ Define root app composition: launch behavior, tab structure, routing entry point
 
 ---
 
-## 6. App Store Update Prompt
+## 6. First-Launch Onboarding
+
+A five-page swipeable **app tour** explains the tab shell on first launch.
+
+### Behavior
+- **Trigger:** `UserDefaults` key `onboarding_completed` is unset and onboarding is enabled.
+- **Presentation:** `fullScreenCover` on `MainTabView` after bootstrap (before the App Store update check).
+- **Pages:** Welcome → Play → Players → History & Statistics → Get Started.
+- **Skip / Get Started:** Sets `onboarding_completed`; first launch selects the Play tab. First launch cannot be swipe-dismissed (must use Skip or Get Started).
+- **Replay:** Settings → About → **View App Tour** presents the same flow without changing completion state.
+- **Reset all data:** Clears `onboarding_completed` with all other auxiliary `UserDefaults`; the tour can present again immediately after reset (see `LocalAppStateReset`).
+
+### Disabled when
+- Launch argument `-skip_onboarding`
+- UI tests (`-ui_test_reset`, same gate as App Store update checker)
+
+### Implementation
+- `Support/Onboarding/OnboardingStore.swift`
+- `Features/Onboarding/OnboardingView.swift`
+- Unit tests: `Tests/Unit/OnboardingStoreTests.swift`
+
+---
+
+## 7. App Store Update Prompt
 When a **newer App Store version** is available than the installed build, `MainTabView` may show a single system alert after the tab shell loads.
 
 ### Behavior
@@ -71,7 +94,7 @@ Store listing metadata and app ID: [`AppStoreConnectSpec.md`](AppStoreConnectSpe
 
 ---
 
-## 7. Future Improvements
+## 8. Future Improvements
 - Deep links into active match/history detail
 - Background restoration hints
 - In-app diagnostics panel for beta builds

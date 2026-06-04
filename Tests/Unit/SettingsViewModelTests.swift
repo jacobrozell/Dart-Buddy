@@ -12,6 +12,7 @@ func settingsOnAppearLoadsAndAppliesPreferences() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: preferences
     )
 
@@ -36,6 +37,7 @@ func settingsUpdateAppearancePersistsAndSyncsPreferences() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: preferences
     )
     await vm.onAppear()
@@ -57,6 +59,7 @@ func settingsUpdateFeedbackTogglesHapticsAndSound() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: preferences
     )
     await vm.onAppear()
@@ -78,6 +81,7 @@ func settingsUpdateFeedbackTogglesTurnTotalCaller() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: preferences
     )
     await vm.onAppear()
@@ -97,6 +101,7 @@ func settingsUpdateBotPacingPersistsAndSyncsPreferences() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: preferences
     )
     await vm.onAppear()
@@ -118,6 +123,7 @@ func settingsUpdateBotPacingCanToggleIndependently() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: UserPreferencesStore()
     )
     await vm.onAppear()
@@ -139,6 +145,7 @@ func settingsUpdateDefaultsChangesMatchType() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: UserPreferencesStore()
     )
     await vm.onAppear()
@@ -178,6 +185,7 @@ func settingsLoadFailureSurfacesErrorKey() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: UserPreferencesStore()
     )
 
@@ -207,6 +215,7 @@ func settingsSaveFailureSurfacesErrorKey() async {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: UserPreferencesStore()
     )
     await vm.onAppear()
@@ -227,6 +236,7 @@ func settingsResetPromptFlow() async {
         repository: FakeSettingsRepository(settings: makeSettings()),
         logger: testLogger(),
         activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: UserPreferencesStore()
     )
     await vm.onAppear()
@@ -259,6 +269,7 @@ func settingsConfirmResetClearsActiveMatchStore() async throws {
         repository: repository,
         logger: testLogger(),
         activeMatchStore: activeStore,
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
         userPreferencesStore: preferences
     )
     await vm.onAppear()

@@ -192,6 +192,11 @@ enum L10n {
     static let updateAvailableMessage: LocalizedStringKey = "app.update.message"
     static let updateAvailableUpdate: LocalizedStringKey = "app.update.update"
     static let updateAvailableNotNow: LocalizedStringKey = "app.update.notNow"
+    static let onboardingSkip: LocalizedStringKey = "onboarding.skip"
+    static let onboardingNext: LocalizedStringKey = "onboarding.next"
+    static let onboardingGetStarted: LocalizedStringKey = "onboarding.getStarted"
+    static let settingsViewOnboarding: LocalizedStringKey = "settings.onboarding.viewTour"
+    static let settingsViewOnboardingAccessibility: LocalizedStringKey = "settings.onboarding.viewTour.accessibility"
 
     static func format(_ key: String, _ args: CVarArg...) -> String {
         let format = NSLocalizedString(key, comment: "")
