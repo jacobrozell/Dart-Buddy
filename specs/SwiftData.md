@@ -270,3 +270,56 @@ Hard rule:
 - Background migration preflight on app update.
 - Store compaction/cleanup policy for old snapshots/events.
 - Formal data export/import format with schema manifest.
+
+---
+
+## 15. Schema 1.0.0 Freeze (Dart Buddy)
+
+**Ship baseline:** `SchemaV2` (`Schema.Version(2, 0, 0)`), wired in `ModelContainerFactory` and `Persistence/SchemaLock.swift`.
+
+**Supported upgrade path at launch:** `SchemaV1` → `SchemaV2` via `DartsMigrationPlan.migrateV1ToV2` (lightweight column adds + custom bot-kind backfill).
+
+### Frozen at 1.0 (do not change in place)
+
+| Entity | Notes |
+|--------|--------|
+| `PlayerRecord` | Includes `botKindRaw`, `linkedPlayerId` (training bot link) |
+| `MatchRecord` | Unchanged since V1 |
+| `MatchParticipantRecord` | Includes `botKindRaw`, `botSkillProfilePayload` |
+| `MatchSnapshotRecord` | Unchanged since V1 |
+| `MatchEventRecord` | Unchanged since V1 |
+| `SettingsRecord` | `botStaggerEnabled` / `botDartHapticsEnabled` stay **optional**; repository maps `nil` → `true` |
+
+### Intentionally optional / runtime-defaulted
+
+- Bot-related raw fields on players and participants (preset kind inferred when difficulty present).
+- Settings bot toggles (legacy stores without columns).
+- `playerId` on participants (history survives player delete/archive).
+
+### Deferred past 1.0 (not in SwiftData schema)
+
+- `PlayerDailyAggregateRecord`, `PlayerModeAggregateRecord` (`specs/DataSchemaSpec.md` §2).
+- Cloud sync, encryption-at-rest, aggregate cache tables.
+
+### Payload versions (separate from schema version)
+
+| Blob | Current version | Location |
+|------|-----------------|----------|
+| X01 config | `1` | `MatchConfigX01.payloadVersion` |
+| Cricket config | `2` | `MatchConfigCricket.currentPayloadVersion` |
+| Match snapshot wrapper | `1` | `MatchLifecycleModels` |
+| Event payloads | per `eventTypeRaw` | engines + coders |
+
+Payload bumps do **not** require `SchemaV3` unless new **columns** or **models** are added.
+
+### Pre-release checklist (schema freeze)
+
+- [ ] No open `SchemaV3` work; all 1.0 fields live in `SchemaV2.swift`.
+- [ ] `DartsMigrationPlan` includes every schema still needed for upgrade (`V1`, `V2`).
+- [ ] `Tests/Unit/SchemaV1ToV2MigrationTests.swift` passes (serialized suite).
+- [ ] Device migration smoke logged in `roadmap/reports/Phase06-Migration-Safety-Report.md`.
+- [ ] Release notes mention persistence only if beta users had pre-V2 builds.
+
+### After 1.0 ships
+
+Any column rename, required-field promotion, or new entity → add `SchemaV3.swift`, register in `DartsMigrationPlan`, add `V2 → V3` stage + tests. Never edit `SchemaV2` types in place for shipped users.
