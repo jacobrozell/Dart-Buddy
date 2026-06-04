@@ -391,6 +391,55 @@ func x01ViewModelBotTurnSubmitsVisit() async throws {
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelSignalsTurnTotalCallerForBotVisit() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.medium.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.medium.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+
+    await vm.playBotTurnIfNeeded()
+
+    guard case let .x01Turn(event) = vm.session?.events.last?.payload else {
+        Issue.record("Expected x01 turn event")
+        return
+    }
+    #expect(vm.turnTotalCallerSignal?.total == event.appliedTotal)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
 func x01OnAppearRestartsBotAfterInterruptedTurn() async throws {
     let humanId = UUID()
     let botId = UUID()
@@ -631,6 +680,47 @@ func cricketViewModelDetectsActiveBotTurn() throws {
     #expect(vm.isCurrentPlayerBot)
     #expect(vm.currentBotSkillProfile != nil)
     #expect(!vm.canHumanInput)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelSignalsTurnTotalCallerForBotVisit() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.hard.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.hard.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = CricketMatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+
+    await vm.playBotTurnIfNeeded()
+
+    guard case let .cricketTurn(event) = vm.session?.events.last?.payload else {
+        Issue.record("Expected cricket turn event")
+        return
+    }
+    #expect(vm.turnTotalCallerSignal?.total == event.totalPointsAdded)
 }
 
 // MARK: - Test helpers

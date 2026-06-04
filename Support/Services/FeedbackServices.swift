@@ -64,7 +64,7 @@ public final class GatedHapticsService: HapticsService, @unchecked Sendable {
 }
 
 public protocol TurnTotalCallerService: Sendable {
-    /// Speaks the visit total after a human submits a turn.
+    /// Speaks the visit total after a turn is submitted.
     func announceTurnTotal(_ total: Int)
 }
 
