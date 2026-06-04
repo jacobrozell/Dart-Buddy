@@ -24,6 +24,10 @@ public enum DartsMigrationPlan: SchemaMigrationPlan {
             for player in players where player.isBot == true && player.botDifficultyRaw != nil && player.botKindRaw == nil {
                 player.botKindRaw = presetRaw
             }
+            let participants = try context.fetch(FetchDescriptor<SchemaV2.MatchParticipantRecord>())
+            for participant in participants where participant.botDifficultyRaw != nil && participant.botKindRaw == nil {
+                participant.botKindRaw = presetRaw
+            }
             try context.save()
         }
     )

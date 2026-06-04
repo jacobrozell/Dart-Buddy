@@ -8,15 +8,20 @@ This spec complements `specs/SwiftData.md` (versioning/migration policy).
 ---
 
 ## 2. Canonical Entities
-- `PlayerRecord`
+
+**1.0 ship baseline:** `SchemaV2` in `Persistence/Schemas/SchemaV2.swift` (see `specs/SwiftData.md` §15).
+
+- `PlayerRecord` — bot fields: `botKindRaw`, `linkedPlayerId` (training partner)
 - `MatchRecord`
-- `MatchParticipantRecord`
+- `MatchParticipantRecord` — bot fields: `botKindRaw`, `botSkillProfilePayload`
 - `MatchSnapshotRecord`
 - `MatchEventRecord`
-- `SettingsRecord` (or AppStorage bridge)
-- Optional aggregate cache records:
-  - `PlayerDailyAggregateRecord`
-  - `PlayerModeAggregateRecord`
+- `SettingsRecord` — bot prefs: `botStaggerEnabled?`, `botDartHapticsEnabled?`
+
+**Post-1.0 only** (not in 1.0 schema):
+
+- `PlayerDailyAggregateRecord`
+- `PlayerModeAggregateRecord`
 
 ---
 
