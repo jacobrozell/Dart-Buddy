@@ -31,6 +31,8 @@ struct SetupHomeView: View {
                 modeSelector
                 if setupViewModel.mode == .x01 {
                     chipsGrid
+                } else {
+                    cricketChipsGrid
                 }
                 rosterControls
                 if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),

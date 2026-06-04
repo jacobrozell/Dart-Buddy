@@ -60,15 +60,53 @@ public struct CricketTurnEvent: Codable, Equatable, Identifiable, Sendable {
     public let playerId: UUID
     public let turnIndex: Int
     public let roundIndex: Int
+    public let legIndex: Int?
+    public let setIndex: Int?
     public let totalPointsAdded: Int
     public let targetsTouched: [CricketDartTouch]
     public let timestamp: Date
+
+    public var effectiveLegIndex: Int { legIndex ?? 0 }
+    public var effectiveSetIndex: Int { setIndex ?? 0 }
 }
 
 public struct CricketPlayerState: Codable, Equatable, Sendable {
     public let playerId: UUID
     public var score: Int
     public var marks: [String: Int]
+    public var legsWon: Int
+    public var setsWon: Int
+
+    public init(
+        playerId: UUID,
+        score: Int,
+        marks: [String: Int],
+        legsWon: Int = 0,
+        setsWon: Int = 0
+    ) {
+        self.playerId = playerId
+        self.score = score
+        self.marks = marks
+        self.legsWon = legsWon
+        self.setsWon = setsWon
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        playerId = try container.decode(UUID.self, forKey: .playerId)
+        score = try container.decode(Int.self, forKey: .score)
+        marks = try container.decode([String: Int].self, forKey: .marks)
+        legsWon = try container.decodeIfPresent(Int.self, forKey: .legsWon) ?? 0
+        setsWon = try container.decodeIfPresent(Int.self, forKey: .setsWon) ?? 0
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case playerId
+        case score
+        case marks
+        case legsWon
+        case setsWon
+    }
 }
 
 public struct CricketState: Codable, Equatable, Sendable {
@@ -77,8 +115,57 @@ public struct CricketState: Codable, Equatable, Sendable {
     public var currentPlayerIndex: Int
     public var roundIndex: Int
     public var turnIndex: Int
+    public var legIndex: Int
+    public var setIndex: Int
     public var winnerPlayerId: UUID?
     public var isComplete: Bool
+
+    public init(
+        config: MatchConfigCricket,
+        players: [CricketPlayerState],
+        currentPlayerIndex: Int,
+        roundIndex: Int,
+        turnIndex: Int,
+        legIndex: Int = 0,
+        setIndex: Int = 0,
+        winnerPlayerId: UUID? = nil,
+        isComplete: Bool = false
+    ) {
+        self.config = config
+        self.players = players
+        self.currentPlayerIndex = currentPlayerIndex
+        self.roundIndex = roundIndex
+        self.turnIndex = turnIndex
+        self.legIndex = legIndex
+        self.setIndex = setIndex
+        self.winnerPlayerId = winnerPlayerId
+        self.isComplete = isComplete
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        config = try container.decode(MatchConfigCricket.self, forKey: .config)
+        players = try container.decode([CricketPlayerState].self, forKey: .players)
+        currentPlayerIndex = try container.decode(Int.self, forKey: .currentPlayerIndex)
+        roundIndex = try container.decode(Int.self, forKey: .roundIndex)
+        turnIndex = try container.decode(Int.self, forKey: .turnIndex)
+        legIndex = try container.decodeIfPresent(Int.self, forKey: .legIndex) ?? 0
+        setIndex = try container.decodeIfPresent(Int.self, forKey: .setIndex) ?? 0
+        winnerPlayerId = try container.decodeIfPresent(UUID.self, forKey: .winnerPlayerId)
+        isComplete = try container.decode(Bool.self, forKey: .isComplete)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case config
+        case players
+        case currentPlayerIndex
+        case roundIndex
+        case turnIndex
+        case legIndex
+        case setIndex
+        case winnerPlayerId
+        case isComplete
+    }
 }
 
 public struct CricketTurnOutcome: Sendable {
@@ -88,17 +175,27 @@ public struct CricketTurnOutcome: Sendable {
 
 public enum CricketEngine {
     public static func makeInitialState(config: MatchConfigCricket, playerIds: [UUID]) throws -> CricketState {
+        guard config.legsToWin > 0 else {
+            throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.x01.invalidLegCount")
+        }
+        if config.setsEnabled, (config.setsToWin ?? 0) <= 0 {
+            throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.x01.invalidSetCount")
+        }
         guard playerIds.count >= 2 else {
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.players.minimum")
         }
         let marksSeed = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 0) })
-        let players = playerIds.map { CricketPlayerState(playerId: $0, score: 0, marks: marksSeed) }
+        let players = playerIds.map {
+            CricketPlayerState(playerId: $0, score: 0, marks: marksSeed, legsWon: 0, setsWon: 0)
+        }
         return CricketState(
             config: config,
             players: players,
             currentPlayerIndex: 0,
             roundIndex: 0,
             turnIndex: 0,
+            legIndex: 0,
+            setIndex: 0,
             winnerPlayerId: nil,
             isComplete: false
         )
@@ -147,14 +244,14 @@ public enum CricketEngine {
             let overflow = max(0, incomingMarks - marksAdded)
             updated.players[playerIndex].marks[target.rawValue] = min(3, beforeMarks + incomingMarks)
 
-            let pointsAdded = overflowPoints(
+            let scoring = applyOverflowScoring(
                 target: target,
                 overflowMarks: overflow,
                 actingPlayerIndex: playerIndex,
-                state: updated
+                state: &updated
             )
-            updated.players[playerIndex].score += pointsAdded
-            totalPointsAdded += pointsAdded
+            updated.players[playerIndex].score += scoring.throwerPoints
+            totalPointsAdded += scoring.visitTotal
 
             touches.append(
                 CricketDartTouch(
@@ -163,16 +260,15 @@ public enum CricketEngine {
                     multiplierRaw: dart.multiplier.rawValue,
                     marksAdded: marksAdded,
                     overflowMarks: overflow,
-                    pointsAdded: pointsAdded,
+                    pointsAdded: scoring.visitTotal,
                     wasMiss: dart.isMiss,
                     segmentRaw: segmentRaw(for: dart.segment)
                 )
             )
         }
 
-        if allPlayersClosedAllTargets(updated.players) {
-            updated.isComplete = true
-            updated.winnerPlayerId = winnerPlayerId(in: updated.players)
+        if let legWinnerIndex = legWinnerIndex(after: updated, actingPlayerIndex: playerIndex) {
+            completeLeg(&updated, winnerIndex: legWinnerIndex)
         }
 
         if !updated.isComplete {
@@ -184,11 +280,13 @@ public enum CricketEngine {
         updated.turnIndex += 1
 
         let event = CricketTurnEvent(
-            payloadVersion: 1,
+            payloadVersion: 2,
             id: UUID(),
             playerId: playerId,
             turnIndex: state.turnIndex,
             roundIndex: state.roundIndex,
+            legIndex: state.legIndex,
+            setIndex: state.setIndex,
             totalPointsAdded: totalPointsAdded,
             targetsTouched: touches,
             timestamp: timestamp
@@ -210,41 +308,102 @@ public enum CricketEngine {
     }
 
     /// Reconstructs the original `DartInput` from a persisted touch.
-    /// Prefers the precise `segmentRaw` (so inner vs outer bull survives);
-    /// falls back to the lossy target mapping only for legacy events.
     public static func dartInput(from touch: CricketDartTouch) -> DartInput {
         let multiplier = DartMultiplier(rawValue: touch.multiplierRaw) ?? .single
         let segment = touch.segmentRaw.map(segment(fromRaw:)) ?? parseTargetToSegment(touch.targetRaw)
         return DartInput(multiplier: multiplier, segment: segment, isMiss: touch.wasMiss)
     }
 
-    private static func marksForCricket(dart: DartInput) -> Int {
-        guard !dart.isMiss else { return 0 }
-        switch dart.segment {
-        case .innerBull:
-            return 2
-        case .outerBull:
-            return 1
-        case .oneToTwenty:
-            return dart.multiplier.markValue
-        case .miss:
-            return 0
-        }
+    private struct OverflowScoringResult {
+        let throwerPoints: Int
+        let visitTotal: Int
     }
 
-    private static func overflowPoints(
+    private static func applyOverflowScoring(
         target: CricketTarget,
         overflowMarks: Int,
         actingPlayerIndex: Int,
-        state: CricketState
-    ) -> Int {
-        guard overflowMarks > 0 else { return 0 }
-        let anyOpponentOpen = state.players.enumerated().contains { index, player in
-            guard index != actingPlayerIndex else { return false }
-            return (player.marks[target.rawValue] ?? 0) < 3
+        state: inout CricketState
+    ) -> OverflowScoringResult {
+        guard overflowMarks > 0, state.config.pointsEnabled else {
+            return OverflowScoringResult(throwerPoints: 0, visitTotal: 0)
         }
-        guard anyOpponentOpen else { return 0 }
-        return overflowMarks * target.points
+        let valuePerMark = target.points
+        switch state.config.scoringMode {
+        case .standard:
+            let anyOpponentOpen = state.players.enumerated().contains { index, player in
+                guard index != actingPlayerIndex else { return false }
+                return (player.marks[target.rawValue] ?? 0) < 3
+            }
+            guard anyOpponentOpen else { return OverflowScoringResult(throwerPoints: 0, visitTotal: 0) }
+            let points = overflowMarks * valuePerMark
+            return OverflowScoringResult(throwerPoints: points, visitTotal: points)
+        case .cutThroat:
+            var inflicted = 0
+            for index in state.players.indices where index != actingPlayerIndex {
+                guard (state.players[index].marks[target.rawValue] ?? 0) < 3 else { continue }
+                let credit = overflowMarks * valuePerMark
+                state.players[index].score += credit
+                inflicted += credit
+            }
+            return OverflowScoringResult(throwerPoints: 0, visitTotal: inflicted)
+        }
+    }
+
+    private static func legWinnerIndex(after state: CricketState, actingPlayerIndex: Int) -> Int? {
+        if state.config.pointsEnabled {
+            guard allPlayersClosedAllTargets(state.players) else { return nil }
+            return legWinnerIndex(in: state.players, config: state.config)
+        }
+        guard isPlayerClosedAllTargets(state.players[actingPlayerIndex]) else { return nil }
+        return actingPlayerIndex
+    }
+
+    private static func completeLeg(_ state: inout CricketState, winnerIndex: Int) {
+        state.players[winnerIndex].legsWon += 1
+        state.legIndex += 1
+        if state.players[winnerIndex].legsWon >= effectiveLegsToWin(state.config) {
+            if state.config.setsEnabled {
+                state.players[winnerIndex].setsWon += 1
+                for index in state.players.indices {
+                    state.players[index].legsWon = 0
+                }
+                state.setIndex += 1
+                if state.players[winnerIndex].setsWon >= effectiveSetsToWin(state.config) {
+                    state.winnerPlayerId = state.players[winnerIndex].playerId
+                    state.isComplete = true
+                }
+            } else {
+                state.winnerPlayerId = state.players[winnerIndex].playerId
+                state.isComplete = true
+            }
+        }
+        if !state.isComplete {
+            resetLeg(&state)
+        }
+    }
+
+    private static func resetLeg(_ state: inout CricketState) {
+        let marksSeed = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 0) })
+        for index in state.players.indices {
+            state.players[index].score = 0
+            state.players[index].marks = marksSeed
+        }
+    }
+
+    private static func effectiveLegsToWin(_ config: MatchConfigCricket) -> Int {
+        switch config.legFormat {
+        case .firstTo: return config.legsToWin
+        case .bestOf: return config.legsToWin / 2 + 1
+        }
+    }
+
+    private static func effectiveSetsToWin(_ config: MatchConfigCricket) -> Int {
+        let target = config.setsToWin ?? 1
+        switch config.legFormat {
+        case .firstTo: return target
+        case .bestOf: return target / 2 + 1
+        }
     }
 
     public static func isTargetClosedByAllPlayers(_ players: [CricketPlayerState], target: CricketTarget) -> Bool {
@@ -260,10 +419,29 @@ public enum CricketEngine {
         players.allSatisfy(isPlayerClosedAllTargets)
     }
 
-    /// Highest score wins when the board is fully closed; ties go to the earliest seat.
-    private static func winnerPlayerId(in players: [CricketPlayerState]) -> UUID? {
-        guard let maxScore = players.map(\.score).max() else { return nil }
-        return players.first { $0.score == maxScore }?.playerId
+    private static func legWinnerIndex(in players: [CricketPlayerState], config: MatchConfigCricket) -> Int? {
+        switch config.scoringMode {
+        case .standard:
+            guard let maxScore = players.map(\.score).max() else { return nil }
+            return players.firstIndex { $0.score == maxScore }
+        case .cutThroat:
+            guard let minScore = players.map(\.score).min() else { return nil }
+            return players.firstIndex { $0.score == minScore }
+        }
+    }
+
+    private static func marksForCricket(dart: DartInput) -> Int {
+        guard !dart.isMiss else { return 0 }
+        switch dart.segment {
+        case .innerBull:
+            return 2
+        case .outerBull:
+            return 1
+        case .oneToTwenty:
+            return dart.multiplier.markValue
+        case .miss:
+            return 0
+        }
     }
 
     private static func cricketTarget(from raw: String) -> CricketTarget? {

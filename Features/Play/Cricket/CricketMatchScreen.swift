@@ -17,7 +17,15 @@ struct CricketMatchScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
-                BrandMatchScreenTitle(title: L10n.cricketTitle)
+                VStack(alignment: .leading, spacing: 2) {
+                    BrandMatchScreenTitle(title: L10n.cricketTitle)
+                    if let subtitle = viewModel.matchSubtitle {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundStyle(Brand.textSecondary)
+                            .accessibilityIdentifier("cricket_match_subtitle")
+                    }
+                }
             } trailing: {
                 Button {
                     actionTask?.cancel()
@@ -38,7 +46,10 @@ struct CricketMatchScreen: View {
                 if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
                     ScrollView {
                         VStack(spacing: DS.Spacing.s2) {
-                            CricketBoardView(columns: viewModel.boardColumns)
+                            CricketBoardView(
+                                columns: viewModel.boardColumns,
+                                activeColumnScrollID: viewModel.activeBoardColumnID
+                            )
                             stateBanner
                             cricketTapPad
                         }

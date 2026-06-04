@@ -1,13 +1,14 @@
 import SwiftUI
 
-private enum CricketBoardMetrics {
+enum CricketBoardMetrics {
+    static let targetColumnWidth: CGFloat = 40
+    static let playerColumnWidth: CGFloat = 84
+    static let markRowHeight: CGFloat = DS.Spacing.s2 * 4
     static let activeColumnFill = Brand.cardElevated.opacity(0.35)
     static let knockedOutOpacity: Double = 0.42
 }
 
-/// Authentic Cricket scoreboard: a marks grid (20–15 + Bull) with one column
-/// per player, standard slash / cross / circle marks, and a tap-to-mark input
-/// pad. Replaces the X01-style dart pad that Cricket previously borrowed.
+/// Cricket scoreboard: pinned target labels plus horizontally scrollable player columns.
 struct CricketBoardView: View {
     struct Column: Identifiable {
         let id: UUID
@@ -16,103 +17,214 @@ struct CricketBoardView: View {
         let marks: [String: Int]
         let isActive: Bool
         let colorToken: PlayerColorToken
+        let dartsThrown: Int
+        let marksPerRound: Double
+        let legsWon: Int
+        let setsWon: Int
+        let showsSetsLegs: Bool
+        let setsEnabled: Bool
         var isClosureHighlight: Bool = false
     }
 
     let columns: [Column]
+    var activeColumnScrollID: UUID?
+
+    @ScaledMetric(relativeTo: .body) private var playerColumnWidth = CricketBoardMetrics.playerColumnWidth
+    @ScaledMetric(relativeTo: .body) private var targetColumnWidth = CricketBoardMetrics.targetColumnWidth
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(spacing: 0) {
-            CricketBoardPlayerHeaderRow(columns: columns)
-            CricketBoardMarksGrid(columns: columns)
+        HStack(alignment: .top, spacing: 0) {
+            CricketBoardTargetColumn(width: targetColumnWidth)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 0) {
+                        ForEach(columns) { column in
+                            CricketBoardPlayerColumn(
+                                column: column,
+                                width: playerColumnWidth,
+                                allColumns: columns
+                            )
+                            .frame(width: playerColumnWidth)
+                            .id(column.id)
+                        }
+                    }
+                    .scrollTargetLayout()
+                }
+                .onChange(of: activeColumnScrollID) { _, newID in
+                    guard let newID else { return }
+                    if reduceMotion {
+                        proxy.scrollTo(newID, anchor: .center)
+                    } else {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            proxy.scrollTo(newID, anchor: .center)
+                        }
+                    }
+                }
+                .onAppear {
+                    if let activeColumnScrollID {
+                        proxy.scrollTo(activeColumnScrollID, anchor: .center)
+                    }
+                }
+            }
         }
         .background(Brand.card)
     }
 }
 
-/// Pinned player name/score row for one-screen Cricket layout.
-struct CricketBoardPlayerHeaderRow: View {
-    let columns: [CricketBoardView.Column]
-
-    var body: some View {
-        Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-            GridRow {
-                Color.clear.frame(height: 1).gridCellColumns(1)
-                ForEach(columns) { column in
-                    VStack(spacing: 2) {
-                        Text(column.name)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(
-                                column.isActive
-                                    ? PlayerVisualViews.accentColor(token: column.colorToken)
-                                    : Brand.textPrimary
-                            )
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.6)
-                        Text("\(column.score)")
-                            .font(.title3.weight(.heavy))
-                            .foregroundStyle(Brand.textPrimary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, DS.Spacing.s2)
-                    .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
-                    .overlay {
-                        if column.isClosureHighlight {
-                            Rectangle()
-                                .stroke(Brand.amber, lineWidth: 2)
-                        }
-                    }
-                    .scaleEffect(column.isClosureHighlight ? 1.03 : 1)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(columnAccessibilityLabel(column))
-                    .accessibilityIdentifier(column.isActive ? "cricket_column_active" : "cricket_column")
-                }
-            }
-        }
-    }
-
-    private func columnAccessibilityLabel(_ column: CricketBoardView.Column) -> String {
-        let turn = column.isActive ? " \(L10n.string("play.x01.turn.active"))" : ""
-        return L10n.format("play.cricket.column.accessibilityFormat", column.name, column.score, turn)
-    }
-}
-
-/// Scrollable marks grid (targets 20–15 + Bull) without the player header row.
-struct CricketBoardMarksGrid: View {
-    let columns: [CricketBoardView.Column]
+struct CricketBoardTargetColumn: View {
+    let width: CGFloat
     private let targets = CricketTarget.allCases
 
     var body: some View {
-        Grid(horizontalSpacing: 0, verticalSpacing: 0) {
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(width: width, height: headerHeight)
             ForEach(targets, id: \.rawValue) { target in
-                let isKnockedOut = CricketBoardView.isTargetKnockedOut(columns: columns, target: target)
-                GridRow {
-                    Text(label(for: target))
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, DS.Spacing.s2)
-                    ForEach(columns) { column in
-                        CricketMarkCell(
-                            targetLabel: label(for: target),
-                            marks: column.marks[target.rawValue] ?? 0,
-                            colorToken: column.colorToken,
-                            isKnockedOut: isKnockedOut
-                        )
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, DS.Spacing.s2)
-                        .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
-                    }
-                }
+                Text(label(for: target))
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .frame(width: width, height: CricketBoardMetrics.markRowHeight)
+                Divider().overlay(Brand.cardElevated)
+            }
+            Color.clear
+                .frame(width: width, height: footerHeight)
+        }
+    }
+
+    private var headerHeight: CGFloat { 52 }
+    private var footerHeight: CGFloat { 56 }
+
+    private func label(for target: CricketTarget) -> String {
+        target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
+    }
+}
+
+struct CricketBoardPlayerColumn: View {
+    let column: CricketBoardView.Column
+    let width: CGFloat
+    let allColumns: [CricketBoardView.Column]
+    private let targets = CricketTarget.allCases
+
+    var body: some View {
+        VStack(spacing: 0) {
+            columnHeader
+            ForEach(targets, id: \.rawValue) { target in
+                let isKnockedOut = CricketBoardView.isTargetKnockedOut(columns: allColumns, target: target)
+                CricketMarkCell(
+                    targetLabel: label(for: target),
+                    marks: column.marks[target.rawValue] ?? 0,
+                    colorToken: column.colorToken,
+                    isKnockedOut: isKnockedOut
+                )
+                .frame(width: width, height: CricketBoardMetrics.markRowHeight)
+                .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
                 .opacity(isKnockedOut ? CricketBoardMetrics.knockedOutOpacity : 1)
                 Divider().overlay(Brand.cardElevated)
             }
+            CricketBoardPlayerColumnFooter(column: column)
         }
+        .background(column.isActive ? CricketBoardMetrics.activeColumnFill.opacity(0.15) : Color.clear)
+        .overlay {
+            if column.isClosureHighlight {
+                Rectangle()
+                    .stroke(Brand.amber, lineWidth: 2)
+            }
+        }
+        .scaleEffect(column.isClosureHighlight ? 1.03 : 1)
+        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(columnAccessibilityLabel)
+        .accessibilityIdentifier(column.isActive ? "cricket_column_active" : "cricket_column")
+    }
+
+    private var columnHeader: some View {
+        VStack(spacing: 2) {
+            Text(column.name)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(
+                    column.isActive
+                        ? PlayerVisualViews.accentColor(token: column.colorToken)
+                        : Brand.textPrimary
+                )
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text("\(column.score)")
+                .font(.title3.weight(.heavy))
+                .foregroundStyle(Brand.textPrimary)
+            if column.isActive {
+                Rectangle()
+                    .fill(PlayerVisualViews.accentColor(token: column.colorToken))
+                    .frame(height: 2)
+            } else {
+                Color.clear.frame(height: 2)
+            }
+        }
+        .frame(width: width)
+        .padding(.vertical, DS.Spacing.s2)
+        .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
+    }
+
+    private var columnAccessibilityLabel: String {
+        let turn = column.isActive ? " \(L10n.string("play.x01.turn.active"))" : ""
+        return L10n.format(
+            "play.cricket.column.accessibilityFormat",
+            column.name,
+            column.score,
+            column.dartsThrown,
+            column.marksPerRound,
+            turn
+        )
     }
 
     private func label(for target: CricketTarget) -> String {
         target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
+    }
+}
+
+struct CricketBoardPlayerColumnFooter: View {
+    let column: CricketBoardView.Column
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Text(scopeLabel)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                Text(L10n.format("play.cricket.column.footer.darts", column.dartsThrown))
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(Brand.textPrimary)
+                    .accessibilityIdentifier(column.isActive ? "cricket_column_darts" : "")
+            }
+            HStack(spacing: 4) {
+                Image(systemName: "chart.bar.fill")
+                    .font(.caption2)
+                    .foregroundStyle(Brand.textSecondary)
+                Text(String(format: "%.2f", column.marksPerRound))
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(Brand.textPrimary)
+                    .accessibilityIdentifier(column.isActive ? "cricket_column_mpr" : "")
+            }
+            if column.showsSetsLegs {
+                HStack(spacing: 6) {
+                    if column.setsEnabled {
+                        Text(L10n.format("play.cricket.column.footer.sets", column.setsWon))
+                            .font(.caption2)
+                            .foregroundStyle(Brand.textSecondary)
+                    }
+                    Text(L10n.format("play.cricket.column.footer.legs", column.legsWon))
+                        .font(.caption2)
+                        .foregroundStyle(Brand.textSecondary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 4)
+        .padding(.vertical, DS.Spacing.s2)
+    }
+
+    private var scopeLabel: String {
+        column.isActive ? L10n.string("play.x01.turn.active") : ""
     }
 }
 

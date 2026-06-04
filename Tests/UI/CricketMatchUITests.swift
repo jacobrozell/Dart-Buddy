@@ -164,4 +164,41 @@ final class CricketMatchUITests: DartBuddyUITestCase {
     // Full 3-player Cricket completion is covered by unit tests
     // (`cricketUIEquivalentThreePlayerSynchronizedSweepCompletesMatch`); a UI replay is
     // slow and brittle in CI. Continuation after the first finisher is asserted above.
+
+    func testCricketSetupChipGridVisible() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app)
+        XCTAssertTrue(app.buttons["setup_cricketPointsChip"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["setup_cricketModeChip"].exists)
+        XCTAssertTrue(app.buttons["setup_cricketSetLegChip"].exists)
+        XCTAssertTrue(app.buttons["setup_cricketSetsChip"].exists)
+        XCTAssertTrue(app.buttons["setup_cricketLegsChip"].exists)
+    }
+
+    func testCricketPointsOffDisablesModeChip() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app)
+        tapCricketPointsOff(in: app)
+        XCTAssertFalse(app.buttons["setup_cricketModeChip"].isEnabled)
+    }
+
+    func testCricketCutThroatSubtitleOnMatchStart() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app)
+        tapCricketCutThroatMode(in: app)
+        startTwoPlayerCricketMatch(from: app)
+        let subtitle = app.staticTexts["cricket_match_subtitle"]
+        XCTAssertTrue(subtitle.waitForExistence(timeout: timeout))
+        XCTAssertTrue(subtitle.label.contains("Cut Throat") || subtitle.label.contains("Lowest"))
+    }
+
+    func testCricketLiveMprAndDartsIdentifiersOnActiveColumn() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+        submitTripleCloseVisit(targets: ["20", "19", "18"], in: app, timeout: timeout)
+        let darts = app.staticTexts["cricket_column_darts"]
+        let mpr = app.staticTexts["cricket_column_mpr"]
+        XCTAssertTrue(darts.waitForExistence(timeout: timeout + 5))
+        XCTAssertTrue(mpr.exists)
+    }
 }
