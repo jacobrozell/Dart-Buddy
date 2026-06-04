@@ -23,6 +23,7 @@ enum L10n {
     static let setupChipSetLeg: LocalizedStringKey = "play.setup.chip.setLeg"
     static let setupChipSets: LocalizedStringKey = "play.setup.chip.sets"
     static let setupChipLegs: LocalizedStringKey = "play.setup.chip.legs"
+    static let setupChipMode: LocalizedStringKey = "play.setup.chip.mode"
     static let setupStartButton: LocalizedStringKey = "play.setup.startButton"
     static let setupStartingButton: LocalizedStringKey = "play.setup.startingButton"
     static let setupRandomOrder: LocalizedStringKey = "play.setup.randomOrder"
