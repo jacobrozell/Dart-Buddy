@@ -5,6 +5,7 @@ struct SetupHomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var rosterRowHeight: CGFloat = 52
+    @ScaledMetric(relativeTo: .body) private var turnOrderRowVerticalInset: CGFloat = 8
     @ObservedObject var homeViewModel: PlayHomeViewModel
     @ObservedObject var setupViewModel: MatchSetupViewModel
     @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
@@ -333,6 +334,14 @@ struct SetupHomeView: View {
                         selectedRosterRow(player: player, position: index + 1)
                             .listRowBackground(Brand.card)
                             .listRowSeparatorTint(Brand.cardElevated)
+                            .listRowInsets(
+                                EdgeInsets(
+                                    top: turnOrderRowVerticalInset,
+                                    leading: 0,
+                                    bottom: turnOrderRowVerticalInset,
+                                    trailing: 0
+                                )
+                            )
                     }
                     .onDelete { offsets in
                         setupViewModel.removeSelectedPlayers(at: offsets)
@@ -342,6 +351,7 @@ struct SetupHomeView: View {
                     }
                 }
                 .listStyle(.plain)
+                .listRowSpacing(0)
                 .scrollContentBackground(.hidden)
                 .scrollDisabled(true)
                 .environment(
@@ -498,7 +508,11 @@ struct SetupHomeView: View {
     }
 
     private var turnOrderListHeight: CGFloat {
-        CGFloat(setupViewModel.selectedPlayers.count) * rosterRowHeight
+        let count = setupViewModel.selectedPlayers.count
+        guard count > 0 else { return 0 }
+        let contentHeight = max(rosterRowHeight, 44)
+        let rowHeight = contentHeight + (turnOrderRowVerticalInset * 2)
+        return CGFloat(count) * rowHeight
     }
 
     private var setupStickyShadowColor: Color {
