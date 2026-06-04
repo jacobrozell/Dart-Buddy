@@ -12,6 +12,8 @@ final class MatchSetupViewModel: ObservableObject {
         var id: String { rawValue }
     }
 
+    @Published var setupCategory: PlaySetupCategory = .standard
+    @Published var partyGame: PartyGame = .baseball
     @Published var mode: SetupMode = .x01
     /// Selected players in throw order (first throws first unless `randomOrder` is on at start).
     @Published var selectedPlayerIds: [UUID] = []
@@ -29,6 +31,9 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var cricketSetsEnabled = false
     @Published var cricketSetsToWin: Int = 1
     @Published var cricketLegFormat: X01LegFormat = .firstTo
+    @Published var baseballInningCount: Int = 9
+    @Published var baseballTieBreaker: BaseballTieBreaker = .extraInnings
+    @Published var baseballSeventhInningStretch = false
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -84,6 +89,10 @@ final class MatchSetupViewModel: ObservableObject {
             let cricketPrefs = CricketSetupPreferences.load()
             cricketPointsEnabled = cricketPrefs.pointsEnabled
             cricketScoringMode = cricketPrefs.scoringMode
+            let baseballPrefs = BaseballSetupPreferences.load()
+            baseballInningCount = baseballPrefs.inningCount
+            baseballTieBreaker = baseballPrefs.tieBreaker
+            baseballSeventhInningStretch = baseballPrefs.seventhInningStretch
             mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
                 mode = preferred == .cricket ? .cricket : .x01
@@ -198,6 +207,16 @@ final class MatchSetupViewModel: ObservableObject {
         selectedPlayerIds.count
     }
 
+    func updateSetupCategory(_ category: PlaySetupCategory) {
+        setupCategory = category
+        revalidate()
+    }
+
+    func updatePartyGame(_ game: PartyGame) {
+        partyGame = game
+        revalidate()
+    }
+
     func updateMode(_ mode: SetupMode) {
         self.mode = mode
         revalidate()
@@ -205,7 +224,23 @@ final class MatchSetupViewModel: ObservableObject {
 
     func revalidate() {
         var errors: [String] = []
-        if selectedParticipantCount < 2 {
+        if setupCategory == .party {
+            if !partyGame.isAvailable {
+                errors.append("setup.validation.partyComingSoon")
+            } else if selectedParticipantCount < partyGame.minimumPlayers {
+                errors.append(partyMinimumPlayersValidationKey)
+            } else {
+                let selected = selectedPlayers
+                if selected.allSatisfy(\.isBot) {
+                    errors.append("setup.validation.requiresHuman")
+                }
+                if partyGame == .baseball {
+                    if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
+                        errors.append("setup.validation.baseballBotsPresetOnly")
+                    }
+                }
+            }
+        } else if selectedParticipantCount < 2 {
             errors.append("setup.validation.minimumPlayers")
         } else {
             let selected = selectedPlayers
@@ -213,7 +248,7 @@ final class MatchSetupViewModel: ObservableObject {
                 errors.append("setup.validation.requiresHuman")
             }
         }
-        if mode == .x01 {
+        if setupCategory == .standard, mode == .x01 {
             if !X01StartScores.all.contains(x01StartScore) {
                 errors.append("setup.validation.invalidStartScore")
             }
@@ -223,7 +258,7 @@ final class MatchSetupViewModel: ObservableObject {
             if x01SetsEnabled && x01SetsToWin <= 0 {
                 errors.append("setup.validation.invalidSets")
             }
-        } else {
+        } else if setupCategory == .standard {
             if cricketLegsToWin <= 0 {
                 errors.append("setup.validation.invalidLegs")
             }
@@ -236,6 +271,15 @@ final class MatchSetupViewModel: ObservableObject {
             }
         }
         validationErrors = errors
+    }
+
+    private var partyMinimumPlayersValidationKey: String {
+        switch partyGame {
+        case .killer:
+            "setup.validation.partyKillerMinimumPlayers"
+        case .baseball, .shanghai:
+            "setup.validation.partyMinimumPlayers"
+        }
     }
 
     func startMatchRoute() async -> PlayRoute? {
@@ -369,12 +413,14 @@ final class MatchSetupViewModel: ObservableObject {
         guard canStart else { return nil }
         isSubmitting = true
         defer { isSubmitting = false }
+        let isBaseballParty = setupCategory == .party && partyGame == .baseball
+        let matchType: MatchType = isBaseballParty ? .baseball : (mode == .x01 ? .x01 : .cricket)
         logger.debug(
             .scoring,
             eventName: "match_setup_start",
             message: "Starting match from setup.",
             metadata: [
-                "matchType": mode == .x01 ? MatchType.x01.rawValue : MatchType.cricket.rawValue,
+                "matchType": matchType.rawValue,
                 "participantCount": String(selectedParticipantCount)
             ]
         )
@@ -404,7 +450,6 @@ final class MatchSetupViewModel: ObservableObject {
             )
         }
         let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
-        let matchType: MatchType = mode == .x01 ? .x01 : .cricket
         do {
             let selectedPlayers: [MatchParticipant] = try await withThrowingTaskGroup(of: (Int, MatchParticipant).self) { group in
                 for (index, entry) in orderedRoster.enumerated() {
@@ -412,7 +457,11 @@ final class MatchSetupViewModel: ObservableObject {
                         var botDifficultyRaw = entry.botDifficulty?.rawValue
                         var botKindRaw: String?
                         var botSkillProfilePayload: Data?
-                        if entry.isTrainingBot {
+                        if isBaseballParty {
+                            if entry.botDifficulty != nil {
+                                botKindRaw = BotKind.preset.rawValue
+                            }
+                        } else if entry.isTrainingBot {
                             let profile = try await self.playerRepository.resolveTrainingBotSkill(
                                 for: entry.id,
                                 mode: matchType
@@ -460,7 +509,15 @@ final class MatchSetupViewModel: ObservableObject {
             let config: MatchConfigPayload
             let session: MatchLifecycleSession
             let route: PlayRoute
-            if mode == .x01 {
+            if isBaseballParty {
+                config = .baseball(
+                    MatchConfigBaseball(
+                        inningCount: baseballInningCount,
+                        tieBreaker: baseballTieBreaker,
+                        seventhInningStretch: baseballSeventhInningStretch
+                    )
+                )
+            } else if mode == .x01 {
                 config = .x01(
                     MatchConfigX01(
                         startScore: x01StartScore,
@@ -503,12 +560,20 @@ final class MatchSetupViewModel: ObservableObject {
                 )
             }
             let persisted = try await matchRepository.createMatch(
-                type: mode == .x01 ? .x01 : .cricket,
+                type: matchType,
                 configPayload: configPayload,
                 participants: participantsForRepository
             )
 
-            if mode == .x01 {
+            if isBaseballParty {
+                session = try MatchLifecycleService.createMatch(
+                    matchId: persisted.id,
+                    type: .baseball,
+                    config: config,
+                    participants: selectedPlayers
+                )
+                route = .baseballMatch(matchId: persisted.id)
+            } else if mode == .x01 {
                 session = try MatchLifecycleService.createMatch(
                     matchId: persisted.id,
                     type: .x01,
@@ -538,7 +603,7 @@ final class MatchSetupViewModel: ObservableObject {
                 message: "Match created and persisted.",
                 metadata: [
                     "matchId": persisted.id.uuidString,
-                    "matchType": (mode == .x01 ? MatchType.x01 : MatchType.cricket).rawValue,
+                    "matchType": matchType.rawValue,
                     "participantCount": String(selectedPlayers.count)
                 ],
                 correlationId: persisted.id.uuidString
@@ -568,6 +633,14 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     private func persistLastUsedSetup() async {
+        if setupCategory == .party, partyGame == .baseball {
+            BaseballSetupPreferences.save(
+                inningCount: baseballInningCount,
+                tieBreaker: baseballTieBreaker,
+                seventhInningStretch: baseballSeventhInningStretch
+            )
+            return
+        }
         if mode == .cricket {
             CricketSetupPreferences.save(
                 pointsEnabled: cricketPointsEnabled,

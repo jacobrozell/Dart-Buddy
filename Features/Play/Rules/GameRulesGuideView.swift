@@ -16,12 +16,13 @@ struct GameRulesGuideView: View {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
                     BrandSegmented(
                         options: GameRulesCatalog.supportedMatchTypes.map { mode in
-                            (mode, mode == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title"))
+                            (mode, MatchConfigText.modeLabel(for: mode))
                         },
                         selection: $selectedMode,
                         accessibilityIdentifiers: [
                             .x01: "rules_mode_x01",
-                            .cricket: "rules_mode_cricket"
+                            .cricket: "rules_mode_cricket",
+                            .baseball: "rules_mode_baseball"
                         ]
                     )
                     .frame(maxWidth: .infinity)

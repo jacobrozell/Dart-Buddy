@@ -95,6 +95,7 @@ final class MatchSummaryViewModel: ObservableObject {
         switch type {
         case .x01: return L10n.string("play.x01.title")
         case .cricket: return L10n.string("play.cricket.title")
+        case .baseball: return L10n.string("play.baseball.title")
         }
     }
 
@@ -161,6 +162,12 @@ final class MatchSummaryViewModel: ObservableObject {
                 rows.append((L10n.string("play.summary.stat.legs"), "\(player.legsWon)"))
             }
             return rows
+        case .baseball:
+            let runs = runtime.baseballState?.players.first(where: { $0.playerId == breakdown.playerId })?.cumulativeRuns ?? breakdown.points
+            return [
+                (L10n.string("play.summary.stat.runs"), "\(runs)"),
+                (L10n.string("play.summary.stat.darts"), "\(breakdown.darts)")
+            ]
         }
     }
 }

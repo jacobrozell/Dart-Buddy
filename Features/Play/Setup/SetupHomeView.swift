@@ -31,12 +31,27 @@ struct SetupHomeView: View {
                     recentCompletedSection
                 }
 
-                modeSelector
-                learnToPlayButton
-                if setupViewModel.mode == .x01 {
-                    chipsGrid
+                setupCategorySelector
+                if setupViewModel.setupCategory == .standard {
+                    modeSelector
+                    learnToPlayButton
+                    if setupViewModel.mode == .x01 {
+                        chipsGrid
+                    } else {
+                        cricketChipsGrid
+                    }
                 } else {
-                    cricketChipsGrid
+                    PartyGamePickerView(
+                        games: PartyGame.allCases,
+                        selection: Binding(
+                            get: { setupViewModel.partyGame },
+                            set: { setupViewModel.updatePartyGame($0) }
+                        )
+                    )
+                    if setupViewModel.partyGame == .baseball {
+                        learnToPlayButton
+                        baseballChipsGrid
+                    }
                 }
                 rosterControls
                 if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
@@ -81,7 +96,7 @@ struct SetupHomeView: View {
             Text("play.setup.activeConflict.message")
         }
         .sheet(isPresented: $showsGameRules) {
-            GameRulesGuideView(initialMode: setupViewModel.mode.matchType)
+            GameRulesGuideView(initialMode: learnToPlayMatchType)
         }
         .sheet(isPresented: $showsCustomBotSheet) {
             CustomBotCreationSheet { name, metrics in
@@ -90,6 +105,13 @@ struct SetupHomeView: View {
             }
         }
         .onDisappear { startTask?.cancel() }
+    }
+
+    private var learnToPlayMatchType: MatchType {
+        if setupViewModel.setupCategory == .party, setupViewModel.partyGame == .baseball {
+            return .baseball
+        }
+        return setupViewModel.mode.matchType
     }
 
     private var learnToPlayButton: some View {
@@ -131,7 +153,7 @@ struct SetupHomeView: View {
             L10n.format(
                 "play.home.resumeAccessibilityFormat",
                 L10n.string("play.home.resumeButton"),
-                match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+                MatchConfigText.modeLabel(for: match.type)
             )
         )
         .accessibilityIdentifier("resumeMatchButton")
@@ -147,7 +169,7 @@ struct SetupHomeView: View {
                 ForEach(homeViewModel.recentCompletedMatches) { match in
                     Button { onViewCompletedMatch(match.id) } label: {
                         HStack(spacing: DS.Spacing.s3) {
-                            Text(match.type == .x01 ? L10n.x01Title : L10n.cricketTitle)
+                            Text(MatchConfigText.modeLabel(for: match.type))
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Brand.textSecondary)
                                 .frame(width: 56, alignment: .leading)
@@ -182,6 +204,24 @@ struct SetupHomeView: View {
             }
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
         }
+    }
+
+    private var setupCategorySelector: some View {
+        BrandSegmented(
+            options: [
+                (.standard, L10n.string("play.setup.category.standard")),
+                (.party, L10n.string("play.setup.category.party"))
+            ],
+            selection: Binding(
+                get: { setupViewModel.setupCategory },
+                set: { setupViewModel.updateSetupCategory($0) }
+            ),
+            accessibilityIdentifiers: [
+                .standard: "setup_category_standard",
+                .party: "setup_category_party"
+            ]
+        )
+        .frame(maxWidth: .infinity)
     }
 
     private var modeSelector: some View {
@@ -241,6 +281,10 @@ struct SetupHomeView: View {
         if setupViewModel.isRosterEmpty {
             return L10n.string("play.setup.playersEmptyHint")
         }
+        if setupViewModel.setupCategory == .party,
+           setupViewModel.validationErrors.contains("setup.validation.partyComingSoon") {
+            return L10n.string("setup.validation.partyComingSoon")
+        }
         return SetupValidationMessages.startButtonAccessibilityHint(
             canStart: setupViewModel.canStart,
             validationErrors: setupViewModel.validationErrors
@@ -282,40 +326,44 @@ struct SetupHomeView: View {
     private var rosterActionButtons: some View {
         HStack(spacing: DS.Spacing.s2) {
             Menu {
-                if !setupViewModel.availableTrainingBots.isEmpty {
-                    Section(L10n.trainingBotSetupSection) {
-                        ForEach(setupViewModel.availableTrainingBots) { bot in
-                            Button {
-                                setupViewModel.addTrainingBot(bot.id)
-                            } label: {
-                                Label {
-                                    Text(bot.name)
-                                } icon: {
-                                    Circle()
-                                        .fill(PlayerVisualViews.trainingBotColor(linkedToken: bot.colorToken))
-                                        .frame(width: 10, height: 10)
+                if setupViewModel.setupCategory != .party || setupViewModel.partyGame != .baseball {
+                    if !setupViewModel.availableTrainingBots.isEmpty {
+                        Section(L10n.trainingBotSetupSection) {
+                            ForEach(setupViewModel.availableTrainingBots) { bot in
+                                Button {
+                                    setupViewModel.addTrainingBot(bot.id)
+                                } label: {
+                                    Label {
+                                        Text(bot.name)
+                                    } icon: {
+                                        Circle()
+                                            .fill(PlayerVisualViews.trainingBotColor(linkedToken: bot.colorToken))
+                                            .frame(width: 10, height: 10)
+                                    }
                                 }
+                                .accessibilityIdentifier("training_bot_add_setup")
                             }
-                            .accessibilityIdentifier("training_bot_add_setup")
                         }
                     }
-                }
-                if !setupViewModel.availableCustomBots.isEmpty {
-                    Section(L10n.customBotSetupSection) {
-                        ForEach(setupViewModel.availableCustomBots) { bot in
-                            Button {
-                                setupViewModel.addTrainingBot(bot.id)
-                            } label: {
-                                Text(bot.name)
+                    if !setupViewModel.availableCustomBots.isEmpty {
+                        Section(L10n.customBotSetupSection) {
+                            ForEach(setupViewModel.availableCustomBots) { bot in
+                                Button {
+                                    setupViewModel.addTrainingBot(bot.id)
+                                } label: {
+                                    Text(bot.name)
+                                }
                             }
                         }
                     }
                 }
                 Section(L10n.addBotTitle) {
-                    Button {
-                        showsCustomBotSheet = true
-                    } label: {
-                        Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                    if setupViewModel.setupCategory != .party || setupViewModel.partyGame != .baseball {
+                        Button {
+                            showsCustomBotSheet = true
+                        } label: {
+                            Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                        }
                     }
                     ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
                         botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
@@ -552,7 +600,11 @@ struct SetupHomeView: View {
     }
 
     private func recentMatchAccessibilityLabel(_ match: CompletedMatchPreview) -> String {
-        let mode = match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+        let mode = switch match.type {
+        case .x01: L10n.string("play.x01.title")
+        case .cricket: L10n.string("play.cricket.title")
+        case .baseball: L10n.string("play.baseball.title")
+        }
         let winner = match.winnerName.map { L10n.format("play.home.recentWinnerFormat", $0) } ?? ""
         return L10n.format("play.home.recentMatchAccessibilityFormat", mode, match.participantsLabel, winner)
     }

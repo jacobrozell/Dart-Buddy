@@ -37,7 +37,7 @@ struct PlayRootView: View {
                 setupViewModel: setupViewModel,
                 pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
                 onResumeMatch: { match in
-                    path.append(match.type == .x01 ? .x01Match(matchId: match.id) : .cricketMatch(matchId: match.id))
+                    path.append(match.type.playRoute(matchId: match.id))
                 },
                 onStartRoute: { next in path.append(next) },
                 onQuickAddPlayer: { path.append(.quickAddPlayer) },
@@ -56,6 +56,12 @@ struct PlayRootView: View {
                     )
                 case let .cricketMatch(matchId):
                     CricketMatchRouteView(
+                        matchId: matchId,
+                        dependencies: dependencies,
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
+                    )
+                case let .baseballMatch(matchId):
+                    BaseballMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
@@ -99,7 +105,7 @@ struct PlayRootView: View {
                     hasAppliedSnapshotRoute = true
                     if ProcessInfo.processInfo.arguments.contains("-open_active_match"),
                        case let .readyWithActiveMatch(match) = viewModel.state {
-                        path = [match.type == .x01 ? .x01Match(matchId: match.id) : .cricketMatch(matchId: match.id)]
+                        path = [match.type.playRoute(matchId: match.id)]
                     } else if let snapshotRoute = initialSnapshotRoute() {
                         path = [snapshotRoute]
                     }
@@ -115,7 +121,7 @@ struct PlayRootView: View {
             }
             .onChange(of: pendingResumeMatch) { _, match in
                 guard let match else { return }
-                path = [match.type == .x01 ? .x01Match(matchId: match.id) : .cricketMatch(matchId: match.id)]
+                path = [match.type.playRoute(matchId: match.id)]
                 pendingResumeMatch = nil
             }
         }
@@ -128,6 +134,9 @@ struct PlayRootView: View {
         }
         if arguments.contains("-snapshot_match_cricket") {
             return .cricketMatch(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000002") ?? UUID())
+        }
+        if arguments.contains("-snapshot_match_baseball") {
+            return .baseballMatch(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000004") ?? UUID())
         }
         if arguments.contains("-snapshot_match_summary") {
             return .matchSummary(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000003") ?? UUID())
@@ -199,6 +208,39 @@ private struct CricketMatchRouteView: View {
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct BaseballMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: BaseballMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: BaseballMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        BaseballMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback
         )
     }

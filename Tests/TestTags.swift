@@ -15,6 +15,7 @@ extension Tag {
     @Tag static var match: Self
     @Tag static var x01: Self
     @Tag static var cricket: Self
+    @Tag static var baseball: Self
     @Tag static var history: Self
     @Tag static var settings: Self
     @Tag static var stats: Self

@@ -145,6 +145,8 @@ func matchRepositoryHistoryFilterMapsToDatabase() async throws {
             )))
         case .cricket:
             try CodablePayloadCoder.encode(MatchConfigPayload.cricket(MatchConfigCricket()))
+        case .baseball:
+            try CodablePayloadCoder.encode(MatchConfigPayload.baseball(MatchConfigBaseball()))
         }
         let matchId = UUID()
         let participants = [

@@ -52,6 +52,7 @@ final class HistoryListViewModel: ObservableObject {
         case all
         case x01
         case cricket
+        case baseball
         var id: String { rawValue }
     }
 
@@ -170,6 +171,7 @@ final class HistoryListViewModel: ObservableObject {
         case .all: nil
         case .x01: .x01
         case .cricket: .cricket
+        case .baseball: .baseball
         }
         let startedAfter: Date? = switch dateFilter {
         case .all: nil
@@ -259,6 +261,20 @@ final class HistoryListViewModel: ObservableObject {
                 )
             }
             return (MatchConfigText.modeLabel(for: .cricket), sortStandings(standings))
+        }
+
+        if let state = runtime.baseballState {
+            let standings = state.players.map { player in
+                HistoryStanding(
+                    id: player.playerId,
+                    name: MatchConfigText.playerName(nameById[player.playerId]),
+                    isWinner: player.playerId == runtime.winnerPlayerId,
+                    sets: 0,
+                    legs: 0,
+                    score: player.cumulativeRuns
+                )
+            }
+            return (MatchConfigText.modeLabel(for: .baseball), sortStandings(standings))
         }
 
         return fallback()
@@ -361,6 +377,14 @@ final class HistoryDetailViewModel: ObservableObject {
                         name,
                         turn.totalPointsAdded
                     )
+                case let .baseballTurn(turn):
+                    let name = participantNames[turn.playerId] ?? String(turn.playerId.uuidString.prefix(6))
+                    return L10n.format(
+                        "history.timeline.baseballTurnFormat",
+                        turn.inning,
+                        name,
+                        turn.runsThisVisit
+                    )
                 }
             }
             matchType = match.type
@@ -427,6 +451,13 @@ final class HistoryDetailViewModel: ObservableObject {
                 }
                 let points = turns.reduce(0) { $0 + $1.totalPointsAdded }
                 return L10n.format("history.detail.cricketSummaryFormat", points, turns.count)
+            case .baseball:
+                let turns = envelopes.compactMap { envelope -> BaseballTurnEvent? in
+                    if case let .baseballTurn(turn) = envelope.payload { return turn }
+                    return nil
+                }
+                let runs = turns.reduce(0) { $0 + $1.runsThisVisit }
+                return L10n.format("history.detail.baseballSummaryFormat", runs, turns.count)
             }
         }()
         return HistoryDetailHeader(
@@ -477,6 +508,18 @@ final class HistoryDetailViewModel: ObservableObject {
                         score: $0.score
                     )
                 })
+            } else if let b = runtime.baseballState {
+                configText = MatchConfigText.modeLabel(for: .baseball)
+                standings = sortStandings(b.players.map {
+                    HistoryStanding(
+                        id: $0.playerId,
+                        name: MatchConfigText.playerName(participantNames[$0.playerId]),
+                        isWinner: $0.playerId == runtime.winnerPlayerId,
+                        sets: 0,
+                        legs: 0,
+                        score: $0.cumulativeRuns
+                    )
+                })
             }
         }
 
@@ -496,6 +539,12 @@ final class HistoryDetailViewModel: ObservableObject {
                     throwsByPlayer[turn.playerId, default: 0] += 1
                     if touch.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[turn.playerId, default: 0] += 1 }
                     if touch.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[turn.playerId, default: 0] += 1 }
+                }
+            case let .baseballTurn(turn):
+                for dart in turn.darts {
+                    throwsByPlayer[turn.playerId, default: 0] += 1
+                    if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[turn.playerId, default: 0] += 1 }
+                    if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[turn.playerId, default: 0] += 1 }
                 }
             }
         }

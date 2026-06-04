@@ -6,6 +6,9 @@ import SwiftUI
 struct DartNumberPad: View {
     @Binding var enteredDarts: [DartInput]
     @Binding var selectedMultiplier: DartMultiplier
+    /// When set, only this segment (and optionally bull) accepts scoring input.
+    var lockedSegment: Int? = nil
+    var showsBull: Bool = true
     /// Called when undo is tapped with an empty in-progress visit to revert the last accepted throw.
     let onUndoTurn: () -> Void
 
@@ -30,6 +33,22 @@ struct DartNumberPad: View {
         [15, 16, 17, 18, 19, 20, 25]
     ]
 
+    private var visibleCompactRows: [[Int]] {
+        compactRows.map { row in
+            row.filter { value in
+                if value == 25 { return showsBull }
+                return isSegmentEnabled(value)
+            }
+        }.filter { !$0.isEmpty }
+    }
+
+    private var visibleAccessibilitySegments: [Int] {
+        accessibilitySegments.filter { value in
+            if value == 25 { return showsBull }
+            return isSegmentEnabled(value)
+        }
+    }
+
     private let accessibilitySegments: [Int] = Array(1 ... 20) + [25]
 
     var body: some View {
@@ -42,7 +61,7 @@ struct DartNumberPad: View {
 
     private var compactPad: some View {
         VStack(spacing: padSpacing) {
-            ForEach(compactRows, id: \.self) { row in
+            ForEach(visibleCompactRows, id: \.self) { row in
                 HStack(spacing: padSpacing) {
                     ForEach(row, id: \.self) { value in
                         numberKey(value)
@@ -60,7 +79,7 @@ struct DartNumberPad: View {
         )
         return VStack(spacing: padSpacing) {
             LazyVGrid(columns: columns, spacing: padSpacing) {
-                ForEach(accessibilitySegments, id: \.self) { value in
+                ForEach(visibleAccessibilitySegments, id: \.self) { value in
                     numberKey(value)
                 }
             }
@@ -91,7 +110,8 @@ struct DartNumberPad: View {
     }
 
     private func numberKey(_ value: Int) -> some View {
-        ScoringPadKey(
+        let enabled = value == 25 ? showsBull : isSegmentEnabled(value)
+        return ScoringPadKey(
             title: String(value),
             font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
             minHeight: displayKeyMinHeight,
@@ -103,6 +123,13 @@ struct DartNumberPad: View {
             identifier: "pad_\(value)",
             action: { append(value) }
         )
+        .opacity(enabled ? 1 : 0.35)
+        .allowsHitTesting(enabled)
+    }
+
+    private func isSegmentEnabled(_ value: Int) -> Bool {
+        guard let lockedSegment else { return true }
+        return value == lockedSegment
     }
 
     private func modifierKey(_ multiplier: DartMultiplier, identifier: String) -> some View {
@@ -168,6 +195,8 @@ struct DartNumberPad: View {
 
     private func append(_ value: Int) {
         guard enteredDarts.count < 3 else { return }
+        if value != 25, let lockedSegment, value != lockedSegment { return }
+        if value == 25, !showsBull { return }
         let dart: DartInput
         if value == 25 {
             dart = selectedMultiplier == .double

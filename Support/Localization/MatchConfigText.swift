@@ -5,6 +5,7 @@ enum MatchConfigText {
         switch type {
         case .x01: L10n.string("play.x01.title")
         case .cricket: L10n.string("play.cricket.title")
+        case .baseball: L10n.string("play.baseball.title")
         }
     }
 
