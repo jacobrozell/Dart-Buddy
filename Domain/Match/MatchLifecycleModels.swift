@@ -90,13 +90,94 @@ public struct MatchConfigX01: Codable, Equatable, Sendable {
     }
 }
 
+public enum CricketScoringMode: String, Codable, CaseIterable, Sendable {
+    case standard
+    case cutThroat
+
+    public var displayName: String {
+        switch self {
+        case .standard: L10n.string("play.cricket.mode.normal")
+        case .cutThroat: L10n.string("play.cricket.mode.cutThroat")
+        }
+    }
+}
+
 public struct MatchConfigCricket: Codable, Equatable, Sendable {
+    public static let currentPayloadVersion = 2
+
     public let payloadVersion: Int
     public let bullScoreValue: Int
+    public let pointsEnabled: Bool
+    public let scoringModeRaw: String
+    public let legsToWin: Int
+    public let setsEnabled: Bool
+    public let setsToWin: Int?
+    public let legFormatRaw: String
 
-    public init(payloadVersion: Int = 1, bullScoreValue: Int = 25) {
+    public var scoringMode: CricketScoringMode {
+        CricketScoringMode(rawValue: scoringModeRaw) ?? .standard
+    }
+
+    public var legFormat: X01LegFormat {
+        X01LegFormat(rawValue: legFormatRaw) ?? .firstTo
+    }
+
+    public init(
+        payloadVersion: Int = currentPayloadVersion,
+        bullScoreValue: Int = 25,
+        pointsEnabled: Bool = true,
+        scoringMode: CricketScoringMode = .standard,
+        legsToWin: Int = 1,
+        setsEnabled: Bool = false,
+        setsToWin: Int? = nil,
+        legFormat: X01LegFormat = .firstTo
+    ) {
         self.payloadVersion = payloadVersion
         self.bullScoreValue = bullScoreValue
+        self.pointsEnabled = pointsEnabled
+        self.scoringModeRaw = scoringMode.rawValue
+        self.legsToWin = legsToWin
+        self.setsEnabled = setsEnabled
+        self.setsToWin = setsEnabled ? setsToWin : nil
+        self.legFormatRaw = legFormat.rawValue
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let version = try container.decodeIfPresent(Int.self, forKey: .payloadVersion) ?? 1
+        bullScoreValue = try container.decodeIfPresent(Int.self, forKey: .bullScoreValue) ?? 25
+        pointsEnabled = try container.decodeIfPresent(Bool.self, forKey: .pointsEnabled) ?? true
+        scoringModeRaw = try container.decodeIfPresent(String.self, forKey: .scoringModeRaw)
+            ?? CricketScoringMode.standard.rawValue
+        legsToWin = try container.decodeIfPresent(Int.self, forKey: .legsToWin) ?? 1
+        setsEnabled = try container.decodeIfPresent(Bool.self, forKey: .setsEnabled) ?? false
+        setsToWin = try container.decodeIfPresent(Int.self, forKey: .setsToWin)
+        legFormatRaw = try container.decodeIfPresent(String.self, forKey: .legFormatRaw)
+            ?? X01LegFormat.firstTo.rawValue
+        payloadVersion = max(version, Self.currentPayloadVersion)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case payloadVersion
+        case bullScoreValue
+        case pointsEnabled
+        case scoringModeRaw
+        case legsToWin
+        case setsEnabled
+        case setsToWin
+        case legFormatRaw
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(payloadVersion, forKey: .payloadVersion)
+        try container.encode(bullScoreValue, forKey: .bullScoreValue)
+        try container.encode(pointsEnabled, forKey: .pointsEnabled)
+        try container.encode(scoringModeRaw, forKey: .scoringModeRaw)
+        try container.encode(legsToWin, forKey: .legsToWin)
+        try container.encode(setsEnabled, forKey: .setsEnabled)
+        try container.encodeIfPresent(setsToWin, forKey: .setsToWin)
+        try container.encode(legFormatRaw, forKey: .legFormatRaw)
     }
 }
 

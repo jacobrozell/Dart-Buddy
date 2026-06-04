@@ -382,3 +382,86 @@ func cricketUIEquivalentThreePlayerSynchronizedSweepCompletesMatch() throws {
     #expect(state.isComplete)
     #expect(state.winnerPlayerId == players[0])
 }
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketCutThroatOverflowCreditsOpenOpponents() throws {
+    let players = cricketPlayerIds(count: 2)
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(scoringMode: .cutThroat),
+        playerIds: players
+    )
+    state.players[0].marks["20"] = 3
+    let outcome = try CricketEngine.submitTurn(state: state, darts: [CricketTestDarts.triple(20)])
+    #expect(outcome.updatedState.players[0].score == 0)
+    #expect(outcome.updatedState.players[1].score == 60)
+    #expect(outcome.event.totalPointsAdded == 60)
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketCutThroatLowestScoreWinsLeg() throws {
+    let players = cricketPlayerIds(count: 2)
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(scoringMode: .cutThroat),
+        playerIds: players
+    )
+    state.players[0].marks = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 3) })
+    state.players[1].marks = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 3) })
+    state.players[0].score = 40
+    state.players[1].score = 10
+    state.currentPlayerIndex = 0
+    let outcome = try CricketEngine.submitTurn(state: state, darts: [CricketTestDarts.miss()])
+    #expect(outcome.updatedState.isComplete)
+    #expect(outcome.updatedState.winnerPlayerId == players[1])
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketNoScoreFirstCloserWinsWithoutPoints() throws {
+    let players = cricketPlayerIds(count: 2)
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(pointsEnabled: false),
+        playerIds: players
+    )
+    state = try CricketTestDarts.closeAllTargetsForCurrentPlayer(state, playerCount: 2)
+    #expect(state.isComplete)
+    #expect(state.winnerPlayerId == players[0])
+    #expect(state.players[0].score == 0)
+    #expect(state.players[1].score == 0)
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketMultiLegResetsMarksBetweenLegs() throws {
+    let players = cricketPlayerIds(count: 2)
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(legsToWin: 2),
+        playerIds: players
+    )
+    state.players[0].marks = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 3) })
+    state.players[1].marks = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 3) })
+    state.currentPlayerIndex = 0
+    let outcome = try CricketEngine.submitTurn(state: state, darts: [CricketTestDarts.miss()])
+    #expect(!outcome.updatedState.isComplete)
+    #expect(outcome.updatedState.players[0].legsWon == 1)
+    #expect(outcome.updatedState.legIndex == 1)
+    #expect(outcome.updatedState.players[0].marks["20"] == 0)
+}
+
+@Test(.tags(.unit, .cricket, .offline, .regression))
+func cricketDefaultConfigPreservesStandardSingleLegBehavior() throws {
+    let players = cricketPlayerIds(count: 2)
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+    state = try CricketTestDarts.runSynchronizedCloseSweep(state, playerCount: 2)
+    #expect(state.isComplete)
+    #expect(state.winnerPlayerId == players[0])
+}
+
+@Test(.tags(.unit, .cricket, .offline, .regression))
+func cricketConfigV1PayloadDecodesWithDefaults() throws {
+    let json = """
+    {"payloadVersion":1,"bullScoreValue":25}
+    """
+    let data = try #require(json.data(using: .utf8))
+    let decoded = try JSONDecoder().decode(MatchConfigCricket.self, from: data)
+    #expect(decoded.pointsEnabled)
+    #expect(decoded.scoringMode == .standard)
+    #expect(decoded.legsToWin == 1)
+}

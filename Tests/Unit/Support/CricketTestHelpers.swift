@@ -5,6 +5,24 @@ func cricketPlayerIds(count: Int) -> [UUID] {
     (0 ..< count).map { _ in UUID() }
 }
 
+func cricketConfig(
+    pointsEnabled: Bool = true,
+    scoringMode: CricketScoringMode = .standard,
+    legsToWin: Int = 1,
+    setsEnabled: Bool = false,
+    setsToWin: Int? = nil,
+    legFormat: X01LegFormat = .firstTo
+) -> MatchConfigCricket {
+    MatchConfigCricket(
+        pointsEnabled: pointsEnabled,
+        scoringMode: scoringMode,
+        legsToWin: legsToWin,
+        setsEnabled: setsEnabled,
+        setsToWin: setsToWin,
+        legFormat: legFormat
+    )
+}
+
 func cricketParticipants(count: Int, names: [String]? = nil) -> [MatchParticipant] {
     let ids = cricketPlayerIds(count: count)
     let resolvedNames = names ?? (0 ..< count).map { "P\($0)" }
