@@ -50,15 +50,17 @@ struct WCAGAccessibilityLabelTests {
     func padLabelsCoverAllSegments() {
         for value in 1 ... 20 {
             #expect(
-                !DartInput.padKeyAccessibilityLabel(segmentValue: value, armedMultiplier: .single).isEmpty
+                DartInput.padKeyAccessibilityLabel(segmentValue: value, armedMultiplier: .single)
+                    == L10n.format("scoring.dart.single.accessibility", value)
             )
-            let doubleLabel = DartInput.padKeyAccessibilityLabel(segmentValue: value, armedMultiplier: .double)
-            #expect(!doubleLabel.isEmpty)
-            #expect(doubleLabel.localizedCaseInsensitiveContains("double"))
-
-            let tripleLabel = DartInput.padKeyAccessibilityLabel(segmentValue: value, armedMultiplier: .triple)
-            #expect(!tripleLabel.isEmpty)
-            #expect(tripleLabel.localizedCaseInsensitiveContains("triple"))
+            #expect(
+                DartInput.padKeyAccessibilityLabel(segmentValue: value, armedMultiplier: .double)
+                    == L10n.format("scoring.dart.double.accessibility", value)
+            )
+            #expect(
+                DartInput.padKeyAccessibilityLabel(segmentValue: value, armedMultiplier: .triple)
+                    == L10n.format("scoring.dart.triple.accessibility", value)
+            )
         }
     }
 }
