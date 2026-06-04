@@ -39,6 +39,9 @@ targets:
       - path: Resources/es.lproj/Localizable.strings
         type: file
         buildPhase: resources
+      - path: Resources/nl.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources
