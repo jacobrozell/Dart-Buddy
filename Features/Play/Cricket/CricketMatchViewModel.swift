@@ -92,7 +92,7 @@ final class CricketMatchViewModel: ObservableObject {
         let isInProgress = session.runtime.status == .inProgress
         let highlightClosure = self.state == .closureTransition
         let config = state.config
-        let showsSetsLegs = config.setsEnabled || config.legsToWin > 1
+        let showsSetsLegs = config.showsLegsOrSetsOnBoard
         return state.players.enumerated().map { index, player in
             let participant = participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress

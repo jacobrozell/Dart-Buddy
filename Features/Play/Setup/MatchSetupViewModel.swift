@@ -77,7 +77,7 @@ final class MatchSetupViewModel: ObservableObject {
             x01CheckoutMode = X01CheckoutMode(rawValue: settings.defaultCheckoutModeRaw) ?? .doubleOut
             x01CheckInMode = X01CheckInMode(rawValue: settings.defaultCheckInModeRaw) ?? .straightIn
             x01LegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo
-            cricketLegsToWin = 1
+            cricketLegsToWin = max(1, settings.defaultLegsToWin)
             cricketSetsEnabled = settings.defaultSetsEnabled
             cricketSetsToWin = max(1, settings.defaultSetsEnabled ? 2 : 1)
             cricketLegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo

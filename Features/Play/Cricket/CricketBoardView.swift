@@ -1,9 +1,12 @@
 import SwiftUI
 
 enum CricketBoardMetrics {
-    static let targetColumnWidth: CGFloat = 40
+    static let targetColumnWidth: CGFloat = 28
     static let playerColumnWidth: CGFloat = 84
+    static let scrollIndicatorPlayerThreshold = 3
     static let markRowHeight: CGFloat = DS.Spacing.s2 * 4
+    /// Aligns target-column footer spacer with the player stats block (darts + MPR, no legs row).
+    static let columnFooterHeight: CGFloat = DS.Spacing.s2 * 2 + 28
     static let activeColumnFill = Brand.cardElevated.opacity(0.35)
     static let knockedOutOpacity: Double = 0.42
 }
@@ -33,11 +36,16 @@ struct CricketBoardView: View {
     @ScaledMetric(relativeTo: .body) private var targetColumnWidth = CricketBoardMetrics.targetColumnWidth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var showsPlayerScrollIndicator: Bool {
+        columns.count >= CricketBoardMetrics.scrollIndicatorPlayerThreshold
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             CricketBoardTargetColumn(width: targetColumnWidth)
+                .fixedSize(horizontal: true, vertical: false)
             ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
+                ScrollView(.horizontal, showsIndicators: showsPlayerScrollIndicator) {
                     HStack(spacing: 0) {
                         ForEach(columns) { column in
                             CricketBoardPlayerColumn(
@@ -66,6 +74,7 @@ struct CricketBoardView: View {
                         proxy.scrollTo(activeColumnScrollID, anchor: .center)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .background(Brand.card)
@@ -82,7 +91,8 @@ struct CricketBoardTargetColumn: View {
                 .frame(width: width, height: headerHeight)
             ForEach(targets, id: \.rawValue) { target in
                 Text(label(for: target))
-                    .font(.headline.weight(.bold))
+                    .font(.subheadline.weight(.bold))
+                    .monospacedDigit()
                     .foregroundStyle(Brand.textSecondary)
                     .frame(width: width, height: CricketBoardMetrics.markRowHeight)
                 Divider().overlay(Brand.cardElevated)
@@ -93,7 +103,7 @@ struct CricketBoardTargetColumn: View {
     }
 
     private var headerHeight: CGFloat { 52 }
-    private var footerHeight: CGFloat { 56 }
+    private var footerHeight: CGFloat { CricketBoardMetrics.columnFooterHeight }
 
     private func label(for target: CricketTarget) -> String {
         target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
@@ -187,15 +197,10 @@ struct CricketBoardPlayerColumnFooter: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 4) {
-                Text(scopeLabel)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(Brand.textSecondary)
-                Text(L10n.format("play.cricket.column.footer.darts", column.dartsThrown))
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(Brand.textPrimary)
-                    .accessibilityIdentifier(column.isActive ? "cricket_column_darts" : "")
-            }
+            Text(L10n.format("play.cricket.column.footer.darts", column.dartsThrown))
+                .font(.caption2.monospacedDigit())
+                .foregroundStyle(Brand.textPrimary)
+                .accessibilityIdentifier(column.isActive ? "cricket_column_darts" : "")
             HStack(spacing: 4) {
                 Image(systemName: "chart.bar.fill")
                     .font(.caption2)
@@ -221,10 +226,6 @@ struct CricketBoardPlayerColumnFooter: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 4)
         .padding(.vertical, DS.Spacing.s2)
-    }
-
-    private var scopeLabel: String {
-        column.isActive ? L10n.string("play.x01.turn.active") : ""
     }
 }
 

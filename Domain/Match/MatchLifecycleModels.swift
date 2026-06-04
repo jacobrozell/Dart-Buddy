@@ -122,6 +122,11 @@ public struct MatchConfigCricket: Codable, Equatable, Sendable {
         X01LegFormat(rawValue: legFormatRaw) ?? .firstTo
     }
 
+    /// True when the match format tracks legs or sets beyond a single leg.
+    public var showsLegsOrSetsOnBoard: Bool {
+        setsEnabled || legsToWin > 1
+    }
+
     public init(
         payloadVersion: Int = currentPayloadVersion,
         bullScoreValue: Int = 25,

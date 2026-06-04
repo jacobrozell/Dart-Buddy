@@ -222,6 +222,50 @@ func cricketViewModelBoardColumnsFallbackColorForLegacyParticipants() async thro
 
 @MainActor
 @Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelBoardColumnsHideLegsForSingleLegMatch() async throws {
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket(legsToWin: 1, setsEnabled: false)),
+        participants: cricketParticipants(count: 2)
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = CricketMatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        matchRepository: CricketFakeMatchRepository(),
+        statsRepository: CricketFakeStatsRepository()
+    )
+    await vm.onAppear()
+
+    #expect(vm.boardColumns.allSatisfy { !$0.showsSetsLegs })
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelBoardColumnsShowLegsForMultiLegMatch() async throws {
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket(legsToWin: 3, setsEnabled: false)),
+        participants: cricketParticipants(count: 2)
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = CricketMatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        matchRepository: CricketFakeMatchRepository(),
+        statsRepository: CricketFakeStatsRepository()
+    )
+    await vm.onAppear()
+
+    #expect(vm.boardColumns.allSatisfy { $0.showsSetsLegs })
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelBoardColumnsMatchThreeParticipants() async throws {
     let (vm, _) = try makeCricketViewModel(participantCount: 3)
     await vm.onAppear()

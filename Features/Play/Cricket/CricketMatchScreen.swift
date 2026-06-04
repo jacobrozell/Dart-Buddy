@@ -58,8 +58,11 @@ struct CricketMatchScreen: View {
                     }
                 } else {
                     ScrollView {
-                        CricketBoardView(columns: viewModel.boardColumns)
-                            .padding(.horizontal, DS.Spacing.s4)
+                        CricketBoardView(
+                            columns: viewModel.boardColumns,
+                            activeColumnScrollID: viewModel.activeBoardColumnID
+                        )
+                        .padding(.horizontal, DS.Spacing.s4)
                     }
 
                     VStack(spacing: DS.Spacing.s2) {
