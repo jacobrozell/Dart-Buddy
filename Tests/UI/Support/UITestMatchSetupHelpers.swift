@@ -3,50 +3,11 @@ import XCTest
 extension DartBuddyUITestCase {
     func removePlayerFromTurnOrder(named name: String, in app: XCUIApplication) {
         let removeButton = app.buttons["setup_remove_\(name)"]
-        if removeButton.waitForExistence(timeout: 2) {
-            removeButton.tap()
-            return
-        }
-
-        let turnOrderRow = app.descendants(matching: .any).matching(
-            NSPredicate(format: "identifier == 'setup_selected_\(name)'")
-        ).firstMatch
-        if turnOrderRow.waitForExistence(timeout: 2) {
-            turnOrderRow.swipeLeft()
-            let remove = app.buttons["Remove"].firstMatch
-            XCTAssertTrue(remove.waitForExistence(timeout: timeout), "Turn order row should expose Remove when swiped")
-            remove.tap()
-            return
-        }
-
-        let rowByLabel = app.staticTexts.matching(
-            NSPredicate(format: "label CONTAINS[c] %@ AND label CONTAINS[c] %@", "Throwing position", name)
-        ).firstMatch
-        if rowByLabel.waitForExistence(timeout: 2) {
-            rowByLabel.swipeLeft()
-            let remove = app.buttons["Remove"].firstMatch
-            XCTAssertTrue(remove.waitForExistence(timeout: timeout), "Turn order row should expose Remove when swiped")
-            remove.tap()
-            return
-        }
-
-        let cell = app.tables.cells.containing(NSPredicate(format: "label CONTAINS[c] %@", name)).firstMatch
-        XCTAssertTrue(cell.waitForExistence(timeout: timeout), "Expected \(name) in the turn order list")
-
-        let minus = cell.buttons.element(boundBy: 0)
-        if minus.waitForExistence(timeout: 2) {
-            minus.tap()
-            let delete = app.buttons["Delete"].firstMatch
-            if delete.waitForExistence(timeout: timeout) {
-                delete.tap()
-                return
-            }
-        }
-
-        cell.swipeLeft()
-        let remove = app.buttons["Remove"].firstMatch
-        XCTAssertTrue(remove.waitForExistence(timeout: timeout), "Turn order row should expose Remove when swiped")
-        remove.tap()
+        XCTAssertTrue(
+            removeButton.waitForExistence(timeout: timeout),
+            "Expected remove control for \(name) in turn order"
+        )
+        removeButton.tap()
     }
 
     func openBotRow(named name: String, in app: XCUIApplication) {

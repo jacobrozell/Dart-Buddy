@@ -383,19 +383,18 @@ struct SetupHomeView: View {
             if let difficulty = player.botDifficulty {
                 BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
             }
-            if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
-                Button {
-                    setupViewModel.removeFromSelection(player.id)
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(Brand.textSecondary)
-                }
-                .buttonStyle(.plain)
-                .frame(minWidth: 44, minHeight: 44)
-                .accessibilityLabel(L10n.setupRemoveFromMatch)
-                .accessibilityIdentifier("setup_remove_\(player.name)")
+            Button {
+                setupViewModel.removeFromSelection(player.id)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(Brand.textSecondary)
             }
+            .buttonStyle(.plain)
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+            .accessibilityLabel(L10n.setupRemoveFromMatch)
+            .accessibilityIdentifier("setup_remove_\(player.name)")
         }
         .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
             setupViewModel.removeFromSelection(player.id)
@@ -453,6 +452,7 @@ struct SetupHomeView: View {
                 Image(systemName: "plus.circle")
                     .foregroundStyle(Brand.green)
             }
+            .frame(minHeight: 44)
             .padding(.vertical, DS.Spacing.s3)
             .contentShape(Rectangle())
         }

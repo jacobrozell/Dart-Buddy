@@ -172,11 +172,23 @@ func x01ViewModelPlayerCardsCarryParticipantColor() async throws {
 @Test(.tags(.integration, .x01, .match, .regression))
 func x01ViewModelPlayerCardsFallbackColorForLegacyParticipants() async throws {
     let p0 = UUID()
+    let p1 = UUID()
     let session = try MatchLifecycleService.createMatch(
         type: .x01,
         config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
         participants: [
-            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0)
+            MatchParticipant(
+                playerId: p0,
+                displayNameAtMatchStart: "A",
+                turnOrder: 0,
+                preferredColorTokenAtMatchStart: nil
+            ),
+            MatchParticipant(
+                playerId: p1,
+                displayNameAtMatchStart: "B",
+                turnOrder: 1,
+                preferredColorTokenAtMatchStart: PlayerColorToken.coral.rawValue
+            )
         ]
     )
     let store = ActiveMatchStore()

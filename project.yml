@@ -104,6 +104,18 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+  DartBuddyPerformanceTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/Performance
+      - path: Tests/TestTags.swift
+    dependencies:
+      - target: DartBuddy
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartBuddyPerformanceTests
   DartBuddyUITests:
     type: bundle.ui-testing
     platform: iOS
