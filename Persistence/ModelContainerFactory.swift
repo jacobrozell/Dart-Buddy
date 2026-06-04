@@ -18,6 +18,7 @@ public enum ModelContainerFactory {
             guard let url = storeURL(for: mode) else {
                 preconditionFailure("storeURL must return a URL for \(mode)")
             }
+            try ensureParentDirectoryExists(for: url)
             configuration = ModelConfiguration(schema: schema, url: url)
         }
         return try ModelContainer(
@@ -25,6 +26,19 @@ public enum ModelContainerFactory {
             migrationPlan: DartsMigrationPlan.self,
             configurations: [configuration]
         )
+    }
+
+    /// UI tests pass `-ui_test_reset`; use an in-memory store to avoid simulator sandbox / CI filesystem issues.
+    public static func storageModeForCurrentProcess() -> StorageMode {
+        if ProcessInfo.processInfo.arguments.contains("-ui_test_reset") {
+            return .inMemory
+        }
+        return .appDefault
+    }
+
+    private static func ensureParentDirectoryExists(for storeURL: URL) throws {
+        let directory = storeURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 
     private static func storeURL(for mode: StorageMode) -> URL? {
