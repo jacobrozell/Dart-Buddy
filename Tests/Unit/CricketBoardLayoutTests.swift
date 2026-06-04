@@ -9,9 +9,17 @@ func cricketBoardMarkTargetCountMatchesStandardCricketTargets() {
 }
 
 @Test(.tags(.unit, .cricket, .regression))
+func cricketConfigShowsLegsOrSetsOnBoardOnlyForMultiLegOrSetFormats() {
+    #expect(MatchConfigCricket(legsToWin: 1, setsEnabled: false).showsLegsOrSetsOnBoard == false)
+    #expect(MatchConfigCricket(legsToWin: 2, setsEnabled: false).showsLegsOrSetsOnBoard)
+    #expect(MatchConfigCricket(legsToWin: 1, setsEnabled: true).showsLegsOrSetsOnBoard)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
 func cricketBoardColumnWidthTokensAreStable() {
-    #expect(CricketBoardMetrics.targetColumnWidth >= 36)
-    #expect(CricketBoardMetrics.targetColumnWidth <= 44)
+    #expect(CricketBoardMetrics.targetColumnWidth >= 24)
+    #expect(CricketBoardMetrics.targetColumnWidth <= 32)
+    #expect(CricketBoardMetrics.scrollIndicatorPlayerThreshold == 3)
     #expect(CricketBoardMetrics.playerColumnWidth >= 80)
     #expect(CricketBoardMetrics.playerColumnWidth <= 88)
 }

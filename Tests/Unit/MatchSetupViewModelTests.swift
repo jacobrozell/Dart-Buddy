@@ -37,6 +37,7 @@ func setupOnAppearAppliesSettingsDefaults() async {
     #expect(vm.x01CheckoutMode == .masterOut)
     #expect(vm.x01CheckInMode == .doubleIn)
     #expect(vm.x01LegsToWin == 5)
+    #expect(vm.cricketLegsToWin == 5)
     #expect(vm.x01SetsEnabled == true)
 }
 
