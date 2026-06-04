@@ -237,6 +237,112 @@ import Testing
     }
 }
 
+@Test func dartBotEngine_cricketCutThroatPrefersHighestOpenTarget() throws {
+    let players = [UUID(), UUID()]
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(scoringMode: .cutThroat),
+        playerIds: players
+    )
+    state.players[0].marks["20"] = 0
+    state.players[0].marks["19"] = 3
+
+    var foundAimAt20 = false
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+        let darts = DartBotEngine.generateCricketTurn(
+            state: state,
+            playerIndex: 0,
+            difficulty: .pro,
+            rng: &rng
+        )
+        if darts.contains(where: { cricketDartAims(at: 20, dart: $0) }) {
+            foundAimAt20 = true
+            break
+        }
+    }
+    #expect(foundAimAt20)
+}
+
+@Test func dartBotEngine_cricketCutThroatPunishesClosedBedWhenOpponentOpen() throws {
+    let players = [UUID(), UUID()]
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(scoringMode: .cutThroat),
+        playerIds: players
+    )
+    let allClosed = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 3) })
+    state.players[0].marks = allClosed
+    state.players[1].marks = allClosed
+    state.players[1].marks["20"] = 0
+
+    var foundPunishAim = false
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+        let darts = DartBotEngine.generateCricketTurn(
+            state: state,
+            playerIndex: 0,
+            difficulty: .pro,
+            rng: &rng
+        )
+        if darts.allSatisfy({ cricketDartAims(at: 20, dart: $0) }) {
+            foundPunishAim = true
+            break
+        }
+    }
+    #expect(foundPunishAim)
+}
+
+@Test func dartBotEngine_cricketCutThroatPunishInflictsOpponentPoints() throws {
+    let players = [UUID(), UUID()]
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(scoringMode: .cutThroat),
+        playerIds: players
+    )
+    let allClosed = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 3) })
+    state.players[0].marks = allClosed
+    state.players[1].marks = allClosed
+    state.players[1].marks["20"] = 0
+
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed + 200))
+        let darts = DartBotEngine.generateCricketTurn(
+            state: state,
+            playerIndex: 0,
+            difficulty: .pro,
+            rng: &rng
+        )
+        let outcome = try CricketEngine.submitTurn(state: state, darts: darts)
+        if outcome.updatedState.players[1].score > 0 {
+            #expect(outcome.updatedState.players[0].score == 0)
+            return
+        }
+    }
+    Issue.record("Expected at least one seeded cut-throat punish visit to score on opponent")
+}
+
+@Test func dartBotEngine_cricketStandardStillClosesFromTwenty() throws {
+    let players = [UUID(), UUID()]
+    let state = try CricketEngine.makeInitialState(
+        config: cricketConfig(scoringMode: .standard),
+        playerIds: players
+    )
+
+    var foundAimAt20 = false
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+        let darts = DartBotEngine.generateCricketTurn(
+            state: state,
+            playerIndex: 0,
+            difficulty: .pro,
+            rng: &rng
+        )
+        if darts.contains(where: { cricketDartAims(at: 20, dart: $0) }) {
+            foundAimAt20 = true
+            break
+        }
+    }
+    #expect(foundAimAt20)
+}
+
 @Test func dartBotEngine_bustAvoidanceScoresOnBoard() {
     var rng = SeededRandomNumberGenerator(seed: 77)
     let darts = DartBotEngine.generateX01Turn(
@@ -249,6 +355,15 @@ import Testing
     )
     #expect(darts.allSatisfy { $0.isMiss == false || $0.points == 0 })
     #expect(darts.contains { $0.points > 0 })
+}
+
+private func cricketDartAims(at value: Int, dart: DartInput) -> Bool {
+    switch dart.segment {
+    case let .oneToTwenty(segmentValue):
+        return segmentValue == value
+    default:
+        return false
+    }
 }
 
 private struct SeededRandomNumberGenerator: RandomNumberGenerator {

@@ -117,7 +117,7 @@
 "play.cricket.column.footer.legs" = "Leg %d";
 "play.cricket.column.footer.sets" = "Set %d";
 "play.cricket.column.accessibilityFormat" = "%@, score %d, %d darts, %.2f marks per round.%@";
-"setup.validation.cricketBotUnsupported" = "Bots only support Normal scoring with points on.";
+"setup.validation.cricketBotUnsupported" = "Bots require points to be enabled.";
 "common.active" = "Active";
 "play.match.submittingTurn" = "Submitting turn...";
 "play.x01.bustFeedback" = "Bust - score restored and turn advanced.";

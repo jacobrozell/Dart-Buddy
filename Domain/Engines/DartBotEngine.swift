@@ -498,28 +498,78 @@ public enum DartBotEngine {
         profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
+        let target = cricketAimTarget(
+            state: state,
+            playerIndex: playerIndex,
+            marksSnapshot: marksSnapshot,
+            rng: &rng
+        )
+        guard let target else {
+            return boardGlanceDart(near: DartInput(multiplier: .single, segment: .oneToTwenty(20)), rng: &rng)
+        }
+        return cricketDartInput(for: target, profile: profile, rng: &rng)
+    }
+
+    private static func cricketAimTarget(
+        state: CricketState,
+        playerIndex: Int,
+        marksSnapshot: [String: Int],
+        rng: inout some RandomNumberGenerator
+    ) -> CricketTarget? {
         let ownOpen = CricketTarget.allCases.filter { (marksSnapshot[$0.rawValue] ?? 0) < 3 }
-        if let target = ownOpen.first ?? CricketTarget.allCases.randomElement(using: &rng) {
-            if target == .bull {
-                if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.innerBullAimChance {
-                    return DartInput(multiplier: .single, segment: .innerBull)
-                }
-                return DartInput(multiplier: .single, segment: .outerBull)
+        if let closeTarget = ownOpen.max(by: { $0.points < $1.points }) {
+            return closeTarget
+        }
+
+        if state.config.pointsEnabled,
+           state.config.scoringMode == .cutThroat,
+           let punishTarget = cutThroatPunishTargets(
+               state: state,
+               playerIndex: playerIndex,
+               marksSnapshot: marksSnapshot
+           ).max(by: { $0.points < $1.points }) {
+            return punishTarget
+        }
+
+        return CricketTarget.allCases.randomElement(using: &rng)
+    }
+
+    private static func cutThroatPunishTargets(
+        state: CricketState,
+        playerIndex: Int,
+        marksSnapshot: [String: Int]
+    ) -> [CricketTarget] {
+        CricketTarget.allCases.filter { target in
+            guard (marksSnapshot[target.rawValue] ?? 0) >= 3 else { return false }
+            return state.players.enumerated().contains { index, player in
+                index != playerIndex && (player.marks[target.rawValue] ?? 0) < 3
             }
-            let segment = target.points
-            let tier = profile.x01.scoringBehaviorTier
-            if tier == .veryEasy || tier == .easy {
-                return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
+        }
+    }
+
+    private static func cricketDartInput(
+        for target: CricketTarget,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        if target == .bull {
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.innerBullAimChance {
+                return DartInput(multiplier: .single, segment: .innerBull)
             }
-            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.tripleOnOpenChance {
-                return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
-            }
-            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.doubleOnOpenChance {
-                return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
-            }
+            return DartInput(multiplier: .single, segment: .outerBull)
+        }
+        let segment = target.points
+        let tier = profile.x01.scoringBehaviorTier
+        if tier == .veryEasy || tier == .easy {
             return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
         }
-        return boardGlanceDart(near: DartInput(multiplier: .single, segment: .oneToTwenty(20)), rng: &rng)
+        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.tripleOnOpenChance {
+            return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
+        }
+        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.doubleOnOpenChance {
+            return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
+        }
+        return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
     }
 
     private static func resolveCricketDart(
