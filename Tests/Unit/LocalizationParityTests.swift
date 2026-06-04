@@ -6,14 +6,14 @@ import Testing
 struct LocalizationParityTests {
     private static let specifierPattern = #/%(?:\d+\$)?[@df]|%\.?\d*f/#
 
-    @Test("Localized strings share the same keys as English", arguments: ["de", "es"])
+    @Test("Localized strings share the same keys as English", arguments: ["de", "es", "nl"])
     func localizedKeysMatchEnglish(locale: String) throws {
         let enKeys = try Self.keys(from: "en")
         let localeKeys = try Self.keys(from: locale)
         #expect(enKeys == localeKeys)
     }
 
-    @Test("Format specifiers match per key between English and locale", arguments: ["de", "es"])
+    @Test("Format specifiers match per key between English and locale", arguments: ["de", "es", "nl"])
     func formatSpecifiersMatch(locale: String) throws {
         let en = try Self.entries(from: "en")
         let localized = try Self.entries(from: locale)
