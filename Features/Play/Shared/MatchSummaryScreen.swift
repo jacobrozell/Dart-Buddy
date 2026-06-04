@@ -4,6 +4,9 @@ struct MatchSummaryScreen: View {
     @StateObject var viewModel: MatchSummaryViewModel
     let onStartNewMatch: () -> Void
     let onViewHistoryDetail: (UUID) -> Void
+    let onUndoLastThrow: ([DartInput]) -> Void
+
+    @State private var undoTask: Task<Void, Never>?
 
     @State private var celebrate = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -34,6 +37,7 @@ struct MatchSummaryScreen: View {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { celebrate = true }
             }
         }
+        .onDisappear { undoTask?.cancel() }
     }
 
     private var summaryContent: some View {
@@ -135,6 +139,29 @@ struct MatchSummaryScreen: View {
 
     private var actions: some View {
         VStack(spacing: DS.Spacing.s3) {
+            if viewModel.canUndoLastThrow {
+                Button(action: runUndoLastThrow) {
+                    Group {
+                        if viewModel.isUndoing {
+                            ProgressView()
+                                .tint(Brand.textPrimary)
+                        } else {
+                            Text(L10n.summaryUndoLastThrow)
+                                .font(.headline)
+                                .foregroundStyle(Brand.textPrimary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isUndoing)
+                .accessibilityHint(L10n.summaryUndoLastThrowHint)
+                .accessibilityIdentifier("matchSummaryUndoLastThrow")
+            }
+            if let undoErrorKey = viewModel.undoErrorKey {
+                ErrorBanner(messageKey: undoErrorKey)
+            }
             PrimaryActionButton(title: L10n.summaryNewMatch, action: onStartNewMatch)
             Button(action: { onViewHistoryDetail(viewModel.matchId) }) {
                 Text(L10n.summaryViewGameStatistics)
@@ -145,5 +172,14 @@ struct MatchSummaryScreen: View {
             .buttonStyle(.plain)
         }
         .padding(.top, DS.Spacing.s2)
+    }
+
+    private func runUndoLastThrow() {
+        undoTask?.cancel()
+        undoTask = Task {
+            if let restoredDarts = await viewModel.undoLastThrow() {
+                onUndoLastThrow(restoredDarts)
+            }
+        }
     }
 }

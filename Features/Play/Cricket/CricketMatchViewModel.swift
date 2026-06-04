@@ -120,9 +120,25 @@ final class CricketMatchViewModel: ObservableObject {
             eventName: "match_screen_appeared",
             message: "Cricket match screen presented."
         )
+        if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
         reconcileInterruptedBotPlayback()
         await playBotTurnIfNeeded()
+    }
+
+    /// Restores play after the user undoes the finishing throw from the match summary.
+    private func reconcileAfterSummaryUndo() async -> Bool {
+        guard state == .matchCompleted,
+              let stored = store.session(for: matchId),
+              stored.runtime.status == .inProgress else { return false }
+        session = stored
+        state = .readyTurn
+        enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
+        isBotPlaying = false
+        if enteredDarts.isEmpty {
+            await playBotTurnIfNeeded()
+        }
+        return true
     }
 
     /// Clears transient bot UI when the screen reappears after a cancelled bot task.
@@ -292,14 +308,12 @@ final class CricketMatchViewModel: ObservableObject {
         await loadSessionIfNeeded()
         guard let current = session else { return }
         do {
-            let undone = try MatchLifecycleService.undoLastTurn(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: undone.runtime))
-            _ = try await matchRepository.saveSnapshot(
+            let undone = try await MatchTurnSupport.undoLastTurn(
+                session: current,
                 matchId: matchId,
-                snapshotVersion: undone.latestSnapshot.payloadVersion,
-                snapshotPayload: undone.latestSnapshot.payload
+                store: store,
+                matchRepository: matchRepository
             )
-            store.save(undone)
             session = undone
             state = .readyTurn
             enteredDarts.removeAll()
@@ -329,14 +343,12 @@ final class CricketMatchViewModel: ObservableObject {
         await loadSessionIfNeeded()
         guard let current = session else { return }
         do {
-            let result = try MatchLifecycleService.undoLastDart(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: result.session.runtime))
-            _ = try await matchRepository.saveSnapshot(
+            let result = try await MatchTurnSupport.undoLastDart(
+                session: current,
                 matchId: matchId,
-                snapshotVersion: result.session.latestSnapshot.payloadVersion,
-                snapshotPayload: result.session.latestSnapshot.payload
+                store: store,
+                matchRepository: matchRepository
             )
-            store.save(result.session)
             session = result.session
             state = .readyTurn
             enteredDarts = result.restoredDarts

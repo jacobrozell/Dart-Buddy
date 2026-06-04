@@ -135,6 +135,73 @@ func matchSummaryX01StatsBuilderAlwaysIncludesBestOutPlaceholder() throws {
     #expect(values.last == "—")
 }
 
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryUndoLastThrowReopensCompletedMatch() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "Alice", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "Bob", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 0, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 41, darts: nil)
+
+    let matchId = session.runtime.matchId
+    #expect(session.runtime.status == .completed)
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let matchRepo = SummaryUndoFakeMatchRepository()
+    let vm = MatchSummaryViewModel(
+        matchId: matchId,
+        store: store,
+        matchRepository: matchRepo,
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    #expect(vm.canUndoLastThrow)
+    let restored = await vm.undoLastThrow()
+    #expect(restored != nil)
+    #expect(vm.canUndoLastThrow == false)
+    #expect(store.session(for: matchId)?.runtime.status == .inProgress)
+    #expect(store.session(for: matchId)?.runtime.winnerPlayerId == nil)
+    #expect(await matchRepo.updatedSummaries.last?.status == .inProgress)
+}
+
+private actor SummaryUndoFakeMatchRepository: MatchRepository {
+    private(set) var updatedSummaries: [MatchSummary] = []
+
+    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_ match: MatchSummary) async throws {
+        updatedSummaries.append(match)
+    }
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
+    }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
+    }
+    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: UUID(), snapshotVersion: 1, snapshotPayload: Data(), updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
+}
+
 private actor SummaryFakeMatchRepository: MatchRepository {
     let snapshot: MatchSnapshotSummary
 

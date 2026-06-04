@@ -11,6 +11,8 @@ final class MatchSummaryViewModel: ObservableObject {
 
     @Published private(set) var session: MatchLifecycleSession?
     @Published private(set) var isLoading = false
+    @Published private(set) var isUndoing = false
+    @Published private(set) var undoErrorKey: String?
 
     let matchId: UUID
     private let store: ActiveMatchStore
@@ -60,6 +62,33 @@ final class MatchSummaryViewModel: ObservableObject {
     }
 
     var hasResult: Bool { session != nil }
+
+    var canUndoLastThrow: Bool {
+        guard let session, !session.events.isEmpty else { return false }
+        return session.runtime.status == .completed
+    }
+
+    /// Reverts the last accepted throw and returns restored in-progress darts, if any.
+    func undoLastThrow() async -> [DartInput]? {
+        undoErrorKey = nil
+        guard canUndoLastThrow, let current = session else { return nil }
+        isUndoing = true
+        defer { isUndoing = false }
+
+        do {
+            let result = try await MatchTurnSupport.undoLastDart(
+                session: current,
+                matchId: matchId,
+                store: store,
+                matchRepository: matchRepository
+            )
+            session = result.session
+            return result.restoredDarts
+        } catch {
+            undoErrorKey = MatchTurnSupport.errorMessageKey(for: error, fallback: "play.summary.undoFailed")
+            return nil
+        }
+    }
 
     var typeLabel: String {
         guard let type = session?.runtime.type else { return "" }
