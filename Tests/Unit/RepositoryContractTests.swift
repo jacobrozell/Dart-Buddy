@@ -9,10 +9,12 @@ private func makeRepositories() throws -> (
     settings: SwiftDataSettingsRepository
 ) {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
+    let match = SwiftDataMatchRepository(container: container)
+    let stats = SwiftDataStatsRepository(container: container)
     return (
-        SwiftDataPlayerRepository(container: container),
-        SwiftDataMatchRepository(container: container),
-        SwiftDataStatsRepository(container: container),
+        SwiftDataPlayerRepository(container: container, matchRepository: match, statsRepository: stats),
+        match,
+        stats,
         SwiftDataSettingsRepository(container: container)
     )
 }

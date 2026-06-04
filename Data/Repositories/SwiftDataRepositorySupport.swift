@@ -8,46 +8,50 @@ func historyMatchPredicate(
     filter: MatchHistoryFilter,
     completedRaw: String,
     restrictedToMatchIds matchIds: [UUID]?
-) -> Predicate<SchemaV1.MatchRecord> {
+) -> Predicate<SchemaV2.MatchRecord> {
     switch (filter.matchType, filter.startedAfter, matchIds) {
     case (nil, nil, nil):
-        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw }
+        return #Predicate<SchemaV2.MatchRecord> { $0.statusRaw == completedRaw }
     case (nil, nil, let ids?):
-        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && ids.contains($0.id) }
+        return #Predicate<SchemaV2.MatchRecord> { $0.statusRaw == completedRaw && ids.contains($0.id) }
     case (let type?, nil, nil):
         let typeRaw = type.rawValue
-        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.typeRaw == typeRaw }
+        return #Predicate<SchemaV2.MatchRecord> { $0.statusRaw == completedRaw && $0.typeRaw == typeRaw }
     case (let type?, nil, let ids?):
         let typeRaw = type.rawValue
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && ids.contains($0.id)
         }
     case (nil, let startedAfter?, nil):
-        return #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == completedRaw && $0.startedAt >= startedAfter }
+        return #Predicate<SchemaV2.MatchRecord> { $0.statusRaw == completedRaw && $0.startedAt >= startedAfter }
     case (nil, let startedAfter?, let ids?):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             $0.statusRaw == completedRaw && $0.startedAt >= startedAfter && ids.contains($0.id)
         }
     case (let type?, let startedAfter?, nil):
         let typeRaw = type.rawValue
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter
         }
     case (let type?, let startedAfter?, let ids?):
         let typeRaw = type.rawValue
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             $0.statusRaw == completedRaw && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter && ids.contains($0.id)
         }
     }
 }
 
-func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
-    PlayerSummary(
+func mapPlayer(_ record: SchemaV2.PlayerRecord) -> PlayerSummary {
+    let isBot = record.isBot ?? false
+    let botKind = record.botKindRaw ?? (isBot && record.botDifficultyRaw != nil ? BotKind.preset.rawValue : nil)
+    return PlayerSummary(
         id: record.id,
         name: record.name,
         isArchived: record.isArchived,
-        isBot: record.isBot ?? false,
+        isBot: isBot,
         botDifficultyRaw: record.botDifficultyRaw,
+        botKindRaw: botKind,
+        linkedPlayerId: record.linkedPlayerId,
         avatarStyleRaw: record.avatarStyleRaw,
         preferredColorToken: record.preferredColorToken,
         notes: record.notes,
@@ -56,7 +60,7 @@ func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
     )
 }
 
-func mapMatch(_ record: SchemaV1.MatchRecord) -> MatchSummary {
+func mapMatch(_ record: SchemaV2.MatchRecord) -> MatchSummary {
     MatchSummary(
         id: record.id,
         type: MatchType(rawValue: record.typeRaw) ?? .x01,
@@ -73,7 +77,7 @@ func mapMatch(_ record: SchemaV1.MatchRecord) -> MatchSummary {
     )
 }
 
-func mapEvent(_ record: SchemaV1.MatchEventRecord) -> MatchEventSummary {
+func mapEvent(_ record: SchemaV2.MatchEventRecord) -> MatchEventSummary {
     MatchEventSummary(
         id: record.id,
         matchId: record.matchId,
@@ -84,7 +88,7 @@ func mapEvent(_ record: SchemaV1.MatchEventRecord) -> MatchEventSummary {
     )
 }
 
-func mapSnapshot(_ record: SchemaV1.MatchSnapshotRecord) -> MatchSnapshotSummary {
+func mapSnapshot(_ record: SchemaV2.MatchSnapshotRecord) -> MatchSnapshotSummary {
     MatchSnapshotSummary(
         id: record.id,
         matchId: record.matchId,
@@ -94,7 +98,7 @@ func mapSnapshot(_ record: SchemaV1.MatchSnapshotRecord) -> MatchSnapshotSummary
     )
 }
 
-func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
+func mapSettings(_ record: SchemaV2.SettingsRecord) -> SettingsSummary {
     SettingsSummary(
         id: record.id,
         appearanceModeRaw: record.appearanceModeRaw,
@@ -114,7 +118,7 @@ func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
     )
 }
 
-func mapParticipant(_ record: SchemaV1.MatchParticipantRecord) -> MatchParticipantSummary {
+func mapParticipant(_ record: SchemaV2.MatchParticipantRecord) -> MatchParticipantSummary {
     MatchParticipantSummary(
         id: record.id,
         matchId: record.matchId,
@@ -122,7 +126,9 @@ func mapParticipant(_ record: SchemaV1.MatchParticipantRecord) -> MatchParticipa
         turnOrder: record.turnOrder,
         displayNameAtMatchStart: record.displayNameAtMatchStart,
         avatarStyleAtMatchStart: record.avatarStyleAtMatchStart,
-        botDifficultyRaw: record.botDifficultyRaw
+        botDifficultyRaw: record.botDifficultyRaw,
+        botKindRaw: record.botKindRaw,
+        botSkillProfilePayload: record.botSkillProfilePayload
     )
 }
 

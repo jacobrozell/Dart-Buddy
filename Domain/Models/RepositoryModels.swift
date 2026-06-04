@@ -30,6 +30,8 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
     public let isArchived: Bool
     public let isBot: Bool
     public let botDifficultyRaw: String?
+    public let botKindRaw: String?
+    public let linkedPlayerId: UUID?
     public let avatarStyleRaw: String?
     public let preferredColorToken: String?
     public let notes: String?
@@ -38,6 +40,18 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
 
     public var botDifficulty: BotDifficulty? {
         botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
+    }
+
+    public var botKind: BotKind? {
+        botKindRaw.flatMap(BotKind.init(rawValue:))
+    }
+
+    public var isTrainingBot: Bool {
+        botKind == .training
+    }
+
+    public var isPresetBot: Bool {
+        isBot && (botKind == .preset || botKind == nil)
     }
 
     public var avatarStyle: PlayerAvatarStyle {
@@ -56,6 +70,8 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         isArchived: Bool,
         isBot: Bool = false,
         botDifficultyRaw: String? = nil,
+        botKindRaw: String? = nil,
+        linkedPlayerId: UUID? = nil,
         avatarStyleRaw: String? = nil,
         preferredColorToken: String? = nil,
         notes: String? = nil,
@@ -67,6 +83,8 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         self.isArchived = isArchived
         self.isBot = isBot
         self.botDifficultyRaw = botDifficultyRaw
+        self.botKindRaw = botKindRaw
+        self.linkedPlayerId = linkedPlayerId
         self.avatarStyleRaw = avatarStyleRaw
         self.preferredColorToken = preferredColorToken
         self.notes = notes
@@ -83,6 +101,8 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
     public let displayNameAtMatchStart: String
     public let avatarStyleAtMatchStart: String?
     public let botDifficultyRaw: String?
+    public let botKindRaw: String?
+    public let botSkillProfilePayload: Data?
 
     public init(
         id: UUID,
@@ -91,7 +111,9 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
         turnOrder: Int,
         displayNameAtMatchStart: String,
         avatarStyleAtMatchStart: String? = nil,
-        botDifficultyRaw: String? = nil
+        botDifficultyRaw: String? = nil,
+        botKindRaw: String? = nil,
+        botSkillProfilePayload: Data? = nil
     ) {
         self.id = id
         self.matchId = matchId
@@ -100,6 +122,8 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
         self.displayNameAtMatchStart = displayNameAtMatchStart
         self.avatarStyleAtMatchStart = avatarStyleAtMatchStart
         self.botDifficultyRaw = botDifficultyRaw
+        self.botKindRaw = botKindRaw
+        self.botSkillProfilePayload = botSkillProfilePayload
     }
 }
 

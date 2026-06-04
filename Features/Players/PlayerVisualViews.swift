@@ -22,6 +22,10 @@ enum PlayerVisualViews {
         }
     }
 
+    static func trainingBotColor(linkedToken: PlayerColorToken) -> Color {
+        accentColor(token: linkedToken).opacity(0.72)
+    }
+
     static func botDifficultyColor(_ difficulty: BotDifficulty?) -> Color {
         switch difficulty {
         case .veryEasy: Color(red: 0.45, green: 0.82, blue: 0.55)
@@ -246,7 +250,7 @@ struct BotIdentityCard: View {
     let name: String
     let avatarStyle: PlayerAvatarStyle
     let colorToken: PlayerColorToken
-    let difficulty: BotDifficulty
+    let difficulty: BotDifficulty?
     var notes: String = ""
 
     private var accent: Color {
@@ -279,12 +283,18 @@ struct BotIdentityCard: View {
                 Spacer(minLength: 0)
             }
 
-            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                Text(L10n.botDifficultyLabel)
+            if let difficulty {
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    Text(L10n.botDifficultyLabel)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                        .textCase(.uppercase)
+                    BotDifficultyBadge(difficulty: difficulty)
+                }
+            } else {
+                Text(L10n.trainingBotSectionTitle)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Brand.textSecondary)
-                    .textCase(.uppercase)
-                BotDifficultyBadge(difficulty: difficulty)
+                    .foregroundStyle(Brand.green)
             }
         }
         .padding(DS.Spacing.s4)
@@ -299,7 +309,7 @@ struct BotIdentityCard: View {
                 "players.bots.identity.accessibilityFormat",
                 name,
                 colorToken.displayName,
-                difficulty.displayName
+                difficulty?.displayName ?? L10n.string("trainingBot.section.title")
             )
         )
     }

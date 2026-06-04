@@ -57,18 +57,18 @@ final class CricketMatchViewModel: ObservableObject {
     var canSubmit: Bool { !enteredDarts.isEmpty && canHumanInput }
 
     var isCurrentPlayerBot: Bool {
-        currentBotDifficulty != nil
+        currentBotSkillProfile != nil
     }
 
     var canHumanInput: Bool {
         isCurrentPlayerBot == false && isBotPlaying == false && state == .readyTurn
     }
 
-    var currentBotDifficulty: BotDifficulty? {
+    var currentBotSkillProfile: BotSkillProfile? {
         guard let session, let cricketState = session.runtime.cricketState else { return nil }
         guard session.runtime.status == .inProgress else { return nil }
         let player = cricketState.players[cricketState.currentPlayerIndex]
-        return DartBotEngine.botDifficulty(
+        return DartBotEngine.botSkillProfile(
             playerId: player.playerId,
             in: session.runtime.participants
         )
@@ -151,7 +151,7 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     func playBotTurnIfNeeded() async {
-        guard let difficulty = currentBotDifficulty,
+        guard let profile = currentBotSkillProfile,
               state == .readyTurn,
               isBotPlaying == false,
               let cricketState = session?.runtime.cricketState else { return }
@@ -170,7 +170,7 @@ final class CricketMatchViewModel: ObservableObject {
         let plannedDarts = DartBotEngine.generateCricketTurn(
             state: cricketState,
             playerIndex: cricketState.currentPlayerIndex,
-            difficulty: difficulty,
+            profile: profile,
             rng: &rng
         )
 
@@ -240,7 +240,7 @@ final class CricketMatchViewModel: ObservableObject {
             return
         }
         state = .submittingTurn
-        let wasHumanTurn = currentBotDifficulty == nil
+        let wasHumanTurn = currentBotSkillProfile == nil
         let submittedVisitTotal = enteredDarts.reduce(0) { $0 + $1.points }
         let throwingPlayerIndex = current.runtime.cricketState?.currentPlayerIndex
         let marksBeforeTurn = current.runtime.cricketState.flatMap { state in

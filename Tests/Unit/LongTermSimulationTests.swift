@@ -9,9 +9,9 @@ import Testing
 @Test(.tags(.integration, .setupFlow, .match, .history, .stats, .x01, .critical, .regression))
 func setupPlayCompleteHistoryFlowPersistsEndToEnd() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
-    let playerRepo = SwiftDataPlayerRepository(container: container)
     let matchRepo = SwiftDataMatchRepository(container: container)
     let statsRepo = SwiftDataStatsRepository(container: container)
+    let playerRepo = SwiftDataPlayerRepository(container: container, matchRepository: matchRepo, statsRepository: statsRepo)
     let settingsRepo = SwiftDataSettingsRepository(container: container)
     let store = ActiveMatchStore()
 
@@ -137,9 +137,9 @@ private final class IntegrationSilentLogSink: LogSink, @unchecked Sendable {
 @Test(.tags(.integration, .stats, .history, .regression))
 func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
-    let playerRepo = SwiftDataPlayerRepository(container: container)
     let matchRepo = SwiftDataMatchRepository(container: container)
     let statsRepo = SwiftDataStatsRepository(container: container)
+    let playerRepo = SwiftDataPlayerRepository(container: container, matchRepository: matchRepo, statsRepository: statsRepo)
 
     var roster: [PlayerSummary] = []
     for name in ["Alice", "Bob", "Carol", "Dave"] {
@@ -272,6 +272,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
     let aliceDetail = PlayerDetailViewModel(
         playerId: alice.id,
         playerName: alice.name,
+        playerRepository: playerRepo,
         matchRepository: matchRepo,
         statsRepository: statsRepo
     )

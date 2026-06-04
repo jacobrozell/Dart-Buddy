@@ -22,6 +22,8 @@ func playerEditValidationAllowsUnchangedNameWhenEditing() {
         isArchived: false,
         notes: "",
         isBot: false,
+        isTrainingBot: false,
+        linkedPlayerId: nil,
         botDifficulty: nil,
         avatarStyle: .dart,
         colorToken: .green
@@ -42,6 +44,8 @@ func playerEditValidationRejectsRenameToExistingName() {
         isArchived: false,
         notes: "",
         isBot: false,
+        isTrainingBot: false,
+        linkedPlayerId: nil,
         botDifficulty: nil,
         avatarStyle: .dart,
         colorToken: .green
@@ -62,6 +66,8 @@ func playerEditBuildPlayerPreservesIdentityWhenEditing() {
         isArchived: true,
         notes: "note",
         isBot: false,
+        isTrainingBot: false,
+        linkedPlayerId: nil,
         botDifficulty: nil,
         avatarStyle: .trophy,
         colorToken: .amber
@@ -575,6 +581,7 @@ func playerDetailViewModelLoadsAllGamesStats() async throws {
     let vm = PlayerDetailViewModel(
         playerId: fixture.jacob,
         playerName: "Jacob",
+        playerRepository: StatsFakePlayerRepository(),
         matchRepository: StatsFakeMatchRepository(fixture: fixture),
         statsRepository: StatsFakeStatsRepository(events: fixture.events)
     )

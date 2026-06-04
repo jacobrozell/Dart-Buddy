@@ -41,4 +41,49 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.buttons["player_row_Jake"].waitForExistence(timeout: timeout + 10), "List should show the renamed player")
         XCTAssertFalse(app.buttons["player_row_Jacob"].exists, "Old player row label should be gone after rename")
     }
+
+    func testPlayerDetailShowsTrainingPartnerEligibilityProgress() {
+        let app = launchApp(["-seed_training_locked"])
+
+        app.tabBars.buttons["Players"].tap()
+        XCTAssertTrue(app.buttons["player_row_Alice"].waitForExistence(timeout: timeout))
+        app.buttons["player_row_Alice"].tap()
+
+        XCTAssertTrue(app.staticTexts["Training Partner"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            app.descendants(matching: .any)["training_bot_eligibility_progress"].firstMatch.waitForExistence(timeout: timeout),
+            "Locked state should show games-until-unlock progress"
+        )
+        XCTAssertTrue(app.buttons["training_bot_create"].waitForExistence(timeout: timeout))
+        XCTAssertFalse(app.buttons["training_bot_create"].isEnabled, "Create should stay disabled below 5 games")
+    }
+
+    func testPlayerDetailEnablesCreateWhenEligible() {
+        let app = launchApp(["-seed_training_eligible"])
+
+        app.tabBars.buttons["Players"].tap()
+        app.buttons["player_row_Alice"].tap()
+
+        XCTAssertTrue(app.staticTexts["Training Partner"].waitForExistence(timeout: timeout + 30))
+
+        let create = app.buttons["training_bot_create"]
+        XCTAssertTrue(create.waitForExistence(timeout: timeout + 30))
+        XCTAssertTrue(
+            create.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 30),
+            "Create Training Partner should enable after five X01 games"
+        )
+    }
+
+    func testPlayersListShowsSeededTrainingPartner() {
+        let app = launchApp(["-seed_training_partner"])
+
+        app.tabBars.buttons["Players"].tap()
+        let partnerRow = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'player_row_' AND label CONTAINS %@", "Training Partner")
+        ).firstMatch
+        XCTAssertTrue(
+            partnerRow.waitForExistence(timeout: timeout + 30),
+            "Seeded Training Partner should appear on the players list"
+        )
+    }
 }

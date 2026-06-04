@@ -152,7 +152,7 @@ final class X01MatchViewModel: ObservableObject {
     }
 
     var isCurrentPlayerBot: Bool {
-        currentBotDifficulty != nil
+        currentBotSkillProfile != nil
     }
 
     var canHumanInput: Bool {
@@ -162,11 +162,11 @@ final class X01MatchViewModel: ObservableObject {
         return state == .readyTurn || state == .bustFeedback
     }
 
-    var currentBotDifficulty: BotDifficulty? {
+    var currentBotSkillProfile: BotSkillProfile? {
         guard let session, let x01State = session.runtime.x01State else { return nil }
         guard session.runtime.status == .inProgress else { return nil }
         let player = x01State.players[x01State.currentPlayerIndex]
-        return DartBotEngine.botDifficulty(
+        return DartBotEngine.botSkillProfile(
             playerId: player.playerId,
             in: session.runtime.participants
         )
@@ -297,7 +297,7 @@ final class X01MatchViewModel: ObservableObject {
 
     /// Generates and submits a bot visit when it is the bot's turn.
     func playBotTurnIfNeeded() async {
-        guard let difficulty = currentBotDifficulty,
+        guard let profile = currentBotSkillProfile,
               state == .readyTurn || state == .bustFeedback,
               isBotPlaying == false,
               let x01State = session?.runtime.x01State else { return }
@@ -319,7 +319,7 @@ final class X01MatchViewModel: ObservableObject {
         var rng = SystemRandomNumberGenerator()
         let plannedDarts = DartBotEngine.generateX01Turn(
             remaining: player.remainingScore,
-            difficulty: difficulty,
+            profile: profile,
             checkoutMode: x01State.config.checkoutMode,
             checkInMode: x01State.config.checkInMode,
             isCheckedIn: player.isCheckedIn,
@@ -399,7 +399,7 @@ final class X01MatchViewModel: ObservableObject {
             return
         }
         state = .submittingTurn
-        let wasHumanTurn = currentBotDifficulty == nil
+        let wasHumanTurn = currentBotSkillProfile == nil
         let total = inputMode == .totalEntry ? Int(totalEntryText) : nil
         let darts = inputMode == .dartEntry ? enteredDarts : nil
 

@@ -245,7 +245,7 @@ func x01ViewModelDetectsActiveBotTurn() throws {
     )
 
     #expect(vm.isCurrentPlayerBot)
-    #expect(vm.currentBotDifficulty == .easy)
+    #expect(vm.currentBotSkillProfile != nil)
     #expect(!vm.canHumanInput)
 }
 
@@ -537,7 +537,7 @@ func cricketViewModelDetectsActiveBotTurn() throws {
     )
 
     #expect(vm.isCurrentPlayerBot)
-    #expect(vm.currentBotDifficulty == .hard)
+    #expect(vm.currentBotSkillProfile != nil)
     #expect(!vm.canHumanInput)
 }
 

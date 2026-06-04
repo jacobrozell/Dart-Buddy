@@ -5,6 +5,7 @@ import Foundation
 @MainActor
 public final class PendingMatchPlayerSelections: ObservableObject {
     @Published public private(set) var changeCount = 0
+    @Published public private(set) var preferredMatchType: MatchType?
     private var pending: Set<UUID> = []
 
     public init() {}
@@ -12,6 +13,18 @@ public final class PendingMatchPlayerSelections: ObservableObject {
     public func enqueueForNextMatchSetup(_ playerId: UUID) {
         pending.insert(playerId)
         changeCount += 1
+    }
+
+    public func enqueuePractice(humanId: UUID, trainingBotId: UUID, mode: MatchType) {
+        pending.insert(humanId)
+        pending.insert(trainingBotId)
+        preferredMatchType = mode
+        changeCount += 1
+    }
+
+    public func consumePreferredMatchType() -> MatchType? {
+        defer { preferredMatchType = nil }
+        return preferredMatchType
     }
 
     /// Removes from the queue and returns every pending ID that exists in `loadedPlayerIds`.
