@@ -72,6 +72,8 @@ enum L10n {
     static let historyDeleteConfirmMessage: LocalizedStringKey = "history.delete.confirmMessage"
     static let summaryResult: LocalizedStringKey = "play.summary.result"
     static let summaryViewGameStatistics: LocalizedStringKey = "play.summary.viewGameStatistics"
+    static let summaryUndoLastThrow: LocalizedStringKey = "play.summary.undoLastThrow"
+    static let summaryUndoLastThrowHint: LocalizedStringKey = "play.summary.undoLastThrow.hint"
     static let botThrowing: LocalizedStringKey = "play.match.botThrowing"
     static let scoringPadDouble: LocalizedStringKey = "scoring.pad.double"
     static let scoringPadTriple: LocalizedStringKey = "scoring.pad.triple"

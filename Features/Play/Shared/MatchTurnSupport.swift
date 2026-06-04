@@ -52,6 +52,42 @@ enum MatchTurnSupport {
         }
         return fallback
     }
+
+    @MainActor
+    static func undoLastDart(
+        session: MatchLifecycleSession,
+        matchId: UUID,
+        store: ActiveMatchStore,
+        matchRepository: any MatchRepository
+    ) async throws -> UndoLastDartResult {
+        let result = try MatchLifecycleService.undoLastDart(session: session)
+        try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: result.session.runtime))
+        _ = try await matchRepository.saveSnapshot(
+            matchId: matchId,
+            snapshotVersion: result.session.latestSnapshot.payloadVersion,
+            snapshotPayload: result.session.latestSnapshot.payload
+        )
+        store.save(result.session)
+        return result
+    }
+
+    @MainActor
+    static func undoLastTurn(
+        session: MatchLifecycleSession,
+        matchId: UUID,
+        store: ActiveMatchStore,
+        matchRepository: any MatchRepository
+    ) async throws -> MatchLifecycleSession {
+        let undone = try MatchLifecycleService.undoLastTurn(session: session)
+        try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: undone.runtime))
+        _ = try await matchRepository.saveSnapshot(
+            matchId: matchId,
+            snapshotVersion: undone.latestSnapshot.payloadVersion,
+            snapshotPayload: undone.latestSnapshot.payload
+        )
+        store.save(undone)
+        return undone
+    }
 }
 
 /// Runs the engine submit, persistence, store save, and standard logging shared by

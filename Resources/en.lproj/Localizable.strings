@@ -388,6 +388,9 @@
 "play.summary.result" = "Result";
 "play.summary.winsFormat" = "%@ wins!";
 "play.summary.viewGameStatistics" = "View Game Statistics";
+"play.summary.undoLastThrow" = "Undo Last Throw";
+"play.summary.undoLastThrow.hint" = "Go back and keep playing if the last throw was entered by mistake.";
+"play.summary.undoFailed" = "Could not undo the last throw.";
 "play.match.botThrowing" = "Bot throwing…";
 "scoring.pad.double" = "DOUBLE";
 "scoring.pad.triple" = "TRIPLE";

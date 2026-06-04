@@ -69,7 +69,14 @@ struct PlayRootView: View {
                             statsRepository: dependencies.statsRepository
                         ),
                         onStartNewMatch: { path.removeAll() },
-                        onViewHistoryDetail: { id in path.append(.historyDetail(matchId: id)) }
+                        onViewHistoryDetail: { id in path.append(.historyDetail(matchId: id)) },
+                        onUndoLastThrow: { restoredDarts in
+                            dependencies.activeMatchStore.setResumeHint(
+                                matchId: matchId,
+                                restoredDarts: restoredDarts
+                            )
+                            path.removeLast()
+                        }
                     )
                 case let .historyDetail(matchId):
                     MatchHistoryDetailScreen(

@@ -10,6 +10,7 @@ import Foundation
 @MainActor
 public final class ActiveMatchStore: ObservableObject {
     @Published private(set) var sessions: [UUID: MatchLifecycleSession] = [:]
+    private var resumeHints: [UUID: [DartInput]] = [:]
 
     func session(for matchId: UUID) -> MatchLifecycleSession? {
         sessions[matchId]
@@ -21,6 +22,16 @@ public final class ActiveMatchStore: ObservableObject {
 
     func remove(matchId: UUID) {
         sessions.removeValue(forKey: matchId)
+        resumeHints.removeValue(forKey: matchId)
+    }
+
+    /// In-progress darts to restore when returning to the match screen after undo from summary.
+    func setResumeHint(matchId: UUID, restoredDarts: [DartInput]) {
+        resumeHints[matchId] = restoredDarts
+    }
+
+    func consumeResumeHint(matchId: UUID) -> [DartInput]? {
+        resumeHints.removeValue(forKey: matchId)
     }
 
     func clearAll() {
