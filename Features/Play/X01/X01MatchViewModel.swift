@@ -26,7 +26,7 @@ final class X01MatchViewModel: ObservableObject {
     /// Increments on every leg checkout so the UI can play finish audio even when
     /// the match continues (e.g. best-of-3 legs).
     @Published private(set) var legFinishSoundToken = 0
-    /// Fires after a human visit is accepted so the UI can announce the visit total.
+    /// Fires after a visit is accepted so the UI can announce the visit total.
     @Published private(set) var turnTotalCallerSignal: TurnTotalCallerSignal?
 
     private var turnTotalCallerToken = 0
@@ -407,7 +407,6 @@ final class X01MatchViewModel: ObservableObject {
             return
         }
         state = .submittingTurn
-        let wasHumanTurn = currentBotSkillProfile == nil
         let total = inputMode == .totalEntry ? Int(totalEntryText) : nil
         let darts = inputMode == .dartEntry ? enteredDarts : nil
 
@@ -431,7 +430,7 @@ final class X01MatchViewModel: ObservableObject {
             state = .error(messageKey)
         case let .succeeded(updated):
             session = updated
-            if wasHumanTurn, case let .x01Turn(event) = updated.events.last?.payload {
+            if case let .x01Turn(event) = updated.events.last?.payload {
                 turnTotalCallerToken += 1
                 turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: event.appliedTotal)
             }

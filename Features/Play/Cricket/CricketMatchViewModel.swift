@@ -16,7 +16,7 @@ final class CricketMatchViewModel: ObservableObject {
     @Published var enteredDarts: [DartInput] = []
     @Published private(set) var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
-    /// Fires after a human visit is accepted so the UI can announce the visit total.
+    /// Fires after a visit is accepted so the UI can announce the visit total.
     @Published private(set) var turnTotalCallerSignal: TurnTotalCallerSignal?
 
     private var turnTotalCallerToken = 0
@@ -325,7 +325,6 @@ final class CricketMatchViewModel: ObservableObject {
             return
         }
         state = .submittingTurn
-        let wasHumanTurn = currentBotSkillProfile == nil
         let throwingPlayerIndex = current.runtime.cricketState?.currentPlayerIndex
         let marksBeforeTurn = current.runtime.cricketState.flatMap { state in
             guard let index = throwingPlayerIndex else { return nil as [String: Int]? }
@@ -349,8 +348,7 @@ final class CricketMatchViewModel: ObservableObject {
             state = .error(messageKey)
         case let .succeeded(updated):
             session = updated
-            if wasHumanTurn {
-                let visitTotal = lastCricketTurnTotal(in: updated) ?? 0
+            if let visitTotal = lastCricketTurnTotal(in: updated) {
                 turnTotalCallerToken += 1
                 turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: visitTotal)
             }
