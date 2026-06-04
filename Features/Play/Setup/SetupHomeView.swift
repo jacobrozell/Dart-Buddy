@@ -14,6 +14,7 @@ struct SetupHomeView: View {
     let onQuickAddPlayer: () -> Void
     let onViewCompletedMatch: (UUID) -> Void
     @State private var startTask: Task<Void, Never>?
+    @State private var showsGameRules = false
 
     var body: some View {
         ScrollView {
@@ -30,6 +31,7 @@ struct SetupHomeView: View {
                 }
 
                 modeSelector
+                learnToPlayButton
                 if setupViewModel.mode == .x01 {
                     chipsGrid
                 } else {
@@ -77,7 +79,28 @@ struct SetupHomeView: View {
         } message: {
             Text("play.setup.activeConflict.message")
         }
+        .sheet(isPresented: $showsGameRules) {
+            GameRulesGuideView(initialMode: setupViewModel.mode.matchType)
+        }
         .onDisappear { startTask?.cancel() }
+    }
+
+    private var learnToPlayButton: some View {
+        Button { showsGameRules = true } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "book.pages")
+                Text(L10n.gameRulesLearnButton)
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(Brand.green)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L10n.gameRulesLearnButton)
+        .accessibilityHint(L10n.string("play.rules.learnButton.hint"))
+        .accessibilityIdentifier("setup_learnToPlayButton")
     }
 
     private func resumeBanner(_ match: MatchSummary) -> some View {
