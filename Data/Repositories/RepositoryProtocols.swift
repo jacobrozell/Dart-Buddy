@@ -15,6 +15,35 @@ public protocol PlayerRepository: Sendable {
     func archivePlayer(playerId: UUID) async throws
     func unarchivePlayer(playerId: UUID) async throws
     func deletePlayer(playerId: UUID) async throws
+    func fetchTrainingBot(linkedTo playerId: UUID) async throws -> PlayerSummary?
+    func createTrainingBot(for playerId: UUID) async throws -> PlayerSummary
+    func resolveTrainingBotSkill(for botId: UUID, mode: MatchType) async throws -> BotSkillProfile
+}
+
+public extension PlayerRepository {
+    func fetchTrainingBot(linkedTo _: UUID) async throws -> PlayerSummary? { nil }
+
+    func createTrainingBot(for _: UUID) async throws -> PlayerSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "createTrainingBot"]
+        )
+    }
+
+    func resolveTrainingBotSkill(for _: UUID, mode _: MatchType) async throws -> BotSkillProfile {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "resolveTrainingBotSkill"]
+        )
+    }
 }
 
 public protocol MatchRepository: Sendable {

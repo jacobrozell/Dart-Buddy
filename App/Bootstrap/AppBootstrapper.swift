@@ -33,12 +33,18 @@ public enum AppBootstrapper {
             let baseAudio = BundledAudioFeedbackService()
             let baseTurnTotalCaller = SpeechTurnTotalCallerService()
 
+            let matchRepository = SwiftDataMatchRepository(container: container)
+            let statsRepository = SwiftDataStatsRepository(container: container)
             let dependencies = AppDependencies(
                 modelContainer: container,
                 logger: logger,
-                playerRepository: SwiftDataPlayerRepository(container: container),
-                matchRepository: SwiftDataMatchRepository(container: container),
-                statsRepository: SwiftDataStatsRepository(container: container),
+                playerRepository: SwiftDataPlayerRepository(
+                    container: container,
+                    matchRepository: matchRepository,
+                    statsRepository: statsRepository
+                ),
+                matchRepository: matchRepository,
+                statsRepository: statsRepository,
                 settingsRepository: settingsRepository,
                 hapticsService: GatedHapticsService(underlying: baseHaptics, preferences: feedbackPreferences),
                 audioFeedbackService: GatedAudioFeedbackService(underlying: baseAudio, preferences: feedbackPreferences),
@@ -67,7 +73,7 @@ public enum AppBootstrapper {
 
     private static func validateSchemaInvariants(in container: ModelContainer) throws {
         let context = ModelContext(container)
-        let matches = try context.fetch(FetchDescriptor<SchemaV1.MatchRecord>())
+        let matches = try context.fetch(FetchDescriptor<SchemaV2.MatchRecord>())
         for match in matches {
             try validateContiguousEventIndexes(for: match.id, in: context)
         }
@@ -79,8 +85,8 @@ public enum AppBootstrapper {
         let pageSize = 500
 
         while true {
-            var descriptor = FetchDescriptor<SchemaV1.MatchEventRecord>(
-                predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId },
+            var descriptor = FetchDescriptor<SchemaV2.MatchEventRecord>(
+                predicate: #Predicate<SchemaV2.MatchEventRecord> { $0.matchId == matchId },
                 sortBy: [SortDescriptor(\.eventIndex, order: .forward)]
             )
             descriptor.fetchLimit = pageSize

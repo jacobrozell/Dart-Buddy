@@ -144,8 +144,12 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
     public let playerId: UUID?
     public let displayNameAtMatchStart: String
     public let turnOrder: Int
-    /// Present when this participant is a computer opponent.
+    /// Present when this participant is a preset-tier computer opponent.
     public let botDifficultyRaw: String?
+    /// `preset` or `training`; nil for humans and legacy bot rows that only set `botDifficultyRaw`.
+    public let botKindRaw: String?
+    /// JSON snapshot for training bots (`TrainingBotSkillSnapshot`).
+    public let botSkillProfilePayload: Data?
     /// Snapshot of roster identity color at match start; optional for legacy in-progress matches.
     public let preferredColorTokenAtMatchStart: String?
 
@@ -153,7 +157,13 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
         botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
     }
 
-    public var isBot: Bool { botDifficulty != nil }
+    public var botKind: BotKind? {
+        botKindRaw.flatMap(BotKind.init(rawValue:))
+    }
+
+    public var isBot: Bool {
+        botKind != nil || botDifficulty != nil || botSkillProfilePayload != nil
+    }
 
     public var colorToken: PlayerColorToken {
         if let raw = preferredColorTokenAtMatchStart {
@@ -168,6 +178,8 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
         displayNameAtMatchStart: String,
         turnOrder: Int,
         botDifficultyRaw: String? = nil,
+        botKindRaw: String? = nil,
+        botSkillProfilePayload: Data? = nil,
         preferredColorTokenAtMatchStart: String? = nil
     ) {
         self.id = id
@@ -175,6 +187,8 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
         self.displayNameAtMatchStart = displayNameAtMatchStart
         self.turnOrder = turnOrder
         self.botDifficultyRaw = botDifficultyRaw
+        self.botKindRaw = botKindRaw
+        self.botSkillProfilePayload = botSkillProfilePayload
         self.preferredColorTokenAtMatchStart = preferredColorTokenAtMatchStart
     }
 }

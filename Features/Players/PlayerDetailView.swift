@@ -11,10 +11,17 @@ struct PlayerDetailView: View {
     var body: some View {
         Group {
             if let player {
-                if player.isBot, let difficulty = player.botDifficulty {
+                if player.isBot, player.botDifficulty != nil {
                     BotDetailView(
                         player: player,
-                        difficulty: difficulty,
+                        difficulty: player.botDifficulty!,
+                        existingNames: existingNames,
+                        dependencies: dependencies,
+                        onSave: onSave
+                    )
+                } else if player.isBot {
+                    TrainingBotDetailView(
+                        player: player,
                         existingNames: existingNames,
                         dependencies: dependencies,
                         onSave: onSave
@@ -63,6 +70,7 @@ struct BotDetailView: View {
         _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
             playerName: player.name,
+            playerRepository: dependencies.playerRepository,
             matchRepository: dependencies.matchRepository,
             statsRepository: dependencies.statsRepository
         ))
@@ -145,17 +153,20 @@ struct BotDetailView: View {
 
 private struct PlayerStatsDetailView: View {
     let player: EditablePlayer
+    let dependencies: AppDependencies
     let onEdit: () -> Void
     let onArchiveToggle: () -> Void
     @StateObject private var viewModel: PlayerDetailViewModel
 
     init(player: EditablePlayer, dependencies: AppDependencies, onEdit: @escaping () -> Void, onArchiveToggle: @escaping () -> Void) {
         self.player = player
+        self.dependencies = dependencies
         self.onEdit = onEdit
         self.onArchiveToggle = onArchiveToggle
         _viewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
             playerName: player.name,
+            playerRepository: dependencies.playerRepository,
             matchRepository: dependencies.matchRepository,
             statsRepository: dependencies.statsRepository
         ))
@@ -165,6 +176,12 @@ private struct PlayerStatsDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
                 PlayerIdentityCard(player: player)
+                TrainingPartnerSection(
+                    humanPlayerId: player.id,
+                    viewModel: viewModel,
+                    playerColorToken: player.colorToken,
+                    pendingSelections: dependencies.pendingMatchPlayerSelections
+                )
                 if player.isArchived {
                     Text(L10n.archived)
                         .font(.caption)
@@ -353,5 +370,183 @@ private struct StatTile: View {
 
     private var statTileAccessibilityLabel: String {
         L10n.format("stats.statTile.accessibilityFormat", L10n.string(labelKey), value)
+    }
+}
+
+private struct TrainingPartnerSection: View {
+    let humanPlayerId: UUID
+    @ObservedObject var viewModel: PlayerDetailViewModel
+    let playerColorToken: PlayerColorToken
+    let pendingSelections: PendingMatchPlayerSelections
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            Text(L10n.trainingBotSectionTitle)
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+
+            if let bot = viewModel.trainingBot {
+                Text(bot.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.textPrimary)
+
+                if let x01Summary = viewModel.calibratedSummary(for: .x01) {
+                    Text(x01Summary).font(.footnote).foregroundStyle(Brand.textSecondary)
+                }
+                if let cricketSummary = viewModel.calibratedSummary(for: .cricket) {
+                    Text(cricketSummary).font(.footnote).foregroundStyle(Brand.textSecondary)
+                }
+
+                HStack(spacing: DS.Spacing.s2) {
+                    practiceButton(mode: .x01, title: L10n.x01Title)
+                    practiceButton(mode: .cricket, title: L10n.cricketTitle)
+                }
+            } else {
+                eligibilityRows
+                Button {
+                    Task { await viewModel.createTrainingBot() }
+                } label: {
+                    Text(L10n.trainingBotCreate)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Brand.green)
+                .disabled(!canCreate || viewModel.isCreatingTrainingBot)
+                .accessibilityIdentifier("training_bot_create")
+            }
+
+            if let errorKey = viewModel.trainingBotErrorKey {
+                Text(L10n.string(errorKey)).font(.footnote).foregroundStyle(.red)
+            }
+        }
+        .padding(DS.Spacing.s4)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+    }
+
+    private var canCreate: Bool {
+        viewModel.x01Eligibility.isEligible || viewModel.cricketEligibility.isEligible
+    }
+
+    @ViewBuilder
+    private var eligibilityRows: some View {
+        if !viewModel.x01Eligibility.isEligible {
+            eligibilityChip(viewModel.x01Eligibility, modeLabel: L10n.string("play.x01.title"))
+        }
+        if !viewModel.cricketEligibility.isEligible {
+            eligibilityChip(viewModel.cricketEligibility, modeLabel: L10n.string("play.cricket.title"))
+        }
+    }
+
+    private func eligibilityChip(_ eligibility: TrainingBotEligibility, modeLabel: String) -> some View {
+        Text(L10n.format(
+            "trainingBot.eligibility.progressFormat",
+            eligibility.gamesPlayed,
+            eligibility.requiredGames,
+            modeLabel
+        ))
+        .font(.footnote)
+        .foregroundStyle(Brand.textSecondary)
+        .accessibilityIdentifier("training_bot_eligibility_progress")
+    }
+
+    private func practiceButton(mode: MatchType, title: LocalizedStringKey) -> some View {
+        Button {
+            guard let bot = viewModel.trainingBot else { return }
+            pendingSelections.enqueuePractice(humanId: humanPlayerId, trainingBotId: bot.id, mode: mode)
+        } label: {
+            Text(title).font(.caption.weight(.semibold))
+        }
+        .buttonStyle(.bordered)
+        .tint(PlayerVisualViews.trainingBotColor(linkedToken: playerColorToken))
+        .disabled(viewModel.trainingBot == nil || !(mode == .x01 ? viewModel.x01Eligibility : viewModel.cricketEligibility).isEligible)
+    }
+}
+
+struct TrainingBotDetailView: View {
+    let player: EditablePlayer
+    let existingNames: [String]
+    let dependencies: AppDependencies
+    let onSave: (EditablePlayer) -> Void
+
+    @StateObject private var editViewModel: PlayerEditViewModel
+    @StateObject private var statsViewModel: PlayerDetailViewModel
+
+    init(
+        player: EditablePlayer,
+        existingNames: [String],
+        dependencies: AppDependencies,
+        onSave: @escaping (EditablePlayer) -> Void
+    ) {
+        self.player = player
+        self.existingNames = existingNames
+        self.dependencies = dependencies
+        self.onSave = onSave
+        _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
+        _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
+            playerId: player.id,
+            playerName: player.name,
+            playerRepository: dependencies.playerRepository,
+            matchRepository: dependencies.matchRepository,
+            statsRepository: dependencies.statsRepository
+        ))
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                BotIdentityCard(
+                    name: editViewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? player.name : editViewModel.name,
+                    avatarStyle: editViewModel.avatarStyle,
+                    colorToken: editViewModel.colorToken,
+                    difficulty: nil,
+                    notes: editViewModel.notes
+                )
+
+                if let profile = resolvedProfile {
+                    BotDifficultyStatsSection(profile: profile.displayProfile)
+                    Text(L10n.format("trainingBot.calibrated.footer", linkedPlayerName))
+                        .font(.footnote)
+                        .foregroundStyle(Brand.textSecondary)
+                }
+
+                customizationSection
+                PlayerDetailStatsContent(viewModel: statsViewModel)
+            }
+            .padding(.horizontal, DS.Spacing.s4)
+            .padding(.bottom, DS.Spacing.s6)
+        }
+        .background(Brand.background.ignoresSafeArea())
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button(L10n.save) {
+                    onSave(editViewModel.buildPlayer(from: player))
+                }
+                .disabled(!editViewModel.canSave)
+            }
+        }
+        .task { await statsViewModel.load() }
+    }
+
+    private var linkedPlayerName: String {
+        player.name.replacingOccurrences(of: "'s Training Partner", with: "")
+    }
+
+    private var resolvedProfile: BotSkillProfile? {
+        guard player.linkedPlayerId != nil else { return nil }
+        let breakdown = statsViewModel.x01 ?? statsViewModel.cricket
+        guard let breakdown else { return BotDifficulty.easy.skillProfile }
+        return TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .x01)
+    }
+
+    private var customizationSection: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            Text(L10n.botCustomizationSection)
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+            TextField("players.edit.name", text: $editViewModel.name)
+                .textFieldStyle(.roundedBorder)
+        }
+        .padding(DS.Spacing.s4)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 }

@@ -383,6 +383,50 @@ func setupConfirmReplaceAbandonsActiveMatchThenStarts() async {
 }
 
 @MainActor
+@Test(.tags(.integration, .setupFlow, .match, .regression))
+func setupStartMatchSnapshotsTrainingBotSkill() async throws {
+    let humanId = UUID()
+    let trainingBotId = UUID()
+    let human = PlayerSummary(id: humanId, name: "Alice", isArchived: false, createdAt: Date(), updatedAt: Date())
+    let trainingBot = PlayerSummary(
+        id: trainingBotId,
+        name: "Alice's Training Partner",
+        isArchived: false,
+        isBot: true,
+        botKindRaw: BotKind.training.rawValue,
+        linkedPlayerId: humanId,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let profile = BotDifficulty.medium.skillProfile
+    let playerRepo = TrainingSkillPlayerRepository(
+        players: [human, trainingBot],
+        skillByBotId: [trainingBotId: profile]
+    )
+    let matchRepo = ParticipantCapturingMatchRepository()
+    let vm = MatchSetupViewModel(
+        playerRepository: playerRepo,
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: matchRepo,
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.togglePlayer(humanId)
+    vm.togglePlayer(trainingBotId)
+
+    _ = await vm.startMatchRoute()
+
+    let participants = await matchRepo.lastParticipants
+    let botParticipant = try #require(participants.first { $0.playerId == trainingBotId })
+    #expect(botParticipant.botKindRaw == BotKind.training.rawValue)
+    #expect(botParticipant.botDifficultyRaw == nil)
+    #expect(botParticipant.botSkillProfilePayload != nil)
+    let snapshot = try TrainingBotSkillSnapshot.decode(from: try #require(botParticipant.botSkillProfilePayload))
+    #expect(snapshot.profile.x01.scoringVisitMax == profile.x01.scoringVisitMax)
+}
+
+@MainActor
 private func makeSetupViewModel(players: [PlayerSummary]) -> MatchSetupViewModel {
     MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
@@ -465,6 +509,85 @@ private actor FakeSettingsRepository: SettingsRepository {
     func resetPreferencesToDefaults() async throws {}
 
     func resetAllLocalData() async throws {}
+}
+
+private actor TrainingSkillPlayerRepository: PlayerRepository {
+    let players: [PlayerSummary]
+    let skillByBotId: [UUID: BotSkillProfile]
+
+    init(players: [PlayerSummary], skillByBotId: [UUID: BotSkillProfile]) {
+        self.players = players
+        self.skillByBotId = skillByBotId
+    }
+
+    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
+    func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
+    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
+        PlayerSummary(
+            id: UUID(),
+            name: "Bot",
+            isArchived: false,
+            isBot: true,
+            botDifficultyRaw: difficulty.rawValue,
+            botKindRaw: BotKind.preset.rawValue,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
+    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
+    func archivePlayer(playerId _: UUID) async throws {}
+    func unarchivePlayer(playerId _: UUID) async throws {}
+    func deletePlayer(playerId _: UUID) async throws {}
+    func fetchTrainingBot(linkedTo _: UUID) async throws -> PlayerSummary? { nil }
+    func createTrainingBot(for _: UUID) async throws -> PlayerSummary { players[0] }
+
+    func resolveTrainingBotSkill(for botId: UUID, mode _: MatchType) async throws -> BotSkillProfile {
+        guard let profile = skillByBotId[botId] else {
+            throw AppError(code: .notFound, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "trainingBot.error.notTrainingBot")
+        }
+        return profile
+    }
+}
+
+private actor ParticipantCapturingMatchRepository: MatchRepository {
+    private(set) var lastParticipants: [MatchParticipantSummary] = []
+
+    func createMatch(type: MatchType, configPayload _: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary {
+        lastParticipants = participants
+        return MatchSummary(
+            id: UUID(),
+            type: type,
+            status: .inProgress,
+            startedAt: Date(),
+            endedAt: nil,
+            winnerPlayerId: nil,
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: 0,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
 }
 
 private actor TurnOrderCapturingMatchRepository: MatchRepository {

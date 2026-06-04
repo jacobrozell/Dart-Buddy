@@ -72,6 +72,9 @@ final class MatchSetupViewModel: ObservableObject {
             x01CheckInMode = X01CheckInMode(rawValue: settings.defaultCheckInModeRaw) ?? .straightIn
             x01LegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo
             mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
+            if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
+                mode = preferred == .cricket ? .cricket : .x01
+            }
         } catch {
             validationErrors = ["setup.error.load"]
         }
@@ -121,7 +124,11 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     var availableBots: [PlayerSummary] {
-        availablePlayers.filter { $0.isBot && !selectedPlayerIds.contains($0.id) }
+        availablePlayers.filter { $0.isPresetBot && !selectedPlayerIds.contains($0.id) }
+    }
+
+    var availableTrainingBots: [PlayerSummary] {
+        availablePlayers.filter { $0.isTrainingBot && !selectedPlayerIds.contains($0.id) }
     }
 
     var isRosterEmpty: Bool {
@@ -137,6 +144,11 @@ final class MatchSetupViewModel: ObservableObject {
     private func appendToSelection(_ id: UUID) {
         guard !selectedPlayerIds.contains(id) else { return }
         selectedPlayerIds.append(id)
+    }
+
+    func addTrainingBot(_ botId: UUID) {
+        appendToSelection(botId)
+        revalidate()
     }
 
     func addBot(_ difficulty: BotDifficulty) async {
@@ -329,6 +341,8 @@ final class MatchSetupViewModel: ObservableObject {
             let id: UUID
             let name: String
             let botDifficulty: BotDifficulty?
+            let isTrainingBot: Bool
+            let linkedPlayerId: UUID?
             let avatarStyleRaw: String?
             let colorTokenRaw: String
         }
@@ -338,23 +352,56 @@ final class MatchSetupViewModel: ObservableObject {
                 id: player.id,
                 name: player.name,
                 botDifficulty: player.botDifficulty,
+                isTrainingBot: player.isTrainingBot,
+                linkedPlayerId: player.linkedPlayerId,
                 avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue,
                 colorTokenRaw: player.colorToken.rawValue
             )
         }
         let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
-        let selectedPlayers = orderedRoster
-            .enumerated()
-            .map { index, entry in
-                MatchParticipant(
-                    playerId: entry.id,
-                    displayNameAtMatchStart: entry.name,
-                    turnOrder: index,
-                    botDifficultyRaw: entry.botDifficulty?.rawValue,
-                    preferredColorTokenAtMatchStart: entry.colorTokenRaw
-                )
-            }
+        let matchType: MatchType = mode == .x01 ? .x01 : .cricket
         do {
+            let selectedPlayers: [MatchParticipant] = try await withThrowingTaskGroup(of: (Int, MatchParticipant).self) { group in
+                for (index, entry) in orderedRoster.enumerated() {
+                    group.addTask {
+                        var botDifficultyRaw = entry.botDifficulty?.rawValue
+                        var botKindRaw: String?
+                        var botSkillProfilePayload: Data?
+                        if entry.isTrainingBot {
+                            let profile = try await self.playerRepository.resolveTrainingBotSkill(
+                                for: entry.id,
+                                mode: matchType
+                            )
+                            let snapshot = TrainingBotSkillSnapshot(
+                                profile: profile,
+                                linkedPlayerId: entry.linkedPlayerId ?? entry.id,
+                                sourcePlayerAvg: nil,
+                                sourcePlayerMPR: nil
+                            )
+                            botSkillProfilePayload = try TrainingBotSkillSnapshot.encode(snapshot)
+                            botKindRaw = BotKind.training.rawValue
+                            botDifficultyRaw = nil
+                        } else if entry.botDifficulty != nil {
+                            botKindRaw = BotKind.preset.rawValue
+                        }
+                        let participant = MatchParticipant(
+                            playerId: entry.id,
+                            displayNameAtMatchStart: entry.name,
+                            turnOrder: index,
+                            botDifficultyRaw: botDifficultyRaw,
+                            botKindRaw: botKindRaw,
+                            botSkillProfilePayload: botSkillProfilePayload,
+                            preferredColorTokenAtMatchStart: entry.colorTokenRaw
+                        )
+                        return (index, participant)
+                    }
+                }
+                var byIndex: [Int: MatchParticipant] = [:]
+                for try await item in group {
+                    byIndex[item.0] = item.1
+                }
+                return (0 ..< orderedRoster.count).compactMap { byIndex[$0] }
+            }
             let config: MatchConfigPayload
             let session: MatchLifecycleSession
             let route: PlayRoute
@@ -385,7 +432,9 @@ final class MatchSetupViewModel: ObservableObject {
                     turnOrder: index,
                     displayNameAtMatchStart: participant.displayNameAtMatchStart,
                     avatarStyleAtMatchStart: participant.playerId.flatMap { avatarByPlayerId[$0] } ?? nil,
-                    botDifficultyRaw: participant.botDifficultyRaw
+                    botDifficultyRaw: participant.botDifficultyRaw,
+                    botKindRaw: participant.botKindRaw,
+                    botSkillProfilePayload: participant.botSkillProfilePayload
                 )
             }
             let persisted = try await matchRepository.createMatch(

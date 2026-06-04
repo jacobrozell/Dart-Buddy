@@ -240,6 +240,14 @@ public enum DartBotEngine {
         participant.botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
     }
 
+    public static func botSkillProfile(for participant: MatchParticipant) -> BotSkillProfile? {
+        if let payload = participant.botSkillProfilePayload,
+           let snapshot = try? TrainingBotSkillSnapshot.decode(from: payload) {
+            return snapshot.profile
+        }
+        return participant.botDifficulty?.skillProfile
+    }
+
     public static func botDifficulty(
         playerId: UUID,
         in participants: [MatchParticipant]
@@ -249,11 +257,38 @@ public enum DartBotEngine {
             .flatMap { botDifficulty(for: $0) }
     }
 
+    public static func botSkillProfile(
+        playerId: UUID,
+        in participants: [MatchParticipant]
+    ) -> BotSkillProfile? {
+        participants
+            .first { ($0.playerId ?? $0.id) == playerId }
+            .flatMap { botSkillProfile(for: $0) }
+    }
+
     // MARK: - X01
 
     public static func generateX01Turn(
         remaining: Int,
         difficulty: BotDifficulty,
+        checkoutMode: X01CheckoutMode,
+        checkInMode: X01CheckInMode,
+        isCheckedIn: Bool,
+        rng: inout some RandomNumberGenerator
+    ) -> [DartInput] {
+        generateX01Turn(
+            remaining: remaining,
+            profile: difficulty.skillProfile,
+            checkoutMode: checkoutMode,
+            checkInMode: checkInMode,
+            isCheckedIn: isCheckedIn,
+            rng: &rng
+        )
+    }
+
+    public static func generateX01Turn(
+        remaining: Int,
+        profile: BotSkillProfile,
         checkoutMode: X01CheckoutMode,
         checkInMode: X01CheckInMode,
         isCheckedIn: Bool,
@@ -268,17 +303,17 @@ public enum DartBotEngine {
             let intended = intendedX01Dart(
                 remaining: simulatedRemaining,
                 dartsLeft: dartsLeft,
-                difficulty: difficulty,
+                profile: profile,
                 checkoutMode: checkoutMode,
                 checkInMode: checkInMode,
                 checkedIn: checkedIn,
                 rng: &rng
             )
 
-            let hitBoost = checkedIn ? 0 : difficulty.checkInHitBoost
+            let hitBoost = checkedIn ? 0 : profile.x01.checkInHitBoost
             let resolved = resolveDart(
                 intended: intended,
-                difficulty: difficulty,
+                profile: profile,
                 hitBoost: hitBoost,
                 rng: &rng
             )
@@ -297,7 +332,7 @@ public enum DartBotEngine {
                 points: points,
                 checkoutMode: checkoutMode
             ) {
-                let playsRisky = Double.random(in: 0 ... 1, using: &rng) < difficulty.riskyDartWhenWouldBustChance
+                let playsRisky = Double.random(in: 0 ... 1, using: &rng) < profile.x01.riskyBustChance
                 if playsRisky {
                     darts.append(resolved)
                     if checkedIn {
@@ -349,6 +384,20 @@ public enum DartBotEngine {
         difficulty: BotDifficulty,
         rng: inout some RandomNumberGenerator
     ) -> [DartInput] {
+        generateCricketTurn(
+            state: state,
+            playerIndex: playerIndex,
+            profile: difficulty.skillProfile,
+            rng: &rng
+        )
+    }
+
+    public static func generateCricketTurn(
+        state: CricketState,
+        playerIndex: Int,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> [DartInput] {
         var darts: [DartInput] = []
         var marksSnapshot = state.players[playerIndex].marks
 
@@ -357,10 +406,10 @@ public enum DartBotEngine {
                 state: state,
                 playerIndex: playerIndex,
                 marksSnapshot: marksSnapshot,
-                difficulty: difficulty,
+                profile: profile,
                 rng: &rng
             )
-            let resolved = resolveCricketDart(intended: intended, difficulty: difficulty, rng: &rng)
+            let resolved = resolveCricketDart(intended: intended, profile: profile, rng: &rng)
             darts.append(resolved)
 
             if let targetRaw = resolved.segment.cricketTargetRaw {
@@ -378,7 +427,7 @@ public enum DartBotEngine {
     private static func intendedX01Dart(
         remaining: Int,
         dartsLeft: Int,
-        difficulty: BotDifficulty,
+        profile: BotSkillProfile,
         checkoutMode: X01CheckoutMode,
         checkInMode: X01CheckInMode,
         checkedIn: Bool,
@@ -386,7 +435,7 @@ public enum DartBotEngine {
     ) -> DartInput {
         if checkedIn,
            CheckoutSuggester.suggestion(remaining: remaining, mode: checkoutMode, dartsAvailable: dartsLeft) != nil,
-           Double.random(in: 0 ... 1, using: &rng) < difficulty.checkoutAttemptChance,
+           Double.random(in: 0 ... 1, using: &rng) < profile.x01.checkoutAttemptChance,
            let route = CheckoutSuggester.suggestion(remaining: remaining, mode: checkoutMode, dartsAvailable: dartsLeft),
            let first = route.first,
            let dart = dart(fromCheckoutLabel: first) {
@@ -394,18 +443,19 @@ public enum DartBotEngine {
         }
 
         if checkedIn == false {
-            return openerDart(for: checkInMode, difficulty: difficulty, rng: &rng)
+            return openerDart(for: checkInMode, profile: profile, rng: &rng)
         }
 
+        let visitRange = profile.x01.scoringVisitMin ... profile.x01.scoringVisitMax
         let targetTotal = min(
-            remaining - safeRemainingBuffer(checkoutMode: checkoutMode, difficulty: difficulty),
-            Int.random(in: difficulty.scoringVisitRange, using: &rng)
+            remaining - safeRemainingBuffer(checkoutMode: checkoutMode, profile: profile),
+            Int.random(in: visitRange, using: &rng)
         )
-        let segment = preferredScoringSegment(difficulty: difficulty, rng: &rng)
+        let segment = preferredScoringSegment(profile: profile, rng: &rng)
         let multiplier = preferredScoringMultiplier(
             targetTotal: max(1, targetTotal),
             segment: segment,
-            difficulty: difficulty,
+            profile: profile,
             rng: &rng
         )
         return DartInput(multiplier: multiplier, segment: .oneToTwenty(segment))
@@ -413,7 +463,7 @@ public enum DartBotEngine {
 
     private static func openerDart(
         for mode: X01CheckInMode,
-        difficulty: BotDifficulty,
+        profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
         switch mode {
@@ -421,7 +471,7 @@ public enum DartBotEngine {
             return intendedX01Dart(
                 remaining: 501,
                 dartsLeft: 3,
-                difficulty: difficulty,
+                profile: profile,
                 checkoutMode: .doubleOut,
                 checkInMode: .straightIn,
                 checkedIn: true,
@@ -432,7 +482,7 @@ public enum DartBotEngine {
             let face = faces.randomElement(using: &rng) ?? 16
             return DartInput(multiplier: .double, segment: .oneToTwenty(face))
         case .masterIn:
-            if Double.random(in: 0 ... 1, using: &rng) < difficulty.masterInTripleOpenerChance {
+            if Double.random(in: 0 ... 1, using: &rng) < profile.x01.masterInTripleOpenerChance {
                 return DartInput(multiplier: .triple, segment: .oneToTwenty(20))
             }
             let faces = [16, 8, 20, 12, 18, 4]
@@ -445,50 +495,36 @@ public enum DartBotEngine {
         state: CricketState,
         playerIndex: Int,
         marksSnapshot: [String: Int],
-        difficulty: BotDifficulty,
+        profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
         let ownOpen = CricketTarget.allCases.filter { (marksSnapshot[$0.rawValue] ?? 0) < 3 }
         if let target = ownOpen.first ?? CricketTarget.allCases.randomElement(using: &rng) {
             if target == .bull {
-                if Double.random(in: 0 ... 1, using: &rng) < difficulty.innerBullAimChance {
+                if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.innerBullAimChance {
                     return DartInput(multiplier: .single, segment: .innerBull)
                 }
                 return DartInput(multiplier: .single, segment: .outerBull)
             }
             let segment = target.points
-            switch difficulty {
-            case .veryEasy, .easy:
-                return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
-            case .medium:
-                if Double.random(in: 0 ... 1, using: &rng) < 0.45 {
-                    return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
-                }
-                return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
-            case .hard:
-                if Double.random(in: 0 ... 1, using: &rng) < 0.58 {
-                    return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
-                }
-                if Double.random(in: 0 ... 1, using: &rng) < 0.55 {
-                    return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
-                }
-                return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
-            case .pro:
-                if Double.random(in: 0 ... 1, using: &rng) < 0.68 {
-                    return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
-                }
-                if Double.random(in: 0 ... 1, using: &rng) < 0.5 {
-                    return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
-                }
+            let tier = profile.x01.scoringBehaviorTier
+            if tier == .veryEasy || tier == .easy {
                 return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
             }
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.tripleOnOpenChance {
+                return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
+            }
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.doubleOnOpenChance {
+                return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
+            }
+            return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
         }
         return boardGlanceDart(near: DartInput(multiplier: .single, segment: .oneToTwenty(20)), rng: &rng)
     }
 
     private static func resolveCricketDart(
         intended: DartInput,
-        difficulty: BotDifficulty,
+        profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
         guard intended.isMiss == false else {
@@ -496,16 +532,16 @@ public enum DartBotEngine {
         }
 
         let roll = Double.random(in: 0 ... 1, using: &rng)
-        let hitChance = min(0.90, difficulty.cricketHitChance(intendedMultiplier: intended.multiplier))
+        let hitChance = min(0.90, profile.cricketHitChance(intendedMultiplier: intended.multiplier))
         if roll < hitChance {
             return intended
         }
 
         let missRoll = Double.random(in: 0 ... 1, using: &rng)
-        if missRoll < difficulty.cricketOffBoardMissChance {
+        if missRoll < profile.cricket.offBoardMissChance {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
-        if missRoll < difficulty.cricketOffBoardMissChance + difficulty.cricketWrongBedChance {
+        if missRoll < profile.cricket.offBoardMissChance + profile.cricket.wrongBedChance {
             return cricketWrongBedDart(rng: &rng)
         }
 
@@ -543,7 +579,7 @@ public enum DartBotEngine {
 
     private static func resolveDart(
         intended: DartInput,
-        difficulty: BotDifficulty,
+        profile: BotSkillProfile,
         hitBoost: Double = 0,
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
@@ -554,7 +590,7 @@ public enum DartBotEngine {
         let roll = Double.random(in: 0 ... 1, using: &rng)
         let hitChance = min(
             0.95,
-            difficulty.hitChance(intendedMultiplier: intended.multiplier) + hitBoost
+            profile.x01HitChance(intendedMultiplier: intended.multiplier) + hitBoost
         )
         if roll < hitChance {
             return intended
@@ -565,7 +601,7 @@ public enum DartBotEngine {
             return downgrade(intended: intended, rng: &rng)
         }
 
-        if roll < hitChance + downgradeBand + difficulty.offBoardMissChance {
+        if roll < hitChance + downgradeBand + profile.x01.offBoardMissChance {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
 
@@ -670,32 +706,20 @@ public enum DartBotEngine {
 
     private static func safeRemainingBuffer(
         checkoutMode: X01CheckoutMode,
-        difficulty: BotDifficulty
+        profile: BotSkillProfile
     ) -> Int {
-        switch (checkoutMode, difficulty) {
-        case (.singleOut, .veryEasy): 6
-        case (.singleOut, .easy): 10
-        case (.singleOut, .medium): 20
-        case (.singleOut, .hard): 28
-        case (.singleOut, .pro): 32
-        case (.doubleOut, .veryEasy): 4
-        case (.doubleOut, .easy): 10
-        case (.doubleOut, .medium): 28
-        case (.doubleOut, .hard): 38
-        case (.doubleOut, .pro): 34
-        case (.masterOut, .veryEasy): 8
-        case (.masterOut, .easy): 12
-        case (.masterOut, .medium): 32
-        case (.masterOut, .hard): 40
-        case (.masterOut, .pro): 50
+        switch checkoutMode {
+        case .singleOut: profile.x01.safeRemainingSingleOut
+        case .doubleOut: profile.x01.safeRemainingDoubleOut
+        case .masterOut: profile.x01.safeRemainingMasterOut
         }
     }
 
     private static func preferredScoringSegment(
-        difficulty: BotDifficulty,
+        profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> Int {
-        switch difficulty {
+        switch profile.x01.scoringBehaviorTier {
         case .veryEasy:
             return Int.random(in: 1 ... 16, using: &rng)
         case .easy:
@@ -713,10 +737,10 @@ public enum DartBotEngine {
     private static func preferredScoringMultiplier(
         targetTotal: Int,
         segment: Int,
-        difficulty: BotDifficulty,
+        profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> DartMultiplier {
-        switch difficulty {
+        switch profile.x01.scoringBehaviorTier {
         case .veryEasy:
             return Double.random(in: 0 ... 1, using: &rng) < 0.92 ? .single : .double
         case .easy:
@@ -727,7 +751,7 @@ public enum DartBotEngine {
             return .double
         case .hard, .pro:
             if targetTotal >= segment * 3 { return .triple }
-            return Double.random(in: 0 ... 1, using: &rng) < difficulty.prefersTripleOnScoringSegment ? .triple : .double
+            return Double.random(in: 0 ... 1, using: &rng) < profile.x01.triplePreference ? .triple : .double
         }
     }
 

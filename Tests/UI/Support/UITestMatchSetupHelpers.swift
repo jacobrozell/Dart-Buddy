@@ -77,6 +77,29 @@ extension DartBuddyUITestCase {
         )
     }
 
+    func addTrainingPartner(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        let addBot = app.buttons["Add Bot"]
+        XCTAssertTrue(addBot.waitForExistence(timeout: timeout))
+        addBot.tap()
+        let trainingOption = app.buttons["training_bot_add_setup"].firstMatch
+        let trainingByLabel = app.buttons.containing(
+            NSPredicate(format: "label CONTAINS %@", "Training Partner")
+        ).firstMatch
+        if trainingOption.waitForExistence(timeout: 2) {
+            trainingOption.tap()
+        } else {
+            XCTAssertTrue(
+                trainingByLabel.waitForExistence(timeout: timeout),
+                "Training Partner should appear in the Add Bot menu when seeded"
+            )
+            trainingByLabel.tap()
+        }
+        let partnerRow = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'setup_selected_' AND label CONTAINS[c] %@", "Training Partner")
+        ).firstMatch
+        XCTAssertTrue(partnerRow.waitForExistence(timeout: timeout + 10))
+    }
+
     func startThreePlayerCricketMatch(from app: XCUIApplication) {
         ensurePlayTab(app, timeout: timeout)
         app.buttons["setup_mode_cricket"].tap()

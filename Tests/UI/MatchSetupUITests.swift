@@ -130,4 +130,41 @@ final class MatchSetupUITests: DartBuddyUITestCase {
         app.buttons["select_Bob"].tap()
         XCTAssertTrue(start.isEnabled, "START should enable once two players are selected")
     }
+
+    func testMatchSetupAddsTrainingPartnerBot() {
+        let app = launchApp(["-seed_training_partner", "-enqueue_training_match"])
+
+        ensurePlayTab(app, timeout: timeout + 30)
+        let stagedPartner = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'setup_selected_' AND label CONTAINS[c] %@", "Training Partner")
+        ).firstMatch
+        XCTAssertTrue(
+            stagedPartner.waitForExistence(timeout: timeout + 30),
+            "Seeded training partner launch should pre-stage the linked bot"
+        )
+
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout + 15)
+        start.tap()
+
+        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout + 15))
+    }
+
+    func testMatchSetupAddBotMenuIncludesTrainingPartner() {
+        let app = launchApp(["-seed_training_partner"])
+
+        ensurePlayTab(app, timeout: timeout + 30)
+
+        let addBot = app.buttons["Add Bot"]
+        XCTAssertTrue(addBot.waitForExistence(timeout: timeout))
+        addBot.tap()
+
+        let trainingOption = app.buttons.containing(
+            NSPredicate(format: "label CONTAINS %@", "Training Partner")
+        ).firstMatch
+        XCTAssertTrue(
+            trainingOption.waitForExistence(timeout: timeout + 10),
+            "Add Bot menu should list the linked Training Partner after removing it from turn order"
+        )
+    }
 }

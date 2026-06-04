@@ -6,6 +6,8 @@ struct EditablePlayer: Identifiable, Equatable {
     var isArchived: Bool
     var notes: String
     var isBot: Bool
+    var isTrainingBot: Bool
+    var linkedPlayerId: UUID?
     var botDifficulty: BotDifficulty?
     var avatarStyle: PlayerAvatarStyle
     var colorToken: PlayerColorToken
@@ -17,6 +19,8 @@ struct EditablePlayer: Identifiable, Equatable {
             isArchived: summary.isArchived,
             notes: summary.notes ?? "",
             isBot: summary.isBot,
+            isTrainingBot: summary.isTrainingBot,
+            linkedPlayerId: summary.linkedPlayerId,
             botDifficulty: summary.botDifficulty,
             avatarStyle: summary.avatarStyle,
             colorToken: summary.colorToken
@@ -187,20 +191,28 @@ final class PlayerDetailViewModel: ObservableObject {
     @Published private(set) var recentMatches: [RecentMatchSummary] = []
     @Published private(set) var lastPlayedAt: Date?
     @Published private(set) var isLoading = true
+    @Published private(set) var trainingBot: PlayerSummary?
+    @Published private(set) var x01Eligibility = TrainingBotEligibility(isEligible: false, gamesPlayed: 0, mode: .x01)
+    @Published private(set) var cricketEligibility = TrainingBotEligibility(isEligible: false, gamesPlayed: 0, mode: .cricket)
+    @Published private(set) var isCreatingTrainingBot = false
+    @Published var trainingBotErrorKey: String?
 
     private let playerId: UUID
     private let playerName: String
+    private let playerRepository: any PlayerRepository
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
 
     init(
         playerId: UUID,
         playerName: String,
+        playerRepository: any PlayerRepository,
         matchRepository: any MatchRepository,
         statsRepository: any StatsRepository
     ) {
         self.playerId = playerId
         self.playerName = playerName
+        self.playerRepository = playerRepository
         self.matchRepository = matchRepository
         self.statsRepository = statsRepository
     }
@@ -240,6 +252,13 @@ final class PlayerDetailViewModel: ObservableObject {
             cricket = StatsService.breakdowns(from: loadedCricket.inputs, nameById: names).first { $0.playerId == playerId }
             recentMatches = try await recent
             lastPlayedAt = recentMatches.first?.playedAt
+            trainingBot = try await playerRepository.fetchTrainingBot(linkedTo: playerId)
+            if let x01 {
+                x01Eligibility = TrainingBotEligibilityService.eligibility(breakdown: x01, mode: .x01)
+            }
+            if let cricket {
+                cricketEligibility = TrainingBotEligibilityService.eligibility(breakdown: cricket, mode: .cricket)
+            }
         } catch {
             x01 = nil
             x01TrendPoints = []
@@ -247,6 +266,30 @@ final class PlayerDetailViewModel: ObservableObject {
             recentMatches = []
             lastPlayedAt = nil
         }
+    }
+
+    func createTrainingBot() async {
+        guard trainingBot == nil, !isCreatingTrainingBot else { return }
+        isCreatingTrainingBot = true
+        trainingBotErrorKey = nil
+        defer { isCreatingTrainingBot = false }
+        do {
+            trainingBot = try await playerRepository.createTrainingBot(for: playerId)
+        } catch {
+            trainingBotErrorKey = (error as? AppError)?.userMessageKey ?? "error.repository.storage"
+        }
+    }
+
+    func calibratedSummary(for mode: MatchType) -> String? {
+        let breakdown = mode == .x01 ? x01 : cricket
+        guard let breakdown else { return nil }
+        let profile = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: mode)
+        if mode == .x01 {
+            let avg = Double(profile.x01.scoringVisitMin + profile.x01.scoringVisitMax) / 2.0
+            return L10n.format("trainingBot.calibrated.x01Format", avg)
+        }
+        let mpr = (profile.cricket.hitChances.triple + profile.cricket.hitChances.double) * 2.0
+        return L10n.format("trainingBot.calibrated.cricketFormat", mpr)
     }
 }
 
@@ -321,6 +364,8 @@ final class PlayerEditViewModel: ObservableObject {
             isArchived: existing?.isArchived ?? false,
             notes: notes,
             isBot: existing?.isBot ?? false,
+            isTrainingBot: existing?.isTrainingBot ?? false,
+            linkedPlayerId: existing?.linkedPlayerId,
             botDifficulty: existing?.botDifficulty,
             avatarStyle: avatarStyle,
             colorToken: colorToken

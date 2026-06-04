@@ -1,0 +1,124 @@
+import Foundation
+
+/// Maps target X01 3-dart average or Cricket MPR to a continuous `BotSkillProfile`.
+public enum BotSkillProfileInterpolator {
+    private static let x01TierAverages: [(BotDifficulty, Double)] = [
+        (.veryEasy, 20),
+        (.easy, 29),
+        (.medium, 61),
+        (.hard, 75),
+        (.pro, 88)
+    ]
+
+    private static let cricketTierMPR: [(BotDifficulty, Double)] = [
+        (.veryEasy, 0.85),
+        (.easy, 1.25),
+        (.medium, 1.85),
+        (.hard, 2.45),
+        (.pro, 3.05)
+    ]
+
+    public static func profile(forX01Average target: Double) -> BotSkillProfile {
+        let clamped = min(max(target, x01TierAverages.first!.1), x01TierAverages.last!.1)
+        let (lower, upper, t) = bracket(for: clamped, anchors: x01TierAverages)
+        return interpolate(
+            from: lower.skillProfile,
+            to: upper.skillProfile,
+            fraction: t,
+            scoringBehaviorTier: t < 0.5 ? lower : upper
+        )
+    }
+
+    public static func profile(forCricketMPR target: Double) -> BotSkillProfile {
+        let clamped = min(max(target, cricketTierMPR.first!.1), cricketTierMPR.last!.1)
+        let (lower, upper, t) = bracket(for: clamped, anchors: cricketTierMPR)
+        return interpolate(
+            from: lower.skillProfile,
+            to: upper.skillProfile,
+            fraction: t,
+            scoringBehaviorTier: t < 0.5 ? lower : upper
+        )
+    }
+
+    private static func bracket(
+        for value: Double,
+        anchors: [(BotDifficulty, Double)]
+    ) -> (BotDifficulty, BotDifficulty, Double) {
+        guard anchors.count >= 2 else {
+            return (anchors[0].0, anchors[0].0, 0)
+        }
+        if value <= anchors[0].1 {
+            return (anchors[0].0, anchors[1].0, 0)
+        }
+        for index in 0 ..< anchors.count - 1 {
+            let low = anchors[index]
+            let high = anchors[index + 1]
+            if value <= high.1 {
+                let span = high.1 - low.1
+                let t = span > 0 ? (value - low.1) / span : 0
+                return (low.0, high.0, min(1, max(0, t)))
+            }
+        }
+        let last = anchors[anchors.count - 2]
+        let top = anchors[anchors.count - 1]
+        return (last.0, top.0, 1)
+    }
+
+    private static func interpolate(
+        from lower: BotSkillProfile,
+        to upper: BotSkillProfile,
+        fraction t: Double,
+        scoringBehaviorTier: BotDifficulty
+    ) -> BotSkillProfile {
+        BotSkillProfile(
+            x01: .init(
+                scoringVisitMin: lerpInt(lower.x01.scoringVisitMin, upper.x01.scoringVisitMin, t),
+                scoringVisitMax: lerpInt(lower.x01.scoringVisitMax, upper.x01.scoringVisitMax, t),
+                hitChances: lerpHits(lower.x01.hitChances, upper.x01.hitChances, t),
+                checkoutAttemptChance: lerp(lower.x01.checkoutAttemptChance, upper.x01.checkoutAttemptChance, t),
+                offBoardMissChance: lerp(lower.x01.offBoardMissChance, upper.x01.offBoardMissChance, t),
+                riskyBustChance: lerp(lower.x01.riskyBustChance, upper.x01.riskyBustChance, t),
+                triplePreference: lerp(lower.x01.triplePreference, upper.x01.triplePreference, t),
+                checkInHitBoost: lerp(lower.x01.checkInHitBoost, upper.x01.checkInHitBoost, t),
+                innerBullAimChance: lerp(lower.x01.innerBullAimChance, upper.x01.innerBullAimChance, t),
+                masterInTripleOpenerChance: lerp(
+                    lower.x01.masterInTripleOpenerChance,
+                    upper.x01.masterInTripleOpenerChance,
+                    t
+                ),
+                safeRemainingSingleOut: lerpInt(lower.x01.safeRemainingSingleOut, upper.x01.safeRemainingSingleOut, t),
+                safeRemainingDoubleOut: lerpInt(lower.x01.safeRemainingDoubleOut, upper.x01.safeRemainingDoubleOut, t),
+                safeRemainingMasterOut: lerpInt(lower.x01.safeRemainingMasterOut, upper.x01.safeRemainingMasterOut, t),
+                scoringBehaviorTierRaw: scoringBehaviorTier.rawValue
+            ),
+            cricket: .init(
+                hitChances: lerpHits(lower.cricket.hitChances, upper.cricket.hitChances, t),
+                offBoardMissChance: lerp(lower.cricket.offBoardMissChance, upper.cricket.offBoardMissChance, t),
+                wrongBedChance: lerp(lower.cricket.wrongBedChance, upper.cricket.wrongBedChance, t),
+                innerBullAimChance: lerp(lower.cricket.innerBullAimChance, upper.cricket.innerBullAimChance, t),
+                tripleOnOpenChance: lerp(lower.cricket.tripleOnOpenChance, upper.cricket.tripleOnOpenChance, t),
+                doubleOnOpenChance: lerp(lower.cricket.doubleOnOpenChance, upper.cricket.doubleOnOpenChance, t)
+            )
+        )
+    }
+
+    private static func lerp(_ a: Double, _ b: Double, _ t: Double) -> Double {
+        a + (b - a) * t
+    }
+
+    private static func lerpInt(_ a: Int, _ b: Int, _ t: Double) -> Int {
+        Int((Double(a) + Double(b - a) * t).rounded())
+    }
+
+    private static func lerpHits(
+        _ a: BotSkillProfile.HitChances,
+        _ b: BotSkillProfile.HitChances,
+        _ t: Double
+    ) -> BotSkillProfile.HitChances {
+        .init(
+            single: lerp(a.single, b.single, t),
+            double: lerp(a.double, b.double, t),
+            triple: lerp(a.triple, b.triple, t)
+        )
+    }
+}

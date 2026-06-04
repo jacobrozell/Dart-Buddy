@@ -6,7 +6,7 @@ import Testing
 func legacySettingsWithoutBotColumnsDefaultToEnabled() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let context = ModelContext(container)
-    let record = SchemaV1.SettingsRecord()
+    let record = SchemaV2.SettingsRecord()
     record.botStaggerEnabled = nil
     record.botDartHapticsEnabled = nil
     context.insert(record)

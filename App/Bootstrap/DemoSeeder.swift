@@ -19,6 +19,18 @@ enum DemoSeeder {
             await seedPlayersOnly(dependencies)
         }
 
+        if arguments.contains("-seed_training_locked") {
+            await seedTrainingPartnerState(dependencies, completedX01Games: 3, createBot: false)
+        }
+
+        if arguments.contains("-seed_training_eligible") {
+            await seedTrainingPartnerState(dependencies, completedX01Games: 5, createBot: false)
+        }
+
+        if arguments.contains("-seed_training_partner") {
+            await seedTrainingPartnerState(dependencies, completedX01Games: 5, createBot: true)
+        }
+
         if arguments.contains("-ui_test_disable_feedback") {
             await disableFeedbackForUITest(dependencies)
         }
@@ -168,6 +180,81 @@ enum DemoSeeder {
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "summary_snapshot_seed_failed", message: "Summary snapshot seed failed: \(error)")
         }
+    }
+
+    /// Seeds Alice with completed X01 games for Training Partner eligibility UI/tests.
+    private static func seedTrainingPartnerState(
+        _ dependencies: AppDependencies,
+        completedX01Games: Int,
+        createBot: Bool
+    ) async {
+        do {
+            let players = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
+            let alice = try await humanPlayer(named: "Alice", in: players, repository: dependencies.playerRepository)
+            let bob = try await humanPlayer(named: "Bob", in: players, repository: dependencies.playerRepository)
+            for _ in 0 ..< completedX01Games {
+                try await seedCompletedX01Match(
+                    alice: alice,
+                    bob: bob,
+                    matchRepository: dependencies.matchRepository
+                )
+            }
+            let trainingBot: PlayerSummary?
+            if createBot {
+                if let existing = try await dependencies.playerRepository.fetchTrainingBot(linkedTo: alice.id) {
+                    trainingBot = existing
+                } else {
+                    trainingBot = try await dependencies.playerRepository.createTrainingBot(for: alice.id)
+                }
+            } else {
+                trainingBot = try await dependencies.playerRepository.fetchTrainingBot(linkedTo: alice.id)
+            }
+            if ProcessInfo.processInfo.arguments.contains("-enqueue_training_match"), let trainingBot {
+                await MainActor.run {
+                    dependencies.pendingMatchPlayerSelections.enqueuePractice(
+                        humanId: alice.id,
+                        trainingBotId: trainingBot.id,
+                        mode: .x01
+                    )
+                }
+            }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "seed_training_partner_failed",
+                message: "Training partner seed failed: \(error)"
+            )
+        }
+    }
+
+    private static func seedCompletedX01Match(
+        alice: PlayerSummary,
+        bob: PlayerSummary,
+        matchRepository: any MatchRepository
+    ) async throws {
+        let payload = try CodablePayloadCoder.encode(
+            MatchConfigPayload.x01(
+                MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)
+            )
+        )
+        let matchId = UUID()
+        let participants = [
+            MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: alice.name),
+            MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: bob.name)
+        ]
+        let created = try await matchRepository.createMatch(type: .x01, configPayload: payload, participants: participants)
+        _ = try await matchRepository.completeMatch(matchId: created.id, endedAt: Date(), winnerPlayerId: alice.id)
+    }
+
+    private static func humanPlayer(
+        named name: String,
+        in players: [PlayerSummary],
+        repository: any PlayerRepository
+    ) async throws -> PlayerSummary {
+        if let existing = players.first(where: { $0.name == name && !$0.isBot }) {
+            return existing
+        }
+        return try await repository.createPlayer(name: name)
     }
 
     private static func seedPlayersOnly(_ dependencies: AppDependencies) async {

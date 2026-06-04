@@ -249,8 +249,28 @@ struct SetupHomeView: View {
     private var rosterActionButtons: some View {
         HStack(spacing: DS.Spacing.s2) {
             Menu {
-                ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
-                    botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
+                if !setupViewModel.availableTrainingBots.isEmpty {
+                    Section(L10n.trainingBotSetupSection) {
+                        ForEach(setupViewModel.availableTrainingBots) { bot in
+                            Button {
+                                setupViewModel.addTrainingBot(bot.id)
+                            } label: {
+                                Label {
+                                    Text(bot.name)
+                                } icon: {
+                                    Circle()
+                                        .fill(PlayerVisualViews.trainingBotColor(linkedToken: bot.colorToken))
+                                        .frame(width: 10, height: 10)
+                                }
+                            }
+                            .accessibilityIdentifier("training_bot_add_setup")
+                        }
+                    }
+                }
+                Section(L10n.addBotTitle) {
+                    ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
+                        botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
+                    }
                 }
             } label: {
                 HStack(spacing: 6) {
