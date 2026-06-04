@@ -17,7 +17,10 @@ struct MainTabView: View {
     @State private var pendingPlayResume: MatchSummary?
     @State private var showsActiveMatchBadge = false
     @State private var appStoreUpdateOffer: AppStoreUpdateOffer?
+    @State private var showsOnboarding = false
     @Environment(\.openURL) private var openURL
+
+    private let onboardingStore = OnboardingStore()
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -67,6 +70,19 @@ struct MainTabView: View {
         } message: {
             Text(L10n.updateAvailableMessage)
         }
+        .fullScreenCover(isPresented: $showsOnboarding) {
+            OnboardingView(
+                mode: .firstLaunch,
+                store: onboardingStore,
+                logger: dependencies.logger,
+                preferredColorScheme: preferences.preferredColorScheme,
+                onFinished: {
+                    showsOnboarding = false
+                    selectedTab = .play
+                    Task { await checkForAppStoreUpdate() }
+                }
+            )
+        }
         .task {
             dependencies.logger.debug(
                 .ui,
@@ -74,13 +90,26 @@ struct MainTabView: View {
                 message: "Main tab shell rendered."
             )
             await refreshActiveMatchBadge()
-            if appStoreUpdateOffer == nil {
-                appStoreUpdateOffer = await AppStoreUpdateChecker().checkForUpdate()
+            if onboardingStore.shouldPresentOnLaunch, !showsOnboarding {
+                showsOnboarding = true
+            } else if !onboardingStore.shouldPresentOnLaunch {
+                await checkForAppStoreUpdate()
             }
         }
         .onChange(of: selectedTab) { _, _ in
             Task { await refreshActiveMatchBadge() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: LocalAppStateReset.didResetNotification)) { _ in
+            appStoreUpdateOffer = nil
+            if onboardingStore.shouldPresentOnLaunch {
+                showsOnboarding = true
+            }
+        }
+    }
+
+    private func checkForAppStoreUpdate() async {
+        guard appStoreUpdateOffer == nil else { return }
+        appStoreUpdateOffer = await AppStoreUpdateChecker().checkForUpdate()
     }
 
     private var appStoreUpdateAlertBinding: Binding<Bool> {

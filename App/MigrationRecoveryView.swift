@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MigrationRecoveryView: View {
     @StateObject private var viewModel: MigrationRecoveryViewModel
+    @State private var showsResetConfirmation = false
 
     init(
         context: MigrationRecoveryContext,
@@ -37,7 +38,7 @@ struct MigrationRecoveryView: View {
                     .accessibilityIdentifier("migration_export")
             }
             if viewModel.context.options.canResetData {
-                Button(L10n.migrationReset, role: .destructive) { viewModel.tapResetLocalData() }
+                Button(L10n.migrationReset, role: .destructive) { showsResetConfirmation = true }
                     .accessibilityLabel(L10n.string("migration.reset.accessibility"))
                     .accessibilityIdentifier("migration_reset")
             }
@@ -59,5 +60,13 @@ struct MigrationRecoveryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Brand.background.ignoresSafeArea())
         .accessibilityElement(children: .contain)
+        .alert(L10n.resetConfirmTitle, isPresented: $showsResetConfirmation) {
+            Button(L10n.cancel, role: .cancel) {}
+            Button(L10n.resetConfirmAction, role: .destructive) {
+                viewModel.tapResetLocalData()
+            }
+        } message: {
+            Text(L10n.resetConfirmMessage)
+        }
     }
 }

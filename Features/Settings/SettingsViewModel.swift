@@ -17,6 +17,7 @@ final class SettingsViewModel: ObservableObject {
     private let repository: any SettingsRepository
     private let logger: any AppLogger
     private let activeMatchStore: ActiveMatchStore
+    private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
     private let userPreferencesStore: UserPreferencesStore
     private var mutationTask: Task<Void, Never>?
     private var resetTask: Task<Void, Never>?
@@ -25,11 +26,13 @@ final class SettingsViewModel: ObservableObject {
         repository: any SettingsRepository,
         logger: any AppLogger,
         activeMatchStore: ActiveMatchStore,
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections,
         userPreferencesStore: UserPreferencesStore
     ) {
         self.repository = repository
         self.logger = logger
         self.activeMatchStore = activeMatchStore
+        self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
         self.userPreferencesStore = userPreferencesStore
     }
 
@@ -157,6 +160,9 @@ final class SettingsViewModel: ObservableObject {
         do {
             try await repository.resetAllLocalData()
             activeMatchStore.clearAll()
+            pendingMatchPlayerSelections.clearAll()
+            LocalAppStateReset.clearAllPersistedAuxiliaryState()
+            LocalAppStateReset.notifyDidReset()
             settings = try await repository.fetchSettings()
             if let settings { userPreferencesStore.apply(settings) }
             state = .ready

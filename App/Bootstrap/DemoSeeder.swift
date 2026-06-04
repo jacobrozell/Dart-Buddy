@@ -9,6 +9,11 @@ enum DemoSeeder {
         if arguments.contains("-ui_test_reset") {
             try? await dependencies.settingsRepository.resetAllLocalData()
             try? await dependencies.settingsRepository.resetPreferencesToDefaults()
+            await MainActor.run {
+                dependencies.activeMatchStore.clearAll()
+                dependencies.pendingMatchPlayerSelections.clearAll()
+            }
+            LocalAppStateReset.clearAllPersistedAuxiliaryState()
         }
 
         if let appearanceMode = launchAppearanceMode(from: arguments) {

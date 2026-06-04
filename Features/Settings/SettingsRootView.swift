@@ -7,6 +7,7 @@ struct SettingsRootView: View {
     @State private var path: [SettingsRoute] = []
     @StateObject private var viewModel: SettingsViewModel
     @State private var retryTask: Task<Void, Never>?
+    @State private var showsOnboarding = false
 
     private var contentMaxWidth: CGFloat {
         horizontalSizeClass == .regular ? 760 : .infinity
@@ -20,6 +21,7 @@ struct SettingsRootView: View {
                 repository: dependencies.settingsRepository,
                 logger: dependencies.logger,
                 activeMatchStore: dependencies.activeMatchStore,
+                pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
                 userPreferencesStore: dependencies.userPreferencesStore
             )
         )
@@ -62,23 +64,6 @@ struct SettingsRootView: View {
             }
             .navigationTitle(L10n.settingsTitle)
             .task { await viewModel.onAppear() }
-            .confirmationDialog(
-                L10n.resetConfirmTitle,
-                isPresented: Binding(
-                    get: { viewModel.state == .showResetConfirmation },
-                    set: { if !$0 { viewModel.dismissResetPrompt() } }
-                ),
-                titleVisibility: .visible
-            ) {
-                Button(L10n.resetConfirmAction, role: .destructive) {
-                    viewModel.queueConfirmReset()
-                }
-                Button(L10n.cancel, role: .cancel) {
-                    viewModel.dismissResetPrompt()
-                }
-            } message: {
-                Text(L10n.resetConfirmMessage)
-            }
             .navigationDestination(for: SettingsRoute.self) { route in
                 switch route {
                 case .root:
@@ -91,6 +76,34 @@ struct SettingsRootView: View {
             }
         }
         .brandSettingsScreenChrome(appearanceModeRaw: preferences.appearanceModeRaw)
+        .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
+            Button(L10n.cancel, role: .cancel) {
+                viewModel.dismissResetPrompt()
+            }
+            Button(L10n.resetConfirmAction, role: .destructive) {
+                viewModel.queueConfirmReset()
+            }
+        } message: {
+            Text(L10n.resetConfirmMessage)
+        }
+        .fullScreenCover(isPresented: $showsOnboarding) {
+            OnboardingView(
+                mode: .replay,
+                preferredColorScheme: preferences.preferredColorScheme,
+                onFinished: { showsOnboarding = false }
+            )
+        }
+    }
+
+    private var resetConfirmationBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.state == .showResetConfirmation },
+            set: { isPresented in
+                if !isPresented {
+                    viewModel.dismissResetPrompt()
+                }
+            }
+        )
     }
 
     @ViewBuilder
@@ -227,6 +240,14 @@ struct SettingsRootView: View {
             .brandFormRowBackground(when: usesBrand)
 
             Section {
+                Button {
+                    showsOnboarding = true
+                } label: {
+                    Label(L10n.settingsViewOnboarding, systemImage: "book.pages")
+                }
+                .accessibilityLabel(L10n.settingsViewOnboardingAccessibility)
+                .accessibilityIdentifier("settings_viewOnboardingButton")
+
                 Text("settings.about.value")
                     .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
 

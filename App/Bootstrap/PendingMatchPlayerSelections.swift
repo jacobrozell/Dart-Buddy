@@ -33,4 +33,10 @@ public final class PendingMatchPlayerSelections: ObservableObject {
         pending.subtract(matched)
         return matched
     }
+
+    public func clearAll() {
+        pending.removeAll()
+        preferredMatchType = nil
+        changeCount += 1
+    }
 }
