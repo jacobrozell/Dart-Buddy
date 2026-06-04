@@ -8,8 +8,9 @@ Product behavior and UX contracts live under [`specs/`](specs/README.md). This f
 
 ## Status (1.0 RC)
 
-- **Product:** MVP scope complete — play, players, history, statistics, settings.
-- **Remaining for App Store:** QA sign-off, accessibility evidence, migration recovery smoke, listing assets — tracked in [`docs/release/todo.md`](docs/release/todo.md).
+- **Product:** MVP scope complete — play, players, history, statistics, settings; X01 and Cricket (Normal + Cut Throat) with bot opponents and Training Partner bots.
+- **Localization:** English plus German, Spanish, and Dutch (`de` / `es` / `nl`) via system locale — see [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md).
+- **Remaining for App Store:** QA sign-off, accessibility evidence, migration recovery smoke, listing assets (including localized metadata where applicable) — tracked in [`docs/release/todo.md`](docs/release/todo.md).
 
 ## Getting started
 
@@ -33,25 +34,27 @@ Run tests: **Product → Test** (`⌘U`), or:
 
 ```bash
 xcodebuild test -scheme DartBuddy \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 > `DartBuddy.xcodeproj` is generated locally and not committed. Regenerate after pulling `project.yml` changes.
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: installs XcodeGen, regenerates the project, then `xcodebuild test` on the `DartBuddy` scheme (unit + UI tests) using an available iPhone simulator on the macOS runner.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddy` scheme (unit + accessibility + UI tests, including localization parity and `de`/`es`/`nl` smoke suites) on an iPhone 17 simulator (`macos-26` runner).
 
 ## What the app does
 
 High-level summary only — authoritative rules are in feature specs:
 
-- X01 and Cricket matches with guided scoring, undo, and bot opponents
+- X01 and Cricket matches with guided scoring, undo, and bot opponents (including Cut Throat Cricket + Points On)
+- Training Partner bots (progress-gated custom opponents on Player Detail and Play setup)
 - Match setup with roster selection, turn order, and mode-specific options
 - Resume in-progress matches; match summary on completion
 - Player management (create, edit, archive, delete)
 - Match history with filtering and detail views; dedicated statistics tab
 - Settings: appearance, default game options, haptics, sound, bot pacing
+- UI in English, German, Spanish, or Dutch when the device language matches (`en` / `de` / `es` / `nl`)
 
 ## Project layout
 
@@ -63,7 +66,8 @@ High-level summary only — authoritative rules are in feature specs:
 | `Data/` | Repository protocols and SwiftData implementations |
 | `Persistence/` | Schema, migrations, container factory |
 | `DesignSystem/` | Tokens, shared components, gameplay layout |
-| `Resources/` | Asset catalog, `en.lproj` strings, Firebase plist template |
+| `Resources/` | Asset catalog, `en`/`de`/`es`/`nl` `Localizable.strings`, Firebase plist template |
+| `Scripts/` | CI helpers, locale generators (`generate_*_localizable.py`) |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
 | `docs/release/` | Active backlog (`todo.md`) and App Store runbook (`release_checklist.md`) |
@@ -83,7 +87,9 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 
 | Concern | Start here |
 |---------|------------|
-| Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md)) |
+| Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md) — coverage checklist §5, PR rules §4.1) |
+| Localization | [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md) |
+| Feature specs (full index) | [`specs/README.md`](specs/README.md) § Feature Specs |
 | Active release work | [`docs/release/todo.md`](docs/release/todo.md) |
 | Device + App Store runbook | [`docs/release/release_checklist.md`](docs/release/release_checklist.md) |
 | Contributing & code style | [`CONTRIBUTING.md`](CONTRIBUTING.md) |

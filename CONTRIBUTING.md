@@ -71,8 +71,21 @@ in [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md).
 
 ## Localization
 
-User-facing strings go through `L10n` and `Resources/en.lproj/Localizable.strings` — no
+User-facing strings go through `L10n` and `Resources/*.lproj/Localizable.strings` — no
 hard-coded display text in views.
+
+- **Source of truth:** `Resources/en.lproj/Localizable.strings`
+- **Shipped locales:** `de`, `es`, `nl` (system locale only; no in-app language picker)
+- **PR rule:** new keys must update all four locale files; `LocalizationParityTests` enforces key and format-specifier parity in CI
+- **Generators:** `Scripts/generate_de_localizable.py`, `generate_es_localizable.py`, `generate_nl_localizable.py` (optional aid when bulk-updating translations)
+
+See [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md).
+
+## Specifications
+
+- Feature behavior: [`specs/README.md`](specs/README.md) § Feature Specs — update the matching spec in the same PR as behavior changes.
+- Governance (coverage checklist, PR rules, telemetry): [`specs/SpecGovernance.md`](specs/SpecGovernance.md).
+- Analytics allowlist: [`specs/FirebaseBackendAnalyticsSpec.md`](specs/FirebaseBackendAnalyticsSpec.md) §12 + mapping tests.
 
 ## Tests
 
@@ -86,7 +99,7 @@ Run with `⌘U` or:
 
 ```bash
 xcodebuild test -scheme DartBuddy \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
 ## Commits

@@ -3,7 +3,8 @@
 ## MVP Baselines (Locked)
 - Landscape and portrait are both required in MVP.
 - Accessibility target is WCAG 2.1 AA.
-- CI runs limited UI smoke tests (`Tests/UI/`); full UI automation matrix is post-1.0.
+- UI strings ship in `en`, `de`, `es`, and `nl` (system locale; see `LocalizationSpec.md`).
+- CI runs limited UI smoke tests (`Tests/UI/`), including localization parity and `de`/`es`/`nl` launch smoke; full UI automation matrix is post-1.0.
 - App naming direction avoids "Lite" branding.
 
 ## Product and System Specs
@@ -33,15 +34,38 @@
 - `specs/ErrorModelSpec.md`
 
 ## Feature Specs
-- `specs/SetupFlowSpec.md`
-- `specs/MatchSpec.md`
-- `specs/X01GameSpec.md`
-- `specs/CricketSpec.md`
-- `specs/ScoringInputSpec.md`
-- `specs/PlayerSpec.md`
-- `specs/HistorySpec.md`
-- `specs/StatsSpec.md`
-- `specs/SettingsSpec.md`
+
+### Play & matches
+| Spec | Covers |
+|------|--------|
+| [`PlayHomeSpec.md`](PlayHomeSpec.md) | Play tab home, resume banner, recent games, navigation |
+| [`SetupFlowSpec.md`](SetupFlowSpec.md) | New-match setup, roster, mode options, start/conflict |
+| [`QuickAddPlayerSpec.md`](QuickAddPlayerSpec.md) | Fast player create from Play setup |
+| [`MatchSpec.md`](MatchSpec.md) | Lifecycle, resume, abandon, persistence |
+| [`MatchSummarySpec.md`](MatchSummarySpec.md) | Post-match screen, undo last throw |
+| [`X01GameSpec.md`](X01GameSpec.md) | X01 rules, board UI, checkout suggester |
+| [`CricketSpec.md`](CricketSpec.md) | Cricket rules, board UI, normal / cut throat |
+| [`ScoringInputSpec.md`](ScoringInputSpec.md) | Shared dart-entry pad, undo, submit |
+
+### Opponents
+| Spec | Covers |
+|------|--------|
+| [`BotOpponentSpec.md`](BotOpponentSpec.md) | Preset difficulty bots, `DartBotEngine`, pacing |
+| [`TrainingBotSpec.md`](TrainingBotSpec.md) | Training Partner bots, eligibility, skill calibration |
+
+### Players, history, stats, settings
+| Spec | Covers |
+|------|--------|
+| [`PlayerSpec.md`](PlayerSpec.md) | CRUD, archive, identity, player detail |
+| [`HistorySpec.md`](HistorySpec.md) | Completed match list, filters, detail |
+| [`StatsSpec.md`](StatsSpec.md) | Formulas, aggregates, recompute policy |
+| [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | Statistics tab UI, charts, filters |
+| [`SettingsSpec.md`](SettingsSpec.md) | Preferences, defaults, data reset |
+
+### App health
+| Spec | Covers |
+|------|--------|
+| [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) | Migration failure recovery UI |
 
 ## Post-1.0 / Assessment / Archive
 - `specs/AppleWatchCompanionSpec.md` + `specs/AppleWatchCompanionAssessment.md`

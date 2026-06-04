@@ -1,7 +1,7 @@
 # iOS code audit (senior review)
 
-**Last reviewed:** 2026-06-03  
-**Scope:** SwiftUI app shell, features, design system, accessibility test harness, documentation hygiene.
+**Last reviewed:** 2026-06-04  
+**Scope:** SwiftUI app shell, features, design system, localization (`en`/`de`/`es`/`nl`), accessibility test harness, documentation hygiene.
 
 This is the engineering audit companion to the UX audit in [`todo.md`](release/todo.md) § UI/UX audit. It does not duplicate release QA checklists — use [`release_checklist.md`](release/release_checklist.md) for ship evidence.
 

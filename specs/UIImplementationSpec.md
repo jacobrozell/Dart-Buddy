@@ -29,91 +29,27 @@ Each screen contract uses the same structure:
 
 ---
 
-## 3. Screen Contracts
+## 3. Screen Contract Index
 
-## 3.1 Play Home
-- **States:** `loading`, `readyNoActiveMatch`, `readyWithActiveMatch`, `emptyNoPlayers`, `error`.
-- **Intents:** start new match, resume active match.
-- **Events:** `onAppear`, `tapStartNewMatch`, `tapResumeMatch`.
-- **Data dependencies:** in-progress match query, active players count, optional recent completed summaries.
-- **Minimum validation scenarios:** resume card visibility logic, start route, resume route, no-player guidance state.
+**Do not duplicate feature behavior here.** Each row points to the authoritative feature spec (states, validation, analytics, a11y). This file keeps only cross-screen implementation conventions (§4–§5).
 
-## 3.2 Match Setup
-- **States:** `pristine`, `editingInvalid`, `editingValid`, `submitting`, `submitFailed`.
-- **Intents:** configure mode and options, select players, start match.
-- **Events:** `selectMode`, `togglePlayer`, `updateX01Option`, `tapStart`, `tapQuickAddPlayer`.
-- **Data dependencies:** player roster, settings defaults, setup validation service.
-- **Minimum validation scenarios:** validation matrix, sticky CTA, quick add transition, successful start routes by mode.
+Wireframes and visual behavior: [`UIBlueprintSpec.md`](UIBlueprintSpec.md).
 
-## 3.3 X01 Match
-- **States:** `readyTurn`, `entryInvalid`, `submittingTurn`, `bustFeedback`, `matchCompleted`, `error`.
-- **Intents:** input turn, submit turn, undo turn, exit with confirmation.
-- **Events:** `enterDart`, `enterTotal`, `backspaceEntry`, `clearEntry`, `submitTurn`, `undoLastTurn`, `requestExit`.
-- **Data dependencies:** `X01Engine`, match state head, recent event timeline, settings (haptics/sound).
-- **Minimum validation scenarios:** submit enablement, bust handling, checkout handling, undo across leg boundary, completion route.
+| Screen / flow | Feature spec | UI implementation notes |
+|---------------|--------------|-------------------------|
+| Play home + setup (combined) | [`PlayHomeSpec.md`](PlayHomeSpec.md), [`SetupFlowSpec.md`](SetupFlowSpec.md) | `SetupHomeView` + `PlayHomeViewModel` / `MatchSetupViewModel` |
+| Quick add player | [`QuickAddPlayerSpec.md`](QuickAddPlayerSpec.md) | Pushed from `PlayRoute.quickAddPlayer` |
+| X01 match | [`X01GameSpec.md`](X01GameSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `X01MatchScreen`, `DartNumberPad` |
+| Cricket match | [`CricketSpec.md`](CricketSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `CricketMatchScreen`, `CricketBoardView` |
+| Match summary | [`MatchSummarySpec.md`](MatchSummarySpec.md) | `MatchSummaryScreen` |
+| History list / detail | [`HistorySpec.md`](HistorySpec.md) | `HistoryRootView`, `MatchHistoryDetailScreen` |
+| Statistics tab | [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | `StatisticsRootView` |
+| Players list / detail / edit | [`PlayerSpec.md`](PlayerSpec.md) | `PlayersRootView`, `PlayerDetailView` |
+| Settings | [`SettingsSpec.md`](SettingsSpec.md) | `SettingsRootView` |
+| Migration recovery | [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) | `MigrationRecoveryView` (no tabs) |
+| Preset / training bots | [`BotOpponentSpec.md`](BotOpponentSpec.md), [`TrainingBotSpec.md`](TrainingBotSpec.md) | Setup Add Bot + Player Detail sections |
 
-## 3.4 Cricket Match
-- **States:** `readyTurn`, `entryInvalid`, `submittingTurn`, `closureTransition`, `matchCompleted`, `error`.
-- **Intents:** target and multiplier input, submit, undo, exit with confirmation.
-- **Events:** `selectTarget`, `selectMultiplier`, `submitTurn`, `undoLastTurn`, `requestExit`.
-- **Data dependencies:** `CricketEngine`, board state model, per-player points, recent event timeline.
-- **Minimum validation scenarios:** board render correctness, overflow scoring logic visibility, non-color closure indicators, undo restoration.
-
-## 3.5 Match Summary
-- **States:** `ready`, `loadingHistoryLink`, `error`.
-- **Intents:** start new match, open history detail.
-- **Events:** `tapNewMatch`, `tapViewHistoryDetail`.
-- **Data dependencies:** immutable summary DTO, winner identity snapshot, match metadata.
-- **Minimum validation scenarios:** winner card correctness, primary/secondary CTA routing.
-
-## 3.6 History List
-- **States:** `loading`, `readyUnfiltered`, `readyFiltered`, `emptyFiltered`, `error`.
-- **Intents:** apply filters, open detail.
-- **Events:** `setModeFilter`, `setDateFilter`, `setPlayerFilter`, `clearFilters`, `tapMatch`.
-- **Data dependencies:** completed match summaries, filter options, pagination/lazy loading cursor.
-- **Minimum validation scenarios:** filter determinism, empty state behavior, route to detail.
-
-## 3.7 History Detail
-- **States:** `loading`, `ready`, `timelineChunkLoading`, `missingReferenceFallback`, `error`.
-- **Intents:** inspect summary and timeline.
-- **Events:** `onAppear`, `loadTimelineChunk`.
-- **Data dependencies:** completed match detail DTO, participant snapshots, event list/timeline chunks.
-- **Minimum validation scenarios:** snapshot fallback rendering, long timeline lazy rendering, mode-specific sections.
-
-## 3.8 Players List
-- **States:** `loading`, `empty`, `ready`, `searchNoResults`, `error`.
-- **Intents:** add, search, open detail, archive, delete.
-- **Events:** `tapAddPlayer`, `searchChanged`, `tapPlayer`, `swipeArchive`, `swipeDelete`.
-- **Data dependencies:** player list DTO, stats summary subtitle DTO, search query.
-- **Minimum validation scenarios:** empty state CTA, search filtering, archive action, guarded delete flow.
-
-## 3.9 Player Detail
-- **States:** `loading`, `readyActive`, `readyArchived`, `deleteBlocked`, `error`.
-- **Intents:** edit, archive/unarchive, delete.
-- **Events:** `tapEdit`, `tapArchiveToggle`, `tapDelete`.
-- **Data dependencies:** player profile DTO, lifetime stats, recent matches.
-- **Minimum validation scenarios:** archive toggle behavior, guarded delete message, edit route.
-
-## 3.10 Player Edit Sheet
-- **States:** `createPristine`, `editPrefilled`, `invalid`, `valid`, `saving`, `saveFailed`.
-- **Intents:** modify fields, save, cancel.
-- **Events:** `nameChanged`, `avatarChanged`, `colorChanged`, `notesChanged`, `tapSave`, `tapCancel`.
-- **Data dependencies:** validation service, duplicate-name checker, style token list.
-- **Minimum validation scenarios:** inline validation, save enablement, duplicate handling.
-
-## 3.11 Settings
-- **States:** `loading`, `ready`, `saving`, `showResetConfirmation`, `resetInProgress`, `error`.
-- **Intents:** modify preferences, reset all local data.
-- **Events:** `setAppearance`, `toggleHaptics`, `toggleSound`, `updateGameplayDefault`, `tapResetAllData`, `confirmReset`.
-- **Data dependencies:** `SettingsRepository`, reset service, defaults seed policy.
-- **Minimum validation scenarios:** immediate appearance update, defaults propagation to setup, reset confirm/cancel/execute.
-
-## 3.12 Migration Recovery
-- **States:** `ready`, `retryInProgress`, `retryFailed`, `exportInProgress`, `resetInProgress`.
-- **Intents:** retry migration, export diagnostics, reset local data.
-- **Events:** `tapRetry`, `tapExportDiagnostics`, `tapResetLocalData`.
-- **Data dependencies:** migration error payload, diagnostics export service.
-- **Minimum validation scenarios:** each recovery action path reachable and labeled clearly.
+When adding a screen: update the feature spec first, then add one row to this table. Add state/event detail here only if it is shared across multiple features (e.g. global loading chrome).
 
 ---
 
@@ -127,7 +63,9 @@ Each screen contract uses the same structure:
 ---
 
 ## 5. Definition of Done for Any New Screen
-- Contract entries (states/intents/events/data/tests) added to this spec.
+- Feature spec created or updated (see [`SpecGovernance.md`](SpecGovernance.md) §6).
+- Row added to §3 index above.
 - Wireframe and behavior added or linked in `specs/UIBlueprintSpec.md`.
-- Accessibility labels/hints and focus order verified.
+- Per-screen WCAG checklist under `accessibility/wcag-2.1-aa/screens/` linked from feature spec.
+- Accessibility labels/hints and focus order verified; `WCAGAccessibilityUITests` updated if new identifiers.
 - Portrait/light, portrait/dark, landscape/light, landscape/dark manually verified.

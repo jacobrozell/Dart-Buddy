@@ -110,3 +110,62 @@ Do not include:
 - Never call Firebase SDKs directly from SwiftUI views.
 - Keep feature flags for Firebase-powered paths.
 - Roll out each Firebase capability independently to reduce regression risk.
+
+---
+
+## 12. Event Catalog (Authoritative)
+
+Source of truth in code:
+- Analytics allowlist: `Support/Logging/FirebaseAnalyticsEventMapping.swift`
+- Crashlytics allowlist: `Support/Logging/FirebaseCrashlyticsEventMapping.swift`
+- Unit tests: `Tests/Unit/FirebaseAnalyticsEventMappingTests.swift`, `FirebaseCrashlyticsEventMappingTests.swift`
+
+**Rule:** New product-health telemetry must update this section, the allowlist in code, and mapping tests in the same PR.
+
+### Firebase Analytics (Release allowlist)
+
+| Log `eventName` | Firebase name | Typical feature | Notes |
+|-----------------|---------------|-----------------|-------|
+| `app_bootstrap_ready` | `app_open` | App shell | Successful launch |
+| `match_started` | `match_started` | Setup / match | After persist + route |
+| `match_completed` | `match_completed` | X01 / Cricket | Engine reports complete |
+| `turn_submitted` | `turn_submitted` | X01 / Cricket | Accepted turn |
+| `turn_undone` | `undo_used` | X01 / Cricket | Full turn undo |
+| `dart_undone` | `undo_used` | X01 / Cricket | Single-dart undo |
+| `match_abandoned` | `match_abandoned` | Match lifecycle | Replace-active / abandon |
+| `match_start_failed` | `match_start_failed` | Setup | Start errors |
+| `turn_persist_failed` | `turn_persist_failed` | Match | Persistence failure |
+| `app_bootstrap_migration_failure` | `app_bootstrap_migration_failure` | Migration recovery | Boot blocked |
+
+Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `participantCount`, `operation`, `schemaVersion`, `fromSchema`, `toSchema`, `legIndex`, `setIndex`, `source`, `isBot`, plus `app_version`, `log_category` injected by mapper.
+
+### Firebase Crashlytics (non-fatal allowlist)
+
+| Log `eventName` | Feature |
+|-----------------|---------|
+| `app_bootstrap_migration_failure` | Migration recovery |
+| `match_start_failed` | Setup |
+| `turn_persist_failed` | Match |
+| `match_session_load_failed` | X01 / Cricket resume |
+| `play_home_load_failed` | Play home |
+| `active_match_lookup_failed` | Setup conflict check |
+| `active_match_replace_failed` | Setup replace active |
+| `turn_undo_failed` | Undo |
+| `x01_abandon_failed` | X01 abandon |
+| `cricket_abandon_failed` | Cricket abandon |
+
+### Log-only (not Analytics allowlist yet)
+
+Use `AppLogger` for debugging; add to Analytics allowlist only with product approval.
+
+| `eventName` | Feature spec |
+|-------------|----------------|
+| `play_home_active_match`, `play_home_ready` | `PlayHomeSpec.md` |
+| `active_match_conflict`, `active_match_replaced` | `SetupFlowSpec.md` |
+| `match_setup_start` | `SetupFlowSpec.md` |
+| `match_screen_appeared`, `bot_turn_started` | `BotOpponentSpec.md`, `X01GameSpec.md`, `CricketSpec.md` |
+| `turn_submit_rejected`, `turn_bust` | `X01GameSpec.md` |
+| `training_bot_created`, `training_bot_match_started` | `TrainingBotSpec.md` (planned Analytics — wire allowlist when shipping) |
+| `settings_seeded`, `settings_seed_skipped` | `SettingsSpec.md` |
+
+Feature specs link here for analytics subsections; do not duplicate full tables.

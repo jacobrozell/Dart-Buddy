@@ -460,7 +460,7 @@ Do not delay ship for:
 
 - Game Center ([`FutureIdeas/achievements.md`](../../FutureIdeas/achievements.md))
 - Play reminders ([`FutureIdeas/play-reminders.md`](../../FutureIdeas/play-reminders.md))
-- Snapshot tests, full motion pass, X01 total-score entry, Cricket variants (Cut Throat)
+- Snapshot tests, full motion pass, X01 total-score entry, Cricket variants beyond shipped Normal/Cut Throat (e.g. no-score, Points Off bots)
 - Firebase Auth, online play, Watch/widgets, voice “180!” caller
 - Full UI automation matrix beyond current CI smoke
 

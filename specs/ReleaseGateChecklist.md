@@ -3,6 +3,8 @@
 Use this short checklist right before tagging/releasing.  
 If any item fails, do not ship.
 
+**Feature specs (expected behavior):** [`README.md`](README.md) § Feature Specs · **Full RC runbook:** [`docs/release/release_checklist.md`](../docs/release/release_checklist.md)
+
 ## Setup
 
 - Build latest app from release branch/commit.
@@ -21,7 +23,7 @@ If any item fails, do not ship.
   - Confirm both appear in list.
 
 - [ ] **Start X01 Match**
-  - From `Play` -> `Start New Match` -> Mode `X01` -> select 2 players -> `Start Match`.
+  - From `Play` (setup on home) -> Mode `X01` -> select 2 players -> `Start Match`. See [`SetupFlowSpec.md`](SetupFlowSpec.md).
   - Submit one turn, then `Undo Last Turn`.
   - Verify no crash and state updates.
 

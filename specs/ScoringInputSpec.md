@@ -132,7 +132,18 @@ Turn submission:
 
 ---
 
-## 11. Future Improvements
+## 11. Accessibility verification
+- Manual: [`x01-match.md`](../accessibility/wcag-2.1-aa/screens/x01-match.md), [`cricket-match.md`](../accessibility/wcag-2.1-aa/screens/cricket-match.md), [`_shared-components.md`](../accessibility/wcag-2.1-aa/screens/_shared-components.md)
+
+## 12. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-04 |
+| **Commit** | `0c25396` |
+| **Code** | `DesignSystem/Components/ScoringInputPad.swift` (and mode screens) |
+
+---
+
+## 13. Future Improvements
 - Gesture shortcuts for common darts
-- Smart checkout suggestions integrated into keypad
 - Optional manual correction/edit for current turn before submit

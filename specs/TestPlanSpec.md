@@ -31,7 +31,8 @@ Test-first policy for this project:
 ## UI Tests (`Tests/UI/`)
 - Tab navigation smoke (all five tabs including Statistics)
 - Marketing screenshot harness (`-snapshot_*`, `-seed_demo` launch args)
-- Core happy paths (checkout, Cricket grid, settings persistence)
+- Core happy paths (checkout, Cricket grid, Cut Throat Cricket + bot, settings persistence)
+- Localization smoke (`GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`) with `-AppleLanguages`
 
 UI test execution policy:
 - **1.0:** CI runs `DartBuddyUITests` for regression smoke and snapshot tooling; not a substitute for manual RC evidence.
@@ -53,11 +54,17 @@ UI test execution policy:
 - X01 single-out checkout
 - X01 double-out checkout
 - X01 bust near finish
-- Cricket closure and overflow scoring
+- Cricket closure and overflow scoring (Normal and Cut Throat)
+- Cut Throat Cricket + preset bot match (`CricketMatchUITests`)
 - Undo turn on both modes
 - Player archive/delete guard behavior
 - History rendering after player edits
 - Settings defaults applied to setup
+- Training Partner: eligibility UI + add to setup (`PlayerDetailUITests`, setup helpers)
+- Quick add player from empty roster → auto-selected in setup
+- Statistics partial-match banner when active match matches filters
+- Migration recovery: retry / export / reset (manual RC — [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md))
+- Localization: `LocalizationParityTests` + `de`/`es`/`nl` smoke UI tests
 
 ---
 
@@ -96,8 +103,10 @@ Use canonical tags from `specs/SwiftTestingTagsSpec.md`.
   - `unit`, `scoringInput`, `critical`
 - `Accessibility` smoke suite (`WCAGAccessibilityUITests`, `WCAGAccessibilityLabelTests`):
   - `ui`, `accessibility`, `smoke`
-- `Localization` smoke suite (future, post-UI-lock):
-  - `integration`, `localization`, `smoke`
+- `LocalizationParityTests` (`Tests/Unit/`):
+  - `unit`, `localization`, `critical`
+- `GermanLocalizationSmokeUITests` / `SpanishLocalizationSmokeUITests` / `DutchLocalizationSmokeUITests`:
+  - `ui`, `localization`, `smoke`
 
 ---
 

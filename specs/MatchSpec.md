@@ -115,10 +115,7 @@ This section is conceptual and must not diverge from those sources.
 - Bottom region: input controls + `Undo`
 
 ## End Summary
-- Winner card
-- Match metadata (duration, participants, mode)
-- Core metrics chips
-- `New Match` primary CTA
+See [`MatchSummarySpec.md`](MatchSummarySpec.md) for the dedicated post-match screen (winner card, stats chips, undo last throw, navigation).
 
 ---
 
@@ -160,7 +157,22 @@ This section is conceptual and must not diverge from those sources.
 
 ---
 
-## 10. Future Improvements
+## 10. Accessibility verification
+- In-match: [`x01-match.md`](../accessibility/wcag-2.1-aa/screens/x01-match.md), [`cricket-match.md`](../accessibility/wcag-2.1-aa/screens/cricket-match.md)
+
+## 11. Analytics
+§12 — `match_started`, `match_completed`, `match_abandoned`, `turn_submitted`, `turn_persist_failed`, undo events.
+
+## 12. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-04 |
+| **Commit** | `0c25396` |
+| **Code** | `MatchLifecycleService.swift`, `MatchTurnSupport.swift` |
+
+---
+
+## 13. Future Improvements
 - Multiple active matches with explicit queue
 - Match tags/notes/location metadata
 - Export/import single match bundles
