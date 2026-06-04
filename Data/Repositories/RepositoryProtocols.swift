@@ -4,6 +4,8 @@ public protocol PlayerRepository: Sendable {
     func fetchPlayers(includeArchived: Bool) async throws -> [PlayerSummary]
     func createPlayer(name: String) async throws -> PlayerSummary
     func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary
+    func createCustomBot(name: String, metrics: CustomBotMetrics) async throws -> PlayerSummary
+    func updateCustomBotMetrics(playerId: UUID, metrics: CustomBotMetrics) async throws -> PlayerSummary
     func updatePlayerName(playerId: UUID, name: String) async throws -> PlayerSummary
     func updatePlayerProfile(
         playerId: UUID,
@@ -21,6 +23,28 @@ public protocol PlayerRepository: Sendable {
 }
 
 public extension PlayerRepository {
+    func createCustomBot(name _: String, metrics _: CustomBotMetrics) async throws -> PlayerSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "createCustomBot"]
+        )
+    }
+
+    func updateCustomBotMetrics(playerId _: UUID, metrics _: CustomBotMetrics) async throws -> PlayerSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "updateCustomBotMetrics"]
+        )
+    }
+
     func fetchTrainingBot(linkedTo _: UUID) async throws -> PlayerSummary? { nil }
 
     func createTrainingBot(for _: UUID) async throws -> PlayerSummary {

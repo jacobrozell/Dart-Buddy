@@ -43,7 +43,16 @@ func historyMatchPredicate(
 
 func mapPlayer(_ record: SchemaV2.PlayerRecord) -> PlayerSummary {
     let isBot = record.isBot ?? false
-    let botKind = record.botKindRaw ?? (isBot && record.botDifficultyRaw != nil ? BotKind.preset.rawValue : nil)
+    let botKind: String?
+    if let rawKind = record.botKindRaw {
+        botKind = rawKind
+    } else if isBot, CustomBotMetrics.decode(botDifficultyRaw: record.botDifficultyRaw) != nil {
+        botKind = BotKind.custom.rawValue
+    } else if isBot, record.botDifficultyRaw != nil {
+        botKind = BotKind.preset.rawValue
+    } else {
+        botKind = nil
+    }
     return PlayerSummary(
         id: record.id,
         name: record.name,

@@ -18,20 +18,26 @@ public enum BotSkillProfileInterpolator {
         (.pro, 3.05)
     ]
 
-    public static func profile(forX01Average target: Double) -> BotSkillProfile {
-        let clamped = min(max(target, x01TierAverages.first!.1), x01TierAverages.last!.1)
-        let (lower, upper, t) = bracket(for: clamped, anchors: x01TierAverages)
-        return interpolate(
-            from: lower.skillProfile,
-            to: upper.skillProfile,
-            fraction: t,
-            scoringBehaviorTier: t < 0.5 ? lower : upper
-        )
+    public static func profile(forX01Average target: Double, clampToTierRange: Bool = true) -> BotSkillProfile {
+        profile(for: target, anchors: x01TierAverages, clampToTierRange: clampToTierRange)
     }
 
-    public static func profile(forCricketMPR target: Double) -> BotSkillProfile {
-        let clamped = min(max(target, cricketTierMPR.first!.1), cricketTierMPR.last!.1)
-        let (lower, upper, t) = bracket(for: clamped, anchors: cricketTierMPR)
+    public static func profile(forCricketMPR target: Double, clampToTierRange: Bool = true) -> BotSkillProfile {
+        profile(for: target, anchors: cricketTierMPR, clampToTierRange: clampToTierRange)
+    }
+
+    private static func profile(
+        for target: Double,
+        anchors: [(BotDifficulty, Double)],
+        clampToTierRange: Bool
+    ) -> BotSkillProfile {
+        let value: Double
+        if clampToTierRange {
+            value = min(max(target, anchors.first!.1), anchors.last!.1)
+        } else {
+            value = target
+        }
+        let (lower, upper, t) = bracket(for: value, anchors: anchors, extrapolate: !clampToTierRange)
         return interpolate(
             from: lower.skillProfile,
             to: upper.skillProfile,
@@ -42,12 +48,20 @@ public enum BotSkillProfileInterpolator {
 
     private static func bracket(
         for value: Double,
-        anchors: [(BotDifficulty, Double)]
+        anchors: [(BotDifficulty, Double)],
+        extrapolate: Bool = false
     ) -> (BotDifficulty, BotDifficulty, Double) {
         guard anchors.count >= 2 else {
             return (anchors[0].0, anchors[0].0, 0)
         }
         if value <= anchors[0].1 {
+            if extrapolate, value < anchors[0].1 {
+                let low = anchors[0]
+                let high = anchors[1]
+                let span = high.1 - low.1
+                let t = span > 0 ? (value - low.1) / span : 0
+                return (low.0, high.0, t)
+            }
             return (anchors[0].0, anchors[1].0, 0)
         }
         for index in 0 ..< anchors.count - 1 {
@@ -56,11 +70,16 @@ public enum BotSkillProfileInterpolator {
             if value <= high.1 {
                 let span = high.1 - low.1
                 let t = span > 0 ? (value - low.1) / span : 0
-                return (low.0, high.0, min(1, max(0, t)))
+                return (low.0, high.0, extrapolate ? t : min(1, max(0, t)))
             }
         }
         let last = anchors[anchors.count - 2]
         let top = anchors[anchors.count - 1]
+        if extrapolate, value > top.1 {
+            let span = top.1 - last.1
+            let t = span > 0 ? (value - last.1) / span : 1
+            return (last.0, top.0, t)
+        }
         return (last.0, top.0, 1)
     }
 

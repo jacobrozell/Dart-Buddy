@@ -11,7 +11,14 @@ struct PlayerDetailView: View {
     var body: some View {
         Group {
             if let player {
-                if player.isBot, player.botDifficulty != nil {
+                if player.isBot, player.isCustomBot {
+                    CustomBotDetailView(
+                        player: player,
+                        existingNames: existingNames,
+                        dependencies: dependencies,
+                        onSave: onSave
+                    )
+                } else if player.isBot, player.botDifficulty != nil {
                     BotDetailView(
                         player: player,
                         difficulty: player.botDifficulty!,
@@ -214,7 +221,7 @@ private struct PlayerStatsDetailView: View {
     }
 }
 
-private struct PlayerDetailStatsContent: View {
+struct PlayerDetailStatsContent: View {
     @ObservedObject var viewModel: PlayerDetailViewModel
 
     var body: some View {

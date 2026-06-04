@@ -20,6 +20,7 @@ struct PlayersRootView: View {
     @State private var path: [PlayersRoute] = []
     @StateObject private var viewModel: PlayersListViewModel
     @State private var playerSheet: PlayerSheetPresentation?
+    @State private var showsCustomBotSheet = false
     @State private var deleteBlockedMessage: String?
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
@@ -124,6 +125,11 @@ struct PlayersRootView: View {
                         Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
                     }
                     Menu {
+                        Button {
+                            showsCustomBotSheet = true
+                        } label: {
+                            Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                        }
                         ForEach(BotDifficulty.allCases, id: \.rawValue) { difficulty in
                             Button(difficulty.displayName) {
                                 actionTask?.cancel()
@@ -186,6 +192,12 @@ struct PlayersRootView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showsCustomBotSheet) {
+                CustomBotCreationSheet { name, metrics in
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.createCustomBot(name: name, metrics: metrics) }
+                }
+            }
             .sheet(item: $playerSheet) { presentation in
                 PlayerEditSheet(
                     viewModel: PlayerEditViewModel(
@@ -226,6 +238,14 @@ struct PlayersRootView: View {
                         .foregroundStyle(Brand.textPrimary)
                     if let difficulty = player.botDifficulty {
                         BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
+                    } else if player.isCustomBot {
+                        CustomBotBadge(
+                            metrics: CustomBotMetrics(
+                                x01Average: player.customX01Average,
+                                cricketMPR: player.customCricketMPR
+                            ),
+                            prominence: .compact
+                        )
                     } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
                         Text(L10n.format("players.list.record", summary.games, summary.wins))
                             .font(.caption)
@@ -271,6 +291,12 @@ struct PlayersRootView: View {
         var suffix = ""
         if let difficulty = player.botDifficulty {
             suffix += L10n.format("players.row.botSuffix", difficulty.displayName)
+        } else if player.isCustomBot {
+            suffix += L10n.format(
+                "customBot.row.accessibilitySuffix",
+                player.customX01Average,
+                player.customCricketMPR
+            )
         } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
             suffix += ", \(L10n.format("players.list.record", summary.games, summary.wins))"
         }

@@ -242,8 +242,8 @@ public enum DartBotEngine {
 
     public static func botSkillProfile(for participant: MatchParticipant) -> BotSkillProfile? {
         if let payload = participant.botSkillProfilePayload,
-           let snapshot = try? TrainingBotSkillSnapshot.decode(from: payload) {
-            return snapshot.profile
+           let profile = BotSkillProfilePayloadDecoder.profile(from: payload) {
+            return profile
         }
         return participant.botDifficulty?.skillProfile
     }

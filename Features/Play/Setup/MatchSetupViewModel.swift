@@ -77,7 +77,7 @@ final class MatchSetupViewModel: ObservableObject {
             x01CheckoutMode = X01CheckoutMode(rawValue: settings.defaultCheckoutModeRaw) ?? .doubleOut
             x01CheckInMode = X01CheckInMode(rawValue: settings.defaultCheckInModeRaw) ?? .straightIn
             x01LegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo
-            cricketLegsToWin = max(1, settings.defaultLegsToWin)
+            cricketLegsToWin = 1
             cricketSetsEnabled = settings.defaultSetsEnabled
             cricketSetsToWin = max(1, settings.defaultSetsEnabled ? 2 : 1)
             cricketLegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo
@@ -137,11 +137,15 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     var availableBots: [PlayerSummary] {
-        availablePlayers.filter { $0.isPresetBot && !selectedPlayerIds.contains($0.id) }
+        availablePlayers.filter { ($0.isPresetBot || $0.isCustomBot) && !selectedPlayerIds.contains($0.id) }
     }
 
     var availableTrainingBots: [PlayerSummary] {
         availablePlayers.filter { $0.isTrainingBot && !selectedPlayerIds.contains($0.id) }
+    }
+
+    var availableCustomBots: [PlayerSummary] {
+        availablePlayers.filter { $0.isCustomBot && !selectedPlayerIds.contains($0.id) }
     }
 
     var isRosterEmpty: Bool {
@@ -167,6 +171,19 @@ final class MatchSetupViewModel: ObservableObject {
     func addBot(_ difficulty: BotDifficulty) async {
         do {
             let created = try await playerRepository.createBot(difficulty: difficulty)
+            if !availablePlayers.contains(where: { $0.id == created.id }) {
+                availablePlayers.append(created)
+            }
+            appendToSelection(created.id)
+            revalidate()
+        } catch {
+            validationErrors = [(error as? AppError)?.userMessageKey ?? "setup.error.load"]
+        }
+    }
+
+    func addCustomBot(name: String, metrics: CustomBotMetrics) async {
+        do {
+            let created = try await playerRepository.createCustomBot(name: name, metrics: metrics)
             if !availablePlayers.contains(where: { $0.id == created.id }) {
                 availablePlayers.append(created)
             }
@@ -366,6 +383,8 @@ final class MatchSetupViewModel: ObservableObject {
             let name: String
             let botDifficulty: BotDifficulty?
             let isTrainingBot: Bool
+            let isCustomBot: Bool
+            let customMetrics: CustomBotMetrics?
             let linkedPlayerId: UUID?
             let avatarStyleRaw: String?
             let colorTokenRaw: String
@@ -377,6 +396,8 @@ final class MatchSetupViewModel: ObservableObject {
                 name: player.name,
                 botDifficulty: player.botDifficulty,
                 isTrainingBot: player.isTrainingBot,
+                isCustomBot: player.isCustomBot,
+                customMetrics: player.customBotMetrics,
                 linkedPlayerId: player.linkedPlayerId,
                 avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue,
                 colorTokenRaw: player.colorToken.rawValue
@@ -404,6 +425,16 @@ final class MatchSetupViewModel: ObservableObject {
                             )
                             botSkillProfilePayload = try TrainingBotSkillSnapshot.encode(snapshot)
                             botKindRaw = BotKind.training.rawValue
+                            botDifficultyRaw = nil
+                        } else if entry.isCustomBot, let metrics = entry.customMetrics {
+                            let profile = CustomBotSkillResolver.profile(for: matchType, metrics: metrics)
+                            let snapshot = CustomBotSkillSnapshot(
+                                profile: profile,
+                                x01Average: metrics.x01Average,
+                                cricketMPR: metrics.cricketMPR
+                            )
+                            botSkillProfilePayload = try CustomBotSkillSnapshot.encode(snapshot)
+                            botKindRaw = BotKind.custom.rawValue
                             botDifficultyRaw = nil
                         } else if entry.botDifficulty != nil {
                             botKindRaw = BotKind.preset.rawValue

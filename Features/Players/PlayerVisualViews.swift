@@ -251,6 +251,7 @@ struct BotIdentityCard: View {
     let avatarStyle: PlayerAvatarStyle
     let colorToken: PlayerColorToken
     let difficulty: BotDifficulty?
+    var customMetrics: CustomBotMetrics? = nil
     var notes: String = ""
 
     private var accent: Color {
@@ -290,6 +291,14 @@ struct BotIdentityCard: View {
                         .foregroundStyle(Brand.textSecondary)
                         .textCase(.uppercase)
                     BotDifficultyBadge(difficulty: difficulty)
+                }
+            } else if let customMetrics {
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    Text(L10n.customBotKindLabel)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                        .textCase(.uppercase)
+                    CustomBotBadge(metrics: customMetrics)
                 }
             } else {
                 Text(L10n.trainingBotSectionTitle)

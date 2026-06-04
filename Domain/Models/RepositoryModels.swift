@@ -50,8 +50,16 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         botKind == .training
     }
 
+    public var isCustomBot: Bool {
+        botKind == .custom
+    }
+
+    public var customBotMetrics: CustomBotMetrics? {
+        CustomBotMetrics.decode(botDifficultyRaw: botDifficultyRaw)
+    }
+
     public var isPresetBot: Bool {
-        isBot && (botKind == .preset || botKind == nil)
+        isBot && (botKind == .preset || (botKind == nil && botDifficulty != nil))
     }
 
     public var avatarStyle: PlayerAvatarStyle {

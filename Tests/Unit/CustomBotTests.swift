@@ -1,0 +1,43 @@
+import Foundation
+import Testing
+@testable import DartBuddy
+
+@Test(.tags(.unit, .regression))
+func customBotMetricsRoundTripEncoding() {
+    let metrics = CustomBotMetrics(x01Average: 42.5, cricketMPR: 1.75)
+    let encoded = metrics.encode()
+    let decoded = CustomBotMetrics.decode(botDifficultyRaw: encoded)
+    #expect(decoded == metrics)
+}
+
+@Test(.tags(.unit, .regression))
+func customBotMetricsClampsExtremeInput() {
+    let metrics = CustomBotMetrics(x01Average: 200, cricketMPR: 99)
+    #expect(metrics.x01Average == CustomBotMetrics.x01AverageRange.upperBound)
+    #expect(metrics.cricketMPR == CustomBotMetrics.cricketMPRRange.upperBound)
+}
+
+@Test(.tags(.unit, .regression))
+func customBotSkillResolverExtrapolatesBeyondPro() {
+    let weak = CustomBotSkillResolver.profile(
+        for: .x01,
+        metrics: CustomBotMetrics(x01Average: 8, cricketMPR: 0.3)
+    )
+    let strong = CustomBotSkillResolver.profile(
+        for: .x01,
+        metrics: CustomBotMetrics(x01Average: 105, cricketMPR: 4.5)
+    )
+    let veryEasy = BotDifficulty.veryEasy.skillProfile
+    let pro = BotDifficulty.pro.skillProfile
+    #expect(weak.x01.scoringVisitMax < veryEasy.x01.scoringVisitMax)
+    #expect(strong.x01.hitChances.triple > pro.x01.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
+func botSkillProfilePayloadDecoderReadsCustomSnapshot() throws {
+    let metrics = CustomBotMetrics(x01Average: 50, cricketMPR: 2.0)
+    let profile = CustomBotSkillResolver.profile(for: .cricket, metrics: metrics)
+    let snapshot = CustomBotSkillSnapshot(profile: profile, x01Average: metrics.x01Average, cricketMPR: metrics.cricketMPR)
+    let data = try CustomBotSkillSnapshot.encode(snapshot)
+    #expect(BotSkillProfilePayloadDecoder.profile(from: data) == profile)
+}
