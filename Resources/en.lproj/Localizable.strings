@@ -110,6 +110,7 @@
 "play.cricket.column.accessibilityFormat" = "%@, score %d.%@";
 "play.cricket.pad.disabledWhileBot" = "Scoring pad disabled while the bot throws.";
 "cricket.mark.accessibilityFormat" = "%@, %@";
+"cricket.mark.knockedOutAccessibilityFormat" = "%@, %@, knocked out by all players";
 "cricket.mark.open" = "Open";
 "cricket.mark.one" = "1 mark";
 "cricket.mark.two" = "2 marks";
@@ -259,6 +260,8 @@
 "common.playerOrdinal" = "P%d";
 "play.x01.navTitle" = "X01 Match";
 "play.cricket.roundTurn" = "Round: %d  Turn: %d";
+"play.cricket.round" = "Round: %d";
+"play.cricket.turn" = "Turn: %d";
 "play.cricket.pointsFormat" = "Points: %d";
 "play.cricket.navTitle" = "Cricket Match";
 "play.summary.matchIdFormat" = "Match ID: %@";

@@ -247,6 +247,11 @@ public enum CricketEngine {
         return overflowMarks * target.points
     }
 
+    public static func isTargetClosedByAllPlayers(_ players: [CricketPlayerState], target: CricketTarget) -> Bool {
+        guard !players.isEmpty else { return false }
+        return players.allSatisfy { ($0.marks[target.rawValue] ?? 0) >= 3 }
+    }
+
     private static func isPlayerClosedAllTargets(_ player: CricketPlayerState) -> Bool {
         CricketTarget.allCases.allSatisfy { (player.marks[$0.rawValue] ?? 0) >= 3 }
     }

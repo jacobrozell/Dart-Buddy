@@ -131,6 +131,64 @@ func cricketNoOverflowScoringWhenOpponentHasClosed() throws {
     #expect(outcome.updatedState.players[0].score == 0)
 }
 
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketKnockedOutNumberDoesNotIncreaseScoreWhenHit() throws {
+    let players = cricketPlayerIds(count: 2)
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+    state = try CricketTestDarts.knockOutTarget(state, target: .t20, playerCount: players.count)
+    #expect(CricketEngine.isTargetClosedByAllPlayers(state.players, target: .t20))
+
+    let scoreBefore = state.players[0].score
+    let outcome = try CricketEngine.submitTurn(
+        state: state,
+        darts: [CricketTestDarts.triple(20), CricketTestDarts.single(20), CricketTestDarts.triple(20)]
+    )
+
+    #expect(outcome.updatedState.players[0].score == scoreBefore)
+    #expect(outcome.event.totalPointsAdded == 0)
+    #expect(outcome.event.targetsTouched.allSatisfy { $0.pointsAdded == 0 })
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketKnockedOutBullDoesNotIncreaseScoreWhenHit() throws {
+    let players = cricketPlayerIds(count: 2)
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+    state = try CricketTestDarts.knockOutTarget(state, target: .bull, playerCount: players.count)
+    #expect(CricketEngine.isTargetClosedByAllPlayers(state.players, target: .bull))
+
+    let scoreBefore = state.players[0].score
+    let outcome = try CricketEngine.submitTurn(
+        state: state,
+        darts: [CricketTestDarts.innerBull, CricketTestDarts.outerBull, CricketTestDarts.innerBull]
+    )
+
+    #expect(outcome.updatedState.players[0].score == scoreBefore)
+    #expect(outcome.event.totalPointsAdded == 0)
+    #expect(outcome.event.targetsTouched.allSatisfy { $0.pointsAdded == 0 })
+}
+
+@Test(.tags(.unit, .cricket, .critical, .offline, .regression))
+func cricketKnockedOutTargetDoesNotIncreaseScoreWithThreePlayers() throws {
+    let players = cricketPlayerIds(count: 3)
+    var state = try CricketEngine.makeInitialState(config: MatchConfigCricket(), playerIds: players)
+
+    state = try CricketTestDarts.submit(state, [CricketTestDarts.triple(20)])
+    state = try CricketTestDarts.submit(state, [CricketTestDarts.miss()])
+    state = try CricketTestDarts.submit(state, [CricketTestDarts.miss()])
+    let scoringOutcome = try CricketEngine.submitTurn(state: state, darts: [CricketTestDarts.triple(20)])
+    #expect(scoringOutcome.updatedState.players[0].score == 60)
+
+    state = scoringOutcome.updatedState
+    state = try CricketTestDarts.submit(state, [CricketTestDarts.triple(20)])
+    state = try CricketTestDarts.submit(state, [CricketTestDarts.triple(20)])
+    #expect(CricketEngine.isTargetClosedByAllPlayers(state.players, target: .t20))
+
+    let scoreBefore = state.players[0].score
+    let outcome = try CricketEngine.submitTurn(state: state, darts: [CricketTestDarts.triple(20)])
+    #expect(outcome.updatedState.players[0].score == scoreBefore)
+    #expect(outcome.event.totalPointsAdded == 0)
+}
+
 @Test(.tags(.unit, .cricket, .offline, .regression))
 func cricketAdvancesRoundIndexAfterFullRound() throws {
     let players = cricketPlayerIds(count: 2)
@@ -193,7 +251,7 @@ func cricketReplayPreservesInnerBullMarks() throws {
     #expect(replayed == state)
 
     // A persisted touch must record the precise segment, not just the target.
-    #expect(outcome.event.targetsTouched.first?.segmentRaw == "CricketTestDarts.innerBull")
+    #expect(outcome.event.targetsTouched.first?.segmentRaw == "innerBull")
 }
 
 // MARK: - 3+ player coverage

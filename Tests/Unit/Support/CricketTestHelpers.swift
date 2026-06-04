@@ -24,6 +24,22 @@ enum CricketTestDarts {
         try CricketEngine.submitTurn(state: state, darts: darts).updatedState
     }
 
+    /// Each player closes `target` once so it is knocked out board-wide.
+    static func knockOutTarget(_ state: CricketState, target: CricketTarget, playerCount: Int) throws -> CricketState {
+        let closeTurn: [DartInput]
+        switch target {
+        case .bull:
+            closeTurn = [innerBull, outerBull]
+        case .t20, .t19, .t18, .t17, .t16, .t15:
+            closeTurn = [triple(Int(target.rawValue)!)]
+        }
+        var state = state
+        for _ in 0 ..< playerCount {
+            state = try submit(state, closeTurn)
+        }
+        return state
+    }
+
     /// Closes all targets for whoever is up, skipping `(playerCount - 1)` opponents between each close visit.
     static func closeAllTargetsForCurrentPlayer(_ state: CricketState, playerCount: Int) throws -> CricketState {
         let skipTurns = max(0, playerCount - 1)
