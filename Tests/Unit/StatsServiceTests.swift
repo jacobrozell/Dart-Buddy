@@ -209,6 +209,36 @@ func breakdownsCountCricketMissesInSectorZero() throws {
     #expect(p.darts == 1)
 }
 
+@Test(.tags(.unit, .stats, .baseball, .regression))
+func breakdownsBucketBaseballHitsByInningTarget() throws {
+    let player = UUID()
+    let other = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .baseball,
+        config: .baseball(MatchConfigBaseball(inningCount: 9)),
+        participants: [
+            MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 0),
+            MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitBaseballTurn(
+        session: session,
+        darts: [d(.single, 1), d(.double, 1), d(.triple, 4)]
+    )
+
+    let input = MatchStatsInput(
+        type: .baseball,
+        participantKeys: [player, other],
+        winnerKey: nil,
+        events: session.events
+    )
+    let rows = StatsService.breakdowns(from: [input], nameById: [player: "Player", other: "Other"])
+    let p = try #require(rows.first { $0.playerId == player })
+    #expect(p.hitsBySector["1"] == 2)
+    #expect(p.hitsBySector["0"] == 1)
+    #expect(p.points == 3)
+}
+
 @Test(.tags(.unit, .stats, .regression))
 func breakdownsAggregateGamesAcrossMatches() throws {
     let player = UUID()

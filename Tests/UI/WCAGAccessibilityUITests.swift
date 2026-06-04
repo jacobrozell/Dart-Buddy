@@ -32,6 +32,12 @@ final class WCAGAccessibilityUITests: XCTestCase {
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
+    func testBaseballMatchPassesNameRoleValueAudit() throws {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        startTwoPlayerBaseballMatch(from: app, timeout: timeout)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+    }
+
     func testSettingsPassesNameRoleValueAudit() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         app.tabBars.buttons["Settings"].tap()
@@ -78,6 +84,16 @@ final class WCAGAccessibilityUITests: XCTestCase {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         startTwoPlayerCricketMatch(from: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
+    }
+
+    func testBaseballMatchAccessibilityContract() throws {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        startTwoPlayerBaseballMatch(from: app, timeout: timeout)
+        assertInteractiveElement(
+            app.descendants(matching: .any)["baseball_scoreboard_row_0"],
+            identifier: "baseball_scoreboard_row_0",
+            timeout: timeout
+        )
     }
 
     // MARK: - Play home resume path

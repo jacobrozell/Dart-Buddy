@@ -50,6 +50,9 @@ struct MatchHistoryDetailScreen: View {
                     }
                 } else {
                     resultCard
+                    if let lineScore = viewModel.lineScore {
+                        BaseballLineScoreView(lineScore: lineScore)
+                    }
                     statTables
                     sectorSection
                     timelineSection

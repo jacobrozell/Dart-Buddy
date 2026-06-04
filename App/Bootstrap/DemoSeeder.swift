@@ -86,6 +86,14 @@ enum DemoSeeder {
                 complete: true
             )
 
+            // Completed Baseball game: Jacob beats Sam over 9 innings.
+            try await seedBaseball(
+                dependencies: dependencies,
+                config: MatchConfigBaseball(),
+                players: [(jacob, "Jacob"), (sam, "Sam")],
+                complete: true
+            )
+
             // In-progress X01 game: Jacob vs bot (301, double out).
             try await seedX01(
                 dependencies: dependencies,
@@ -476,6 +484,79 @@ enum DemoSeeder {
                 snapshotVersion: session.latestSnapshot.payloadVersion,
                 snapshotPayload: session.latestSnapshot.payload
             )
+        }
+
+        if complete {
+            _ = try await dependencies.matchRepository.completeMatch(
+                matchId: persisted.id,
+                endedAt: Date(),
+                winnerPlayerId: session.runtime.winnerPlayerId ?? players.first?.0.id
+            )
+        } else {
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        }
+    }
+
+    private static func seedBaseball(
+        dependencies: AppDependencies,
+        config: MatchConfigBaseball,
+        players: [(PlayerSummary, String)],
+        complete: Bool
+    ) async throws {
+        let payload = MatchConfigPayload.baseball(config)
+        let encoded = try CodablePayloadCoder.encode(payload)
+        let participantSummaries = players.enumerated().map { index, entry in
+            MatchParticipantSummary(
+                id: UUID(),
+                matchId: UUID(),
+                playerId: entry.0.id,
+                turnOrder: index,
+                displayNameAtMatchStart: entry.1,
+                avatarStyleAtMatchStart: nil
+            )
+        }
+        let persisted = try await dependencies.matchRepository.createMatch(
+            type: .baseball,
+            configPayload: encoded,
+            participants: participantSummaries
+        )
+        let lifecycleParticipants = players.enumerated().map { index, entry in
+            MatchParticipant(playerId: entry.0.id, displayNameAtMatchStart: entry.1, turnOrder: index)
+        }
+        var session = try MatchLifecycleService.createMatch(
+            matchId: persisted.id,
+            type: .baseball,
+            config: payload,
+            participants: lifecycleParticipants
+        )
+        _ = try await dependencies.matchRepository.saveSnapshot(
+            matchId: persisted.id,
+            snapshotVersion: session.latestSnapshot.payloadVersion,
+            snapshotPayload: session.latestSnapshot.payload
+        )
+
+        for inning in 1 ... config.inningCount {
+            for (playerIndex, _) in players.enumerated() {
+                let multiplier: DartMultiplier = playerIndex == 0 ? .triple : .single
+                session = try MatchLifecycleService.submitBaseballTurn(
+                    session: session,
+                    darts: [d(multiplier, inning)]
+                )
+                if let event = session.events.last {
+                    let eventPayload = try CodablePayloadCoder.encode(event)
+                    _ = try await dependencies.matchRepository.appendEvent(
+                        matchId: persisted.id,
+                        eventTypeRaw: "baseballTurn",
+                        eventPayload: eventPayload
+                    )
+                }
+                _ = try await dependencies.matchRepository.saveSnapshot(
+                    matchId: persisted.id,
+                    snapshotVersion: session.latestSnapshot.payloadVersion,
+                    snapshotPayload: session.latestSnapshot.payload
+                )
+            }
         }
 
         if complete {

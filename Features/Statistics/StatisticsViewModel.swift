@@ -168,9 +168,19 @@ enum StatsSectorOrder {
         touch.wasMiss ? missSectorKey : normalizedSectorKey(touch.targetRaw)
     }
 
-    /// Ordering for charting: bull last for X01, board values descending otherwise.
+    /// Ordering for charting: X01/Cricket use board sectors; baseball uses inning buckets.
     static func rank(_ sector: String, mode: MatchType) -> Int {
         let sector = normalizedSectorKey(sector)
+        if mode == .baseball {
+            switch sector {
+            case missSectorKey: return 1_000
+            case "innerBull": return 900
+            case "outerBull", "bull": return 899
+            default:
+                if let value = Int(sector) { return value }
+                return 500
+            }
+        }
         switch sector {
         case "innerBull": return 100
         case "outerBull", "bull": return 99
@@ -180,13 +190,21 @@ enum StatsSectorOrder {
         }
     }
 
-    static func label(_ sector: String) -> String {
+    static func label(_ sector: String, mode: MatchType) -> String {
         let sector = normalizedSectorKey(sector)
+        if mode == .baseball, let inning = Int(sector) {
+            return L10n.format("stats.sector.inningFormat", inning)
+        }
         switch sector {
+        case missSectorKey: return "0"
         case "innerBull": return L10n.string("stats.sector.bull")
         case "outerBull": return "25"
         case "bull": return L10n.string("stats.sector.bull")
         default: return sector
         }
+    }
+
+    static func label(_ sector: String) -> String {
+        label(sector, mode: .x01)
     }
 }

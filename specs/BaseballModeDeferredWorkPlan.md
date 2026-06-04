@@ -36,7 +36,7 @@ Follow-up work after the MVP implementation on branch `feature/baseball-mode`. T
 | D6 | Accessibility screen doc | No `accessibility/wcag-2.1-aa/screens/baseball-match.md` |
 | D7 | Demo seeder | No completed baseball sample in `DemoSeeder` |
 | D8 | Custom bot menu bug | `SetupHomeView` ~339 calls `addTrainingBot` instead of custom bot (hidden for party baseball only) |
-| D9 | Optional polish | Firebase `match_setup_baseball`, stats sector chart, native de/es/nl copy |
+| D9 | Optional polish | Firebase `match_setup_baseball`, stats sector chart, native de/es/nl copy — **done** |
 
 ---
 
@@ -165,13 +165,13 @@ flowchart LR
 
 ## Verification checklist (all PRs merged)
 
-- [ ] `specs/BaseballGameSpec.md` linked from `specs/README.md`
-- [ ] History detail shows `BaseballLineScoreView` for baseball matches
-- [ ] `BaseballMatchViewModelTests` + `MatchLifecycleServiceBaseballTests` pass
-- [ ] `WCAGAccessibilityUITests` includes party baseball smoke
-- [ ] `accessibility/wcag-2.1-aa/screens/baseball-match.md` exists
-- [ ] Demo seeder includes completed baseball sample
-- [ ] Custom bot menu adds custom bot (all setup categories)
+- [x] `specs/BaseballGameSpec.md` linked from `specs/README.md`
+- [x] History detail shows `BaseballLineScoreView` for baseball matches
+- [x] `BaseballMatchViewModelTests` + `MatchLifecycleServiceBaseballTests` pass
+- [x] `WCAGAccessibilityUITests` includes party baseball smoke
+- [x] `accessibility/wcag-2.1-aa/screens/baseball-match.md` exists
+- [x] Demo seeder includes completed baseball sample
+- [x] Custom bot menu adds custom bot (all setup categories)
 - [ ] Manual VoiceOver pass logged in `accessibility/Manual_todo.md` when ready for release
 
 ---

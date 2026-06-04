@@ -138,6 +138,26 @@ func setupPartyBaseballBlocksCustomTrainingBots() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
+func setupExistingCustomBotAppendsToSelection() async {
+    let human = makePlayer("Human")
+    let custom = makeCustomBot("Custom Ace")
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [human, custom]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.togglePlayer(human.id)
+    vm.addExistingCustomBot(custom.id)
+
+    #expect(vm.selectedPlayerIds.contains(human.id))
+    #expect(vm.selectedPlayerIds.contains(custom.id))
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
 func displayValidationErrorsHidesMinimumPlayersWhenRosterEmpty() async {
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: []),

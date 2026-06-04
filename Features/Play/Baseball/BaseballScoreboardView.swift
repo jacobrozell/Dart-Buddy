@@ -16,7 +16,7 @@ struct BaseballScoreboardView: View {
 
     var body: some View {
         VStack(spacing: DS.Spacing.s2) {
-            ForEach(rows) { row in
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                 HStack(spacing: DS.Spacing.s3) {
                     Circle()
                         .fill(PlayerVisualViews.color(for: row.colorToken))
@@ -45,6 +45,7 @@ struct BaseballScoreboardView: View {
                 .background(row.isActive ? Brand.cardElevated : Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(rowAccessibilityLabel(row))
+                .accessibilityIdentifier("baseball_scoreboard_row_\(index)")
             }
         }
     }

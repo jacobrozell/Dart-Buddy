@@ -13,7 +13,7 @@ Match configuration rules live in [`SetupFlowSpec.md`](SetupFlowSpec.md). Lifecy
 - Single scrollable Play home combining setup form + home chrome
 - Resume banner when exactly one `inProgress` match exists
 - Up to three recent **completed** match previews (tap → history detail)
-- Mode toggle (X01 / Cricket) and full setup controls on same screen
+- Mode toggle (Standard: X01 / Cricket) and party game picker on same screen
 - Sticky bottom **Start Match** CTA
 - Navigation to quick-add player, active match, match summary, history detail
 
@@ -48,7 +48,7 @@ Match configuration rules live in [`SetupFlowSpec.md`](SetupFlowSpec.md). Lifecy
 ### Resume banner
 - Shows mode label and **Resume Match** CTA
 - `accessibilityIdentifier`: `resumeMatchButton`
-- Tap navigates directly to `.x01Match` or `.cricketMatch` for active `matchId`
+- Tap navigates directly to `.x01Match`, `.cricketMatch`, or `.baseballMatch` for active `matchId`
 
 ### Recent completed
 - Loaded via `MatchStatsLoader.recentCompletedMatches(limit: 3)`
@@ -79,6 +79,7 @@ When user taps **Start Match** while `fetchActiveMatch()` returns a row:
 | `setup` | (home — no push) |
 | `x01Match(matchId:)` | `X01MatchScreen` |
 | `cricketMatch(matchId:)` | `CricketMatchScreen` |
+| `baseballMatch(matchId:)` | `BaseballMatchScreen` |
 | `matchSummary(matchId:)` | `MatchSummaryScreen` |
 | `quickAddPlayer` | `QuickAddPlayerScreen` |
 | `historyDetail(matchId:)` | `MatchHistoryDetailScreen` (embedded) |

@@ -128,7 +128,8 @@ Source of truth in code:
 |-----------------|---------------|-----------------|-------|
 | `app_bootstrap_ready` | `app_open` | App shell | Successful launch |
 | `match_started` | `match_started` | Setup / match | After persist + route |
-| `match_completed` | `match_completed` | X01 / Cricket | Engine reports complete |
+| `match_setup_baseball` | `match_setup_baseball` | Party setup | Baseball start from setup |
+| `match_completed` | `match_completed` | X01 / Cricket / Baseball | Engine reports complete |
 | `turn_submitted` | `turn_submitted` | X01 / Cricket | Accepted turn |
 | `turn_undone` | `undo_used` | X01 / Cricket | Full turn undo |
 | `dart_undone` | `undo_used` | X01 / Cricket | Single-dart undo |
@@ -163,6 +164,7 @@ Use `AppLogger` for debugging; add to Analytics allowlist only with product appr
 | `play_home_active_match`, `play_home_ready` | `PlayHomeSpec.md` |
 | `active_match_conflict`, `active_match_replaced` | `SetupFlowSpec.md` |
 | `match_setup_start` | `SetupFlowSpec.md` |
+| `match_setup_baseball` | `BaseballGameSpec.md`, `SetupFlowSpec.md` |
 | `match_screen_appeared`, `bot_turn_started` | `BotOpponentSpec.md`, `X01GameSpec.md`, `CricketSpec.md` |
 | `turn_submit_rejected`, `turn_bust` | `X01GameSpec.md` |
 | `training_bot_created`, `training_bot_match_started` | `TrainingBotSpec.md` (planned Analytics — wire allowlist when shipping) |

@@ -14,6 +14,7 @@ public enum FirebaseAnalyticsEventMapping {
     private static let allowlistedLogEvents: Set<String> = [
         "app_bootstrap_ready",
         "match_started",
+        "match_setup_baseball",
         "match_completed",
         "turn_submitted",
         "turn_undone",

@@ -349,7 +349,7 @@ struct SetupHomeView: View {
                         Section(L10n.customBotSetupSection) {
                             ForEach(setupViewModel.availableCustomBots) { bot in
                                 Button {
-                                    setupViewModel.addTrainingBot(bot.id)
+                                    setupViewModel.addExistingCustomBot(bot.id)
                                 } label: {
                                     Text(bot.name)
                                 }

@@ -12,6 +12,7 @@ Primary references:
 - `specs/SetupFlowSpec.md`
 - `specs/X01GameSpec.md`
 - `specs/CricketSpec.md`
+- `specs/BaseballGameSpec.md`
 - `specs/ScoringInputSpec.md`
 - `specs/PlayerSpec.md`
 - `specs/HistorySpec.md`
@@ -182,6 +183,35 @@ Behavior:
 - Closed/open states must use shape/text cues plus color.
 - Overflow scoring only when opponents still open target.
 - Target/state changes are announced clearly for accessibility.
+
+## 4.4a Baseball Match Screen
+Purpose:
+- Real-time Baseball run tracking by inning.
+
+**Visual model:** Header (inning + target), scoreboard rows, inning progress strip, segment-locked dart pad.
+
+Wireframe:
+```text
++--------------------------------------------------+
+| Baseball                    [Undo]                |
+| Inning 5 · Target 5        [Extra inning]         |
+|--------------------------------------------------|
+| ● Jacob        Leading              +2    24      |
+| ○ Sam                               +0    18      |
+|--------------------------------------------------|
+| Inning strip: ●●●●○○○○○                           |
+|--------------------------------------------------|
+| INPUT PANEL (segment 5 only)                    |
+|  Multiplier: [S][D][T]                            |
+|  Darts: S5, D5, —                                 |
+|  [Submit Turn]                                    |
++--------------------------------------------------+
+```
+
+Behavior:
+- Inning strip uses fill + stroke (not color-only) for completed/current/upcoming.
+- Cumulative runs announced on submit.
+- Match end → shared summary; history shows line-score grid.
 
 ## 4.5 Match Summary Screen
 Purpose:

@@ -177,6 +177,11 @@ final class MatchSetupViewModel: ObservableObject {
         revalidate()
     }
 
+    func addExistingCustomBot(_ botId: UUID) {
+        appendToSelection(botId)
+        revalidate()
+    }
+
     func addBot(_ difficulty: BotDifficulty) async {
         do {
             let created = try await playerRepository.createBot(difficulty: difficulty)
@@ -424,6 +429,17 @@ final class MatchSetupViewModel: ObservableObject {
                 "participantCount": String(selectedParticipantCount)
             ]
         )
+        if isBaseballParty {
+            logger.info(
+                .scoring,
+                eventName: "match_setup_baseball",
+                message: "Starting baseball match from party setup.",
+                metadata: [
+                    "matchType": MatchType.baseball.rawValue,
+                    "participantCount": String(selectedParticipantCount)
+                ]
+            )
+        }
         struct RosterEntry {
             let id: UUID
             let name: String
