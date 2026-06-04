@@ -1,11 +1,27 @@
 import XCTest
 
 extension XCTestCase {
-    func ensurePlayTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        let play = app.tabBars.buttons["Play"]
-        if play.waitForExistence(timeout: timeout) {
-            play.tap()
+    func tapTabBarItem(
+        named label: String,
+        identifier: String? = nil,
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10
+    ) {
+        if let identifier {
+            let byIdentifier = app.tabBars.buttons.matching(identifier: identifier).firstMatch
+            if byIdentifier.waitForExistence(timeout: 2) {
+                byIdentifier.tap()
+                return
+            }
         }
+
+        let byLabel = app.tabBars.buttons[label].firstMatch
+        XCTAssertTrue(byLabel.waitForExistence(timeout: timeout), "Missing tab bar item '\(label)'")
+        byLabel.tap()
+    }
+
+    func ensurePlayTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        tapTabBarItem(named: "Play", identifier: "tab_play", in: app, timeout: timeout)
         XCTAssertTrue(
             app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
             "Play setup should be visible"

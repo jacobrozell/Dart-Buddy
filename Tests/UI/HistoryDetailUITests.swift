@@ -4,7 +4,7 @@ final class HistoryDetailUITests: DartBuddyUITestCase {
     func testGameDetailShowsStatsAndDeletes() {
         let app = launchApp(["-seed_demo"])
 
-        app.tabBars.buttons["History"].tap()
+        tapTabBarItem(named: "History", identifier: "tab_history", in: app)
         let gameCard = app.buttons.containing(
             NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "X01", "301")
         ).firstMatch
@@ -44,7 +44,7 @@ final class HistoryDetailUITests: DartBuddyUITestCase {
     func testGameDetailShowsPerPlayerSectorCharts() {
         let app = launchApp(["-seed_demo"])
 
-        app.tabBars.buttons["History"].tap()
+        tapTabBarItem(named: "History", identifier: "tab_history", in: app)
         let gameCard = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch
         XCTAssertTrue(gameCard.waitForExistence(timeout: timeout + 5))
         gameCard.tap()
@@ -58,8 +58,8 @@ final class HistoryDetailUITests: DartBuddyUITestCase {
     func testAllGamesEmptyBeforeAnyMatchCompletes() {
         let app = launchApp(["-seed_players"])
 
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+        tapTabBarItem(named: "History", identifier: "tab_history", in: app)
+        XCTAssertTrue(app.staticTexts["History"].firstMatch.waitForExistence(timeout: timeout))
         XCTAssertTrue(
             app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: timeout),
             "History should be empty before any match completes"

@@ -32,26 +32,41 @@ struct MainTabView: View {
             PlayRootView(dependencies: dependencies, pendingResumeMatch: $pendingPlayResume)
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
                 .tag(RootTab.play)
-                .tabItem { Label(L10n.tabPlay, systemImage: "house.fill") }
+                .tabItem {
+                    Label(L10n.tabPlay, systemImage: "house.fill")
+                        .accessibilityIdentifier("tab_play")
+                }
             PlayersRootView(dependencies: dependencies)
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
                 .tag(RootTab.players)
-                .tabItem { Label(L10n.tabPlayers, systemImage: "person.2.fill") }
+                .tabItem {
+                    Label(L10n.tabPlayers, systemImage: "person.2.fill")
+                        .accessibilityIdentifier("tab_players")
+                }
             StatisticsRootView(dependencies: dependencies, onStartMatch: { selectedTab = .play })
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
                 .tag(RootTab.statistics)
-                .tabItem { Label(L10n.tabStatistics, systemImage: "chart.bar.fill") }
+                .tabItem {
+                    Label(L10n.tabStatistics, systemImage: "chart.bar.fill")
+                        .accessibilityIdentifier("tab_statistics")
+                }
             HistoryRootView(dependencies: dependencies, onResumeActiveMatch: { match in
                 pendingPlayResume = match
                 selectedTab = .play
             }, onStartMatch: { selectedTab = .play })
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
                 .tag(RootTab.history)
-                .tabItem { Label(L10n.tabHistory, systemImage: "clock.arrow.circlepath") }
+                .tabItem {
+                    Label(L10n.tabHistory, systemImage: "clock.arrow.circlepath")
+                        .accessibilityIdentifier("tab_history")
+                }
                 .badge(showsActiveMatchBadge && selectedTab != .history ? 1 : 0)
             SettingsRootView(dependencies: dependencies)
                 .tag(RootTab.settings)
-                .tabItem { Label(L10n.tabSettings, systemImage: "gearshape.fill") }
+                .tabItem {
+                    Label(L10n.tabSettings, systemImage: "gearshape.fill")
+                        .accessibilityIdentifier("tab_settings")
+                }
         }
         .preferredColorScheme(preferences.preferredColorScheme)
         .tint(Brand.green)
