@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CricketMatchScreen: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject var viewModel: CricketMatchViewModel
     let onShowSummary: () -> Void
     let audio: any AudioFeedbackService
@@ -32,47 +33,32 @@ struct CricketMatchScreen: View {
             }
 
             if let state = viewModel.cricketState {
-                Text(L10n.format("play.cricket.roundTurn", state.roundIndex + 1, state.currentPlayerIndex + 1))
-                    .font(.subheadline)
-                    .foregroundStyle(Brand.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.bottom, DS.Spacing.s2)
+                roundTurnLabel(state: state)
 
-                ScrollView {
-                    CricketBoardView(columns: viewModel.boardColumns)
-                        .padding(.horizontal, DS.Spacing.s4)
-                }
-
-                VStack(spacing: DS.Spacing.s2) {
-                    stateBanner
-                    CricketTapPad(
-                        enteredDarts: $viewModel.enteredDarts,
-                        selectedMultiplier: $viewModel.selectedMultiplier,
-                        canSubmit: viewModel.canSubmit,
-                        onSubmit: { submit() },
-                        onUndoTurn: {
-                            actionTask?.cancel()
-                            actionTask = Task { await viewModel.undoLastDart() }
+                if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
+                    ScrollView {
+                        VStack(spacing: DS.Spacing.s2) {
+                            CricketBoardView(columns: viewModel.boardColumns)
+                            stateBanner
+                            cricketTapPad
                         }
-                    )
-                    .disabled(viewModel.canHumanInput == false)
-                    .opacity(viewModel.canHumanInput ? 1 : 0.45)
-                    .accessibilityElement(children: .contain)
-                    .modifier(
-                        OptionalAccessibilityHint(
-                            hint: viewModel.canHumanInput ? nil : L10n.string("play.cricket.pad.disabledWhileBot")
-                        )
-                    )
-                    .onChange(of: viewModel.enteredDarts) { old, darts in
-                        guard viewModel.canHumanInput else { return }
-                        if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
-                        if darts.count == 3 { submit() }
+                        .padding(.horizontal, DS.Spacing.s4)
+                        .padding(.bottom, DS.Spacing.s2)
                     }
+                } else {
+                    ScrollView {
+                        CricketBoardView(columns: viewModel.boardColumns)
+                            .padding(.horizontal, DS.Spacing.s4)
+                    }
+
+                    VStack(spacing: DS.Spacing.s2) {
+                        stateBanner
+                        cricketTapPad
+                    }
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .padding(.top, DS.Spacing.s2)
+                    .padding(.bottom, DS.Spacing.s2)
                 }
-                .padding(.horizontal, DS.Spacing.s4)
-                .padding(.top, DS.Spacing.s2)
-                .padding(.bottom, DS.Spacing.s2)
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
@@ -120,6 +106,55 @@ struct CricketMatchScreen: View {
         }
         .task { await viewModel.onAppear() }
         .onDisappear { actionTask?.cancel() }
+    }
+
+    @ViewBuilder
+    private func roundTurnLabel(state: CricketState) -> some View {
+        let round = state.roundIndex + 1
+        let turn = state.currentPlayerIndex + 1
+
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.format("play.cricket.round", round))
+                    Text(L10n.format("play.cricket.turn", turn))
+                }
+                .font(.caption)
+            } else {
+                Text(L10n.format("play.cricket.roundTurn", round, turn))
+                    .font(.subheadline)
+            }
+        }
+        .foregroundStyle(Brand.textSecondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, DS.Spacing.s4)
+        .padding(.bottom, DS.Spacing.s2)
+    }
+
+    private var cricketTapPad: some View {
+        CricketTapPad(
+            enteredDarts: $viewModel.enteredDarts,
+            selectedMultiplier: $viewModel.selectedMultiplier,
+            canSubmit: viewModel.canSubmit,
+            onSubmit: { submit() },
+            onUndoTurn: {
+                actionTask?.cancel()
+                actionTask = Task { await viewModel.undoLastDart() }
+            }
+        )
+        .disabled(viewModel.canHumanInput == false)
+        .opacity(viewModel.canHumanInput ? 1 : 0.45)
+        .accessibilityElement(children: .contain)
+        .modifier(
+            OptionalAccessibilityHint(
+                hint: viewModel.canHumanInput ? nil : L10n.string("play.cricket.pad.disabledWhileBot")
+            )
+        )
+        .onChange(of: viewModel.enteredDarts) { old, darts in
+            guard viewModel.canHumanInput else { return }
+            if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
+            if darts.count == 3 { submit() }
+        }
     }
 
     private func playDartFeedback(_ dart: DartInput) {

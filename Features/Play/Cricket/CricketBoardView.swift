@@ -2,6 +2,7 @@ import SwiftUI
 
 private enum CricketBoardMetrics {
     static let activeColumnFill = Brand.cardElevated.opacity(0.35)
+    static let knockedOutOpacity: Double = 0.42
 }
 
 /// Authentic Cricket scoreboard: a marks grid (20–15 + Bull) with one column
@@ -85,6 +86,7 @@ struct CricketBoardMarksGrid: View {
     var body: some View {
         Grid(horizontalSpacing: 0, verticalSpacing: 0) {
             ForEach(targets, id: \.rawValue) { target in
+                let isKnockedOut = CricketBoardView.isTargetKnockedOut(columns: columns, target: target)
                 GridRow {
                     Text(label(for: target))
                         .font(.headline.weight(.bold))
@@ -95,13 +97,15 @@ struct CricketBoardMarksGrid: View {
                         CricketMarkCell(
                             targetLabel: label(for: target),
                             marks: column.marks[target.rawValue] ?? 0,
-                            colorToken: column.colorToken
+                            colorToken: column.colorToken,
+                            isKnockedOut: isKnockedOut
                         )
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s2)
                         .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
                     }
                 }
+                .opacity(isKnockedOut ? CricketBoardMetrics.knockedOutOpacity : 1)
                 Divider().overlay(Brand.cardElevated)
             }
         }
@@ -114,6 +118,11 @@ struct CricketBoardMarksGrid: View {
 
 extension CricketBoardView {
     static var markTargetCount: Int { CricketTarget.allCases.count }
+
+    static func isTargetKnockedOut(columns: [Column], target: CricketTarget) -> Bool {
+        guard !columns.isEmpty else { return false }
+        return columns.allSatisfy { ($0.marks[target.rawValue] ?? 0) >= 3 }
+    }
 }
 
 /// Standard cricket mark glyph: "/" for one, "X" for two, and a circled "X"
@@ -122,9 +131,13 @@ struct CricketMarkCell: View {
     let targetLabel: String
     let marks: Int
     let colorToken: PlayerColorToken
+    var isKnockedOut: Bool = false
 
     private var tint: Color {
-        marks >= 3 ? PlayerVisualViews.accentColor(token: colorToken) : Brand.textPrimary
+        if isKnockedOut {
+            return Brand.textSecondary
+        }
+        return marks >= 3 ? PlayerVisualViews.accentColor(token: colorToken) : Brand.textPrimary
     }
 
     var body: some View {
@@ -150,6 +163,9 @@ struct CricketMarkCell: View {
         case 1: state = L10n.string("cricket.mark.one")
         case 2: state = L10n.string("cricket.mark.two")
         default: state = L10n.string("cricket.mark.closed")
+        }
+        if isKnockedOut {
+            return L10n.format("cricket.mark.knockedOutAccessibilityFormat", targetLabel, state)
         }
         return L10n.format("cricket.mark.accessibilityFormat", targetLabel, state)
     }
@@ -185,78 +201,142 @@ struct CricketTapPad: View {
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
-    private var spacing: CGFloat { ScoringPadStyle.compactSpacing }
+    private var usesAccessibilityLayout: Bool {
+        GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    private var padSpacing: CGFloat {
+        usesAccessibilityLayout ? ScoringPadStyle.accessibilitySpacing : ScoringPadStyle.compactSpacing
+    }
+
+    private var displayKeyMinHeight: CGFloat {
+        usesAccessibilityLayout ? min(keyMinHeight, 56) : keyMinHeight
+    }
+
+    private var displayVisitSlotMinHeight: CGFloat {
+        usesAccessibilityLayout ? min(visitSlotMinHeight, 40) : visitSlotMinHeight
+    }
+
     private let numberRows: [[String]] = [
         ["20", "19", "18"],
         ["17", "16", "15"]
     ]
 
+    private let accessibilitySegments: [Int] = [20, 19, 18, 17, 16, 15]
+
     var body: some View {
-        VStack(spacing: spacing) {
+        if usesAccessibilityLayout {
+            accessibilityPad
+        } else {
+            compactPad
+        }
+    }
+
+    private var compactPad: some View {
+        VStack(spacing: padSpacing) {
             visitPreview
             ForEach(numberRows, id: \.self) { row in
-                HStack(spacing: spacing) {
+                HStack(spacing: padSpacing) {
                     ForEach(row, id: \.self) { value in
-                        let segment = Int(value) ?? 0
-                        ScoringPadKey(
-                            title: value,
-                            minHeight: keyMinHeight,
-                            accessibilityLabel: DartInput.padKeyAccessibilityLabel(
-                                segmentValue: segment,
-                                armedMultiplier: selectedMultiplier
-                            ),
-                            accessibilityHint: L10n.string("scoring.segment.hint"),
-                            identifier: "cricket_\(value)",
-                            action: { appendNumber(segment) }
-                        )
+                        numberKey(Int(value) ?? 0, title: value)
                     }
                 }
             }
-            HStack(spacing: spacing) {
-                ScoringPadKey(
-                    title: L10n.string("scoring.pad.bullLabel"),
-                    minHeight: keyMinHeight,
-                    accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
-                    accessibilityHint: L10n.string("scoring.segment.hint"),
-                    identifier: "cricket_bull",
-                    action: appendBull
-                )
-                ScoringPadKey(
-                    title: L10n.string("scoring.pad.missLabel"),
-                    minHeight: keyMinHeight,
-                    accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
-                    accessibilityHint: L10n.string("scoring.segment.hint"),
-                    identifier: "cricket_miss",
-                    action: appendMiss
-                )
+            bullMissRow(showSpacer: true)
+            controlRow
+            enterButton
+        }
+    }
+
+    private var accessibilityPad: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: padSpacing),
+            GridItem(.flexible(), spacing: padSpacing)
+        ]
+        return VStack(spacing: padSpacing) {
+            visitPreview
+            LazyVGrid(columns: columns, spacing: padSpacing) {
+                ForEach(accessibilitySegments, id: \.self) { segment in
+                    numberKey(segment, title: String(segment))
+                }
+            }
+            bullMissRow(showSpacer: false)
+            controlRow
+            enterButton
+        }
+    }
+
+    private func numberKey(_ segment: Int, title: String) -> some View {
+        ScoringPadKey(
+            title: title,
+            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
+            minHeight: displayKeyMinHeight,
+            accessibilityLabel: DartInput.padKeyAccessibilityLabel(
+                segmentValue: segment,
+                armedMultiplier: selectedMultiplier
+            ),
+            accessibilityHint: L10n.string("scoring.segment.hint"),
+            identifier: "cricket_\(title)",
+            action: { appendNumber(segment) }
+        )
+    }
+
+    @ViewBuilder
+    private func bullMissRow(showSpacer: Bool) -> some View {
+        HStack(spacing: padSpacing) {
+            ScoringPadKey(
+                title: L10n.string("scoring.pad.bullLabel"),
+                font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
+                minHeight: displayKeyMinHeight,
+                accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
+                accessibilityHint: L10n.string("scoring.segment.hint"),
+                identifier: "cricket_bull",
+                action: appendBull
+            )
+            ScoringPadKey(
+                title: L10n.string("scoring.pad.missLabel"),
+                font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
+                minHeight: displayKeyMinHeight,
+                accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
+                accessibilityHint: L10n.string("scoring.segment.hint"),
+                identifier: "cricket_miss",
+                action: appendMiss
+            )
+            if showSpacer {
                 Color.clear
-                    .frame(maxWidth: .infinity, minHeight: keyMinHeight)
+                    .frame(maxWidth: .infinity, minHeight: displayKeyMinHeight)
                     .accessibilityHidden(true)
             }
-            HStack(spacing: spacing) {
-                modifierKey(.double, identifier: "cricket_double")
-                modifierKey(.triple, identifier: "cricket_triple")
-                ScoringPadIconKey(
-                    systemImage: "arrow.uturn.backward",
-                    minHeight: keyMinHeight,
-                    accessibilityLabel: L10n.string("scoring.undoLastTurn"),
-                    identifier: "cricket_undo",
-                    action: undo
-                )
-            }
-            Button(action: onSubmit) {
-                Text(L10n.scoringEnter)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(canSubmit ? Brand.inkOnBright : Brand.textPrimary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .frame(maxWidth: .infinity, minHeight: keyMinHeight)
-                    .background(canSubmit ? Brand.green : Brand.green.opacity(0.4), in: ScoringPadStyle.keyShape)
-            }
-            .disabled(!canSubmit)
-            .accessibilityLabel(L10n.scoringEnter)
-            .accessibilityIdentifier("cricket_enter")
         }
+    }
+
+    private var controlRow: some View {
+        HStack(spacing: padSpacing) {
+            modifierKey(.double, identifier: "cricket_double")
+            modifierKey(.triple, identifier: "cricket_triple")
+            ScoringPadIconKey(
+                systemImage: "arrow.uturn.backward",
+                minHeight: displayKeyMinHeight,
+                accessibilityLabel: L10n.string("scoring.undoLastTurn"),
+                identifier: "cricket_undo",
+                action: undo
+            )
+        }
+    }
+
+    private var enterButton: some View {
+        Button(action: onSubmit) {
+            Text(L10n.scoringEnter)
+                .font(usesAccessibilityLayout ? .title3.weight(.bold) : .headline.weight(.bold))
+                .foregroundStyle(canSubmit ? Brand.inkOnBright : Brand.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity, minHeight: displayKeyMinHeight)
+                .background(canSubmit ? Brand.green : Brand.green.opacity(0.4), in: ScoringPadStyle.keyShape)
+        }
+        .disabled(!canSubmit)
+        .accessibilityLabel(L10n.scoringEnter)
+        .accessibilityIdentifier("cricket_enter")
     }
 
     @ViewBuilder
@@ -268,7 +348,7 @@ struct CricketTapPad: View {
                     .foregroundStyle(Brand.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: visitSlotMinHeight)
+                    .frame(maxWidth: .infinity, minHeight: displayVisitSlotMinHeight)
                     .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
             }
         }
@@ -303,8 +383,8 @@ struct CricketTapPad: View {
             title: title,
             background: background,
             foreground: foreground,
-            font: .body.weight(.bold),
-            minHeight: keyMinHeight,
+            font: usesAccessibilityLayout ? .title3.weight(.bold) : .body.weight(.bold),
+            minHeight: displayKeyMinHeight,
             accessibilityLabel: multiplierAccessibilityLabel(multiplier),
             accessibilityHint: modifierHint(multiplier, isSelected: isSelected),
             isSelected: isSelected,
