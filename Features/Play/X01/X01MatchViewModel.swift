@@ -513,6 +513,18 @@ final class X01MatchViewModel: ObservableObject {
     private func undoLastDartAsync() async {
         await loadSessionIfNeeded()
         guard let current = session else { return }
+        if !enteredDarts.isEmpty {
+            enteredDarts.removeLast()
+            selectedMultiplier = .single
+            logger.matchDebug(
+                matchId: matchId,
+                matchType: .x01,
+                eventName: "dart_undone",
+                message: "In-progress throw undone.",
+                metadata: MatchTurnSupport.matchProgressMetadata(for: current)
+            )
+            return
+        }
         do {
             let result = try await MatchTurnSupport.undoLastDart(
                 session: current,

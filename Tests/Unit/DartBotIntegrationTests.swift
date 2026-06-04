@@ -498,6 +498,60 @@ func x01OnAppearRestartsBotAfterInterruptedTurn() async throws {
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
+func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(playerId: humanId, displayNameAtMatchStart: "Human", turnOrder: 0),
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+    ]
+    await vm.submitTurn()
+    #expect(vm.session?.events.count == 2)
+
+    await vm.undoLastDart()
+    #expect(vm.session?.events.count == 1)
+    #expect(vm.enteredDarts.count == 2)
+
+    await vm.undoLastDart()
+    #expect(vm.session?.events.count == 1)
+    #expect(vm.enteredDarts.count == 1)
+    #expect(vm.isCurrentPlayerBot)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
 func x01UndoBackToBotTurnRestartsBot() async throws {
     let humanId = UUID()
     let botId = UUID()
