@@ -19,8 +19,8 @@ struct BrandSegmented<T: Hashable>: View {
                         .foregroundStyle(Brand.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, DS.Spacing.s2)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .contentShape(Rectangle())
                         .background(
                             isSelected ? Brand.cardElevated : Color.clear,
                             in: RoundedRectangle(cornerRadius: DS.Radius.sm)

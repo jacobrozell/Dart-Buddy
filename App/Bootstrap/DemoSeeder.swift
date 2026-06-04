@@ -243,8 +243,8 @@ enum DemoSeeder {
                 defaultLegFormatRaw: current.defaultLegFormatRaw,
                 defaultLegsToWin: current.defaultLegsToWin,
                 defaultSetsEnabled: current.defaultSetsEnabled,
-                botStaggerEnabled: current.botStaggerEnabled,
-                botDartHapticsEnabled: current.botDartHapticsEnabled,
+                botStaggerEnabled: true,
+                botDartHapticsEnabled: false,
                 updatedAt: Date()
             )
             _ = try await dependencies.settingsRepository.updateSettings(disabled)

@@ -63,6 +63,7 @@ UI test execution policy:
 
 ## 5. CI Recommendations
 - Run unit + integration + UI smoke on PR (see `.github/workflows/ci.yml`)
+- `DartBuddyPerformanceTests` (long-run bot simulations) is excluded from the `DartBuddy` scheme; run locally or on nightly jobs
 - Expand UI automation jobs in post-MVP phase (full edge/accessibility matrix).
 - Track coverage trend for domain and repository layers
 

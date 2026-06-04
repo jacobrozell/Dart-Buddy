@@ -187,11 +187,23 @@ func cricketViewModelBoardColumnsCarryParticipantColor() async throws {
 @Test(.tags(.integration, .cricket, .match, .regression))
 func cricketViewModelBoardColumnsFallbackColorForLegacyParticipants() async throws {
     let p0 = UUID()
+    let p1 = UUID()
     let session = try MatchLifecycleService.createMatch(
         type: .cricket,
         config: .cricket(MatchConfigCricket()),
         participants: [
-            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0)
+            MatchParticipant(
+                playerId: p0,
+                displayNameAtMatchStart: "A",
+                turnOrder: 0,
+                preferredColorTokenAtMatchStart: nil
+            ),
+            MatchParticipant(
+                playerId: p1,
+                displayNameAtMatchStart: "B",
+                turnOrder: 1,
+                preferredColorTokenAtMatchStart: PlayerColorToken.coral.rawValue
+            )
         ]
     )
     let store = ActiveMatchStore()
