@@ -192,6 +192,26 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         XCTAssertTrue(subtitle.label.contains("Cut Throat") || subtitle.label.contains("Lowest"))
     }
 
+    func testCutThroatCricketBotMatchStartsAndBotThrows() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app)
+        tapCricketCutThroatMode(in: app)
+        app.buttons["select_Alice"].tap()
+        addEasyBot(from: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 10))
+
+        let padDisabledHint = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS[c] %@", "bot")
+        ).firstMatch
+        let padKey = app.buttons["cricket_20"]
+        let botTurnActive = padDisabledHint.waitForExistence(timeout: timeout + 15)
+            || !padKey.isEnabled
+        XCTAssertTrue(botTurnActive, "Bot should take the opening cut-throat visit")
+    }
+
     func testCricketLiveMprAndDartsIdentifiersOnActiveColumn() {
         let app = launchApp(["-seed_players"])
         startTwoPlayerCricketMatch(from: app)

@@ -313,6 +313,37 @@ func setupValidationBlocksBotOnlyMatch() async {
 }
 
 @MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupAllowsCutThroatCricketWithBot() async {
+    let human = makePlayer("Alice")
+    let vm = makeSetupViewModel(players: [human])
+    await vm.onAppear()
+    vm.updateMode(.cricket)
+    vm.cricketScoringMode = .cutThroat
+    vm.cricketPointsEnabled = true
+    vm.togglePlayer(human.id)
+    await vm.addBot(.easy)
+
+    #expect(vm.canStart)
+    #expect(!vm.validationErrors.contains("setup.validation.cricketBotUnsupported"))
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupBlocksCricketBotWhenPointsOff() async {
+    let human = makePlayer("Alice")
+    let vm = makeSetupViewModel(players: [human])
+    await vm.onAppear()
+    vm.updateMode(.cricket)
+    vm.cricketPointsEnabled = false
+    vm.togglePlayer(human.id)
+    await vm.addBot(.easy)
+
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.cricketBotUnsupported"))
+}
+
+@MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupStartRouteUsesSelectedMode() async {
     let players = [makePlayer("A"), makePlayer("B")]

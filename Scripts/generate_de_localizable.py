@@ -130,7 +130,7 @@ DE: dict[str, str] = {
     "play.cricket.column.footer.legs": "Leg %d",
     "play.cricket.column.footer.sets": "Set %d",
     "play.cricket.column.accessibilityFormat": "%@, Punkte %d, %d Darts, %.2f Marken pro Runde.%@",
-    "setup.validation.cricketBotUnsupported": "Bots unterstützen nur Normal mit Punkten an.",
+    "setup.validation.cricketBotUnsupported": "Bots benötigen aktivierte Punkte.",
     "common.active": "Aktiv",
     "play.match.submittingTurn": "Wurf wird übermittelt…",
     "play.x01.bustFeedback": "Bust – Punkte wiederhergestellt, Wurf weiter.",

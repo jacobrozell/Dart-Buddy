@@ -162,6 +162,44 @@ func lifecycleAcceptsBotGeneratedCricketTurn() throws {
     #expect(session.runtime.cricketState?.currentPlayerIndex == 1)
 }
 
+@Test(.tags(.unit, .match, .cricket, .regression, .offline))
+func lifecycleAcceptsBotGeneratedCutThroatCricketTurn() throws {
+    let botId = UUID()
+    let humanId = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(cricketConfig(scoringMode: .cutThroat)),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.medium.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.medium.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+
+    let cricketState = try #require(session.runtime.cricketState)
+    var rng = BotTestSeededRNG(seed: 3)
+    let darts = DartBotEngine.generateCricketTurn(
+        state: cricketState,
+        playerIndex: 0,
+        difficulty: .medium,
+        rng: &rng
+    )
+
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: darts)
+
+    #expect(session.events.count == 1)
+    #expect(session.runtime.cricketState?.currentPlayerIndex == 1)
+    #expect(session.runtime.cricketState?.config.scoringMode == .cutThroat)
+}
+
 @Test(.tags(.unit, .match, .regression, .offline))
 func lifecycleRehydratePreservesBotMetadata() throws {
     let botId = UUID()

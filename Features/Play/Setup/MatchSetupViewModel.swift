@@ -214,7 +214,7 @@ final class MatchSetupViewModel: ObservableObject {
                 errors.append("setup.validation.invalidSets")
             }
             let hasBot = selectedPlayers.contains(where: \.isBot)
-            if hasBot, !cricketPointsEnabled || cricketScoringMode != .standard {
+            if hasBot, !cricketPointsEnabled {
                 errors.append("setup.validation.cricketBotUnsupported")
             }
         }

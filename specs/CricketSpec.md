@@ -14,7 +14,7 @@ Define Cricket gameplay rules, board UI, input model, and persistence for the iP
 - Local-only persistence with turn + dart granularity
 - Shared input component: see `specs/ScoringInputSpec.md`
 - Setup chips: Points On/Off, Normal/Cut Throat, Set/Leg format, Sets, Legs (`MatchConfigCricket` payload v2)
-- Bot matches: Normal + Points On only until bot strategy supports variants
+- Bot matches: Points On required; scoring modes Normal and Cut Throat supported (Points Off bots deferred)
 
 ---
 

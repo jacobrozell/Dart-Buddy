@@ -6,22 +6,22 @@ import Testing
 struct LocalizationParityTests {
     private static let specifierPattern = #/%(?:\d+\$)?[@df]|%\.?\d*f/#
 
-    @Test("German and English Localizable.strings share the same keys")
-    func enAndDeKeysMatch() throws {
+    @Test("Localized strings share the same keys as English", arguments: ["de", "es"])
+    func localizedKeysMatchEnglish(locale: String) throws {
         let enKeys = try Self.keys(from: "en")
-        let deKeys = try Self.keys(from: "de")
-        #expect(enKeys == deKeys)
+        let localeKeys = try Self.keys(from: locale)
+        #expect(enKeys == localeKeys)
     }
 
-    @Test("Format specifiers match per key between English and German")
-    func formatSpecifiersMatch() throws {
+    @Test("Format specifiers match per key between English and locale", arguments: ["de", "es"])
+    func formatSpecifiersMatch(locale: String) throws {
         let en = try Self.entries(from: "en")
-        let de = try Self.entries(from: "de")
+        let localized = try Self.entries(from: locale)
         for (key, enValue) in en {
-            let deValue = try #require(de[key])
+            let localizedValue = try #require(localized[key])
             #expect(
-                Self.specifiers(in: enValue) == Self.specifiers(in: deValue),
-                "Specifier mismatch for \(key): en=\(enValue) de=\(deValue)"
+                Self.specifiers(in: enValue) == Self.specifiers(in: localizedValue),
+                "Specifier mismatch for \(key): en=\(enValue) \(locale)=\(localizedValue)"
             )
         }
     }
