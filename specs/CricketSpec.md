@@ -13,15 +13,21 @@ Define Cricket gameplay rules, board UI, input model, and persistence for the iP
 - Undo last accepted turn
 - Local-only persistence with turn + dart granularity
 - Shared input component: see `specs/ScoringInputSpec.md`
+- Setup chips: Points On/Off, Normal/Cut Throat, Set/Leg format, Sets, Legs (`MatchConfigCricket` payload v2)
+- Bot matches: Normal + Points On only until bot strategy supports variants
 
 ---
 
 ## 3. Rules Engine
 
-## Match Completion Rule
-The match ends when every player has closed all Cricket targets (`20` through `15` and `bull`).
-The winner is the player with the highest score at that moment.
-If multiple players tie for the highest score, the earliest seat in turn order wins.
+## Match Completion Rule (Points On)
+When points are enabled, a leg ends when every player has closed all targets. The leg winner is the highest score (Normal) or lowest score (Cut Throat); ties go to the earliest seat. Multi-leg/set targets use the same leg-format math as X01.
+
+## Match Completion Rule (Points Off)
+When points are disabled, a leg ends when the acting player closes all targets on their turn. That player wins the leg. Scores remain zero.
+
+## Match Completion Rule (legacy default)
+Single-leg Normal + Points On: same as “Points On” with one leg — match completes when the board is fully closed.
 
 ## Mark Processing
 - Single/Double/Triple contribute 1/2/3 marks on target

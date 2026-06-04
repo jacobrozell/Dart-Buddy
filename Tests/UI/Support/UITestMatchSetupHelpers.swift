@@ -86,4 +86,33 @@ extension DartBuddyUITestCase {
         start.tap()
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
     }
+
+    func selectCricketMode(in app: XCUIApplication) {
+        ensurePlayTab(app, timeout: timeout)
+        app.buttons["setup_mode_cricket"].tap()
+    }
+
+    func tapCricketPointsOff(in app: XCUIApplication) {
+        let chip = app.buttons["setup_cricketPointsChip"]
+        XCTAssertTrue(chip.waitForExistence(timeout: timeout))
+        chip.tap()
+        app.buttons["Off"].tap()
+    }
+
+    func tapCricketCutThroatMode(in app: XCUIApplication) {
+        let chip = app.buttons["setup_cricketModeChip"]
+        XCTAssertTrue(chip.waitForExistence(timeout: timeout))
+        chip.tap()
+        app.buttons["Cut Throat"].tap()
+    }
+
+    func startTwoPlayerCricketMatch(from app: XCUIApplication, playerA: String = "Alice", playerB: String = "Bob") {
+        selectCricketMode(in: app)
+        selectPlayerFromRoster(playerA, in: app)
+        selectPlayerFromRoster(playerB, in: app)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+    }
 }

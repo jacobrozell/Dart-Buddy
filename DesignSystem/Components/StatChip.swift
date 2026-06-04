@@ -17,6 +17,7 @@ struct StatChip: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(label))
+        .accessibilityLabel(label)
+        .accessibilityValue(value)
     }
 }
