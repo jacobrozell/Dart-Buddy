@@ -18,7 +18,8 @@ final class DutchLocalizationSmokeUITests: DartBuddyUITestCase {
     func testPlaySetupUsesDutchChrome() {
         let app = launchApp(dutchLaunchArgs)
         app.tabBars.buttons["Spelen"].tap()
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Dart-scorebord"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["startMatchButton"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["STARTEN"].waitForExistence(timeout: timeout))
     }
 }
