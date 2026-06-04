@@ -305,6 +305,8 @@ public enum MatchLifecycleService {
         }
         if let cricketState {
             runtime.currentTurnPlayerId = cricketState.players[cricketState.currentPlayerIndex].playerId
+            runtime.currentLegIndex = cricketState.legIndex
+            runtime.currentSetIndex = cricketState.setIndex
             if cricketState.isComplete {
                 runtime.status = .completed
                 runtime.endedAt = timestamp

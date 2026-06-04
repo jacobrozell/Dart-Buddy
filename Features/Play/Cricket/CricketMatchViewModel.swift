@@ -78,22 +78,100 @@ final class CricketMatchViewModel: ObservableObject {
 
     var cricketState: CricketState? { session?.runtime.cricketState }
 
+    var matchSubtitle: String? {
+        guard let config = session?.runtime.cricketState?.config else { return nil }
+        return MatchConfigText.cricketMatchSubtitle(from: config)
+    }
+
+    var activeBoardColumnID: UUID? {
+        boardColumns.first(where: \.isActive)?.id
+    }
+
     var boardColumns: [CricketBoardView.Column] {
         guard let session, let state = session.runtime.cricketState else { return [] }
         let isInProgress = session.runtime.status == .inProgress
         let highlightClosure = self.state == .closureTransition
+        let config = state.config
+        let showsSetsLegs = config.setsEnabled || config.legsToWin > 1
         return state.players.enumerated().map { index, player in
             let participant = participant(for: player.playerId)
+            let isActive = index == state.currentPlayerIndex && isInProgress
             return CricketBoardView.Column(
                 id: player.playerId,
                 name: participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: index),
                 score: player.score,
                 marks: player.marks,
-                isActive: index == state.currentPlayerIndex && isInProgress,
+                isActive: isActive,
                 colorToken: participant?.colorToken ?? PlayerColorToken.defaultForPlayer(id: player.playerId),
+                dartsThrown: previewDartsThrown(for: player.playerId, isActive: isActive),
+                marksPerRound: previewMarksPerRound(for: player.playerId, isActive: isActive),
+                legsWon: player.legsWon,
+                setsWon: player.setsWon,
+                showsSetsLegs: showsSetsLegs,
+                setsEnabled: config.setsEnabled,
                 isClosureHighlight: highlightClosure && index == state.currentPlayerIndex
             )
         }
+    }
+
+    private func cricketTurnEvents(for playerId: UUID) -> [CricketTurnEvent] {
+        guard let session else { return [] }
+        return session.events.compactMap { envelope in
+            if case let .cricketTurn(event) = envelope.payload, event.playerId == playerId {
+                return event
+            }
+            return nil
+        }
+    }
+
+    private func dartsThrown(for playerId: UUID) -> Int {
+        cricketTurnEvents(for: playerId).reduce(0) { sum, event in
+            sum + event.targetsTouched.filter { !$0.wasMiss }.count
+        }
+    }
+
+    private func previewVisitDarts(isActive: Bool) -> Int {
+        guard isActive, canHumanInput || isBotPlaying else { return 0 }
+        return enteredDarts.filter { !$0.isMiss }.count
+    }
+
+    private func previewDartsThrown(for playerId: UUID, isActive: Bool) -> Int {
+        dartsThrown(for: playerId) + previewVisitDarts(isActive: isActive)
+    }
+
+    private func committedMarks(for playerId: UUID) -> Int {
+        cricketTurnEvents(for: playerId).reduce(0) { sum, event in
+            sum + event.targetsTouched.reduce(0) { $0 + $1.marksAdded }
+        }
+    }
+
+    private func previewVisitMarks(isActive: Bool) -> Int {
+        guard isActive, canHumanInput || isBotPlaying else { return 0 }
+        guard let state = cricketState else { return 0 }
+        let playerIndex = state.currentPlayerIndex
+        let before = state.players[playerIndex].marks
+        var preview = state
+        preview.players[playerIndex].marks = before
+        for dart in enteredDarts {
+            guard let raw = dart.segment.cricketTargetRaw,
+                  let target = CricketTarget(rawValue: raw) else { continue }
+            let incoming = dart.isMiss ? 0 : (dart.segment == .innerBull ? 2 : (dart.segment == .outerBull ? 1 : dart.multiplier.markValue))
+            let prior = preview.players[playerIndex].marks[target.rawValue] ?? 0
+            preview.players[playerIndex].marks[target.rawValue] = min(3, prior + incoming)
+        }
+        return CricketTarget.allCases.reduce(0) { sum, target in
+            let prior = before[target.rawValue] ?? 0
+            let next = preview.players[playerIndex].marks[target.rawValue] ?? 0
+            return sum + max(0, min(3, next) - prior)
+        }
+    }
+
+    private func previewMarksPerRound(for playerId: UUID, isActive: Bool) -> Double {
+        let events = cricketTurnEvents(for: playerId)
+        let marks = committedMarks(for: playerId) + previewVisitMarks(isActive: isActive)
+        let rounds = events.count + (isActive && !enteredDarts.isEmpty ? 1 : 0)
+        guard rounds > 0 else { return 0 }
+        return Double(marks) / Double(rounds)
     }
 
     private func participant(for playerId: UUID) -> MatchParticipant? {
@@ -241,7 +319,6 @@ final class CricketMatchViewModel: ObservableObject {
         }
         state = .submittingTurn
         let wasHumanTurn = currentBotDifficulty == nil
-        let submittedVisitTotal = enteredDarts.reduce(0) { $0 + $1.points }
         let throwingPlayerIndex = current.runtime.cricketState?.currentPlayerIndex
         let marksBeforeTurn = current.runtime.cricketState.flatMap { state in
             guard let index = throwingPlayerIndex else { return nil as [String: Int]? }
@@ -266,8 +343,9 @@ final class CricketMatchViewModel: ObservableObject {
         case let .succeeded(updated):
             session = updated
             if wasHumanTurn {
+                let visitTotal = lastCricketTurnTotal(in: updated) ?? 0
                 turnTotalCallerToken += 1
-                turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: submittedVisitTotal)
+                turnTotalCallerSignal = TurnTotalCallerSignal(token: turnTotalCallerToken, total: visitTotal)
             }
             if updated.runtime.status == .completed {
                 PerformanceMonitor.measure(
@@ -428,6 +506,12 @@ final class CricketMatchViewModel: ObservableObject {
             )
             state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "cricket.error.sessionMissing"))
         }
+    }
+
+    private func lastCricketTurnTotal(in session: MatchLifecycleSession) -> Int? {
+        guard let envelope = session.events.last,
+              case let .cricketTurn(event) = envelope.payload else { return nil }
+        return event.totalPointsAdded
     }
 
     private static func didCloseAnyCricketTarget(before: [String: Int]?, after: [String: Int]?) -> Bool {

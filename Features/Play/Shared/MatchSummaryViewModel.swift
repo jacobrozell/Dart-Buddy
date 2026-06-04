@@ -147,7 +147,20 @@ final class MatchSummaryViewModel: ObservableObject {
             return rows
         case .cricket:
             let score = runtime.cricketState?.players.first(where: { $0.playerId == breakdown.playerId })?.score ?? breakdown.points
-            return [(L10n.string("play.summary.stat.score"), "\(score)"), (L10n.string("play.summary.stat.darts"), "\(breakdown.darts)")]
+            var rows: [(String, String)] = [
+                (L10n.string("play.summary.stat.score"), "\(score)"),
+                (L10n.string("play.summary.stat.darts"), "\(breakdown.darts)"),
+                (L10n.string("stats.mpr"), String(format: "%.2f", breakdown.marksPerRound))
+            ]
+            if runtime.cricketState?.config.setsEnabled == true,
+               let player = runtime.cricketState?.players.first(where: { $0.playerId == breakdown.playerId }) {
+                rows.append((L10n.string("play.summary.stat.sets"), "\(player.setsWon)"))
+            }
+            if let player = runtime.cricketState?.players.first(where: { $0.playerId == breakdown.playerId }),
+               (runtime.cricketState?.config.legsToWin ?? 1) > 1 || player.legsWon > 0 {
+                rows.append((L10n.string("play.summary.stat.legs"), "\(player.legsWon)"))
+            }
+            return rows
         }
     }
 }

@@ -34,6 +34,38 @@ enum MatchConfigText {
         x01DetailParts(from: config).joined(separator: ", ")
     }
 
+    static func cricketDetailParts(from config: MatchConfigCricket) -> [String] {
+        var parts: [String] = []
+        if !config.pointsEnabled {
+            parts.append(L10n.string("play.cricket.subtitle.noScore"))
+        } else {
+            parts.append(config.scoringMode.displayName)
+        }
+        let format = config.legFormat.displayName
+        if config.setsEnabled {
+            let sets = config.setsToWin ?? 1
+            parts.append(targetSets(format: format, count: sets))
+        }
+        parts.append(targetLegs(format: format, count: config.legsToWin))
+        return parts
+    }
+
+    static func cricketMatchSubtitle(from config: MatchConfigCricket) -> String {
+        if !config.pointsEnabled {
+            return L10n.string("play.cricket.subtitle.noScore")
+        }
+        switch config.scoringMode {
+        case .standard:
+            return L10n.string("play.cricket.subtitle.normal")
+        case .cutThroat:
+            return L10n.string("play.cricket.subtitle.cutThroatLowest")
+        }
+    }
+
+    static func cricketInlineConfig(from config: MatchConfigCricket) -> String {
+        cricketDetailParts(from: config).joined(separator: " · ")
+    }
+
     static func playerName(_ name: String?) -> String {
         name ?? L10n.string("common.playerFallback")
     }
