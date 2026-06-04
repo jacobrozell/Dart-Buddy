@@ -137,7 +137,7 @@ extension SetupHomeView {
         }
     }
 
-    private func chip<Content: View>(title: LocalizedStringKey, color: Color, @ViewBuilder content: () -> Content) -> some View {
+    func chip<Content: View>(title: LocalizedStringKey, color: Color, @ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 6) {
             Text(title)
                 .font(.caption)
@@ -149,7 +149,7 @@ extension SetupHomeView {
         .frame(maxWidth: .infinity)
     }
 
-    private func chipBox(_ text: String, color: Color, showsMenuIndicator: Bool = false) -> some View {
+    func chipBox(_ text: String, color: Color, showsMenuIndicator: Bool = false) -> some View {
         Text(text)
             .font(.headline.weight(.bold))
             // Chips use solid bright brand fills; dark ink keeps the value legible in dark mode
@@ -170,7 +170,7 @@ extension SetupHomeView {
             }
     }
 
-    private func chipAccessibilityLabel(_ titleKey: String, _ value: String) -> String {
+    func chipAccessibilityLabel(_ titleKey: String, _ value: String) -> String {
         L10n.format("play.setup.chip.accessibilityFormat", L10n.string(titleKey), value)
     }
 }

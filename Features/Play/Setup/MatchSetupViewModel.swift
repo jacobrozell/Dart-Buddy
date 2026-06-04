@@ -23,6 +23,12 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var x01CheckoutMode: X01CheckoutMode = .doubleOut
     @Published var x01CheckInMode: X01CheckInMode = .straightIn
     @Published var x01LegFormat: X01LegFormat = .firstTo
+    @Published var cricketPointsEnabled = true
+    @Published var cricketScoringMode: CricketScoringMode = .standard
+    @Published var cricketLegsToWin: Int = 1
+    @Published var cricketSetsEnabled = false
+    @Published var cricketSetsToWin: Int = 1
+    @Published var cricketLegFormat: X01LegFormat = .firstTo
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -71,6 +77,13 @@ final class MatchSetupViewModel: ObservableObject {
             x01CheckoutMode = X01CheckoutMode(rawValue: settings.defaultCheckoutModeRaw) ?? .doubleOut
             x01CheckInMode = X01CheckInMode(rawValue: settings.defaultCheckInModeRaw) ?? .straightIn
             x01LegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo
+            cricketLegsToWin = max(1, settings.defaultLegsToWin)
+            cricketSetsEnabled = settings.defaultSetsEnabled
+            cricketSetsToWin = max(1, settings.defaultSetsEnabled ? 2 : 1)
+            cricketLegFormat = X01LegFormat(rawValue: settings.defaultLegFormatRaw) ?? .firstTo
+            let cricketPrefs = CricketSetupPreferences.load()
+            cricketPointsEnabled = cricketPrefs.pointsEnabled
+            cricketScoringMode = cricketPrefs.scoringMode
             mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
         } catch {
             validationErrors = ["setup.error.load"]
@@ -180,6 +193,17 @@ final class MatchSetupViewModel: ObservableObject {
             }
             if x01SetsEnabled && x01SetsToWin <= 0 {
                 errors.append("setup.validation.invalidSets")
+            }
+        } else {
+            if cricketLegsToWin <= 0 {
+                errors.append("setup.validation.invalidLegs")
+            }
+            if cricketSetsEnabled && cricketSetsToWin <= 0 {
+                errors.append("setup.validation.invalidSets")
+            }
+            let hasBot = selectedPlayers.contains(where: \.isBot)
+            if hasBot, !cricketPointsEnabled || cricketScoringMode != .standard {
+                errors.append("setup.validation.cricketBotUnsupported")
             }
         }
         validationErrors = errors
@@ -371,7 +395,17 @@ final class MatchSetupViewModel: ObservableObject {
                     )
                 )
             } else {
-                config = .cricket(MatchConfigCricket())
+                let scoringMode = cricketPointsEnabled ? cricketScoringMode : .standard
+                config = .cricket(
+                    MatchConfigCricket(
+                        pointsEnabled: cricketPointsEnabled,
+                        scoringMode: scoringMode,
+                        legsToWin: cricketLegsToWin,
+                        setsEnabled: cricketSetsEnabled,
+                        setsToWin: cricketSetsEnabled ? cricketSetsToWin : nil,
+                        legFormat: cricketLegFormat
+                    )
+                )
             }
             let configPayload = try CodablePayloadCoder.encode(config)
             let avatarByPlayerId = Dictionary(
@@ -454,7 +488,16 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     private func persistLastUsedSetup() async {
+        if mode == .cricket {
+            CricketSetupPreferences.save(
+                pointsEnabled: cricketPointsEnabled,
+                scoringMode: cricketPointsEnabled ? cricketScoringMode : .standard
+            )
+        }
         guard let settings = try? await settingsRepository.fetchSettings() else { return }
+        let legsToWin = mode == .x01 ? x01LegsToWin : cricketLegsToWin
+        let setsEnabled = mode == .x01 ? x01SetsEnabled : cricketSetsEnabled
+        let legFormat = mode == .x01 ? x01LegFormat : cricketLegFormat
         let next = SettingsSummary(
             id: settings.id,
             appearanceModeRaw: settings.appearanceModeRaw,
@@ -465,9 +508,9 @@ final class MatchSetupViewModel: ObservableObject {
             defaultX01StartScore: x01StartScore,
             defaultCheckoutModeRaw: x01CheckoutMode.rawValue,
             defaultCheckInModeRaw: x01CheckInMode.rawValue,
-            defaultLegFormatRaw: x01LegFormat.rawValue,
-            defaultLegsToWin: x01LegsToWin,
-            defaultSetsEnabled: x01SetsEnabled,
+            defaultLegFormatRaw: legFormat.rawValue,
+            defaultLegsToWin: legsToWin,
+            defaultSetsEnabled: setsEnabled,
             botStaggerEnabled: settings.botStaggerEnabled,
             botDartHapticsEnabled: settings.botDartHapticsEnabled,
             updatedAt: Date()
