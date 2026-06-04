@@ -514,3 +514,7 @@
 "play.rules.cricket.cutThroatScore.body" = "Überschüssige Punkte werden Gegnern gutgeschrieben, die das Feld noch nicht geschlossen haben—je mehr Marken, desto mehr Punkte erhalten sie.\n\nWenn das Board vollständig geschlossen ist, endet das Leg. Die niedrigste Punktzahl gewinnt.";
 "play.rules.cricket.noScore.title" = "Ohne Punkte";
 "play.rules.cricket.noScore.body" = "Marken schließen weiterhin Felder, aber es gibt keine Punkte. Das Leg endet, wenn du in deiner Aufnahme alle Felder schließt—du gewinnst das Leg sofort.";
+"app.update.title" = "Update verfügbar";
+"app.update.message" = "Eine neue Version von Dart Buddy ist im App Store.";
+"app.update.update" = "Aktualisieren";
+"app.update.notNow" = "Später";

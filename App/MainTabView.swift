@@ -16,6 +16,8 @@ struct MainTabView: View {
     @State private var selectedTab: RootTab = MainTabView.startupTab
     @State private var pendingPlayResume: MatchSummary?
     @State private var showsActiveMatchBadge = false
+    @State private var appStoreUpdateOffer: AppStoreUpdateOffer?
+    @Environment(\.openURL) private var openURL
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -50,6 +52,21 @@ struct MainTabView: View {
         }
         .preferredColorScheme(preferences.preferredColorScheme)
         .tint(Brand.green)
+        .alert(L10n.updateAvailableTitle, isPresented: appStoreUpdateAlertBinding) {
+            Button(L10n.updateAvailableUpdate) {
+                if let offer = appStoreUpdateOffer {
+                    openURL(offer.storeURL)
+                }
+            }
+            Button(L10n.updateAvailableNotNow, role: .cancel) {
+                if let offer = appStoreUpdateOffer {
+                    AppStoreUpdateChecker().recordDismissal(for: offer)
+                }
+                appStoreUpdateOffer = nil
+            }
+        } message: {
+            Text(L10n.updateAvailableMessage)
+        }
         .task {
             dependencies.logger.debug(
                 .ui,
@@ -57,10 +74,24 @@ struct MainTabView: View {
                 message: "Main tab shell rendered."
             )
             await refreshActiveMatchBadge()
+            if appStoreUpdateOffer == nil {
+                appStoreUpdateOffer = await AppStoreUpdateChecker().checkForUpdate()
+            }
         }
         .onChange(of: selectedTab) { _, _ in
             Task { await refreshActiveMatchBadge() }
         }
+    }
+
+    private var appStoreUpdateAlertBinding: Binding<Bool> {
+        Binding(
+            get: { appStoreUpdateOffer != nil },
+            set: { isPresented in
+                if !isPresented {
+                    appStoreUpdateOffer = nil
+                }
+            }
+        )
     }
 
     private func refreshActiveMatchBadge() async {

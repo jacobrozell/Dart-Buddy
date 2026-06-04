@@ -514,3 +514,7 @@
 "play.rules.cricket.cutThroatScore.body" = "Los puntos de exceso se acreditan a los rivales que no han cerrado ese objetivo: cuantas más marcas, más puntos reciben.\n\nCon el tablero totalmente cerrado, termina la leg. Gana la puntuación más baja.";
 "play.rules.cricket.noScore.title" = "Sin puntuación";
 "play.rules.cricket.noScore.body" = "Las marcas siguen cerrando objetivos, pero no hay puntos. La leg termina cuando cierras todos los objetivos en tu turno: ganas esa leg al instante.";
+"app.update.title" = "Actualización disponible";
+"app.update.message" = "Hay una nueva versión de Dart Buddy en la App Store.";
+"app.update.update" = "Actualizar";
+"app.update.notNow" = "Ahora no";
