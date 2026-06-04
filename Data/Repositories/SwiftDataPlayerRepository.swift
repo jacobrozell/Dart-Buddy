@@ -73,6 +73,47 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         }
     }
 
+    public func createCustomBot(name: String, metrics: CustomBotMetrics) async throws -> PlayerSummary {
+        try dataCall {
+            let context = ModelContext(container)
+            let existing = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
+            let trimmed = normalizeNameForSave(name)
+            let resolvedName = trimmed.isEmpty
+                ? BotNaming.nextCustomBotName(existingNames: existing.map(\.name))
+                : trimmed
+            try validateName(resolvedName, in: context, excludingPlayerId: nil)
+            let now = Date()
+            let record = SchemaV2.PlayerRecord(
+                name: resolvedName,
+                isArchived: false,
+                isBot: true,
+                botDifficultyRaw: metrics.encode(),
+                botKindRaw: BotKind.custom.rawValue,
+                createdAt: now,
+                updatedAt: now
+            )
+            record.avatarStyleRaw = PlayerAvatarStyle.defaultForPlayer(id: record.id, isBot: true).rawValue
+            record.preferredColorToken = PlayerColorToken.defaultForPlayer(id: record.id).rawValue
+            context.insert(record)
+            try context.save()
+            return mapPlayer(record)
+        }
+    }
+
+    public func updateCustomBotMetrics(playerId: UUID, metrics: CustomBotMetrics) async throws -> PlayerSummary {
+        try dataCall {
+            let context = ModelContext(container)
+            let player = try fetchPlayerRecord(id: playerId, in: context)
+            guard player.isBot == true, player.botKindRaw == BotKind.custom.rawValue else {
+                throw customBotError("customBot.error.notCustomBot")
+            }
+            player.botDifficultyRaw = metrics.encode()
+            player.updatedAt = Date()
+            try context.save()
+            return mapPlayer(player)
+        }
+    }
+
     public func updatePlayerName(playerId: UUID, name: String) async throws -> PlayerSummary {
         try dataCall {
             let context = ModelContext(container)
@@ -302,6 +343,16 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     }
 
     private func trainingBotError(_ key: String) -> AppError {
+        AppError(
+            code: .validationFailed,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: key
+        )
+    }
+
+    private func customBotError(_ key: String) -> AppError {
         AppError(
             code: .validationFailed,
             layer: .data,

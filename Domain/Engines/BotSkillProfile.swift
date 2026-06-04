@@ -109,6 +109,38 @@ public struct TrainingBotSkillSnapshot: Codable, Equatable, Sendable {
     }
 }
 
+public struct CustomBotSkillSnapshot: Codable, Equatable, Sendable {
+    public let profile: BotSkillProfile
+    public let x01Average: Double
+    public let cricketMPR: Double
+
+    public init(profile: BotSkillProfile, x01Average: Double, cricketMPR: Double) {
+        self.profile = profile
+        self.x01Average = x01Average
+        self.cricketMPR = cricketMPR
+    }
+
+    public static func encode(_ snapshot: CustomBotSkillSnapshot) throws -> Data {
+        try JSONEncoder().encode(snapshot)
+    }
+
+    public static func decode(from data: Data) throws -> CustomBotSkillSnapshot {
+        try JSONDecoder().decode(CustomBotSkillSnapshot.self, from: data)
+    }
+}
+
+public enum BotSkillProfilePayloadDecoder {
+    public static func profile(from data: Data) -> BotSkillProfile? {
+        if let training = try? TrainingBotSkillSnapshot.decode(from: data) {
+            return training.profile
+        }
+        if let custom = try? CustomBotSkillSnapshot.decode(from: data) {
+            return custom.profile
+        }
+        return nil
+    }
+}
+
 extension BotDifficulty {
     public var skillProfile: BotSkillProfile {
         let display = displayProfile

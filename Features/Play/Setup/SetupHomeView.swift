@@ -15,6 +15,7 @@ struct SetupHomeView: View {
     let onViewCompletedMatch: (UUID) -> Void
     @State private var startTask: Task<Void, Never>?
     @State private var showsGameRules = false
+    @State private var showsCustomBotSheet = false
 
     var body: some View {
         ScrollView {
@@ -81,6 +82,12 @@ struct SetupHomeView: View {
         }
         .sheet(isPresented: $showsGameRules) {
             GameRulesGuideView(initialMode: setupViewModel.mode.matchType)
+        }
+        .sheet(isPresented: $showsCustomBotSheet) {
+            CustomBotCreationSheet { name, metrics in
+                startTask?.cancel()
+                startTask = Task { await setupViewModel.addCustomBot(name: name, metrics: metrics) }
+            }
         }
         .onDisappear { startTask?.cancel() }
     }
@@ -293,7 +300,23 @@ struct SetupHomeView: View {
                         }
                     }
                 }
+                if !setupViewModel.availableCustomBots.isEmpty {
+                    Section(L10n.customBotSetupSection) {
+                        ForEach(setupViewModel.availableCustomBots) { bot in
+                            Button {
+                                setupViewModel.addTrainingBot(bot.id)
+                            } label: {
+                                Text(bot.name)
+                            }
+                        }
+                    }
+                }
                 Section(L10n.addBotTitle) {
+                    Button {
+                        showsCustomBotSheet = true
+                    } label: {
+                        Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                    }
                     ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
                         botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
                     }
@@ -437,6 +460,8 @@ struct SetupHomeView: View {
             Spacer()
             if let difficulty = player.botDifficulty {
                 BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
+            } else if player.isCustomBot, let metrics = player.customBotMetrics {
+                CustomBotBadge(metrics: metrics, prominence: .compact)
             }
             Button {
                 setupViewModel.removeFromSelection(player.id)
@@ -503,6 +528,8 @@ struct SetupHomeView: View {
                 Spacer()
                 if let difficulty = player.botDifficulty {
                     BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
+                } else if player.isCustomBot, let metrics = player.customBotMetrics {
+                    CustomBotBadge(metrics: metrics, prominence: .compact)
                 }
                 Image(systemName: "plus.circle")
                     .foregroundStyle(Brand.green)
