@@ -295,12 +295,18 @@ final class X01MatchViewModel: ObservableObject {
         }
     }
 
-    /// Generates and submits a bot visit when it is the bot's turn.
+    /// Generates and submits bot visits for every consecutive bot in the rotation.
     func playBotTurnIfNeeded() async {
+        while await playSingleBotTurnIfNeeded() {}
+    }
+
+    /// Plays one bot visit. Returns whether another bot may still be up in the same chain.
+    @discardableResult
+    private func playSingleBotTurnIfNeeded() async -> Bool {
         guard let profile = currentBotSkillProfile,
               state == .readyTurn || state == .bustFeedback,
               isBotPlaying == false,
-              let x01State = session?.runtime.x01State else { return }
+              let x01State = session?.runtime.x01State else { return false }
 
         if state == .bustFeedback { acknowledgeBustFeedback() }
         isBotPlaying = true
@@ -331,7 +337,7 @@ final class X01MatchViewModel: ObservableObject {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
             } catch {
-                return
+                return false
             }
             enteredDarts.append(dart)
         }
@@ -339,9 +345,11 @@ final class X01MatchViewModel: ObservableObject {
         do {
             try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
         } catch {
-            return
+            return false
         }
-        await submitTurnAsync()
+        await submitTurnAsync(fromBotPlayback: true)
+        guard session?.runtime.status != .completed else { return false }
+        return currentBotSkillProfile != nil && (state == .readyTurn || state == .bustFeedback)
     }
 
     /// Marks the match abandoned when the player leaves mid-match so it stops
@@ -386,7 +394,7 @@ final class X01MatchViewModel: ObservableObject {
         if state == .bustFeedback { state = .readyTurn }
     }
 
-    private func submitTurnAsync() async {
+    private func submitTurnAsync(fromBotPlayback: Bool = false) async {
         await loadSessionIfNeeded()
         guard let current = session else {
             logger.matchError(
@@ -461,7 +469,7 @@ final class X01MatchViewModel: ObservableObject {
             }
             enteredDarts.removeAll()
             totalEntryText = ""
-            if updated.runtime.status != .completed {
+            if updated.runtime.status != .completed, !fromBotPlayback {
                 await playBotTurnIfNeeded()
             }
         }

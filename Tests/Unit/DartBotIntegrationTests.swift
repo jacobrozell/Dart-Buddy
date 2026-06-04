@@ -288,6 +288,60 @@ func x01ViewModelDetectsActiveBotTurn() throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelPlaysConsecutiveBotsAfterHumanTurn() async throws {
+    let humanId = UUID()
+    let bot1Id = UUID()
+    let bot2Id = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .singleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(playerId: humanId, displayNameAtMatchStart: "Human", turnOrder: 0),
+            MatchParticipant(
+                playerId: bot1Id,
+                displayNameAtMatchStart: BotDifficulty.veryEasy.rosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.veryEasy.rawValue
+            ),
+            MatchParticipant(
+                playerId: bot2Id,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 2,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "60"
+
+    await vm.submitTurn()
+
+    #expect(vm.session?.events.count == 3)
+    #expect(vm.isCurrentPlayerBot == false)
+    #expect(vm.canHumanInput)
+    #expect(!vm.isBotPlaying)
+    #expect(vm.x01State?.currentPlayerIndex == 0)
+}
+
+@MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
 func x01ViewModelBotTurnSubmitsVisit() async throws {
     let humanId = UUID()

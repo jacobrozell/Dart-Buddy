@@ -229,10 +229,15 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     func playBotTurnIfNeeded() async {
+        while await playSingleBotTurnIfNeeded() {}
+    }
+
+    @discardableResult
+    private func playSingleBotTurnIfNeeded() async -> Bool {
         guard let profile = currentBotSkillProfile,
               state == .readyTurn,
               isBotPlaying == false,
-              let cricketState = session?.runtime.cricketState else { return }
+              let cricketState = session?.runtime.cricketState else { return false }
 
         isBotPlaying = true
         defer { isBotPlaying = false }
@@ -257,7 +262,7 @@ final class CricketMatchViewModel: ObservableObject {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
             } catch {
-                return
+                return false
             }
             enteredDarts.append(dart)
         }
@@ -265,9 +270,11 @@ final class CricketMatchViewModel: ObservableObject {
         do {
             try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
         } catch {
-            return
+            return false
         }
-        await submitTurnAsync()
+        await submitTurnAsync(fromBotPlayback: true)
+        guard session?.runtime.status != .completed else { return false }
+        return currentBotSkillProfile != nil && state == .readyTurn
     }
 
     /// Marks the match abandoned when the player leaves mid-match so it stops
@@ -305,7 +312,7 @@ final class CricketMatchViewModel: ObservableObject {
         }
     }
 
-    private func submitTurnAsync() async {
+    private func submitTurnAsync(fromBotPlayback: Bool = false) async {
         await loadSessionIfNeeded()
         guard let current = session else {
             logger.matchError(
@@ -374,7 +381,7 @@ final class CricketMatchViewModel: ObservableObject {
                     try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureTransitionNanoseconds)
                 }
                 state = .readyTurn
-                if updated.runtime.status != .completed {
+                if updated.runtime.status != .completed, !fromBotPlayback {
                     await playBotTurnIfNeeded()
                 }
             }
