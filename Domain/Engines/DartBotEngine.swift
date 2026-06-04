@@ -422,6 +422,45 @@ public enum DartBotEngine {
         return darts
     }
 
+    public static func generateBaseballTurn(
+        targetSegment: Int,
+        phase: BaseballPhase,
+        stretchGateOpen: Bool,
+        seventhInningStretch: Bool,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> [DartInput] {
+        var darts: [DartInput] = []
+        var gateOpen = stretchGateOpen
+        while darts.count < 3 {
+            let intended: DartInput
+            if phase == .bullPlayoff {
+                if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.innerBullAimChance {
+                    intended = DartInput(multiplier: .single, segment: .innerBull)
+                } else {
+                    intended = DartInput(multiplier: .single, segment: .outerBull)
+                }
+            } else if seventhInningStretch, targetSegment == 7, !gateOpen {
+                intended = DartInput(multiplier: .single, segment: .outerBull)
+            } else {
+                intended = baseballDartInput(for: targetSegment, profile: profile, rng: &rng)
+            }
+            let resolved = resolveBaseballDart(
+                intended: intended,
+                targetSegment: targetSegment,
+                phase: phase,
+                profile: profile,
+                rng: &rng
+            )
+            if seventhInningStretch, targetSegment == 7, !gateOpen,
+               resolved.segment == .outerBull || resolved.segment == .innerBull {
+                gateOpen = true
+            }
+            darts.append(resolved)
+        }
+        return darts
+    }
+
     // MARK: - Internals
 
     private static func intendedX01Dart(
@@ -603,7 +642,6 @@ public enum DartBotEngine {
         return DartInput(multiplier: .single, segment: .oneToTwenty(face))
     }
 
-    /// Near-miss that may still clip a Cricket bed, but often wastes the dart.
     private static func cricketPartialMissDart(
         intended: DartInput,
         rng: inout some RandomNumberGenerator
@@ -625,6 +663,55 @@ public enum DartBotEngine {
         case .miss:
             return intended
         }
+    }
+
+    private static func baseballDartInput(
+        for segment: Int,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        let tier = profile.x01.scoringBehaviorTier
+        if tier == .veryEasy || tier == .easy {
+            return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
+        }
+        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.tripleOnOpenChance {
+            return DartInput(multiplier: .triple, segment: .oneToTwenty(segment))
+        }
+        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.doubleOnOpenChance {
+            return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
+        }
+        return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
+    }
+
+    private static func resolveBaseballDart(
+        intended: DartInput,
+        targetSegment: Int,
+        phase: BaseballPhase,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        guard intended.isMiss == false else { return intended }
+
+        let roll = Double.random(in: 0 ... 1, using: &rng)
+        let hitChance = min(0.90, profile.cricketHitChance(intendedMultiplier: intended.multiplier))
+        if roll < hitChance {
+            return intended
+        }
+
+        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.offBoardMissChance {
+            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        }
+
+        if phase == .bullPlayoff {
+            let face = Int.random(in: 1 ... 20, using: &rng)
+            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        }
+
+        let wrongFace = Int.random(in: 1 ... 20, using: &rng)
+        if wrongFace == targetSegment {
+            return DartInput(multiplier: .single, segment: .oneToTwenty(wrongFace))
+        }
+        return DartInput(multiplier: .single, segment: .oneToTwenty(wrongFace))
     }
 
     private static func resolveDart(

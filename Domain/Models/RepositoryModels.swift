@@ -3,6 +3,7 @@ import Foundation
 public enum MatchType: String, Codable, Sendable {
     case x01
     case cricket
+    case baseball
 }
 
 public enum MatchStatus: String, Codable, Sendable {

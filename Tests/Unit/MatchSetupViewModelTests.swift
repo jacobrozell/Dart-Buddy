@@ -96,6 +96,48 @@ func setupValidationRequiresMinimumPlayers() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
+func setupPartyKillerStillBlocksStart() async {
+    let players = [makePlayer("A"), makePlayer("B"), makePlayer("C")]
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.killer)
+    selectAll(players, in: vm)
+
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.partyComingSoon"))
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func setupPartyBaseballBlocksCustomTrainingBots() async {
+    let human = makePlayer("Human")
+    let custom = makeCustomBot("Custom")
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [human, custom]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.baseball)
+    vm.selectedPlayerIds = [human.id, custom.id]
+    vm.revalidate()
+
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.baseballBotsPresetOnly"))
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
 func displayValidationErrorsHidesMinimumPlayersWhenRosterEmpty() async {
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: []),
@@ -346,6 +388,31 @@ func setupBlocksCricketBotWhenPointsOff() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
+func setupPartyBaseballStartRoute() async {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.baseball)
+    vm.togglePlayer(players[0].id)
+    vm.togglePlayer(players[1].id)
+
+    let route = await vm.startMatchRoute()
+    if case .baseballMatch = route {
+        #expect(true)
+    } else {
+        Issue.record("Expected baseball route, got \(String(describing: route))")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupStartRouteUsesSelectedMode() async {
     let players = [makePlayer("A"), makePlayer("B")]
     let vm = MatchSetupViewModel(
@@ -478,6 +545,20 @@ private func selectAll(_ players: [PlayerSummary], in vm: MatchSetupViewModel) {
 
 private func makePlayer(_ name: String) -> PlayerSummary {
     PlayerSummary(id: UUID(), name: name, isArchived: false, createdAt: Date(), updatedAt: Date())
+}
+
+private func makeCustomBot(_ name: String) -> PlayerSummary {
+    let metrics = CustomBotMetrics(x01Average: 45, cricketMPR: 2.0)
+    return PlayerSummary(
+        id: UUID(),
+        name: name,
+        isArchived: false,
+        isBot: true,
+        botDifficultyRaw: metrics.encode(),
+        botKindRaw: BotKind.custom.rawValue,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
 }
 
 private actor FakePlayerRepository: PlayerRepository {

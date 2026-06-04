@@ -38,6 +38,16 @@ public enum TrainingBotSkillResolver {
                 return BotSkillProfileInterpolator.profile(forCricketMPR: target)
             }
             return bumpedEasyProfile(for: .cricket)
+        case .baseball:
+            let playerAvg = breakdown.average3Dart
+            if playerAvg > 0 {
+                let target = min(
+                    max(playerAvg * TrainingBotSkillTuning.x01AvgMultiplier + TrainingBotSkillTuning.x01AvgOffset, playerAvg + TrainingBotSkillTuning.x01MinBump),
+                    TrainingBotSkillTuning.x01MaxAverage
+                )
+                return BotSkillProfileInterpolator.profile(forX01Average: target)
+            }
+            return bumpedEasyProfile(for: .baseball)
         }
     }
 
@@ -47,6 +57,8 @@ public enum TrainingBotSkillResolver {
             return BotSkillProfileInterpolator.profile(forX01Average: 24)
         case .cricket:
             return BotSkillProfileInterpolator.profile(forCricketMPR: 1.35)
+        case .baseball:
+            return BotSkillProfileInterpolator.profile(forX01Average: 24)
         }
     }
 }

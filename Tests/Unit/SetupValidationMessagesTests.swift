@@ -25,6 +25,10 @@ struct SetupValidationMessagesTests {
             SetupValidationMessages.displayKey(for: "setup.validation.invalidSets")
                 == "setup.validation.invalidSets.short"
         )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.partyComingSoon")
+                == "setup.validation.partyComingSoon.short"
+        )
     }
 
     @Test

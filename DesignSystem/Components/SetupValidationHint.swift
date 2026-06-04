@@ -35,6 +35,10 @@ enum SetupValidationMessages {
         case "setup.validation.invalidStartScore": return "setup.validation.invalidStartScore.short"
         case "setup.validation.invalidLegs": return "setup.validation.invalidLegs.short"
         case "setup.validation.invalidSets": return "setup.validation.invalidSets.short"
+        case "setup.validation.partyComingSoon": return "setup.validation.partyComingSoon.short"
+        case "setup.validation.partyMinimumPlayers": return "setup.validation.partyMinimumPlayers.short"
+        case "setup.validation.partyKillerMinimumPlayers": return "setup.validation.partyKillerMinimumPlayers.short"
+        case "setup.validation.baseballBotsPresetOnly": return "setup.validation.baseballBotsPresetOnly.short"
         default: return messageKey
         }
     }

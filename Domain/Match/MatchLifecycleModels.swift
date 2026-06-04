@@ -189,16 +189,19 @@ public struct MatchConfigCricket: Codable, Equatable, Sendable {
 public enum MatchConfigPayload: Codable, Equatable, Sendable {
     case x01(MatchConfigX01)
     case cricket(MatchConfigCricket)
+    case baseball(MatchConfigBaseball)
 
     private enum CodingKeys: String, CodingKey {
         case type
         case x01
         case cricket
+        case baseball
     }
 
     private enum PayloadType: String, Codable {
         case x01
         case cricket
+        case baseball
     }
 
     public init(from decoder: any Decoder) throws {
@@ -209,6 +212,8 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
             self = .x01(try container.decode(MatchConfigX01.self, forKey: .x01))
         case .cricket:
             self = .cricket(try container.decode(MatchConfigCricket.self, forKey: .cricket))
+        case .baseball:
+            self = .baseball(try container.decode(MatchConfigBaseball.self, forKey: .baseball))
         }
     }
 
@@ -221,6 +226,9 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case let .cricket(config):
             try container.encode(PayloadType.cricket, forKey: .type)
             try container.encode(config, forKey: .cricket)
+        case let .baseball(config):
+            try container.encode(PayloadType.baseball, forKey: .type)
+            try container.encode(config, forKey: .baseball)
         }
     }
 }

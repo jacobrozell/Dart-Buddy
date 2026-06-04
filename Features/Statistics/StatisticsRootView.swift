@@ -27,7 +27,11 @@ struct StatisticsRootView: View {
                     BrandRootScreenTitle(title: L10n.statsTitle)
 
                     BrandSegmented(
-                        options: [(MatchType.x01, L10n.string("play.x01.title")), (MatchType.cricket, L10n.string("play.cricket.title"))],
+                        options: [
+                            (MatchType.x01, L10n.string("play.x01.title")),
+                            (MatchType.cricket, L10n.string("play.cricket.title")),
+                            (MatchType.baseball, L10n.string("play.baseball.title"))
+                        ],
                         selection: $viewModel.mode
                     )
 
