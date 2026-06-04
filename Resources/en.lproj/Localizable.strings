@@ -505,6 +505,7 @@
 "scoring.checkout.doubleFormat" = "D%d";
 "scoring.checkout.tripleFormat" = "T%d";
 "stats.sector.bull" = "Bull";
+"stats.sector.inningFormat" = "Inn. %d";
 "stats.chart.axis.average" = "Average";
 "stats.chart.axis.player" = "Player";
 "stats.chart.axis.sector" = "Sector";
@@ -607,6 +608,12 @@
 "play.summary.stat.runs" = "Runs";
 "history.timeline.baseballTurnFormat" = "Inning %d · %@ · +%d runs";
 "history.detail.baseballSummaryFormat" = "%d runs across %d visits";
+"history.detail.lineScore" = "Line score";
+"history.lineScore.playerColumn" = "Player";
+"history.lineScore.totalColumn" = "Tot";
+"history.lineScore.playoffNote" = "Bull playoff runs are not shown in the line score.";
+"history.lineScore.inningRunsFormat" = "Inning %d: %d runs";
+"history.lineScore.rowAccessibilityFormat" = "%@. %@. Total %d runs";
 "play.rules.baseball.overview.title" = "Overview";
 "play.rules.baseball.overview.body" = "Each inning targets one segment (1 through 9). Singles, doubles, and triples on that segment score 1, 2, or 3 runs — not the segment face value.";
 "play.rules.baseball.innings.title" = "Innings";

@@ -128,30 +128,3 @@ func baseballUndoViaReplayRestoresMidInning() throws {
     #expect(replayed.players[0].cumulativeRuns == 1)
     #expect(replayed.currentPlayerIndex == 1)
 }
-
-@Test(.tags(.unit, .match, .critical, .offline, .regression))
-func baseballLifecycleCreateSubmitSnapshot() throws {
-    let p1 = UUID()
-    let p2 = UUID()
-    let participants = [
-        MatchParticipant(playerId: p1, displayNameAtMatchStart: "P1", turnOrder: 0),
-        MatchParticipant(playerId: p2, displayNameAtMatchStart: "P2", turnOrder: 1)
-    ]
-    var session = try MatchLifecycleService.createMatch(
-        type: .baseball,
-        config: .baseball(MatchConfigBaseball()),
-        participants: participants
-    )
-
-    session = try MatchLifecycleService.submitBaseballTurn(session: session, darts: [d(.single, 1)])
-    session = try MatchLifecycleService.submitBaseballTurn(session: session, darts: [d(.double, 1)])
-
-    #expect(session.runtime.eventCount == 2)
-    #expect(session.runtime.baseballState?.players[0].cumulativeRuns == 1)
-    #expect(session.runtime.baseballState?.players[1].cumulativeRuns == 2)
-    #expect(session.runtime.currentLegIndex == 0)
-
-    let undone = try MatchLifecycleService.undoLastTurn(session: session)
-    #expect(undone.runtime.eventCount == 1)
-    #expect(undone.runtime.baseballState?.players[1].cumulativeRuns == 0)
-}

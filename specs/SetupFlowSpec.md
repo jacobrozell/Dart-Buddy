@@ -11,13 +11,15 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 
 ### In Scope (1.0.0)
 - Combined setup surface on Play home (`SetupHomeView` + `MatchSetupViewModel`)
-- Game mode: **X01** or **Cricket**
+- **Standard** category: X01 or Cricket
+- **Party** category: Baseball (v1); Killer/Shanghai coming soon
 - Roster: 2..N players, ordered throw order, optional random order at start
 - X01 options: start score (101–601), legs, sets, leg format (first-to / best-of), checkout (straight / double / master out), check-in (straight / double / master in)
 - Cricket options: points on/off, normal / cut throat, legs, sets, leg format
-- Add preset bot from difficulty menu; add existing Training Partner bots
+- Baseball options (party): innings, tie-breaker, 7th-inning stretch (`BaseballSetupPreferences`)
+- Add preset bot from difficulty menu; add existing Training Partner or custom bots (standard category only; baseball allows preset bots only)
 - Quick-add player when roster empty
-- Prefill from `SettingsRecord` + `CricketSetupPreferences`
+- Prefill from `SettingsRecord` + `CricketSetupPreferences` + `BaseballSetupPreferences`
 - Persist last successful setup to settings / cricket prefs
 - Active-match conflict dialog (abandon + replace)
 
@@ -30,8 +32,10 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 ## 3. UI Specification
 
 ## Layout
-- Mode segmented control (X01 | Cricket)
-- Option chips grid (mode-specific) — see `SetupHomeView+OptionChips`, `SetupHomeView+CricketOptionChips`
+- Category segmented control (Standard | Party)
+- Standard: mode segmented control (X01 | Cricket)
+- Party: game picker (`PartyGamePickerView`) + baseball option chips when Baseball selected
+- Option chips grid (mode-specific) — see `SetupHomeView+OptionChips`, `SetupHomeView+CricketOptionChips`, `SetupHomeView+BaseballOptionChips`
 - Available players list + selected roster with reorder
 - Add Bot menu (preset tiers + training section)
 - Sticky **Start Match** CTA (`safeAreaInset` bottom)
@@ -57,6 +61,7 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 | X01 start score in allowed set | `setup.validation.invalidStartScore` |
 | Legs / sets > 0 when enabled | `setup.validation.invalidLegs`, `setup.validation.invalidSets` |
 | Cricket + any bot + Points Off | `setup.validation.cricketBotUnsupported` |
+| Baseball + training/custom bot | `setup.validation.baseballBotsPresetOnly` |
 
 Minimum-player message hidden while roster completely empty (UX polish).
 
@@ -92,10 +97,10 @@ After successful start, write back defaults (including cricket prefs and sets-en
 1. `revalidate()` → `canStart`
 2. `fetchActiveMatch()` — if exists, show conflict alert (no silent fail)
 3. `performStart()`:
-   - Build `MatchConfigPayload` (versioned) for X01 or Cricket
+   - Build `MatchConfigPayload` (versioned) for X01, Cricket, or Baseball
    - Create `MatchRecord`, participants (snapshots, bot kind, training skill payload)
    - Initialize engine + snapshot
-   - Return `PlayRoute` (`.x01Match` / `.cricketMatch`)
+   - Return `PlayRoute` (`.x01Match` / `.cricketMatch` / `.baseballMatch`)
 
 `confirmReplaceActiveMatch()` abandons prior active match per [`MatchSpec.md`](MatchSpec.md) then starts.
 

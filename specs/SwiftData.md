@@ -307,6 +307,7 @@ Hard rule:
 |------|-----------------|----------|
 | X01 config | `1` | `MatchConfigX01.payloadVersion` |
 | Cricket config | `2` | `MatchConfigCricket.currentPayloadVersion` |
+| Baseball config | `1` | `MatchConfigBaseball.currentPayloadVersion` |
 | Match snapshot wrapper | `1` | `MatchLifecycleModels` |
 | Event payloads | per `eventTypeRaw` | engines + coders |
 

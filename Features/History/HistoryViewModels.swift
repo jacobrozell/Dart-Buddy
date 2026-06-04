@@ -315,11 +315,13 @@ final class HistoryDetailViewModel: ObservableObject {
     @Published private(set) var throwsRows: [ThrowStatRow] = []
     @Published private(set) var breakdowns: [PlayerStatBreakdown] = []
     @Published private(set) var matchType: MatchType = .x01
+    @Published private(set) var lineScore: BaseballLineScore?
     private let matchId: UUID
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
 
     var isX01: Bool { matchType == .x01 }
+    var isBaseball: Bool { matchType == .baseball }
 
     var resultAccessibilitySummary: String {
         let players = standings.map { standing in
@@ -396,6 +398,11 @@ final class HistoryDetailViewModel: ObservableObject {
                 envelopes: envelopes,
                 participantNames: participantNames
             )
+            lineScore = await buildLineScore(
+                match: match,
+                participants: participants,
+                envelopes: envelopes
+            )
             breakdowns = StatsService.breakdowns(
                 from: [
                     MatchStatsInput(
@@ -416,6 +423,36 @@ final class HistoryDetailViewModel: ObservableObject {
             state = "error"
             errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
         }
+    }
+
+    private func buildLineScore(
+        match: MatchSummary,
+        participants: [MatchParticipantSummary],
+        envelopes: [MatchEventEnvelope]
+    ) async -> BaseballLineScore? {
+        guard match.type == .baseball else { return nil }
+        var scheduledInningCount = 9
+        if let snapshot = try? await matchRepository.fetchLatestSnapshot(matchId: match.id),
+           let runtime = try? CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.snapshotPayload),
+           let baseball = runtime.baseballState {
+            scheduledInningCount = baseball.config.inningCount
+        }
+        let turns = envelopes.compactMap { envelope -> BaseballTurnEvent? in
+            if case let .baseballTurn(turn) = envelope.payload { return turn }
+            return nil
+        }
+        let roster = participants.map { participant in
+            (
+                playerId: participant.playerId ?? participant.id,
+                name: MatchConfigText.playerName(participant.displayNameAtMatchStart),
+                turnOrder: participant.turnOrder
+            )
+        }
+        return BaseballLineScoreBuilder.build(
+            turns: turns,
+            participants: roster,
+            scheduledInningCount: scheduledInningCount
+        )
     }
 
     private func buildHeader(

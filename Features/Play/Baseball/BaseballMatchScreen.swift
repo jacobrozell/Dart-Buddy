@@ -56,6 +56,7 @@ struct BaseballMatchScreen: View {
                             currentInning: state.currentInning,
                             isExtraInning: state.isExtraInning
                         )
+                        .accessibilityIdentifier("baseball_inning_strip")
                         stateBanner
                     }
                     .padding(.horizontal, DS.Spacing.s4)

@@ -55,6 +55,25 @@ func mapsUndoToSpecEventName() {
 }
 
 @Test(.tags(.unit, .logging, .regression))
+func mapsBaseballSetupEvent() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "match_setup_baseball",
+        message: "Starting baseball.",
+        metadata: ["matchType": "baseball", "participantCount": "3"],
+        correlationId: nil
+    )
+
+    let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: "1.0.0")
+
+    #expect(event?.name == "match_setup_baseball")
+    #expect(event?.parameters["matchType"] == "baseball")
+    #expect(event?.parameters["participantCount"] == "3")
+}
+
+@Test(.tags(.unit, .logging, .regression))
 func dropsNonAllowlistedEvents() {
     let entry = LogEntry(
         timestamp: Date(),

@@ -203,7 +203,7 @@ public enum StatsService {
                     entry.points += turn.runsThisVisit
                     entry.darts += turn.darts.count
                     for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
+                        entry.hitsBySector[HitsBySectorKeys.key(for: dart, turn: turn), default: 0] += 1
                         guard !dart.wasMiss else { continue }
                         if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
                         if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
@@ -300,6 +300,17 @@ public enum StatsService {
 
         static func key(for dart: BaseballDartEvent) -> String {
             dart.wasMiss ? miss : normalized(dart.segmentRaw)
+        }
+
+        static func key(for dart: BaseballDartEvent, turn: BaseballTurnEvent) -> String {
+            if dart.wasMiss { return miss }
+            if turn.phase == .bullPlayoff {
+                return key(for: dart)
+            }
+            if dart.runsAwarded > 0 {
+                return String(turn.inning)
+            }
+            return miss
         }
 
         private static func normalized(_ raw: String) -> String {

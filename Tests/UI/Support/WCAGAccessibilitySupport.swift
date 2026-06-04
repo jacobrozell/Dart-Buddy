@@ -200,6 +200,25 @@ extension XCTestCase {
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
     }
 
+    func startTwoPlayerBaseballMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        ensurePlayTab(app, timeout: timeout)
+        app.buttons["setup_category_party"].tap()
+        assertInteractiveElement(app.buttons["setup_baseballInningsChip"], identifier: "setup_baseballInningsChip", timeout: timeout)
+        assertInteractiveElement(app.buttons["setup_baseballTieBreakerChip"], identifier: "setup_baseballTieBreakerChip", timeout: timeout)
+        let baseball = app.buttons["setup_party_game_baseball"]
+        if baseball.waitForExistence(timeout: timeout) {
+            baseball.tap()
+        }
+        selectAliceAndBob(from: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        XCTAssertTrue(app.otherElements["baseball_match_header"].waitForExistence(timeout: timeout))
+        assertInteractiveElement(app.buttons["baseball_submit"], identifier: "baseball_submit", timeout: timeout)
+        assertInteractiveElement(app.buttons["baseball_undo"], identifier: "baseball_undo", timeout: timeout)
+        assertInteractiveElement(app.otherElements["baseball_inning_strip"], identifier: "baseball_inning_strip", timeout: timeout)
+    }
+
     func configureQuickX01Match(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         let startScore = app.buttons["setup_startScoreChip"]
         XCTAssertTrue(startScore.waitForExistence(timeout: timeout))

@@ -52,6 +52,7 @@ Key rule:
 - **In-app language picker (post-1.0):** Settings override of `Locale`; feature specs remain locale-agnostic (describe behavior, not language). Picker must not break `LocalizationParityTests` key coverage.
 - Future waves: additional locales per backlog; same key-parity gate.
 - Prioritize strings used in core gameplay first when adding locales.
+- Baseball party mode keys: `play.baseball.*`, `play.party.baseball.*`, `history.detail.baseballSummaryFormat`, `history.timeline.baseballTurnFormat`, `history.detail.lineScore*` (see [`BaseballGameSpec.md`](BaseballGameSpec.md)).
 - Include localization QA and pseudo-localization in CI checks.
 
 ---

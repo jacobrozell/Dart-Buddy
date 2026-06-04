@@ -1,7 +1,7 @@
 # Match Specification
 
 ## 1. Purpose
-Define match lifecycle behavior shared by X01 and Cricket: setup, active play state, completion, persistence, resume, and history integrity.
+Define match lifecycle behavior shared by X01, Cricket, and Baseball: setup, active play state, completion, persistence, resume, and history integrity.
 
 ---
 
@@ -9,7 +9,7 @@ Define match lifecycle behavior shared by X01 and Cricket: setup, active play st
 
 ### In Scope (1.0.0)
 - Create match from setup flow
-- Support X01 and Cricket match types
+- Support X01, Cricket, and Baseball match types
 - Persist in-progress and completed matches locally
 - Resume one in-progress match from Play tab
 - Complete match and write summary data
@@ -24,7 +24,7 @@ Define match lifecycle behavior shared by X01 and Cricket: setup, active play st
 ## 3. Tech Stack and Architecture
 - `SwiftUI` feature module under `Features/Play`
 - `MatchDomain` service for generic lifecycle state
-- Mode-specific engines (`X01Engine`, `CricketEngine`)
+- Mode-specific engines (`X01Engine`, `CricketEngine`, `BaseballEngine`)
 - `MatchRepository` protocol + SwiftData implementation
 - Event-sourced scoring timeline with snapshot checkpoints for fast resume
 
@@ -41,7 +41,7 @@ This section is conceptual and must not diverge from those sources.
 ## Core Entities
 - `MatchRecord`
   - `id: UUID`
-  - `type: MatchType` (`x01`, `cricket`)
+  - `type: MatchType` (`x01`, `cricket`, `baseball`)
   - `status: MatchStatus` (`notStarted`, `inProgress`, `completed`, `abandoned`)
   - `startedAt: Date`
   - `endedAt: Date?`
@@ -158,7 +158,7 @@ See [`MatchSummarySpec.md`](MatchSummarySpec.md) for the dedicated post-match sc
 ---
 
 ## 10. Accessibility verification
-- In-match: [`x01-match.md`](../accessibility/wcag-2.1-aa/screens/x01-match.md), [`cricket-match.md`](../accessibility/wcag-2.1-aa/screens/cricket-match.md)
+- In-match: [`x01-match.md`](../accessibility/wcag-2.1-aa/screens/x01-match.md), [`cricket-match.md`](../accessibility/wcag-2.1-aa/screens/cricket-match.md), [`baseball-match.md`](../accessibility/wcag-2.1-aa/screens/baseball-match.md)
 
 ## 11. Analytics
 §12 — `match_started`, `match_completed`, `match_abandoned`, `turn_submitted`, `turn_persist_failed`, undo events.

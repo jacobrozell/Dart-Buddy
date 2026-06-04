@@ -28,7 +28,7 @@ struct SectorHitsChart: View {
             } else {
                 Chart(hits) { hit in
                     BarMark(
-                        x: .value(L10n.string("stats.chart.axis.sector"), StatsSectorOrder.label(hit.sector)),
+                        x: .value(L10n.string("stats.chart.axis.sector"), StatsSectorOrder.label(hit.sector, mode: mode)),
                         y: .value(L10n.string("stats.chart.axis.hits"), hit.count)
                     )
                     .foregroundStyle(Brand.green)
@@ -46,7 +46,7 @@ struct SectorHitsChart: View {
     }
 
     private var sectorAccessibilityValue: String {
-        hits.map { "\(StatsSectorOrder.label($0.sector)): \($0.count)" }.joined(separator: ", ")
+        hits.map { "\(StatsSectorOrder.label($0.sector, mode: mode)): \($0.count)" }.joined(separator: ", ")
     }
 }
 
