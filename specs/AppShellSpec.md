@@ -38,7 +38,7 @@ Define root app composition: launch behavior, tab structure, routing entry point
 ---
 
 ## 5. Global Error/Recovery
-- Migration failure routes to recovery screen:
+- Migration failure routes to recovery screen — see [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md):
   - Retry
   - Export diagnostics
   - Reset local data (last resort)

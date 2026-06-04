@@ -7,6 +7,7 @@ Define Cricket gameplay rules, board UI, input model, and persistence for the iP
 
 ## 2. MVP Scope
 - Standard Cricket targets: `20,19,18,17,16,15,bull`
+- **Cut Throat** scoring mode (lowest total wins when points on) — shipped; historical note in `FutureIdeas/cut-throat-cricket.md` points here
 - 2..N players
 - Mark-based input
 - Point overflow scoring when opponents have not closed target
@@ -14,7 +15,7 @@ Define Cricket gameplay rules, board UI, input model, and persistence for the iP
 - Local-only persistence with turn + dart granularity
 - Shared input component: see `specs/ScoringInputSpec.md`
 - Setup chips: Points On/Off, Normal/Cut Throat, Set/Leg format, Sets, Legs (`MatchConfigCricket` payload v2)
-- Bot matches: Points On required; scoring modes Normal and Cut Throat supported (Points Off bots deferred)
+- Bot matches: Points On required; scoring modes Normal and Cut Throat supported (Points Off bots deferred) — see [`BotOpponentSpec.md`](BotOpponentSpec.md)
 
 ---
 
@@ -116,7 +117,22 @@ Single-leg Normal + Points On: same as “Points On” with one leg — match co
 
 ---
 
-## 8. Future Improvements
+## 8. Accessibility verification
+- Manual: [`cricket-match.md`](../accessibility/wcag-2.1-aa/screens/cricket-match.md)
+
+## 9. Analytics
+§12 — same match/turn events as X01; `cricket_abandon_failed` on Crashlytics.
+
+## 10. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-04 |
+| **Commit** | `0c25396` |
+| **Code** | `CricketEngine.swift`, `CricketMatchViewModel.swift` |
+
+---
+
+## 11. Future Improvements
 - Fast batch entry for full turn (3 darts at once)
-- Cricket variants (cut-throat, no-score variants)
+- Additional Cricket variants (no-score formats, Points Off bot matches)
 - Live throw quality metrics and closure-speed charts

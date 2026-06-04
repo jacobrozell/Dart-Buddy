@@ -13,7 +13,7 @@ Define the concrete technical stack for 1.0.0, including which Swift Package Man
 - Testing:
   - Primary: `Swift Testing` (`Testing` module) for unit/integration
   - Legacy/interoperability: `XCTest` where needed
-  - UI automation: `XCUITest` (future phase, post-UI-lock)
+  - UI automation: `XCUITest` (CI smoke + WCAG + localization launch suites; broader matrix post-1.0)
 - Future companion target: `watchOS` app using `WatchConnectivity`
 
 All of the above are Apple-native and require no external SPM packages.

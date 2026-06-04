@@ -2,6 +2,8 @@
 
 Use this checklist before release candidates and after major refactors to verify core app behavior has not regressed.
 
+**Authoritative flows:** [`README.md`](README.md) § Feature Specs — especially [`PlayHomeSpec.md`](PlayHomeSpec.md), [`SetupFlowSpec.md`](SetupFlowSpec.md), [`MatchSpec.md`](MatchSpec.md), [`X01GameSpec.md`](X01GameSpec.md), [`CricketSpec.md`](CricketSpec.md), [`HistorySpec.md`](HistorySpec.md), [`StatisticsTabSpec.md`](StatisticsTabSpec.md), [`SettingsSpec.md`](SettingsSpec.md).
+
 ## Scope
 
 - Covers critical end-to-end user flows.
@@ -66,7 +68,7 @@ Expected:
 
 ## C. Start + Play X01 Match
 
-1. Go to `Play` and tap `Start New Match`.
+1. Go to `Play` (setup is on the home screen).
 2. In setup:
    - Mode: `X01`
    - Start score: `301` or `501`
@@ -127,7 +129,17 @@ Expected:
 1. Go to `Statistics`.
 2. Verify games table and filter controls (mode, date range).
 3. Change mode filter; confirm table updates.
-4. If partial stats exist, verify banner copy (see `specs/StatsSpec.md`).
+4. If partial stats exist, verify banner copy (see [`StatisticsTabSpec.md`](StatisticsTabSpec.md), [`StatsSpec.md`](StatsSpec.md)).
+
+## F2. Training Partner + Cut Throat (optional RC)
+
+1. Player with 5+ completed X01 games → create Training Partner on Player Detail.
+2. Add partner from Play setup Add Bot menu; start short X01 match.
+3. Cricket setup → Cut Throat + Points On + bot → start; confirm bot throws ([`BotOpponentSpec.md`](BotOpponentSpec.md)).
+
+## F3. Migration recovery (manual, pre-submit)
+
+1. Follow [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) and `docs/release/todo.md` migration smoke.
 
 Expected:
 

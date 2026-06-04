@@ -6,7 +6,7 @@ Define stat computation, storage strategy, and chart-readiness for MVP and futur
 ---
 
 ## 2. Product Constraints
-- MVP surfaces simple stats in Players and History
+- MVP surfaces simple stats in Players, History, and the Statistics tab (UI: [`StatisticsTabSpec.md`](StatisticsTabSpec.md))
 - Must capture enough raw data now to avoid schema rework later
 - No cloud sync in 1.0.0
 - All calculations must be deterministic from local events
@@ -96,7 +96,19 @@ Recommended aggregate tables:
 
 ---
 
-## 9. Future Improvements (Post-1.0.0)
+## 9. Accessibility verification
+- Statistics tab UI: [`StatisticsTabSpec.md`](StatisticsTabSpec.md) and [`statistics.md`](../accessibility/wcag-2.1-aa/screens/statistics.md)
+
+## 10. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-04 |
+| **Commit** | `0c25396` |
+| **Code** | `StatsService.swift`, `MatchStatsLoader.swift` |
+
+---
+
+## 11. Future Improvements (Post-1.0.0)
 - Swift Charts dashboards:
   - X01 average trend over time
   - win rate trend

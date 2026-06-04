@@ -48,9 +48,8 @@ Key rule:
 ---
 
 ## 6. Language Expansion Plan (Future)
-- Wave 1: German (`de`) — complete `Localizable.strings` parity with English.
-- Wave 2: Spanish (`es`) — complete `Localizable.strings` parity with English.
-- Wave 3: Dutch (`nl`) — complete `Localizable.strings` parity with English.
+- Waves 1–3 (`de`, `es`, `nl`) — shipped; see §2.
+- **In-app language picker (post-1.0):** Settings override of `Locale`; feature specs remain locale-agnostic (describe behavior, not language). Picker must not break `LocalizationParityTests` key coverage.
 - Future waves: additional locales per backlog; same key-parity gate.
 - Prioritize strings used in core gameplay first when adding locales.
 - Include localization QA and pseudo-localization in CI checks.

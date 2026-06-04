@@ -117,6 +117,7 @@ Validation feedback:
 ## 5.3 Player Detail Screen
 Sections:
 - Identity card (name/avatar/color)
+- **Training Partner** (humans only) — progress, create bot, practice shortcuts — see [`TrainingBotSpec.md`](TrainingBotSpec.md)
 - Lifetime summary stats
 - Recent matches (last N)
 - Management actions:
@@ -256,7 +257,19 @@ Rationale: deleting referenced identities can corrupt stats/history semantics.
 
 ---
 
-## 13. Future Improvements (Post-1.0.0)
+## 13. Accessibility verification
+- Manual: [`players-list.md`](../accessibility/wcag-2.1-aa/screens/players-list.md), [`player-detail.md`](../accessibility/wcag-2.1-aa/screens/player-detail.md), [`player-edit.md`](../accessibility/wcag-2.1-aa/screens/player-edit.md)
+
+## 14. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-04 |
+| **Commit** | `0c25396` |
+| **Code** | `PlayersRootView.swift`, `PlayerDetailView.swift`, `PlayersViewModels.swift` |
+
+---
+
+## 15. Future Improvements (Post-1.0.0)
 - Soft merge duplicates (combine two player identities safely)
 - Expanded profile metadata (handedness, preferred game mode, league tags)
 - Player-level streaks and advanced trend metrics
@@ -271,7 +284,7 @@ Rationale: deleting referenced identities can corrupt stats/history semantics.
 
 ---
 
-## 14. Open Questions for Adjacent Specs
+## 16. Open Questions for Adjacent Specs
 - Should archived players appear in history filters by default or behind a toggle?
 - Should hard delete ever be user-exposed, or only internal/debug?
 - Which exact X01 average formula is canonical for all views?

@@ -33,7 +33,7 @@ Work through [`release_checklist.md`](release_checklist.md) §8–§11.
 - [ ] **App icon finalization** — `Resources/Media.xcassets` / `assets/app-icons/`
 - [ ] **App Store listing** — Name, subtitle, keywords, category, age rating, **support URL**, **privacy policy URL** (`../../specs/AppStoreConnectSpec.md`).
 - [ ] **Privacy disclosure** — Hosted privacy policy + App Store privacy labels match app behavior (local-first, Firebase Analytics/Crashlytics in Release, no ads/tracking); validate against `Phase06-Security-Privacy-Checklist.md`.
-- [ ] **Marketing screenshots** — X01, Cricket, setup, history, stats (§8 of `AppStoreConnectSpec`; separate from smoke evidence).
+- [ ] **Marketing screenshots** — X01, Cricket, setup, history, stats (§8 of `AppStoreConnectSpec`; separate from smoke evidence). Include `de`/`es`/`nl` device-language captures if localized listings ship in 1.0 (`LocalizationSpec` § App Store Connect).
 - [ ] **Release build sanity** — Release config drops debug verbosity; no sensitive data in logs.
 - [ ] **Release notes** — Finalize from `../../roadmap/release/Release-Notes-Template.md`; tag RC build.
 
@@ -72,7 +72,7 @@ Do not block 1.0 on these.
 ### Deferred product
 
 - [ ] **X01 total-score entry toggle** — Keep per-dart entry.
-- [ ] **Cricket setup variants** — Cut Throat etc. (`CricketSpec` MVP is standard only).
+- [ ] **Cricket setup variants (post-1.0)** — No-score / other formats beyond shipped Normal + Cut Throat (`CricketSpec` §8).
 - [ ] **Bust / leg / set animations** — Covered by match feedback banners; full motion pass still post-1.0.
 - [ ] **iPad / landscape layouts** — Max-width polish only; no two-column match layout.
 - [ ] **Snapshot tests** — After UI lock.
@@ -90,7 +90,7 @@ Do not block 1.0 on these.
 
 ### Post-1.0 roadmap
 
-- [ ] **Product backlog** — [`FutureIdeas/backlog.md`](../../FutureIdeas/backlog.md) (CSV export on recovery, a11y gameplay layout, Edit Player colors/symbols, bot names/colors, custom bots, more game types, DE/NL localization).
+- [ ] **Product backlog** — [`FutureIdeas/backlog.md`](../../FutureIdeas/backlog.md) (CSV export on recovery, a11y gameplay layout, Edit Player colors/symbols, bot names/colors, custom bots, more game types, additional locales).
 - [ ] **Game Center achievements** — [`FutureIdeas/achievements.md`](FutureIdeas/achievements.md) (2–4 day MVP; good 1.1 candidate).
 - [ ] **Play reminders / push** — [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) (local notifications + Settings; 1–2 day MVP).
 - [ ] **Firebase Auth** — `../../specs/FirebaseBackendAnalyticsSpec.md` Phase 2
@@ -156,7 +156,7 @@ Work below is **blocked on your call** — not just time on device. Everything e
 |----------|--------|
 | **First 1.1 feature** | Game Center achievements vs play reminders vs other (`FutureIdeas/`). |
 | **X01 total-score entry** | Currently deferred; per-dart only for 1.0. |
-| **Cricket variants** | Standard only for 1.0; Cut Throat etc. later. |
+| **Cricket variants** | Normal + Cut Throat shipped for 1.0; other formats (e.g. no-score) post-1.0. |
 
 ### Conditional (only if QA / RC finds issues)
 

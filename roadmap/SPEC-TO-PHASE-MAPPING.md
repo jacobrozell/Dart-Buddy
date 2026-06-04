@@ -1,5 +1,7 @@
 # Spec to Phase Mapping (1.0.0)
 
+> **Superseded for day-to-day work.** Current product behavior and spec ownership live in [`specs/README.md`](../specs/README.md) (Feature Specs) and [`specs/SpecGovernance.md`](../specs/SpecGovernance.md) §5 coverage checklist. Keep this file for historical phase traceability only.
+
 Use this file to verify every spec is either implemented in `1.0.0` phases or explicitly deferred.
 
 ## Core Implementation Specs
@@ -15,13 +17,11 @@ Use this file to verify every spec is either implemented in `1.0.0` phases or ex
 - `LoggingSpec` + `ErrorModelSpec` + `FeatureFlagConfigSpec` + `SecurityPrivacySpec` -> Phases 00, 01, 06
 
 ## Feature Specs (MVP)
-- `SetupFlowSpec` -> Phase 03
-- `MatchSpec` -> Phases 02, 04
-- `X01GameSpec` + `CricketSpec` + `ScoringInputSpec` -> Phases 02, 04
-- `PlayerSpec` + `HistorySpec` + `StatsSpec` + `SettingsSpec` -> Phase 04 (with test hardening in Phase 06)
+- See [`specs/README.md`](../specs/README.md) § Feature Specs for the current list (`PlayHomeSpec`, `BotOpponentSpec`, `TrainingBotSpec`, `StatisticsTabSpec`, `MigrationRecoverySpec`, `QuickAddPlayerSpec`, etc.)
+- Historical phase mapping: `SetupFlowSpec` -> Phase 03; `MatchSpec` -> Phases 02, 04; gameplay specs -> Phases 02, 04; players/history/stats/settings -> Phase 04
 
 ## Future / Explicitly Deferred Specs
-- `FirebaseBackendAnalyticsSpec` -> post-1.0 phases only
+- `FirebaseBackendAnalyticsSpec` -> Phase 1 Analytics/Crashlytics shipped in 1.0; Auth/Firestore still post-1.0
 - `AppleWatchCompanionSpec` -> post-1.0 phases only
 - `AutoScoringVisionSpec` -> post-1.0 phases only
 - `OnlinePlaySpec` -> post-1.0 phases only

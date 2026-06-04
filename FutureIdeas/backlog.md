@@ -51,7 +51,7 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 | Idea | Notes |
 |------|--------|
-| **Additional languages** | Expand beyond English per [`specs/LocalizationSpec.md`](../specs/LocalizationSpec.md). **Priority:** German (large market), Dutch. |
+| **Additional languages** | `de`, `es`, and `nl` shipped (system locale). Next waves per [`specs/LocalizationSpec.md`](../specs/LocalizationSpec.md) — in-app language picker, pseudo-localization in CI, RTL readiness. |
 
 ---
 

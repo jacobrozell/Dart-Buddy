@@ -86,7 +86,22 @@ Implementation note:
 
 ---
 
-## 8. Future Improvements
+## 8. Accessibility verification
+- Manual: [`settings.md`](../accessibility/wcag-2.1-aa/screens/settings.md)
+
+## 9. Analytics
+§12 — `settings_seeded` (log-only).
+
+## 10. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-04 |
+| **Commit** | `0c25396` |
+| **Code** | `SettingsRootView.swift`, `SettingsViewModel.swift` |
+
+---
+
+## 11. Future Improvements
 - Backup/export settings profile
 - Separate advanced gameplay rules section
 - Diagnostic mode toggle for internal builds

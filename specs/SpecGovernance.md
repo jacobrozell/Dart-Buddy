@@ -22,11 +22,13 @@ Prevent spec drift, duplication conflicts, and ambiguous ownership so implementa
 - UI wireframes and behavior contracts:
   - `specs/UIBlueprintSpec.md` (authoritative)
 - UI screen state/event/data implementation contracts:
-  - `specs/UIImplementationSpec.md` (authoritative)
+  - `specs/UIImplementationSpec.md` (cross-screen conventions + §3 index only; per-screen behavior in feature specs)
 - Localization and string key policy:
   - `specs/LocalizationSpec.md` (authoritative)
 - Feature behavior:
-  - Feature specs (`X01GameSpec`, `CricketSpec`, `PlayerSpec`, etc.) are authoritative only for feature UX/rules.
+  - Feature specs in [`specs/README.md`](README.md) § Feature Specs are authoritative for feature UX/rules (e.g. `PlayHomeSpec`, `BotOpponentSpec`, `TrainingBotSpec`, `StatisticsTabSpec`, `MigrationRecoverySpec`).
+- Migration recovery UX (not schema policy):
+  - `specs/MigrationRecoverySpec.md` (authoritative)
 - Cross-cutting test policy:
   - `specs/TestPlanSpec.md` (authoritative)
 - Swift Testing tag taxonomy and CI filtering policy:
@@ -97,11 +99,55 @@ Full table with QA gates: [`README.md`](../README.md#documentation-map).
   - `specs/FeatureFlagConfigSpec.md`
 - Any error taxonomy or mapping contract change must update:
   - `specs/ErrorModelSpec.md`
+- Any user-visible feature behavior change must update the matching feature spec in [`specs/README.md`](README.md) § Feature Specs and bump that spec’s **Verification** table (date + commit).
+- Any new Firebase Analytics or Crashlytics event must update:
+  - `specs/FirebaseBackendAnalyticsSpec.md` §12
+  - `Support/Logging/FirebaseAnalyticsEventMapping.swift` and/or `FirebaseCrashlyticsEventMapping.swift`
+  - mapping unit tests
 
 ---
 
-## 5. Agent Safety Checklist
+## 4.1 Pull request rules (feature + telemetry)
+
+1. **Behavior change** → update the authoritative feature spec; do not only update `UIImplementationSpec` or `UIBlueprintSpec`.
+2. **New screen or tab** → add row to `UIImplementationSpec.md` §3 index + feature spec + optional `accessibility/wcag-2.1-aa/screens/<screen>.md`.
+3. **New localization keys** → all four `Localizable.strings` files (`LocalizationSpec.md` §7).
+4. **New Analytics/Crashlytics event** → §12 catalog + allowlist + tests (same PR).
+5. **Schema change** → `SwiftData.md` + `DataSchemaSpec.md` + affected feature specs (no full field dumps in feature specs).
+
+---
+
+## 5. Feature spec coverage checklist
+
+Audit after major releases or quarterly. Set **Last verified** to audit date and **Commit** to `git rev-parse --short HEAD`.
+
+| Feature area | Spec | Primary code paths |
+|--------------|------|-------------------|
+| Play home | `PlayHomeSpec.md` | `PlayHomeViewModel`, `SetupHomeView` (resume/recents) |
+| Match setup | `SetupFlowSpec.md` | `MatchSetupViewModel`, setup chip extensions |
+| Quick add player | `QuickAddPlayerSpec.md` | `QuickAddPlayerScreen`, `PendingMatchPlayerSelections` |
+| Scoring input | `ScoringInputSpec.md` | `ScoringInputPad`, shared gameplay chrome |
+| Match lifecycle | `MatchSpec.md` | `MatchLifecycleService`, repositories |
+| Match summary | `MatchSummarySpec.md` | `MatchSummaryScreen`, `MatchSummaryViewModel` |
+| X01 | `X01GameSpec.md` | `X01Engine`, `X01MatchViewModel` |
+| Cricket | `CricketSpec.md` | `CricketEngine`, `CricketMatchViewModel` |
+| Scoring input | `ScoringInputSpec.md` | `ScoringInputPad`, dart entry |
+| Preset bots | `BotOpponentSpec.md` | `DartBotEngine`, `BotDifficulty` |
+| Training bots | `TrainingBotSpec.md` | `TrainingBotSkillResolver`, Player Detail |
+| Players | `PlayerSpec.md` | `PlayersRootView`, `PlayerDetailView` |
+| History | `HistorySpec.md` | `HistoryRootView`, detail screen |
+| Stats math | `StatsSpec.md` | `StatsService`, aggregates |
+| Statistics tab | `StatisticsTabSpec.md` | `StatisticsRootView`, `StatisticsViewModel` |
+| Settings | `SettingsSpec.md` | `SettingsRootView`, `SettingsViewModel` |
+| Migration recovery | `MigrationRecoverySpec.md` | `MigrationRecoveryView`, `AppBootstrapper` |
+| App shell | `AppShellSpec.md` | `DartBuddyApp`, `MainTabView` |
+| Telemetry | `FirebaseBackendAnalyticsSpec.md` §12 | `Firebase*EventMapping.swift` |
+
+---
+
+## 6. Agent Safety Checklist
 Before implementation:
 1. Confirm there is no conflict with authoritative specs.
 2. If conflict exists, resolve spec conflict first.
 3. Document assumptions in PR notes when spec is silent.
+4. After implementation, update feature spec + §5 checklist row if behavior changed.

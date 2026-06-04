@@ -75,7 +75,19 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 
 ---
 
-## 8. Future Improvements
+## 8. Accessibility verification
+- Manual: [`history-list.md`](../accessibility/wcag-2.1-aa/screens/history-list.md), [`history-detail.md`](../accessibility/wcag-2.1-aa/screens/history-detail.md)
+
+## 9. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-04 |
+| **Commit** | `0c25396` |
+| **Code** | `HistoryRootView.swift`, `MatchHistoryDetailScreen.swift` |
+
+---
+
+## 10. Future Improvements
 - Full advanced filter builder
 - Export match history (JSON/CSV/PDF)
 - Shareable summary cards
