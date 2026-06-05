@@ -14,6 +14,7 @@ xcodebuild test-without-building \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
   -destination "$DESTINATION" \
+  -parallel-testing-enabled NO \
   -derivedDataPath DerivedData \
   -clonedSourcePackagesDirPath "./${PACKAGES_ROOT}/cloned_sources" \
   -packageCachePath "$(pwd)/${PACKAGES_ROOT}/cache" \

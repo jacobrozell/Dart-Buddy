@@ -73,9 +73,8 @@ struct CricketBoardColumnLayout: Equatable {
 
         let playerArea = max(0, availableWidth - targetColumnWidth)
         let minimumTotal = minimumPlayerColumnWidth * CGFloat(playerCount)
-        let equalSplit = playerArea / CGFloat(playerCount)
 
-        if playerCount > scrollThreshold || equalSplit < minimumPlayerColumnWidth {
+        if playerCount > scrollThreshold || minimumTotal > playerArea {
             return CricketBoardColumnLayout(
                 scrollsHorizontally: true,
                 fixedPlayerColumnWidth: minimumPlayerColumnWidth

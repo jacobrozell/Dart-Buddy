@@ -155,9 +155,10 @@ extension SetupHomeView {
             // Chips use solid bright brand fills; dark ink keeps the value legible in dark mode
             // where adaptive white text would fail AA. Light mode is unchanged.
             .foregroundStyle(Brand.textPrimary)
-            .lineLimit(1)
+            .lineLimit(2)
             .minimumScaleFactor(0.6)
-            .frame(maxWidth: .infinity, minHeight: dynamicTypeSize.isAccessibilitySize ? 56 : 48)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, minHeight: dynamicTypeSize.isAccessibilitySize ? 56 : 52)
             .padding(.horizontal, 4)
             .background(color, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             .overlay(alignment: .topTrailing) {

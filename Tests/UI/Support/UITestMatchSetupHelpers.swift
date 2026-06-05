@@ -52,12 +52,21 @@ extension DartBuddyUITestCase {
 
     func selectPlayerFromRoster(_ name: String, in app: XCUIApplication) {
         let button = app.buttons["select_\(name)"]
-        for _ in 0 ..< 4 where button.exists == false {
-            app.swipeUp()
-        }
+        let start = app.buttons["startMatchButton"]
         XCTAssertTrue(
             button.waitForExistence(timeout: timeout),
             "Expected roster row for \(name)"
+        )
+        for _ in 0 ..< 10 {
+            let clearsStartFooter = !start.exists || button.frame.maxY < start.frame.minY - 8
+            if button.isHittable, clearsStartFooter {
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(
+            button.isHittable,
+            "Expected roster row for \(name) to be reachable above the sticky Start footer"
         )
         button.tap()
     }
@@ -98,6 +107,15 @@ extension DartBuddyUITestCase {
             NSPredicate(format: "identifier BEGINSWITH 'setup_selected_' AND label CONTAINS[c] %@", "Training Partner")
         ).firstMatch
         XCTAssertTrue(partnerRow.waitForExistence(timeout: timeout + 10))
+    }
+
+    func startThreePlayerX01Match(from app: XCUIApplication) {
+        ensurePlayTab(app, timeout: timeout)
+        selectAliceBobAndCarol(from: app)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
     }
 
     func startThreePlayerCricketMatch(from app: XCUIApplication) {
