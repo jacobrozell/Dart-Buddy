@@ -64,7 +64,6 @@
 "play.setup.start.disabledHint" = "Mindestens zwei Spieler zum Starten wählen.";
 "play.setup.mode.accessibilityFormat" = "%@ Spielmodus";
 "play.home.resumeAccessibilityFormat" = "%@, %@ Spiel läuft";
-"play.home.recentMatchAccessibilityFormat" = "%@, %@. %@";
 "history.row.accessibilityFormat" = "%@. %@. %@";
 "history.filter.player.accessibilityFormat" = "Nach Spieler filtern, %@";
 "history.loadMore.accessibility" = "Weitere Spiele laden";
@@ -356,8 +355,6 @@
 "tab.history" = "Verlauf";
 "tab.settings" = "Einstellungen";
 "play.home.appTitle" = "Dart-Scoreboard";
-"play.home.recentGames" = "Letzte Spiele";
-"play.home.recentWinnerFormat" = "%@ hat gewonnen";
 "play.setup.chip.points" = "Punkte";
 "play.setup.chip.checkOut" = "Check-Out";
 "play.setup.chip.checkIn" = "Check-In";

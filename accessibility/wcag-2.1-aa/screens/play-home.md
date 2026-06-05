@@ -12,7 +12,7 @@
 
 | ID | Status | Implementation notes | Evidence |
 |----|--------|----------------------|----------|
-| P-1.1.1 | Pass | Resume/recent rows have combined labels | `evidence/voiceover/setup-home-ax-spotcheck-2026-06-02.md` |
+| P-1.1.1 | Pass | Resume banner has combined label | `evidence/voiceover/setup-home-ax-spotcheck-2026-06-02.md` |
 | P-1.3.1 | Pass | Setup stack in `SetupHomeView` | |
 | P-1.3.2 | Partial | Resume → mode → chips → START → roster; manual VO pending | |
 | P-1.3.4 | Untested | Landscape layout | |
@@ -22,18 +22,18 @@
 | P-1.4.10 | Untested | | |
 | P-1.4.11 | Untested | | |
 | O-2.4.3 | Partial | AX order plausible; manual VO pending | |
-| O-2.4.4 | Pass | Resume, recent games, add players labeled | |
+| O-2.4.4 | Pass | Resume, add players labeled | |
 | O-2.5.3 | Pass | Visible chip text in AX label | |
 | DBX-TARGET-44 | Pass | START 56pt; chips 48pt | |
 | U-3.1.1 | Pass | L10n for home/setup strings | |
 | U-3.3.1 | N/A | | |
 | U-3.3.2 | N/A | | |
-| R-4.1.2 | Pass | `resumeMatchButton`, recent row labels | |
+| R-4.1.2 | Pass | `resumeMatchButton` | |
 | DBX-CONTRAST-MODES | Partial | `evidence/contrast/brand-token-samples-2026-06-02.md` |
 
 ## Open work
 
-- [x] VoiceOver labels: resume card, recent list (code)
+- [x] VoiceOver labels: resume card (code)
 - [ ] Manual VoiceOver pass (`accessibility/Manual_todo.md`)
 - [ ] AXXXL layout check
 

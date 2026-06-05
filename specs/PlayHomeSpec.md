@@ -1,7 +1,7 @@
 # Play Home Specification
 
 ## 1. Purpose
-Define the Play tab entry experience: resume in-progress matches, recent completed games, and the embedded new-match setup surface (`SetupHomeView`).
+Define the Play tab entry experience: resume in-progress matches and the embedded new-match setup surface (`SetupHomeView`).
 
 Match configuration rules live in [`SetupFlowSpec.md`](SetupFlowSpec.md). Lifecycle rules live in [`MatchSpec.md`](MatchSpec.md).
 
@@ -12,7 +12,6 @@ Match configuration rules live in [`SetupFlowSpec.md`](SetupFlowSpec.md). Lifecy
 ### In Scope (1.0.0)
 - Single scrollable Play home combining setup form + home chrome
 - Resume banner when exactly one `inProgress` match exists
-- Up to three recent **completed** match previews (tap → history detail)
 - Mode toggle (X01 / Cricket) and full setup controls on same screen
 - Sticky bottom **Start Match** CTA
 - Navigation to quick-add player, active match, match summary, history detail
@@ -49,12 +48,6 @@ Match configuration rules live in [`SetupFlowSpec.md`](SetupFlowSpec.md). Lifecy
 - Shows mode label and **Resume Match** CTA
 - `accessibilityIdentifier`: `resumeMatchButton`
 - Tap navigates directly to `.x01Match` or `.cricketMatch` for active `matchId`
-
-### Recent completed
-- Loaded via `MatchStatsLoader.recentCompletedMatches(limit: 3)`
-- **Completed only** — abandoned and in-progress excluded
-- Tap → `PlayRoute.historyDetail(matchId:)` (read-only history detail in Play stack)
-- Hidden when roster empty and no recents (normal first-run)
 
 ### Empty roster gate
 - If no non-archived players exist, home skips active-match lookup and stays `readyNoActiveMatch`
@@ -108,7 +101,7 @@ At accessibility Dynamic Type sizes, `GameplayLayout.usesAccessibilitySetupHomeL
 ## 9. Testing
 
 ## Unit
-- `PlayHomeViewModelTests` — active match, recents, empty roster
+- `PlayHomeViewModelTests` — active match, empty roster
 
 ## UI
 - Resume flows in navigation smoke tests
@@ -134,4 +127,3 @@ At accessibility Dynamic Type sizes, `GameplayLayout.usesAccessibilitySetupHomeL
 
 ## 13. Future Improvements
 - Dedicated setup sub-screen when home cognitive load grows
-- Pin/favorite recent opponents on home

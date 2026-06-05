@@ -5,7 +5,6 @@
 | Check | AXLabel | Pass |
 |-------|---------|------|
 | Resume banner | `Resume Match, X01 match in progress` | ✓ |
-| Recent game row | `Cricket, Jacob vs Sam. Jacob won` | ✓ |
 | Mode | `X01 game mode` / `Cricket game mode` | ✓ |
 | Chips | `Points, 501`, `Check-Out, Double Out`, `Legs, 3` | ✓ |
 | START disabled | hint: select two players | ✓ |
