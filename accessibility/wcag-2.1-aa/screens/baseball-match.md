@@ -13,7 +13,7 @@
 | ID | Status | Implementation notes | Evidence |
 |----|--------|----------------------|----------|
 | P-1.1.1 | Partial | Header, scoreboard rows, pad locked segment; submit/undo identifiers | `WCAGAccessibilityUITests` party baseball smoke |
-| P-1.3.1 | Partial | Scoreboard row combines name + runs; inning strip summary label | |
+| P-1.3.1 | Partial | Scoreboard row combines name + runs with spoken labels; inning strip summary only | |
 | P-1.3.2 | Partial | Scoreboard above pad; manual VO order pending | |
 | P-1.3.4 | Untested | One-screen fit on phone | |
 | P-1.4.1 | Partial | Runs as text; inning strip not color-only (labels per dot) | |

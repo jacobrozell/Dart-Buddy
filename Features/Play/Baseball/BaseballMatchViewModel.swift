@@ -111,6 +111,18 @@ final class BaseballMatchViewModel: ObservableObject {
         baseballState?.isExtraInning == true && baseballState?.phase == .innings
     }
 
+    var headerAccessibilityLabel: String {
+        var parts = [L10n.string("play.baseball.title"), headerText]
+        if showsExtraInningBadge {
+            parts.append(L10n.string("play.baseball.extraInning"))
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    var showsInningProgressStrip: Bool {
+        baseballState?.phase == .innings
+    }
+
     var stretchGateHint: String? {
         guard let state = baseballState,
               state.phase == .innings,
@@ -124,26 +136,29 @@ final class BaseballMatchViewModel: ObservableObject {
     var scoreboardRows: [BaseballScoreboardView.Row] {
         guard let session, let state = session.runtime.baseballState else { return [] }
         let isInProgress = session.runtime.status == .inProgress
-        let maxRuns = state.players.map(\.cumulativeRuns).max() ?? 0
-        let leaderCount = state.players.filter { $0.cumulativeRuns == maxRuns && maxRuns > 0 }.count
-        let showsInningColumn = state.players.count < 6
+        let showsVisitColumn = state.players.count < 6 && state.phase != .completed
         return state.players.enumerated().map { index, player in
             let participant = participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
+            let visitPreview = showsVisitColumn
+                ? previewVisitRuns(for: player, playerIndex: index, isActive: isActive, state: state)
+                : nil
             return BaseballScoreboardView.Row(
                 id: player.playerId,
                 name: participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: index),
                 cumulativeRuns: player.cumulativeRuns,
-                runsThisInning: showsInningColumn ? previewRunsThisInning(for: player, isActive: isActive) : nil,
+                visitRuns: visitPreview?.runs,
+                visitRunsKind: visitPreview?.kind,
                 isActive: isActive,
-                isLeading: leaderCount == 1 && player.cumulativeRuns == maxRuns && maxRuns > 0,
+                isLeading: isPlayerLeading(playerIndex: index, state: state),
                 colorToken: participant?.colorToken ?? PlayerColorToken.defaultForPlayer(id: player.playerId)
             )
         }
     }
 
-    var showsThisInningColumn: Bool {
-        (baseballState?.players.count ?? 0) < 6
+    var showsVisitRunsColumn: Bool {
+        guard let state = baseballState else { return false }
+        return state.players.count < 6 && state.phase != .completed
     }
 
     func submitTurn() async {
@@ -208,6 +223,64 @@ final class BaseballMatchViewModel: ObservableObject {
             cumulativeRuns
         )
         postAccessibilityAnnouncement(announcement)
+    }
+
+    private struct VisitRunsPreview {
+        let runs: Int
+        let kind: BaseballScoreboardView.VisitRunsKind
+    }
+
+    private func isPlayerLeading(playerIndex: Int, state: BaseballState) -> Bool {
+        switch state.phase {
+        case .bullPlayoff:
+            let indices = state.playoffPlayerIndices
+            guard indices.contains(playerIndex) else { return false }
+            let scores = indices.map { playoffRuns(forLeading: $0, state: state) }
+            guard let maxScore = scores.max(), maxScore > 0 else { return false }
+            let leaders = indices.filter { playoffRuns(forLeading: $0, state: state) == maxScore }
+            return leaders.count == 1 && leaders[0] == playerIndex
+        case .innings:
+            let maxRuns = state.players.map(\.cumulativeRuns).max() ?? 0
+            guard maxRuns > 0 else { return false }
+            let leaderCount = state.players.filter { $0.cumulativeRuns == maxRuns }.count
+            return leaderCount == 1 && state.players[playerIndex].cumulativeRuns == maxRuns
+        case .completed:
+            return state.winnerPlayerId == state.players[playerIndex].playerId
+        }
+    }
+
+    private func playoffRuns(forLeading playerIndex: Int, state: BaseballState) -> Int {
+        var runs = state.players[playerIndex].playoffRunsThisRound
+        if playerIndex == state.currentPlayerIndex, canHumanInput || isBotPlaying {
+            for dart in enteredDarts {
+                runs += previewRuns(for: dart, state: state, playerIndex: playerIndex)
+            }
+        }
+        return runs
+    }
+
+    private func previewVisitRuns(
+        for player: BaseballPlayerState,
+        playerIndex: Int,
+        isActive: Bool,
+        state: BaseballState
+    ) -> VisitRunsPreview? {
+        switch state.phase {
+        case .bullPlayoff:
+            guard state.playoffPlayerIndices.contains(playerIndex) else { return nil }
+            var preview = player.playoffRunsThisRound
+            if isActive, canHumanInput || isBotPlaying {
+                for dart in enteredDarts {
+                    preview += previewRuns(for: dart, state: state, playerIndex: playerIndex)
+                }
+            }
+            return VisitRunsPreview(runs: preview, kind: .playoffRound)
+        case .innings:
+            let runs = previewRunsThisInning(for: player, isActive: isActive)
+            return VisitRunsPreview(runs: runs, kind: .inning)
+        case .completed:
+            return nil
+        }
     }
 
     private func previewRunsThisInning(for player: BaseballPlayerState, isActive: Bool) -> Int {

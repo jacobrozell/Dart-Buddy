@@ -10,6 +10,7 @@ private func baseballDart(_ multiplier: DartMultiplier, _ segment: Int) -> DartI
 private func makeBaseballViewModel(
     participantCount: Int = 2,
     inningCount: Int = 1,
+    tieBreaker: BaseballTieBreaker = .extraInnings,
     preTurns: [[DartInput]] = []
 ) throws -> (vm: BaseballMatchViewModel, store: ActiveMatchStore) {
     let ids = (0 ..< participantCount).map { _ in UUID() }
@@ -18,7 +19,7 @@ private func makeBaseballViewModel(
     }
     var session = try MatchLifecycleService.createMatch(
         type: .baseball,
-        config: .baseball(MatchConfigBaseball(inningCount: inningCount)),
+        config: .baseball(MatchConfigBaseball(inningCount: inningCount, tieBreaker: tieBreaker)),
         participants: participants
     )
     for darts in preTurns {
@@ -113,6 +114,58 @@ func baseballViewModelCompletesSingleInningMatch() async throws {
     #expect(vm.state == .matchCompleted)
     #expect(store.completedSessions().count == 1)
     #expect(vm.baseballState?.winnerPlayerId != nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .baseball, .match, .regression))
+func baseballViewModelScoreboardShowsPlayoffRoundRuns() async throws {
+    let (vm, _) = try makeBaseballViewModel(
+        inningCount: 1,
+        tieBreaker: .bullPlayoff,
+        preTurns: [
+            [baseballDart(.single, 1)],
+            [baseballDart(.single, 1)]
+        ]
+    )
+
+    #expect(vm.baseballState?.phase == .bullPlayoff)
+    vm.enteredDarts = [DartInput(multiplier: .single, segment: .outerBull)]
+
+    let row = vm.scoreboardRows.first
+    #expect(row?.visitRunsKind == .playoffRound)
+    #expect(row?.visitRuns == 1)
+    #expect(row?.isLeading == true)
+}
+
+@MainActor
+@Test(.tags(.integration, .baseball, .match, .regression))
+func baseballViewModelHidesInningStripDuringPlayoff() async throws {
+    let (vm, _) = try makeBaseballViewModel(
+        inningCount: 1,
+        tieBreaker: .bullPlayoff,
+        preTurns: [
+            [baseballDart(.single, 1)],
+            [baseballDart(.single, 1)]
+        ]
+    )
+
+    #expect(vm.showsInningProgressStrip == false)
+}
+
+@MainActor
+@Test(.tags(.integration, .baseball, .match, .regression))
+func baseballViewModelHeaderAccessibilityIncludesTitleAndPhase() async throws {
+    let (vm, _) = try makeBaseballViewModel(
+        inningCount: 1,
+        tieBreaker: .bullPlayoff,
+        preTurns: [
+            [baseballDart(.single, 1)],
+            [baseballDart(.single, 1)]
+        ]
+    )
+
+    #expect(vm.headerAccessibilityLabel.contains(L10n.string("play.baseball.title")))
+    #expect(vm.headerAccessibilityLabel.contains(L10n.string("play.baseball.header.bullPlayoff")))
 }
 
 private struct BaseballSilentLogSink: LogSink {

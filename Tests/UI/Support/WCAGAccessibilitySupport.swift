@@ -203,7 +203,11 @@ extension XCTestCase {
     func startTwoPlayerBaseballMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
         ensurePlayTab(app, timeout: timeout)
         app.buttons["setup_category_party"].tap()
-        assertInteractiveElement(app.buttons["setup_baseballInningsChip"], identifier: "setup_baseballInningsChip", timeout: timeout)
+        assertInteractiveElement(
+            app.descendants(matching: .any)["setup_baseballInningsChip"],
+            identifier: "setup_baseballInningsChip",
+            timeout: timeout
+        )
         assertInteractiveElement(app.buttons["setup_baseballTieBreakerChip"], identifier: "setup_baseballTieBreakerChip", timeout: timeout)
         let baseball = app.buttons["setup_party_game_baseball"]
         if baseball.waitForExistence(timeout: timeout) {
