@@ -96,7 +96,7 @@ func setupValidationRequiresMinimumPlayers() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func setupPartyKillerStillBlocksStart() async {
+func setupPartyKillerAllowsThreeHumans() async {
     let players = [makePlayer("A"), makePlayer("B"), makePlayer("C")]
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
@@ -109,9 +109,42 @@ func setupPartyKillerStillBlocksStart() async {
     vm.updateSetupCategory(.party)
     vm.updatePartyGame(.killer)
     selectAll(players, in: vm)
+    vm.revalidate()
+
+    #expect(vm.canStart)
+    #expect(vm.validationErrors.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func setupPartyKillerBlocksBots() async {
+    let human = makePlayer("Human")
+    let bot = PlayerSummary(
+        id: UUID(),
+        name: "Bot",
+        isArchived: false,
+        isBot: true,
+        botDifficultyRaw: BotDifficulty.easy.rawValue,
+        botKindRaw: BotKind.preset.rawValue,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let third = makePlayer("Guest")
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [human, bot, third]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.killer)
+    vm.selectedPlayerIds = [human.id, bot.id, third.id]
+    vm.revalidate()
 
     #expect(!vm.canStart)
-    #expect(vm.validationErrors.contains("setup.validation.partyComingSoon"))
+    #expect(vm.validationErrors.contains("setup.validation.killerHumansOnly"))
 }
 
 @MainActor

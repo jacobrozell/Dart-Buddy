@@ -30,7 +30,8 @@ struct StatisticsRootView: View {
                         options: [
                             (MatchType.x01, L10n.string("play.x01.title")),
                             (MatchType.cricket, L10n.string("play.cricket.title")),
-                            (MatchType.baseball, L10n.string("play.baseball.title"))
+                            (MatchType.baseball, L10n.string("play.baseball.title")),
+                            (MatchType.killer, L10n.string("play.killer.title"))
                         ],
                         selection: $viewModel.mode
                     )

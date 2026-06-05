@@ -9,6 +9,7 @@ struct DartNumberPad: View {
     /// When set, only this segment (and optionally bull) accepts scoring input.
     var lockedSegment: Int? = nil
     var showsBull: Bool = true
+    var maxDarts: Int = 3
     /// Called when undo is tapped with an empty in-progress visit to revert the last accepted throw.
     let onUndoTurn: () -> Void
 
@@ -194,7 +195,7 @@ struct DartNumberPad: View {
     }
 
     private func append(_ value: Int) {
-        guard enteredDarts.count < 3 else { return }
+        guard enteredDarts.count < maxDarts else { return }
         if value != 25, let lockedSegment, value != lockedSegment { return }
         if value == 25, !showsBull { return }
         let dart: DartInput
@@ -210,7 +211,7 @@ struct DartNumberPad: View {
     }
 
     private func appendMiss() {
-        guard enteredDarts.count < 3 else { return }
+        guard enteredDarts.count < maxDarts else { return }
         enteredDarts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
         selectedMultiplier = .single
     }

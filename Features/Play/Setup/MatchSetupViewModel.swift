@@ -34,6 +34,7 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var baseballInningCount: Int = 9
     @Published var baseballTieBreaker: BaseballTieBreaker = .extraInnings
     @Published var baseballSeventhInningStretch = false
+    @Published var killerStartingLives: Int = 3
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -93,6 +94,7 @@ final class MatchSetupViewModel: ObservableObject {
             baseballInningCount = baseballPrefs.inningCount
             baseballTieBreaker = baseballPrefs.tieBreaker
             baseballSeventhInningStretch = baseballPrefs.seventhInningStretch
+            killerStartingLives = KillerSetupPreferences.load()
             mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
                 mode = preferred == .cricket ? .cricket : .x01
@@ -242,6 +244,11 @@ final class MatchSetupViewModel: ObservableObject {
                 if partyGame == .baseball {
                     if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
                         errors.append("setup.validation.baseballBotsPresetOnly")
+                    }
+                }
+                if partyGame == .killer {
+                    if selected.contains(where: \.isBot) {
+                        errors.append("setup.validation.killerHumansOnly")
                     }
                 }
             }
@@ -419,7 +426,14 @@ final class MatchSetupViewModel: ObservableObject {
         isSubmitting = true
         defer { isSubmitting = false }
         let isBaseballParty = setupCategory == .party && partyGame == .baseball
-        let matchType: MatchType = isBaseballParty ? .baseball : (mode == .x01 ? .x01 : .cricket)
+        let isKillerParty = setupCategory == .party && partyGame == .killer
+        let matchType: MatchType = if isBaseballParty {
+            .baseball
+        } else if isKillerParty {
+            .killer
+        } else {
+            mode == .x01 ? .x01 : .cricket
+        }
         logger.debug(
             .scoring,
             eventName: "match_setup_start",
@@ -533,6 +547,8 @@ final class MatchSetupViewModel: ObservableObject {
                         seventhInningStretch: baseballSeventhInningStretch
                     )
                 )
+            } else if isKillerParty {
+                config = .killer(MatchConfigKiller(startingLives: killerStartingLives))
             } else if mode == .x01 {
                 config = .x01(
                     MatchConfigX01(
@@ -589,6 +605,14 @@ final class MatchSetupViewModel: ObservableObject {
                     participants: selectedPlayers
                 )
                 route = .baseballMatch(matchId: persisted.id)
+            } else if isKillerParty {
+                session = try MatchLifecycleService.createMatch(
+                    matchId: persisted.id,
+                    type: .killer,
+                    config: config,
+                    participants: selectedPlayers
+                )
+                route = .killerMatch(matchId: persisted.id)
             } else if mode == .x01 {
                 session = try MatchLifecycleService.createMatch(
                     matchId: persisted.id,
@@ -655,6 +679,10 @@ final class MatchSetupViewModel: ObservableObject {
                 tieBreaker: baseballTieBreaker,
                 seventhInningStretch: baseballSeventhInningStretch
             )
+            return
+        }
+        if setupCategory == .party, partyGame == .killer {
+            KillerSetupPreferences.save(startingLives: killerStartingLives)
             return
         }
         if mode == .cricket {

@@ -209,6 +209,25 @@ public enum StatsService {
                         if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
                     }
                     byPlayer[turn.playerId] = entry
+                case let .killerPick(pick):
+                    var entry = breakdown(for: pick.playerId)
+                    entry.darts += 1
+                    entry.hitsBySector[HitsBySectorKeys.key(for: pick), default: 0] += 1
+                    if !pick.wasMiss {
+                        if pick.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if pick.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[pick.playerId] = entry
+                case let .killerTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
                 }
             }
         }
@@ -269,6 +288,8 @@ public enum StatsService {
                     break
                 case .baseballTurn:
                     break
+                case .killerPick, .killerTurn:
+                    break
                 }
             }
 
@@ -311,6 +332,14 @@ public enum StatsService {
                 return String(turn.inning)
             }
             return miss
+        }
+
+        static func key(for pick: KillerPickEvent) -> String {
+            pick.wasMiss ? miss : normalized(pick.segmentRaw)
+        }
+
+        static func key(for dart: KillerDartResolution) -> String {
+            dart.wasMiss ? miss : normalized(dart.segmentRaw)
         }
 
         private static func normalized(_ raw: String) -> String {

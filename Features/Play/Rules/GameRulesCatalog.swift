@@ -31,7 +31,34 @@ enum GameRulesCatalog {
         all.map(\.matchType)
     }
 
-    private static let all: [GameRulesGuide] = [x01, cricket, baseball]
+    private static let all: [GameRulesGuide] = [x01, cricket, baseball, killer]
+
+    private static let killer = GameRulesGuide(
+        id: "killer",
+        matchType: .killer,
+        sections: [
+            GameRulesSection(
+                id: "overview",
+                titleKey: "play.rules.killer.overview.title",
+                bodyKey: "play.rules.killer.overview.body"
+            ),
+            GameRulesSection(
+                id: "pick",
+                titleKey: "play.rules.killer.pick.title",
+                bodyKey: "play.rules.killer.pick.body"
+            ),
+            GameRulesSection(
+                id: "killerStatus",
+                titleKey: "play.rules.killer.killerStatus.title",
+                bodyKey: "play.rules.killer.killerStatus.body"
+            ),
+            GameRulesSection(
+                id: "attacks",
+                titleKey: "play.rules.killer.attacks.title",
+                bodyKey: "play.rules.killer.attacks.body"
+            )
+        ]
+    )
 
     private static let baseball = GameRulesGuide(
         id: "baseball",

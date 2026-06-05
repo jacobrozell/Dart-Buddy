@@ -4,18 +4,24 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case x01Turn(X01TurnEvent)
     case cricketTurn(CricketTurnEvent)
     case baseballTurn(BaseballTurnEvent)
+    case killerPick(KillerPickEvent)
+    case killerTurn(KillerTurnEvent)
 
     private enum CodingKeys: String, CodingKey {
         case kind
         case x01
         case cricket
         case baseball
+        case killerPick
+        case killerTurn
     }
 
     private enum Kind: String, Codable {
         case x01Turn
         case cricketTurn
         case baseballTurn
+        case killerPick
+        case killerTurn
     }
 
     public init(from decoder: any Decoder) throws {
@@ -28,6 +34,10 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .cricketTurn(try container.decode(CricketTurnEvent.self, forKey: .cricket))
         case .baseballTurn:
             self = .baseballTurn(try container.decode(BaseballTurnEvent.self, forKey: .baseball))
+        case .killerPick:
+            self = .killerPick(try container.decode(KillerPickEvent.self, forKey: .killerPick))
+        case .killerTurn:
+            self = .killerTurn(try container.decode(KillerTurnEvent.self, forKey: .killerTurn))
         }
     }
 
@@ -43,6 +53,12 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .baseballTurn(event):
             try container.encode(Kind.baseballTurn, forKey: .kind)
             try container.encode(event, forKey: .baseball)
+        case let .killerPick(event):
+            try container.encode(Kind.killerPick, forKey: .kind)
+            try container.encode(event, forKey: .killerPick)
+        case let .killerTurn(event):
+            try container.encode(Kind.killerTurn, forKey: .kind)
+            try container.encode(event, forKey: .killerTurn)
         }
     }
 }
@@ -77,6 +93,7 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var x01State: X01State?
     public var cricketState: CricketState?
     public var baseballState: BaseballState?
+    public var killerState: KillerState?
 }
 
 public struct MatchLifecycleSession: Sendable {
@@ -121,7 +138,8 @@ public enum MatchLifecycleService {
             eventCount: 0,
             x01State: nil,
             cricketState: nil,
-            baseballState: nil
+            baseballState: nil,
+            killerState: nil
         )
 
         switch (type, config) {
@@ -131,6 +149,8 @@ public enum MatchLifecycleService {
             runtime.cricketState = try CricketEngine.makeInitialState(config: cfg, playerIds: playerIds)
         case let (.baseball, .baseball(cfg)):
             runtime.baseballState = try BaseballEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.killer, .killer(cfg)):
+            runtime.killerState = try KillerEngine.makeInitialState(config: cfg, playerIds: playerIds)
         default:
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
@@ -170,7 +190,7 @@ public enum MatchLifecycleService {
             payload: .x01Turn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: x01State, cricketState: nil, baseballState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: x01State, cricketState: nil, baseballState: nil, killerState: nil, timestamp: timestamp)
     }
 
     public static func submitCricketTurn(
@@ -188,7 +208,7 @@ public enum MatchLifecycleService {
             payload: .cricketTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: cricketState, baseballState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: cricketState, baseballState: nil, killerState: nil, timestamp: timestamp)
     }
 
     public static func submitBaseballTurn(
@@ -206,7 +226,43 @@ public enum MatchLifecycleService {
             payload: .baseballTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: baseballState, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: baseballState, killerState: nil, timestamp: timestamp)
+    }
+
+    public static func submitKillerPick(
+        session: MatchLifecycleSession,
+        dart: DartInput,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var killerState = session.runtime.killerState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.killerUnavailable")
+        }
+        let outcome = try KillerEngine.submitPick(state: killerState, dart: dart, timestamp: timestamp)
+        killerState = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .killerPick(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, timestamp: timestamp)
+    }
+
+    public static func submitKillerTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var killerState = session.runtime.killerState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.killerUnavailable")
+        }
+        let outcome = try KillerEngine.submitTurn(state: killerState, darts: darts, timestamp: timestamp)
+        killerState = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .killerTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, timestamp: timestamp)
     }
 
     public static func undoLastTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
@@ -254,6 +310,11 @@ public enum MatchLifecycleService {
         case let .baseballTurn(turn):
             guard !turn.darts.isEmpty else { return nil }
             return turn.darts.map(BaseballEngine.dartInput(from:))
+        case let .killerPick(pick):
+            return [KillerEngine.dartInput(from: pick)]
+        case let .killerTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(KillerEngine.dartInput(from:))
         }
     }
 
@@ -277,6 +338,12 @@ public enum MatchLifecycleService {
             case let .baseballTurn(turn):
                 let darts = turn.darts.map(BaseballEngine.dartInput(from:))
                 session = try submitBaseballTurn(session: session, darts: darts, timestamp: event.timestamp)
+            case let .killerPick(pick):
+                let dart = KillerEngine.dartInput(from: pick)
+                session = try submitKillerPick(session: session, dart: dart, timestamp: event.timestamp)
+            case let .killerTurn(turn):
+                let darts = turn.darts.map(KillerEngine.dartInput(from:))
+                session = try submitKillerTurn(session: session, darts: darts, timestamp: event.timestamp)
             }
         }
         return session
@@ -314,6 +381,12 @@ public enum MatchLifecycleService {
             case let .baseballTurn(turn):
                 let darts = turn.darts.map(BaseballEngine.dartInput(from:))
                 rebuilt = try submitBaseballTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
+            case let .killerPick(pick):
+                let dart = KillerEngine.dartInput(from: pick)
+                rebuilt = try submitKillerPick(session: rebuilt, dart: dart, timestamp: event.timestamp)
+            case let .killerTurn(turn):
+                let darts = turn.darts.map(KillerEngine.dartInput(from:))
+                rebuilt = try submitKillerTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
             }
         }
         return rebuilt
@@ -325,6 +398,7 @@ public enum MatchLifecycleService {
         x01State: X01State?,
         cricketState: CricketState?,
         baseballState: BaseballState?,
+        killerState: KillerState?,
         timestamp: Date
     ) throws -> MatchLifecycleSession {
         var runtime = session.runtime
@@ -332,6 +406,7 @@ public enum MatchLifecycleService {
         runtime.x01State = x01State ?? runtime.x01State
         runtime.cricketState = cricketState ?? runtime.cricketState
         runtime.baseballState = baseballState ?? runtime.baseballState
+        runtime.killerState = killerState ?? runtime.killerState
 
         if let x01State {
             runtime.currentTurnPlayerId = x01State.players[x01State.currentPlayerIndex].playerId
@@ -363,6 +438,21 @@ public enum MatchLifecycleService {
                 runtime.status = .completed
                 runtime.endedAt = timestamp
                 runtime.winnerPlayerId = baseballState.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
+        }
+        if let killerState {
+            if killerState.phase == .numberPick, let pickerId = killerState.pickQueue.first {
+                runtime.currentTurnPlayerId = pickerId
+            } else if !killerState.isComplete {
+                runtime.currentTurnPlayerId = killerState.players[killerState.currentPlayerIndex].playerId
+            }
+            runtime.currentLegIndex = 0
+            runtime.currentSetIndex = 0
+            if killerState.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = killerState.winnerPlayerId
                 runtime.currentTurnPlayerId = nil
             }
         }

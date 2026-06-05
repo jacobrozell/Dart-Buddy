@@ -65,6 +65,12 @@ struct PlayRootView: View {
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                case let .killerMatch(matchId):
+                    KillerMatchRouteView(
+                        matchId: matchId,
+                        dependencies: dependencies,
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
+                    )
                 case let .matchSummary(matchId):
                     MatchSummaryScreen(
                         viewModel: MatchSummaryViewModel(
@@ -208,6 +214,37 @@ private struct CricketMatchRouteView: View {
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct KillerMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: KillerMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: KillerMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository
+            )
+        )
+    }
+
+    var body: some View {
+        KillerMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService
         )
     }
 }
