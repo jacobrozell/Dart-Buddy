@@ -36,7 +36,8 @@ func cricketBoardColumnLayoutScrollsWhenCrowdedOrTooNarrow() {
     #expect(fourPlayers.scrollsHorizontally == true)
     #expect(fourPlayers.fixedPlayerColumnWidth == CricketBoardMetrics.playerColumnWidth)
 
-    let narrow = CricketBoardColumnLayout.resolve(availableWidth: 200, playerCount: 2)
+    // 195pt leaves 167pt for players; two 84pt columns need 168pt.
+    let narrow = CricketBoardColumnLayout.resolve(availableWidth: 195, playerCount: 2)
     #expect(narrow.scrollsHorizontally == true)
     #expect(narrow.fixedPlayerColumnWidth == CricketBoardMetrics.playerColumnWidth)
 }
