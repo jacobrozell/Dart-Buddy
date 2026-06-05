@@ -27,6 +27,8 @@ struct BaseballMatchScreen: View {
                                 .foregroundStyle(Brand.amber)
                         }
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(viewModel.headerAccessibilityLabel)
                     .accessibilityIdentifier("baseball_match_header")
                 }
             } trailing: {
@@ -49,14 +51,22 @@ struct BaseballMatchScreen: View {
                     VStack(spacing: DS.Spacing.s3) {
                         BaseballScoreboardView(
                             rows: viewModel.scoreboardRows,
-                            showsThisInningColumn: viewModel.showsThisInningColumn
+                            showsVisitRunsColumn: viewModel.showsVisitRunsColumn
                         )
-                        InningProgressStrip(
-                            inningCount: state.config.inningCount,
-                            currentInning: state.currentInning,
-                            isExtraInning: state.isExtraInning
-                        )
-                        .accessibilityIdentifier("baseball_inning_strip")
+                        if viewModel.showsInningProgressStrip {
+                            InningProgressStrip(
+                                inningCount: state.config.inningCount,
+                                currentInning: state.currentInning,
+                                isExtraInning: state.isExtraInning
+                            )
+                            .accessibilityIdentifier("baseball_inning_strip")
+                        } else if state.phase == .bullPlayoff {
+                            Text(L10n.string("play.baseball.playoffStrip.label"))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Brand.textSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .accessibilityIdentifier("baseball_playoff_strip")
+                        }
                         stateBanner
                     }
                     .padding(.horizontal, DS.Spacing.s4)
@@ -150,6 +160,10 @@ struct BaseballMatchScreen: View {
     }
 
     private var lockedSegmentHint: String? {
+        guard viewModel.baseballState != nil else { return nil }
+        if viewModel.baseballState?.phase == .bullPlayoff {
+            return L10n.string("play.baseball.pad.lockedBullHint")
+        }
         guard let segment = viewModel.lockedSegment else { return nil }
         return L10n.format("play.baseball.pad.lockedSegmentHint", segment)
     }
@@ -166,6 +180,7 @@ struct BaseballMatchScreen: View {
         .buttonStyle(.borderedProminent)
         .tint(Brand.green)
         .disabled(!viewModel.canSubmit)
+        .accessibilityLabel(L10n.string("scoring.submitTurn"))
         .accessibilityIdentifier("baseball_submit")
     }
 }

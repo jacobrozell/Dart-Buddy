@@ -23,15 +23,8 @@ extension SetupHomeView {
 
     private var baseballInningsChip: some View {
         chip(title: "play.baseball.setup.innings", color: Brand.key) {
-            Menu {
-                Button("9") {
-                    setupViewModel.baseballInningCount = 9
-                    setupViewModel.revalidate()
-                }
-            } label: {
-                chipBox("9", color: Brand.key, showsMenuIndicator: false)
-            }
-            .accessibilityIdentifier("setup_baseballInningsChip")
+            chipBox(L10n.string("play.baseball.setup.inningsValue"), color: Brand.key, showsMenuIndicator: false)
+                .accessibilityIdentifier("setup_baseballInningsChip")
         }
     }
 

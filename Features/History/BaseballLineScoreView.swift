@@ -56,7 +56,7 @@ struct BaseballLineScoreView: View {
                 .frame(width: playerColumnWidth, alignment: .leading)
             ForEach(lineScore.inningColumns, id: \.self) { inning in
                 let runs = row.runsByInning[inning] ?? 0
-                Text(runs > 0 ? "\(runs)" : "–")
+                Text(runs > 0 ? "\(runs)" : L10n.string("history.lineScore.emptyCell"))
                     .frame(width: inningColumnWidth, alignment: .trailing)
             }
             Text("\(row.total)")

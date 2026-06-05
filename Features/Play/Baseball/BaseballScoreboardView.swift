@@ -1,18 +1,24 @@
 import SwiftUI
 
 struct BaseballScoreboardView: View {
+    enum VisitRunsKind: Equatable {
+        case inning
+        case playoffRound
+    }
+
     struct Row: Identifiable {
         let id: UUID
         let name: String
         let cumulativeRuns: Int
-        let runsThisInning: Int?
+        let visitRuns: Int?
+        let visitRunsKind: VisitRunsKind?
         let isActive: Bool
         let isLeading: Bool
         let colorToken: PlayerColorToken
     }
 
     let rows: [Row]
-    let showsThisInningColumn: Bool
+    let showsVisitRunsColumn: Bool
 
     var body: some View {
         VStack(spacing: DS.Spacing.s2) {
@@ -31,12 +37,12 @@ struct BaseballScoreboardView: View {
                             .foregroundStyle(Brand.green)
                     }
                     Spacer()
-                    if showsThisInningColumn, let inningRuns = row.runsThisInning {
-                        Text(L10n.format("play.baseball.thisInningFormat", inningRuns))
+                    if showsVisitRunsColumn, let visitRuns = row.visitRuns, let kind = row.visitRunsKind {
+                        Text(visitRunsDisplayText(visitRuns, kind: kind))
                             .font(.caption)
                             .foregroundStyle(Brand.textSecondary)
                     }
-                    Text(L10n.format("play.baseball.totalRunsFormat", row.cumulativeRuns))
+                    Text("\(row.cumulativeRuns)")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(row.isActive ? Brand.green : Brand.textPrimary)
                 }
@@ -50,10 +56,24 @@ struct BaseballScoreboardView: View {
         }
     }
 
+    private func visitRunsDisplayText(_ runs: Int, kind: VisitRunsKind) -> String {
+        switch kind {
+        case .inning:
+            L10n.format("play.baseball.thisInningFormat", runs)
+        case .playoffRound:
+            L10n.format("play.baseball.playoffRoundFormat", runs)
+        }
+    }
+
     private func rowAccessibilityLabel(_ row: Row) -> String {
-        var parts = [row.name, L10n.format("play.baseball.totalRunsFormat", row.cumulativeRuns)]
-        if let inningRuns = row.runsThisInning {
-            parts.append(L10n.format("play.baseball.thisInningFormat", inningRuns))
+        var parts = [row.name, L10n.format("play.baseball.totalRunsAccessibilityFormat", row.cumulativeRuns)]
+        if let visitRuns = row.visitRuns, let kind = row.visitRunsKind {
+            switch kind {
+            case .inning:
+                parts.append(L10n.format("play.baseball.thisInningAccessibilityFormat", visitRuns))
+            case .playoffRound:
+                parts.append(L10n.format("play.baseball.playoffRoundAccessibilityFormat", visitRuns))
+            }
         }
         if row.isLeading {
             parts.append(L10n.string("play.baseball.leading"))
@@ -79,10 +99,10 @@ struct InningProgressStrip: View {
                             Circle().stroke(Brand.green, lineWidth: 2)
                         }
                     }
-                    .accessibilityLabel(inningAccessibilityLabel(inning))
+                    .accessibilityHidden(true)
             }
         }
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             L10n.format(
                 "play.baseball.inningStrip.accessibilityFormat",
@@ -97,15 +117,5 @@ struct InningProgressStrip: View {
         if inning < currentInning { return Brand.green }
         if inning == currentInning { return Brand.amber }
         return Brand.textSecondary.opacity(0.35)
-    }
-
-    private func inningAccessibilityLabel(_ inning: Int) -> String {
-        if inning < currentInning {
-            return L10n.format("play.baseball.inningStrip.completedFormat", inning)
-        }
-        if inning == currentInning {
-            return L10n.format("play.baseball.inningStrip.currentFormat", inning)
-        }
-        return L10n.format("play.baseball.inningStrip.upcomingFormat", inning)
     }
 }

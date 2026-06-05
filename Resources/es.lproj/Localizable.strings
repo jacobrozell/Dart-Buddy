@@ -113,7 +113,7 @@
 "play.setup.category.party" = "Fiesta";
 "play.party.gamesSection" = "Elige un juego";
 "play.party.comingSoon" = "Pronto";
-"play.party.baseball.title" = "Baseball";
+"play.party.baseball.title" = "Béisbol";
 "play.party.baseball.subtitle" = "2+ jugadores · 9 entradas";
 "play.party.killer.title" = "Killer";
 "play.party.killer.subtitle" = "3+ jugadores · eliminación";
@@ -580,14 +580,21 @@
 "play.baseball.extraInning" = "Entrada extra";
 "play.baseball.leading" = "Líder";
 "play.baseball.thisInningFormat" = "+%d";
+"play.baseball.thisInningAccessibilityFormat" = "%d carreras en esta entrada";
+"play.baseball.playoffRoundFormat" = "+%d";
+"play.baseball.playoffRoundAccessibilityFormat" = "%d carreras al bull en esta ronda";
+"play.baseball.playoffStrip.label" = "Desempate al bull";
 "play.baseball.totalRunsFormat" = "%d";
+"play.baseball.totalRunsAccessibilityFormat" = "%d carreras en total";
 "play.baseball.stretchGateHint" = "Toca el bull para abrir la entrada 7";
 "play.baseball.stretchGateOpened" = "Puerta abierta — el segmento 7 cuenta ahora";
 "play.baseball.perfectInning" = "¡Entrada perfecta — 9 carreras!";
 "play.baseball.pad.disabledWhileBot" = "Esperando turno del bot";
 "play.baseball.pad.lockedSegmentHint" = "Solo el segmento %d suma carreras en esta entrada";
+"play.baseball.pad.lockedBullHint" = "Solo los aciertos al bull suman en el desempate";
 "play.baseball.announce.turnFormat" = "%d carreras en esta visita. %d carreras en total.";
 "play.baseball.setup.innings" = "Entradas";
+"play.baseball.setup.inningsValue" = "9";
 "play.baseball.setup.tieBreaker" = "Desempate";
 "play.baseball.setup.stretch" = "Séptima entrada stretch";
 "play.baseball.tieBreaker.extraInnings" = "Entradas extra";
@@ -603,7 +610,7 @@
 "error.match.baseball.invalidInningCount" = "Debe haber al menos 1 entrada.";
 "error.match.mode.baseballUnavailable" = "El estado de béisbol no está disponible para esta partida.";
 "baseball.error.sessionMissing" = "No se pudo cargar la partida de béisbol actual.";
-"baseball.error.invalidTurn" = "Esa entrada no es válida para béisbol.";
+"baseball.error.invalidTurn" = "Ese lanzamiento no es válido para béisbol.";
 "baseball.error.undoFailed" = "No se pudo deshacer el último turno de béisbol.";
 "play.summary.stat.runs" = "Carreras";
 "history.timeline.baseballTurnFormat" = "Entrada %d · %@ · +%d carreras";
@@ -611,6 +618,7 @@
 "history.detail.lineScore" = "Marcador por entradas";
 "history.lineScore.playerColumn" = "Jugador";
 "history.lineScore.totalColumn" = "Tot.";
+"history.lineScore.emptyCell" = "–";
 "history.lineScore.playoffNote" = "Las carreras del desempate al bull no aparecen en el marcador.";
 "history.lineScore.inningRunsFormat" = "Entrada %d: %d carreras";
 "history.lineScore.rowAccessibilityFormat" = "%@. %@. Total %d carreras";
