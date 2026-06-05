@@ -5,6 +5,7 @@ enum PlayRoute: Hashable {
     case x01Match(matchId: UUID)
     case cricketMatch(matchId: UUID)
     case baseballMatch(matchId: UUID)
+    case killerMatch(matchId: UUID)
     case matchSummary(matchId: UUID)
     case historyDetail(matchId: UUID)
     case quickAddPlayer
@@ -16,6 +17,7 @@ extension MatchType {
         case .x01: .x01Match(matchId: matchId)
         case .cricket: .cricketMatch(matchId: matchId)
         case .baseball: .baseballMatch(matchId: matchId)
+        case .killer: .killerMatch(matchId: matchId)
         }
     }
 }

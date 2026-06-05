@@ -46,6 +46,7 @@
 | [`X01GameSpec.md`](X01GameSpec.md) | X01 rules, board UI, checkout suggester |
 | [`CricketSpec.md`](CricketSpec.md) | Cricket rules, board UI, normal / cut throat |
 | [`BaseballGameSpec.md`](BaseballGameSpec.md) | Baseball party mode rules, play UI, history line score |
+| [`KillerGameSpec.md`](KillerGameSpec.md) | Killer elimination party mode rules, pick phase, play UI |
 | [`BaseballModeDeferredWorkPlan.md`](BaseballModeDeferredWorkPlan.md) | Post-MVP follow-ups (specs, line score, tests, WCAG, demo) |
 | [`ScoringInputSpec.md`](ScoringInputSpec.md) | Shared dart-entry pad, undo, submit |
 

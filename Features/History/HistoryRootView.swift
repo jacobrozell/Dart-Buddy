@@ -38,7 +38,8 @@ struct HistoryRootView: View {
                             (HistoryListViewModel.ModeFilter.all, L10n.string("history.filter.allGames")),
                             (HistoryListViewModel.ModeFilter.x01, L10n.string("play.x01.title")),
                             (HistoryListViewModel.ModeFilter.cricket, L10n.string("play.cricket.title")),
-                            (HistoryListViewModel.ModeFilter.baseball, L10n.string("play.baseball.title"))
+                            (HistoryListViewModel.ModeFilter.baseball, L10n.string("play.baseball.title")),
+                            (HistoryListViewModel.ModeFilter.killer, L10n.string("play.killer.title"))
                         ],
                         selection: $viewModel.modeFilter
                     )

@@ -46,6 +46,9 @@ struct SetupHomeView: View {
                     if setupViewModel.partyGame == .baseball {
                         learnToPlayButton
                         baseballChipsGrid
+                    } else if setupViewModel.partyGame == .killer {
+                        learnToPlayButton
+                        killerChipsGrid
                     }
                 }
                 rosterControls
@@ -103,8 +106,12 @@ struct SetupHomeView: View {
     }
 
     private var learnToPlayMatchType: MatchType {
-        if setupViewModel.setupCategory == .party, setupViewModel.partyGame == .baseball {
-            return .baseball
+        if setupViewModel.setupCategory == .party {
+            switch setupViewModel.partyGame {
+            case .baseball: return .baseball
+            case .killer: return .killer
+            case .shanghai: break
+            }
         }
         return setupViewModel.mode.matchType
     }
