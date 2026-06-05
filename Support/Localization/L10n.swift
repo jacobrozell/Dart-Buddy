@@ -16,7 +16,6 @@ enum L10n {
     static let resumeActiveMatch: LocalizedStringKey = "play.home.resumeActiveMatch"
     static let resumeMatch: LocalizedStringKey = "play.home.resumeButton"
     static let appTitle: LocalizedStringKey = "play.home.appTitle"
-    static let recentGames: LocalizedStringKey = "play.home.recentGames"
     static let setupChipPoints: LocalizedStringKey = "play.setup.chip.points"
     static let setupChipCheckOut: LocalizedStringKey = "play.setup.chip.checkOut"
     static let setupChipCheckIn: LocalizedStringKey = "play.setup.chip.checkIn"
