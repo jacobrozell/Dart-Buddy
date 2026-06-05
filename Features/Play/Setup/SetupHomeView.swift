@@ -337,9 +337,6 @@ struct SetupHomeView: View {
                                 )
                             )
                     }
-                    .onDelete { offsets in
-                        setupViewModel.removeSelectedPlayers(at: offsets)
-                    }
                     .onMove { source, destination in
                         setupViewModel.moveSelectedPlayers(from: source, to: destination)
                     }
