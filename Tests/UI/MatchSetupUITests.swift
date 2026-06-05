@@ -7,20 +7,23 @@ final class MatchSetupUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["resumeMatchButton"].waitForExistence(timeout: timeout))
 
-        XCTAssertTrue(app.buttons["select_Jacob"].waitForExistence(timeout: timeout))
-        app.buttons["select_Jacob"].tap()
-        app.buttons["select_Sam"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Jacob"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Sam"].waitForExistence(timeout: timeout))
+        // Stage bot first so the turn-order list does not cover the human roster on compact simulators.
+        addEasyBot(from: app, timeout: timeout)
+        selectPlayerFromRoster("Jacob", in: app)
 
         let start = app.buttons["startMatchButton"]
         waitForStartEnabled(start, timeout: timeout + 5)
+        if !start.isHittable {
+            app.swipeUp()
+        }
         start.tap()
 
-        let alert = app.alerts["Game in Progress"]
-        XCTAssertTrue(alert.waitForExistence(timeout: timeout + 5), "Starting with an active match should prompt to replace it")
-
-        alert.buttons["Abandon & Start"].tap()
+        let abandonAndStart = app.alerts.buttons["Abandon & Start"]
+        XCTAssertTrue(
+            abandonAndStart.waitForExistence(timeout: timeout + 5),
+            "Starting with an active match should prompt to replace it"
+        )
+        abandonAndStart.tap()
 
         XCTAssertTrue(
             app.staticTexts["501, Double Out, First to 3 Legs"].waitForExistence(timeout: timeout),
