@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CricketMatchScreen: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject var viewModel: CricketMatchViewModel
     let onShowSummary: () -> Void
@@ -41,38 +42,20 @@ struct CricketMatchScreen: View {
             }
 
             if let state = viewModel.cricketState {
-                roundTurnLabel(state: state)
-
-                if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-                    ScrollView {
-                        VStack(spacing: DS.Spacing.s2) {
-                            CricketBoardView(
-                                columns: viewModel.boardColumns,
-                                activeColumnScrollID: viewModel.activeBoardColumnID
-                            )
-                            stateBanner
-                            cricketTapPad
-                        }
-                        .padding(.horizontal, DS.Spacing.s4)
-                        .padding(.bottom, DS.Spacing.s2)
-                    }
-                } else {
-                    ScrollView {
-                        CricketBoardView(
-                            columns: viewModel.boardColumns,
-                            activeColumnScrollID: viewModel.activeBoardColumnID
-                        )
-                        .padding(.horizontal, DS.Spacing.s4)
-                    }
-
-                    VStack(spacing: DS.Spacing.s2) {
-                        stateBanner
-                        cricketTapPad
-                    }
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.top, DS.Spacing.s2)
-                    .padding(.bottom, DS.Spacing.s2)
+                if !usesLandscapeMatchLayout {
+                    roundTurnLabel(state: state)
                 }
+
+                Group {
+                    if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
+                        accessibilityScoringStack
+                    } else if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+                        landscapeScoringStack
+                    } else {
+                        portraitScoringStack
+                    }
+                }
+                .frame(maxHeight: .infinity)
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
@@ -120,6 +103,88 @@ struct CricketMatchScreen: View {
         }
         .task { await viewModel.onAppear() }
         .onDisappear { actionTask?.cancel() }
+    }
+
+    private var cricketBoard: some View {
+        CricketBoardView(
+            columns: viewModel.boardColumns,
+            activeColumnScrollID: viewModel.activeBoardColumnID
+        )
+    }
+
+    private var cricketControls: some View {
+        VStack(spacing: DS.Spacing.s2) {
+            stateBanner
+            cricketTapPad
+        }
+    }
+
+    /// Board scrolls above a pinned pad so stats and keys never overlap.
+    private var portraitScoringStack: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                cricketBoard
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            cricketControls
+                .padding(.top, DS.Spacing.s2)
+        }
+        .padding(.horizontal, DS.Spacing.s4)
+        .padding(.bottom, DS.Spacing.s2)
+    }
+
+    private var usesLandscapeMatchLayout: Bool {
+        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+            && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    private var landscapeScoringStack: some View {
+        HStack(alignment: .top, spacing: DS.Spacing.s2) {
+            VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                if let state = viewModel.cricketState {
+                    landscapeRoundTurnLabel(state: state)
+                }
+                ScrollView {
+                    cricketBoard
+                }
+                .scrollIndicators(.hidden)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+            cricketControls
+                .frame(width: GameplayLayout.landscapeScoringPadWidth, alignment: .top)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, DS.Spacing.s4)
+        .padding(.bottom, DS.Spacing.s2)
+    }
+
+    private func landscapeRoundTurnLabel(state: CricketState) -> some View {
+        let round = state.roundIndex + 1
+        let turn = state.currentPlayerIndex + 1
+        return Text(L10n.format("play.cricket.roundTurn", round, turn))
+            .font(.caption)
+            .foregroundStyle(Brand.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, DS.Spacing.s2)
+            .padding(.top, DS.Spacing.s1)
+    }
+
+    private var accessibilityScoringStack: some View {
+        Group {
+            if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+                landscapeScoringStack
+            } else {
+                ScrollView {
+                    VStack(spacing: DS.Spacing.s2) {
+                        cricketBoard
+                        cricketControls
+                    }
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .padding(.bottom, DS.Spacing.s2)
+                }
+            }
+        }
     }
 
     @ViewBuilder
