@@ -37,21 +37,6 @@ func matchStatsLoaderRecentMatchesReturnsNewestFirst() async throws {
     #expect(recent[1].didWin == true)
 }
 
-@Test(.tags(.unit, .stats, .regression))
-func matchStatsLoaderRecentCompletedMatchesReturnsParticipantLabels() async throws {
-    let jacob = UUID()
-    let sam = UUID()
-    let matchRepo = CatalogMatchRepository(records: [
-        makeCatalogRecord(id: UUID(), type: .x01, winner: jacob, participants: [(jacob, "Jacob"), (sam, "Sam")], playedAt: Date()),
-    ])
-
-    let recent = try await MatchStatsLoader.recentCompletedMatches(matchRepository: matchRepo, limit: 3)
-
-    #expect(recent.count == 1)
-    #expect(recent[0].participantsLabel == "Jacob vs Sam")
-    #expect(recent[0].winnerName == "Jacob")
-}
-
 private func makeCatalogRecord(
     id: UUID,
     type: MatchType,

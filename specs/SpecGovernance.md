@@ -123,7 +123,7 @@ Audit after major releases or quarterly. Set **Last verified** to audit date and
 
 | Feature area | Spec | Primary code paths |
 |--------------|------|-------------------|
-| Play home | `PlayHomeSpec.md` | `PlayHomeViewModel`, `SetupHomeView` (resume/recents) |
+| Play home | `PlayHomeSpec.md` | `PlayHomeViewModel`, `SetupHomeView` (resume) |
 | Match setup | `SetupFlowSpec.md` | `MatchSetupViewModel`, setup chip extensions |
 | Quick add player | `QuickAddPlayerSpec.md` | `QuickAddPlayerScreen`, `PendingMatchPlayerSelections` |
 | Scoring input | `ScoringInputSpec.md` | `ScoringInputPad`, shared gameplay chrome |

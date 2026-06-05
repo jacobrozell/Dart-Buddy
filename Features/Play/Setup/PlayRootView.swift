@@ -40,8 +40,7 @@ struct PlayRootView: View {
                     path.append(match.type == .x01 ? .x01Match(matchId: match.id) : .cricketMatch(matchId: match.id))
                 },
                 onStartRoute: { next in path.append(next) },
-                onQuickAddPlayer: { path.append(.quickAddPlayer) },
-                onViewCompletedMatch: { matchId in path.append(.historyDetail(matchId: matchId)) }
+                onQuickAddPlayer: { path.append(.quickAddPlayer) }
             )
             .uiTestAccessibilityDynamicTypeOverride()
             .navigationDestination(for: PlayRoute.self) { route in

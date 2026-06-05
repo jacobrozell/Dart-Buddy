@@ -12,7 +12,6 @@ struct SetupHomeView: View {
     let onResumeMatch: (MatchSummary) -> Void
     let onStartRoute: (PlayRoute) -> Void
     let onQuickAddPlayer: () -> Void
-    let onViewCompletedMatch: (UUID) -> Void
     @State private var startTask: Task<Void, Never>?
     @State private var showsGameRules = false
     @State private var showsCustomBotSheet = false
@@ -25,10 +24,6 @@ struct SetupHomeView: View {
 
                 if case let .readyWithActiveMatch(match) = homeViewModel.state {
                     resumeBanner(match)
-                }
-
-                if !homeViewModel.recentCompletedMatches.isEmpty {
-                    recentCompletedSection
                 }
 
                 modeSelector
@@ -135,53 +130,6 @@ struct SetupHomeView: View {
             )
         )
         .accessibilityIdentifier("resumeMatchButton")
-    }
-
-    private var recentCompletedSection: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
-            Text(L10n.recentGames)
-                .font(.headline)
-                .foregroundStyle(Brand.textPrimary)
-
-            VStack(spacing: 0) {
-                ForEach(homeViewModel.recentCompletedMatches) { match in
-                    Button { onViewCompletedMatch(match.id) } label: {
-                        HStack(spacing: DS.Spacing.s3) {
-                            Text(match.type == .x01 ? L10n.x01Title : L10n.cricketTitle)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Brand.textSecondary)
-                                .frame(width: 56, alignment: .leading)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(match.participantsLabel)
-                                    .font(.subheadline)
-                                    .foregroundStyle(Brand.textPrimary)
-                                    .lineLimit(1)
-                                if let winnerName = match.winnerName {
-                                    Text(L10n.format("play.home.recentWinnerFormat", winnerName))
-                                        .font(.caption)
-                                        .foregroundStyle(Brand.textSecondary)
-                                }
-                            }
-                            Spacer()
-                            Text(match.playedAt, style: .date)
-                                .font(.caption)
-                                .foregroundStyle(Brand.textSecondary)
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Brand.textSecondary)
-                        }
-                        .padding(.horizontal, DS.Spacing.s3)
-                        .padding(.vertical, DS.Spacing.s3)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(recentMatchAccessibilityLabel(match))
-                    if match.id != homeViewModel.recentCompletedMatches.last?.id {
-                        Divider().overlay(Brand.cardElevated)
-                    }
-                }
-            }
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-        }
     }
 
     private var modeSelector: some View {
@@ -549,12 +497,6 @@ struct SetupHomeView: View {
             return L10n.format("players.bots.roster.accessibilityFormat", player.name, difficulty.displayName)
         }
         return player.name
-    }
-
-    private func recentMatchAccessibilityLabel(_ match: CompletedMatchPreview) -> String {
-        let mode = match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
-        let winner = match.winnerName.map { L10n.format("play.home.recentWinnerFormat", $0) } ?? ""
-        return L10n.format("play.home.recentMatchAccessibilityFormat", mode, match.participantsLabel, winner)
     }
 
     private var turnOrderListHeight: CGFloat {
