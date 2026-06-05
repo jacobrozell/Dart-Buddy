@@ -57,7 +57,7 @@ struct SetupHomeView: View {
                 availablePlayerList
             }
             .padding(.horizontal, DS.Spacing.s4)
-            .padding(.bottom, DS.Spacing.s4)
+            .padding(.bottom, setupScrollBottomPadding)
             .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
             .frame(maxWidth: .infinity)
         }
@@ -557,5 +557,10 @@ struct SetupHomeView: View {
 
     private var setupStickyShadowColor: Color {
         colorScheme == .light ? .black.opacity(0.08) : .black.opacity(0.25)
+    }
+
+    /// Party setup is taller; keep roster rows scrollable above the sticky Start footer.
+    private var setupScrollBottomPadding: CGFloat {
+        setupViewModel.setupCategory == .party ? 96 : DS.Spacing.s4
     }
 }
