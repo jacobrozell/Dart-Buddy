@@ -160,12 +160,21 @@ extension XCTestCase {
 
     func selectPlayerFromRoster(_ name: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
         let button = app.buttons["select_\(name)"]
-        for _ in 0 ..< 4 where button.exists == false {
-            app.swipeUp()
-        }
+        let start = app.buttons["startMatchButton"]
         XCTAssertTrue(
             button.waitForExistence(timeout: timeout),
             "Expected roster row for \(name)"
+        )
+        for _ in 0 ..< 10 {
+            let clearsStartFooter = !start.exists || button.frame.maxY < start.frame.minY - 8
+            if button.isHittable, clearsStartFooter {
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(
+            button.isHittable,
+            "Expected roster row for \(name) to be reachable above the sticky Start footer"
         )
         button.tap()
     }
@@ -179,6 +188,13 @@ extension XCTestCase {
         XCTAssertTrue(
             app.descendants(matching: .any)["setup_selected_Bob"].firstMatch.waitForExistence(timeout: timeout)
         )
+    }
+
+    func selectAliceAndBobForPartySetup(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+        selectPlayerFromRoster("Bob", in: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
     }
 
     func startTwoPlayerX01Match(from app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -213,10 +229,8 @@ extension XCTestCase {
         if baseball.waitForExistence(timeout: timeout) {
             baseball.tap()
         }
-        selectAliceAndBob(from: app, timeout: timeout)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
+        selectAliceAndBobForPartySetup(from: app, timeout: timeout)
+        app.buttons["startMatchButton"].tap()
         XCTAssertTrue(app.otherElements["baseball_match_header"].waitForExistence(timeout: timeout))
         assertInteractiveElement(app.buttons["baseball_submit"], identifier: "baseball_submit", timeout: timeout)
         assertInteractiveElement(app.buttons["baseball_undo"], identifier: "baseball_undo", timeout: timeout)
