@@ -107,6 +107,21 @@ final class X01MatchUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["501, Double Out, First to 3 Legs"].exists)
     }
 
+    func testThreePlayerX01PinnedActiveCardVisibleInLandscape() {
+        let app = launchApp(["-seed_players"])
+        startThreePlayerX01Match(from: app)
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+
+        let active = app.otherElements["scoreCard_active"]
+        XCTAssertTrue(active.waitForExistence(timeout: timeout), "Active score card should exist")
+        XCTAssertTrue(
+            active.isHittable,
+            "Active score card should stay visible above the pad without scrolling in 3+ scrollable layout"
+        )
+        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+    }
+
     func testCompletedVisitPersistsOnInactiveScoreCard() {
         let app = launchApp(["-seed_players"])
 

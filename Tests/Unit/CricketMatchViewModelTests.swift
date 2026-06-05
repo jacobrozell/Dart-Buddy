@@ -239,12 +239,12 @@ func cricketViewModelBoardColumnsHideLegsForSingleLegMatch() async throws {
     )
     await vm.onAppear()
 
-    #expect(vm.boardColumns.allSatisfy { !$0.showsSetsLegs })
+    #expect(vm.boardColumns.allSatisfy { !$0.setsEnabled })
 }
 
 @MainActor
 @Test(.tags(.integration, .cricket, .match, .regression))
-func cricketViewModelBoardColumnsShowLegsForMultiLegMatch() async throws {
+func cricketViewModelBoardColumnsOmitLegsLabelForMultiLegMatch() async throws {
     let session = try MatchLifecycleService.createMatch(
         type: .cricket,
         config: .cricket(MatchConfigCricket(legsToWin: 3, setsEnabled: false)),
@@ -261,7 +261,7 @@ func cricketViewModelBoardColumnsShowLegsForMultiLegMatch() async throws {
     )
     await vm.onAppear()
 
-    #expect(vm.boardColumns.allSatisfy { $0.showsSetsLegs })
+    #expect(vm.boardColumns.allSatisfy { !$0.setsEnabled })
 }
 
 @MainActor

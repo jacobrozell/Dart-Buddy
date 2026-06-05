@@ -139,12 +139,26 @@ struct X01MatchScreen: View {
     }
 
     private func scrollableScoringStack(state: X01State) -> some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                playerCardsStack
+        let cards = viewModel.playerCards
+        return VStack(spacing: 0) {
+            if GameplayLayout.usesPinnedActiveX01PlayerCard(
+                playerCount: cards.count,
+                dynamicTypeSize: dynamicTypeSize
+            ), let active = cards.first(where: \.isActive) {
+                playerScoreCard(active)
                     .padding(.top, DS.Spacing.s2)
+                ScrollView {
+                    playerCardsContent(for: cards.filter { $0.id != active.id })
+                        .padding(.top, DS.Spacing.s2)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    playerCardsStack
+                        .padding(.top, DS.Spacing.s2)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             statusBanners
                 .padding(.vertical, DS.Spacing.s2)
             scoringPad(state: state)
@@ -166,22 +180,30 @@ struct X01MatchScreen: View {
     }
 
     private var playerCardsStack: some View {
+        playerCardsContent(for: viewModel.playerCards)
+    }
+
+    private func playerCardsContent(for cards: [X01MatchViewModel.PlayerCard]) -> some View {
         VStack(spacing: DS.Spacing.s2) {
-            ForEach(viewModel.playerCards) { card in
-                PlayerScoreCard(
-                    name: card.name,
-                    score: card.score,
-                    setsWon: card.setsWon,
-                    legsWon: card.legsWon,
-                    isActive: card.isActive,
-                    colorToken: card.colorToken,
-                    visitDarts: card.visitDarts,
-                    dartsThrown: card.dartsThrown,
-                    average: card.average
-                )
+            ForEach(cards) { card in
+                playerScoreCard(card)
             }
         }
         .padding(.horizontal, DS.Spacing.s4)
+    }
+
+    private func playerScoreCard(_ card: X01MatchViewModel.PlayerCard) -> some View {
+        PlayerScoreCard(
+            name: card.name,
+            score: card.score,
+            setsWon: card.setsWon,
+            legsWon: card.legsWon,
+            isActive: card.isActive,
+            colorToken: card.colorToken,
+            visitDarts: card.visitDarts,
+            dartsThrown: card.dartsThrown,
+            average: card.average
+        )
     }
 
     @ViewBuilder
