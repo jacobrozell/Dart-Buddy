@@ -5,10 +5,85 @@ enum CricketBoardMetrics {
     static let playerColumnWidth: CGFloat = 84
     static let scrollIndicatorPlayerThreshold = 3
     static let markRowHeight: CGFloat = DS.Spacing.s2 * 4
-    /// Aligns target-column footer spacer with the player stats block (darts + MPR, no legs row).
-    static let columnFooterHeight: CGFloat = DS.Spacing.s2 * 2 + 28
+    /// Footer region height (darts + MPR + vertical inset); matches `CricketBoardPlayerColumnFooter`.
+    static let columnFooterHeight: CGFloat = 48
+    static let headerHeight: CGFloat = 52
     static let activeColumnFill = Brand.cardElevated.opacity(0.35)
     static let knockedOutOpacity: Double = 0.42
+
+    static var boardBodyHeight: CGFloat {
+        CricketBoardSizing.standard.boardBodyHeight
+    }
+}
+
+/// Row/header/footer sizing; landscape uses a denser grid so the full board fits on screen.
+struct CricketBoardSizing: Equatable {
+    let markRowHeight: CGFloat
+    let headerHeight: CGFloat
+    let columnFooterHeight: CGFloat
+
+    static let standard = CricketBoardSizing(
+        markRowHeight: CricketBoardMetrics.markRowHeight,
+        headerHeight: CricketBoardMetrics.headerHeight,
+        columnFooterHeight: CricketBoardMetrics.columnFooterHeight
+    )
+
+    static let landscapeCompact = CricketBoardSizing(
+        markRowHeight: 28,
+        headerHeight: 44,
+        /// Darts + MPR row + vertical inset (padding lives inside this height).
+        columnFooterHeight: 40
+    )
+
+    var boardBodyHeight: CGFloat {
+        headerHeight
+            + CGFloat(CricketTarget.allCases.count) * markRowHeight
+            + columnFooterHeight
+    }
+
+    static func resolve(
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize
+    ) -> CricketBoardSizing {
+        guard !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else {
+            return .standard
+        }
+        if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+            return .landscapeCompact
+        }
+        return .standard
+    }
+}
+
+/// How player columns use horizontal space for the current board width.
+struct CricketBoardColumnLayout: Equatable {
+    let scrollsHorizontally: Bool
+    let fixedPlayerColumnWidth: CGFloat?
+
+    static func resolve(
+        availableWidth: CGFloat,
+        playerCount: Int,
+        minimumPlayerColumnWidth: CGFloat = CricketBoardMetrics.playerColumnWidth,
+        targetColumnWidth: CGFloat = CricketBoardMetrics.targetColumnWidth,
+        scrollThreshold: Int = CricketBoardMetrics.scrollIndicatorPlayerThreshold
+    ) -> CricketBoardColumnLayout {
+        guard playerCount > 0 else {
+            return CricketBoardColumnLayout(scrollsHorizontally: false, fixedPlayerColumnWidth: minimumPlayerColumnWidth)
+        }
+
+        let playerArea = max(0, availableWidth - targetColumnWidth)
+        let minimumTotal = minimumPlayerColumnWidth * CGFloat(playerCount)
+        let equalSplit = playerArea / CGFloat(playerCount)
+
+        if playerCount > scrollThreshold || equalSplit < minimumPlayerColumnWidth {
+            return CricketBoardColumnLayout(
+                scrollsHorizontally: true,
+                fixedPlayerColumnWidth: minimumPlayerColumnWidth
+            )
+        }
+
+        return CricketBoardColumnLayout(scrollsHorizontally: false, fixedPlayerColumnWidth: nil)
+    }
 }
 
 /// Cricket scoreboard: pinned target labels plus horizontally scrollable player columns.
@@ -22,9 +97,7 @@ struct CricketBoardView: View {
         let colorToken: PlayerColorToken
         let dartsThrown: Int
         let marksPerRound: Double
-        let legsWon: Int
         let setsWon: Int
-        let showsSetsLegs: Bool
         let setsEnabled: Bool
         var isClosureHighlight: Bool = false
     }
@@ -34,76 +107,125 @@ struct CricketBoardView: View {
 
     @ScaledMetric(relativeTo: .body) private var playerColumnWidth = CricketBoardMetrics.playerColumnWidth
     @ScaledMetric(relativeTo: .body) private var targetColumnWidth = CricketBoardMetrics.targetColumnWidth
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var sizing: CricketBoardSizing {
+        CricketBoardSizing.resolve(
+            verticalSizeClass: verticalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
+
     private var showsPlayerScrollIndicator: Bool {
-        columns.count >= CricketBoardMetrics.scrollIndicatorPlayerThreshold
+        columns.count > CricketBoardMetrics.scrollIndicatorPlayerThreshold
     }
 
     var body: some View {
+        GeometryReader { geometry in
+            let layout = CricketBoardColumnLayout.resolve(
+                availableWidth: geometry.size.width,
+                playerCount: columns.count,
+                minimumPlayerColumnWidth: playerColumnWidth,
+                targetColumnWidth: targetColumnWidth
+            )
+            boardContent(layout: layout, sizing: sizing)
+                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
+        }
+        .frame(height: sizing.boardBodyHeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Brand.card)
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.sm))
+    }
+
+    @ViewBuilder
+    private func boardContent(layout: CricketBoardColumnLayout, sizing: CricketBoardSizing) -> some View {
         HStack(alignment: .top, spacing: 0) {
-            CricketBoardTargetColumn(width: targetColumnWidth)
+            CricketBoardTargetColumn(width: targetColumnWidth, sizing: sizing)
                 .fixedSize(horizontal: true, vertical: false)
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: showsPlayerScrollIndicator) {
-                    HStack(spacing: 0) {
-                        ForEach(columns) { column in
-                            CricketBoardPlayerColumn(
-                                column: column,
-                                width: playerColumnWidth,
-                                allColumns: columns
-                            )
-                            .frame(width: playerColumnWidth)
-                            .id(column.id)
-                        }
-                    }
-                    .scrollTargetLayout()
-                }
-                .onChange(of: activeColumnScrollID) { _, newID in
-                    guard let newID else { return }
-                    if reduceMotion {
-                        proxy.scrollTo(newID, anchor: .center)
-                    } else {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            proxy.scrollTo(newID, anchor: .center)
-                        }
-                    }
-                }
-                .onAppear {
-                    if let activeColumnScrollID {
-                        proxy.scrollTo(activeColumnScrollID, anchor: .center)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if layout.scrollsHorizontally, let columnWidth = layout.fixedPlayerColumnWidth {
+                scrollingPlayerColumns(width: columnWidth, sizing: sizing)
+            } else {
+                distributedPlayerColumns(sizing: sizing)
             }
         }
-        .background(Brand.card)
+    }
+
+    private func distributedPlayerColumns(sizing: CricketBoardSizing) -> some View {
+        HStack(spacing: 0) {
+            ForEach(columns) { column in
+                CricketBoardPlayerColumn(
+                    column: column,
+                    width: nil,
+                    sizing: sizing,
+                    allColumns: columns
+                )
+                .frame(maxWidth: .infinity)
+                .id(column.id)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func scrollingPlayerColumns(width columnWidth: CGFloat, sizing: CricketBoardSizing) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: showsPlayerScrollIndicator) {
+                HStack(spacing: 0) {
+                    ForEach(columns) { column in
+                        CricketBoardPlayerColumn(
+                            column: column,
+                            width: columnWidth,
+                            sizing: sizing,
+                            allColumns: columns
+                        )
+                        .frame(width: columnWidth)
+                        .id(column.id)
+                    }
+                }
+                .scrollTargetLayout()
+            }
+            .onChange(of: activeColumnScrollID) { _, newID in
+                guard let newID else { return }
+                if reduceMotion {
+                    proxy.scrollTo(newID, anchor: .center)
+                } else {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        proxy.scrollTo(newID, anchor: .center)
+                    }
+                }
+            }
+            .onAppear {
+                if let activeColumnScrollID {
+                    proxy.scrollTo(activeColumnScrollID, anchor: .center)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 
 struct CricketBoardTargetColumn: View {
     let width: CGFloat
+    let sizing: CricketBoardSizing
     private let targets = CricketTarget.allCases
 
     var body: some View {
         VStack(spacing: 0) {
             Color.clear
-                .frame(width: width, height: headerHeight)
+                .frame(width: width, height: sizing.headerHeight)
             ForEach(targets, id: \.rawValue) { target in
                 Text(label(for: target))
                     .font(.subheadline.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(Brand.textSecondary)
-                    .frame(width: width, height: CricketBoardMetrics.markRowHeight)
+                    .frame(width: width, height: sizing.markRowHeight)
                 Divider().overlay(Brand.cardElevated)
             }
             Color.clear
-                .frame(width: width, height: footerHeight)
+                .frame(width: width, height: sizing.columnFooterHeight)
         }
     }
-
-    private var headerHeight: CGFloat { 52 }
-    private var footerHeight: CGFloat { CricketBoardMetrics.columnFooterHeight }
 
     private func label(for target: CricketTarget) -> String {
         target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
@@ -112,7 +234,9 @@ struct CricketBoardTargetColumn: View {
 
 struct CricketBoardPlayerColumn: View {
     let column: CricketBoardView.Column
-    let width: CGFloat
+    /// Fixed width when scrolling; `nil` distributes with `maxWidth: .infinity`.
+    let width: CGFloat?
+    let sizing: CricketBoardSizing
     let allColumns: [CricketBoardView.Column]
     private let targets = CricketTarget.allCases
 
@@ -127,12 +251,12 @@ struct CricketBoardPlayerColumn: View {
                     colorToken: column.colorToken,
                     isKnockedOut: isKnockedOut
                 )
-                .frame(width: width, height: CricketBoardMetrics.markRowHeight)
+                .modifier(CricketBoardColumnWidthModifier(width: width, height: sizing.markRowHeight))
                 .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
                 .opacity(isKnockedOut ? CricketBoardMetrics.knockedOutOpacity : 1)
                 Divider().overlay(Brand.cardElevated)
             }
-            CricketBoardPlayerColumnFooter(column: column)
+            CricketBoardPlayerColumnFooter(column: column, sizing: sizing)
         }
         .background(column.isActive ? CricketBoardMetrics.activeColumnFill.opacity(0.15) : Color.clear)
         .overlay {
@@ -170,8 +294,8 @@ struct CricketBoardPlayerColumn: View {
                 Color.clear.frame(height: 2)
             }
         }
-        .frame(width: width)
-        .padding(.vertical, DS.Spacing.s2)
+        .modifier(CricketBoardColumnWidthModifier(width: width))
+        .padding(.vertical, sizing == .landscapeCompact ? DS.Spacing.s1 : DS.Spacing.s2)
         .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
     }
 
@@ -194,6 +318,11 @@ struct CricketBoardPlayerColumn: View {
 
 struct CricketBoardPlayerColumnFooter: View {
     let column: CricketBoardView.Column
+    let sizing: CricketBoardSizing
+
+    private var verticalPadding: CGFloat {
+        sizing == .landscapeCompact ? DS.Spacing.s1 : DS.Spacing.s2
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -210,22 +339,16 @@ struct CricketBoardPlayerColumnFooter: View {
                     .foregroundStyle(Brand.textPrimary)
                     .accessibilityIdentifier(column.isActive ? "cricket_column_mpr" : "")
             }
-            if column.showsSetsLegs {
-                HStack(spacing: 6) {
-                    if column.setsEnabled {
-                        Text(L10n.format("play.cricket.column.footer.sets", column.setsWon))
-                            .font(.caption2)
-                            .foregroundStyle(Brand.textSecondary)
-                    }
-                    Text(L10n.format("play.cricket.column.footer.legs", column.legsWon))
-                        .font(.caption2)
-                        .foregroundStyle(Brand.textSecondary)
-                }
+            if column.setsEnabled {
+                Text(L10n.format("play.cricket.column.footer.sets", column.setsWon))
+                    .font(.caption2)
+                    .foregroundStyle(Brand.textSecondary)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 4)
-        .padding(.vertical, DS.Spacing.s2)
+        .padding(.vertical, verticalPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: sizing.columnFooterHeight, alignment: .topLeading)
     }
 }
 
@@ -266,6 +389,7 @@ struct CricketMarkCell: View {
             }
         }
         .frame(width: 26, height: 26)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityLabel(accessibilityLabel)
     }
 
@@ -281,6 +405,25 @@ struct CricketMarkCell: View {
             return L10n.format("cricket.mark.knockedOutAccessibilityFormat", targetLabel, state)
         }
         return L10n.format("cricket.mark.accessibilityFormat", targetLabel, state)
+    }
+}
+
+private struct CricketBoardColumnWidthModifier: ViewModifier {
+    let width: CGFloat?
+    var height: CGFloat?
+
+    func body(content: Content) -> some View {
+        if let width {
+            if let height {
+                content.frame(width: width, height: height)
+            } else {
+                content.frame(width: width)
+            }
+        } else if let height {
+            content.frame(maxWidth: .infinity).frame(height: height)
+        } else {
+            content.frame(maxWidth: .infinity)
+        }
     }
 }
 
@@ -311,6 +454,7 @@ struct CricketTapPad: View {
     let onUndoTurn: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
@@ -318,16 +462,49 @@ struct CricketTapPad: View {
         GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
+    private var usesLandscapeCompactLayout: Bool {
+        !usesAccessibilityLayout
+            && GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+    }
+
     private var padSpacing: CGFloat {
-        usesAccessibilityLayout ? ScoringPadStyle.accessibilitySpacing : ScoringPadStyle.compactSpacing
+        if usesAccessibilityLayout {
+            return ScoringPadStyle.accessibilitySpacing
+        }
+        if usesLandscapeCompactLayout {
+            return 4
+        }
+        return ScoringPadStyle.compactSpacing
     }
 
     private var displayKeyMinHeight: CGFloat {
-        usesAccessibilityLayout ? min(keyMinHeight, 56) : keyMinHeight
+        if usesAccessibilityLayout {
+            return min(keyMinHeight, 56)
+        }
+        if usesLandscapeCompactLayout {
+            return 40
+        }
+        return min(keyMinHeight, 48)
+    }
+
+    private var displayBullMissKeyMinHeight: CGFloat {
+        if usesAccessibilityLayout {
+            return displayKeyMinHeight
+        }
+        if usesLandscapeCompactLayout {
+            return 36
+        }
+        return 44
     }
 
     private var displayVisitSlotMinHeight: CGFloat {
-        usesAccessibilityLayout ? min(visitSlotMinHeight, 40) : visitSlotMinHeight
+        if usesAccessibilityLayout {
+            return min(visitSlotMinHeight, 40)
+        }
+        if usesLandscapeCompactLayout {
+            return 28
+        }
+        return min(visitSlotMinHeight, 30)
     }
 
     private let numberRows: [[String]] = [
@@ -340,8 +517,28 @@ struct CricketTapPad: View {
     var body: some View {
         if usesAccessibilityLayout {
             accessibilityPad
+        } else if usesLandscapeCompactLayout {
+            landscapeCompactPad
         } else {
             compactPad
+        }
+    }
+
+    private var landscapeCompactPad: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: padSpacing),
+            GridItem(.flexible(), spacing: padSpacing)
+        ]
+        return VStack(spacing: padSpacing) {
+            visitPreview
+            LazyVGrid(columns: columns, spacing: padSpacing) {
+                ForEach(accessibilitySegments, id: \.self) { segment in
+                    numberKey(segment, title: String(segment))
+                }
+            }
+            bullMissRow(showSpacer: false)
+            controlRow
+            enterButton
         }
     }
 
@@ -400,7 +597,7 @@ struct CricketTapPad: View {
             ScoringPadKey(
                 title: L10n.string("scoring.pad.bullLabel"),
                 font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
-                minHeight: displayKeyMinHeight,
+                minHeight: displayBullMissKeyMinHeight,
                 accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
                 accessibilityHint: L10n.string("scoring.segment.hint"),
                 identifier: "cricket_bull",
@@ -409,7 +606,7 @@ struct CricketTapPad: View {
             ScoringPadKey(
                 title: L10n.string("scoring.pad.missLabel"),
                 font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
-                minHeight: displayKeyMinHeight,
+                minHeight: displayBullMissKeyMinHeight,
                 accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
                 accessibilityHint: L10n.string("scoring.segment.hint"),
                 identifier: "cricket_miss",
@@ -417,7 +614,7 @@ struct CricketTapPad: View {
             )
             if showSpacer {
                 Color.clear
-                    .frame(maxWidth: .infinity, minHeight: displayKeyMinHeight)
+                    .frame(maxWidth: .infinity, minHeight: displayBullMissKeyMinHeight)
                     .accessibilityHidden(true)
             }
         }

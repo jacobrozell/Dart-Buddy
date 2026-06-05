@@ -41,3 +41,15 @@ func gameplayLayoutUsesAccessibilitySetupHomeOnlyAtAXSizes() {
     #expect(GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: .accessibility1) == true)
     #expect(GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: .accessibility5) == true)
 }
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutUsesLandscapeMatchScoringOnlyWithCompactVerticalSizeClass() {
+    #expect(GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: .compact) == true)
+    #expect(GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: .regular) == false)
+    #expect(GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: nil) == false)
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutLandscapePadWidthIsFixedForCompactPad() {
+    #expect(GameplayLayout.landscapeScoringPadWidth == 252)
+}

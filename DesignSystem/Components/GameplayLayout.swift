@@ -25,4 +25,12 @@ enum GameplayLayout {
     static func usesAccessibilitySetupHomeLayout(dynamicTypeSize: DynamicTypeSize) -> Bool {
         dynamicTypeSize.isAccessibilitySize
     }
+
+    /// iPhone landscape (compact vertical height): board and pad side-by-side.
+    static func usesLandscapeMatchScoringLayout(verticalSizeClass: UserInterfaceSizeClass?) -> Bool {
+        verticalSizeClass == .compact
+    }
+
+    /// Fixed scoring pad width in landscape (compact pad targets ~250pt).
+    static let landscapeScoringPadWidth: CGFloat = 252
 }

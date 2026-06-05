@@ -122,9 +122,14 @@ public struct MatchConfigCricket: Codable, Equatable, Sendable {
         X01LegFormat(rawValue: legFormatRaw) ?? .firstTo
     }
 
-    /// True when the match format tracks legs or sets beyond a single leg.
+    /// True when the in-game board should show set counts (legs are not shown on the cricket board).
+    public var showsSetsOnBoard: Bool {
+        setsEnabled
+    }
+
+    /// Kept for summary/history; cricket board uses `showsSetsOnBoard` only.
     public var showsLegsOrSetsOnBoard: Bool {
-        setsEnabled || legsToWin > 1
+        showsSetsOnBoard || legsToWin > 1
     }
 
     public init(

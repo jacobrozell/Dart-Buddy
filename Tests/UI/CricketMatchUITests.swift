@@ -221,4 +221,33 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         XCTAssertTrue(darts.waitForExistence(timeout: timeout + 5))
         XCTAssertTrue(mpr.exists)
     }
+
+    func testCricketBoardVisibleInLandscape() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock {
+            XCUIDevice.shared.orientation = .portrait
+        }
+
+        let column = app.otherElements["cricket_column_active"]
+        XCTAssertTrue(column.waitForExistence(timeout: timeout))
+        XCTAssertTrue(column.isHittable, "Active player column should stay on screen beside the pad in landscape")
+        XCTAssertTrue(app.buttons["cricket_20"].isHittable, "Scoring pad should remain reachable in landscape")
+
+        let enter = app.buttons["cricket_enter"]
+        XCTAssertTrue(enter.waitForExistence(timeout: timeout))
+        XCTAssertGreaterThan(enter.frame.height, 32, "Enter should not collapse to a thin bar in landscape")
+
+        let dartsStat = app.staticTexts["cricket_column_darts"]
+        if !dartsStat.isHittable {
+            app.scrollViews.firstMatch.swipeUp()
+        }
+        XCTAssertTrue(
+            dartsStat.waitForExistence(timeout: timeout),
+            "Player footer stats should be reachable in landscape"
+        )
+    }
 }
