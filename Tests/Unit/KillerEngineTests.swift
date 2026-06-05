@@ -89,7 +89,12 @@ func killerLifecycleUndoRestoresLives() throws {
         session = try MatchLifecycleService.submitKillerPick(session: session, dart: pick(number))
     }
 
+    let miss = DartInput(multiplier: .single, segment: .miss, isMiss: true)
+
     session = try MatchLifecycleService.submitKillerTurn(session: session, darts: [d(.double, 5)])
+    session = try MatchLifecycleService.submitKillerTurn(session: session, darts: [miss])
+    session = try MatchLifecycleService.submitKillerTurn(session: session, darts: [miss])
+
     session = try MatchLifecycleService.submitKillerTurn(session: session, darts: [d(.double, 12)])
     #expect(session.runtime.killerState?.players[1].lives == 2)
 
