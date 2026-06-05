@@ -70,7 +70,6 @@
 "play.setup.start.disabledHint" = "Selecteer minstens twee spelers om te starten.";
 "play.setup.mode.accessibilityFormat" = "%@ spelmodus";
 "play.home.resumeAccessibilityFormat" = "%@, %@ wedstrijd bezig";
-"play.home.recentMatchAccessibilityFormat" = "%@, %@. %@";
 "history.row.accessibilityFormat" = "%@. %@. %@";
 "history.filter.player.accessibilityFormat" = "Filter op speler, %@";
 "history.loadMore.accessibility" = "Meer wedstrijden laden";
@@ -375,8 +374,6 @@
 "tab.history" = "Geschiedenis";
 "tab.settings" = "Instellingen";
 "play.home.appTitle" = "Dart-scorebord";
-"play.home.recentGames" = "Recente wedstrijden";
-"play.home.recentWinnerFormat" = "%@ heeft gewonnen";
 "play.setup.chip.points" = "Punten";
 "play.setup.chip.checkOut" = "Uitspelen";
 "play.setup.chip.checkIn" = "Inspelen";
