@@ -100,7 +100,8 @@ targets:
     scheme:
       testTargets:
         - DartBuddyTests
-        - DartBuddyUITests
+        - name: DartBuddyUITests
+          parallelizable: false
   DartBuddyTests:
     type: bundle.unit-test
     platform: iOS

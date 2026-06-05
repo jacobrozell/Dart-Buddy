@@ -53,3 +53,19 @@ func gameplayLayoutUsesLandscapeMatchScoringOnlyWithCompactVerticalSizeClass() {
 func gameplayLayoutLandscapePadWidthIsFixedForCompactPad() {
     #expect(GameplayLayout.landscapeScoringPadWidth == 252)
 }
+
+@Test(.tags(.unit, .x01, .regression))
+func gameplayLayoutPinsActiveX01CardForThreePlusPlayers() {
+    #expect(
+        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 2, dynamicTypeSize: .large) == false
+    )
+    #expect(
+        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 3, dynamicTypeSize: .large) == true
+    )
+    #expect(
+        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 4, dynamicTypeSize: .xxxLarge) == true
+    )
+    #expect(
+        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 4, dynamicTypeSize: .accessibility3) == false
+    )
+}

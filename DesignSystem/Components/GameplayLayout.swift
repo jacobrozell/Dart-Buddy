@@ -33,4 +33,9 @@ enum GameplayLayout {
 
     /// Fixed scoring pad width in landscape (compact pad targets ~250pt).
     static let landscapeScoringPadWidth: CGFloat = 252
+
+    /// Scrollable X01 layout pins the active card when 3+ players and not in accessibility text sizes.
+    static func usesPinnedActiveX01PlayerCard(playerCount: Int, dynamicTypeSize: DynamicTypeSize) -> Bool {
+        playerCount >= 3 && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
 }
