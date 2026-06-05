@@ -9,10 +9,48 @@ func cricketBoardMarkTargetCountMatchesStandardCricketTargets() {
 }
 
 @Test(.tags(.unit, .cricket, .regression))
-func cricketConfigShowsLegsOrSetsOnBoardOnlyForMultiLegOrSetFormats() {
-    #expect(MatchConfigCricket(legsToWin: 1, setsEnabled: false).showsLegsOrSetsOnBoard == false)
-    #expect(MatchConfigCricket(legsToWin: 2, setsEnabled: false).showsLegsOrSetsOnBoard)
-    #expect(MatchConfigCricket(legsToWin: 1, setsEnabled: true).showsLegsOrSetsOnBoard)
+func cricketConfigShowsSetsOnBoardOnlyWhenSetsEnabled() {
+    #expect(MatchConfigCricket(legsToWin: 1, setsEnabled: false).showsSetsOnBoard == false)
+    #expect(MatchConfigCricket(legsToWin: 3, setsEnabled: false).showsSetsOnBoard == false)
+    #expect(MatchConfigCricket(legsToWin: 1, setsEnabled: true).showsSetsOnBoard)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
+func cricketBoardColumnLayoutDistributesWhenFewPlayersFit() {
+    let layout = CricketBoardColumnLayout.resolve(availableWidth: 400, playerCount: 2)
+    #expect(layout.scrollsHorizontally == false)
+    #expect(layout.fixedPlayerColumnWidth == nil)
+
+    let threeUp = CricketBoardColumnLayout.resolve(availableWidth: 520, playerCount: 3)
+    #expect(threeUp.scrollsHorizontally == false)
+    #expect(threeUp.fixedPlayerColumnWidth == nil)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
+func cricketBoardColumnLayoutScrollsWhenCrowdedOrTooNarrow() {
+    let threeNarrow = CricketBoardColumnLayout.resolve(availableWidth: 200, playerCount: 3)
+    #expect(threeNarrow.scrollsHorizontally == true)
+    #expect(threeNarrow.fixedPlayerColumnWidth == CricketBoardMetrics.playerColumnWidth)
+
+    let fourPlayers = CricketBoardColumnLayout.resolve(availableWidth: 600, playerCount: 4)
+    #expect(fourPlayers.scrollsHorizontally == true)
+    #expect(fourPlayers.fixedPlayerColumnWidth == CricketBoardMetrics.playerColumnWidth)
+
+    let narrow = CricketBoardColumnLayout.resolve(availableWidth: 200, playerCount: 2)
+    #expect(narrow.scrollsHorizontally == true)
+    #expect(narrow.fixedPlayerColumnWidth == CricketBoardMetrics.playerColumnWidth)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
+func cricketBoardLandscapeCompactSizingIsShorterThanStandard() {
+    #expect(CricketBoardSizing.landscapeCompact.boardBodyHeight < CricketBoardSizing.standard.boardBodyHeight)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
+func cricketBoardColumnLayoutDistributesThreePlayersOnTypicalPhoneWidth() {
+    let layout = CricketBoardColumnLayout.resolve(availableWidth: 360, playerCount: 3)
+    #expect(layout.scrollsHorizontally == false)
+    #expect(layout.fixedPlayerColumnWidth == nil)
 }
 
 @Test(.tags(.unit, .cricket, .regression))
@@ -29,11 +67,11 @@ func cricketBoardSplitComponentsShareColumnCount() {
     let columns = [
         CricketBoardView.Column(
             id: UUID(), name: "A", score: 20, marks: ["20": 3], isActive: true, colorToken: .blue,
-            dartsThrown: 9, marksPerRound: 2.5, legsWon: 0, setsWon: 0, showsSetsLegs: false, setsEnabled: false
+            dartsThrown: 9, marksPerRound: 2.5, setsWon: 0, setsEnabled: false
         ),
         CricketBoardView.Column(
             id: UUID(), name: "B", score: 0, marks: [:], isActive: false, colorToken: .coral,
-            dartsThrown: 6, marksPerRound: 1.0, legsWon: 0, setsWon: 0, showsSetsLegs: false, setsEnabled: false
+            dartsThrown: 6, marksPerRound: 1.0, setsWon: 0, setsEnabled: false
         )
     ]
 
@@ -47,20 +85,18 @@ func cricketBoardKnockedOutTargetRequiresAllPlayersClosed() {
     let playerA = UUID()
     let playerB = UUID()
     let columnDefaults = (
-        dartsThrown: 0, marksPerRound: 0.0, legsWon: 0, setsWon: 0, showsSetsLegs: false, setsEnabled: false
+        dartsThrown: 0, marksPerRound: 0.0, setsWon: 0, setsEnabled: false
     )
     let columns = [
         CricketBoardView.Column(
             id: playerA, name: "A", score: 20, marks: ["20": 3, "19": 2], isActive: true, colorToken: .blue,
             dartsThrown: columnDefaults.dartsThrown, marksPerRound: columnDefaults.marksPerRound,
-            legsWon: columnDefaults.legsWon, setsWon: columnDefaults.setsWon,
-            showsSetsLegs: columnDefaults.showsSetsLegs, setsEnabled: columnDefaults.setsEnabled
+            setsWon: columnDefaults.setsWon, setsEnabled: columnDefaults.setsEnabled
         ),
         CricketBoardView.Column(
             id: playerB, name: "B", score: 0, marks: ["20": 3, "19": 1], isActive: false, colorToken: .coral,
             dartsThrown: columnDefaults.dartsThrown, marksPerRound: columnDefaults.marksPerRound,
-            legsWon: columnDefaults.legsWon, setsWon: columnDefaults.setsWon,
-            showsSetsLegs: columnDefaults.showsSetsLegs, setsEnabled: columnDefaults.setsEnabled
+            setsWon: columnDefaults.setsWon, setsEnabled: columnDefaults.setsEnabled
         )
     ]
 
