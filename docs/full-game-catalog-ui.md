@@ -414,30 +414,81 @@ History + Statistics merged; mode filter must scale to 28 entries.
 
 ---
 
-## 6a. Statistics across heterogeneous modes *(new — added in review)*
+## 6a. Where advanced stats live (heterogeneous modes) *(decision)*
 
 This is the gap that most threatens "does the UI support 28 games?" Today's
 Statistics is X01/Cricket-shaped: `StatisticsViewModel` exposes `isX01`,
-`showsTrendChart`, `sectorHits`, and 3-dart-average breakdowns. None of that is
-meaningful for a lives game, a sequence race, or a grid game.
+`showsTrendChart`, `sectorHits`, and 3-dart-average breakdowns. You cannot
+compute a 3-dart average for Tic-Tac-Toe or a checkout % for Bob's 27 — so a
+single tab with one schema can't be the home for "advanced stats" at 28 modes.
 
-**Required before Practice/novelty modes ship:**
+### Three altitudes of stats — one engine, three homes
 
-- **A per-template stat contract.** Each gameplay template (A–I) declares which
-  stats it produces — e.g. A: 3-dart avg / checkout % / highest turn; D: kills,
-  win rate, avg lives remaining; E: completion time, perfect-segment %, best
-  score; F: best score vs par; H/I: win rate + role/phase log only. Store a
-  `statKind` on the catalog entry (or template) so Statistics renders the right
-  card set.
-- **Graceful "no comparable stat" state.** When a filter (or "All games")
-  spans modes with no shared metric, Statistics shows per-mode mini-summaries,
-  not a forced single average. Never show a checkout % for Tic-Tac-Toe.
-- **Match summary parity (§7).** The summary screen already needs a branch per
-  template; make the *same* `statKind` drive both the summary highlights and the
-  Statistics cards so they can't diverge.
+The mistake is treating "stats" as one screen. There are three altitudes, all
+driven by the **same `statKind`** (now on every `GameModeCatalogEntry`), each
+with a home that already exists in the app:
 
-Without this, Statistics either crashes conceptually or silently shows wrong
-numbers as modes diversify — a correctness issue, not just polish.
+| Altitude | Question it answers | Home screen (exists today) | What it shows |
+|----------|--------------------|----------------------------|---------------|
+| **Single match** | "How did *this game* go?" | `MatchSummaryScreen` + History detail | `statKind` highlights for one match (kills, completion time, best score…) |
+| **Per player × per mode** | "How good am I at *this mode*?" | **`PlayerDetailView`** | Per-mode mastery: personal bests, win rate, `statKind` metrics, trend — **this is the home for advanced stats** |
+| **Aggregate / trends** | "How am I trending overall / vs others?" | Activity → Statistics segment | Cross-match *comparables*; filter to one mode for that mode's deep dive |
+
+**The decision:** *advanced, mode-specific stats live on `PlayerDetailView`*, as
+a **per-mode breakdown section** (one expandable block per mode the player has
+played). It's already per-player, so it scales to 28 modes without forcing
+heterogeneous metrics into one shared table. The Activity → Statistics segment
+stays the home for **cross-mode comparables** (matches played, win rate, recent
+activity) and becomes a per-mode deep dive only when filtered to a single mode.
+
+```mermaid
+flowchart LR
+    events[(Raw turn/dart events)] --> service[StatsService - per-statKind reducers]
+    service --> agg[PlayerModeAggregate - keyed by catalog id]
+    agg --> summary[Match Summary - one match]
+    agg --> player[Player Detail - per-mode mastery ★ advanced stats]
+    agg --> stats[Activity / Statistics - cross-mode + filtered deep dive]
+```
+
+### The `statKind` → metrics contract
+
+Each gameplay template declares the metric family it produces; the UI renders
+the matching card set and **nothing else** (so Tic-Tac-Toe never shows a
+checkout %):
+
+| `statKind` | Modes (template) | Headline metrics |
+|-----------|------------------|------------------|
+| `checkout` | X01, Knockout, Sudden Death, 51 By 5's, English Cricket (A) | 3-dart avg, checkout %, highest turn, best leg |
+| `marks` | Cricket, American Cricket, Mickey Mouse, Mulligan (B) | marks per round (MPR), points, closes |
+| `innings` | Baseball, Shanghai (C) | runs/inning, best inning, Shanghai rate |
+| `lives` | Killer family, Nine Lives, Follow the Leader, Loop (D) | win rate, kills dealt, avg lives remaining |
+| `sequence` | Around the Clock family, Grand National, Hare & Hounds (E) | completion time, perfect-segment %, best score (180 ATC) |
+| `soloScore` | Bob's 27, Halve-It (F) | best score, score vs par, current streak |
+| `goals` | Football (G) | win rate, goals/game |
+| `boardClaim` | Prisoner, Tic-Tac-Toe (H) | win rate, claim efficiency |
+| `roleScore` | Scam, Snooker (I) | win rate, per-role/per-phase scoring |
+
+### What this requires (data + UI)
+
+- **Data:** extend the already-anticipated `PlayerModeAggregate`
+  ([`specs/StatsSpec.md`](../specs/StatsSpec.md) §5) to be **keyed by catalog
+  `id`** (not just `MatchType`, so the 23 future modes fit) and to carry a
+  `statKind`-shaped payload. `StatsService` gains one reducer per `statKind`.
+  Only *shipped* modes produce data; planned modes contribute nothing until
+  their engine lands.
+- **Player Detail:** a per-mode section that lists modes the player has played,
+  each expanding to its `statKind` card set + a per-mode trend.
+- **Graceful "no comparable stat" state:** when a filter (or "All games") spans
+  modes with no shared metric, Statistics shows per-mode mini-summaries, not a
+  forced single average.
+- **Summary parity (§7):** the *same* `statKind` drives Match Summary highlights
+  and the Statistics/Player cards, so the three altitudes can't diverge.
+
+Without this, Statistics either breaks conceptually or silently shows wrong
+numbers as modes diversify — a correctness issue, not just polish. The full
+contract belongs in [`specs/StatsSpec.md`](../specs/StatsSpec.md) (multi-mode
+stat model) and [`specs/PlayerSpec.md`](../specs/PlayerSpec.md) (per-mode
+section on Player Detail).
 
 ---
 

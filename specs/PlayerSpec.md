@@ -119,6 +119,11 @@ Sections:
 - Identity card (name/avatar/color)
 - **Training Partner** (humans only) — progress, create bot, practice shortcuts — see [`TrainingBotSpec.md`](TrainingBotSpec.md)
 - Lifetime summary stats
+- **Per-mode breakdown** (post-1.0, catalog scale) — the home for advanced,
+  mode-specific stats. One expandable block per mode the player has played,
+  rendering that mode's `statKind` card set (per-mode bests, win rate, trend).
+  Heterogeneous metrics live here rather than being forced into the shared
+  Statistics tables. Model and `statKind` contract: [`StatsSpec.md`](StatsSpec.md) §12.
 - Recent matches (last N)
 - Management actions:
   - Edit
