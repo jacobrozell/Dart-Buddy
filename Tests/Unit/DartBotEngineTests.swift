@@ -100,6 +100,178 @@ import Testing
     #expect(hardTotal > easyTotal)
 }
 
+@Test func dartBotEngine_generatesBaseballTurn() {
+    var rng = SeededRandomNumberGenerator(seed: 11)
+    let darts = DartBotEngine.generateBaseballTurn(
+        targetSegment: 4,
+        phase: .innings,
+        stretchGateOpen: true,
+        seventhInningStretch: false,
+        profile: BotDifficulty.medium.skillProfile,
+        rng: &rng
+    )
+    #expect(darts.count == 3)
+}
+
+@Test func dartBotEngine_generatesShanghaiTurn() {
+    var rng = SeededRandomNumberGenerator(seed: 13)
+    let darts = DartBotEngine.generateShanghaiTurn(
+        targetSegment: 7,
+        profile: BotDifficulty.medium.skillProfile,
+        rng: &rng
+    )
+    #expect(darts.count == 3)
+}
+
+@Test func dartBotEngine_shanghaiEasyBotScoresMorePointsThanVeryEasy() throws {
+    var veryEasyPoints = 0
+    var easyPoints = 0
+    let samples = 120
+
+    for seed in 0 ..< samples {
+        for round in 1 ... 7 {
+            var veryEasyRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + round))
+            var easyRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + round))
+
+            let veryEasyDarts = DartBotEngine.generateShanghaiTurn(
+                targetSegment: round,
+                profile: BotDifficulty.veryEasy.skillProfile,
+                rng: &veryEasyRNG
+            )
+            let easyDarts = DartBotEngine.generateShanghaiTurn(
+                targetSegment: round,
+                profile: BotDifficulty.easy.skillProfile,
+                rng: &easyRNG
+            )
+
+            veryEasyPoints += try scoreShanghaiVisit(darts: veryEasyDarts, round: round)
+            easyPoints += try scoreShanghaiVisit(darts: easyDarts, round: round)
+        }
+    }
+
+    #expect(easyPoints > veryEasyPoints)
+}
+
+@Test func dartBotEngine_shanghaiMediumBotScoresMorePointsThanEasy() throws {
+    var easyPoints = 0
+    var mediumPoints = 0
+    let samples = 120
+
+    for seed in 0 ..< samples {
+        for round in 1 ... 7 {
+            var easyRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + round + 500))
+            var mediumRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + round + 500))
+
+            let easyDarts = DartBotEngine.generateShanghaiTurn(
+                targetSegment: round,
+                profile: BotDifficulty.easy.skillProfile,
+                rng: &easyRNG
+            )
+            let mediumDarts = DartBotEngine.generateShanghaiTurn(
+                targetSegment: round,
+                profile: BotDifficulty.medium.skillProfile,
+                rng: &mediumRNG
+            )
+
+            easyPoints += try scoreShanghaiVisit(darts: easyDarts, round: round)
+            mediumPoints += try scoreShanghaiVisit(darts: mediumDarts, round: round)
+        }
+    }
+
+    #expect(mediumPoints > easyPoints)
+}
+
+@Test func dartBotEngine_shanghaiVeryEasyAndEasyNeverThrowDoublesOrTriples() {
+    let samples = 200
+    for difficulty in [BotDifficulty.veryEasy, .easy] {
+        for seed in 0 ..< samples {
+            for round in 1 ... 7 {
+                var rng = SeededRandomNumberGenerator(seed: UInt64(seed * 20 + round))
+                let darts = DartBotEngine.generateShanghaiTurn(
+                    targetSegment: round,
+                    profile: difficulty.skillProfile,
+                    rng: &rng
+                )
+                for dart in darts where dart.isMiss == false {
+                    #expect(dart.multiplier == .single)
+                }
+            }
+        }
+    }
+}
+
+@Test func dartBotEngine_baseballEasyBotScoresMoreRunsThanVeryEasy() throws {
+    var veryEasyRuns = 0
+    var easyRuns = 0
+    let samples = 120
+
+    for seed in 0 ..< samples {
+        for inning in 1 ... 9 {
+            var veryEasyRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + inning))
+            var easyRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + inning))
+            let inningSegment = inning
+
+            let veryEasyDarts = DartBotEngine.generateBaseballTurn(
+                targetSegment: inningSegment,
+                phase: .innings,
+                stretchGateOpen: true,
+                seventhInningStretch: false,
+                profile: BotDifficulty.veryEasy.skillProfile,
+                rng: &veryEasyRNG
+            )
+            let easyDarts = DartBotEngine.generateBaseballTurn(
+                targetSegment: inningSegment,
+                phase: .innings,
+                stretchGateOpen: true,
+                seventhInningStretch: false,
+                profile: BotDifficulty.easy.skillProfile,
+                rng: &easyRNG
+            )
+
+            veryEasyRuns += try scoreBaseballVisit(darts: veryEasyDarts, inning: inningSegment)
+            easyRuns += try scoreBaseballVisit(darts: easyDarts, inning: inningSegment)
+        }
+    }
+
+    #expect(easyRuns > veryEasyRuns)
+}
+
+@Test func dartBotEngine_baseballMediumBotScoresMoreRunsThanEasy() throws {
+    var easyRuns = 0
+    var mediumRuns = 0
+    let samples = 120
+
+    for seed in 0 ..< samples {
+        for inning in 1 ... 9 {
+            var easyRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + inning + 500))
+            var mediumRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + inning + 500))
+            let inningSegment = inning
+
+            let easyDarts = DartBotEngine.generateBaseballTurn(
+                targetSegment: inningSegment,
+                phase: .innings,
+                stretchGateOpen: true,
+                seventhInningStretch: false,
+                profile: BotDifficulty.easy.skillProfile,
+                rng: &easyRNG
+            )
+            let mediumDarts = DartBotEngine.generateBaseballTurn(
+                targetSegment: inningSegment,
+                phase: .innings,
+                stretchGateOpen: true,
+                seventhInningStretch: false,
+                profile: BotDifficulty.medium.skillProfile,
+                rng: &mediumRNG
+            )
+
+            easyRuns += try scoreBaseballVisit(darts: easyDarts, inning: inningSegment)
+            mediumRuns += try scoreBaseballVisit(darts: mediumDarts, inning: inningSegment)
+        }
+    }
+
+    #expect(mediumRuns > easyRuns)
+}
+
 @Test func dartBotEngine_generatesCricketTurn() {
     let players = [UUID(), UUID()]
     let state = try! CricketEngine.makeInitialState(
@@ -355,6 +527,26 @@ import Testing
     )
     #expect(darts.allSatisfy { $0.isMiss == false || $0.points == 0 })
     #expect(darts.contains { $0.points > 0 })
+}
+
+private func scoreShanghaiVisit(darts: [DartInput], round: Int) throws -> Int {
+    var state = try ShanghaiEngine.makeInitialState(
+        config: MatchConfigShanghai(roundCount: round),
+        playerIds: [UUID(), UUID()]
+    )
+    state.currentRound = round
+    let outcome = try ShanghaiEngine.submitTurn(state: state, darts: darts)
+    return outcome.event.pointsThisVisit
+}
+
+private func scoreBaseballVisit(darts: [DartInput], inning: Int) throws -> Int {
+    var state = try BaseballEngine.makeInitialState(
+        config: MatchConfigBaseball(inningCount: inning),
+        playerIds: [UUID(), UUID()]
+    )
+    state.currentInning = inning
+    let outcome = try BaseballEngine.submitTurn(state: state, darts: darts)
+    return outcome.event.runsThisVisit
 }
 
 private func cricketDartAims(at value: Int, dart: DartInput) -> Bool {

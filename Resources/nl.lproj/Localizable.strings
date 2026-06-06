@@ -673,6 +673,8 @@
 "play.shanghai.achieved" = "Shanghai! Enkel, dubbel en triple op het doel.";
 "play.shanghai.pad.disabledWhileBot" = "Wachten op bot-beurt";
 "play.shanghai.pad.lockedSegmentHint" = "Alleen segment %d telt deze ronde";
+"play.shanghai.scoringHintFormat" = "Gooi op %d — enkel %d, dubbel %d, triple %d punten";
+"play.shanghai.goalReminder" = "Om beurten drie pijlen gooien. Hoogste totaal na alle rondes wint.";
 "play.shanghai.announce.turnFormat" = "%d punten deze beurt. %d punten totaal.";
 "play.shanghai.setup.rounds" = "Rondes";
 "play.shanghai.setup.roundsValueFormat" = "%d rondes";

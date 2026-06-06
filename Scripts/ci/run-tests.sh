@@ -7,14 +7,17 @@ PROJECT="${CI_XCODE_PROJECT:-DartBuddy.xcodeproj}"
 SCHEME="${CI_XCODE_SCHEME:-DartBuddy}"
 PACKAGES_ROOT="${CI_PACKAGES_ROOT:-.packages}"
 LOG_FILE="${CI_XCODE_TEST_LOG:-xcodebuild-test.log}"
+PARALLEL_TESTING="${CI_PARALLEL_TESTING:-YES}"
 
 echo "::group::Running tests (without building)"
+echo "Scheme: $SCHEME (parallel testing: $PARALLEL_TESTING)"
+rm -rf TestResults.xcresult
 set -o pipefail
 xcodebuild test-without-building \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
   -destination "$DESTINATION" \
-  -parallel-testing-enabled NO \
+  -parallel-testing-enabled "$PARALLEL_TESTING" \
   -derivedDataPath DerivedData \
   -clonedSourcePackagesDirPath "./${PACKAGES_ROOT}/cloned_sources" \
   -packageCachePath "$(pwd)/${PACKAGES_ROOT}/cache" \

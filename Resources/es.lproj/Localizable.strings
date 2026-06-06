@@ -673,6 +673,8 @@
 "play.shanghai.achieved" = "¡Shanghai! Simple, doble y triple en el objetivo.";
 "play.shanghai.pad.disabledWhileBot" = "Esperando turno del bot";
 "play.shanghai.pad.lockedSegmentHint" = "Solo el segmento %d puntúa esta ronda";
+"play.shanghai.scoringHintFormat" = "Apunta al %d — simple %d, doble %d, triple %d puntos";
+"play.shanghai.goalReminder" = "Lancen tres dardos por turno. Gana quien tenga más puntos al final.";
 "play.shanghai.announce.turnFormat" = "%d puntos en esta visita. %d puntos totales.";
 "play.shanghai.setup.rounds" = "Rondas";
 "play.shanghai.setup.roundsValueFormat" = "%d rondas";

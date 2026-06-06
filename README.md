@@ -41,7 +41,7 @@ xcodebuild test -scheme DartBuddy \
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddy` scheme (unit + accessibility + UI tests, including localization parity and `de`/`es`/`nl` smoke suites) on an iPhone 17 simulator (`macos-26` runner).
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). Full UI smoke runs nightly via `.github/workflows/nightly-ui.yml` (`DartBuddy` scheme) and locally with `xcodebuild test -scheme DartBuddy`.
 
 ## What the app does
 

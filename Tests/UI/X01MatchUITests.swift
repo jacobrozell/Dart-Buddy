@@ -112,14 +112,36 @@ final class X01MatchUITests: DartBuddyUITestCase {
         startThreePlayerX01Match(from: app)
 
         XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock {
+            XCUIDevice.shared.orientation = .portrait
+        }
 
         let active = app.otherElements["scoreCard_active"]
         XCTAssertTrue(active.waitForExistence(timeout: timeout), "Active score card should exist")
         XCTAssertTrue(
             active.isHittable,
-            "Active score card should stay visible above the pad without scrolling in 3+ scrollable layout"
+            "Active score card should stay visible beside the pad in landscape"
         )
         XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+    }
+
+    func testX01ExitAndPadReachableInLandscape() {
+        let app = launchApp(["-seed_players"])
+
+        app.buttons["select_Alice"].tap()
+        app.buttons["select_Bob"].tap()
+        app.buttons["startMatchButton"].tap()
+        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock {
+            XCUIDevice.shared.orientation = .portrait
+        }
+
+        let exit = app.buttons["match_exit"]
+        XCTAssertTrue(exit.waitForExistence(timeout: timeout))
+        XCTAssertTrue(exit.isHittable, "Exit control should stay visible in landscape")
+        XCTAssertTrue(app.buttons["pad_20"].isHittable, "Scoring pad should remain reachable in landscape")
     }
 
     func testCompletedVisitPersistsOnInactiveScoreCard() {

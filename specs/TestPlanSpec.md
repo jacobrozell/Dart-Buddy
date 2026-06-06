@@ -6,7 +6,7 @@ Define test strategy, ownership, and quality gates for MVP release confidence.
 Test-first policy for this project:
 - Core logic in every production file should be covered by tests as it is introduced.
 - Unit/integration coverage is mandatory in MVP delivery scope.
-- Limited UI automation runs in CI; broader UI matrix deferred post-1.0.
+- Unit/integration + accessibility run in CI (`DartBuddyCI`); UI smoke runs locally or in pre-release QA.
 
 ---
 
@@ -35,8 +35,8 @@ Test-first policy for this project:
 - Localization smoke (`GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`) with `-AppleLanguages`
 
 UI test execution policy:
-- **1.0:** CI runs `DartBuddyUITests` for regression smoke and snapshot tooling; not a substitute for manual RC evidence.
-- **Post-1.0:** Expand to full edge-flow and accessibility automation matrix after UI lock.
+- **1.0:** CI runs `DartBuddyCI` (unit + accessibility only). `DartBuddyUITests` run nightly (`.github/workflows/nightly-ui.yml`) and locally before release.
+- **Post-1.0:** Optional nightly UI job or expanded matrix after UI lock.
 - Prioritize robust unit + integration coverage first.
 
 ---
@@ -69,9 +69,9 @@ UI test execution policy:
 ---
 
 ## 5. CI Recommendations
-- Run unit + integration + UI smoke on PR (see `.github/workflows/ci.yml`)
-- `DartBuddyPerformanceTests` (long-run bot simulations) is excluded from the `DartBuddy` scheme; run locally or on nightly jobs
-- Expand UI automation jobs in post-MVP phase (full edge/accessibility matrix).
+- Run unit + accessibility on PR via `DartBuddyCI` scheme (see `.github/workflows/ci.yml`)
+- Run `DartBuddyUITests` nightly and locally before release (see `.github/workflows/nightly-ui.yml`)
+- `DartBuddyPerformanceTests` (long-run bot simulations) is excluded from CI schemes; run locally or on nightly jobs
 - Track coverage trend for domain and repository layers
 
 ---
