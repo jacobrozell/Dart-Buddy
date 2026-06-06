@@ -4,6 +4,7 @@ struct HistoryRootView: View {
     let dependencies: AppDependencies
     var onResumeActiveMatch: ((MatchSummary) -> Void)?
     var onStartMatch: (() -> Void)?
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var path: [HistoryRoute] = []
     @StateObject private var viewModel: HistoryListViewModel
     @State private var filterTask: Task<Void, Never>?
@@ -105,6 +106,8 @@ struct HistoryRootView: View {
                 }
                 .padding(.horizontal, DS.Spacing.s4)
                 .padding(.bottom, DS.Spacing.s6)
+                .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+                .frame(maxWidth: .infinity)
             }
             .background(Brand.background.ignoresSafeArea())
             .navigationBarHidden(true)

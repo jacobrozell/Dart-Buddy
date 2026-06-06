@@ -48,23 +48,36 @@ Define root app composition: launch behavior, tab structure, routing entry point
 
 ## 6. First-Launch Onboarding
 
-A five-page swipeable **app tour** explains the tab shell on first launch.
+A branching **onboarding flow** on first launch asks whether the user knows how to play darts, then routes to either a curated preferences step or the Learn to play rules content.
+
+### Flow
+
+```text
+Welcome → Experience question → Preferences (experienced) or Learn to play (beginner) → Ready → Play tab
+Welcome → Skip → Play tab
+```
 
 ### Behavior
 - **Trigger:** `UserDefaults` key `onboarding_completed` is unset and onboarding is enabled.
 - **Presentation:** `fullScreenCover` on `MainTabView` after bootstrap (before the App Store update check).
-- **Pages:** Welcome → Play → Players → History & Statistics → Get Started.
-- **Skip / Get Started:** Sets `onboarding_completed`; first launch selects the Play tab. First launch cannot be swipe-dismissed (must use Skip or Get Started).
-- **Replay:** Settings → About → **View App Tour** presents the same flow without changing completion state.
-- **Reset all data:** Clears `onboarding_completed` with all other auxiliary `UserDefaults`; the tour can present again immediately after reset (see `LocalAppStateReset`).
+- **Welcome:** One-screen intro with **Skip** (escape hatch) and **Next**.
+- **Experience question:** Two choice buttons — experienced path continues to preferences; beginner path continues to rules content (default mode X01).
+- **Preferences (experienced path):** Curated subset of Settings (appearance, gameplay defaults, X01 defaults, feedback toggles). Changes persist immediately via `SettingsViewModel`.
+- **Learn to play (beginner path):** Reuses `GameRulesGuideContent` with onboarding **Continue** footer.
+- **Ready:** Shared finale with **Get Started**.
+- **Skip / Get Started:** Sets `onboarding_completed`; first launch selects the Play tab. **Get Started** also persists `onboarding_darts_experience` (`experienced` | `beginner`) when the user completed a branch. First launch cannot be swipe-dismissed (must use Skip or Get Started).
+- **Replay:** Settings → About → **View onboarding** presents the same flow in `.replay` mode without changing completion state or saved experience.
+- **Reset all data:** Clears `onboarding_completed` and `onboarding_darts_experience` with all other auxiliary `UserDefaults`; onboarding can present again immediately after reset (see `LocalAppStateReset`).
 
 ### Disabled when
 - Launch argument `-skip_onboarding`
 - UI tests (`-ui_test_reset`, same gate as App Store update checker)
+- Opt in during UI tests with `-ui_test_onboarding` (still uses `-ui_test_reset` store reset)
 
 ### Implementation
 - `Support/Onboarding/OnboardingStore.swift`
-- `Features/Onboarding/OnboardingView.swift`
+- `Features/Onboarding/OnboardingFlowView.swift` (+ step views)
+- `Features/Play/Rules/GameRulesGuideContent.swift` (shared rules content)
 - Unit tests: `Tests/Unit/OnboardingStoreTests.swift`
 
 ---

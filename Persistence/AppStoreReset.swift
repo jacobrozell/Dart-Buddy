@@ -19,6 +19,7 @@ enum AppStoreReset {
     /// Deletes the on-disk store before container creation when UI tests or demo seeding request a clean slate.
     static func applyLaunchArgumentOverrides() {
         if ProcessInfo.processInfo.arguments.contains("-ui_test_reset") {
+            LocalAppStateReset.clearAllPersistedAuxiliaryState()
             deleteSQLiteStore()
         }
     }

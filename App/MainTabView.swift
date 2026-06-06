@@ -86,8 +86,9 @@ struct MainTabView: View {
             Text(L10n.updateAvailableMessage)
         }
         .fullScreenCover(isPresented: $showsOnboarding) {
-            OnboardingView(
+            OnboardingFlowView(
                 mode: .firstLaunch,
+                dependencies: dependencies,
                 store: onboardingStore,
                 logger: dependencies.logger,
                 preferredColorScheme: preferences.preferredColorScheme,

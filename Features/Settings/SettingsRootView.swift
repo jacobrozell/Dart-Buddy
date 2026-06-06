@@ -87,8 +87,9 @@ struct SettingsRootView: View {
             Text(L10n.resetConfirmMessage)
         }
         .fullScreenCover(isPresented: $showsOnboarding) {
-            OnboardingView(
+            OnboardingFlowView(
                 mode: .replay,
+                dependencies: dependencies,
                 preferredColorScheme: preferences.preferredColorScheme,
                 onFinished: { showsOnboarding = false }
             )
