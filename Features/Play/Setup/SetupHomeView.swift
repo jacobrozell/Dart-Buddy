@@ -17,6 +17,7 @@ struct SetupHomeView: View {
     @State private var showsGameRules = false
     @State private var showsCustomBotSheet = false
     @State private var showsEditOptions = false
+    @State private var showsModePicker = false
 
     var body: some View {
         ScrollView {
@@ -88,6 +89,14 @@ struct SetupHomeView: View {
                 startTask = Task { await setupViewModel.addCustomBot(name: name, metrics: metrics) }
             }
         }
+        .sheet(isPresented: $showsModePicker) {
+            ModePickerSheet(selectedEntryId: selectedCatalogEntry?.id) { entry in
+                if let selection = entry.pendingModeSelection {
+                    setupViewModel.applyPendingModeSelection(selection)
+                }
+                showsModePicker = false
+            }
+        }
         .onDisappear { startTask?.cancel() }
     }
 
@@ -104,11 +113,15 @@ struct SetupHomeView: View {
 
     private var learnToPlayButton: some View {
         Button { showsGameRules = true } label: {
-            Image(systemName: "book.pages")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(Brand.green)
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
+            HStack(spacing: 6) {
+                Image(systemName: "book.pages")
+                Text(L10n.gameRulesLearnButton)
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(Brand.green)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(L10n.gameRulesLearnButton)
@@ -164,7 +177,6 @@ struct SetupHomeView: View {
                 .accessibilityAddTraits(.isHeader)
 
             HStack(alignment: .top, spacing: DS.Spacing.s3) {
-                learnToPlayButton
                 if let entry = selectedCatalogEntry, let matchType = entry.matchType {
                     GameModeBadge(type: matchType, size: 36)
                 }
@@ -179,21 +191,21 @@ struct SetupHomeView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
-                if ProductSurface.showsModesTab {
-                    Button(action: onChangeMode) {
-                        Text(L10n.string("play.setup.changeMode"))
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Brand.green)
-                            .padding(.horizontal, DS.Spacing.s2)
-                            .frame(minWidth: 44, minHeight: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("setup_changeModeButton")
+                Button(action: changeModeTapped) {
+                    Text(L10n.string("play.setup.changeMode"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.green)
+                        .padding(.horizontal, DS.Spacing.s2)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("setup_changeModeButton")
             }
             .padding(DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+
+            learnToPlayButton
 
             HStack {
                 Spacer(minLength: 0)
@@ -237,6 +249,14 @@ struct SetupHomeView: View {
 
     private var modeConfigSummary: String {
         selectedCatalogEntry?.blurb ?? ""
+    }
+
+    private func changeModeTapped() {
+        if ProductSurface.showsModesTab {
+            onChangeMode()
+        } else {
+            showsModePicker = true
+        }
     }
 
     private var startButton: some View {

@@ -62,6 +62,21 @@ struct CricketBoardSizing: Equatable {
         )
     }
 
+    /// Shrinks or grows rows so the board body fits `height` (iPad landscape).
+    func scaledToFit(height: CGFloat) -> CricketBoardSizing {
+        guard height > 0 else { return self }
+        let current = boardBodyHeight
+        if abs(height - current) < 0.5 { return self }
+        if height > current { return scaledToFill(height: height) }
+
+        let scale = height / current
+        return CricketBoardSizing(
+            markRowHeight: markRowHeight * scale,
+            headerHeight: headerHeight * scale,
+            columnFooterHeight: columnFooterHeight * scale
+        )
+    }
+
     static func resolve(
         verticalSizeClass: UserInterfaceSizeClass?,
         dynamicTypeSize: DynamicTypeSize
@@ -147,7 +162,7 @@ struct CricketBoardView: View {
     var body: some View {
         GeometryReader { geometry in
             let effectiveSizing = fillsAvailableHeight
-                ? sizing.scaledToFill(height: geometry.size.height)
+                ? sizing.scaledToFit(height: geometry.size.height)
                 : sizing
             let layout = CricketBoardColumnLayout.resolve(
                 availableWidth: geometry.size.width,
@@ -384,6 +399,108 @@ extension CricketBoardView {
     static func isTargetKnockedOut(columns: [Column], target: CricketTarget) -> Bool {
         guard !columns.isEmpty else { return false }
         return columns.allSatisfy { ($0.marks[target.rawValue] ?? 0) >= 3 }
+    }
+}
+
+/// iPhone landscape: targets as columns, active player only — uses width instead of height.
+struct CricketTransposedBoardView: View {
+    let column: CricketBoardView.Column
+    let allColumns: [CricketBoardView.Column]
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    private var sizing: CricketBoardSizing {
+        CricketBoardSizing.resolve(
+            verticalSizeClass: verticalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
+
+    private let targets = CricketTarget.allCases
+
+    var body: some View {
+        VStack(spacing: 0) {
+            transposedHeader
+            HStack(spacing: 0) {
+                ForEach(targets, id: \.rawValue) { target in
+                    transposedTargetColumn(target: target)
+                }
+            }
+            CricketBoardPlayerColumnFooter(column: column, sizing: sizing)
+        }
+        .background(Brand.card)
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.sm))
+        .overlay {
+            if column.isClosureHighlight {
+                RoundedRectangle(cornerRadius: DS.Radius.sm)
+                    .stroke(Brand.amber, lineWidth: 2)
+            }
+        }
+        .scaleEffect(column.isClosureHighlight ? 1.02 : 1)
+        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(columnAccessibilityLabel)
+        .accessibilityIdentifier("cricket_column_active")
+    }
+
+    private var transposedHeader: some View {
+        VStack(spacing: 2) {
+            Text(column.name)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(PlayerVisualViews.accentColor(token: column.colorToken))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text("\(column.score)")
+                .font(.title3.weight(.heavy))
+                .foregroundStyle(Brand.textPrimary)
+            Rectangle()
+                .fill(PlayerVisualViews.accentColor(token: column.colorToken))
+                .frame(height: 2)
+        }
+        .padding(.vertical, sizing == .landscapeCompact ? DS.Spacing.s1 : DS.Spacing.s2)
+        .frame(maxWidth: .infinity)
+        .background(CricketBoardMetrics.activeColumnFill)
+    }
+
+    private func transposedTargetColumn(target: CricketTarget) -> some View {
+        let isKnockedOut = CricketBoardView.isTargetKnockedOut(columns: allColumns, target: target)
+        return VStack(spacing: 0) {
+            Text(label(for: target))
+                .font(.caption2.weight(.bold))
+                .monospacedDigit()
+                .foregroundStyle(Brand.textSecondary)
+                .frame(maxWidth: .infinity)
+                .frame(height: sizing == .landscapeCompact ? 18 : 22)
+            CricketMarkCell(
+                targetLabel: label(for: target),
+                marks: column.marks[target.rawValue] ?? 0,
+                colorToken: column.colorToken,
+                isKnockedOut: isKnockedOut
+            )
+            .frame(maxWidth: .infinity)
+            .frame(height: sizing.markRowHeight)
+            .background(CricketBoardMetrics.activeColumnFill)
+            .opacity(isKnockedOut ? CricketBoardMetrics.knockedOutOpacity : 1)
+            Divider().overlay(Brand.cardElevated)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var columnAccessibilityLabel: String {
+        let turn = L10n.string("play.x01.turn.active")
+        return L10n.format(
+            "play.cricket.column.accessibilityFormat",
+            column.name,
+            column.score,
+            column.dartsThrown,
+            column.marksPerRound,
+            " \(turn)"
+        )
+    }
+
+    private func label(for target: CricketTarget) -> String {
+        target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
     }
 }
 

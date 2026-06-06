@@ -28,6 +28,7 @@ final class CricketMatchViewModel: ObservableObject {
     private let statsRepository: any StatsRepository
     private let feedbackPreferences: FeedbackPreferences
     private let turnSubmitter: MatchTurnSubmitter
+    private let botPlayback = MatchBotPlaybackLifecycle()
 
     init(
         matchId: UUID,
@@ -195,10 +196,19 @@ final class CricketMatchViewModel: ObservableObject {
             eventName: "match_screen_appeared",
             message: "Cricket match screen presented."
         )
+        MatchGameplaySessionSync.refreshStoredSession(matchId: matchId, store: store, into: &session)
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
         reconcileInterruptedBotPlayback()
-        await playBotTurnIfNeeded()
+        scheduleBotPlaybackIfNeeded()
+    }
+
+    func onDisappear() {
+        botPlayback.cancel { reconcileInterruptedBotPlayback() }
+    }
+
+    private func scheduleBotPlaybackIfNeeded() {
+        botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
 
     /// Restores play after the user undoes the finishing throw from the match summary.
@@ -210,8 +220,11 @@ final class CricketMatchViewModel: ObservableObject {
         state = .readyTurn
         enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
         isBotPlaying = false
+        if currentBotSkillProfile != nil {
+            enteredDarts.removeAll()
+        }
         if enteredDarts.isEmpty {
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         }
         return true
     }
@@ -220,8 +233,12 @@ final class CricketMatchViewModel: ObservableObject {
     private func reconcileInterruptedBotPlayback() {
         isBotPlaying = false
         enteredDarts.removeAll()
-        if state == .submittingTurn {
+        guard session?.runtime.status == .inProgress else { return }
+        switch state {
+        case .submittingTurn, .entryInvalid, .error, .matchCompleted, .closureTransition:
             state = .readyTurn
+        default:
+            break
         }
     }
 

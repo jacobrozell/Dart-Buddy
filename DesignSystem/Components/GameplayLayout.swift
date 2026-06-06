@@ -71,6 +71,44 @@ enum GameplayLayout {
             )
     }
 
+    /// True iPhone landscape (compact width and height).
+    static func usesLandscapeIPhoneOnlyMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        horizontalSizeClass == .compact && verticalSizeClass == .compact
+    }
+
+    /// iPad landscape (regular width, compact height).
+    static func usesLandscapeIPadMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        horizontalSizeClass == .regular && verticalSizeClass == .compact
+    }
+
+    /// Cricket: targets as columns, active player only — iPhone landscape.
+    static func usesTransposedCricketBoardLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        usesLandscapeIPhoneOnlyMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+    }
+
+    /// Cricket: full multi-player board scales to the scoreboard column (iPad landscape).
+    static func usesCricketBoardFillsAvailableHeight(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        usesLandscapeIPadMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+    }
+
     /// Fixed scoring pad width in landscape (compact pad targets ~250pt).
     static let landscapeScoringPadWidth: CGFloat = 252
 
@@ -87,8 +125,28 @@ enum GameplayLayout {
         return landscapeScoringPadWidth
     }
 
-    /// Scrollable X01 layout pins the active card when 3+ players and not in accessibility text sizes.
-    static func usesPinnedActiveX01PlayerCard(playerCount: Int, dynamicTypeSize: DynamicTypeSize) -> Bool {
-        playerCount >= 3 && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    /// X01 side-by-side scoreboard + pad: iPad portrait only (landscape uses vertical stack).
+    static func usesX01SideBySideMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize
+    ) -> Bool {
+        usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        ) && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    /// Pins the active X01 card at the top in landscape; portrait scroll pins at 3+ players.
+    static func usesPinnedActiveX01PlayerCard(
+        playerCount: Int,
+        dynamicTypeSize: DynamicTypeSize,
+        verticalSizeClass: UserInterfaceSizeClass? = nil
+    ) -> Bool {
+        guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
+        if usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+            return true
+        }
+        return playerCount >= 3
     }
 }

@@ -131,6 +131,22 @@ func cricketBoardScaledToFillLeavesSizingUnchangedWhenHeightIsNotLarger() {
 }
 
 @Test(.tags(.unit, .cricket, .regression))
+func cricketBoardScaledToFitShrinksMarkRowsWhenHeightIsTight() {
+    let base = CricketBoardSizing.landscapeCompact
+    let fitted = base.scaledToFit(height: 220)
+    #expect(fitted.markRowHeight < base.markRowHeight)
+    #expect(fitted.boardBodyHeight <= 220 + 0.5)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
+func cricketBoardScaledToFitGrowsMarkRowsWhenExtraHeightIsAvailable() {
+    let base = CricketBoardSizing.landscapeCompact
+    let fitted = base.scaledToFit(height: 360)
+    #expect(fitted.markRowHeight > base.markRowHeight)
+    #expect(fitted.boardBodyHeight >= 360 - 0.5)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
 func cricketBoardColumnLayoutHandlesZeroPlayersWithoutScrolling() {
     let layout = CricketBoardColumnLayout.resolve(availableWidth: 320, playerCount: 0)
     #expect(layout.scrollsHorizontally == false)

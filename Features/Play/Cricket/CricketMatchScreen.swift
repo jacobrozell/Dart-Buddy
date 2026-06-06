@@ -103,15 +103,29 @@ struct CricketMatchScreen: View {
             haptics.playImpact()
         }
         .task { await viewModel.onAppear() }
-        .onDisappear { actionTask?.cancel() }
+        .onDisappear {
+            actionTask?.cancel()
+            viewModel.onDisappear()
+        }
     }
 
     private var cricketBoard: some View {
-        CricketBoardView(
-            columns: viewModel.boardColumns,
-            activeColumnScrollID: viewModel.activeBoardColumnID,
-            fillsAvailableHeight: usesLandscapeIPhoneMatchLayout
-        )
+        Group {
+            if usesTransposedCricketBoard {
+                if let active = viewModel.boardColumns.first(where: \.isActive) {
+                    CricketTransposedBoardView(
+                        column: active,
+                        allColumns: viewModel.boardColumns
+                    )
+                }
+            } else {
+                CricketBoardView(
+                    columns: viewModel.boardColumns,
+                    activeColumnScrollID: viewModel.activeBoardColumnID,
+                    fillsAvailableHeight: usesCricketBoardFillsAvailableHeight
+                )
+            }
+        }
     }
 
     private var cricketControls: some View {
@@ -143,8 +157,15 @@ struct CricketMatchScreen: View {
         && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
-    private var usesLandscapeIPhoneMatchLayout: Bool {
-        GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(
+    private var usesTransposedCricketBoard: Bool {
+        GameplayLayout.usesTransposedCricketBoardLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+    }
+
+    private var usesCricketBoardFillsAvailableHeight: Bool {
+        GameplayLayout.usesCricketBoardFillsAvailableHeight(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass
         )
@@ -156,7 +177,7 @@ struct CricketMatchScreen: View {
                 if let state = viewModel.cricketState {
                     landscapeRoundTurnLabel(state: state)
                 }
-                if usesLandscapeIPhoneMatchLayout {
+                if usesTransposedCricketBoard || usesCricketBoardFillsAvailableHeight {
                     cricketBoard
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 } else {

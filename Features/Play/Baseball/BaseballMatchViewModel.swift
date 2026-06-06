@@ -25,6 +25,7 @@ final class BaseballMatchViewModel: ObservableObject {
     private let statsRepository: any StatsRepository
     private let feedbackPreferences: FeedbackPreferences
     private let turnSubmitter: MatchTurnSubmitter
+    private let botPlayback = MatchBotPlaybackLifecycle()
 
     init(
         matchId: UUID,
@@ -181,10 +182,19 @@ final class BaseballMatchViewModel: ObservableObject {
             eventName: "match_screen_appeared",
             message: "Baseball match screen presented."
         )
+        MatchGameplaySessionSync.refreshStoredSession(matchId: matchId, store: store, into: &session)
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
         reconcileInterruptedBotPlayback()
-        await playBotTurnIfNeeded()
+        scheduleBotPlaybackIfNeeded()
+    }
+
+    func onDisappear() {
+        botPlayback.cancel { reconcileInterruptedBotPlayback() }
+    }
+
+    private func scheduleBotPlaybackIfNeeded() {
+        botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
 
     func playBotTurnIfNeeded() async {
@@ -334,8 +344,11 @@ final class BaseballMatchViewModel: ObservableObject {
         state = .readyTurn
         enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
         isBotPlaying = false
+        if currentBotSkillProfile != nil {
+            enteredDarts.removeAll()
+        }
         if enteredDarts.isEmpty {
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         }
         return true
     }
@@ -343,8 +356,12 @@ final class BaseballMatchViewModel: ObservableObject {
     private func reconcileInterruptedBotPlayback() {
         isBotPlaying = false
         enteredDarts.removeAll()
-        if state == .submittingTurn {
+        guard session?.runtime.status == .inProgress else { return }
+        switch state {
+        case .submittingTurn, .entryInvalid, .error, .matchCompleted, .stretchGateHint, .perfectInningFeedback:
             state = .readyTurn
+        default:
+            break
         }
     }
 

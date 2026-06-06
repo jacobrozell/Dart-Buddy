@@ -237,12 +237,13 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         XCTAssertGreaterThan(enter.frame.height, 32, "Enter should not collapse to a thin bar in landscape")
 
         let dartsStat = app.staticTexts["cricket_column_darts"]
-        if !dartsStat.isHittable {
-            app.scrollViews.firstMatch.swipeUp()
-        }
         XCTAssertTrue(
             dartsStat.waitForExistence(timeout: timeout),
-            "Player footer stats should be reachable in landscape"
+            "Player footer stats should be visible without scrolling in landscape"
+        )
+        XCTAssertTrue(
+            dartsStat.isHittable,
+            "Transposed active-player board should keep footer stats on screen in iPhone landscape"
         )
     }
 }

@@ -19,7 +19,7 @@ struct OnboardingLearnStepView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .multilineTextAlignment(.center)
 
-                GameRulesGuideContent(initialMode: .x01)
+                GameRulesGuideContent(initialMode: .x01, showsModePicker: true)
             }
         } footer: {
             OnboardingPrimaryButton(

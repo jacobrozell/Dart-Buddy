@@ -54,6 +54,42 @@ func statsAverageUsesThreeDartFormula() {
     #expect(StatsService.x01Average3Dart(totalPointsScored: 45, totalDartsThrown: 3) == 45)
 }
 
+@Test(.tags(.unit, .stats, .offline, .regression))
+func statsLiveScorecardAverageUsesPerDartForOpeningVisit() {
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 0,
+            committedDarts: 0,
+            previewPoints: 11,
+            previewDarts: 1
+        ) == 11
+    )
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 0,
+            committedDarts: 0,
+            previewPoints: 40,
+            previewDarts: 2
+        ) == 20
+    )
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 0,
+            committedDarts: 0,
+            previewPoints: 60,
+            previewDarts: 3
+        ) == 60
+    )
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 180,
+            committedDarts: 3,
+            previewPoints: 20,
+            previewDarts: 1
+        ) == 150
+    )
+}
+
 private func d(_ multiplier: DartMultiplier, _ value: Int) -> DartInput {
     DartInput(multiplier: multiplier, segment: .oneToTwenty(value))
 }

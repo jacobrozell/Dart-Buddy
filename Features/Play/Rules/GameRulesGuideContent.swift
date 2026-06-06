@@ -3,28 +3,32 @@ import SwiftUI
 struct GameRulesGuideContent: View {
     @State private var selectedMode: MatchType
     private let initialMode: MatchType
+    private let showsModePicker: Bool
 
-    init(initialMode: MatchType) {
+    init(initialMode: MatchType, showsModePicker: Bool = false) {
         self.initialMode = initialMode
+        self.showsModePicker = showsModePicker
         _selectedMode = State(initialValue: initialMode)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-            BrandSegmented(
-                options: GameRulesCatalog.supportedMatchTypes.map { mode in
-                    (mode, MatchConfigText.modeLabel(for: mode))
-                },
-                selection: $selectedMode,
-                accessibilityIdentifiers: [
-                    .x01: "rules_mode_x01",
-                    .cricket: "rules_mode_cricket",
-                    .baseball: "rules_mode_baseball",
-                    .killer: "rules_mode_killer",
-                    .shanghai: "rules_mode_shanghai"
-                ]
-            )
-            .frame(maxWidth: .infinity)
+            if showsModePicker {
+                BrandSegmented(
+                    options: GameRulesCatalog.supportedMatchTypes.map { mode in
+                        (mode, MatchConfigText.modeLabel(for: mode))
+                    },
+                    selection: $selectedMode,
+                    accessibilityIdentifiers: [
+                        .x01: "rules_mode_x01",
+                        .cricket: "rules_mode_cricket",
+                        .baseball: "rules_mode_baseball",
+                        .killer: "rules_mode_killer",
+                        .shanghai: "rules_mode_shanghai"
+                    ]
+                )
+                .frame(maxWidth: .infinity)
+            }
 
             ForEach(currentGuide.sections) { section in
                 ruleCard(section)
@@ -34,7 +38,7 @@ struct GameRulesGuideContent: View {
     }
 
     private var currentGuide: GameRulesGuide {
-        GameRulesCatalog.guide(for: selectedMode)
+        GameRulesCatalog.guide(for: showsModePicker ? selectedMode : initialMode)
     }
 
     private func ruleCard(_ section: GameRulesSection) -> some View {

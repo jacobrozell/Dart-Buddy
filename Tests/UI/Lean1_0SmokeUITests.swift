@@ -27,13 +27,26 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         )
     }
 
-    func testLeanPlaySetupHidesChangeModeButton() {
+    func testLeanPlaySetupOpensModePickerSheet() {
         let app = launchApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
-        XCTAssertFalse(
-            app.buttons["setup_changeModeButton"].exists,
-            "Lean 1.0 should not offer Change mode navigation to the hidden Modes tab"
+        XCTAssertTrue(
+            app.buttons["setup_changeModeButton"].waitForExistence(timeout: timeout),
+            "Lean 1.0 should offer Change mode via the in-place picker"
+        )
+        app.buttons["setup_changeModeButton"].tap()
+        XCTAssertTrue(
+            app.buttons["modes_card_standard.x01"].waitForExistence(timeout: timeout),
+            "Mode picker should list X01"
+        )
+        XCTAssertTrue(
+            app.buttons["modes_card_standard.cricket"].waitForExistence(timeout: timeout),
+            "Mode picker should list Cricket"
+        )
+        XCTAssertTrue(
+            app.buttons["modes_card_party.baseball"].waitForExistence(timeout: timeout),
+            "Mode picker should tease party modes as coming soon"
         )
     }
 

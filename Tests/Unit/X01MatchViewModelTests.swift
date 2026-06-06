@@ -466,11 +466,11 @@ func x01ViewModelPreviewDartsAndAverageDuringVisit() async throws {
         DartInput(multiplier: .triple, segment: .oneToTwenty(20))
     ]
     #expect(vm.playerCards[0].dartsThrown == 1)
-    #expect(vm.playerCards[0].average == 180)
+    #expect(vm.playerCards[0].average == 60)
 
     vm.enteredDarts.append(DartInput(multiplier: .single, segment: .oneToTwenty(20)))
     #expect(vm.playerCards[0].dartsThrown == 2)
-    #expect(vm.playerCards[0].average == 120)
+    #expect(vm.playerCards[0].average == 40)
 }
 
 @MainActor

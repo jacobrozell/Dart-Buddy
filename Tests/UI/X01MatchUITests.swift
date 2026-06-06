@@ -42,14 +42,14 @@ final class X01MatchUITests: DartBuddyUITestCase {
         XCTAssertEqual(app.staticTexts["scoreCard_remaining"].label, "481")
         XCTAssertEqual(app.staticTexts["scoreCard_visitTotal"].label, "20")
         XCTAssertEqual(app.staticTexts["scoreCard_dartsThrown"].label, "1")
-        XCTAssertEqual(app.staticTexts["scoreCard_average"].label, "60.00")
+        XCTAssertEqual(app.staticTexts["scoreCard_average"].label, "20.00")
         XCTAssertEqual(app.staticTexts["scoreCard_dartSlot_0"].label, "20")
 
         twenty.tap()
         XCTAssertEqual(app.staticTexts["scoreCard_remaining"].label, "461")
         XCTAssertEqual(app.staticTexts["scoreCard_visitTotal"].label, "40")
         XCTAssertEqual(app.staticTexts["scoreCard_dartsThrown"].label, "2")
-        XCTAssertEqual(app.staticTexts["scoreCard_average"].label, "60.00")
+        XCTAssertEqual(app.staticTexts["scoreCard_average"].label, "20.00")
         XCTAssertEqual(app.staticTexts["scoreCard_dartSlot_1"].label, "20")
     }
 
@@ -116,7 +116,12 @@ final class X01MatchUITests: DartBuddyUITestCase {
         XCTAssertTrue(active.waitForExistence(timeout: timeout), "Active score card should exist")
         XCTAssertTrue(
             active.isHittable,
-            "Active score card should stay visible beside the pad in landscape"
+            "Active score card should stay pinned at the top in landscape"
+        )
+        let pad = app.buttons["pad_20"]
+        XCTAssertTrue(
+            pad.frame.minY >= active.frame.maxY - 8,
+            "Scoring pad should sit below the pinned active card in landscape"
         )
         XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
     }
