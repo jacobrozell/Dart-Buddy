@@ -29,6 +29,7 @@ targets:
       - path: Features
       - path: Persistence
       - path: Support
+      - path: Intents
       - path: Resources/Media.xcassets
       - path: Resources/en.lproj/Localizable.strings
         type: file
@@ -52,6 +53,7 @@ targets:
         product: FirebaseAnalytics
       - package: Firebase
         product: FirebaseCrashlytics
+      - sdk: AppIntents.framework
     postBuildScripts:
       - name: Firebase Crashlytics
         script: |
@@ -97,6 +99,13 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 1.0.0
+    info:
+      path: App/DartBuddy-Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: com.jacobrozell.DartBuddy.deeplink
+            CFBundleURLSchemes:
+              - dartbuddy
     scheme:
       testTargets:
         - DartBuddyTests
@@ -143,6 +152,9 @@ schemes:
       targets:
         DartBuddy: all
     test:
+      gatherCoverageData: true
+      coverageTargets:
+        - DartBuddy
       targets:
         - DartBuddyTests
     run:

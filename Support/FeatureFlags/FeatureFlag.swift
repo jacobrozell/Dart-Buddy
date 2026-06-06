@@ -7,4 +7,6 @@ public enum FeatureFlag: String, CaseIterable, Sendable {
     case enableVisionAutoScoring
     case enableOnlinePlay
     case enableAdvancedDiagnostics
+    /// Siri/Shortcuts integration. Default off until QA; enable locally with `-enable_app_intents`. See `specs/AppIntentsSpec.md`.
+    case enableAppIntents
 }
