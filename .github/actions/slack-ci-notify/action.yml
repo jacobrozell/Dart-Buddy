@@ -8,6 +8,14 @@ inputs:
   jobs_json:
     description: JSON map of job display names to results (success, failure, cancelled, skipped)
     required: true
+  workflow_kind:
+    description: Severity styling — ci, nightly, or release
+    required: false
+    default: ci
+  context_json:
+    description: Optional JSON with coverage, failed_tests, and failure_excerpt
+    required: false
+    default: '{}'
 
 runs:
   using: composite
@@ -18,6 +26,8 @@ runs:
         SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
         WORKFLOW_TITLE: ${{ inputs.workflow_title }}
         JOBS_JSON: ${{ inputs.jobs_json }}
+        WORKFLOW_KIND: ${{ inputs.workflow_kind }}
+        CONTEXT_JSON: ${{ inputs.context_json }}
       run: |
         set -euo pipefail
 
@@ -26,26 +36,55 @@ runs:
           exit 0
         fi
 
-        payload="$(WORKFLOW_TITLE="$WORKFLOW_TITLE" JOBS_JSON="$JOBS_JSON" python3 <<'PY'
+        payload="$(WORKFLOW_TITLE="$WORKFLOW_TITLE" JOBS_JSON="$JOBS_JSON" WORKFLOW_KIND="$WORKFLOW_KIND" CONTEXT_JSON="$CONTEXT_JSON" python3 <<'PY'
         import json
         import os
 
         workflow_title = os.environ["WORKFLOW_TITLE"]
         jobs = json.loads(os.environ["JOBS_JSON"])
+        workflow_kind = os.environ.get("WORKFLOW_KIND", "ci")
+        context = json.loads(os.environ.get("CONTEXT_JSON") or "{}")
 
         results = list(jobs.values())
         if "failure" in results:
             overall = "failure"
-            status_emoji = ":x:"
             status_text = "Failed"
         elif "cancelled" in results:
             overall = "cancelled"
-            status_emoji = ":warning:"
             status_text = "Cancelled"
         else:
             overall = "success"
-            status_emoji = ":white_check_mark:"
             status_text = "Passed"
+
+        kind_styles = {
+            "ci": {
+                "success_emoji": ":white_check_mark:",
+                "failure_emoji": ":x:",
+                "cancelled_emoji": ":warning:",
+                "failure_title": "Failed",
+            },
+            "nightly": {
+                "success_emoji": ":crescent_moon:",
+                "failure_emoji": ":rotating_light:",
+                "cancelled_emoji": ":warning:",
+                "failure_title": "FAILED",
+            },
+            "release": {
+                "success_emoji": ":rocket:",
+                "failure_emoji": ":rotating_light:",
+                "cancelled_emoji": ":warning:",
+                "failure_title": "FAILED",
+            },
+        }
+        style = kind_styles.get(workflow_kind, kind_styles["ci"])
+
+        if overall == "failure":
+            status_emoji = style["failure_emoji"]
+            status_text = style["failure_title"]
+        elif overall == "cancelled":
+            status_emoji = style["cancelled_emoji"]
+        else:
+            status_emoji = style["success_emoji"]
 
         event_path = os.environ.get("GITHUB_EVENT_PATH", "")
         event = {}
@@ -84,27 +123,63 @@ runs:
             for name, result in jobs.items()
         )
 
+        fields = [
+            {"type": "mrkdwn", "text": f"*Status*\n{status_emoji} {status_text}"},
+            {"type": "mrkdwn", "text": f"*Triggered by*\n{actor}"},
+            {"type": "mrkdwn", "text": f"*Repository*\n<{repo_url}|{repository}>"},
+            {"type": "mrkdwn", "text": f"*Context*\n{context_line}"},
+        ]
+
+        coverage = context.get("coverage")
+        if coverage:
+            fields.append({"type": "mrkdwn", "text": f"*Coverage*\n{coverage}"})
+
         blocks = [
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": f"{workflow_title}: {status_text}",
+                    "text": f"{status_emoji} {workflow_title}: {status_text}",
                 },
             },
             {
                 "type": "section",
-                "fields": [
-                    {"type": "mrkdwn", "text": f"*Status*\n{status_emoji} {status_text}"},
-                    {"type": "mrkdwn", "text": f"*Triggered by*\n{actor}"},
-                    {"type": "mrkdwn", "text": f"*Repository*\n<{repo_url}|{repository}>"},
-                    {"type": "mrkdwn", "text": f"*Context*\n{context_line}"},
-                ],
+                "fields": fields[:10],
             },
             {
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": f"*Jobs*\n{job_lines}"},
             },
+        ]
+
+        failed_tests = context.get("failed_tests") or []
+        if failed_tests:
+            test_lines = "\n".join(f"• `{name}`" for name in failed_tests[:10])
+            if len(failed_tests) > 10:
+                test_lines += f"\n_…and {len(failed_tests) - 10} more_"
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*Failed tests*\n{test_lines}",
+                    },
+                }
+            )
+
+        failure_excerpt = context.get("failure_excerpt")
+        if failure_excerpt and overall == "failure":
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*Log excerpt*\n```{failure_excerpt}```",
+                    },
+                }
+            )
+
+        blocks.append(
             {
                 "type": "actions",
                 "elements": [
@@ -114,8 +189,8 @@ runs:
                         "url": run_url,
                     }
                 ],
-            },
-        ]
+            }
+        )
 
         print(json.dumps({
             "text": f"{workflow_title}: {status_text}",

@@ -88,6 +88,15 @@ jobs:
           fi
           echo "::endgroup::"
 
+      - name: Upload Build Log on Failure
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        if: failure()
+        with:
+          name: build-log
+          path: xcodebuild-build.log
+          retention-days: 1
+          if-no-files-found: ignore
+
       - name: Upload Test Products
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
@@ -182,10 +191,41 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: Prepare Slack artifacts directory
+        run: mkdir -p notify-artifacts
+
+      - name: Download test results
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        continue-on-error: true
+        with:
+          name: test-results
+          path: notify-artifacts
+
+      - name: Download build log
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        continue-on-error: true
+        with:
+          name: build-log
+          path: notify-artifacts
+
+      - name: Prepare Slack context
+        id: slack-context
+        run: |
+          Scripts/ci/prepare-slack-context.sh notify-artifacts/slack-context.json
+          {
+            echo 'context_json<<SLACK_CTX_EOF'
+            cat notify-artifacts/slack-context.json
+            echo SLACK_CTX_EOF
+          } >> "$GITHUB_OUTPUT"
+        env:
+          ARTIFACTS_DIR: notify-artifacts
+
       - name: Post CI result
         uses: ./.github/actions/slack-ci-notify
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_CI || secrets.SLACK_WEBHOOK_URL }}
         with:
           workflow_title: CI
+          workflow_kind: ci
           jobs_json: '{"Build for Testing":"${{ needs.build.result }}","Test":"${{ needs.test.result }}"}'
+          context_json: ${{ steps.slack-context.outputs.context_json }}
