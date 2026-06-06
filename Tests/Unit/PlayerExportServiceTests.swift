@@ -97,6 +97,117 @@ func playerExportValidatorRejectsUnsupportedVersion() {
 }
 
 @Test(.tags(.unit, .player, .regression))
+func playerExportValidatorRejectsAnchorPlayerMismatch() {
+    let anchorId = UUID()
+    let now = Date()
+    let bundle = PlayerExportBundle(
+        dbpeVersion: 1,
+        producer: "test",
+        producerVersion: "1.0.0",
+        exportedAt: now,
+        persistenceSchemaVersion: "2.0.0",
+        anchorPlayerId: anchorId,
+        player: PlayerExportRecord(from: makePlayer(id: UUID(), name: "A", createdAt: now, updatedAt: now)),
+        referencedPlayers: [],
+        matches: []
+    )
+
+    #expect(throws: PlayerExportValidationFailure.anchorPlayerMismatch) {
+        try PlayerExportValidator.validate(bundle)
+    }
+}
+
+@Test(.tags(.unit, .player, .regression))
+func playerExportValidatorRejectsIncompleteMatch() {
+    let anchorId = UUID()
+    let matchId = UUID()
+    let now = Date()
+    let bundle = PlayerExportBundle(
+        dbpeVersion: 1,
+        producer: "test",
+        producerVersion: "1.0.0",
+        exportedAt: now,
+        persistenceSchemaVersion: "2.0.0",
+        anchorPlayerId: anchorId,
+        player: PlayerExportRecord(from: makePlayer(id: anchorId, name: "A", createdAt: now, updatedAt: now)),
+        referencedPlayers: [],
+        matches: [
+            MatchExportBundle(
+                match: MatchExportRecord(from: MatchSummary(
+                    id: matchId,
+                    type: .x01,
+                    status: .inProgress,
+                    startedAt: now,
+                    endedAt: nil,
+                    winnerPlayerId: nil,
+                    currentTurnPlayerId: anchorId,
+                    currentLegIndex: 0,
+                    currentSetIndex: 0,
+                    eventCount: 1,
+                    createdAt: now,
+                    updatedAt: now
+                )),
+                configPayload: nil,
+                participants: [
+                    MatchParticipantExportRecord(from: MatchParticipantSummary(
+                        id: UUID(), matchId: matchId, playerId: anchorId, turnOrder: 0, displayNameAtMatchStart: "A"
+                    ))
+                ],
+                events: [],
+                snapshot: nil
+            )
+        ]
+    )
+
+    #expect(throws: PlayerExportValidationFailure.matchNotCompleted(matchId)) {
+        try PlayerExportValidator.validate(bundle)
+    }
+}
+
+@Test(.tags(.unit, .player, .regression))
+func playerExportValidatorRejectsMissingParticipants() {
+    let anchorId = UUID()
+    let matchId = UUID()
+    let now = Date()
+    let bundle = PlayerExportBundle(
+        dbpeVersion: 1,
+        producer: "test",
+        producerVersion: "1.0.0",
+        exportedAt: now,
+        persistenceSchemaVersion: "2.0.0",
+        anchorPlayerId: anchorId,
+        player: PlayerExportRecord(from: makePlayer(id: anchorId, name: "A", createdAt: now, updatedAt: now)),
+        referencedPlayers: [],
+        matches: [
+            MatchExportBundle(
+                match: MatchExportRecord(from: MatchSummary(
+                    id: matchId,
+                    type: .x01,
+                    status: .completed,
+                    startedAt: now,
+                    endedAt: now,
+                    winnerPlayerId: anchorId,
+                    currentTurnPlayerId: nil,
+                    currentLegIndex: 0,
+                    currentSetIndex: 0,
+                    eventCount: 0,
+                    createdAt: now,
+                    updatedAt: now
+                )),
+                configPayload: nil,
+                participants: [],
+                events: [],
+                snapshot: nil
+            )
+        ]
+    )
+
+    #expect(throws: PlayerExportValidationFailure.missingParticipants(matchId)) {
+        try PlayerExportValidator.validate(bundle)
+    }
+}
+
+@Test(.tags(.unit, .player, .regression))
 func playerExportValidatorRejectsNonContiguousEventIndices() {
     let matchId = UUID()
     let anchorId = UUID()

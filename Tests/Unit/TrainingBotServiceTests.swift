@@ -42,6 +42,24 @@ func botSkillProfileInterpolatorIsMonotonicBetweenTiers() {
 }
 
 @Test(.tags(.unit, .regression))
+func botSkillProfileInterpolatorClampsWhenRequested() {
+    let below = BotSkillProfileInterpolator.profile(forX01Average: 5, clampToTierRange: true)
+    let veryEasy = BotDifficulty.veryEasy.skillProfile
+    #expect(below.x01.scoringVisitMax == veryEasy.x01.scoringVisitMax)
+
+    let above = BotSkillProfileInterpolator.profile(forX01Average: 120, clampToTierRange: true)
+    let pro = BotDifficulty.pro.skillProfile
+    #expect(above.x01.hitChances.triple == pro.x01.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
+func botSkillProfileInterpolatorExtrapolatesCricketMPRBeyondProWhenUnclamped() {
+    let pro = BotSkillProfileInterpolator.profile(forCricketMPR: 3.05, clampToTierRange: true)
+    let beyond = BotSkillProfileInterpolator.profile(forCricketMPR: 4.5, clampToTierRange: false)
+    #expect(beyond.cricket.hitChances.triple > pro.cricket.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
 func trainingBotSkillResolverClampsCricketMPR() {
     var breakdown = PlayerStatBreakdown(playerId: UUID(), name: "Test")
     breakdown.games = 10

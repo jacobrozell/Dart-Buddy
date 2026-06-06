@@ -53,4 +53,40 @@ struct ActivityFilterTests {
             #expect(!period.title.isEmpty)
         }
     }
+
+    @Test
+    func historyListRowAccessibilitySummaryIncludesDateConfigAndStandings() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let summary = MatchSummary(
+            id: UUID(),
+            type: .x01,
+            status: .completed,
+            startedAt: now,
+            endedAt: now,
+            winnerPlayerId: UUID(),
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: 4,
+            createdAt: now,
+            updatedAt: now
+        )
+        let row = HistoryListRow(
+            summary: summary,
+            dateText: "06.06.2026 12:00",
+            configText: "501 · Double Out",
+            standings: [
+                HistoryStanding(id: UUID(), name: "Alice", isWinner: true, sets: 0, legs: 1, score: 0),
+                HistoryStanding(id: UUID(), name: "Bob", isWinner: false, sets: 0, legs: 0, score: 121)
+            ],
+            isFinished: true
+        )
+
+        let accessibility = row.accessibilitySummary
+        #expect(accessibility.contains("06.06.2026 12:00"))
+        #expect(accessibility.contains("501 · Double Out"))
+        #expect(accessibility.contains("Alice"))
+        #expect(accessibility.contains("Bob"))
+        #expect(accessibility.contains("121"))
+    }
 }

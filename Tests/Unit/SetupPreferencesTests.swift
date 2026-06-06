@@ -33,4 +33,21 @@ struct SetupPreferencesTests {
         #expect(cutThroat.pointsEnabled == false)
         #expect(cutThroat.scoringMode == .cutThroat)
     }
+
+    @Test
+    func killerStartingLivesDefaultsAndClampsOnLoadAndSave() {
+        defer { KillerSetupPreferences.save(startingLives: 3) }
+
+        KillerSetupPreferences.save(startingLives: 3)
+        #expect(KillerSetupPreferences.load() == 3)
+
+        KillerSetupPreferences.save(startingLives: 2)
+        #expect(KillerSetupPreferences.load() == 3)
+
+        KillerSetupPreferences.save(startingLives: 5)
+        #expect(KillerSetupPreferences.load() == 5)
+
+        KillerSetupPreferences.save(startingLives: 9)
+        #expect(KillerSetupPreferences.load() == 5)
+    }
 }
