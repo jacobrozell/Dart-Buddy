@@ -4,7 +4,11 @@ import Testing
 
 @Suite("Localization parity", .tags(.unit, .localization, .regression))
 struct LocalizationParityTests {
-    private static let specifierPattern = #/%(?:\d+\$)?[@df]|%\.?\d*f/#
+    // Matches `%%` (literal) plus the standard C/Foundation conversion forms,
+    // including flag/width/precision runs such as `% d`, `%.1f`, and positional
+    // `%1$@`. Capturing `%%` first prevents a literal percent from being mistaken
+    // for a stray conversion specifier.
+    private static let specifierPattern = #/%%|%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?(?:l{0,2}[diouxX]|[@fFgGeEcsp])/#
 
     @Test("Localized strings share the same keys as English", arguments: ["de", "es", "nl"])
     func localizedKeysMatchEnglish(locale: String) throws {
