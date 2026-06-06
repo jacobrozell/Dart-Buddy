@@ -135,7 +135,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     }
 
     func testMatchSetupAddsTrainingPartnerBot() {
-        let app = launchApp(["-seed_training_partner", "-enqueue_training_match"])
+        let app = launchAppWithFullProductSurface(["-seed_training_partner", "-enqueue_training_match"])
 
         ensurePlayTab(app, timeout: timeout + 30)
         let stagedPartner = app.descendants(matching: .any).matching(
@@ -154,7 +154,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     }
 
     func testMatchSetupAddBotMenuIncludesTrainingPartner() {
-        let app = launchApp(["-seed_training_partner"])
+        let app = launchAppWithFullProductSurface(["-seed_training_partner"])
 
         ensurePlayTab(app, timeout: timeout + 30)
 

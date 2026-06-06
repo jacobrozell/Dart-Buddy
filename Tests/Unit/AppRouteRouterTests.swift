@@ -125,7 +125,11 @@ struct AppRouteRouterTests {
             let state = RouteTestState(selectedTab: .play)
             let outcome = await router.handle(.tab(tab), actions: state.makeActions())
             #expect(outcome == .applied)
-            #expect(state.selectedTab == expectedRootTab)
+            if tab == .modes, !ProductSurface.showsModesTab {
+                #expect(state.selectedTab == .play)
+            } else {
+                #expect(state.selectedTab == expectedRootTab)
+            }
         }
     }
 

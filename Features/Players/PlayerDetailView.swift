@@ -214,12 +214,14 @@ private struct PlayerStatsDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
                 PlayerIdentityCard(player: player)
-                TrainingPartnerSection(
-                    humanPlayerId: player.id,
-                    viewModel: viewModel,
-                    playerColorToken: player.colorToken,
-                    pendingSelections: dependencies.pendingMatchPlayerSelections
-                )
+                if ProductSurface.showsTrainingBots {
+                    TrainingPartnerSection(
+                        humanPlayerId: player.id,
+                        viewModel: viewModel,
+                        playerColorToken: player.colorToken,
+                        pendingSelections: dependencies.pendingMatchPlayerSelections
+                    )
+                }
                 if player.isArchived {
                     Text(L10n.archived)
                         .font(.caption)
@@ -242,12 +244,14 @@ private struct PlayerStatsDetailView: View {
                                 L10n.string(player.isArchived ? "players.detail.unarchive.accessibility" : "players.detail.archive.accessibility")
                             )
                             .accessibilityIdentifier("playerDetail_archive")
-                        Button(L10n.playersDetailExport, action: exportPlayer)
-                            .buttonStyle(.bordered)
-                            .tint(Brand.textSecondary)
-                            .disabled(viewModel.isExporting)
-                            .accessibilityLabel(L10n.string("players.detail.export.accessibility"))
-                            .accessibilityIdentifier("playerDetail_export")
+                        if ProductSurface.showsPlayerExport {
+                            Button(L10n.playersDetailExport, action: exportPlayer)
+                                .buttonStyle(.bordered)
+                                .tint(Brand.textSecondary)
+                                .disabled(viewModel.isExporting)
+                                .accessibilityLabel(L10n.string("players.detail.export.accessibility"))
+                                .accessibilityIdentifier("playerDetail_export")
+                        }
                     }
                 }
                 .padding(.top, DS.Spacing.s2)

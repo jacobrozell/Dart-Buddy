@@ -28,7 +28,16 @@ enum GameRulesCatalog {
     }
 
     static var supportedMatchTypes: [MatchType] {
-        all.map(\.matchType)
+        all.map(\.matchType).filter(isSupportedInCurrentProductSurface)
+    }
+
+    private static func isSupportedInCurrentProductSurface(_ matchType: MatchType) -> Bool {
+        switch matchType {
+        case .x01, .cricket:
+            true
+        case .baseball, .killer, .shanghai:
+            ProductSurface.showsPartyModes
+        }
     }
 
     private static let all: [GameRulesGuide] = [x01, cricket, baseball, killer, shanghai]

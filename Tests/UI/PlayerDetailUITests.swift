@@ -15,7 +15,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     }
 
     func testPlayerDetailShowsExportButton() {
-        let app = launchApp(["-seed_demo"])
+        let app = launchAppWithFullProductSurface(["-seed_demo"])
 
         app.tabBars.buttons["Players"].tap()
         XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
@@ -56,7 +56,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     }
 
     func testPlayerDetailShowsTrainingPartnerEligibilityProgress() {
-        let app = launchApp(["-seed_training_locked"])
+        let app = launchAppWithFullProductSurface(["-seed_training_locked"])
 
         app.tabBars.buttons["Players"].tap()
         XCTAssertTrue(app.buttons["player_row_Alice"].waitForExistence(timeout: timeout))
@@ -72,7 +72,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     }
 
     func testPlayerDetailEnablesCreateWhenEligible() {
-        let app = launchApp(["-seed_training_eligible"])
+        let app = launchAppWithFullProductSurface(["-seed_training_eligible"])
 
         app.tabBars.buttons["Players"].tap()
         app.buttons["player_row_Alice"].tap()

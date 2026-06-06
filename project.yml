@@ -7,6 +7,7 @@ packages:
     from: 11.0.0
 options:
   minimumXcodeGenVersion: 2.44.0
+  developmentLanguage: en
   bundleIdPrefix: com.jacobrozell
   deploymentTarget:
     iOS: "17.0"
@@ -50,15 +51,10 @@ targets:
       - path: Resources/en.lproj/Localizable.strings
         type: file
         buildPhase: resources
-      - path: Resources/de.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/es.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/nl.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
+      # Lean 1.0 ships English only. Re-add for 1.2+ (see docs/release/lean-1.0-implementation-plan.md).
+      # - path: Resources/de.lproj/Localizable.strings
+      # - path: Resources/es.lproj/Localizable.strings
+      # - path: Resources/nl.lproj/Localizable.strings
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources

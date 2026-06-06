@@ -46,7 +46,7 @@ struct MainTabView: View {
                 dependencies: dependencies,
                 pendingResumeMatch: $pendingPlayResume,
                 navigationResetTrigger: playNavigationResetTrigger,
-                onChangeMode: { selectedTab = .modes }
+                onChangeMode: { if ProductSurface.showsModesTab { selectedTab = .modes } }
             )
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
                 .tag(RootTab.play)
@@ -54,13 +54,15 @@ struct MainTabView: View {
                     Label(L10n.tabPlay, systemImage: "house.fill")
                         .accessibilityIdentifier("tab_play")
                 }
-            ModesRootView(onSelectMode: handleModeSelection)
-                .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
-                .tag(RootTab.modes)
-                .tabItem {
-                    Label(L10n.tabModes, systemImage: "square.grid.2x2.fill")
-                        .accessibilityIdentifier("tab_modes")
-                }
+            if ProductSurface.showsModesTab {
+                ModesRootView(onSelectMode: handleModeSelection)
+                    .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
+                    .tag(RootTab.modes)
+                    .tabItem {
+                        Label(L10n.tabModes, systemImage: "square.grid.2x2.fill")
+                            .accessibilityIdentifier("tab_modes")
+                    }
+            }
             PlayersRootView(dependencies: dependencies)
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
                 .tag(RootTab.players)
@@ -154,7 +156,9 @@ struct MainTabView: View {
     }
 
     private func handleModeSelection(_ entry: GameModeCatalogEntry) {
+        guard ProductSurface.showsModesTab else { return }
         guard let selection = entry.pendingModeSelection else { return }
+        if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
         dependencies.pendingMatchPlayerSelections.enqueueModeSelection(selection)
         selectedTab = .play
     }

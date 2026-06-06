@@ -6,10 +6,6 @@ final class TabNavigationUITests: DartBuddyUITestCase {
 
         assertBrandAppTitleVisible(in: app, timeout: timeout)
 
-        tapTabBarItem(named: "Modes", identifier: "tab_modes", in: app)
-        XCTAssertTrue(app.buttons["modes_card_standard.x01"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.buttons["modes_card_standard.cricket"].waitForExistence(timeout: timeout))
-
         ensureActivityStatisticsSegment(app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["Games"].waitForExistence(timeout: timeout), "Statistics should show the Games table")
         let jacobStat = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Jacob")).firstMatch
@@ -25,5 +21,13 @@ final class TabNavigationUITests: DartBuddyUITestCase {
         ensureSettingsTab(app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.staticTexts["Starting Mode"].waitForExistence(timeout: timeout))
+    }
+
+    func testModesTabShowsCatalogWhenFullSurfaceEnabled() {
+        let app = launchAppWithFullProductSurface(["-seed_demo"])
+
+        tapTabBarItem(named: "Modes", identifier: "tab_modes", in: app)
+        XCTAssertTrue(app.buttons["modes_card_standard.x01"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["modes_card_standard.cricket"].waitForExistence(timeout: timeout))
     }
 }

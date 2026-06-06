@@ -23,24 +23,30 @@ struct GameModeCatalogEntryTests {
             partyGame: nil,
             matchType: .cricket
         ))
-        #expect(baseball.pendingModeSelection == PendingModeSelection(
-            setupCategory: .party,
-            mode: nil,
-            partyGame: .baseball,
-            matchType: .baseball
-        ))
-        #expect(killer.pendingModeSelection == PendingModeSelection(
-            setupCategory: .party,
-            mode: nil,
-            partyGame: .killer,
-            matchType: .killer
-        ))
-        #expect(shanghai.pendingModeSelection == PendingModeSelection(
-            setupCategory: .party,
-            mode: nil,
-            partyGame: .shanghai,
-            matchType: .shanghai
-        ))
+        if ProductSurface.showsPartyModes {
+            #expect(baseball.pendingModeSelection == PendingModeSelection(
+                setupCategory: .party,
+                mode: nil,
+                partyGame: .baseball,
+                matchType: .baseball
+            ))
+            #expect(killer.pendingModeSelection == PendingModeSelection(
+                setupCategory: .party,
+                mode: nil,
+                partyGame: .killer,
+                matchType: .killer
+            ))
+            #expect(shanghai.pendingModeSelection == PendingModeSelection(
+                setupCategory: .party,
+                mode: nil,
+                partyGame: .shanghai,
+                matchType: .shanghai
+            ))
+        } else {
+            #expect(baseball.pendingModeSelection == nil)
+            #expect(killer.pendingModeSelection == nil)
+            #expect(shanghai.pendingModeSelection == nil)
+        }
     }
 
     @Test
