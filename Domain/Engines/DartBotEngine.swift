@@ -461,6 +461,21 @@ public enum DartBotEngine {
         return darts
     }
 
+    public static func generateShanghaiTurn(
+        targetSegment: Int,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> [DartInput] {
+        generateBaseballTurn(
+            targetSegment: targetSegment,
+            phase: .innings,
+            stretchGateOpen: true,
+            seventhInningStretch: false,
+            profile: profile,
+            rng: &rng
+        )
+    }
+
     // MARK: - Internals
 
     private static func intendedX01Dart(

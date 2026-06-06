@@ -8,6 +8,22 @@ struct SectorHit: Identifiable, Equatable {
 
 @MainActor
 final class StatisticsViewModel: ObservableObject {
+    enum ModeFilter: String, CaseIterable, Identifiable {
+        case all, x01, cricket, baseball, killer, shanghai
+        var id: String { rawValue }
+
+        var matchType: MatchType? {
+            switch self {
+            case .all: nil
+            case .x01: .x01
+            case .cricket: .cricket
+            case .baseball: .baseball
+            case .killer: .killer
+            case .shanghai: .shanghai
+            }
+        }
+    }
+
     enum Period: String, CaseIterable, Identifiable {
         case today, d7, d30, all
         var id: String { rawValue }
@@ -21,7 +37,7 @@ final class StatisticsViewModel: ObservableObject {
         }
     }
 
-    @Published var mode: MatchType = .x01
+    @Published var modeFilter: ModeFilter = .all
     @Published var period: Period = .all
     /// `nil` = all players; otherwise filters to one player.
     @Published var playerFilter: UUID?
@@ -50,8 +66,11 @@ final class StatisticsViewModel: ObservableObject {
         return playerOptions.first(where: { $0.id == playerFilter })?.name
     }
 
+    var isAllGames: Bool { modeFilter == .all }
+    var isX01: Bool { modeFilter == .x01 }
+
     var showsTrendChart: Bool {
-        mode == .x01 && playerFilter != nil && trendPoints.count >= 2
+        isX01 && playerFilter != nil && trendPoints.count >= 2
     }
 
     /// Sectors hit across all listed players, ordered by board value, for charting.
@@ -65,7 +84,10 @@ final class StatisticsViewModel: ObservableObject {
         }
         return totals
             .map { SectorHit(sector: $0.key, count: $0.value) }
-            .sorted { StatsSectorOrder.rank($0.sector, mode: mode) < StatsSectorOrder.rank($1.sector, mode: mode) }
+            .sorted {
+                StatsSectorOrder.rank($0.sector, mode: modeFilter.matchType ?? .x01)
+                    < StatsSectorOrder.rank($1.sector, mode: modeFilter.matchType ?? .x01)
+            }
     }
 
     func load() async {
@@ -86,7 +108,7 @@ final class StatisticsViewModel: ObservableObject {
                 matchRepository: matchRepository,
                 statsRepository: statsRepository,
                 request: MatchStatsLoadRequest(
-                    matchType: mode,
+                    matchType: modeFilter.matchType,
                     startedAfter: cutoff,
                     participantPlayerId: activePlayerFilter
                 )
@@ -95,7 +117,7 @@ final class StatisticsViewModel: ObservableObject {
             var nameById = result.namesById
 
             if let active = try await matchRepository.fetchActiveMatch(),
-               active.type == mode,
+               matchesModeFilter(active),
                matchesPeriodFilter(active, cutoff: cutoff),
                try await matchesPlayerFilter(active, playerId: activePlayerFilter),
                let partial = try await MatchStatsLoader.loadPartialActiveMatchInput(
@@ -138,6 +160,11 @@ final class StatisticsViewModel: ObservableObject {
         case .d30:
             return calendar.date(byAdding: .day, value: -30, to: Date())
         }
+    }
+
+    private func matchesModeFilter(_ active: MatchSummary) -> Bool {
+        guard let matchType = modeFilter.matchType else { return true }
+        return active.type == matchType
     }
 
     private func matchesPeriodFilter(_ active: MatchSummary, cutoff: Date?) -> Bool {

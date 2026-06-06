@@ -102,7 +102,7 @@ func setupPlayCompleteHistoryFlowPersistsEndToEnd() async throws {
         statsRepository: statsRepo,
         playerRepository: playerRepo
     )
-    statsVM.mode = .x01
+    statsVM.modeFilter = .x01
     statsVM.period = .all
     await statsVM.load()
     let aliceRow = try #require(statsVM.rows.first { $0.playerId == alice.id })
@@ -231,7 +231,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
 
     // --- Statistics: X01 leaderboard recomputed from raw events ---
     let x01Stats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo, playerRepository: playerRepo)
-    x01Stats.mode = .x01
+    x01Stats.modeFilter = .x01
     x01Stats.period = .all
     await x01Stats.load()
 
@@ -251,7 +251,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
 
     // --- Statistics: Cricket leaderboard ---
     let cricketStats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo, playerRepository: playerRepo)
-    cricketStats.mode = .cricket
+    cricketStats.modeFilter = .cricket
     cricketStats.period = .all
     await cricketStats.load()
     #expect(cricketStats.rows.reduce(0) { $0 + $1.wins } == 5)
@@ -262,7 +262,7 @@ func longTermFiftyGameSimulationKeepsDataConsistent() async throws {
 
     // --- Time-window filter: "Today" must include matches played just now ---
     let todayStats = StatisticsViewModel(matchRepository: matchRepo, statsRepository: statsRepo, playerRepository: playerRepo)
-    todayStats.mode = .x01
+    todayStats.modeFilter = .x01
     todayStats.period = .today
     await todayStats.load()
     #expect(todayStats.rows.reduce(0) { $0 + $1.games } == x01Stats.rows.reduce(0) { $0 + $1.games })

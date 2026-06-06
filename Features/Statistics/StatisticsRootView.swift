@@ -18,8 +18,6 @@ struct StatisticsRootView: View {
         ))
     }
 
-    private var isX01: Bool { viewModel.mode == .x01 }
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -28,12 +26,14 @@ struct StatisticsRootView: View {
 
                     BrandSegmented(
                         options: [
-                            (MatchType.x01, L10n.string("play.x01.title")),
-                            (MatchType.cricket, L10n.string("play.cricket.title")),
-                            (MatchType.baseball, L10n.string("play.baseball.title")),
-                            (MatchType.killer, L10n.string("play.killer.title"))
+                            (StatisticsViewModel.ModeFilter.all, L10n.string("history.filter.allGames")),
+                            (StatisticsViewModel.ModeFilter.x01, L10n.string("play.x01.title")),
+                            (StatisticsViewModel.ModeFilter.cricket, L10n.string("play.cricket.title")),
+                            (StatisticsViewModel.ModeFilter.baseball, L10n.string("play.baseball.title")),
+                            (StatisticsViewModel.ModeFilter.killer, L10n.string("play.killer.title")),
+                            (StatisticsViewModel.ModeFilter.shanghai, L10n.string("play.shanghai.title"))
                         ],
-                        selection: $viewModel.mode
+                        selection: $viewModel.modeFilter
                     )
 
                     BrandSegmented(
@@ -56,7 +56,7 @@ struct StatisticsRootView: View {
                         emptyState
                     } else {
                         gamesTable
-                        if isX01 {
+                        if viewModel.isX01 {
                             sectionTitle(L10n.string("stats.section.averageHighest"))
                             averageTable
                             averageChart
@@ -66,7 +66,7 @@ struct StatisticsRootView: View {
                             }
                             sectionTitle(L10n.string("stats.section.legsCheckout"))
                             checkoutTable
-                        } else {
+                        } else if !viewModel.isAllGames {
                             sectionTitle(L10n.string("stats.section.marksPerRound"))
                             mprTable
                         }
@@ -74,8 +74,10 @@ struct StatisticsRootView: View {
                         pointsTable
                         sectionTitle(L10n.string("stats.throws"))
                         throwsTable
-                        sectionTitle(L10n.string("stats.hitsInSector"))
-                        sectorChart
+                        if !viewModel.isAllGames, let matchType = viewModel.modeFilter.matchType {
+                            sectionTitle(L10n.string("stats.hitsInSector"))
+                            sectorChart(mode: matchType)
+                        }
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
@@ -84,7 +86,7 @@ struct StatisticsRootView: View {
             .background(Brand.background.ignoresSafeArea())
             .navigationBarHidden(true)
             .task { await viewModel.load() }
-            .onChange(of: viewModel.mode) { _, _ in reload() }
+            .onChange(of: viewModel.modeFilter) { _, _ in reload() }
             .onChange(of: viewModel.period) { _, _ in reload() }
             .onChange(of: viewModel.playerFilter) { _, _ in reload() }
             .onDisappear { loadTask?.cancel() }
@@ -272,8 +274,8 @@ struct StatisticsRootView: View {
         )
     }
 
-    private var sectorChart: some View {
-        SectorHitsChart(hitsBySector: sectorHitsDictionary, mode: viewModel.mode)
+    private func sectorChart(mode: MatchType) -> some View {
+        SectorHitsChart(hitsBySector: sectorHitsDictionary, mode: mode)
     }
 
     private var sectorHitsDictionary: [String: Int] {

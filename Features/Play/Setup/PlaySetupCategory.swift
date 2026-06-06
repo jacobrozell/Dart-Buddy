@@ -19,10 +19,8 @@ enum PartyGame: String, CaseIterable, Identifiable, Hashable {
     /// When `false`, setup shows the game but Start stays disabled with a coming-soon message.
     var isAvailable: Bool {
         switch self {
-        case .baseball, .killer:
+        case .baseball, .killer, .shanghai:
             true
-        case .shanghai:
-            false
         }
     }
 

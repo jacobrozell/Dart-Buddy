@@ -1,9 +1,8 @@
 import SwiftUI
 
-struct BaseballMatchScreen: View {
+struct ShanghaiMatchScreen: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ObservedObject var viewModel: BaseballMatchViewModel
+    @ObservedObject var viewModel: ShanghaiMatchViewModel
     let onShowSummary: () -> Void
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
@@ -16,20 +15,20 @@ struct BaseballMatchScreen: View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 VStack(alignment: .leading, spacing: 2) {
-                    BrandMatchScreenTitle(title: "play.baseball.title")
+                    BrandMatchScreenTitle(title: "play.shanghai.title")
                     HStack(spacing: DS.Spacing.s2) {
                         Text(viewModel.headerText)
                             .font(.caption)
                             .foregroundStyle(Brand.textSecondary)
-                        if viewModel.showsExtraInningBadge {
-                            Text(L10n.string("play.baseball.extraInning"))
+                        if viewModel.showsExtraRoundBadge {
+                            Text(L10n.string("play.shanghai.extraRound"))
                                 .font(.caption2.weight(.semibold))
                                 .foregroundStyle(Brand.amber)
                         }
                     }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(viewModel.headerAccessibilityLabel)
-                    .accessibilityIdentifier("baseball_match_header")
+                    .accessibilityIdentifier("shanghai_match_header")
                 }
             } trailing: {
                 Button {
@@ -43,30 +42,22 @@ struct BaseballMatchScreen: View {
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
                 .accessibilityLabel(L10n.scoringUndoLastTurn)
-                .accessibilityIdentifier("baseball_undo")
+                .accessibilityIdentifier("shanghai_undo")
             }
 
-            if let state = viewModel.baseballState {
+            if let state = viewModel.shanghaiState {
                 ScrollView {
                     VStack(spacing: DS.Spacing.s3) {
-                        BaseballScoreboardView(
+                        ShanghaiScoreboardView(
                             rows: viewModel.scoreboardRows,
-                            showsVisitRunsColumn: viewModel.showsVisitRunsColumn
+                            showsRoundPointsColumn: viewModel.showsRoundPointsColumn
                         )
-                        if viewModel.showsInningProgressStrip {
-                            InningProgressStrip(
-                                inningCount: state.config.inningCount,
-                                currentInning: state.currentInning,
-                                isExtraInning: state.isExtraInning
-                            )
-                            .accessibilityIdentifier("baseball_inning_strip")
-                        } else if state.phase == .bullPlayoff {
-                            Text(L10n.string("play.baseball.playoffStrip.label"))
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Brand.textSecondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .accessibilityIdentifier("baseball_playoff_strip")
-                        }
+                        RoundProgressStrip(
+                            roundCount: state.config.roundCount,
+                            currentRound: state.currentRound,
+                            isExtraRound: state.isExtraRound
+                        )
+                        .accessibilityIdentifier("shanghai_round_strip")
                         stateBanner
                     }
                     .padding(.horizontal, DS.Spacing.s4)
@@ -74,7 +65,7 @@ struct BaseballMatchScreen: View {
                 }
 
                 VStack(spacing: DS.Spacing.s2) {
-                    baseballPad
+                    shanghaiPad
                     submitButton
                 }
                 .padding(.horizontal, DS.Spacing.s4)
@@ -113,7 +104,7 @@ struct BaseballMatchScreen: View {
             case .matchCompleted:
                 audio.playMatchFinished()
                 onShowSummary()
-            case .perfectInningFeedback:
+            case .shanghaiFeedback:
                 haptics.playSuccess()
             default:
                 break
@@ -133,23 +124,20 @@ struct BaseballMatchScreen: View {
         switch viewModel.state {
         case let .entryInvalid(messageKey), let .error(messageKey):
             ErrorBanner(messageKey: messageKey)
-        case .stretchGateHint:
-            MatchFeedbackBanner(text: "play.baseball.stretchGateOpened", style: .cricketClosure)
-        case .perfectInningFeedback:
-            MatchFeedbackBanner(text: "play.baseball.perfectInning", style: .legWin)
+        case .shanghaiFeedback:
+            MatchFeedbackBanner(text: "play.shanghai.achieved", style: .legWin)
+                .accessibilityIdentifier("shanghai_shanghai_feedback")
         default:
-            if let hint = viewModel.stretchGateHint {
-                MatchFeedbackBanner(text: LocalizedStringKey(hint), style: .cricketClosure)
-            }
+            EmptyView()
         }
     }
 
-    private var baseballPad: some View {
+    private var shanghaiPad: some View {
         DartNumberPad(
             enteredDarts: $viewModel.enteredDarts,
             selectedMultiplier: $viewModel.selectedMultiplier,
             lockedSegment: viewModel.lockedSegment,
-            showsBull: viewModel.showsBullOnPad,
+            showsBull: false,
             onUndoTurn: {
                 actionTask?.cancel()
                 actionTask = Task { await viewModel.undoLastDart() }
@@ -160,17 +148,13 @@ struct BaseballMatchScreen: View {
         .accessibilityHint(
             viewModel.canHumanInput
                 ? (lockedSegmentHint ?? "")
-                : L10n.string("play.baseball.pad.disabledWhileBot")
+                : L10n.string("play.shanghai.pad.disabledWhileBot")
         )
     }
 
     private var lockedSegmentHint: String? {
-        guard viewModel.baseballState != nil else { return nil }
-        if viewModel.baseballState?.phase == .bullPlayoff {
-            return L10n.string("play.baseball.pad.lockedBullHint")
-        }
         guard let segment = viewModel.lockedSegment else { return nil }
-        return L10n.format("play.baseball.pad.lockedSegmentHint", segment)
+        return L10n.format("play.shanghai.pad.lockedSegmentHint", segment)
     }
 
     private var submitButton: some View {
@@ -183,7 +167,7 @@ struct BaseballMatchScreen: View {
         .tint(Brand.green)
         .disabled(!viewModel.canSubmit)
         .accessibilityLabel(L10n.string("scoring.submitTurn"))
-        .accessibilityIdentifier("baseball_submit")
+        .accessibilityIdentifier("shanghai_submit")
     }
 
     private func playDartFeedback(_ dart: DartInput) {

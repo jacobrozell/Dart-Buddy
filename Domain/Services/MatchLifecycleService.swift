@@ -6,6 +6,7 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case baseballTurn(BaseballTurnEvent)
     case killerPick(KillerPickEvent)
     case killerTurn(KillerTurnEvent)
+    case shanghaiTurn(ShanghaiTurnEvent)
 
     private enum CodingKeys: String, CodingKey {
         case kind
@@ -14,6 +15,7 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case baseball
         case killerPick
         case killerTurn
+        case shanghai
     }
 
     private enum Kind: String, Codable {
@@ -22,6 +24,7 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case baseballTurn
         case killerPick
         case killerTurn
+        case shanghaiTurn
     }
 
     public init(from decoder: any Decoder) throws {
@@ -38,6 +41,8 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .killerPick(try container.decode(KillerPickEvent.self, forKey: .killerPick))
         case .killerTurn:
             self = .killerTurn(try container.decode(KillerTurnEvent.self, forKey: .killerTurn))
+        case .shanghaiTurn:
+            self = .shanghaiTurn(try container.decode(ShanghaiTurnEvent.self, forKey: .shanghai))
         }
     }
 
@@ -59,6 +64,9 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .killerTurn(event):
             try container.encode(Kind.killerTurn, forKey: .kind)
             try container.encode(event, forKey: .killerTurn)
+        case let .shanghaiTurn(event):
+            try container.encode(Kind.shanghaiTurn, forKey: .kind)
+            try container.encode(event, forKey: .shanghai)
         }
     }
 }
@@ -94,6 +102,7 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var cricketState: CricketState?
     public var baseballState: BaseballState?
     public var killerState: KillerState?
+    public var shanghaiState: ShanghaiState?
 }
 
 public struct MatchLifecycleSession: Sendable {
@@ -139,7 +148,8 @@ public enum MatchLifecycleService {
             x01State: nil,
             cricketState: nil,
             baseballState: nil,
-            killerState: nil
+            killerState: nil,
+            shanghaiState: nil
         )
 
         switch (type, config) {
@@ -151,6 +161,8 @@ public enum MatchLifecycleService {
             runtime.baseballState = try BaseballEngine.makeInitialState(config: cfg, playerIds: playerIds)
         case let (.killer, .killer(cfg)):
             runtime.killerState = try KillerEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.shanghai, .shanghai(cfg)):
+            runtime.shanghaiState = try ShanghaiEngine.makeInitialState(config: cfg, playerIds: playerIds)
         default:
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
@@ -190,7 +202,7 @@ public enum MatchLifecycleService {
             payload: .x01Turn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: x01State, cricketState: nil, baseballState: nil, killerState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: x01State, cricketState: nil, baseballState: nil, killerState: nil, shanghaiState: nil, timestamp: timestamp)
     }
 
     public static func submitCricketTurn(
@@ -208,7 +220,7 @@ public enum MatchLifecycleService {
             payload: .cricketTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: cricketState, baseballState: nil, killerState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: cricketState, baseballState: nil, killerState: nil, shanghaiState: nil, timestamp: timestamp)
     }
 
     public static func submitBaseballTurn(
@@ -226,7 +238,7 @@ public enum MatchLifecycleService {
             payload: .baseballTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: baseballState, killerState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: baseballState, killerState: nil, shanghaiState: nil, timestamp: timestamp)
     }
 
     public static func submitKillerPick(
@@ -244,7 +256,7 @@ public enum MatchLifecycleService {
             payload: .killerPick(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, shanghaiState: nil, timestamp: timestamp)
     }
 
     public static func submitKillerTurn(
@@ -262,7 +274,25 @@ public enum MatchLifecycleService {
             payload: .killerTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, shanghaiState: nil, timestamp: timestamp)
+    }
+
+    public static func submitShanghaiTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var shanghaiState = session.runtime.shanghaiState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.shanghaiUnavailable")
+        }
+        let outcome = try ShanghaiEngine.submitTurn(state: shanghaiState, darts: darts, timestamp: timestamp)
+        shanghaiState = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .shanghaiTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: nil, shanghaiState: shanghaiState, timestamp: timestamp)
     }
 
     public static func undoLastTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
@@ -315,6 +345,9 @@ public enum MatchLifecycleService {
         case let .killerTurn(turn):
             guard !turn.darts.isEmpty else { return nil }
             return turn.darts.map(KillerEngine.dartInput(from:))
+        case let .shanghaiTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(ShanghaiEngine.dartInput(from:))
         }
     }
 
@@ -344,6 +377,9 @@ public enum MatchLifecycleService {
             case let .killerTurn(turn):
                 let darts = turn.darts.map(KillerEngine.dartInput(from:))
                 session = try submitKillerTurn(session: session, darts: darts, timestamp: event.timestamp)
+            case let .shanghaiTurn(turn):
+                let darts = turn.darts.map(ShanghaiEngine.dartInput(from:))
+                session = try submitShanghaiTurn(session: session, darts: darts, timestamp: event.timestamp)
             }
         }
         return session
@@ -387,6 +423,9 @@ public enum MatchLifecycleService {
             case let .killerTurn(turn):
                 let darts = turn.darts.map(KillerEngine.dartInput(from:))
                 rebuilt = try submitKillerTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
+            case let .shanghaiTurn(turn):
+                let darts = turn.darts.map(ShanghaiEngine.dartInput(from:))
+                rebuilt = try submitShanghaiTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
             }
         }
         return rebuilt
@@ -399,6 +438,7 @@ public enum MatchLifecycleService {
         cricketState: CricketState?,
         baseballState: BaseballState?,
         killerState: KillerState?,
+        shanghaiState: ShanghaiState?,
         timestamp: Date
     ) throws -> MatchLifecycleSession {
         var runtime = session.runtime
@@ -407,6 +447,7 @@ public enum MatchLifecycleService {
         runtime.cricketState = cricketState ?? runtime.cricketState
         runtime.baseballState = baseballState ?? runtime.baseballState
         runtime.killerState = killerState ?? runtime.killerState
+        runtime.shanghaiState = shanghaiState ?? runtime.shanghaiState
 
         if let x01State {
             runtime.currentTurnPlayerId = x01State.players[x01State.currentPlayerIndex].playerId
@@ -453,6 +494,17 @@ public enum MatchLifecycleService {
                 runtime.status = .completed
                 runtime.endedAt = timestamp
                 runtime.winnerPlayerId = killerState.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
+        }
+        if let shanghaiState {
+            runtime.currentTurnPlayerId = shanghaiState.players[shanghaiState.currentPlayerIndex].playerId
+            runtime.currentLegIndex = max(0, shanghaiState.currentRound - 1)
+            runtime.currentSetIndex = 0
+            if shanghaiState.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = shanghaiState.winnerPlayerId
                 runtime.currentTurnPlayerId = nil
             }
         }

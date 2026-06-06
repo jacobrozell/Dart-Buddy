@@ -71,6 +71,12 @@ struct PlayRootView: View {
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                case let .shanghaiMatch(matchId):
+                    ShanghaiMatchRouteView(
+                        matchId: matchId,
+                        dependencies: dependencies,
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
+                    )
                 case let .matchSummary(matchId):
                     MatchSummaryScreen(
                         viewModel: MatchSummaryViewModel(
@@ -245,6 +251,39 @@ private struct KillerMatchRouteView: View {
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService
+        )
+    }
+}
+
+private struct ShanghaiMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: ShanghaiMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: ShanghaiMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        ShanghaiMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
         )
     }
 }

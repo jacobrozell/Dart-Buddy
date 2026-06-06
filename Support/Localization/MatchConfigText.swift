@@ -7,6 +7,7 @@ enum MatchConfigText {
         case .cricket: L10n.string("play.cricket.title")
         case .baseball: L10n.string("play.baseball.title")
         case .killer: L10n.string("play.killer.title")
+        case .shanghai: L10n.string("play.shanghai.title")
         }
     }
 

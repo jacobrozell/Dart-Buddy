@@ -22,7 +22,9 @@ struct GameRulesGuideView: View {
                         accessibilityIdentifiers: [
                             .x01: "rules_mode_x01",
                             .cricket: "rules_mode_cricket",
-                            .baseball: "rules_mode_baseball"
+                            .baseball: "rules_mode_baseball",
+                            .killer: "rules_mode_killer",
+                            .shanghai: "rules_mode_shanghai"
                         ]
                     )
                     .frame(maxWidth: .infinity)

@@ -92,6 +92,22 @@ public struct DartInput: Codable, Equatable, Hashable, Sendable {
         }
     }
 
+    /// Short label for visit preview slots (e.g. `T20`, `D16`, `0`).
+    public var compactDisplayLabel: String {
+        if isMiss { return "0" }
+        switch segment {
+        case let .oneToTwenty(value):
+            switch multiplier {
+            case .single: return "\(value)"
+            case .double: return "D\(value)"
+            case .triple: return "T\(value)"
+            }
+        case .outerBull: return "25"
+        case .innerBull: return "50"
+        case .miss: return "0"
+        }
+    }
+
     /// Label for a number-pad key before the dart is entered (`armedMultiplier` is DOUBLE/TRIPLE selection).
     public static func padKeyAccessibilityLabel(segmentValue: Int, armedMultiplier: DartMultiplier) -> String {
         if segmentValue == 0 {

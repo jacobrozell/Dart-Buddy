@@ -35,6 +35,8 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var baseballTieBreaker: BaseballTieBreaker = .extraInnings
     @Published var baseballSeventhInningStretch = false
     @Published var killerStartingLives: Int = 3
+    @Published var shanghaiRoundCount: Int = 20
+    @Published var shanghaiBonusRule: ShanghaiBonusRule = .bonus150
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -95,6 +97,9 @@ final class MatchSetupViewModel: ObservableObject {
             baseballTieBreaker = baseballPrefs.tieBreaker
             baseballSeventhInningStretch = baseballPrefs.seventhInningStretch
             killerStartingLives = KillerSetupPreferences.load()
+            let shanghaiPrefs = ShanghaiSetupPreferences.load()
+            shanghaiRoundCount = shanghaiPrefs.roundCount
+            shanghaiBonusRule = shanghaiPrefs.bonusRule
             mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
                 mode = preferred == .cricket ? .cricket : .x01
@@ -244,6 +249,11 @@ final class MatchSetupViewModel: ObservableObject {
                 if partyGame == .baseball {
                     if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
                         errors.append("setup.validation.baseballBotsPresetOnly")
+                    }
+                }
+                if partyGame == .shanghai {
+                    if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
+                        errors.append("setup.validation.shanghaiBotsPresetOnly")
                     }
                 }
                 if partyGame == .killer {
@@ -427,10 +437,13 @@ final class MatchSetupViewModel: ObservableObject {
         defer { isSubmitting = false }
         let isBaseballParty = setupCategory == .party && partyGame == .baseball
         let isKillerParty = setupCategory == .party && partyGame == .killer
+        let isShanghaiParty = setupCategory == .party && partyGame == .shanghai
         let matchType: MatchType = if isBaseballParty {
             .baseball
         } else if isKillerParty {
             .killer
+        } else if isShanghaiParty {
+            .shanghai
         } else {
             mode == .x01 ? .x01 : .cricket
         }
@@ -487,7 +500,7 @@ final class MatchSetupViewModel: ObservableObject {
                         var botDifficultyRaw = entry.botDifficulty?.rawValue
                         var botKindRaw: String?
                         var botSkillProfilePayload: Data?
-                        if isBaseballParty {
+                        if isBaseballParty || isShanghaiParty {
                             if entry.botDifficulty != nil {
                                 botKindRaw = BotKind.preset.rawValue
                             }
@@ -549,6 +562,13 @@ final class MatchSetupViewModel: ObservableObject {
                 )
             } else if isKillerParty {
                 config = .killer(MatchConfigKiller(startingLives: killerStartingLives))
+            } else if isShanghaiParty {
+                config = .shanghai(
+                    MatchConfigShanghai(
+                        roundCount: shanghaiRoundCount,
+                        bonusRule: shanghaiBonusRule
+                    )
+                )
             } else if mode == .x01 {
                 config = .x01(
                     MatchConfigX01(
@@ -613,6 +633,14 @@ final class MatchSetupViewModel: ObservableObject {
                     participants: selectedPlayers
                 )
                 route = .killerMatch(matchId: persisted.id)
+            } else if isShanghaiParty {
+                session = try MatchLifecycleService.createMatch(
+                    matchId: persisted.id,
+                    type: .shanghai,
+                    config: config,
+                    participants: selectedPlayers
+                )
+                route = .shanghaiMatch(matchId: persisted.id)
             } else if mode == .x01 {
                 session = try MatchLifecycleService.createMatch(
                     matchId: persisted.id,
@@ -683,6 +711,10 @@ final class MatchSetupViewModel: ObservableObject {
         }
         if setupCategory == .party, partyGame == .killer {
             KillerSetupPreferences.save(startingLives: killerStartingLives)
+            return
+        }
+        if setupCategory == .party, partyGame == .shanghai {
+            ShanghaiSetupPreferences.save(roundCount: shanghaiRoundCount, bonusRule: shanghaiBonusRule)
             return
         }
         if mode == .cricket {
