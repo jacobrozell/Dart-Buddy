@@ -1,0 +1,33 @@
+name: Trigger TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to build
+        default: main
+        required: true
+
+concurrency:
+  group: trigger-testflight-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    name: Start Xcode Cloud Release build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Trigger Xcode Cloud workflow
+        env:
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          XCODE_CLOUD_WORKFLOW_ID: ${{ secrets.XCODE_CLOUD_WORKFLOW_ID }}
+        run: |
+          chmod +x Scripts/ci/trigger-xcode-cloud.sh
+          Scripts/ci/trigger-xcode-cloud.sh "${{ inputs.branch }}"

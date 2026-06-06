@@ -351,11 +351,17 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 # Reddit/social: marketing-screenshots/framed/ after frame-marketing-screenshots.sh
 ```
 
-### TestFlight (optional buffer)
+### TestFlight (automated via Xcode Cloud)
 
-- [ ] Upload build to TestFlight
-- [ ] Internal testing pass on physical device
+See [`xcode-cloud.md`](xcode-cloud.md) for one-time ASC/Xcode setup.
+
+- [ ] GitHub CI green on `main`; bump `MARKETING_VERSION` in `project.yml` if shipping a new version
+- [ ] Trigger release: `/dart-buddy release` in Slack, or GitHub Actions → **Trigger TestFlight**
+- [ ] `#dart-buddy-releases` shows Xcode Cloud Notify when archive completes
+- [ ] Internal TestFlight build installs on physical device
 - [ ] External testers (optional) — collect feedback before public submit
+
+**Escape hatch:** manual archive via Xcode Organizer if automation is unavailable.
 
 ---
 
@@ -363,7 +369,7 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 
 - [ ] Fill [`../../roadmap/release/Release-Notes-Template.md`](../../roadmap/release/Release-Notes-Template.md) → paste into App Store “What’s New”
 - [ ] Git tag RC/build (e.g. `1.0.0` / build N)
-- [ ] Upload Release archive via Xcode Organizer / Transporter
+- [ ] Select TestFlight build in App Store Connect (or upload via Organizer / Transporter if not using Xcode Cloud)
 - [ ] Select build in App Store Connect → **Submit for Review**
 - [ ] Complete **App Review Information** (contact, demo account N/A, notes if needed)
 - [ ] Fill §12 sign-off + [`QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) → **Go** only when P0 empty

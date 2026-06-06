@@ -1,0 +1,10 @@
+name = "dart-buddy-slack"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+
+[vars]
+GITHUB_REPO = "jacobrozell/Dart-Buddy"
+
+# Set via `wrangler secret put`:
+# - SLACK_SIGNING_SECRET
+# - GITHUB_TOKEN (fine-grained PAT: actions:read, actions:write on Dart-Buddy)
