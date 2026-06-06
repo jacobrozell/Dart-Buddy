@@ -50,31 +50,10 @@ extension DartBuddyUITestCase {
         XCTAssertTrue(delete.waitForExistence(timeout: timeout), "Delete button should be reachable after scrolling")
     }
 
-    func selectPlayerFromRoster(_ name: String, in app: XCUIApplication) {
-        let button = app.buttons["select_\(name)"]
-        let start = app.buttons["startMatchButton"]
-        XCTAssertTrue(
-            button.waitForExistence(timeout: timeout),
-            "Expected roster row for \(name)"
-        )
-        for _ in 0 ..< 10 {
-            let clearsStartFooter = !start.exists || button.frame.maxY < start.frame.minY - 8
-            if button.isHittable, clearsStartFooter {
-                break
-            }
-            app.swipeUp()
-        }
-        XCTAssertTrue(
-            button.isHittable,
-            "Expected roster row for \(name) to be reachable above the sticky Start footer"
-        )
-        button.tap()
-    }
-
     func selectAliceBobAndCarol(from app: XCUIApplication) {
-        selectPlayerFromRoster("Alice", in: app)
-        selectPlayerFromRoster("Bob", in: app)
-        selectPlayerFromRoster("Carol", in: app)
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+        selectPlayerFromRoster("Bob", in: app, timeout: timeout)
+        selectPlayerFromRoster("Carol", in: app, timeout: timeout)
         XCTAssertTrue(
             app.descendants(matching: .any)["setup_selected_Alice"].firstMatch.waitForExistence(timeout: timeout)
         )
@@ -110,26 +89,20 @@ extension DartBuddyUITestCase {
     }
 
     func startThreePlayerX01Match(from app: XCUIApplication) {
-        ensurePlayTab(app, timeout: timeout)
+        ensureSetupReady(app, timeout: timeout)
         selectAliceBobAndCarol(from: app)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
-        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+        tapStartMatch(in: app, expectingBoardKey: "pad_20", timeout: timeout)
     }
 
     func startThreePlayerCricketMatch(from app: XCUIApplication) {
-        ensurePlayTab(app, timeout: timeout)
+        ensureSetupReady(app, timeout: timeout)
         app.buttons["setup_mode_cricket"].tap()
         selectAliceBobAndCarol(from: app)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+        tapStartMatch(in: app, expectingBoardKey: "cricket_20", timeout: timeout)
     }
 
     func selectCricketMode(in app: XCUIApplication) {
-        ensurePlayTab(app, timeout: timeout)
+        ensureSetupReady(app, timeout: timeout)
         app.buttons["setup_mode_cricket"].tap()
     }
 
@@ -145,15 +118,5 @@ extension DartBuddyUITestCase {
         XCTAssertTrue(chip.waitForExistence(timeout: timeout))
         chip.tap()
         app.buttons["Cut Throat"].tap()
-    }
-
-    func startTwoPlayerCricketMatch(from app: XCUIApplication, playerA: String = "Alice", playerB: String = "Bob") {
-        selectCricketMode(in: app)
-        selectPlayerFromRoster(playerA, in: app)
-        selectPlayerFromRoster(playerB, in: app)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
     }
 }

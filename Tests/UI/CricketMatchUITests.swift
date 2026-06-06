@@ -102,13 +102,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
     func testCricketMatchContinuesAfterFirstPlayerClosesAllTargets() {
         let app = launchApp(["-seed_players"])
-
-        app.buttons["setup_mode_cricket"].tap()
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
-
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+        startTwoPlayerCricketMatch(from: app)
 
         closeAllCricketTargets(in: app, timeout: timeout)
 
@@ -122,11 +116,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
     func testCricketGridScoringRecordsMarks() {
         let app = launchApp(["-seed_players"])
-
-        app.buttons["setup_mode_cricket"].tap()
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
+        startTwoPlayerCricketMatch(from: app)
 
         let target20 = app.buttons["cricket_20"]
         XCTAssertTrue(target20.waitForExistence(timeout: timeout))
@@ -196,12 +186,9 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         selectCricketMode(in: app)
         tapCricketCutThroatMode(in: app)
-        app.buttons["select_Alice"].tap()
+        selectPlayerFromRoster("Alice", in: app)
         addEasyBot(from: app, timeout: timeout)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 10))
+        tapStartMatch(in: app, expectingBoardKey: "cricket_20", timeout: timeout + 10)
 
         let padDisabledHint = app.staticTexts.containing(
             NSPredicate(format: "label CONTAINS[c] %@", "bot")

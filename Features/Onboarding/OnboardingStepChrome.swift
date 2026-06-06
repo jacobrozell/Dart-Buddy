@@ -22,7 +22,7 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
     }
 
     private var scrollBottomPadding: CGFloat {
-        dynamicTypeSize.isAccessibilitySize ? DS.Spacing.s6 + 72 : DS.Spacing.s4
+        dynamicTypeSize.isAccessibilitySize ? 140 : DS.Spacing.s4
     }
 
     var body: some View {

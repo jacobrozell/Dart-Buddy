@@ -28,6 +28,17 @@ extension XCTestCase {
         )
     }
 
+    func ensureSetupReady(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        ensurePlayTab(app, timeout: timeout)
+        let rosterRow = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'select_'")
+        ).firstMatch
+        XCTAssertTrue(
+            rosterRow.waitForExistence(timeout: timeout + 15),
+            "Setup roster should finish loading before player selection"
+        )
+    }
+
     func tapMenuChip(_ identifier: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
         let button = app.buttons[identifier]
         let popUp = app.popUpButtons[identifier]
@@ -76,6 +87,75 @@ extension XCTestCase {
             start.wait(for: \.isEnabled, toEqual: true, timeout: timeout),
             "START should be enabled once setup is valid"
         )
+    }
+
+    func waitForStartDisabled(_ start: XCUIElement, timeout: TimeInterval = 10) {
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            start.wait(for: \.isEnabled, toEqual: false, timeout: timeout),
+            "START should stay disabled until setup is valid"
+        )
+    }
+
+    func selectPlayerFromRoster(_ name: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
+        let button = app.buttons["select_\(name)"]
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(
+            button.waitForExistence(timeout: timeout),
+            "Expected roster row for \(name)"
+        )
+        for _ in 0 ..< 10 {
+            let clearsStartFooter = !start.exists || button.frame.maxY < start.frame.minY - 8
+            if button.isHittable, clearsStartFooter {
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(
+            button.isHittable,
+            "Expected roster row for \(name) to be reachable above the sticky Start footer"
+        )
+        button.tap()
+        let staged = app.descendants(matching: .any)["setup_selected_\(name)"].firstMatch
+        XCTAssertTrue(
+            staged.waitForExistence(timeout: timeout),
+            "Expected \(name) to appear in turn order after selection"
+        )
+    }
+
+    func selectAliceAndBob(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+        selectPlayerFromRoster("Bob", in: app, timeout: timeout)
+    }
+
+    func tapStartMatch(
+        in app: XCUIApplication,
+        expectingBoardKey: String,
+        timeout: TimeInterval = 10
+    ) {
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        if !start.isHittable {
+            app.swipeUp()
+        }
+        start.tap()
+        XCTAssertTrue(
+            app.buttons[expectingBoardKey].waitForExistence(timeout: timeout + 15),
+            "Match board '\(expectingBoardKey)' should appear after start"
+        )
+    }
+
+    func startTwoPlayerX01Match(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        ensureSetupReady(app, timeout: timeout)
+        selectAliceAndBob(from: app, timeout: timeout)
+        tapStartMatch(in: app, expectingBoardKey: "pad_20", timeout: timeout)
+    }
+
+    func startTwoPlayerCricketMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        ensureSetupReady(app, timeout: timeout)
+        app.buttons["setup_mode_cricket"].tap()
+        selectAliceAndBob(from: app, timeout: timeout)
+        tapStartMatch(in: app, expectingBoardKey: "cricket_20", timeout: timeout)
     }
 
     @discardableResult
