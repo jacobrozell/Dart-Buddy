@@ -95,6 +95,7 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 | Contributing & code style | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | iOS code audit | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) |
 | Design system tokens | [`DesignSystem/README.md`](DesignSystem/README.md) |
+| UI/UX design review | [`docs/ux-design-review.md`](docs/ux-design-review.md) |
 | Accessibility (requirements / status / manual) | [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md) · [`accessibility/wcag-2.1-aa/SUMMARY.md`](accessibility/wcag-2.1-aa/SUMMARY.md) · [`accessibility/Manual_todo.md`](accessibility/Manual_todo.md) |
 | Phase delivery history | [`roadmap/README.md`](roadmap/README.md) |
 | Post-1.0 ideas | [`FutureIdeas/`](FutureIdeas/) |
