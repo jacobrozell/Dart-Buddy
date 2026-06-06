@@ -23,13 +23,29 @@ targets:
     platform: iOS
     sources:
       - path: App
+        excludes:
+          - "**/README.md"
       - path: Data
+        excludes:
+          - "**/README.md"
       - path: DesignSystem
+        excludes:
+          - "**/README.md"
       - path: Domain
+        excludes:
+          - "**/README.md"
       - path: Features
+        excludes:
+          - "**/README.md"
       - path: Persistence
+        excludes:
+          - "**/README.md"
       - path: Support
+        excludes:
+          - "**/README.md"
       - path: Intents
+        excludes:
+          - "**/README.md"
       - path: Resources/Media.xcassets
       - path: Resources/en.lproj/Localizable.strings
         type: file
