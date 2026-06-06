@@ -11,6 +11,7 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 | **`AppAppearancePolicy`** | `Support/State/AppAppearancePolicy.swift` | Maps user theme to `preferredColorScheme` and Settings chrome |
 | **Chrome modifiers** | `Tokens/BrandChrome.swift` | `.brandScoreboardChrome`, `.brandSettingsScreenChrome`, `.brandSettingsFormChrome`, empty-state styling |
 | **`GameplayLayout`** | `Components/GameplayLayout.swift` | iPad max width for list/setup screens |
+| **`GameModeAccent`** | `Tokens/GameModeAccent.swift` | Per-mode **identity** accent + SF Symbol (catalog, history rows, stats filters) |
 | **`DynamicTypeSize` / `ScoringPadLabels`** | `Tokens/DynamicTypeLayout.swift` | AXXXL pad labels |
 
 ### Rules
@@ -20,6 +21,7 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 3. **Settings (Light theme)** uses native `Form` → `DS.ColorRole` for secondary text is correct.
 4. **Settings (Dark / System)** uses brand palette → `Brand.textSecondary`.
 5. Do not add new `Color.red` / `.green` in features; use `Brand.red`, `Brand.green`, etc.
+6. For **per-mode** color/glyph (history rows, the mode catalog, stats filters), use `GameModeAccent` — it is **identity**, never status. Do not reuse it as `positive`/`negative`/`warning`.
 
 ## Components
 
@@ -33,6 +35,7 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 | `ErrorBanner` | Inline validation / error strip |
 | `MatchFeedbackBanner` | Leg/bust/checkout feedback |
 | `StatChip` | Compact stat label |
+| `GameModeBadge` | Leading mode glyph (tinted square) for rows/cards |
 | `GameplayLayout` | Width helpers |
 
 ### Scoreboard shape policy
