@@ -43,6 +43,8 @@ xcodebuild test -scheme DartBuddy \
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). Full UI smoke runs nightly via `.github/workflows/nightly-ui.yml` (`DartBuddy` scheme) and locally with `xcodebuild test -scheme DartBuddy`.
 
+**Release builds** use Xcode Cloud (archive → TestFlight internal), triggered on demand via Slack `/dart-buddy release` or `.github/workflows/trigger-testflight.yml` — not on every push. Setup: [`docs/release/xcode-cloud.md`](docs/release/xcode-cloud.md).
+
 ## What the app does
 
 High-level summary only — authoritative rules are in feature specs:
