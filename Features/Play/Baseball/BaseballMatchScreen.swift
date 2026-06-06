@@ -47,7 +47,7 @@ struct BaseballMatchScreen: View {
             }
 
             if let state = viewModel.baseballState {
-                ScrollView {
+                SideBySideMatchBody {
                     VStack(spacing: DS.Spacing.s3) {
                         BaseballScoreboardView(
                             rows: viewModel.scoreboardRows,
@@ -69,16 +69,10 @@ struct BaseballMatchScreen: View {
                         }
                         stateBanner
                     }
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.bottom, DS.Spacing.s2)
-                }
-
-                VStack(spacing: DS.Spacing.s2) {
+                } controls: {
                     baseballPad
                     submitButton
                 }
-                .padding(.horizontal, DS.Spacing.s4)
-                .padding(.bottom, DS.Spacing.s2)
                 .onChange(of: viewModel.enteredDarts) { old, darts in
                     guard viewModel.canHumanInput else { return }
                     if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }

@@ -123,6 +123,7 @@ enum L10n {
     static let playersDetailRecentMatches: LocalizedStringKey = "players.detail.recentMatches"
     static let playersDetailWin: LocalizedStringKey = "players.detail.win"
     static let playersDetailLoss: LocalizedStringKey = "players.detail.loss"
+    static let playersDetailExport: LocalizedStringKey = "players.detail.export"
     static let identitySection: LocalizedStringKey = "players.detail.identitySection"
     static let actionsSection: LocalizedStringKey = "players.detail.actionsSection"
     static let edit: LocalizedStringKey = "players.edit.action"

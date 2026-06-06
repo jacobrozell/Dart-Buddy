@@ -14,6 +14,19 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout), "Player detail should show hits in sector")
     }
 
+    func testPlayerDetailShowsExportButton() {
+        let app = launchApp(["-seed_demo"])
+
+        app.tabBars.buttons["Players"].tap()
+        XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
+        app.buttons["player_row_Jacob"].tap()
+        XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 10))
+
+        let exportButton = app.buttons["playerDetail_export"]
+        XCTAssertTrue(exportButton.waitForExistence(timeout: timeout), "Player detail should expose Export")
+        XCTAssertTrue(exportButton.isEnabled, "Export should be enabled on player detail")
+    }
+
     func testEditPlayerUpdatesProfile() {
         let app = launchApp(["-seed_demo"])
 

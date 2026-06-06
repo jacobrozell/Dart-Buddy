@@ -4,6 +4,7 @@ struct MatchHistoryDetailScreen: View {
     @StateObject private var viewModel: HistoryDetailViewModel
     let matchId: UUID
     var onDeleted: () -> Void = {}
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var retryTask: Task<Void, Never>?
     @State private var deleteTask: Task<Void, Never>?
     @State private var showTimeline = false
@@ -62,6 +63,7 @@ struct MatchHistoryDetailScreen: View {
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)
+            .readableRootContentWidth(horizontalSizeClass)
         }
         .background(Brand.background.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)

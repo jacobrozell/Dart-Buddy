@@ -22,6 +22,8 @@ struct PlayersRootView: View {
     @State private var playerSheet: PlayerSheetPresentation?
     @State private var showsCustomBotSheet = false
     @State private var deleteBlockedMessage: String?
+    @State private var exportShareItem: ExportShareItem?
+    @State private var exportErrorKey: String?
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
 
@@ -158,7 +160,8 @@ struct PlayersRootView: View {
                         onSave: { player in
                             actionTask?.cancel()
                             actionTask = Task { await viewModel.save(player) }
-                        }
+                        },
+                        onExportResult: handleExportResult
                     )
                 case let .edit(playerId):
                     PlayerDetailView(
@@ -203,6 +206,20 @@ struct PlayersRootView: View {
                 Button(L10n.ok, role: .cancel) {}
             } message: {
                 Text(deleteBlockedMessage ?? "")
+            }
+            .alert(L10n.errorTitle, isPresented: Binding(
+                get: { exportErrorKey != nil },
+                set: { if !$0 { exportErrorKey = nil } }
+            )) {
+                Button(L10n.ok, role: .cancel) {}
+            } message: {
+                Text(LocalizedStringKey(exportErrorKey ?? "players.detail.export.error"))
+            }
+            .sheet(item: $exportShareItem) { item in
+                ActivityShareSheet(items: [item.url]) {
+                    try? FileManager.default.removeItem(at: item.url)
+                    exportShareItem = nil
+                }
             }
             .onDisappear {
                 actionTask?.cancel()
@@ -337,6 +354,15 @@ struct PlayersRootView: View {
         .padding(.vertical, DS.Spacing.s2)
         .background(Brand.cardElevated, in: Capsule())
         .accessibilityIdentifier("players_searchField")
+    }
+
+    private func handleExportResult(_ result: Result<URL, Error>) {
+        switch result {
+        case let .success(url):
+            exportShareItem = ExportShareItem(url: url)
+        case let .failure(error):
+            exportErrorKey = (error as? AppError)?.userMessageKey ?? "players.detail.export.error"
+        }
     }
 }
 

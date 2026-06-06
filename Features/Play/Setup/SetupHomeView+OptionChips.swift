@@ -17,6 +17,22 @@ extension SetupHomeView {
                 checkInChip
                 legsChip
             }
+        } else if horizontalSizeClass == .regular {
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: DS.Spacing.s3),
+                    GridItem(.flexible(), spacing: DS.Spacing.s3),
+                    GridItem(.flexible(), spacing: DS.Spacing.s3)
+                ],
+                spacing: DS.Spacing.s3
+            ) {
+                pointsChip
+                checkoutChip
+                setsChip
+                legFormatChip
+                checkInChip
+                legsChip
+            }
         } else {
             VStack(spacing: DS.Spacing.s3) {
                 HStack(spacing: DS.Spacing.s3) {

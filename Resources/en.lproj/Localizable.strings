@@ -99,6 +99,9 @@
 "players.edit.notes.accessibility" = "Notes";
 "players.edit.save.accessibility" = "Save player";
 "players.detail.edit.accessibility" = "Edit player";
+"players.detail.export" = "Export";
+"players.detail.export.accessibility" = "Export player data";
+"players.detail.export.error" = "Could not export player data. Try again.";
 "players.detail.archive.accessibility" = "Archive player";
 "players.detail.unarchive.accessibility" = "Unarchive player";
 "play.setup.quickAdd" = "+ Quick Add";
