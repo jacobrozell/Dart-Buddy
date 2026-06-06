@@ -83,10 +83,10 @@ struct StatisticsRootView: View {
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
-                .padding(.bottom, DS.Spacing.s6)
                 .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
                 .frame(maxWidth: .infinity)
             }
+            .tabRootScrollChrome()
             .background(Brand.background.ignoresSafeArea())
             .navigationBarHidden(true)
             .task { await viewModel.load() }
@@ -301,6 +301,7 @@ struct StatTable: View {
     let rows: [PlayerStatBreakdown]
     let values: (PlayerStatBreakdown) -> [String]
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         title: String? = nil,
@@ -328,7 +329,8 @@ struct StatTable: View {
                     ForEach(columns, id: \.label) { column in
                         Text(column.label)
                             .frame(minWidth: resolvedColumnWidth(column.width), alignment: .trailing)
-                            .lineLimit(1)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                            .multilineTextAlignment(.trailing)
                             .fixedSize(horizontal: true, vertical: false)
                     }
                 }

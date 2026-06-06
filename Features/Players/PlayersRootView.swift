@@ -17,6 +17,7 @@ private struct PlayerSheetPresentation: Identifiable {
 struct PlayersRootView: View {
     let dependencies: AppDependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [PlayersRoute] = []
     @StateObject private var viewModel: PlayersListViewModel
     @State private var playerSheet: PlayerSheetPresentation?
@@ -115,6 +116,7 @@ struct PlayersRootView: View {
                         }
                         .listStyle(.plain)
                         .scrollContentBackground(.hidden)
+                        .tabRootScrollChrome()
                     }
                 }
             }
@@ -332,7 +334,7 @@ struct PlayersRootView: View {
                 player.customCricketMPR
             )
         } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
-            suffix += ", \(L10n.format("players.list.record", summary.games, summary.wins))"
+            suffix += ", \(L10n.format("players.list.record.accessibility", summary.games, summary.wins))"
         }
         if player.isArchived {
             suffix += L10n.string("players.row.archivedSuffix")

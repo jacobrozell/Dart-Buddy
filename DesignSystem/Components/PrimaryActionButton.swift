@@ -20,7 +20,7 @@ struct PrimaryActionButton: View {
                 .overlay {
                     if !isEnabled {
                         RoundedRectangle(cornerRadius: DS.Radius.sm)
-                            .stroke(Brand.textDisabled.opacity(0.45), lineWidth: 1)
+                            .stroke(Brand.textDisabled.opacity(0.6), lineWidth: 1.5)
                     }
                 }
         }

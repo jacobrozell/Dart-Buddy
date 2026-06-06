@@ -562,7 +562,7 @@ import Testing
             profile: BotDifficulty.pro.skillProfile,
             rng: &rng
         )
-        if darts.contains(where: killerDartAims(at: 12, multiplier: .double, dart: $0)) {
+        if darts.contains(where: { killerDartAims(at: 12, multiplier: .double, dart: $0) }) {
             foundOwnDouble = true
             break
         }
@@ -594,7 +594,7 @@ import Testing
             profile: BotDifficulty.pro.skillProfile,
             rng: &rng
         )
-        if darts.contains(where: killerDartAims(at: 8, multiplier: .double, dart: $0)) {
+        if darts.contains(where: { killerDartAims(at: 8, multiplier: .double, dart: $0) }) {
             foundWeakestTarget = true
             break
         }

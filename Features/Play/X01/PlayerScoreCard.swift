@@ -70,6 +70,12 @@ struct PlayerScoreCard: View {
 
     private var scoreNameColumn: some View {
         VStack(alignment: .leading, spacing: 2) {
+            if isActive && dynamicTypeSize.isAccessibilitySize {
+                Text(L10n.string("play.x01.turn.active"))
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(accentColor)
+                    .accessibilityHidden(true)
+            }
             Text("\(score)")
                 .font(.system(size: displayScoreFontSize, weight: .heavy, design: .rounded))
                 .monospacedDigit()

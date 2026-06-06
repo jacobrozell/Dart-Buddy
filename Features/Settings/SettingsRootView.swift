@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsRootView: View {
     let dependencies: AppDependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject private var preferences: UserPreferencesStore
     @State private var path: [SettingsRoute] = []
     @StateObject private var viewModel: SettingsViewModel
@@ -271,7 +272,7 @@ struct SettingsRootView: View {
         .tint(Brand.green)
         .frame(maxWidth: contentMaxWidth)
         .frame(maxWidth: .infinity, alignment: .center)
-        .safeAreaPadding(.bottom, DS.Spacing.s6)
+        .tabRootScrollChrome()
         .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
     }
 

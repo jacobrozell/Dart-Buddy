@@ -23,7 +23,7 @@ enum Brand {
         dark: UIColor(red: 0.16, green: 0.16, blue: 0.17, alpha: 1)
     )
     static let dartBox = dynamic(
-        light: UIColor(red: 0.88, green: 0.88, blue: 0.90, alpha: 1),
+        light: UIColor(red: 0.80, green: 0.80, blue: 0.82, alpha: 1),
         dark: UIColor(red: 0.02, green: 0.02, blue: 0.02, alpha: 1)
     )
 
@@ -54,7 +54,7 @@ enum Brand {
     /// Disabled primary actions (START, Continue) on `cardElevated` fills.
     /// `textSecondary` on elevated surfaces falls below WCAG AA 4.5:1 in dark mode.
     static let textDisabled = dynamic(
-        light: UIColor(red: 0.35, green: 0.35, blue: 0.38, alpha: 1),
+        light: UIColor(red: 0.28, green: 0.28, blue: 0.30, alpha: 1),
         dark: UIColor(white: 0.72, alpha: 1)
     )
 

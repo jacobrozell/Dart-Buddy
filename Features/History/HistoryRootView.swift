@@ -5,6 +5,7 @@ struct HistoryRootView: View {
     var onResumeActiveMatch: ((MatchSummary) -> Void)?
     var onStartMatch: (() -> Void)?
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [HistoryRoute] = []
     @StateObject private var viewModel: HistoryListViewModel
     @State private var filterTask: Task<Void, Never>?
@@ -30,26 +31,9 @@ struct HistoryRootView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    Text(L10n.historyTitle)
-                        .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(Brand.textPrimary)
+                    BrandRootScreenTitle(title: L10n.historyTitle)
 
-                    BrandSegmented(
-                        options: [
-                            (HistoryListViewModel.ModeFilter.all, L10n.string("history.filter.allGames")),
-                            (HistoryListViewModel.ModeFilter.x01, L10n.string("play.x01.title")),
-                            (HistoryListViewModel.ModeFilter.cricket, L10n.string("play.cricket.title")),
-                            (HistoryListViewModel.ModeFilter.baseball, L10n.string("play.baseball.title")),
-                            (HistoryListViewModel.ModeFilter.killer, L10n.string("play.killer.title")),
-                            (HistoryListViewModel.ModeFilter.shanghai, L10n.string("play.shanghai.title"))
-                        ],
-                        selection: $viewModel.modeFilter
-                    )
-
-                    BrandSegmented(
-                        options: HistoryListViewModel.DateFilter.allCases.map { ($0, $0.title) },
-                        selection: $viewModel.dateFilter
-                    )
+                    filterSegments
 
                     playerFilterMenu
 
@@ -105,10 +89,10 @@ struct HistoryRootView: View {
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
-                .padding(.bottom, DS.Spacing.s6)
                 .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
                 .frame(maxWidth: .infinity)
             }
+            .tabRootScrollChrome()
             .background(Brand.background.ignoresSafeArea())
             .navigationBarHidden(true)
             .task { await viewModel.onAppear() }
@@ -145,6 +129,34 @@ struct HistoryRootView: View {
                     )
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var filterSegments: some View {
+        let modeSegment = BrandSegmented(
+            options: [
+                (HistoryListViewModel.ModeFilter.all, L10n.string("history.filter.allGames")),
+                (HistoryListViewModel.ModeFilter.x01, L10n.string("play.x01.title")),
+                (HistoryListViewModel.ModeFilter.cricket, L10n.string("play.cricket.title")),
+                (HistoryListViewModel.ModeFilter.baseball, L10n.string("play.baseball.title")),
+                (HistoryListViewModel.ModeFilter.killer, L10n.string("play.killer.title")),
+                (HistoryListViewModel.ModeFilter.shanghai, L10n.string("play.shanghai.title"))
+            ],
+            selection: $viewModel.modeFilter
+        )
+        let dateSegment = BrandSegmented(
+            options: HistoryListViewModel.DateFilter.allCases.map { ($0, $0.title) },
+            selection: $viewModel.dateFilter
+        )
+        if GameplayLayout.usesAccessibilityTabListLayout(dynamicTypeSize: dynamicTypeSize) {
+            VStack(spacing: DS.Spacing.s3) {
+                modeSegment
+                dateSegment
+            }
+        } else {
+            modeSegment
+            dateSegment
         }
     }
 

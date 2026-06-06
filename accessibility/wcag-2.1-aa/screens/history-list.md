@@ -5,7 +5,7 @@
 | Screen ID | `history-list` |
 | Primary source | `Features/History/HistoryRootView.swift` |
 | Core flow | No (tab) |
-| Last verified | 2026-06-02 |
+| Last verified | 2026-06-06 |
 | Screen status | `Partial` |
 
 ## Criterion checklist
@@ -18,8 +18,8 @@
 | P-1.3.4 | Untested | | |
 | P-1.4.1 | Pass | Win/loss not color-only | |
 | P-1.4.3 | Untested | | |
-| P-1.4.4 | Untested | | `snapshots/iphone17-history-dark-axxxl-v1.png` (link only) |
-| P-1.4.10 | Untested | | |
+| P-1.4.4 | Partial | `BrandRootScreenTitle`, scrolling `BrandSegmented`, `tabRootScrollChrome`; AXXXL UI tests | `WCAGAccessibilityUITests.testHistoryFiltersReachableAtAXXXL` |
+| P-1.4.10 | Partial | Tab scroll inset clears tab bar at AX sizes | |
 | P-1.4.11 | Untested | | |
 | O-2.4.3 | Partial | Code complete; manual VO pending | |
 | O-2.4.4 | Pass | Filter menu, resume, load more labels | |

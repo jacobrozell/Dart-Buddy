@@ -26,6 +26,18 @@ enum GameplayLayout {
         dynamicTypeSize.isAccessibilitySize
     }
 
+    /// Tab-root list screens (History, Statistics, Players, Settings) use alternate layout at AX sizes.
+    static func usesAccessibilityTabListLayout(dynamicTypeSize: DynamicTypeSize) -> Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    /// Bottom inset for tab-root scroll content so rows clear the tab bar at AX sizes.
+    static func tabScrollBottomPadding(dynamicTypeSize: DynamicTypeSize) -> CGFloat {
+        usesAccessibilityTabListLayout(dynamicTypeSize: dynamicTypeSize)
+            ? DS.Spacing.s6 + 72
+            : DS.Spacing.s6
+    }
+
     /// iPhone landscape (compact vertical height): board and pad side-by-side.
     static func usesLandscapeMatchScoringLayout(verticalSizeClass: UserInterfaceSizeClass?) -> Bool {
         verticalSizeClass == .compact
