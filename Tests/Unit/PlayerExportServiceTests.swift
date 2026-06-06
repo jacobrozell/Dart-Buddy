@@ -4,10 +4,16 @@ import Testing
 
 @Test(.tags(.unit, .player, .regression))
 func playerExportBundleRoundTripsThroughJSON() throws {
-    let anchorId = UUID()
-    let opponentId = UUID()
-    let matchId = UUID()
-    let now = Date()
+    let anchorId = UUID(uuidString: "A0000000-0000-4000-8000-000000000001")!
+    let opponentId = UUID(uuidString: "A0000000-0000-4000-8000-000000000002")!
+    let matchId = UUID(uuidString: "B0000000-0000-4000-8000-000000000001")!
+    let eventOneId = UUID(uuidString: "C0000000-0000-4000-8000-000000000001")!
+    let eventTwoId = UUID(uuidString: "C0000000-0000-4000-8000-000000000002")!
+    let participantOneId = UUID(uuidString: "D0000000-0000-4000-8000-000000000001")!
+    let participantTwoId = UUID(uuidString: "D0000000-0000-4000-8000-000000000002")!
+    let snapshotId = UUID(uuidString: "E0000000-0000-4000-8000-000000000001")!
+    // Integer epoch avoids ISO-8601 subsecond drift across encode/decode.
+    let now = Date(timeIntervalSince1970: 1_700_000_000)
 
     let bundle = PlayerExportBundle(
         dbpeVersion: 1,
@@ -39,22 +45,22 @@ func playerExportBundleRoundTripsThroughJSON() throws {
                 configPayload: Data("config".utf8),
                 participants: [
                     MatchParticipantExportRecord(from: MatchParticipantSummary(
-                        id: UUID(), matchId: matchId, playerId: anchorId, turnOrder: 0, displayNameAtMatchStart: "Jacob"
+                        id: participantOneId, matchId: matchId, playerId: anchorId, turnOrder: 0, displayNameAtMatchStart: "Jacob"
                     )),
                     MatchParticipantExportRecord(from: MatchParticipantSummary(
-                        id: UUID(), matchId: matchId, playerId: opponentId, turnOrder: 1, displayNameAtMatchStart: "Sam"
+                        id: participantTwoId, matchId: matchId, playerId: opponentId, turnOrder: 1, displayNameAtMatchStart: "Sam"
                     ))
                 ],
                 events: [
                     MatchEventExportRecord(from: MatchEventSummary(
-                        id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: "turn", eventPayload: Data("a".utf8), createdAt: now
+                        id: eventOneId, matchId: matchId, eventIndex: 0, eventTypeRaw: "turn", eventPayload: Data("a".utf8), createdAt: now
                     )),
                     MatchEventExportRecord(from: MatchEventSummary(
-                        id: UUID(), matchId: matchId, eventIndex: 1, eventTypeRaw: "turn", eventPayload: Data("b".utf8), createdAt: now
+                        id: eventTwoId, matchId: matchId, eventIndex: 1, eventTypeRaw: "turn", eventPayload: Data("b".utf8), createdAt: now
                     ))
                 ],
                 snapshot: MatchSnapshotExportRecord(from: MatchSnapshotSummary(
-                    id: UUID(), matchId: matchId, snapshotVersion: 1, snapshotPayload: Data("snap".utf8), updatedAt: now
+                    id: snapshotId, matchId: matchId, snapshotVersion: 1, snapshotPayload: Data("snap".utf8), updatedAt: now
                 ))
             )
         ]
@@ -64,6 +70,7 @@ func playerExportBundleRoundTripsThroughJSON() throws {
     let decoded = try PlayerExportBundleCoding.decode(data)
     #expect(decoded.dbpeVersion == bundle.dbpeVersion)
     #expect(decoded.anchorPlayerId == bundle.anchorPlayerId)
+    #expect(decoded.exportedAt == bundle.exportedAt)
     #expect(decoded.player == bundle.player)
     #expect(decoded.referencedPlayers == bundle.referencedPlayers)
     #expect(decoded.matches == bundle.matches)

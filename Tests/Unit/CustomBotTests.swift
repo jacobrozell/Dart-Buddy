@@ -34,6 +34,14 @@ func customBotSkillResolverExtrapolatesBeyondPro() {
 }
 
 @Test(.tags(.unit, .regression))
+func customBotCombinedDisplayProfileUsesBothModes() {
+    let metrics = CustomBotMetrics(x01Average: 55, cricketMPR: 2.2)
+    let profile = CustomBotSkillResolver.combinedDisplayProfile(metrics: metrics)
+    #expect(profile.x01.hitChances.triple > 0)
+    #expect(profile.cricket.hitChances.triple > 0)
+}
+
+@Test(.tags(.unit, .regression))
 func botSkillProfilePayloadDecoderReadsCustomSnapshot() throws {
     let metrics = CustomBotMetrics(x01Average: 50, cricketMPR: 2.0)
     let profile = CustomBotSkillResolver.profile(for: .cricket, metrics: metrics)
