@@ -73,7 +73,6 @@ struct ShanghaiMatchScreen: View {
                     }
                 } controls: {
                     shanghaiPad
-                    submitButton
                 }
                 .onChange(of: viewModel.enteredDarts) { old, darts in
                     guard viewModel.canHumanInput else { return }
@@ -161,19 +160,6 @@ struct ShanghaiMatchScreen: View {
     private var lockedSegmentHint: String? {
         guard let segment = viewModel.lockedSegment else { return nil }
         return L10n.format("play.shanghai.pad.lockedSegmentHint", segment)
-    }
-
-    private var submitButton: some View {
-        Button(action: submitTurn) {
-            Text(L10n.string("scoring.submitTurn"))
-                .font(.headline.weight(.bold))
-                .frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(Brand.green)
-        .disabled(!viewModel.canSubmit)
-        .accessibilityLabel(L10n.string("scoring.submitTurn"))
-        .accessibilityIdentifier("shanghai_submit")
     }
 
     private func playDartFeedback(_ dart: DartInput) {

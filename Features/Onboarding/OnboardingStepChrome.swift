@@ -15,9 +15,14 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
     @ViewBuilder let footer: () -> Footer
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var contentMaxWidth: CGFloat {
         horizontalSizeClass == .regular ? 560 : .infinity
+    }
+
+    private var scrollBottomPadding: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? 120 : DS.Spacing.s4
     }
 
     var body: some View {
@@ -31,7 +36,7 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, DS.Spacing.s4)
                         .padding(.top, DS.Spacing.s6)
-                        .padding(.bottom, DS.Spacing.s4)
+                        .padding(.bottom, scrollBottomPadding)
                 }
                 .scrollIndicators(.hidden)
 

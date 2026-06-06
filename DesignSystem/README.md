@@ -10,6 +10,7 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 | **`DS`** | `Tokens/DesignTokens.swift` | Spacing (`DS.Spacing`), corner radius (`DS.Radius`), and **semantic** colors for native UI (`DS.ColorRole`) |
 | **`AppAppearancePolicy`** | `Support/State/AppAppearancePolicy.swift` | Maps user theme to `preferredColorScheme` and Settings chrome |
 | **Chrome modifiers** | `Tokens/BrandChrome.swift` | `.brandScoreboardChrome`, `.brandSettingsScreenChrome`, `.brandSettingsFormChrome`, empty-state styling |
+| **`SystemNavigationPolicy`** | `Tokens/SystemNavigationPolicy.swift` | iOS 26+ system Liquid Glass for nav/tab chrome; legacy opaque toolbar helpers for iOS 17–25 |
 | **`GameplayLayout`** | `Components/GameplayLayout.swift` | iPad max width for list/setup screens |
 | **`GameModeAccent`** | `Tokens/GameModeAccent.swift` | Per-mode **identity** accent + SF Symbol (catalog, history rows, stats filters) |
 | **`DynamicTypeSize` / `ScoringPadLabels`** | `Tokens/DynamicTypeLayout.swift` | AXXXL pad labels |
@@ -22,6 +23,12 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 4. **Settings (Dark / System)** uses brand palette → `Brand.textSecondary`.
 5. Do not add new `Color.red` / `.green` in features; use `Brand.red`, `Brand.green`, etc.
 6. For **per-mode** color/glyph (history rows, the mode catalog, stats filters), use `GameModeAccent` — it is **identity**, never status. Do not reuse it as `positive`/`negative`/`warning`.
+
+### Navigation vs content layer (iOS 26 Liquid Glass)
+
+- **System navigation layer** (tab bar, `NavigationStack` toolbars, sheets, alerts): on iOS 26+, let SwiftUI render Liquid Glass. Do not set opaque `.toolbarBackground` or hide the system bar material.
+- **Brand content layer** (scoreboard tabs, match UI, cards, scoring pads, segmented controls): stay **opaque** on `Brand.background` / `Brand.card`. Use `SystemNavigationPolicy` helpers instead of per-screen `#available` checks.
+- **Accessibility:** with Reduce Transparency, iOS replaces glass with opaque system fallbacks — keep content contrast on brand surfaces; do not add custom `.glassEffect` workarounds.
 
 ## Components
 
