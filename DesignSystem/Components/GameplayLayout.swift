@@ -91,14 +91,4 @@ enum GameplayLayout {
     static func usesPinnedActiveX01PlayerCard(playerCount: Int, dynamicTypeSize: DynamicTypeSize) -> Bool {
         playerCount >= 3 && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
-
-    /// Tab list screens use alternate bottom inset at accessibility text sizes.
-    static func usesAccessibilityTabListLayout(dynamicTypeSize: DynamicTypeSize) -> Bool {
-        dynamicTypeSize.isAccessibilitySize
-    }
-
-    /// Extra bottom padding so tab-root scroll content clears the tab bar.
-    static func tabScrollBottomPadding(dynamicTypeSize: DynamicTypeSize) -> CGFloat {
-        usesAccessibilityTabListLayout(dynamicTypeSize: dynamicTypeSize) ? 88 : DS.Spacing.s6
-    }
 }
