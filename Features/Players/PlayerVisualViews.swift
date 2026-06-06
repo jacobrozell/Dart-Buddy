@@ -19,6 +19,12 @@ enum PlayerVisualViews {
         case .cyan: Color(red: 0.20, green: 0.75, blue: 0.95)
         case .lime: Color(red: 0.55, green: 0.78, blue: 0.22)
         case .coral: Color(red: 0.98, green: 0.50, blue: 0.45)
+        case .mint: Color(red: 0.30, green: 0.85, blue: 0.62)
+        case .magenta: Color(red: 0.85, green: 0.22, blue: 0.72)
+        case .slate: Color(red: 0.48, green: 0.55, blue: 0.66)
+        case .gold: Color(red: 0.92, green: 0.72, blue: 0.18)
+        case .brown: Color(red: 0.64, green: 0.45, blue: 0.31)
+        case .maroon: Color(red: 0.70, green: 0.22, blue: 0.32)
         }
     }
 
