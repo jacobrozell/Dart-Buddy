@@ -326,7 +326,7 @@ struct PlayerDetailStatsContent: View {
             VStack(spacing: 0) {
                 ForEach(viewModel.recentMatches) { match in
                     HStack(spacing: DS.Spacing.s3) {
-                        Text(match.type == .x01 ? L10n.x01Title : L10n.cricketTitle)
+                        Text(MatchConfigText.modeLabel(for: match.type))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Brand.textSecondary)
                             .frame(width: 56, alignment: .leading)
@@ -358,7 +358,7 @@ struct PlayerDetailStatsContent: View {
     }
 
     private func recentMatchAccessibilityLabel(_ match: RecentMatchSummary) -> String {
-        let mode = match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+        let mode = MatchConfigText.modeLabel(for: match.type)
         let outcome = match.didWin ? L10n.string("players.detail.win") : L10n.string("players.detail.loss")
         let date = DateFormatter.localizedString(from: match.playedAt, dateStyle: .medium, timeStyle: .none)
         return L10n.format("players.detail.recentMatch.accessibilityFormat", mode, match.opponentLabel, outcome, date)
@@ -538,6 +538,7 @@ struct TrainingBotDetailView: View {
 
     @StateObject private var editViewModel: PlayerEditViewModel
     @StateObject private var statsViewModel: PlayerDetailViewModel
+    @State private var linkedHumanName = ""
 
     init(
         player: EditablePlayer,
@@ -572,7 +573,7 @@ struct TrainingBotDetailView: View {
 
                 if let profile = resolvedProfile {
                     BotDifficultyStatsSection(profile: profile.displayProfile)
-                    Text(L10n.format("trainingBot.calibrated.footer", linkedPlayerName))
+                    Text(L10n.format("trainingBot.calibrated.footer", linkedHumanName))
                         .font(.footnote)
                         .foregroundStyle(Brand.textSecondary)
                 }
@@ -593,11 +594,17 @@ struct TrainingBotDetailView: View {
                 .disabled(!editViewModel.canSave)
             }
         }
-        .task { await statsViewModel.load() }
+        .task {
+            await statsViewModel.load()
+            await loadLinkedHumanName()
+        }
     }
 
-    private var linkedPlayerName: String {
-        player.name.replacingOccurrences(of: "'s Training Partner", with: "")
+    private func loadLinkedHumanName() async {
+        guard let linkedId = player.linkedPlayerId else { return }
+        guard let players = try? await dependencies.playerRepository.fetchPlayers(includeArchived: true),
+              let linked = players.first(where: { $0.id == linkedId }) else { return }
+        linkedHumanName = linked.name
     }
 
     private var resolvedProfile: BotSkillProfile? {

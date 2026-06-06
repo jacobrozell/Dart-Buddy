@@ -30,24 +30,15 @@ struct HistoryRootView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    Text(L10n.historyTitle)
-                        .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(Brand.textPrimary)
+                    BrandRootScreenTitle(title: L10n.historyTitle)
 
                     BrandSegmented(
-                        options: [
-                            (HistoryListViewModel.ModeFilter.all, L10n.string("history.filter.allGames")),
-                            (HistoryListViewModel.ModeFilter.x01, L10n.string("play.x01.title")),
-                            (HistoryListViewModel.ModeFilter.cricket, L10n.string("play.cricket.title")),
-                            (HistoryListViewModel.ModeFilter.baseball, L10n.string("play.baseball.title")),
-                            (HistoryListViewModel.ModeFilter.killer, L10n.string("play.killer.title")),
-                            (HistoryListViewModel.ModeFilter.shanghai, L10n.string("play.shanghai.title"))
-                        ],
+                        options: ActivityModeFilter.allCases.map { ($0, $0.title) },
                         selection: $viewModel.modeFilter
                     )
 
                     BrandSegmented(
-                        options: HistoryListViewModel.DateFilter.allCases.map { ($0, $0.title) },
+                        options: ActivityPeriod.allCases.map { ($0, $0.title) },
                         selection: $viewModel.dateFilter
                     )
 
@@ -105,7 +96,7 @@ struct HistoryRootView: View {
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
-                .padding(.bottom, DS.Spacing.s6)
+                .tabRootScrollChrome()
                 .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
                 .frame(maxWidth: .infinity)
             }
@@ -237,7 +228,7 @@ struct HistoryRootView: View {
             L10n.format(
                 "play.home.resumeAccessibilityFormat",
                 L10n.string("play.home.resumeButton"),
-                match.type == .x01 ? L10n.string("play.x01.title") : L10n.string("play.cricket.title")
+                MatchConfigText.modeLabel(for: match.type)
             )
         )
         .accessibilityIdentifier("historyResumeMatchButton")

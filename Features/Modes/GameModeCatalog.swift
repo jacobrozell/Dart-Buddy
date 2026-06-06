@@ -1,9 +1,10 @@
 import Foundation
+import SwiftUI
 
 /// Single source of truth for every game mode Dart Buddy intends to offer.
 ///
-/// This is the catalog stub described in `docs/full-game-catalog-ui.md`: all 28
-/// modes (5 shipped + 23 planned) live here as data so the Modes tab, Activity
+/// This is the catalog stub described in `docs/full-game-catalog-ui.md`: all 29
+/// modes (5 shipped + 24 planned) live here as data so the Modes tab, Activity
 /// filters, history badges, and per-mode setup can read one list instead of each
 /// hard-coding mode knowledge. Planned modes carry `status == .planned` (no
 /// `MatchType`, not routable) and surface as "coming soon" until their engine
@@ -73,9 +74,9 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     /// Stable identity (e.g. `"standard.x01"`). Drives accent, badge, and filter
     /// keying so unreleased modes get a consistent look without a `MatchType`.
     let id: String
-    /// English display name. Becomes a localization key when the Modes tab ships.
+    /// English fallback display name (tests and catalog authoring).
     let name: String
-    /// One-line description shown under the title on a catalog card.
+    /// English fallback blurb shown under the title on a catalog card.
     let blurb: String
     let section: GameModeSection
     let status: GameModeStatus
@@ -176,6 +177,12 @@ enum GameModeCatalog {
             section: .party, status: .planned, minimumPlayers: 2,
             matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "5.circle.fill"
+        ),
+        GameModeCatalogEntry(
+            id: "party.golf", name: "Golf", blurb: "Nine or eighteen holes, fewest strokes",
+            section: .party, status: .planned, minimumPlayers: 2,
+            matchType: nil, uiTemplate: .inningPoints, statKind: .innings,
+            iconSystemName: "figure.golf"
         ),
         GameModeCatalogEntry(
             id: "party.football", name: "Football", blurb: "Kickoff on bull, then score goals",
@@ -294,5 +301,74 @@ enum GameModeCatalog {
     /// Catalog entry backing a routable match type, if any.
     static func entry(for matchType: MatchType) -> GameModeCatalogEntry? {
         all.first { $0.matchType == matchType }
+    }
+
+    static func entry(for id: String) -> GameModeCatalogEntry? {
+        all.first { $0.id == id }
+    }
+}
+
+extension GameModeCatalogEntry {
+    var nameKey: String { "modes.catalog.\(id).name" }
+    var blurbKey: String { "modes.catalog.\(id).blurb" }
+
+    var localizedName: String { L10n.string(nameKey) }
+    var localizedBlurb: String { L10n.string(blurbKey) }
+
+    func matchesSearchQuery(_ query: String) -> Bool {
+        guard !query.isEmpty else { return true }
+        return localizedName.localizedCaseInsensitiveContains(query)
+            || localizedBlurb.localizedCaseInsensitiveContains(query)
+            || name.localizedCaseInsensitiveContains(query)
+            || blurb.localizedCaseInsensitiveContains(query)
+            || id.localizedCaseInsensitiveContains(query)
+    }
+
+    var accentColor: Color {
+        if let matchType {
+            return GameModeAccent.color(for: matchType)
+        }
+        switch section {
+        case .standard: return Brand.proBot
+        case .party: return Brand.orange
+        case .practice: return Brand.green.opacity(0.85)
+        }
+    }
+
+    var playerCountLabel: String {
+        minimumPlayers == 1
+            ? L10n.string("modes.playerCount.solo")
+            : L10n.format("modes.playerCount.rangeFormat", minimumPlayers, 8)
+    }
+
+    /// Prefill payload when the user taps an available catalog card.
+    var pendingModeSelection: PendingModeSelection? {
+        guard isAvailable, let matchType else { return nil }
+        switch section {
+        case .standard:
+            let mode: MatchSetupViewModel.SetupMode = matchType == .cricket ? .cricket : .x01
+            return PendingModeSelection(
+                setupCategory: .standard,
+                mode: mode,
+                partyGame: nil,
+                matchType: matchType
+            )
+        case .party:
+            let partyGame: PartyGame? = switch matchType {
+            case .baseball: .baseball
+            case .killer: .killer
+            case .shanghai: .shanghai
+            default: nil
+            }
+            guard let partyGame else { return nil }
+            return PendingModeSelection(
+                setupCategory: .party,
+                mode: nil,
+                partyGame: partyGame,
+                matchType: matchType
+            )
+        case .practice:
+            return nil
+        }
     }
 }

@@ -57,6 +57,7 @@ extension SetupHomeView {
                         setupViewModel.x01StartScore = score
                         setupViewModel.revalidate()
                     }
+                    .accessibilityIdentifier("setup_startScoreOption_\(score)")
                 }
             } label: {
                 chipBox("\(setupViewModel.x01StartScore)", color: Brand.key, showsMenuIndicator: true)
@@ -74,6 +75,7 @@ extension SetupHomeView {
                         setupViewModel.x01CheckoutMode = value
                         setupViewModel.revalidate()
                     }
+                    .accessibilityIdentifier("setup_checkoutOption_\(value.rawValue)")
                 }
             } label: {
                 chipBox(setupViewModel.x01CheckoutMode.displayName, color: Brand.key, showsMenuIndicator: true)
