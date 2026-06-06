@@ -156,7 +156,8 @@ func settingsUpdateDefaultsChangesMatchType() async {
         checkout: "singleOut",
         checkIn: "doubleIn",
         legFormat: "bestOf",
-        legs: 5
+        legs: 5,
+        setsEnabled: true
     )
 
     #expect(vm.settings?.defaultMatchTypeRaw == "cricket")
@@ -165,7 +166,33 @@ func settingsUpdateDefaultsChangesMatchType() async {
     #expect(vm.settings?.defaultCheckInModeRaw == "doubleIn")
     #expect(vm.settings?.defaultLegFormatRaw == "bestOf")
     #expect(vm.settings?.defaultLegsToWin == 5)
-    #expect(vm.settings?.defaultSetsEnabled == false)
+    #expect(vm.settings?.defaultSetsEnabled == true)
+}
+
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsUpdateDefaultsChangesSetsEnabled() async {
+    let repository = FakeSettingsRepository(settings: makeSettings())
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+    await vm.onAppear()
+
+    await vm.updateDefaults(
+        matchType: "x01",
+        startScore: 501,
+        checkout: "doubleOut",
+        checkIn: "straightIn",
+        legFormat: "firstTo",
+        legs: 3,
+        setsEnabled: true
+    )
+
+    #expect(vm.settings?.defaultSetsEnabled == true)
 }
 
 @MainActor
