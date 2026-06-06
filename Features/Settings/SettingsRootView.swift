@@ -125,6 +125,8 @@ struct SettingsRootView: View {
             dataSection(usesBrand: usesBrand)
             aboutSection(usesBrand: usesBrand)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(L10n.settingsTitle)
         .accessibilityIdentifier("settings_form")
         .tint(Brand.green)
         .frame(maxWidth: contentMaxWidth)
