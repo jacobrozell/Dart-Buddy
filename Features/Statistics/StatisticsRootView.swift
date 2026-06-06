@@ -52,6 +52,7 @@ struct StatisticsRootView: View {
                             .tint(Brand.green)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
+                            .accessibilityLabel(L10n.loading)
                     } else if viewModel.rows.isEmpty {
                         emptyState
                     } else {

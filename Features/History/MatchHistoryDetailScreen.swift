@@ -38,6 +38,7 @@ struct MatchHistoryDetailScreen: View {
                     ProgressView().tint(Brand.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s6)
+                        .accessibilityLabel(L10n.loading)
                 } else if viewModel.state == "error" {
                     VStack(alignment: .leading, spacing: DS.Spacing.s3) {
                         Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
