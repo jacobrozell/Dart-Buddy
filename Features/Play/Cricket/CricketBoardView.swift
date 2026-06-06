@@ -35,6 +35,15 @@ struct CricketBoardSizing: Equatable {
         columnFooterHeight: 40
     )
 
+    static func accessibility(dynamicTypeSize: DynamicTypeSize) -> CricketBoardSizing {
+        let scale = DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
+        return CricketBoardSizing(
+            markRowHeight: max(44, CricketBoardMetrics.markRowHeight * scale),
+            headerHeight: max(56, CricketBoardMetrics.headerHeight * scale),
+            columnFooterHeight: max(56, CricketBoardMetrics.columnFooterHeight * scale)
+        )
+    }
+
     var boardBodyHeight: CGFloat {
         headerHeight
             + CGFloat(CricketTarget.allCases.count) * markRowHeight
@@ -45,8 +54,8 @@ struct CricketBoardSizing: Equatable {
         verticalSizeClass: UserInterfaceSizeClass?,
         dynamicTypeSize: DynamicTypeSize
     ) -> CricketBoardSizing {
-        guard !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else {
-            return .standard
+        if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
+            return .accessibility(dynamicTypeSize: dynamicTypeSize)
         }
         if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
             return .landscapeCompact

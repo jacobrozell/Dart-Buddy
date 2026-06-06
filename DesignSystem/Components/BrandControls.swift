@@ -6,9 +6,14 @@ struct BrandSegmented<T: Hashable>: View {
     @Binding var selection: T
     var accessibilityIdentifiers: [T: String] = [:]
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var usesScrollingSegments: Bool {
-        horizontalSizeClass == .regular && options.count > 4
+        options.count > 4 || dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var usesAccessibilitySegmentLabels: Bool {
+        dynamicTypeSize.isAccessibilitySize
     }
 
     var body: some View {
@@ -43,8 +48,8 @@ struct BrandSegmented<T: Hashable>: View {
             Text(option.title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Brand.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(expands ? 0.8 : 1)
+                .lineLimit(usesAccessibilitySegmentLabels ? 2 : 1)
+                .minimumScaleFactor(expands && !usesAccessibilitySegmentLabels ? 0.8 : 1)
                 .padding(.horizontal, expands ? 0 : DS.Spacing.s3)
                 .frame(maxWidth: expands ? .infinity : nil, minHeight: 44)
                 .contentShape(Rectangle())

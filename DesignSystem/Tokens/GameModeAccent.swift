@@ -28,6 +28,7 @@ enum GameModeAccent {
         case .shanghai: "star.fill"
         }
     }
+
 }
 
 /// Small leading badge (mode glyph on a tinted square) used to mark a row or card
@@ -49,3 +50,4 @@ struct GameModeBadge: View {
             .accessibilityHidden(true)
     }
 }
+

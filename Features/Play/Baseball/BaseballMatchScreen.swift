@@ -48,30 +48,9 @@ struct BaseballMatchScreen: View {
 
             if let state = viewModel.baseballState {
                 SideBySideMatchBody {
-                    VStack(spacing: DS.Spacing.s3) {
-                        BaseballScoreboardView(
-                            rows: viewModel.scoreboardRows,
-                            showsVisitRunsColumn: viewModel.showsVisitRunsColumn
-                        )
-                        if viewModel.showsInningProgressStrip {
-                            InningProgressStrip(
-                                inningCount: state.config.inningCount,
-                                currentInning: state.currentInning,
-                                isExtraInning: state.isExtraInning
-                            )
-                            .accessibilityIdentifier("baseball_inning_strip")
-                        } else if state.phase == .bullPlayoff {
-                            Text(L10n.string("play.baseball.playoffStrip.label"))
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Brand.textSecondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .accessibilityIdentifier("baseball_playoff_strip")
-                        }
-                        stateBanner
-                    }
+                    scoreboardSection(state: state)
                 } controls: {
                     baseballPad
-                    submitButton
                 }
                 .onChange(of: viewModel.enteredDarts) { old, darts in
                     guard viewModel.canHumanInput else { return }
@@ -124,6 +103,31 @@ struct BaseballMatchScreen: View {
     }
 
     @ViewBuilder
+    private func scoreboardSection(state: BaseballState) -> some View {
+        VStack(spacing: DS.Spacing.s3) {
+            BaseballScoreboardView(
+                rows: viewModel.scoreboardRows,
+                showsVisitRunsColumn: viewModel.showsVisitRunsColumn
+            )
+            if viewModel.showsInningProgressStrip {
+                InningProgressStrip(
+                    inningCount: state.config.inningCount,
+                    currentInning: state.currentInning,
+                    isExtraInning: state.isExtraInning
+                )
+                .accessibilityIdentifier("baseball_inning_strip")
+            } else if state.phase == .bullPlayoff {
+                Text(L10n.string("play.baseball.playoffStrip.label"))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("baseball_playoff_strip")
+            }
+            stateBanner
+        }
+    }
+
+    @ViewBuilder
     private var stateBanner: some View {
         switch viewModel.state {
         case let .entryInvalid(messageKey), let .error(messageKey):
@@ -166,19 +170,6 @@ struct BaseballMatchScreen: View {
         }
         guard let segment = viewModel.lockedSegment else { return nil }
         return L10n.format("play.baseball.pad.lockedSegmentHint", segment)
-    }
-
-    private var submitButton: some View {
-        Button(action: submitTurn) {
-            Text(L10n.string("scoring.submitTurn"))
-                .font(.headline.weight(.bold))
-                .frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(Brand.green)
-        .disabled(!viewModel.canSubmit)
-        .accessibilityLabel(L10n.string("scoring.submitTurn"))
-        .accessibilityIdentifier("baseball_submit")
     }
 
     private func playDartFeedback(_ dart: DartInput) {

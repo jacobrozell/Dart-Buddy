@@ -12,17 +12,23 @@ struct KillerScoreboardView: View {
         let colorToken: PlayerColorToken
     }
 
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
     let rows: [Row]
 
+    private var usesLandscapeLayout: Bool {
+        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+    }
+
     var body: some View {
-        VStack(spacing: DS.Spacing.s2) {
+        VStack(spacing: usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2) {
             ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                 HStack(spacing: DS.Spacing.s3) {
                     Circle()
                         .fill(PlayerVisualViews.color(for: row.colorToken))
-                        .frame(width: 10, height: 10)
+                        .frame(width: usesLandscapeLayout ? 12 : 10, height: usesLandscapeLayout ? 12 : 10)
                     Text(row.name)
-                        .font(.subheadline.weight(row.isActive ? .bold : .regular))
+                        .font(usesLandscapeLayout ? .body.weight(row.isActive ? .bold : .regular) : .subheadline.weight(row.isActive ? .bold : .regular))
                         .foregroundStyle(row.isEliminated ? Brand.textSecondary : Brand.textPrimary)
                         .lineLimit(1)
                         .strikethrough(row.isEliminated)
@@ -43,8 +49,8 @@ struct KillerScoreboardView: View {
                     Spacer()
                     LivesPipsView(lives: row.lives, isEliminated: row.isEliminated)
                 }
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s2)
+                .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
+                .padding(.vertical, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
                 .background(row.isActive ? Brand.cardElevated : Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 .opacity(row.isEliminated ? 0.55 : 1)
                 .accessibilityElement(children: .ignore)

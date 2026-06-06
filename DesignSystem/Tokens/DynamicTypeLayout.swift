@@ -13,6 +13,19 @@ extension DynamicTypeSize {
     }
 }
 
+enum DynamicTypeLayout {
+    static func accessibilityScale(for dynamicTypeSize: DynamicTypeSize) -> CGFloat {
+        switch dynamicTypeSize {
+        case .accessibility1: return 1.15
+        case .accessibility2: return 1.25
+        case .accessibility3: return 1.35
+        case .accessibility4: return 1.45
+        case .accessibility5: return 1.55
+        default: return 1
+        }
+    }
+}
+
 enum ScoringPadLabels {
     /// Visible pad label; full wording is preserved in accessibility labels.
     static func modifierTitle(_ multiplier: DartMultiplier, dynamicTypeSize: DynamicTypeSize) -> String {

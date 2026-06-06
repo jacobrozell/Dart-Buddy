@@ -210,7 +210,8 @@ struct OnboardingPreferencesStepView: View {
             checkout: checkout ?? settings.defaultCheckoutModeRaw,
             checkIn: checkIn ?? settings.defaultCheckInModeRaw,
             legFormat: legFormat ?? settings.defaultLegFormatRaw,
-            legs: legs ?? settings.defaultLegsToWin
+            legs: legs ?? settings.defaultLegsToWin,
+            setsEnabled: settings.defaultSetsEnabled
         )
     }
 }
