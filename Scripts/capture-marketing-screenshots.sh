@@ -130,6 +130,12 @@ capture "${DEVICE_SLUG}-06-players-${APPEARANCE}.png" \
 capture "${DEVICE_SLUG}-07-statistics-${APPEARANCE}.png" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab statistics
 
+capture "${DEVICE_SLUG}-08-onboarding-welcome-${APPEARANCE}.png" \
+  "${COMMON_ARGS[@]}" -ui_test_onboarding
+
+capture "${DEVICE_SLUG}-10-settings-${APPEARANCE}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab settings
+
 echo ""
 first_png="$(ls -1 "$OUT_DIR"/*.png | head -1)"
 echo "Done. Raw screenshots ($(magick identify -format '%wx%h' "$first_png")):"

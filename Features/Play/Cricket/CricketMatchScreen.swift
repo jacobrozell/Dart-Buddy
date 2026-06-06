@@ -42,14 +42,14 @@ struct CricketMatchScreen: View {
             }
 
             if let state = viewModel.cricketState {
-                if !usesLandscapeMatchLayout {
+                if !usesSideBySideMatchLayout {
                     roundTurnLabel(state: state)
                 }
 
                 Group {
                     if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
                         accessibilityScoringStack
-                    } else if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+                    } else if usesSideBySideMatchLayout {
                         landscapeScoringStack
                     } else {
                         portraitScoringStack
@@ -134,9 +134,12 @@ struct CricketMatchScreen: View {
         .padding(.bottom, DS.Spacing.s2)
     }
 
-    private var usesLandscapeMatchLayout: Bool {
-        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-            && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    private var usesSideBySideMatchLayout: Bool {
+        GameplayLayout.usesSideBySideMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+        && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
     private var landscapeScoringStack: some View {
@@ -153,7 +156,13 @@ struct CricketMatchScreen: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             cricketControls
-                .frame(width: GameplayLayout.landscapeScoringPadWidth, alignment: .top)
+                .frame(
+                    width: GameplayLayout.scoringPadFixedWidth(
+                        horizontalSizeClass: horizontalSizeClass,
+                        verticalSizeClass: verticalSizeClass
+                    ),
+                    alignment: .top
+                )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.horizontal, DS.Spacing.s4)

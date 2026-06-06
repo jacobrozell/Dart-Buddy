@@ -22,7 +22,7 @@ struct X01MatchScreen: View {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 VStack(alignment: .leading, spacing: 2) {
                     BrandMatchScreenTitle(title: L10n.x01Title)
-                    if usesLandscapeMatchLayout, let summary = viewModel.configSummary {
+                    if usesSideBySideMatchLayout, let summary = viewModel.configSummary {
                         Text(summary)
                             .font(.caption)
                             .foregroundStyle(Brand.textSecondary)
@@ -43,7 +43,7 @@ struct X01MatchScreen: View {
             }
 
             if let state = viewModel.x01State {
-                if !usesLandscapeMatchLayout {
+                if !usesSideBySideMatchLayout {
                     Text(viewModel.configSummary ?? "")
                         .font(dynamicTypeSize.isAccessibilitySize ? .caption : .subheadline)
                         .foregroundStyle(Brand.textSecondary)
@@ -62,7 +62,7 @@ struct X01MatchScreen: View {
                         } else {
                             accessibilityScoringStack(state: state)
                         }
-                    } else if usesLandscapeMatchLayout {
+                    } else if usesSideBySideMatchLayout {
                         landscapeScoringStack(state: state)
                     } else {
                         ViewThatFits(in: .vertical) {
@@ -149,9 +149,12 @@ struct X01MatchScreen: View {
         .onDisappear { actionTask?.cancel() }
     }
 
-    private var usesLandscapeMatchLayout: Bool {
-        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-            && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    private var usesSideBySideMatchLayout: Bool {
+        GameplayLayout.usesSideBySideMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+        && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
     private func landscapeScoringStack(state: X01State) -> some View {
@@ -166,7 +169,13 @@ struct X01MatchScreen: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             scoringPad(state: state, landscape: true)
-                .frame(width: GameplayLayout.landscapeScoringPadWidth, alignment: .top)
+                .frame(
+                    width: GameplayLayout.scoringPadFixedWidth(
+                        horizontalSizeClass: horizontalSizeClass,
+                        verticalSizeClass: verticalSizeClass
+                    ),
+                    alignment: .top
+                )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.horizontal, DS.Spacing.s4)
@@ -228,9 +237,25 @@ struct X01MatchScreen: View {
     }
 
     private func playerCardsContent(for cards: [X01MatchViewModel.PlayerCard]) -> some View {
-        VStack(spacing: DS.Spacing.s2) {
-            ForEach(cards) { card in
-                playerScoreCard(card)
+        Group {
+            if usesSideBySideMatchLayout, cards.count >= 2, cards.count <= 4 {
+                LazyVGrid(
+                    columns: Array(
+                        repeating: GridItem(.flexible(), spacing: DS.Spacing.s2),
+                        count: min(2, cards.count)
+                    ),
+                    spacing: DS.Spacing.s2
+                ) {
+                    ForEach(cards) { card in
+                        playerScoreCard(card)
+                    }
+                }
+            } else {
+                VStack(spacing: DS.Spacing.s2) {
+                    ForEach(cards) { card in
+                        playerScoreCard(card)
+                    }
+                }
             }
         }
         .padding(.horizontal, DS.Spacing.s4)

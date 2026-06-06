@@ -5,35 +5,58 @@ struct BrandSegmented<T: Hashable>: View {
     let options: [(value: T, title: String)]
     @Binding var selection: T
     var accessibilityIdentifiers: [T: String] = [:]
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var usesScrollingSegments: Bool {
+        horizontalSizeClass == .regular && options.count > 4
+    }
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(options.indices, id: \.self) { index in
-                let option = options[index]
-                let isSelected = selection == option.value
-                Button {
-                    selection = option.value
-                } label: {
-                    Text(option.title)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Brand.textPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .contentShape(Rectangle())
-                        .background(
-                            isSelected ? Brand.cardElevated : Color.clear,
-                            in: RoundedRectangle(cornerRadius: DS.Radius.sm)
-                        )
+        Group {
+            if usesScrollingSegments {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 0) {
+                        ForEach(options.indices, id: \.self) { index in
+                            segmentButton(at: index, expands: false)
+                        }
+                    }
+                    .padding(4)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(option.title)
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
-                .modifier(OptionalAccessibilityIdentifier(identifier: accessibilityIdentifiers[option.value]))
+            } else {
+                HStack(spacing: 0) {
+                    ForEach(options.indices, id: \.self) { index in
+                        segmentButton(at: index, expands: true)
+                    }
+                }
+                .padding(4)
             }
         }
-        .padding(4)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+    }
+
+    private func segmentButton(at index: Int, expands: Bool) -> some View {
+        let option = options[index]
+        let isSelected = selection == option.value
+        return Button {
+            selection = option.value
+        } label: {
+            Text(option.title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Brand.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(expands ? 0.8 : 1)
+                .padding(.horizontal, expands ? 0 : DS.Spacing.s3)
+                .frame(maxWidth: expands ? .infinity : nil, minHeight: 44)
+                .contentShape(Rectangle())
+                .background(
+                    isSelected ? Brand.cardElevated : Color.clear,
+                    in: RoundedRectangle(cornerRadius: DS.Radius.sm)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option.title)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .modifier(OptionalAccessibilityIdentifier(identifier: accessibilityIdentifiers[option.value]))
     }
 }
 

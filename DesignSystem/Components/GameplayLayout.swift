@@ -31,8 +31,29 @@ enum GameplayLayout {
         verticalSizeClass == .compact
     }
 
+    /// iPad portrait or iPhone landscape: scoreboard beside a fixed-width scoring pad.
+    static func usesSideBySideMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        horizontalSizeClass == .regular || verticalSizeClass == .compact
+    }
+
     /// Fixed scoring pad width in landscape (compact pad targets ~250pt).
     static let landscapeScoringPadWidth: CGFloat = 252
+
+    /// Fixed scoring pad width on iPad portrait.
+    static let regularWidthScoringPadWidth: CGFloat = 340
+
+    static func scoringPadFixedWidth(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> CGFloat {
+        if horizontalSizeClass == .regular, verticalSizeClass == .regular {
+            return regularWidthScoringPadWidth
+        }
+        return landscapeScoringPadWidth
+    }
 
     /// Scrollable X01 layout pins the active card when 3+ players and not in accessibility text sizes.
     static func usesPinnedActiveX01PlayerCard(playerCount: Int, dynamicTypeSize: DynamicTypeSize) -> Bool {

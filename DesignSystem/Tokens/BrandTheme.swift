@@ -51,6 +51,19 @@ enum Brand {
         dark: UIColor(white: 1, alpha: 0.55)
     )
 
+    /// Disabled primary actions (START, Continue) on `cardElevated` fills.
+    /// `textSecondary` on elevated surfaces falls below WCAG AA 4.5:1 in dark mode.
+    static let textDisabled = dynamic(
+        light: UIColor(red: 0.35, green: 0.35, blue: 0.38, alpha: 1),
+        dark: UIColor(white: 0.72, alpha: 1)
+    )
+
+    /// Secondary body copy on `card` surfaces (rules cards, list rows).
+    static let textBodyOnCard = dynamic(
+        light: UIColor(red: 0.35, green: 0.35, blue: 0.38, alpha: 1),
+        dark: UIColor(white: 0.75, alpha: 1)
+    )
+
     /// Foreground on saturated accent fills (primary CTA, selected chips, error banner).
     static let textOnAccent = Color.white
 

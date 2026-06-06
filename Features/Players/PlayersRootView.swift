@@ -41,6 +41,24 @@ struct PlayersRootView: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: DS.Spacing.s3) {
+                HStack(alignment: .center) {
+                    BrandRootScreenTitle(title: L10n.playersTitle)
+                    Spacer(minLength: DS.Spacing.s2)
+                    if viewModel.state == .error {
+                        Button(L10n.retry) {
+                            retryTask?.cancel()
+                            retryTask = Task { await viewModel.onAppear() }
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .tint(Brand.green)
+                    } else {
+                        playersToolbarMenu
+                    }
+                }
+                .padding(.horizontal, DS.Spacing.s4)
+                .frame(maxWidth: contentMaxWidth, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
+
                 searchField
                     .padding(.horizontal, DS.Spacing.s4)
                     .frame(maxWidth: contentMaxWidth, alignment: .leading)
@@ -102,7 +120,7 @@ struct PlayersRootView: View {
             .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
             .frame(maxWidth: contentMaxWidth, alignment: .center)
             .frame(maxWidth: .infinity, alignment: .center)
-            .navigationTitle(L10n.playersTitle)
+            .navigationBarHidden(true)
             .safeAreaInset(edge: .bottom) {
                 if viewModel.state != .error && viewModel.players.isEmpty {
                     Button {
@@ -115,39 +133,6 @@ struct PlayersRootView: View {
                     .controlSize(.large)
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.vertical, DS.Spacing.s2)
-                }
-            }
-            .toolbar {
-                Menu {
-                    Button {
-                        playerSheet = .add()
-                    } label: {
-                        Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
-                    }
-                    Menu {
-                        Button {
-                            showsCustomBotSheet = true
-                        } label: {
-                            Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
-                        }
-                        ForEach(BotDifficulty.allCases, id: \.rawValue) { difficulty in
-                            Button(difficulty.displayName) {
-                                actionTask?.cancel()
-                                actionTask = Task { await viewModel.createBot(difficulty) }
-                            }
-                        }
-                    } label: {
-                        Label(L10n.addBotTitle, systemImage: "cpu")
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                }
-                if viewModel.state == .error {
-                    Button(L10n.retry) {
-                        retryTask?.cancel()
-                        retryTask = Task { await viewModel.onAppear() }
-                    }
-                    .tint(Brand.green)
                 }
             }
             .task {
@@ -224,6 +209,38 @@ struct PlayersRootView: View {
                 retryTask?.cancel()
             }
         }
+    }
+
+    private var playersToolbarMenu: some View {
+        Menu {
+            Button {
+                playerSheet = .add()
+            } label: {
+                Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
+            }
+            Menu {
+                Button {
+                    showsCustomBotSheet = true
+                } label: {
+                    Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                }
+                ForEach(BotDifficulty.allCases, id: \.rawValue) { difficulty in
+                    Button(difficulty.displayName) {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.createBot(difficulty) }
+                    }
+                }
+            } label: {
+                Label(L10n.addBotTitle, systemImage: "cpu")
+            }
+        } label: {
+            Image(systemName: "plus")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(Brand.green)
+                .frame(width: 44, height: 44)
+                .background(Brand.card, in: Circle())
+        }
+        .accessibilityLabel(L10n.addPlayerTitle)
     }
 
     private func playerRow(_ player: EditablePlayer) -> some View {

@@ -1,0 +1,56 @@
+import SwiftUI
+
+struct GameRulesGuideContent: View {
+    @State private var selectedMode: MatchType
+    private let initialMode: MatchType
+
+    init(initialMode: MatchType) {
+        self.initialMode = initialMode
+        _selectedMode = State(initialValue: initialMode)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            BrandSegmented(
+                options: GameRulesCatalog.supportedMatchTypes.map { mode in
+                    (mode, MatchConfigText.modeLabel(for: mode))
+                },
+                selection: $selectedMode,
+                accessibilityIdentifiers: [
+                    .x01: "rules_mode_x01",
+                    .cricket: "rules_mode_cricket",
+                    .baseball: "rules_mode_baseball",
+                    .killer: "rules_mode_killer",
+                    .shanghai: "rules_mode_shanghai"
+                ]
+            )
+            .frame(maxWidth: .infinity)
+
+            ForEach(currentGuide.sections) { section in
+                ruleCard(section)
+            }
+        }
+        .onAppear { selectedMode = initialMode }
+    }
+
+    private var currentGuide: GameRulesGuide {
+        GameRulesCatalog.guide(for: selectedMode)
+    }
+
+    private func ruleCard(_ section: GameRulesSection) -> some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            Text(LocalizedStringKey(section.titleKey))
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+            Text(LocalizedStringKey(section.bodyKey))
+                .font(.subheadline)
+                .foregroundStyle(Brand.textBodyOnCard)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Spacing.s4)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("gameRulesSection_\(section.id)")
+    }
+}

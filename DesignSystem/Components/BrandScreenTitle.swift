@@ -4,10 +4,19 @@ import SwiftUI
 struct BrandRootScreenTitle: View {
     let title: LocalizedStringKey
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var titleFont: Font {
+        dynamicTypeSize.isAccessibilitySize
+            ? .title.weight(.bold)
+            : .largeTitle.weight(.heavy)
+    }
+
     var body: some View {
         Text(title)
-            .font(.largeTitle.weight(.heavy))
+            .font(titleFont)
             .foregroundStyle(Brand.textPrimary)
+            .accessibilityAddTraits(.isHeader)
     }
 }
 

@@ -54,11 +54,11 @@ struct SetupHomeView: View {
                         shanghaiChipsGrid
                     }
                 }
-                rosterControls
                 if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
                    !setupViewModel.displayValidationErrors.isEmpty {
                     setupInlineValidationHints
                 }
+                rosterControls
                 selectedRosterSection
                 availablePlayerList
             }
@@ -71,6 +71,8 @@ struct SetupHomeView: View {
         .navigationBarHidden(true)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             startButton
+                .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, DS.Spacing.s4)
                 .padding(.top, DS.Spacing.s3)
                 .padding(.bottom, DS.Spacing.s2)
@@ -577,8 +579,11 @@ struct SetupHomeView: View {
         colorScheme == .light ? .black.opacity(0.08) : .black.opacity(0.25)
     }
 
-    /// Party setup is taller; keep roster rows scrollable above the sticky Start footer.
+    /// Keep roster rows scrollable above the sticky Start footer.
     private var setupScrollBottomPadding: CGFloat {
-        setupViewModel.setupCategory == .party ? 96 : DS.Spacing.s4
+        if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
+            return 120
+        }
+        return setupViewModel.setupCategory == .party ? 96 : DS.Spacing.s4
     }
 }

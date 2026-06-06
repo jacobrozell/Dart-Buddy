@@ -51,6 +51,13 @@ Fix existing PNGs without re-capturing:
 6. **Players** — roster (`-seed_demo -snapshot_tab players`)
 7. **Statistics** — leaderboards (`-seed_demo -snapshot_tab statistics`)
 
+### Additional marketing screens (2026-06-06)
+
+8. **Onboarding welcome** — first-launch tour (`-ui_test_onboarding`)
+9. **Onboarding learn** — beginner rules step (MCP `ui_tap`: `onboarding_next` → `onboarding_experience_no`)
+10. **Settings** — preferences shell (`-seed_demo -snapshot_tab settings`)
+11. **Rules guide** — Play setup sheet (launch `-seed_demo`, MCP tap `setup_learnToPlayButton`)
+
 ## iPad (12.9" / 13" Displays)
 
 App Store accepts portrait **2064 × 2752** or **2048 × 2732** (and matching landscape sizes).
@@ -90,7 +97,8 @@ APP_STORE_WIDTH=1242 APP_STORE_HEIGHT=2688 ./Scripts/capture-marketing-screensho
 | Cricket in progress | `-snapshot_match_cricket` |
 | Demo data | `-seed_demo` |
 | Match summary | `-snapshot_match_summary` |
-| Tab | `-snapshot_tab history` / `players` / `statistics` |
+| Tab | `-snapshot_tab history` / `players` / `statistics` / `settings` |
+| Onboarding | `-ui_test_onboarding` (with `-ui_test_reset` for clean state) |
 
 ## Framing tips
 

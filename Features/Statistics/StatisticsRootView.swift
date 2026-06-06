@@ -7,6 +7,7 @@ struct StatisticsRootView: View {
     @StateObject private var viewModel: StatisticsViewModel
     @State private var loadTask: Task<Void, Never>?
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     init(dependencies: AppDependencies, onStartMatch: (() -> Void)? = nil) {
         self.dependencies = dependencies
@@ -83,6 +84,8 @@ struct StatisticsRootView: View {
                 }
                 .padding(.horizontal, DS.Spacing.s4)
                 .padding(.bottom, DS.Spacing.s6)
+                .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+                .frame(maxWidth: .infinity)
             }
             .background(Brand.background.ignoresSafeArea())
             .navigationBarHidden(true)
@@ -297,6 +300,7 @@ struct StatTable: View {
     let columns: [(label: String, width: CGFloat)]
     let rows: [PlayerStatBreakdown]
     let values: (PlayerStatBreakdown) -> [String]
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     init(
         title: String? = nil,
@@ -322,7 +326,10 @@ struct StatTable: View {
                 HStack {
                     Text(L10n.statsTablePlayersColumn).frame(maxWidth: .infinity, alignment: .leading)
                     ForEach(columns, id: \.label) { column in
-                        Text(column.label).frame(width: column.width, alignment: .trailing)
+                        Text(column.label)
+                            .frame(minWidth: resolvedColumnWidth(column.width), alignment: .trailing)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                 }
                 .font(.caption)
@@ -339,7 +346,9 @@ struct StatTable: View {
                             .lineLimit(1)
                         ForEach(Array(columns.enumerated()), id: \.offset) { columnIndex, column in
                             Text(columnIndex < cells.count ? cells[columnIndex] : "-")
-                                .frame(width: column.width, alignment: .trailing)
+                                .frame(minWidth: resolvedColumnWidth(column.width), alignment: .trailing)
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
                                 .foregroundStyle(Brand.textPrimary)
                         }
                     }
@@ -358,5 +367,9 @@ struct StatTable: View {
     private func rowAccessibilityLabel(index: Int, row: PlayerStatBreakdown, cells: [String]) -> String {
         let stats = zip(columns.map(\.label), cells).map { "\($0) \($1)" }.joined(separator: ", ")
         return L10n.format("stats.table.row.accessibilityFormat", index + 1, row.name, stats)
+    }
+
+    private func resolvedColumnWidth(_ base: CGFloat) -> CGFloat {
+        horizontalSizeClass == .regular ? max(base, base * 1.2) : base
     }
 }

@@ -35,6 +35,28 @@ struct OnboardingStoreTests {
         #expect(store.shouldPresentOnLaunch)
     }
 
+    @Test
+    func saveAndLoadExperience() {
+        let defaults = makeIsolatedDefaults()
+        let store = OnboardingStore(userDefaults: defaults, isEnabled: true)
+        #expect(store.savedExperience == nil)
+
+        store.saveExperience(.experienced)
+        #expect(store.savedExperience == .experienced)
+
+        store.saveExperience(.beginner)
+        #expect(store.savedExperience == .beginner)
+    }
+
+    @Test
+    func clearPersistedStateRemovesExperience() {
+        let defaults = makeIsolatedDefaults()
+        let store = OnboardingStore(userDefaults: defaults, isEnabled: true)
+        store.saveExperience(.beginner)
+        store.clearPersistedState()
+        #expect(store.savedExperience == nil)
+    }
+
     private func makeIsolatedDefaults() -> UserDefaults {
         UserDefaults(suiteName: "OnboardingStoreTests.\(UUID().uuidString)")!
     }

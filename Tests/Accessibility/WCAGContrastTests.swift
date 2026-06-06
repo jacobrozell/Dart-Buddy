@@ -79,6 +79,34 @@ struct WCAGContrastTests {
         }
     }
 
+    @Test("inkOnBright on green onboarding CTA meets AA normal text")
+    func inkOnBrightOnGreenCTA() {
+        let ratio = WCAGContrastMath.contrastRatio(foreground: Self.inkOnBright, background: Self.green)
+        #expect(ratio >= 4.5)
+    }
+
+    @Test("Disabled CTA label on cardElevated meets AA normal text in both modes")
+    func disabledCTALabelOnCardElevated() {
+        let textDisabledDark = WCAGContrastMath.RGB(0.72, 0.72, 0.72)
+        let cardElevatedDark = WCAGContrastMath.RGB(0.16, 0.16, 0.17)
+        let textDisabledLight = WCAGContrastMath.RGB(0.35, 0.35, 0.38)
+        let cardElevatedLight = WCAGContrastMath.RGB(0.92, 0.92, 0.94)
+
+        #expect(
+            WCAGContrastMath.contrastRatio(foreground: textDisabledDark, background: cardElevatedDark) >= 4.5
+        )
+        #expect(
+            WCAGContrastMath.contrastRatio(foreground: textDisabledLight, background: cardElevatedLight) >= 4.5
+        )
+    }
+
+    @Test("Body copy on card surfaces meets AA normal text in dark mode")
+    func bodyCopyOnCardDark() {
+        let textBodyOnCard = WCAGContrastMath.RGB(0.75, 0.75, 0.75)
+        let ratio = WCAGContrastMath.contrastRatio(foreground: textBodyOnCard, background: Self.card)
+        #expect(ratio >= 4.5)
+    }
+
     @Test("Warning pill text on amber tint stays AA in dark mode")
     func textOnAmberTintDark() {
         // Bot-turn / partial-stats banners: textPrimary (white in dark) on amber@0.32 over bg.
