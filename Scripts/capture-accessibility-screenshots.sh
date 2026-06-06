@@ -107,6 +107,24 @@ capture "${DEVICE_SLUG}-match-setup_${APPEARANCE}_${SIZE_SLUG}.png" \
 capture "${DEVICE_SLUG}-x01-match_${APPEARANCE}_${SIZE_SLUG}.png" \
   "${COMMON_ARGS[@]}" -snapshot_match_x01
 
+capture "${DEVICE_SLUG}-cricket-match_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -snapshot_match_cricket
+
+capture "${DEVICE_SLUG}-activity-history_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity
+
+capture "${DEVICE_SLUG}-activity-statistics_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity -snapshot_activity_segment statistics
+
+capture "${DEVICE_SLUG}-modes_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab modes
+
+capture "${DEVICE_SLUG}-settings_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab settings
+
+capture "${DEVICE_SLUG}-onboarding_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -ui_test_onboarding
+
 echo ""
 echo "Done. Accessibility screenshots:"
 ls -1 "$OUT_DIR"/*"${SIZE_SLUG}"*.png 2>/dev/null || ls -1 "$OUT_DIR"/*.png
