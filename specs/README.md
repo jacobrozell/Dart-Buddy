@@ -4,7 +4,7 @@
 - Landscape and portrait are both required in MVP.
 - Accessibility target is WCAG 2.1 AA.
 - UI strings ship in `en`, `de`, `es`, and `nl` (system locale; see `LocalizationSpec.md`).
-- CI runs limited UI smoke tests (`Tests/UI/`), including localization parity and `de`/`es`/`nl` launch smoke; full UI automation matrix is post-1.0.
+- CI runs unit + accessibility via `DartBuddyCI` on PR; UI smoke runs nightly (`nightly-ui.yml`) and locally via `DartBuddy` scheme.
 - App naming direction avoids "Lite" branding.
 
 ## Product and System Specs

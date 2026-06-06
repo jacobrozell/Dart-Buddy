@@ -90,7 +90,25 @@ final class ShanghaiMatchViewModel: ObservableObject {
         if showsExtraRoundBadge {
             parts.append(L10n.string("play.shanghai.extraRound"))
         }
+        if let scoringHint {
+            parts.append(scoringHint)
+        }
         return parts.joined(separator: ", ")
+    }
+
+    var scoringHint: String? {
+        guard let target = shanghaiState?.currentRound else { return nil }
+        return L10n.format(
+            "play.shanghai.scoringHintFormat",
+            target,
+            target,
+            target * 2,
+            target * 3
+        )
+    }
+
+    var goalReminder: String {
+        L10n.string("play.shanghai.goalReminder")
     }
 
     var scoreboardRows: [ShanghaiScoreboardView.Row] {

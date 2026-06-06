@@ -673,6 +673,8 @@
 "play.shanghai.achieved" = "Shanghai! Single, double, and triple on target.";
 "play.shanghai.pad.disabledWhileBot" = "Waiting for bot turn";
 "play.shanghai.pad.lockedSegmentHint" = "Only segment %d scores this round";
+"play.shanghai.scoringHintFormat" = "Throw at %d — single %d, double %d, triple %d points";
+"play.shanghai.goalReminder" = "Take turns throwing three darts. Highest total after all rounds wins.";
 "play.shanghai.announce.turnFormat" = "%d points this visit. %d total points.";
 "play.shanghai.setup.rounds" = "Rounds";
 "play.shanghai.setup.roundsValueFormat" = "%d rounds";

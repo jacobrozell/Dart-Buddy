@@ -26,10 +26,16 @@ struct ShanghaiMatchScreen: View {
                                 .foregroundStyle(Brand.amber)
                         }
                     }
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(viewModel.headerAccessibilityLabel)
-                    .accessibilityIdentifier("shanghai_match_header")
+                    if let scoringHint = viewModel.scoringHint {
+                        Text(scoringHint)
+                            .font(.caption2)
+                            .foregroundStyle(Brand.amber)
+                            .accessibilityIdentifier("shanghai_scoring_hint")
+                    }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(viewModel.headerAccessibilityLabel)
+                .accessibilityIdentifier("shanghai_match_header")
             } trailing: {
                 Button {
                     actionTask?.cancel()
@@ -48,6 +54,11 @@ struct ShanghaiMatchScreen: View {
             if let state = viewModel.shanghaiState {
                 ScrollView {
                     VStack(spacing: DS.Spacing.s3) {
+                        Text(viewModel.goalReminder)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Brand.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("shanghai_goal_reminder")
                         ShanghaiScoreboardView(
                             rows: viewModel.scoreboardRows,
                             showsRoundPointsColumn: viewModel.showsRoundPointsColumn

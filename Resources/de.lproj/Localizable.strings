@@ -673,6 +673,8 @@
 "play.shanghai.achieved" = "Shanghai! Single, Double und Triple auf dem Ziel.";
 "play.shanghai.pad.disabledWhileBot" = "Warten auf Bot-Wurf";
 "play.shanghai.pad.lockedSegmentHint" = "Nur Segment %d zählt diese Runde";
+"play.shanghai.scoringHintFormat" = "Wirf auf %d — Single %d, Double %d, Triple %d Punkte";
+"play.shanghai.goalReminder" = "Abwechselnd drei Pfeile werfen. Nach allen Runden gewinnt die höchste Punktzahl.";
 "play.shanghai.announce.turnFormat" = "%d Punkte in diesem Besuch. %d Punkte gesamt.";
 "play.shanghai.setup.rounds" = "Runden";
 "play.shanghai.setup.roundsValueFormat" = "%d Runden";

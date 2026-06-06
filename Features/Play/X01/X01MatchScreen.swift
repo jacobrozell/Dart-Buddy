@@ -9,6 +9,7 @@ struct X01MatchScreen: View {
     let feedbackPreferences: FeedbackPreferences
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.colorScheme) private var colorScheme
     @State private var showExitConfirmation = false
@@ -19,7 +20,17 @@ struct X01MatchScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
-                BrandMatchScreenTitle(title: L10n.x01Title)
+                VStack(alignment: .leading, spacing: 2) {
+                    BrandMatchScreenTitle(title: L10n.x01Title)
+                    if usesLandscapeMatchLayout, let summary = viewModel.configSummary {
+                        Text(summary)
+                            .font(.caption)
+                            .foregroundStyle(Brand.textSecondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                            .accessibilityIdentifier("x01_match_config_summary")
+                    }
+                }
             } trailing: {
                 Button { runUndo() } label: {
                     Image(systemName: "arrow.uturn.backward")
@@ -32,19 +43,27 @@ struct X01MatchScreen: View {
             }
 
             if let state = viewModel.x01State {
-                Text(viewModel.configSummary ?? "")
-                    .font(dynamicTypeSize.isAccessibilitySize ? .caption : .subheadline)
-                    .foregroundStyle(Brand.textSecondary)
-                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 2)
-                    .minimumScaleFactor(0.85)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.bottom, DS.Spacing.s2)
+                if !usesLandscapeMatchLayout {
+                    Text(viewModel.configSummary ?? "")
+                        .font(dynamicTypeSize.isAccessibilitySize ? .caption : .subheadline)
+                        .foregroundStyle(Brand.textSecondary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 2)
+                        .minimumScaleFactor(0.85)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, DS.Spacing.s4)
+                        .padding(.bottom, DS.Spacing.s2)
+                }
 
                 Group {
                     if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-                        accessibilityScoringStack(state: state)
+                        if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+                            landscapeScoringStack(state: state)
+                        } else {
+                            accessibilityScoringStack(state: state)
+                        }
+                    } else if usesLandscapeMatchLayout {
+                        landscapeScoringStack(state: state)
                     } else {
                         ViewThatFits(in: .vertical) {
                             compactScoringStack(state: state)
@@ -127,6 +146,30 @@ struct X01MatchScreen: View {
             await viewModel.onAppear()
         }
         .onDisappear { actionTask?.cancel() }
+    }
+
+    private var usesLandscapeMatchLayout: Bool {
+        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+            && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    private func landscapeScoringStack(state: X01State) -> some View {
+        HStack(alignment: .top, spacing: DS.Spacing.s2) {
+            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                ScrollView {
+                    playerCardsStack
+                }
+                .scrollIndicators(.hidden)
+                statusBanners
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+            scoringPad(state: state, landscape: true)
+                .frame(width: GameplayLayout.landscapeScoringPadWidth, alignment: .top)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, DS.Spacing.s4)
+        .padding(.bottom, DS.Spacing.s2)
     }
 
     private func compactScoringStack(state: X01State) -> some View {
@@ -216,7 +259,7 @@ struct X01MatchScreen: View {
         .padding(.horizontal, DS.Spacing.s4)
     }
 
-    private func scoringPad(state: X01State) -> some View {
+    private func scoringPad(state: X01State, landscape: Bool = false) -> some View {
         DartNumberPad(
             enteredDarts: $viewModel.enteredDarts,
             selectedMultiplier: $viewModel.selectedMultiplier,
@@ -230,8 +273,8 @@ struct X01MatchScreen: View {
                 hint: viewModel.canHumanInput ? nil : L10n.string("play.x01.pad.disabledWhileBot")
             )
         )
-        .padding(.horizontal, DS.Spacing.s3)
-        .padding(.bottom, DS.Spacing.s2)
+        .padding(.horizontal, landscape ? DS.Spacing.s1 : DS.Spacing.s3)
+        .padding(.bottom, landscape ? 0 : DS.Spacing.s2)
         .onChange(of: viewModel.enteredDarts) { old, darts in
             if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
             autoSubmitIfNeeded(darts: darts, state: state)

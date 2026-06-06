@@ -23,10 +23,11 @@ struct AppStoreUpdateCheckerTests {
 
     @Test
     func checkerSkipsWhenStoreNotNewer() async {
+        let bundleIdentifier = uniqueBundleIdentifier()
         let defaults = makeIsolatedDefaults()
-        configureMockLookup(version: "1.0.0")
+        configureMockLookup(version: "1.0.0", bundleIdentifier: bundleIdentifier)
         let checker = AppStoreUpdateChecker(
-            bundleIdentifier: "com.example.app",
+            bundleIdentifier: bundleIdentifier,
             installedVersion: "1.0.0",
             appStoreFallbackURL: AppLinks.appStore,
             userDefaults: defaults,
@@ -38,12 +39,13 @@ struct AppStoreUpdateCheckerTests {
 
     @Test
     func checkerRespectsDismissedStoreVersion() async {
+        let bundleIdentifier = uniqueBundleIdentifier()
         let defaults = makeIsolatedDefaults()
         defaults.set("9.9.9", forKey: "app_store_update_dismissed_version")
-        configureMockLookup(version: "9.9.9")
+        configureMockLookup(version: "9.9.9", bundleIdentifier: bundleIdentifier)
 
         let checker = AppStoreUpdateChecker(
-            bundleIdentifier: "com.example.app",
+            bundleIdentifier: bundleIdentifier,
             installedVersion: "1.0.0",
             appStoreFallbackURL: AppLinks.appStore,
             userDefaults: defaults,
@@ -55,11 +57,16 @@ struct AppStoreUpdateCheckerTests {
 
     @Test
     func checkerReturnsOfferWhenStoreIsNewer() async throws {
+        let bundleIdentifier = uniqueBundleIdentifier()
         let defaults = makeIsolatedDefaults()
-        configureMockLookup(version: "2.0.0", trackViewURL: "https://apps.apple.com/app/id6775713346")
+        configureMockLookup(
+            version: "2.0.0",
+            bundleIdentifier: bundleIdentifier,
+            trackViewURL: "https://apps.apple.com/app/id6775713346"
+        )
 
         let checker = AppStoreUpdateChecker(
-            bundleIdentifier: "com.example.app",
+            bundleIdentifier: bundleIdentifier,
             installedVersion: "1.0.0",
             appStoreFallbackURL: AppLinks.appStore,
             userDefaults: defaults,
@@ -81,15 +88,33 @@ struct AppStoreUpdateCheckerTests {
         return URLSession(configuration: config)
     }
 
-    private func configureMockLookup(version: String, trackViewURL: String = "https://apps.apple.com/app/id1") {
-        MockITunesLookupURLProtocol.responseJSON = """
-        {"resultCount":1,"results":[{"version":"\(version)","trackViewUrl":"\(trackViewURL)"}]}
-        """
+    private func uniqueBundleIdentifier() -> String {
+        "com.example.app.\(UUID().uuidString)"
+    }
+
+    private func configureMockLookup(
+        version: String,
+        bundleIdentifier: String,
+        trackViewURL: String = "https://apps.apple.com/app/id1"
+    ) {
+        MockITunesLookupURLProtocol.setResponse(
+            """
+            {"resultCount":1,"results":[{"version":"\(version)","trackViewUrl":"\(trackViewURL)"}]}
+            """,
+            forBundleIdentifier: bundleIdentifier
+        )
     }
 }
 
 private final class MockITunesLookupURLProtocol: URLProtocol {
-    static var responseJSON = "{}"
+    private static let lock = NSLock()
+    private static var responsesByBundleIdentifier: [String: String] = [:]
+
+    static func setResponse(_ json: String, forBundleIdentifier bundleIdentifier: String) {
+        lock.lock()
+        responsesByBundleIdentifier[bundleIdentifier] = json
+        lock.unlock()
+    }
 
     override class func canInit(with request: URLRequest) -> Bool {
         request.url?.absoluteString.contains("itunes.apple.com/lookup") == true
@@ -100,7 +125,14 @@ private final class MockITunesLookupURLProtocol: URLProtocol {
     }
 
     override func startLoading() {
-        let data = Self.responseJSON.data(using: .utf8) ?? Data()
+        let bundleIdentifier = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?
+            .queryItems?
+            .first(where: { $0.name == "bundleId" })?
+            .value ?? ""
+        Self.lock.lock()
+        let json = Self.responsesByBundleIdentifier[bundleIdentifier] ?? "{\"resultCount\":0,\"results\":[]}"
+        Self.lock.unlock()
+        let data = json.data(using: .utf8) ?? Data()
         let response = HTTPURLResponse(
             url: request.url!,
             statusCode: 200,

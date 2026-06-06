@@ -400,9 +400,9 @@ struct SetupHomeView: View {
                             .listRowInsets(
                                 EdgeInsets(
                                     top: turnOrderRowVerticalInset,
-                                    leading: 0,
+                                    leading: DS.Spacing.s1,
                                     bottom: turnOrderRowVerticalInset,
-                                    trailing: 0
+                                    trailing: DS.Spacing.s1
                                 )
                             )
                     }
