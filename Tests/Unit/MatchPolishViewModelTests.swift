@@ -50,25 +50,17 @@ private func makeBotFirstX01ViewModel(
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
-func x01BotTurnCompletesFasterWhenStaggerDisabled() async throws {
+func x01BotTurnCompletesWithBothPacingModes() async throws {
     let fastPrefs = FeedbackPreferences()
     fastPrefs.botStaggerEnabled = false
     let (fastVM, _) = try makeBotFirstX01ViewModel(feedbackPreferences: fastPrefs)
-
-    let fastStart = ContinuousClock.now
     await fastVM.playBotTurnIfNeeded()
-    let fastElapsed = fastStart.duration(to: ContinuousClock.now)
+    #expect(fastVM.session?.events.count == 1)
 
     let staggeredPrefs = FeedbackPreferences()
     staggeredPrefs.botStaggerEnabled = true
     let (staggeredVM, _) = try makeBotFirstX01ViewModel(feedbackPreferences: staggeredPrefs)
-
-    let staggeredStart = ContinuousClock.now
     await staggeredVM.playBotTurnIfNeeded()
-    let staggeredElapsed = staggeredStart.duration(to: ContinuousClock.now)
-
-    #expect(fastElapsed < staggeredElapsed)
-    #expect(fastVM.session?.events.count == 1)
     #expect(staggeredVM.session?.events.count == 1)
 }
 

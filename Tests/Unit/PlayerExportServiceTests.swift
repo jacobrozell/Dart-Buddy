@@ -7,7 +7,7 @@ func playerExportBundleRoundTripsThroughJSON() throws {
     let anchorId = UUID()
     let opponentId = UUID()
     let matchId = UUID()
-    let now = Date()
+    let now = Date(timeIntervalSince1970: (Date().timeIntervalSince1970 * 1_000).rounded() / 1_000)
 
     let bundle = PlayerExportBundle(
         dbpeVersion: 1,
@@ -93,7 +93,7 @@ func playerExportValidatorRejectsUnsupportedVersion() {
 func playerExportValidatorRejectsNonContiguousEventIndices() {
     let matchId = UUID()
     let anchorId = UUID()
-    let now = Date()
+    let now = Date(timeIntervalSince1970: (Date().timeIntervalSince1970 * 1_000).rounded() / 1_000)
     let bundle = PlayerExportBundle(
         dbpeVersion: 1,
         producer: "test",
