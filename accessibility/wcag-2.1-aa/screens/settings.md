@@ -5,7 +5,7 @@
 | Screen ID | `settings` |
 | Primary source | `Features/Settings/SettingsRootView.swift` |
 | Core flow | No (tab) |
-| Last verified | 2026-06-02 |
+| Last verified | 2026-06-06 |
 | Screen status | `Partial` |
 
 ## Criterion checklist
@@ -18,8 +18,8 @@
 | P-1.3.4 | Untested | iPad max width 760 | |
 | P-1.4.1 | Pass | | |
 | P-1.4.3 | Untested | Light form vs dark tabs (`docs/release/todo.md`) | `snapshots/iphone17-settings-dark-axxxl-contrast.png` (link only) |
-| P-1.4.4 | Untested | | |
-| P-1.4.10 | Untested | | |
+| P-1.4.4 | Partial | `tabRootScrollChrome` on Form | |
+| P-1.4.10 | Partial | Footer text scrollable with AX bottom inset | |
 | P-1.4.11 | Untested | | |
 | O-2.4.3 | Untested | | |
 | O-2.4.4 | Pass | Toggle labels; reset `settings_resetAllDataButton` | |

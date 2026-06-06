@@ -203,6 +203,7 @@
 "players.detail.win" = "S";
 "players.detail.loss" = "N";
 "players.list.record" = "%dS · %dG";
+"players.list.record.accessibility" = "%d Spiele, %d Siege";
 "players.detail.identitySection" = "Identität";
 "players.detail.actionsSection" = "Aktionen";
 "players.edit.action" = "Bearbeiten";

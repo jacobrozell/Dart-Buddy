@@ -1,6 +1,6 @@
 # WCAG 2.1 AA rollup
 
-**Last updated:** 2026-06-02  
+**Last updated:** 2026-06-06  
 **Overall release status:** `Not compliant` — engineering pass complete on all MVP screens; **manual VoiceOver / AXXXL** still required (`accessibility/Manual_todo.md`). Contrast token audit + 4-way orientation matrix captured 2026-06-02.
 
 ## Screen status
@@ -53,3 +53,4 @@
 | 2026-06-02 | Phase 2: all tab + setup screens — labels/IDs; no Required Fail on screen trackers |
 | 2026-06-02 | P4: brand contrast samples + 4-way orientation matrix; light marketing raw set |
 | 2026-06-06 | Code fix: labeled 12 previously-unlabeled loading `ProgressView` spinners (X01/Cricket/Killer/Baseball/Shanghai match, summary, history list/detail, statistics, player detail) with `common.loading` so VoiceOver announces loading state (R-4.1.2, P-1.1.1) |
+| 2026-06-06 | Accessibility layout pass: AX tab scroll chrome, scrolling segments, cricket board sizing, contrast tokens, AXXXL UI tests on History/Statistics/Cricket/onboarding |

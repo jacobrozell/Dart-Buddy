@@ -203,6 +203,7 @@
 "players.detail.win" = "W.";
 "players.detail.loss" = "l";
 "players.list.record" = "%dG · %dW";
+"players.list.record.accessibility" = "%d partidas, %d victorias";
 "players.detail.identitySection" = "Identidad";
 "players.detail.actionsSection" = "Comportamiento";
 "players.edit.action" = "Editar";

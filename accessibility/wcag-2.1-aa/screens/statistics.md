@@ -5,7 +5,7 @@
 | Screen ID | `statistics` |
 | Primary source | `Features/Statistics/StatisticsRootView.swift`, `StatsChartViews.swift` |
 | Core flow | No (tab) |
-| Last verified | 2026-06-02 |
+| Last verified | 2026-06-06 |
 | Screen status | `Partial` |
 
 ## Criterion checklist
@@ -18,8 +18,8 @@
 | P-1.3.4 | Untested | | |
 | P-1.4.1 | Pass | Text metrics | |
 | P-1.4.3 | Untested | Axis `textSecondary` | |
-| P-1.4.4 | Untested | | |
-| P-1.4.10 | Untested | | |
+| P-1.4.4 | Partial | Scrolling segments + `tabRootScrollChrome`; AX table header wrap | `WCAGAccessibilityUITests.testStatisticsPassesDynamicTypeAuditAtAccessibilityTextSize` |
+| P-1.4.10 | Partial | Tab scroll inset at AX sizes | |
 | P-1.4.11 | Untested | | |
 | O-2.4.3 | Partial | Manual VO pending | |
 | O-2.4.4 | Pass | Filter menu, partial banner, empty CTA | |

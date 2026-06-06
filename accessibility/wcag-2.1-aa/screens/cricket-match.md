@@ -5,7 +5,7 @@
 | Screen ID | `cricket-match` |
 | Primary source | `Features/Play/Cricket/CricketMatchScreen.swift`, `Features/Play/Cricket/CricketBoardView.swift` |
 | Core flow | Yes |
-| Last verified | 2026-06-02 |
+| Last verified | 2026-06-06 |
 | Screen status | `Partial` |
 
 ## Criterion checklist
@@ -18,8 +18,8 @@
 | P-1.3.4 | Partial | Landscape side-by-side board + pad (`CricketMatchScreen`) | |
 | P-1.4.1 | Pass | Marks + text + localized mark states | |
 | P-1.4.3 | Partial | `toolbarColorScheme(.dark)` on nav bar; Inspector pass not logged | |
-| P-1.4.4 | Untested | Board `minimumScaleFactor` only | `snapshots/iphone17-match-cricket-dark-axxxl-v2.png` (link only) |
-| P-1.4.10 | Untested | Scroll grid on small heights | |
+| P-1.4.4 | Partial | `CricketBoardSizing.accessibility` scales target rows at AX sizes | `WCAGAccessibilityUITests.testCricketBoardTargetsLegibleAtAXXXL` |
+| P-1.4.10 | Partial | `accessibilityScoringStack` scroll accommodates taller board | |
 | P-1.4.11 | Partial | Mark glyph 26×26 display; scoring via 52pt pad keys | |
 | O-2.4.3 | Partial | AX structure OK; manual VO pending | |
 | O-2.4.4 | Pass | Undo, Enter labels; Cancel uses `L10n.cancel` | |

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum CricketBoardMetrics {
     static let targetColumnWidth: CGFloat = 28
@@ -35,6 +36,25 @@ struct CricketBoardSizing: Equatable {
         columnFooterHeight: 40
     )
 
+    static let accessibility = CricketBoardSizing(
+        markRowHeight: 44,
+        headerHeight: 60,
+        columnFooterHeight: 56
+    )
+
+    static func accessibility(for dynamicTypeSize: DynamicTypeSize) -> CricketBoardSizing {
+        let traits = UITraitCollection(preferredContentSizeCategory: dynamicTypeSize.uiContentSizeCategory)
+        let subheadline = UIFont.preferredFont(forTextStyle: .subheadline)
+        let scaledLineHeight = UIFontMetrics(forTextStyle: .subheadline)
+            .scaledValue(for: subheadline.lineHeight + DS.Spacing.s2 * 2, compatibleWith: traits)
+        let markRowHeight = max(Self.accessibility.markRowHeight, ceil(scaledLineHeight))
+        return CricketBoardSizing(
+            markRowHeight: markRowHeight,
+            headerHeight: max(Self.accessibility.headerHeight, markRowHeight + DS.Spacing.s4),
+            columnFooterHeight: Self.accessibility.columnFooterHeight
+        )
+    }
+
     var boardBodyHeight: CGFloat {
         headerHeight
             + CGFloat(CricketTarget.allCases.count) * markRowHeight
@@ -45,8 +65,8 @@ struct CricketBoardSizing: Equatable {
         verticalSizeClass: UserInterfaceSizeClass?,
         dynamicTypeSize: DynamicTypeSize
     ) -> CricketBoardSizing {
-        guard !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else {
-            return .standard
+        if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
+            return .accessibility(for: dynamicTypeSize)
         }
         if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
             return .landscapeCompact
@@ -218,7 +238,10 @@ struct CricketBoardTargetColumn: View {
                     .font(.subheadline.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(Brand.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                     .frame(width: width, height: sizing.markRowHeight)
+                    .accessibilityIdentifier(targetAccessibilityIdentifier(for: target))
                 Divider().overlay(Brand.cardElevated)
             }
             Color.clear
@@ -228,6 +251,10 @@ struct CricketBoardTargetColumn: View {
 
     private func label(for target: CricketTarget) -> String {
         target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
+    }
+
+    private func targetAccessibilityIdentifier(for target: CricketTarget) -> String {
+        target == .bull ? "cricket_target_bull" : "cricket_target_\(target.rawValue)"
     }
 }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 extension DynamicTypeSize {
     /// True for the five accessibility content sizes (AX1–AX5).
@@ -9,6 +10,25 @@ extension DynamicTypeSize {
             return true
         default:
             return false
+        }
+    }
+
+    /// Maps SwiftUI Dynamic Type to UIKit content size for font metric scaling.
+    var uiContentSizeCategory: UIContentSizeCategory {
+        switch self {
+        case .xSmall: return .extraSmall
+        case .small: return .small
+        case .medium: return .medium
+        case .large: return .large
+        case .xLarge: return .extraLarge
+        case .xxLarge: return .extraExtraLarge
+        case .xxxLarge: return .extraExtraExtraLarge
+        case .accessibility1: return .accessibilityMedium
+        case .accessibility2: return .accessibilityLarge
+        case .accessibility3: return .accessibilityExtraLarge
+        case .accessibility4: return .accessibilityExtraExtraLarge
+        case .accessibility5: return .accessibilityExtraExtraExtraLarge
+        @unknown default: return .large
         }
     }
 }

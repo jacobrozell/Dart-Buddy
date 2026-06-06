@@ -64,6 +64,8 @@ xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$SIM_UDID" -b
 open -a Simulator --args -CurrentDeviceUDID "$SIM_UDID"
 xcrun simctl ui "$SIM_UDID" appearance "$APPEARANCE"
+xcrun simctl ui "$SIM_UDID" content_size large
+echo "→ Content size: $(xcrun simctl ui "$SIM_UDID" content_size)"
 
 echo "→ Building app…"
 xcodebuild \

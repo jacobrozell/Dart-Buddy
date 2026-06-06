@@ -6,9 +6,11 @@ struct BrandSegmented<T: Hashable>: View {
     @Binding var selection: T
     var accessibilityIdentifiers: [T: String] = [:]
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var usesScrollingSegments: Bool {
-        horizontalSizeClass == .regular && options.count > 4
+        dynamicTypeSize.isAccessibilitySize
+            || (horizontalSizeClass == .regular && options.count > 4)
     }
 
     var body: some View {
@@ -37,14 +39,15 @@ struct BrandSegmented<T: Hashable>: View {
     private func segmentButton(at index: Int, expands: Bool) -> some View {
         let option = options[index]
         let isSelected = selection == option.value
+        let allowsMultilineLabel = dynamicTypeSize.isAccessibilitySize
         return Button {
             selection = option.value
         } label: {
             Text(option.title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Brand.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(expands ? 0.8 : 1)
+                .lineLimit(allowsMultilineLabel ? 2 : 1)
+                .minimumScaleFactor(expands && !allowsMultilineLabel ? 0.8 : 1)
                 .padding(.horizontal, expands ? 0 : DS.Spacing.s3)
                 .frame(maxWidth: expands ? .infinity : nil, minHeight: 44)
                 .contentShape(Rectangle())

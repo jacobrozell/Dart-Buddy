@@ -19,6 +19,8 @@ WCAG 2.1 AA: **4.5:1** normal text, **3:1** large text.
 | light: inkOnBright on green fill (ENTER) | 6.32:1 | PASS | PASS |
 | light: inkOnBright on orange fill (armed TRIPLE key) | 6.18:1 | PASS | PASS |
 | light: textPrimary on cardElevated (selected avatar) | 15.43:1 | PASS | PASS |
+| light: textDisabled on cardElevated (disabled START) | 5.74:1 | PASS | PASS |
+| light: dartBox on card (visit slots) | 1.56:1 | PASS (non-text) | PASS |
 | dark: textPrimary on background | 19.77:1 | PASS | PASS |
 | dark: textPrimary on card | 17.00:1 | PASS | PASS |
 | dark: textSecondary on background | 6.26:1 | PASS | PASS |

@@ -14,6 +14,7 @@ struct DartBuddyApp: App {
                     case let .ready(dependencies):
                         MainTabView(dependencies: dependencies)
                             .modelContainer(dependencies.modelContainer)
+                            .uiTestAccessibilityDynamicTypeOverride()
                     case let .migrationRecovery(context):
                         MigrationRecoveryView(
                             context: context,

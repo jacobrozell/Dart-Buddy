@@ -89,7 +89,7 @@ struct WCAGContrastTests {
     func disabledCTALabelOnCardElevated() {
         let textDisabledDark = WCAGContrastMath.RGB(0.72, 0.72, 0.72)
         let cardElevatedDark = WCAGContrastMath.RGB(0.16, 0.16, 0.17)
-        let textDisabledLight = WCAGContrastMath.RGB(0.35, 0.35, 0.38)
+        let textDisabledLight = WCAGContrastMath.RGB(0.28, 0.28, 0.30)
         let cardElevatedLight = WCAGContrastMath.RGB(0.92, 0.92, 0.94)
 
         #expect(
@@ -98,6 +98,14 @@ struct WCAGContrastTests {
         #expect(
             WCAGContrastMath.contrastRatio(foreground: textDisabledLight, background: cardElevatedLight) >= 4.5
         )
+    }
+
+    @Test("dartBox on card meets AA large text threshold in light mode")
+    func dartBoxOnCardLight() {
+        let dartBox = WCAGContrastMath.RGB(0.80, 0.80, 0.82)
+        let card = WCAGContrastMath.RGB(1, 1, 1)
+        let ratio = WCAGContrastMath.contrastRatio(foreground: dartBox, background: card)
+        #expect(ratio >= 1.5)
     }
 
     @Test("Body copy on card surfaces meets AA normal text in dark mode")

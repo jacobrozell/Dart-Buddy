@@ -593,4 +593,81 @@ final class WCAGAccessibilityUITests: XCTestCase {
         assertReachable(app.buttons["pad_undo"], identifier: "pad_undo", in: app)
         assertReachable(app.otherElements["scoreCard_active"], identifier: "scoreCard_active", in: app)
     }
+
+    func testHistoryFiltersReachableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+        )
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+
+        let allGames = app.buttons["All Games"]
+        let cricket = app.buttons["Cricket"]
+        assertReachable(allGames, identifier: "All Games", in: app)
+        assertReachable(cricket, identifier: "Cricket", in: app)
+        XCTAssertFalse(allGames.label.contains("…"), "Filter label should not truncate at accessibility sizes")
+        XCTAssertFalse(cricket.label.contains("…"), "Filter label should not truncate at accessibility sizes")
+    }
+
+    func testStatisticsReachableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+        )
+        app.tabBars.buttons["Statistics"].tap()
+        XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
+        assertReachable(app.buttons["All Games"], identifier: "All Games", in: app)
+        assertReachable(app.buttons["statsPlayerFilterMenu"], identifier: "statsPlayerFilterMenu", in: app)
+    }
+
+    func testCricketBoardTargetsLegibleAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_players"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+        )
+        startTwoPlayerCricketMatch(from: app, timeout: timeout + 5)
+
+        assertReachable(
+            app.descendants(matching: .any)["cricket_target_20"],
+            identifier: "cricket_target_20",
+            in: app
+        )
+        assertReachable(
+            app.descendants(matching: .any)["cricket_target_19"],
+            identifier: "cricket_target_19",
+            in: app
+        )
+        assertReachable(
+            app.descendants(matching: .any)["cricket_target_bull"],
+            identifier: "cricket_target_bull",
+            in: app
+        )
+    }
+
+    func testOnboardingBodyVisibleAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-ui_test_onboarding"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+        )
+        let body = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS %@", "local scorekeeper")
+        ).firstMatch
+        assertReachable(body, identifier: "onboarding welcome body", in: app)
+        assertReachable(app.buttons["onboarding_next"], identifier: "onboarding_next", in: app)
+    }
+
+    func testHistoryPassesDynamicTypeAuditAtAccessibilityTextSize() throws {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+        )
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType)
+    }
+
+    func testStatisticsPassesDynamicTypeAuditAtAccessibilityTextSize() throws {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+        )
+        app.tabBars.buttons["Statistics"].tap()
+        XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType)
+    }
 }

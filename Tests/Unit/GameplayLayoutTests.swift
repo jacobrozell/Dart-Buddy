@@ -107,3 +107,15 @@ func gameplayLayoutPinsActiveX01CardForThreePlusPlayers() {
         GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 4, dynamicTypeSize: .accessibility3) == false
     )
 }
+
+@Test(.tags(.unit, .regression, .accessibility))
+func gameplayLayoutUsesAccessibilityTabListOnlyAtAXSizes() {
+    #expect(GameplayLayout.usesAccessibilityTabListLayout(dynamicTypeSize: .large) == false)
+    #expect(GameplayLayout.usesAccessibilityTabListLayout(dynamicTypeSize: .accessibility1) == true)
+}
+
+@Test(.tags(.unit, .regression, .accessibility))
+func gameplayLayoutTabScrollPaddingIncreasesAtAXSizes() {
+    #expect(GameplayLayout.tabScrollBottomPadding(dynamicTypeSize: .large) == DS.Spacing.s6)
+    #expect(GameplayLayout.tabScrollBottomPadding(dynamicTypeSize: .accessibility3) > DS.Spacing.s6)
+}

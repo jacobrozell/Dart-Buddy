@@ -203,6 +203,7 @@
 "players.detail.win" = "W";
 "players.detail.loss" = "V";
 "players.list.record" = "%dW · %dG";
+"players.list.record.accessibility" = "%d wedstrijden, %d overwinningen";
 "players.detail.identitySection" = "Identiteit";
 "players.detail.actionsSection" = "Acties";
 "players.edit.action" = "Bewerken";

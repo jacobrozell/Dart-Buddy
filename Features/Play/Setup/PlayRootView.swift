@@ -42,7 +42,6 @@ struct PlayRootView: View {
                 onStartRoute: { next in path.append(next) },
                 onQuickAddPlayer: { path.append(.quickAddPlayer) }
             )
-            .uiTestAccessibilityDynamicTypeOverride()
             .navigationDestination(for: PlayRoute.self) { route in
                 switch route {
                 case .setup:

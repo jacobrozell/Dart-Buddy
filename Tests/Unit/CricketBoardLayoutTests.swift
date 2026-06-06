@@ -42,6 +42,13 @@ func cricketBoardColumnLayoutScrollsWhenCrowdedOrTooNarrow() {
     #expect(narrow.fixedPlayerColumnWidth == CricketBoardMetrics.playerColumnWidth)
 }
 
+@Test(.tags(.unit, .cricket, .regression, .accessibility))
+func cricketBoardResolveUsesAccessibilitySizingAtAXSizes() {
+    let sizing = CricketBoardSizing.resolve(verticalSizeClass: .regular, dynamicTypeSize: .accessibility3)
+    #expect(sizing.markRowHeight > CricketBoardSizing.standard.markRowHeight)
+    #expect(sizing.boardBodyHeight > CricketBoardSizing.standard.boardBodyHeight)
+}
+
 @Test(.tags(.unit, .cricket, .regression))
 func cricketBoardLandscapeCompactSizingIsShorterThanStandard() {
     #expect(CricketBoardSizing.landscapeCompact.boardBodyHeight < CricketBoardSizing.standard.boardBodyHeight)

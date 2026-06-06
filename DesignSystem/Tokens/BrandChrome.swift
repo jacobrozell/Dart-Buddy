@@ -33,6 +33,17 @@ private struct BrandSettingsScreenChrome: ViewModifier {
     }
 }
 
+private struct TabRootScrollChrome: ViewModifier {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func body(content: Content) -> some View {
+        content.safeAreaPadding(
+            .bottom,
+            GameplayLayout.tabScrollBottomPadding(dynamicTypeSize: dynamicTypeSize)
+        )
+    }
+}
+
 private struct BrandSettingsFormChrome: ViewModifier {
     let appearanceModeRaw: String
 
@@ -74,6 +85,11 @@ extension View {
 
     func brandSettingsFormChrome(appearanceModeRaw: String) -> some View {
         modifier(BrandSettingsFormChrome(appearanceModeRaw: appearanceModeRaw))
+    }
+
+    /// Extra bottom safe-area inset on tab-root scroll surfaces so content clears the tab bar at AX sizes.
+    func tabRootScrollChrome() -> some View {
+        modifier(TabRootScrollChrome())
     }
 
     @ViewBuilder
