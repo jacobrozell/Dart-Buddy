@@ -533,12 +533,16 @@ import Testing
     var rng = SeededRandomNumberGenerator(seed: 11)
     let profile = BotDifficulty.medium.skillProfile
     let taken: Set<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    var assignedAvailableNumber = false
     for _ in 0 ..< 32 {
         let dart = DartBotEngine.generateKillerPick(takenNumbers: taken, profile: profile, rng: &rng)
-        if case let .oneToTwenty(value) = dart.segment {
-            #expect(value == 20)
-        }
+        guard dart.isMiss == false,
+              case let .oneToTwenty(value) = dart.segment,
+              taken.contains(value) == false else { continue }
+        assignedAvailableNumber = true
+        #expect(value == 20)
     }
+    #expect(assignedAvailableNumber)
 }
 
 @Test func dartBotEngine_killerTurnAimsOwnDoublePreKiller() throws {
