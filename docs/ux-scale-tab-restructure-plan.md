@@ -32,9 +32,11 @@ isProject: false
 # UI/UX Scale & Tab Restructure Plan
 
 > **Status:** Implementation plan + UI/UX reviewer's pass. Companion to the
-> higher-level [`docs/ux-design-review.md`](ux-design-review.md). Per
-> [`specs/SpecGovernance.md`](../specs/SpecGovernance.md) nothing ships to UI
-> until the relevant spec lands first (Phase 0).
+> higher-level [`docs/ux-design-review.md`](ux-design-review.md) and the
+> full-catalog stress test in
+> [`docs/full-game-catalog-ui.md`](full-game-catalog-ui.md) (does this IA hold
+> at 28 modes?). Per [`specs/SpecGovernance.md`](../specs/SpecGovernance.md)
+> nothing ships to UI until the relevant spec lands first (Phase 0).
 
 ## Reviewer's pass (UI/UX) — read this first
 
