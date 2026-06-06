@@ -51,6 +51,26 @@ enum GameplayLayout {
         horizontalSizeClass == .regular || verticalSizeClass == .compact
     }
 
+    /// iPad portrait only: two-column scoreboard grid beside the pad.
+    static func usesIPadPortraitMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        horizontalSizeClass == .regular && verticalSizeClass == .regular
+    }
+
+    /// iPhone landscape only — scoreboard fills the column; iPad portrait keeps scroll/grid layouts.
+    static func usesLandscapeIPhoneMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+            && !usesIPadPortraitMatchScoringLayout(
+                horizontalSizeClass: horizontalSizeClass,
+                verticalSizeClass: verticalSizeClass
+            )
+    }
+
     /// Fixed scoring pad width in landscape (compact pad targets ~250pt).
     static let landscapeScoringPadWidth: CGFloat = 252
 

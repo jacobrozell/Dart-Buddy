@@ -61,6 +61,19 @@ struct CricketBoardSizing: Equatable {
             + columnFooterHeight
     }
 
+    /// Grows mark rows so the board fills the scoreboard column on iPhone landscape.
+    func scaledToFill(height availableHeight: CGFloat) -> CricketBoardSizing {
+        let rowCount = CGFloat(CricketTarget.allCases.count)
+        let fixedHeight = headerHeight + columnFooterHeight
+        let rowBudget = max(0, availableHeight - fixedHeight)
+        let scaledRowHeight = max(markRowHeight, rowBudget / rowCount)
+        return CricketBoardSizing(
+            markRowHeight: scaledRowHeight,
+            headerHeight: headerHeight,
+            columnFooterHeight: columnFooterHeight
+        )
+    }
+
     static func resolve(
         verticalSizeClass: UserInterfaceSizeClass?,
         dynamicTypeSize: DynamicTypeSize
@@ -123,6 +136,8 @@ struct CricketBoardView: View {
 
     let columns: [Column]
     var activeColumnScrollID: UUID?
+    /// When true, mark rows grow to use the full scoreboard column height (iPhone landscape).
+    var fillsAvailableHeight: Bool = false
 
     @ScaledMetric(relativeTo: .body) private var playerColumnWidth = CricketBoardMetrics.playerColumnWidth
     @ScaledMetric(relativeTo: .body) private var targetColumnWidth = CricketBoardMetrics.targetColumnWidth
@@ -143,16 +158,20 @@ struct CricketBoardView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let effectiveSizing = fillsAvailableHeight
+                ? sizing.scaledToFill(height: geometry.size.height)
+                : sizing
             let layout = CricketBoardColumnLayout.resolve(
                 availableWidth: geometry.size.width,
                 playerCount: columns.count,
                 minimumPlayerColumnWidth: playerColumnWidth,
                 targetColumnWidth: targetColumnWidth
             )
-            boardContent(layout: layout, sizing: sizing)
+            boardContent(layout: layout, sizing: effectiveSizing)
                 .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
         }
-        .frame(height: sizing.boardBodyHeight)
+        .frame(height: fillsAvailableHeight ? nil : sizing.boardBodyHeight)
+        .frame(maxHeight: fillsAvailableHeight ? .infinity : nil)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Brand.card)
         .clipShape(RoundedRectangle(cornerRadius: DS.Radius.sm))
