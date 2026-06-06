@@ -149,7 +149,7 @@ Linked `docs/release/todo.md` items — complete before signing P-1.3.4 / P-1.4.
 | Players list | Search label; row summary; swipe actions | `players-list.md` — [x] labels; manual VO open |
 | Player detail | Stat tiles + recent matches VO | `player-detail.md` — [x] labels; manual VO open |
 | Player edit | TextField label; 44pt color swatches | `player-edit.md` — [x] labels; manual VO open |
-| Settings | Reset destructive flow VO | `settings.md` — [x] reset ID/label; manual VO open |
+| Settings | Reset destructive flow VO | `settings.md` — [x] reset ID/label + AX spot-check; manual audio in `core-flow-settings-reset.md` |
 | Migration recovery | Recovery CTAs VO | `migration-recovery.md` — [x] IDs/labels; manual VO open |
 | Play home | Resume / start VO | `play-home.md` — [x] labels; manual VO open |
 | Match setup | Chip labels; AXXXL roster | `match-setup.md` — [x] chips/roster; manual VO open |
@@ -193,6 +193,7 @@ Linked `docs/release/todo.md` items — complete before signing P-1.3.4 / P-1.4.
 
 - [ ] Check in `evidence/voiceover/core-flow-x01.md` and `core-flow-cricket.md` step lists (copy from smoke checklist).
 - [ ] Add destructive paths: settings reset, delete game, abandon match.
+- [x] Settings reset: `evidence/voiceover/settings-reset-ax-spotcheck-2026-06-06.md`, `core-flow-settings-reset.md`
 
 **Phase 3 done when:** New screens default to DS components; CI catches missing identifiers on core controls; quarterly audit is script-only.
 
