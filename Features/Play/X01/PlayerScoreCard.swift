@@ -72,6 +72,7 @@ struct PlayerScoreCard: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(score)")
                 .font(.system(size: displayScoreFontSize, weight: .heavy, design: .rounded))
+                .monospacedDigit()
                 .foregroundStyle(Brand.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -94,6 +95,7 @@ struct PlayerScoreCard: View {
             }
             Text("\(visitTotal)")
                 .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
                 .foregroundStyle(Brand.textSecondary)
                 .accessibilityIdentifier(showsVisitTotalAccessibility ? "scoreCard_visitTotal" : "")
         }
@@ -104,13 +106,13 @@ struct PlayerScoreCard: View {
             setsLegsLabels
             HStack(spacing: 4) {
                 Image(systemName: "scope").font(.footnote)
-                Text("\(dartsThrown)").font(.footnote.weight(.semibold))
+                Text("\(dartsThrown)").font(.footnote.weight(.semibold)).monospacedDigit()
             }
             .foregroundStyle(Brand.textSecondary)
             .accessibilityIdentifier(isActive ? "scoreCard_dartsThrown" : "")
             HStack(spacing: 4) {
                 Image(systemName: "chart.bar.fill").font(.footnote)
-                Text(String(format: "%.2f", average)).font(.footnote.weight(.semibold))
+                Text(String(format: "%.2f", average)).font(.footnote.weight(.semibold)).monospacedDigit()
             }
             .foregroundStyle(Brand.textSecondary)
             .accessibilityIdentifier(isActive ? "scoreCard_average" : "")
