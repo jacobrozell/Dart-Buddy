@@ -263,7 +263,6 @@ extension XCTestCase {
     /// Scores a quick 101 straight-out leg win for Alice vs Bob (core flow terminus).
     func finishQuickX01Checkout(for app: XCUIApplication, timeout: TimeInterval = 10) {
         configureQuickX01Match(app, timeout: timeout)
-        ensureSetupReady(app, timeout: timeout)
         selectAliceAndBob(from: app, timeout: timeout)
         let start = app.buttons["startMatchButton"]
         waitForStartEnabled(start, timeout: timeout)

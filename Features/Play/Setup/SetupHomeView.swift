@@ -452,7 +452,6 @@ struct SetupHomeView: View {
                     humanRosterList
                 }
             }
-            .accessibilityIdentifier("setup_roster_ready")
         }
     }
 
