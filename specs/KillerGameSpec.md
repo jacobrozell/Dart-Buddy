@@ -3,7 +3,7 @@
 ## 1. Purpose
 Define Killer (party elimination mode) gameplay rules, play UI, input model, persistence, and history for the iPhone MVP.
 
-Authoritative rules reference: [`FutureIdeas/killer-darts.md`](../FutureIdeas/killer-darts.md) (`killer_double_standard`).
+Ruleset: `killer_double_standard` (see §3). External references: [GLD Killer darts](https://gldproducts.com/blogs/all/how-to-play-killer-darts), [Dart Scout](https://thedartscout.com/dart-rules-explained/).
 
 ---
 

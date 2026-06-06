@@ -3,7 +3,7 @@
 ## 1. Purpose
 Define Baseball (party mode) gameplay rules, play UI, input model, persistence, and history for the iPhone MVP.
 
-Authoritative rules reference: [GLD Baseball darts](https://gldproducts.com/blogs/all/how-to-play-baseball-darts). R&D background: [`FutureIdeas/baseball-darts.md`](../FutureIdeas/baseball-darts.md).
+Authoritative rules reference: [GLD Baseball darts](https://gldproducts.com/blogs/all/how-to-play-baseball-darts).
 
 ---
 

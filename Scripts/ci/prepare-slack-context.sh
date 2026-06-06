@@ -157,6 +157,7 @@ if failed_tests or "failed" in test_text.lower() or "error:" in build_text.lower
 
 with open(output_path, "w", encoding="utf-8") as handle:
     json.dump(context, handle)
+    handle.write("\n")
 
 print(f"Wrote Slack context to {output_path}")
 if context["coverage"]:

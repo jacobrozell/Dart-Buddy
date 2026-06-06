@@ -79,9 +79,8 @@
 - `specs/OnlinePlaySpec.md`, `specs/AutoScoringVisionSpec.md`
 - `specs/archive/FigmaBuildPlan.md` — historical Figma handoff (UI complete for 1.0)
 - `FutureIdeas/backlog.md` — Post-1.0 product backlog (linked from `docs/release/todo.md`)
-- `FutureIdeas/additional-game-modes.md` — R&D index for Target-style game modes (Killer, Baseball, etc.)
-- `FutureIdeas/killer-darts.md`, `FutureIdeas/baseball-darts.md` — Deep R&D specs (party modes)
-- `FutureIdeas/party-practice-modes.md` — Brief R&D for Bob's 27, Around the Clock, Shanghai, Halve-It
+- `FutureIdeas/additional-game-modes.md` — R&D index for unshipped Target-style game modes
+- `FutureIdeas/party-practice-modes.md` — Brief R&D for Bob's 27, Around the Clock, Halve-It, Golf
 - `FutureIdeas/achievements.md` — Game Center assessment (linked from `docs/release/todo.md`)
 - `FutureIdeas/play-reminders.md` — Play reminder notifications (linked from `docs/release/todo.md`)
 
