@@ -4,8 +4,8 @@ import Testing
 @Suite("Game mode catalog", .tags(.unit, .setupFlow, .regression))
 struct GameModeCatalogTests {
     @Test
-    func catalogListsAllTwentyEightModes() {
-        #expect(GameModeCatalog.all.count == 28)
+    func catalogListsAllTwentyNineModes() {
+        #expect(GameModeCatalog.all.count == 29)
     }
 
     @Test
@@ -35,7 +35,7 @@ struct GameModeCatalogTests {
             #expect(entry.matchType == nil, "Planned mode \(entry.id) must not claim a MatchType")
             #expect(entry.isAvailable == false)
         }
-        #expect(GameModeCatalog.planned.count == 23)
+        #expect(GameModeCatalog.planned.count == 24)
     }
 
     @Test
@@ -54,6 +54,35 @@ struct GameModeCatalogTests {
         for section in GameModeSection.allCases {
             let planned = GameModeCatalog.entries(in: section).filter { !$0.isAvailable }.count
             #expect(GameModeCatalog.comingSoonCount(in: section) == planned)
+        }
+    }
+
+    @Test
+    func everyCatalogEntryHasLocalizedNameAndBlurb() {
+        for entry in GameModeCatalog.all {
+            #expect(!entry.localizedName.isEmpty)
+            #expect(entry.localizedName != entry.nameKey)
+            #expect(!entry.localizedBlurb.isEmpty)
+            #expect(entry.localizedBlurb != entry.blurbKey)
+        }
+    }
+
+    @Test
+    func catalogPartitionsIntoThreeSections() {
+        let standard = GameModeCatalog.entries(in: .standard)
+        let party = GameModeCatalog.entries(in: .party)
+        let practice = GameModeCatalog.entries(in: .practice)
+
+        #expect(standard.allSatisfy { $0.section == .standard })
+        #expect(party.allSatisfy { $0.section == .party })
+        #expect(practice.allSatisfy { $0.section == .practice })
+        #expect(standard.count + party.count + practice.count == GameModeCatalog.all.count)
+    }
+
+    @Test
+    func entryLookupByIdRoundTrips() {
+        for entry in GameModeCatalog.all {
+            #expect(GameModeCatalog.entry(for: entry.id) == entry)
         }
     }
 

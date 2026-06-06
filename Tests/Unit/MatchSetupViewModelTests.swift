@@ -117,6 +117,30 @@ func setupPartyKillerAllowsThreeHumans() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
+func applyPendingModeSelectionPrefillsPartyKiller() async {
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B"), makePlayer("C")]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+
+    vm.applyPendingModeSelection(
+        PendingModeSelection(
+            setupCategory: .party,
+            mode: nil,
+            partyGame: .killer,
+            matchType: .killer
+        )
+    )
+
+    #expect(vm.setupCategory == .party)
+    #expect(vm.partyGame == .killer)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
 func setupPartyKillerAllowsPresetBot() async {
     let human = makePlayer("Human")
     let bot = PlayerSummary(

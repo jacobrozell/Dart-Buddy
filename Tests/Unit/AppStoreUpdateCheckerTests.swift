@@ -22,6 +22,18 @@ struct AppStoreUpdateCheckerTests {
     }
 
     @Test
+    func versionComparatorIgnoresBuildMetadataSuffix() {
+        #expect(AppVersionComparator.components("1.2.3-beta") == [1, 2, 3])
+        #expect(AppVersionComparator.compare("1.2.3", "1.2.3-rc1") == .orderedSame)
+    }
+
+    @Test
+    func versionComparatorPadsMissingSegmentsWithZero() {
+        #expect(AppVersionComparator.compare("1.2", "1.2.0") == .orderedSame)
+        #expect(AppVersionComparator.isStoreVersionNewer(store: "2.0", than: "1.9.9"))
+    }
+
+    @Test
     func checkerSkipsWhenStoreNotNewer() async {
         let bundleIdentifier = uniqueBundleIdentifier()
         let defaults = makeIsolatedDefaults()

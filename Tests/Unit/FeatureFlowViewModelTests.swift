@@ -399,6 +399,71 @@ func historyFiltersByPlayer() async {
 
 @MainActor
 @Test(.tags(.integration, .history, .regression))
+func historyFiltersByDatePeriodDeterministically() async {
+    let now = Date()
+    let recent = MatchSummary(
+        id: UUID(),
+        type: .x01,
+        status: .completed,
+        startedAt: now,
+        endedAt: now,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 1,
+        createdAt: now,
+        updatedAt: now
+    )
+    let older = MatchSummary(
+        id: UUID(),
+        type: .x01,
+        status: .completed,
+        startedAt: now.addingTimeInterval(-864_000),
+        endedAt: now.addingTimeInterval(-864_000),
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 1,
+        createdAt: now,
+        updatedAt: now
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: [recent, older]),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    vm.dateFilter = .all
+    await vm.applyFilters()
+    #expect(vm.rows.count == 2)
+
+    vm.dateFilter = .d7
+    await vm.applyFilters()
+    #expect(vm.rows.count == 1)
+    #expect(vm.rows.first?.summary.id == recent.id)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .regression))
+func historyHasActiveFiltersWhenAnyFilterApplied() async {
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: []),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    #expect(vm.hasActiveFilters == false)
+
+    vm.modeFilter = .cricket
+    #expect(vm.hasActiveFilters == true)
+
+    vm.modeFilter = .all
+    vm.dateFilter = .d30
+    #expect(vm.hasActiveFilters == true)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .regression))
 func historyListViewModelPaginatesResults() async {
     let now = Date()
     let rows = (0 ..< 30).map { index in

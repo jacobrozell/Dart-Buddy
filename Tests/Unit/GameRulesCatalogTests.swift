@@ -27,4 +27,17 @@ struct GameRulesCatalogTests {
         #expect(ids.contains("checkIn"))
         #expect(ids.contains("checkOut"))
     }
+
+    @Test("Party mode guides include overview sections")
+    func partyGuidesIncludeOverview() {
+        for type in [MatchType.baseball, .killer, .shanghai] {
+            let ids = Set(GameRulesCatalog.guide(for: type).sections.map(\.id))
+            #expect(ids.contains("overview"), "Expected overview in \(type) guide")
+        }
+    }
+
+    @Test("Supported match types match shipped engines")
+    func supportedTypesCoverShippedModes() {
+        #expect(Set(GameRulesCatalog.supportedMatchTypes) == [.x01, .cricket, .baseball, .killer, .shanghai])
+    }
 }
