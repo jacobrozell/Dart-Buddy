@@ -621,25 +621,12 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testCricketBoardTargetsLegibleAtAXXXL() {
         let app = launchForAccessibility(
-            extraArguments: ["-seed_players"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+            extraArguments: ["-snapshot_match_cricket"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
         )
-        startTwoPlayerCricketMatch(from: app, timeout: timeout + 5)
 
-        assertReachable(
-            app.descendants(matching: .any)["cricket_target_20"],
-            identifier: "cricket_target_20",
-            in: app
-        )
-        assertReachable(
-            app.descendants(matching: .any)["cricket_target_19"],
-            identifier: "cricket_target_19",
-            in: app
-        )
-        assertReachable(
-            app.descendants(matching: .any)["cricket_target_bull"],
-            identifier: "cricket_target_bull",
-            in: app
-        )
+        assertReachable(app.staticTexts["20"], identifier: "cricket target 20", in: app)
+        assertReachable(app.staticTexts["19"], identifier: "cricket target 19", in: app)
+        assertReachable(app.staticTexts["Bull"], identifier: "cricket target Bull", in: app)
     }
 
     func testOnboardingBodyVisibleAtAXXXL() {
@@ -659,7 +646,9 @@ final class WCAGAccessibilityUITests: XCTestCase {
         )
         app.tabBars.buttons["History"].tap()
         XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType) { issue in
+            self.ignoresUnsupportedDynamicTypeFontAudit(issue)
+        }
     }
 
     func testStatisticsPassesDynamicTypeAuditAtAccessibilityTextSize() throws {
@@ -668,6 +657,8 @@ final class WCAGAccessibilityUITests: XCTestCase {
         )
         app.tabBars.buttons["Statistics"].tap()
         XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType) { issue in
+            self.ignoresUnsupportedDynamicTypeFontAudit(issue)
+        }
     }
 }

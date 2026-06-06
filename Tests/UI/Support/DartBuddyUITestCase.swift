@@ -9,6 +9,12 @@ class DartBuddyUITestCase: XCTestCase {
         continueAfterFailure = false
     }
 
+    override func tearDown() {
+        XCUIApplication().terminate()
+        XCUIDevice.shared.orientation = .portrait
+        super.tearDown()
+    }
+
     func launchApp(_ extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ui_test_reset", "-disable_firebase_analytics"] + extraArguments

@@ -16,3 +16,5 @@ Also copies into `accessibility/wcag-2.1-aa/evidence/dynamic-type/` when linked 
 `{device}-{screen}_{appearance}_{content-size}.png`
 
 Example: `iphone-17-pro-match-setup_dark_accessibility-extra-extra-extra-large.png`
+
+Screens captured: match setup, X01 match, cricket match, history, statistics, settings, onboarding welcome.
