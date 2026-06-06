@@ -51,9 +51,7 @@ struct MatchSummaryScreen: View {
                     .accessibilityLabel(L10n.loading)
             } else if viewModel.hasResult {
                 celebrationHeader
-                ForEach(viewModel.playerRows) { row in
-                    playerCard(row)
-                }
+                playerResultsGrid
             } else {
                 Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(Brand.textPrimary)
             }
@@ -90,6 +88,27 @@ struct MatchSummaryScreen: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(celebrationHeaderAccessibilityLabel)
         .accessibilityIdentifier("matchSummaryHeader")
+    }
+
+    @ViewBuilder
+    private var playerResultsGrid: some View {
+        if isRegularWidth, viewModel.playerRows.count >= 2 {
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: DS.Spacing.s3),
+                    GridItem(.flexible(), spacing: DS.Spacing.s3)
+                ],
+                spacing: DS.Spacing.s3
+            ) {
+                ForEach(viewModel.playerRows) { row in
+                    playerCard(row)
+                }
+            }
+        } else {
+            ForEach(viewModel.playerRows) { row in
+                playerCard(row)
+            }
+        }
     }
 
     private var celebrationHeaderAccessibilityLabel: String {

@@ -120,6 +120,7 @@ struct CustomBotDetailView: View {
     let player: EditablePlayer
     let existingNames: [String]
     let onSave: (EditablePlayer) -> Void
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
     @State private var x01Average: Double
@@ -186,6 +187,7 @@ struct CustomBotDetailView: View {
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)
+            .readableRootContentWidth(horizontalSizeClass)
         }
         .background(Brand.background.ignoresSafeArea())
         .toolbar {

@@ -13,6 +13,7 @@ final class PlayerDetailViewModel: ObservableObject {
     @Published private(set) var cricketEligibility = TrainingBotEligibility(isEligible: false, gamesPlayed: 0, mode: .cricket)
     @Published private(set) var isCreatingTrainingBot = false
     @Published var trainingBotErrorKey: String?
+    @Published private(set) var isExporting = false
 
     private let playerId: UUID
     private let playerName: String
@@ -107,5 +108,27 @@ final class PlayerDetailViewModel: ObservableObject {
         }
         let mpr = (profile.cricket.hitChances.triple + profile.cricket.hitChances.double) * 2.0
         return L10n.format("trainingBot.calibrated.cricketFormat", mpr)
+    }
+
+    func exportBundle(playerName: String) async throws -> URL {
+        guard !isExporting else {
+            throw AppError(
+                code: .conflict,
+                layer: .domain,
+                severity: .warning,
+                isRecoverable: true,
+                userMessageKey: "players.detail.export.error",
+                debugContext: ["reason": "exportInProgress"]
+            )
+        }
+        isExporting = true
+        defer { isExporting = false }
+        return try await PlayerExportService.exportFile(
+            anchorPlayerId: playerId,
+            playerName: playerName,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            playerRepository: playerRepository
+        )
     }
 }

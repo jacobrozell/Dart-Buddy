@@ -271,6 +271,14 @@ public actor SwiftDataMatchRepository: MatchRepository {
         }
     }
 
+    public func fetchConfigPayload(matchId: UUID) async throws -> Data? {
+        try dataCall {
+            let context = ModelContext(container)
+            let record = try fetchMatchRecord(id: matchId, in: context)
+            return record.configPayload
+        }
+    }
+
     public func deleteMatch(matchId: UUID) async throws {
         try dataCall {
             let context = ModelContext(container)

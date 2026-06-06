@@ -99,6 +99,9 @@
 "players.edit.notes.accessibility" = "Notizen";
 "players.edit.save.accessibility" = "Spieler speichern";
 "players.detail.edit.accessibility" = "Spieler bearbeiten";
+"players.detail.export" = "Exportieren";
+"players.detail.export.accessibility" = "Spielerdaten exportieren";
+"players.detail.export.error" = "Spielerdaten konnten nicht exportiert werden. Bitte erneut versuchen.";
 "players.detail.archive.accessibility" = "Spieler archivieren";
 "players.detail.unarchive.accessibility" = "Archivierung aufheben";
 "play.setup.quickAdd" = "+ Schnell hinzufügen";

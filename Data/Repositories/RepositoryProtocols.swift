@@ -82,7 +82,12 @@ public protocol MatchRepository: Sendable {
     func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary?
     func fetchMatch(matchId: UUID) async throws -> MatchSummary?
     func fetchParticipants(matchId: UUID) async throws -> [MatchParticipantSummary]
+    func fetchConfigPayload(matchId: UUID) async throws -> Data?
     func deleteMatch(matchId: UUID) async throws
+}
+
+public extension MatchRepository {
+    func fetchConfigPayload(matchId _: UUID) async throws -> Data? { nil }
 }
 
 public protocol StatsRepository: Sendable {

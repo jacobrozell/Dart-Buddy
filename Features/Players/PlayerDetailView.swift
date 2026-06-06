@@ -7,6 +7,25 @@ struct PlayerDetailView: View {
     let onEdit: () -> Void
     let onArchiveToggle: () -> Void
     let onSave: (EditablePlayer) -> Void
+    let onExportResult: (Result<URL, Error>) -> Void
+
+    init(
+        player: EditablePlayer?,
+        existingNames: [String],
+        dependencies: AppDependencies,
+        onEdit: @escaping () -> Void,
+        onArchiveToggle: @escaping () -> Void,
+        onSave: @escaping (EditablePlayer) -> Void,
+        onExportResult: @escaping (Result<URL, Error>) -> Void = { _ in }
+    ) {
+        self.player = player
+        self.existingNames = existingNames
+        self.dependencies = dependencies
+        self.onEdit = onEdit
+        self.onArchiveToggle = onArchiveToggle
+        self.onSave = onSave
+        self.onExportResult = onExportResult
+    }
 
     var body: some View {
         Group {
@@ -38,7 +57,8 @@ struct PlayerDetailView: View {
                         player: player,
                         dependencies: dependencies,
                         onEdit: onEdit,
-                        onArchiveToggle: onArchiveToggle
+                        onArchiveToggle: onArchiveToggle,
+                        onExportResult: onExportResult
                     )
                 }
             } else {
@@ -57,6 +77,7 @@ struct BotDetailView: View {
     let existingNames: [String]
     let dependencies: AppDependencies
     let onSave: (EditablePlayer) -> Void
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
     @StateObject private var statsViewModel: PlayerDetailViewModel
@@ -102,6 +123,7 @@ struct BotDetailView: View {
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)
+            .readableRootContentWidth(horizontalSizeClass)
         }
         .background(Brand.background.ignoresSafeArea())
         .toolbar {
@@ -163,13 +185,22 @@ private struct PlayerStatsDetailView: View {
     let dependencies: AppDependencies
     let onEdit: () -> Void
     let onArchiveToggle: () -> Void
+    let onExportResult: (Result<URL, Error>) -> Void
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var viewModel: PlayerDetailViewModel
 
-    init(player: EditablePlayer, dependencies: AppDependencies, onEdit: @escaping () -> Void, onArchiveToggle: @escaping () -> Void) {
+    init(
+        player: EditablePlayer,
+        dependencies: AppDependencies,
+        onEdit: @escaping () -> Void,
+        onArchiveToggle: @escaping () -> Void,
+        onExportResult: @escaping (Result<URL, Error>) -> Void
+    ) {
         self.player = player
         self.dependencies = dependencies
         self.onEdit = onEdit
         self.onArchiveToggle = onArchiveToggle
+        self.onExportResult = onExportResult
         _viewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
             playerName: player.name,
@@ -197,27 +228,55 @@ private struct PlayerStatsDetailView: View {
 
                 PlayerDetailStatsContent(viewModel: viewModel)
 
-                HStack(spacing: DS.Spacing.s3) {
-                    Button(L10n.edit, action: onEdit)
-                        .buttonStyle(.bordered)
-                        .tint(Brand.green)
-                        .accessibilityLabel(L10n.string("players.detail.edit.accessibility"))
-                        .accessibilityIdentifier("playerDetail_edit")
-                    Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
-                        .buttonStyle(.bordered)
-                        .tint(Brand.orange)
-                        .accessibilityLabel(
-                            L10n.string(player.isArchived ? "players.detail.unarchive.accessibility" : "players.detail.archive.accessibility")
-                        )
-                        .accessibilityIdentifier("playerDetail_archive")
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: DS.Spacing.s3) {
+                        Button(L10n.edit, action: onEdit)
+                            .buttonStyle(.bordered)
+                            .tint(Brand.green)
+                            .accessibilityLabel(L10n.string("players.detail.edit.accessibility"))
+                            .accessibilityIdentifier("playerDetail_edit")
+                        Button(player.isArchived ? "players.unarchive" : "players.archive", action: onArchiveToggle)
+                            .buttonStyle(.bordered)
+                            .tint(Brand.orange)
+                            .accessibilityLabel(
+                                L10n.string(player.isArchived ? "players.detail.unarchive.accessibility" : "players.detail.archive.accessibility")
+                            )
+                            .accessibilityIdentifier("playerDetail_archive")
+                        Button(L10n.playersDetailExport, action: exportPlayer)
+                            .buttonStyle(.bordered)
+                            .tint(Brand.textSecondary)
+                            .disabled(viewModel.isExporting)
+                            .accessibilityLabel(L10n.string("players.detail.export.accessibility"))
+                            .accessibilityIdentifier("playerDetail_export")
+                    }
                 }
                 .padding(.top, DS.Spacing.s2)
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)
+            .readableRootContentWidth(horizontalSizeClass)
         }
         .background(Brand.background.ignoresSafeArea())
+        .overlay {
+            if viewModel.isExporting {
+                ProgressView()
+                    .tint(Brand.textPrimary)
+                    .padding(DS.Spacing.s4)
+                    .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            }
+        }
         .task { await viewModel.load() }
+    }
+
+    private func exportPlayer() {
+        Task {
+            do {
+                let url = try await viewModel.exportBundle(playerName: player.name)
+                onExportResult(.success(url))
+            } catch {
+                onExportResult(.failure(error))
+            }
+        }
     }
 }
 
@@ -475,6 +534,7 @@ struct TrainingBotDetailView: View {
     let existingNames: [String]
     let dependencies: AppDependencies
     let onSave: (EditablePlayer) -> Void
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
     @StateObject private var statsViewModel: PlayerDetailViewModel
@@ -522,6 +582,7 @@ struct TrainingBotDetailView: View {
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)
+            .readableRootContentWidth(horizontalSizeClass)
         }
         .background(Brand.background.ignoresSafeArea())
         .toolbar {

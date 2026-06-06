@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GameRulesGuideView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let initialMode: MatchType
 
     init(initialMode: MatchType) {
@@ -14,6 +15,7 @@ struct GameRulesGuideView: View {
                 GameRulesGuideContent(initialMode: initialMode)
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.vertical, DS.Spacing.s4)
+                    .readableRootContentWidth(horizontalSizeClass)
             }
             .background(Brand.background.ignoresSafeArea())
             .navigationTitle(L10n.gameRulesSheetTitle)

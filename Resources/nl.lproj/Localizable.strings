@@ -99,6 +99,9 @@
 "players.edit.notes.accessibility" = "Notities";
 "players.edit.save.accessibility" = "Speler opslaan";
 "players.detail.edit.accessibility" = "Speler bewerken";
+"players.detail.export" = "Exporteren";
+"players.detail.export.accessibility" = "Spelersgegevens exporteren";
+"players.detail.export.error" = "Spelersgegevens konden niet worden geëxporteerd. Probeer het opnieuw.";
 "players.detail.archive.accessibility" = "Speler archiveren";
 "players.detail.unarchive.accessibility" = "Archivering opheffen";
 "play.setup.quickAdd" = "+ Snel toevoegen";
