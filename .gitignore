@@ -7,6 +7,11 @@ DerivedData/
 .derivedData/
 .packages/
 build/
+TestResults.xcresult/
+TestResults-*.xcresult/
+xcodebuild*.log
+coverage_reports/
+coverage-summary.txt
 *.xcuserstate
 *.xcuserdatad/
 
