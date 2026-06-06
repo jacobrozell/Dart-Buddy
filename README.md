@@ -4,7 +4,7 @@
 
 **Dart Buddy** is a local-first iOS scorekeeper for X01 and Cricket darts. The Xcode target and Swift module are named **DartBuddy** (`import DartBuddy`).
 
-Product behavior and UX contracts live under [`specs/`](specs/README.md). This file is the repo entry point — not a second spec.
+Product behavior and UX contracts live under [`specs/`](specs/README.md). A cross-cutting **feature inventory** (shipped vs planned) lives at [`docs/feature-inventory.md`](docs/feature-inventory.md). This file is the repo entry point — not a second spec.
 
 ## Status (1.0 RC)
 

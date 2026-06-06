@@ -85,3 +85,6 @@
 - `FutureIdeas/play-reminders.md` — Play reminder notifications (linked from `docs/release/todo.md`)
 
 Active work and deferrals: [`docs/release/todo.md`](../docs/release/todo.md). Do not duplicate backlog items here.
+
+## Feature inventory
+- [`docs/feature-inventory.md`](../docs/feature-inventory.md) — living register of shipped, partial, and planned features (game modes, localization, intents, CI, Firebase, platforms, etc.)
