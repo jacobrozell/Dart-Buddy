@@ -690,6 +690,106 @@ func historyDetailViewModelDeletesMatch() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .history, .accessibility, .regression))
+func historyDetailViewModelResultAccessibilitySummaryIncludesStandings() async throws {
+    let fixture = try makeCompletedX01Fixture()
+    let vm = HistoryDetailViewModel(
+        matchId: fixture.matchId,
+        matchRepository: StatsFakeMatchRepository(fixture: fixture),
+        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+    )
+    await vm.onAppear()
+
+    let accessibility = vm.resultAccessibilitySummary
+    #expect(accessibility.contains("Jacob"))
+    #expect(accessibility.contains("Sam"))
+    #expect(!vm.configText.isEmpty)
+    #expect(!vm.dateText.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .regression))
+func historyDetailViewModelReportsNotFoundForMissingMatch() async {
+    let vm = HistoryDetailViewModel(
+        matchId: UUID(),
+        matchRepository: FakeHistoryMatchRepository(rows: []),
+        statsRepository: StatsFakeStatsRepository(events: [])
+    )
+    await vm.onAppear()
+
+    #expect(vm.state == "error")
+    #expect(vm.errorMessageKey == "error.match.notFound")
+    #expect(vm.timeline.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .x01, .regression))
+func historyDetailViewModelBuildsX01TimelineFromEvents() async throws {
+    let fixture = try makeCompletedX01Fixture()
+    let vm = HistoryDetailViewModel(
+        matchId: fixture.matchId,
+        matchRepository: StatsFakeMatchRepository(fixture: fixture),
+        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+    )
+    await vm.onAppear()
+
+    #expect(vm.timeline.count == 3)
+    #expect(vm.timeline.allSatisfy { $0.contains("Jacob") || $0.contains("Sam") })
+    #expect(vm.header?.modeSpecificSummaryText.isEmpty == false)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .x01, .regression))
+func historyListViewModelBuildsStandingsFromSnapshot() async throws {
+    let fixture = try makeCompletedX01Fixture()
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(
+            rows: [fixture.summary],
+            participantsByMatchId: [fixture.matchId: fixture.participants],
+            snapshotsByMatchId: [fixture.matchId: fixture.snapshot]
+        ),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+    await vm.applyFilters()
+
+    #expect(vm.rows.count == 1)
+    #expect(vm.rows.first?.configText.contains("301") == true)
+    #expect(vm.rows.first?.standings.count == 2)
+    #expect(vm.rows.first?.standings.first(where: { $0.name == "Jacob" })?.isWinner == true)
+    #expect(vm.rows.first?.standings.first(where: { $0.name == "Sam" })?.score == 201)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .player, .regression))
+func historyListViewModelSelectedPlayerNameReflectsFilter() async {
+    let aliceId = UUID()
+    let now = Date()
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: []),
+        playerRepository: FakeHistoryPlayerRepository(players: [
+            PlayerSummary(
+                id: aliceId,
+                name: "Alice",
+                isArchived: false,
+                isBot: false,
+                botDifficultyRaw: nil,
+                avatarStyleRaw: nil,
+                preferredColorToken: nil,
+                notes: nil,
+                createdAt: now,
+                updatedAt: now
+            )
+        ])
+    )
+
+    await vm.applyFilters()
+    #expect(vm.selectedPlayerName == nil)
+
+    vm.playerFilter = aliceId
+    #expect(vm.selectedPlayerName == "Alice")
+}
+
+@MainActor
 @Test(.tags(.integration, .history, .stats, .regression))
 func historyDetailViewModelLoadsBreakdownsForCompletedMatch() async throws {
     let fixture = try makeCompletedX01Fixture()
@@ -710,10 +810,16 @@ func historyDetailViewModelLoadsBreakdownsForCompletedMatch() async throws {
 private actor FakeHistoryMatchRepository: MatchRepository {
     let rows: [MatchSummary]
     let participantsByMatchId: [UUID: [MatchParticipantSummary]]
+    let snapshotsByMatchId: [UUID: MatchSnapshotSummary]
 
-    init(rows: [MatchSummary], participantsByMatchId: [UUID: [MatchParticipantSummary]] = [:]) {
+    init(
+        rows: [MatchSummary],
+        participantsByMatchId: [UUID: [MatchParticipantSummary]] = [:],
+        snapshotsByMatchId: [UUID: MatchSnapshotSummary] = [:]
+    ) {
         self.rows = rows
         self.participantsByMatchId = participantsByMatchId
+        self.snapshotsByMatchId = snapshotsByMatchId
     }
 
     private var allRecords: [MatchHistoryRecord] {
@@ -744,7 +850,7 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { rows.first! }
     func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
     func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? { snapshotsByMatchId[matchId] }
     func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}

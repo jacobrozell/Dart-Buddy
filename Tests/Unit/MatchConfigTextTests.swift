@@ -101,6 +101,49 @@ struct MatchConfigTextTests {
     }
 
     @Test
+    func x01InlineConfigJoinsDetailPartsWithoutModePrefix() {
+        let config = MatchConfigX01(
+            startScore: 301,
+            legsToWin: 2,
+            setsEnabled: false,
+            setsToWin: nil,
+            checkoutMode: .singleOut
+        )
+        let inline = MatchConfigText.x01InlineConfig(from: config)
+
+        #expect(inline.contains("301"))
+        #expect(inline.contains(config.checkoutMode.displayName))
+        #expect(!inline.contains(MatchConfigText.modeLabel(for: .x01)))
+    }
+
+    @Test
+    func x01DetailPartsIncludeSetsWhenEnabled() {
+        let config = MatchConfigX01(
+            startScore: 501,
+            legsToWin: 3,
+            setsEnabled: true,
+            setsToWin: 2,
+            checkoutMode: .doubleOut
+        )
+        let parts = MatchConfigText.x01DetailParts(from: config)
+
+        #expect(parts.contains { $0.contains("2") })
+        #expect(parts.contains { $0.contains("3") })
+    }
+
+    @Test
+    func cricketMatchSubtitleUsesStandardCopyWhenPointsEnabled() {
+        let config = MatchConfigCricket(pointsEnabled: true, scoringMode: .standard)
+        #expect(MatchConfigText.cricketMatchSubtitle(from: config) == L10n.string("play.cricket.subtitle.normal"))
+    }
+
+    @Test
+    func cricketMatchSubtitleUsesCutThroatCopy() {
+        let config = MatchConfigCricket(pointsEnabled: true, scoringMode: .cutThroat)
+        #expect(MatchConfigText.cricketMatchSubtitle(from: config) == L10n.string("play.cricket.subtitle.cutThroatLowest"))
+    }
+
+    @Test
     func standingAccessibilityIncludesWinnerRole() {
         let winner = MatchConfigText.standingAccessibility(name: "Alice", isWinner: true, score: 0)
         let loser = MatchConfigText.standingAccessibility(name: "Bob", isWinner: false, score: 121)
