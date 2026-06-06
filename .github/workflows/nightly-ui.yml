@@ -130,11 +130,13 @@ jobs:
       - name: Prepare Slack context
         id: slack-context
         run: |
-          Scripts/ci/prepare-slack-context.sh notify-artifacts/slack-context.json
+          Scripts/ci/prepare-slack-context.sh notify-artifacts/slack-context.json \
+            || echo '{}' > notify-artifacts/slack-context.json
+          delimiter="slack_ctx_${GITHUB_RUN_ID}_${RANDOM}"
           {
-            echo 'context_json<<SLACK_CTX_EOF'
+            echo "context_json<<${delimiter}"
             cat notify-artifacts/slack-context.json
-            echo SLACK_CTX_EOF
+            echo "${delimiter}"
           } >> "$GITHUB_OUTPUT"
         env:
           ARTIFACTS_DIR: notify-artifacts
