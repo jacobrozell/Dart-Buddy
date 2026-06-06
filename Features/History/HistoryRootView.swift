@@ -61,6 +61,7 @@ struct HistoryRootView: View {
                             .tint(Brand.green)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
+                            .accessibilityLabel(L10n.loading)
                     } else if viewModel.state == .error {
                         Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
                             .foregroundStyle(Brand.red)
@@ -86,6 +87,7 @@ struct HistoryRootView: View {
                                 Group {
                                     if viewModel.isLoadingMore {
                                         ProgressView().tint(Brand.green)
+                                            .accessibilityLabel(L10n.loading)
                                     } else {
                                         Text(L10n.historyLoadMore)
                                             .font(.subheadline.weight(.semibold))

@@ -48,6 +48,7 @@ struct MatchSummaryScreen: View {
                     .tint(Brand.green)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s6)
+                    .accessibilityLabel(L10n.loading)
             } else if viewModel.hasResult {
                 celebrationHeader
                 ForEach(viewModel.playerRows) { row in
@@ -145,6 +146,7 @@ struct MatchSummaryScreen: View {
                         if viewModel.isUndoing {
                             ProgressView()
                                 .tint(Brand.textPrimary)
+                                .accessibilityLabel(L10n.loading)
                         } else {
                             Text(L10n.summaryUndoLastThrow)
                                 .font(.headline)
