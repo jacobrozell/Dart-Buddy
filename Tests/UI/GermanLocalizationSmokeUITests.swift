@@ -9,9 +9,9 @@ final class GermanLocalizationSmokeUITests: DartBuddyUITestCase {
     func testTabBarUsesGermanLabels() {
         let app = launchApp(germanLaunchArgs)
         XCTAssertTrue(app.tabBars.buttons["Spielen"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.tabBars.buttons["Modi"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.tabBars.buttons["Spieler"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Statistik"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Verlauf"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.tabBars.buttons["Aktivität"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.tabBars.buttons["Einstellungen"].waitForExistence(timeout: timeout))
     }
 
@@ -20,5 +20,16 @@ final class GermanLocalizationSmokeUITests: DartBuddyUITestCase {
         app.tabBars.buttons["Spielen"].tap()
         XCTAssertTrue(app.staticTexts["Dart-Scoreboard"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["startMatchButton"].waitForExistence(timeout: timeout))
+    }
+
+    func testSettingsUsesGermanSectionLabels() {
+        let app = launchApp(germanLaunchArgs + ["-ui_test_disable_feedback"])
+        app.tabBars.buttons["Einstellungen"].tap()
+        XCTAssertTrue(app.staticTexts["Darstellung"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Startmodus"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Spiel-Standards"].waitForExistence(timeout: timeout))
+        scrollToSettingsControl("settings_botStaggerToggle", in: app, timeout: timeout)
+        XCTAssertTrue(app.staticTexts["Während des Spiels"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Bot-Gegner"].waitForExistence(timeout: timeout))
     }
 }
