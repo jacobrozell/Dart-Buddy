@@ -99,7 +99,10 @@ struct BaseballMatchScreen: View {
             haptics.playImpact()
         }
         .task { await viewModel.onAppear() }
-        .onDisappear { actionTask?.cancel() }
+        .onDisappear {
+            actionTask?.cancel()
+            viewModel.onDisappear()
+        }
     }
 
     @ViewBuilder

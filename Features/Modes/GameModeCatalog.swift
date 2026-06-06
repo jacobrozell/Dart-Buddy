@@ -90,6 +90,9 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
 
     var isAvailable: Bool { status.isAvailable }
 
+    /// Whether Play setup can apply this entry on the current product surface.
+    var isSelectableInPlaySetup: Bool { pendingModeSelection != nil }
+
     /// Solo modes skip the roster step in setup.
     var isSolo: Bool { minimumPlayers <= 1 }
 }
@@ -300,6 +303,53 @@ enum GameModeCatalog {
     /// Number of planned modes in a section (drives the "+N more coming" teaser).
     static func comingSoonCount(in section: GameModeSection) -> Int {
         entries(in: section).filter { !$0.isAvailable }.count
+    }
+
+    /// Shipped party modes surfaced as teasers when party play is hidden.
+    private static let leanPartyTeaserIds = [
+        "party.baseball",
+        "party.killer",
+        "party.shanghai"
+    ]
+
+    /// Practice modes shown in the lean Play setup picker before the "+N more" row.
+    private static let leanPracticeTeaserCount = 2
+
+    /// Sections for the in-place mode picker on Play setup (lean 1.0).
+    static func playSetupPickerSections() -> [(GameModeSection, [GameModeCatalogEntry])] {
+        var sections: [(GameModeSection, [GameModeCatalogEntry])] = []
+
+        let standard = entries(in: .standard)
+        if !standard.isEmpty {
+            sections.append((.standard, standard))
+        }
+
+        if ProductSurface.showsPartyModes {
+            let party = entries(in: .party)
+            if !party.isEmpty {
+                sections.append((.party, party))
+            }
+        } else {
+            let teasers = leanPartyTeaserIds.compactMap { entry(for: $0) }
+            if !teasers.isEmpty {
+                sections.append((.party, teasers))
+            }
+        }
+
+        let practice = Array(entries(in: .practice).prefix(leanPracticeTeaserCount))
+        if !practice.isEmpty {
+            sections.append((.practice, practice))
+        }
+
+        return sections
+    }
+
+    /// Collapsed coming-soon count below the teaser rows in the Play setup picker.
+    static func playSetupPickerMoreComingCount(
+        in section: GameModeSection,
+        displayedCount: Int
+    ) -> Int {
+        max(0, entries(in: section).count - displayedCount)
     }
 
     /// Catalog entry backing a routable match type, if any.

@@ -38,6 +38,7 @@ final class X01MatchViewModel: ObservableObject {
     private let statsRepository: any StatsRepository
     private let feedbackPreferences: FeedbackPreferences
     private let turnSubmitter: MatchTurnSubmitter
+    private let botPlayback = MatchBotPlaybackLifecycle()
 
     init(
         matchId: UUID,
@@ -237,9 +238,12 @@ final class X01MatchViewModel: ObservableObject {
         let committedDarts = events.reduce(0) { $0 + max($1.effectiveDartsThrown, 0) }
         let committedPoints = events.reduce(0) { $0 + $1.appliedTotal }
         let visit = previewVisitStats(isActive: isActive)
-        let darts = committedDarts + visit.darts
-        guard darts > 0 else { return 0 }
-        return Double(committedPoints + visit.points) / Double(darts) * 3.0
+        return StatsService.x01LiveScorecardAverage(
+            committedPoints: committedPoints,
+            committedDarts: committedDarts,
+            previewPoints: visit.points,
+            previewDarts: visit.darts
+        )
     }
 
     func submitTurn() async {
@@ -262,10 +266,19 @@ final class X01MatchViewModel: ObservableObject {
             eventName: "match_screen_appeared",
             message: "X01 match screen presented."
         )
+        MatchGameplaySessionSync.refreshStoredSession(matchId: matchId, store: store, into: &session)
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
         reconcileInterruptedBotPlayback()
-        await playBotTurnIfNeeded()
+        scheduleBotPlaybackIfNeeded()
+    }
+
+    func onDisappear() {
+        botPlayback.cancel { reconcileInterruptedBotPlayback() }
+    }
+
+    private func scheduleBotPlaybackIfNeeded() {
+        botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
 
     /// Restores play after the user undoes the finishing throw from the match summary.
@@ -278,8 +291,11 @@ final class X01MatchViewModel: ObservableObject {
         enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
         totalEntryText = ""
         isBotPlaying = false
+        if currentBotSkillProfile != nil {
+            enteredDarts.removeAll()
+        }
         if enteredDarts.isEmpty {
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         }
         return true
     }
@@ -290,8 +306,13 @@ final class X01MatchViewModel: ObservableObject {
         isBotPlaying = false
         enteredDarts.removeAll()
         totalEntryText = ""
-        if state == .submittingTurn {
+        selectedMultiplier = .single
+        guard session?.runtime.status == .inProgress else { return }
+        switch state {
+        case .submittingTurn, .entryInvalid, .error, .matchCompleted:
             state = .readyTurn
+        default:
+            break
         }
     }
 

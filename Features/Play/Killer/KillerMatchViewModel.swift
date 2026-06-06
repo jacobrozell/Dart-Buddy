@@ -26,6 +26,7 @@ final class KillerMatchViewModel: ObservableObject {
     private let feedbackPreferences: FeedbackPreferences
     private let pickSubmitter: MatchTurnSubmitter
     private let turnSubmitter: MatchTurnSubmitter
+    private let botPlayback = MatchBotPlaybackLifecycle()
 
     init(
         matchId: UUID,
@@ -181,10 +182,19 @@ final class KillerMatchViewModel: ObservableObject {
             eventName: "match_screen_appeared",
             message: "Killer match screen presented."
         )
+        MatchGameplaySessionSync.refreshStoredSession(matchId: matchId, store: store, into: &session)
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
         reconcileInterruptedBotPlayback()
-        await playBotTurnIfNeeded()
+        scheduleBotPlaybackIfNeeded()
+    }
+
+    func onDisappear() {
+        botPlayback.cancel { reconcileInterruptedBotPlayback() }
+    }
+
+    private func scheduleBotPlaybackIfNeeded() {
+        botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
 
     func playBotTurnIfNeeded() async {
@@ -256,8 +266,11 @@ final class KillerMatchViewModel: ObservableObject {
         enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
         isBotPlaying = false
         syncInteractionState()
+        if currentBotSkillProfile != nil {
+            enteredDarts.removeAll()
+        }
         if enteredDarts.isEmpty {
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         }
         return true
     }
@@ -265,8 +278,12 @@ final class KillerMatchViewModel: ObservableObject {
     private func reconcileInterruptedBotPlayback() {
         isBotPlaying = false
         enteredDarts.removeAll()
-        if state == .submittingTurn {
+        guard session?.runtime.status == .inProgress else { return }
+        switch state {
+        case .submittingTurn, .entryInvalid, .error, .matchCompleted, .becameKillerFeedback:
             syncInteractionState()
+        default:
+            break
         }
     }
 

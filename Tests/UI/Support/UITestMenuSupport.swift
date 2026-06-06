@@ -165,21 +165,52 @@ extension XCTestCase {
         XCTAssertTrue(card.waitForExistence(timeout: timeout), "Expected catalog card \(catalogId)")
         card.tap()
         ensurePlayTab(app, timeout: timeout)
-        if let expectedModeName {
-            let modeName = app.descendants(matching: .any)["setup_selectedModeName"]
-            XCTAssertTrue(
-                modeName.waitForExistence(timeout: timeout + 10),
-                "Play setup should expose the selected mode title"
-            )
-            XCTAssertTrue(
-                modeName.label.localizedCaseInsensitiveContains(expectedModeName),
-                "Play setup should show \(expectedModeName) after catalog selection (got '\(modeName.label)')"
+        assertSelectedModeName(expectedModeName, in: app, timeout: timeout)
+    }
+
+    func selectModeFromPlaySetupPicker(
+        _ catalogId: String,
+        in app: XCUIApplication,
+        expectedModeName: String? = nil,
+        timeout: TimeInterval = 10
+    ) {
+        let changeButton = app.buttons["setup_changeModeButton"]
+        XCTAssertTrue(changeButton.waitForExistence(timeout: timeout), "Expected Change mode button")
+        changeButton.tap()
+        let card = app.buttons["modes_card_\(catalogId)"]
+        XCTAssertTrue(card.waitForExistence(timeout: timeout), "Expected picker card \(catalogId)")
+        card.tap()
+        assertSelectedModeName(expectedModeName, in: app, timeout: timeout)
+    }
+
+    func selectCricketMode(in app: XCUIApplication, timeout: TimeInterval = 10) {
+        if app.tabBars.buttons["Modes"].exists || app.tabBars.buttons["tab_modes"].exists {
+            selectModeFromCatalog("standard.cricket", in: app, expectedModeName: "Cricket", timeout: timeout)
+        } else {
+            selectModeFromPlaySetupPicker(
+                "standard.cricket",
+                in: app,
+                expectedModeName: "Cricket",
+                timeout: timeout
             )
         }
     }
 
-    func selectCricketMode(in app: XCUIApplication, timeout: TimeInterval = 10) {
-        selectModeFromCatalog("standard.cricket", in: app, expectedModeName: "Cricket", timeout: timeout)
+    private func assertSelectedModeName(
+        _ expectedModeName: String?,
+        in app: XCUIApplication,
+        timeout: TimeInterval
+    ) {
+        guard let expectedModeName else { return }
+        let modeName = app.descendants(matching: .any)["setup_selectedModeName"]
+        XCTAssertTrue(
+            modeName.waitForExistence(timeout: timeout + 10),
+            "Play setup should expose the selected mode title"
+        )
+        XCTAssertTrue(
+            modeName.label.localizedCaseInsensitiveContains(expectedModeName),
+            "Play setup should show \(expectedModeName) after mode selection (got '\(modeName.label)')"
+        )
     }
 
     func selectPlayerFromRoster(_ name: String, in app: XCUIApplication, timeout: TimeInterval = 10) {

@@ -64,6 +64,46 @@ func gameplayLayoutUsesLandscapeIPhoneMatchScoringOnlyOnCompactSizeClasses() {
     )
 }
 
+@Test(.tags(.unit, .cricket, .regression))
+func gameplayLayoutSplitsLandscapeIPhoneAndIPadFormFactors() {
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneOnlyMatchScoringLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneOnlyMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPadMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesTransposedCricketBoardLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesCricketBoardFillsAvailableHeight(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesCricketBoardFillsAvailableHeight(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact
+        ) == false
+    )
+}
+
 @Test(.tags(.unit, .regression))
 func gameplayLayoutUsesIPadPortraitMatchScoringOnlyOnRegularSizeClasses() {
     #expect(
@@ -137,18 +177,59 @@ func gameplayLayoutLandscapePadWidthIsFixedForCompactPad() {
 }
 
 @Test(.tags(.unit, .x01, .regression))
-func gameplayLayoutPinsActiveX01CardForThreePlusPlayers() {
+func gameplayLayoutPinsActiveX01CardForThreePlusPlayersInPortrait() {
     #expect(
-        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 2, dynamicTypeSize: .large) == false
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: 2,
+            dynamicTypeSize: .large,
+            verticalSizeClass: .regular
+        ) == false
     )
     #expect(
-        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 3, dynamicTypeSize: .large) == true
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: 3,
+            dynamicTypeSize: .large,
+            verticalSizeClass: .regular
+        ) == true
     )
     #expect(
-        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 4, dynamicTypeSize: .xxxLarge) == true
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: 4,
+            dynamicTypeSize: .xxxLarge,
+            verticalSizeClass: .regular
+        ) == true
     )
     #expect(
-        GameplayLayout.usesPinnedActiveX01PlayerCard(playerCount: 4, dynamicTypeSize: .accessibility3) == false
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: 4,
+            dynamicTypeSize: .accessibility3,
+            verticalSizeClass: .regular
+        ) == false
+    )
+}
+
+@Test(.tags(.unit, .x01, .regression))
+func gameplayLayoutPinsActiveX01CardInLandscape() {
+    #expect(
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: 2,
+            dynamicTypeSize: .large,
+            verticalSizeClass: .compact
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesX01SideBySideMatchScoringLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesX01SideBySideMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular,
+            dynamicTypeSize: .large
+        ) == true
     )
 }
 

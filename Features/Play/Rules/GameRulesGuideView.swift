@@ -4,15 +4,17 @@ struct GameRulesGuideView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let initialMode: MatchType
+    private let showsModePicker: Bool
 
-    init(initialMode: MatchType) {
+    init(initialMode: MatchType, showsModePicker: Bool = false) {
         self.initialMode = initialMode
+        self.showsModePicker = showsModePicker
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                GameRulesGuideContent(initialMode: initialMode)
+                GameRulesGuideContent(initialMode: initialMode, showsModePicker: showsModePicker)
                     .padding(.horizontal, DS.Spacing.s4)
                     .padding(.vertical, DS.Spacing.s4)
                     .readableRootContentWidth(horizontalSizeClass)

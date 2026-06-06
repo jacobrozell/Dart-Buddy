@@ -57,17 +57,15 @@ struct X01MatchScreen: View {
 
                 Group {
                     if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-                        if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
-                            landscapeScoringStack(state: state)
-                        } else {
-                            accessibilityScoringStack(state: state)
-                        }
+                        accessibilityScoringStack(state: state)
                     } else if usesSideBySideMatchLayout {
                         landscapeScoringStack(state: state)
+                    } else if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+                        verticalScoringStack(state: state, scrollPlayers: true)
                     } else {
                         ViewThatFits(in: .vertical) {
-                            compactScoringStack(state: state)
-                            scrollableScoringStack(state: state)
+                            verticalScoringStack(state: state, scrollPlayers: false)
+                            verticalScoringStack(state: state, scrollPlayers: true)
                         }
                     }
                 }
@@ -146,36 +144,27 @@ struct X01MatchScreen: View {
             viewModel.inputMode = .dartEntry
             await viewModel.onAppear()
         }
-        .onDisappear { actionTask?.cancel() }
+        .onDisappear {
+            actionTask?.cancel()
+            viewModel.onDisappear()
+        }
     }
 
     private var usesSideBySideMatchLayout: Bool {
-        GameplayLayout.usesSideBySideMatchScoringLayout(
+        GameplayLayout.usesX01SideBySideMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
-        )
-        && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
-    }
-
-    private var usesLandscapeIPhoneMatchLayout: Bool {
-        GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
         )
     }
 
     private func landscapeScoringStack(state: X01State) -> some View {
         HStack(alignment: .top, spacing: DS.Spacing.s2) {
             VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                if usesLandscapeIPhoneMatchLayout {
+                ScrollView {
                     playerCardsStack
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                } else {
-                    ScrollView {
-                        playerCardsStack
-                    }
-                    .scrollIndicators(.hidden)
                 }
+                .scrollIndicators(.hidden)
                 statusBanners
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -194,38 +183,40 @@ struct X01MatchScreen: View {
         .padding(.bottom, DS.Spacing.s2)
     }
 
-    private func compactScoringStack(state: X01State) -> some View {
-        VStack(spacing: DS.Spacing.s2) {
-            playerCardsStack
-                .padding(.top, DS.Spacing.s2)
-            statusBanners
-            scoringPad(state: state)
-        }
-    }
-
-    private func scrollableScoringStack(state: X01State) -> some View {
+    private func verticalScoringStack(state: X01State, scrollPlayers: Bool) -> some View {
         let cards = viewModel.playerCards
-        return VStack(spacing: 0) {
-            if GameplayLayout.usesPinnedActiveX01PlayerCard(
-                playerCount: cards.count,
-                dynamicTypeSize: dynamicTypeSize
-            ), let active = cards.first(where: \.isActive) {
+        let pinActive = GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: cards.count,
+            dynamicTypeSize: dynamicTypeSize,
+            verticalSizeClass: verticalSizeClass
+        )
+
+        return VStack(spacing: scrollPlayers ? 0 : DS.Spacing.s2) {
+            if pinActive, let active = cards.first(where: \.isActive) {
                 playerScoreCard(active)
                     .padding(.top, DS.Spacing.s2)
-                ScrollView {
+                if scrollPlayers {
+                    ScrollView {
+                        playerCardsContent(for: cards.filter { $0.id != active.id })
+                            .padding(.top, DS.Spacing.s2)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
                     playerCardsContent(for: cards.filter { $0.id != active.id })
                         .padding(.top, DS.Spacing.s2)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
+            } else if scrollPlayers {
                 ScrollView {
                     playerCardsStack
                         .padding(.top, DS.Spacing.s2)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                playerCardsStack
+                    .padding(.top, DS.Spacing.s2)
             }
             statusBanners
-                .padding(.vertical, DS.Spacing.s2)
+                .padding(.vertical, scrollPlayers ? DS.Spacing.s2 : 0)
             scoringPad(state: state)
         }
         .frame(maxHeight: .infinity)
@@ -266,7 +257,6 @@ struct X01MatchScreen: View {
                 VStack(spacing: DS.Spacing.s2) {
                     ForEach(cards) { card in
                         playerScoreCard(card)
-                            .frame(maxHeight: usesLandscapeIPhoneMatchLayout ? .infinity : nil)
                     }
                 }
             }

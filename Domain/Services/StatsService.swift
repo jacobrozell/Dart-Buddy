@@ -144,6 +144,24 @@ public enum StatsService {
         return (Double(totalPointsScored) / Double(totalDartsThrown)) * 3
     }
 
+    /// Live X01 scorecard average while a visit may still be in progress.
+    /// For the opening visit's first two darts (no committed history yet), show the
+    /// running per-dart average so a single 11 reads as 11.00 instead of 33.00.
+    public static func x01LiveScorecardAverage(
+        committedPoints: Int,
+        committedDarts: Int,
+        previewPoints: Int,
+        previewDarts: Int
+    ) -> Double {
+        let totalPoints = committedPoints + previewPoints
+        let totalDarts = committedDarts + previewDarts
+        guard totalDarts > 0 else { return 0 }
+        if committedDarts == 0, previewDarts > 0, previewDarts < 3 {
+            return Double(previewPoints) / Double(previewDarts)
+        }
+        return x01Average3Dart(totalPointsScored: totalPoints, totalDartsThrown: totalDarts)
+    }
+
     /// Aggregates detailed per-player stats across the supplied matches.
     /// Deterministic and derived entirely from immutable turn/dart events.
     public static func breakdowns(

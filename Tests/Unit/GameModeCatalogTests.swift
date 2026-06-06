@@ -91,6 +91,32 @@ struct GameModeCatalogTests {
     }
 
     @Test
+    func playSetupPickerSurfacesStandardModesAndTeasersWhenPartyHidden() {
+        guard !ProductSurface.showsPartyModes else { return }
+
+        let sections = GameModeCatalog.playSetupPickerSections()
+        let standard = sections.first { $0.0 == .standard }?.1 ?? []
+        let party = sections.first { $0.0 == .party }?.1 ?? []
+        let practice = sections.first { $0.0 == .practice }?.1 ?? []
+
+        #expect(standard.map(\.id) == ["standard.x01", "standard.cricket", "standard.americanCricket"])
+        #expect(party.map(\.id) == ["party.baseball", "party.killer", "party.shanghai"])
+        #expect(practice.count == 2)
+        #expect(
+            GameModeCatalog.playSetupPickerMoreComingCount(in: .party, displayedCount: party.count)
+                == GameModeCatalog.entries(in: .party).count - party.count
+        )
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: practice.count) == 4)
+    }
+
+    @Test
+    func selectableInPlaySetupMatchesPendingSelection() {
+        for entry in GameModeCatalog.all {
+            #expect(entry.isSelectableInPlaySetup == (entry.pendingModeSelection != nil))
+        }
+    }
+
+    @Test
     func soloChallengeModesAreSinglePlayer() {
         // Solo-challenge modes drive the roster-skip fork in setup, so they must
         // be playable alone.

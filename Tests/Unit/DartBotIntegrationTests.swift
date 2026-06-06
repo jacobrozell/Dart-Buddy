@@ -490,10 +490,75 @@ func x01OnAppearRestartsBotAfterInterruptedTurn() async throws {
     #expect(!vm.isBotPlaying)
 
     await vm.onAppear()
+    try await waitForX01BotVisitCompletion(on: vm)
 
     #expect(vm.session?.events.count == 1)
     #expect(!vm.isBotPlaying)
     #expect(vm.canHumanInput)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01DisappearAndReappearRestartsBotAfterInterruptedTurn() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
+    )
+
+    await vm.onAppear()
+    vm.onDisappear()
+    await vm.onAppear()
+    try await waitForX01BotVisitCompletion(on: vm)
+
+    #expect(vm.session?.events.count == 1)
+    #expect(!vm.isBotPlaying)
+    #expect(vm.canHumanInput)
+}
+
+@MainActor
+private func waitForX01BotVisitCompletion(on vm: X01MatchViewModel) async throws {
+    for _ in 0 ..< 80 {
+        if vm.session?.events.count == 1, vm.isBotPlaying == false {
+            return
+        }
+        try await Task.sleep(nanoseconds: 25_000_000)
+    }
+    Issue.record("Timed out waiting for bot visit to finish after match screen reappeared.")
 }
 
 @MainActor
