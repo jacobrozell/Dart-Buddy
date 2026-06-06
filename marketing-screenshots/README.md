@@ -46,17 +46,13 @@ Fix existing PNGs without re-capturing:
 1. **X01 match** — Jacob vs Sam, mid-game (`-snapshot_match_x01`)
 2. **Cricket board** — marks and scoring (`-snapshot_match_cricket`)
 3. **Match setup** — new game home (`-seed_demo`)
-4. **History** — completed matches (`-seed_demo -snapshot_tab history`)
+4. **Activity (History)** — completed matches (`-seed_demo -snapshot_tab activity`)
+4b. **Modes** — game catalog (`-seed_demo -snapshot_tab modes`)
 5. **Match summary** — post-game stats (`-snapshot_match_summary`)
 6. **Players** — roster (`-seed_demo -snapshot_tab players`)
-7. **Statistics** — leaderboards (`-seed_demo -snapshot_tab statistics`)
-
-### Additional marketing screens (2026-06-06)
-
+7. **Activity (Statistics)** — leaderboards (`-seed_demo -snapshot_tab activity -snapshot_activity_segment statistics`)
 8. **Onboarding welcome** — first-launch tour (`-ui_test_onboarding`)
-9. **Onboarding learn** — beginner rules step (MCP `ui_tap`: `onboarding_next` → `onboarding_experience_no`)
-10. **Settings** — preferences shell (`-seed_demo -snapshot_tab settings`)
-11. **Rules guide** — Play setup sheet (launch `-seed_demo`, MCP tap `setup_learnToPlayButton`)
+9. **Settings** — preferences shell (`-seed_demo -snapshot_tab settings`)
 
 ## iPad (12.9" / 13" Displays)
 
@@ -97,7 +93,8 @@ APP_STORE_WIDTH=1242 APP_STORE_HEIGHT=2688 ./Scripts/capture-marketing-screensho
 | Cricket in progress | `-snapshot_match_cricket` |
 | Demo data | `-seed_demo` |
 | Match summary | `-snapshot_match_summary` |
-| Tab | `-snapshot_tab history` / `players` / `statistics` / `settings` |
+| Tab | `-snapshot_tab play` / `modes` / `players` / `activity` / `settings` |
+| Activity segment | `-snapshot_activity_segment statistics` (with `-snapshot_tab activity`) |
 | Onboarding | `-ui_test_onboarding` (with `-ui_test_reset` for clean state) |
 
 ## Framing tips
