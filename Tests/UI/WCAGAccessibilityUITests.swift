@@ -270,7 +270,10 @@ final class WCAGAccessibilityUITests: XCTestCase {
         let app = launchForAccessibility(extraArguments: ["-seed_players", "-ui_test_disable_feedback"])
         ensureSettingsTab(app, timeout: timeout)
 
-        assertInteractiveElement(app.otherElements["settings_form"], identifier: "settings_form")
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_form"],
+            identifier: "settings_form"
+        )
         assertInteractiveElement(
             app.descendants(matching: .any)["settings_themePicker"],
             identifier: "settings_themePicker"

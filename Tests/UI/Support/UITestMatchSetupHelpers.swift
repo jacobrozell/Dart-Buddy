@@ -43,27 +43,6 @@ extension DartBuddyUITestCase {
         XCTAssertTrue(delete.waitForExistence(timeout: timeout), "Delete button should be reachable after scrolling")
     }
 
-    func selectPlayerFromRoster(_ name: String, in app: XCUIApplication) {
-        let button = app.buttons["select_\(name)"]
-        let start = app.buttons["startMatchButton"]
-        XCTAssertTrue(
-            button.waitForExistence(timeout: timeout),
-            "Expected roster row for \(name)"
-        )
-        for _ in 0 ..< 10 {
-            let clearsStartFooter = !start.exists || button.frame.maxY < start.frame.minY - 8
-            if button.isHittable, clearsStartFooter {
-                break
-            }
-            app.swipeUp()
-        }
-        XCTAssertTrue(
-            button.isHittable,
-            "Expected roster row for \(name) to be reachable above the sticky Start footer"
-        )
-        button.tap()
-    }
-
     func selectAliceBobAndCarol(from app: XCUIApplication) {
         selectPlayerFromRoster("Alice", in: app)
         selectPlayerFromRoster("Bob", in: app)
