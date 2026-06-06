@@ -102,14 +102,15 @@ Authoritative folder names (XcodeGen `project.yml` sources):
 
 | Layer | Path | Contents |
 |-------|------|----------|
-| App shell | `App/` | `DartBuddyApp`, `MainTabView`, bootstrap, migration recovery |
+| App shell | `App/` | `DartBuddyApp`, `MainTabView`, bootstrap, migration recovery, `AppRouteRouter` |
+| Intents | `Intents/` | App Intents, Shortcuts provider, `IntentRoutingBridge` — see [`AppIntentsSpec.md`](AppIntentsSpec.md) |
 | Features | `Features/{Play/{Setup,X01,Cricket,Shared},History,Players,Statistics,Settings}/` | SwiftUI + ViewModels per tab/flow |
 | Domain | `Domain/` | Engines, services, scoring models |
 | Data | `Data/Repositories/` | Protocols + SwiftData implementations |
 | Persistence | `Persistence/` | Schema, migrations, container factory |
 | DesignSystem | `DesignSystem/` | `Brand`, `DS`, shared components — see `DesignSystem/README.md` |
 | Resources | `Resources/` | Asset catalog, `en.lproj`, Firebase plist |
-| Support | `Support/` | L10n helpers, logging, preferences, feature flags |
+| Support | `Support/` | L10n helpers, logging, preferences, feature flags, [`Support/DeepLinks/`](../Support/DeepLinks/) |
 | Tests | `Tests/Unit/`, `Tests/Accessibility/`, `Tests/UI/` | Unit + a11y regression; UI smoke + WCAG audits |
 
 **Release backlog & runbook:** [`docs/release/todo.md`](../docs/release/todo.md) · [`docs/release/release_checklist.md`](../docs/release/release_checklist.md)  

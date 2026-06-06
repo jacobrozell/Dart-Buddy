@@ -137,8 +137,14 @@ Source of truth in code:
 | `match_start_failed` | `match_start_failed` | Setup | Start errors |
 | `turn_persist_failed` | `turn_persist_failed` | Match | Persistence failure |
 | `app_bootstrap_migration_failure` | `app_bootstrap_migration_failure` | Migration recovery | Boot blocked |
+| `deep_link_received` | `deep_link_received` | Deep links | Parsed link applying |
+| `deep_link_applied` | `deep_link_applied` | Deep links | Route succeeded |
+| `deep_link_deferred` | `deep_link_deferred` | Deep links | Queued during onboarding |
+| `deep_link_failed` | `deep_link_failed` | Deep links | Parse/route failure |
+| `intent_performed` | `intent_performed` | App Intents | Shortcut/Siri route succeeded |
+| `intent_failed` | `intent_failed` | App Intents | Flag off, no active match, route error |
 
-Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `participantCount`, `operation`, `schemaVersion`, `fromSchema`, `toSchema`, `legIndex`, `setIndex`, `source`, `isBot`, plus `app_version`, `log_category` injected by mapper.
+Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `participantCount`, `operation`, `schemaVersion`, `fromSchema`, `toSchema`, `legIndex`, `setIndex`, `source`, `isBot`, `path`, `version`, `intentName`, plus `app_version`, `log_category` injected by mapper.
 
 ### Firebase Crashlytics (non-fatal allowlist)
 
@@ -168,6 +174,7 @@ Use `AppLogger` for debugging; add to Analytics allowlist only with product appr
 | `match_screen_appeared`, `bot_turn_started` | `BotOpponentSpec.md`, `X01GameSpec.md`, `CricketSpec.md` |
 | `turn_submit_rejected`, `turn_bust` | `X01GameSpec.md` |
 | `training_bot_created`, `training_bot_match_started` | `TrainingBotSpec.md` (planned Analytics — wire allowlist when shipping) |
+| `deep_link_*`, `intent_*` | [`DeepLinkSpec.md`](DeepLinkSpec.md), [`AppIntentsSpec.md`](AppIntentsSpec.md) |
 | `settings_seeded`, `settings_seed_skipped` | `SettingsSpec.md` |
 
 Feature specs link here for analytics subsections; do not duplicate full tables.

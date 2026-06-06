@@ -42,6 +42,7 @@ Define how runtime feature flags and environment configuration are modeled so ph
 - `enableVisionAutoScoring` (default `false`)
 - `enableOnlinePlay` (default `false`)
 - `enableAdvancedDiagnostics` (default `false`)
+- `enableAppIntents` (default `false`; enable locally with `-enable_app_intents` — see [`AppIntentsSpec.md`](AppIntentsSpec.md))
 
 ---
 

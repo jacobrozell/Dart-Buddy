@@ -67,7 +67,7 @@ High-level summary only — authoritative rules are in feature specs:
 | `Persistence/` | Schema, migrations, container factory |
 | `DesignSystem/` | Tokens, shared components, gameplay layout |
 | `Resources/` | Asset catalog, `en`/`de`/`es`/`nl` `Localizable.strings`, Firebase plist template |
-| `Scripts/` | CI helpers, locale generators (`generate_*_localizable.py`) |
+| `Scripts/` | CI helpers, locale generator (`generate_localizable.py`) |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
 | `docs/release/` | Active backlog (`todo.md`) and App Store runbook (`release_checklist.md`) |

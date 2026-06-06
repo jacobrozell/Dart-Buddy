@@ -27,6 +27,7 @@ Shared lifecycle: [`specs/MatchSpec.md`](../specs/MatchSpec.md). `MatchType` tod
 | Around the Clock | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 1+ | Low–Med | Sequential 1→20 + bull; progress reset rules vary |
 | Shanghai | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 2+ | Med | Per-round target + S/D/T bonus |
 | Halve-It | [`party-practice-modes.md`](party-practice-modes.md) | P3 | 1+ | Med | Descending score targets; house rules heavy |
+| **Golf** | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 2+ | Med | 9/18 holes on segments 1→9/18; lowest strokes wins; last-dart-counts |
 
 ---
 
@@ -57,6 +58,7 @@ Each new mode needs:
 |------|-------------|
 | Killer | Dart-by-dart on **assigned segment** (per player number); assignment phase may be 1-dart flow |
 | Baseball | Dart-by-dart on **current inning target**; same `ScoringInputPad` segment + S/D/T as X01 |
+| Golf | Dart-by-dart on **current hole target**; last dart counts; optional early turn end |
 | Practice modes | Often total-per-turn or strict sequence — see party doc |
 
 Reference: [`specs/ScoringInputSpec.md`](../specs/ScoringInputSpec.md).
@@ -73,6 +75,7 @@ Reference: [`specs/ScoringInputSpec.md`](../specs/ScoringInputSpec.md).
 |------|-----------------|----------|
 | Killer | Hard (social targeting); defer or “random target” bot | Lives remaining, kills dealt |
 | Baseball | Moderate (segment aim by skill tier) | Runs per inning, 9-inning total |
+| Golf | Moderate (segment aim; stop on double) | Strokes per hole, 9/18 total |
 | Solo practice | N/A or training bot | High scores, streaks |
 
 Align bot policy with [`FutureIdeas/backlog.md`](backlog.md) (custom bot metrics).
@@ -81,8 +84,9 @@ Align bot policy with [`FutureIdeas/backlog.md`](backlog.md) (custom bot metrics
 
 1. **Baseball** — clearest rules, closest to existing turn + 3-dart flow  
 2. **Killer** — higher UX cost (assignment, lives, killer flag, 3+ players)  
-3. **Around the Clock / Bob's 27** — solo/training tab or “Practice” entry  
-4. **Shanghai / Halve-It** — after party-mode patterns exist  
+3. **Golf** — reuses per-round segment flow; last-dart UX is the main new surface  
+4. **Around the Clock / Bob's 27** — solo/training tab or “Practice” entry  
+5. **Shanghai / Halve-It** — after party-mode patterns exist  
 
 ---
 

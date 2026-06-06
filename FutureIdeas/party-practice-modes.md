@@ -74,6 +74,24 @@ Lightweight assessments for modes not yet specced in depth. Promote to `specs/*G
 
 ---
 
+## Golf
+
+**Type:** Multiplayer party (stroke play).
+
+| Item | Detail |
+|------|--------|
+| Objective | Play **9 or 18 holes** in numeric order (segment 1, then 2, …). **Lowest total strokes** wins — like real golf. |
+| Turn | Up to **3 darts per hole**; player may stop after 1 or 2 throws. **Only the last dart thrown** counts for that hole ([GLD](https://gldproducts.com/blogs/all/how-to-play-golf-darts), [A1 Darts](https://web.archive.org/web/20110226121020/www.a1darts.com/dart_rules/golf.html)). |
+| Scoring (common) | Double = **1** stroke, triple = **2**, single = **3**, miss segment = **5** (worst per hole). Variants use wedge rings (1–5 strokes) or golf terms (birdie/bogey) — **house rules heavy**. |
+| Dart Buddy fit | Party section; per-hole segment targeting reuses `ScoringInputPad` (same pattern as Baseball/Shanghai). Scorecard UI: hole column + running total; highlight current hole target. |
+| Engine | `holeIndex`, `strokes[playerId][hole]`, `courseLength` (9 \| 18); last-dart-only resolution per hole |
+| Bot | Moderate — aim at current segment by skill tier; bot "stops early" when it hits a double |
+| Effort | ~6–8 d (stroke ruleset presets + last-dart UX + 9/18 scorecard) |
+
+**Open:** Lock default ruleset (GLD 1/2/3/5 vs A1 wedge 1–5). Optional handicap strokes for mixed-skill pairs.
+
+---
+
 ## Cross-mode comparison
 
 | Mode | Players | Standardization | Reuse of `ScoringInputPad` | Priority |
@@ -82,6 +100,7 @@ Lightweight assessments for modes not yet specced in depth. Promote to `specs/*G
 | Around the Clock | 1+ | Medium (reset) | Segment sequence | P2 |
 | Shanghai | 2+ | Medium | Per-round segment | P2 |
 | Halve-It | 1+ | Low | Per-round target | P3 |
+| Golf | 2+ | Medium (last-dart) | Per-hole segment | P2 |
 
 ---
 
@@ -99,7 +118,8 @@ Play
 Party
   ├── Killer
   ├── Baseball
-  └── Shanghai
+  ├── Shanghai
+  └── Golf
 ```
 
 Reduces setup clutter; feature-flag per mode. Document in setup spec when promoting.
