@@ -170,13 +170,19 @@ Implemented in [`workers/dart-buddy-slack/`](../../workers/dart-buddy-slack/). T
 
 If `git remote -v` shows `git@github.com-personal:...`, Xcode Cloud treats that as GitHub Enterprise and setup fails (`RepositoryNotAccessible`, `DNS_PROBE_FINISHED_NXDOMAIN`).
 
+**Expectation:** `origin` stays on `git@github.com:...` for Xcode Cloud, but all pushes (local terminal, Cursor agents) must authenticate as **jacobrozell**, not the default `jrozellOCV` key on `github.com`.
+
 ```bash
 git remote set-url origin git@github.com:jacobrozell/Dart-Buddy.git
-# Keep the personal SSH key for this repo only:
+# Option A — repo-local key (then `git push origin` works):
 git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_github_jacobrozell -o IdentitiesOnly=yes"
+# Option B — one-off push without changing origin:
+git push git@github.com-personal:jacobrozell/Dart-Buddy.git master
 ```
 
 Then quit Xcode, reopen, and restart **Product → Xcode Cloud** setup.
+
+Cursor agents follow `.cursor/rules/git-push-jacobrozell.mdc`.
 
 ---
 

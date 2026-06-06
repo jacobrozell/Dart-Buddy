@@ -1,0 +1,21 @@
+---
+description: Push to origin as jacobrozell, not jrozellOCV; keep origin URL for Xcode Cloud
+alwaysApply: true
+---
+
+# Git push (jacobrozell)
+
+This repo lives at `jacobrozell/Dart-Buddy`. The default `github.com` SSH key on this machine authenticates as **jrozellOCV**, which does not have push access.
+
+## Expectation
+
+When committing or pushing for the user:
+
+1. **Keep `origin` as** `git@github.com:jacobrozell/Dart-Buddy.git` — Xcode Cloud requires the standard GitHub host, not an SSH alias.
+2. **Push as jacobrozell** using one of:
+   - `git push git@github.com-personal:jacobrozell/Dart-Buddy.git <branch>`
+   - Or, if configured locally: `git push origin <branch>` with repo `core.sshCommand` pointing at `~/.ssh/id_ed25519_github_jacobrozell`
+
+Do not change the remote URL to `github.com-personal`; that breaks Xcode Cloud setup (see `docs/release/xcode-cloud.md`).
+
+If push fails with `Permission denied to jrozellOCV`, retry with the `github.com-personal` URL above.
