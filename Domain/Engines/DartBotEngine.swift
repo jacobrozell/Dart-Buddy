@@ -476,6 +476,60 @@ public enum DartBotEngine {
         )
     }
 
+    // MARK: - Killer
+
+    public static func generateKillerPick(
+        takenNumbers: Set<Int>,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        let available = (1 ... 20).filter { !takenNumbers.contains($0) }
+        guard let segment = available.randomElement(using: &rng) else {
+            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        }
+        let intended = DartInput(multiplier: .single, segment: .oneToTwenty(segment))
+        return resolveKillerDart(intended: intended, profile: profile, rng: &rng)
+    }
+
+    public static func generateKillerTurn(
+        state: KillerState,
+        throwerIndex: Int,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> [DartInput] {
+        var darts: [DartInput] = []
+        var throwerIsKiller = state.players[throwerIndex].isKiller
+        guard let ownNumber = state.players[throwerIndex].assignedNumber else { return darts }
+
+        while darts.count < 3 {
+            let intended: DartInput
+            if throwerIsKiller,
+               let target = killerAimSegment(
+                   state: state,
+                   throwerIndex: throwerIndex,
+                   ownNumber: ownNumber,
+                   profile: profile,
+                   rng: &rng
+               ) {
+                intended = DartInput(multiplier: .double, segment: .oneToTwenty(target))
+            } else {
+                intended = DartInput(multiplier: .double, segment: .oneToTwenty(ownNumber))
+            }
+            let resolved = resolveKillerDart(intended: intended, profile: profile, rng: &rng)
+            darts.append(resolved)
+
+            if !throwerIsKiller,
+               !resolved.isMiss,
+               case let .oneToTwenty(value) = resolved.segment,
+               value == ownNumber,
+               resolved.multiplier == .double {
+                throwerIsKiller = true
+            }
+        }
+
+        return darts
+    }
+
     // MARK: - Internals
 
     private static func intendedX01Dart(
@@ -624,6 +678,37 @@ public enum DartBotEngine {
             return DartInput(multiplier: .double, segment: .oneToTwenty(segment))
         }
         return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
+    }
+
+    private static func killerAimSegment(
+        state: KillerState,
+        throwerIndex: Int,
+        ownNumber: Int,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> Int? {
+        let opponents = state.players.enumerated().filter { index, player in
+            index != throwerIndex && !player.isEliminated && player.assignedNumber != nil
+        }
+        guard !opponents.isEmpty else { return nil }
+
+        let tier = profile.x01.scoringBehaviorTier
+        if tier == .veryEasy || tier == .easy,
+           Double.random(in: 0 ... 1, using: &rng) < profile.cricket.wrongBedChance {
+            return ownNumber
+        }
+
+        let minLives = opponents.map(\.element.lives).min() ?? 0
+        let weakest = opponents.filter { $0.element.lives == minLives }
+        return weakest.randomElement(using: &rng)?.element.assignedNumber
+    }
+
+    private static func resolveKillerDart(
+        intended: DartInput,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        resolveCricketDart(intended: intended, profile: profile, rng: &rng)
     }
 
     private static func resolveCricketDart(

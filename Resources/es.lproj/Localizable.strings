@@ -662,8 +662,9 @@
 "play.killer.unknownPlayer" = "Jugador";
 "play.killer.setup.lives" = "Vidas iniciales";
 "play.killer.setup.livesValueFormat" = "%d vidas";
-"setup.validation.killerHumansOnly" = "Killer requiere solo jugadores humanos.";
-"setup.validation.killerHumansOnly.short" = "Solo humanos.";
+"play.killer.pad.disabledWhileBot" = "Esperando turno del bot";
+"setup.validation.killerBotsPresetOnly" = "Killer solo admite bots de dificultad predefinida.";
+"setup.validation.killerBotsPresetOnly.short" = "Solo bots predefinidos.";
 "error.match.players.killerMinimum" = "Killer requiere al menos 3 jugadores.";
 "error.match.mode.killerUnavailable" = "El estado Killer no está disponible para esta partida.";
 "error.match.killer.notPickPhase" = "La elección de número no está activa.";

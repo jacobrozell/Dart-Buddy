@@ -240,7 +240,8 @@ private struct KillerMatchRouteView: View {
                 store: dependencies.activeMatchStore,
                 logger: dependencies.logger,
                 matchRepository: dependencies.matchRepository,
-                statsRepository: dependencies.statsRepository
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
             )
         )
     }
@@ -250,7 +251,8 @@ private struct KillerMatchRouteView: View {
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
-            haptics: dependencies.hapticsService
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
         )
     }
 }

@@ -6,6 +6,7 @@ struct KillerMatchScreen: View {
     let onShowSummary: () -> Void
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
+    let feedbackPreferences: FeedbackPreferences
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -41,7 +42,7 @@ struct KillerMatchScreen: View {
             }
 
             if viewModel.killerState != nil {
-                ScrollView {
+                SideBySideMatchBody {
                     VStack(spacing: DS.Spacing.s3) {
                         KillerScoreboardView(rows: viewModel.scoreboardRows)
                         if viewModel.isPickPhase {
@@ -54,16 +55,10 @@ struct KillerMatchScreen: View {
                         }
                         stateBanner
                     }
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.bottom, DS.Spacing.s2)
-                }
-
-                VStack(spacing: DS.Spacing.s2) {
+                } controls: {
                     killerPad
                     submitButton
                 }
-                .padding(.horizontal, DS.Spacing.s4)
-                .padding(.bottom, DS.Spacing.s2)
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
@@ -100,6 +95,11 @@ struct KillerMatchScreen: View {
                 break
             }
         }
+        .onChange(of: viewModel.enteredDarts.count) { oldCount, newCount in
+            guard viewModel.isBotPlaying, newCount > oldCount else { return }
+            guard feedbackPreferences.botDartHapticsEnabled else { return }
+            haptics.playImpact()
+        }
         .task { await viewModel.onAppear() }
         .onDisappear { actionTask?.cancel() }
     }
@@ -128,8 +128,13 @@ struct KillerMatchScreen: View {
                 actionTask = Task { await viewModel.undoLastDart() }
             }
         )
-        .disabled(viewModel.state == .submittingTurn)
-        .opacity(viewModel.state == .submittingTurn ? 0.55 : 1)
+        .disabled(!viewModel.canHumanInput || viewModel.state == .submittingTurn)
+        .opacity(viewModel.canHumanInput && viewModel.state != .submittingTurn ? 1 : 0.55)
+        .accessibilityHint(
+            viewModel.canHumanInput
+                ? ""
+                : L10n.string("play.killer.pad.disabledWhileBot")
+        )
     }
 
     private var submitButton: some View {

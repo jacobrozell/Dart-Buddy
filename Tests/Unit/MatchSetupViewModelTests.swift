@@ -117,7 +117,7 @@ func setupPartyKillerAllowsThreeHumans() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func setupPartyKillerBlocksBots() async {
+func setupPartyKillerAllowsPresetBot() async {
     let human = makePlayer("Human")
     let bot = PlayerSummary(
         id: UUID(),
@@ -143,8 +143,31 @@ func setupPartyKillerBlocksBots() async {
     vm.selectedPlayerIds = [human.id, bot.id, third.id]
     vm.revalidate()
 
+    #expect(vm.canStart)
+    #expect(vm.validationErrors.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func setupPartyKillerBlocksCustomTrainingBots() async {
+    let human = makePlayer("Human")
+    let custom = makeCustomBot("Custom")
+    let third = makePlayer("Guest")
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [human, custom, third]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.killer)
+    vm.selectedPlayerIds = [human.id, custom.id, third.id]
+    vm.revalidate()
+
     #expect(!vm.canStart)
-    #expect(vm.validationErrors.contains("setup.validation.killerHumansOnly"))
+    #expect(vm.validationErrors.contains("setup.validation.killerBotsPresetOnly"))
 }
 
 @MainActor

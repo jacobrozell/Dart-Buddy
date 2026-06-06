@@ -16,12 +16,14 @@ final class KillerMatchViewModel: ObservableObject {
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
     @Published private(set) var session: MatchLifecycleSession?
+    @Published private(set) var isBotPlaying = false
 
     private let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
+    private let feedbackPreferences: FeedbackPreferences
     private let pickSubmitter: MatchTurnSubmitter
     private let turnSubmitter: MatchTurnSubmitter
 
@@ -30,13 +32,15 @@ final class KillerMatchViewModel: ObservableObject {
         store: ActiveMatchStore,
         logger: any AppLogger,
         matchRepository: any MatchRepository,
-        statsRepository: any StatsRepository
+        statsRepository: any StatsRepository,
+        feedbackPreferences: FeedbackPreferences = FeedbackPreferences()
     ) {
         self.matchId = matchId
         self.store = store
         self.logger = logger
         self.matchRepository = matchRepository
         self.statsRepository = statsRepository
+        self.feedbackPreferences = feedbackPreferences
         self.pickSubmitter = MatchTurnSubmitter(
             matchId: matchId,
             matchType: .killer,
@@ -61,8 +65,34 @@ final class KillerMatchViewModel: ObservableObject {
 
     var isPickPhase: Bool { killerState?.phase == .numberPick }
 
+    var canHumanInput: Bool {
+        isCurrentActorBot == false && isBotPlaying == false && isReadyForHumanInput
+    }
+
+    var isCurrentActorBot: Bool {
+        currentBotSkillProfile != nil
+    }
+
+    var currentBotSkillProfile: BotSkillProfile? {
+        guard let session, let state = session.runtime.killerState else { return nil }
+        guard session.runtime.status == .inProgress else { return nil }
+        if state.phase == .numberPick {
+            guard let pickerId = state.pickQueue.first else { return nil }
+            return DartBotEngine.botSkillProfile(
+                playerId: pickerId,
+                in: session.runtime.participants
+            )
+        }
+        let player = state.players[state.currentPlayerIndex]
+        guard !player.isEliminated else { return nil }
+        return DartBotEngine.botSkillProfile(
+            playerId: player.playerId,
+            in: session.runtime.participants
+        )
+    }
+
     var canSubmit: Bool {
-        guard killerState != nil else { return false }
+        guard killerState != nil, canHumanInput else { return false }
         if isPickPhase {
             return enteredDarts.count == 1 && state == .readyPick
         }
@@ -153,7 +183,12 @@ final class KillerMatchViewModel: ObservableObject {
         )
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
-        syncInteractionState()
+        reconcileInterruptedBotPlayback()
+        await playBotTurnIfNeeded()
+    }
+
+    func playBotTurnIfNeeded() async {
+        while await playSingleBotActionIfNeeded() {}
     }
 
     func abandonMatch() async {
@@ -178,6 +213,15 @@ final class KillerMatchViewModel: ObservableObject {
                 message: "Abandon failed.",
                 metadata: MatchTurnSupport.appErrorMetadata(for: error)
             )
+        }
+    }
+
+    private var isReadyForHumanInput: Bool {
+        switch state {
+        case .readyPick, .readyTurn:
+            return true
+        default:
+            return false
         }
     }
 
@@ -210,11 +254,85 @@ final class KillerMatchViewModel: ObservableObject {
               stored.runtime.status == .inProgress else { return false }
         session = stored
         enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
+        isBotPlaying = false
         syncInteractionState()
+        if enteredDarts.isEmpty {
+            await playBotTurnIfNeeded()
+        }
         return true
     }
 
-    private func submitTurnAsync() async {
+    private func reconcileInterruptedBotPlayback() {
+        isBotPlaying = false
+        enteredDarts.removeAll()
+        if state == .submittingTurn {
+            syncInteractionState()
+        }
+    }
+
+    @discardableResult
+    private func playSingleBotActionIfNeeded() async -> Bool {
+        guard let profile = currentBotSkillProfile,
+              isBotPlaying == false,
+              let killerState = session?.runtime.killerState,
+              session?.runtime.status == .inProgress else { return false }
+
+        let isPick = killerState.phase == .numberPick
+        guard (isPick && state == .readyPick) || (!isPick && state == .readyTurn) else { return false }
+
+        isBotPlaying = true
+        defer { isBotPlaying = false }
+
+        enteredDarts.removeAll()
+        var rng = SystemRandomNumberGenerator()
+
+        if isPick {
+            let takenNumbers = Set(killerState.players.compactMap(\.assignedNumber))
+            let dart = DartBotEngine.generateKillerPick(
+                takenNumbers: takenNumbers,
+                profile: profile,
+                rng: &rng
+            )
+            let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+            do {
+                try await Task.sleep(nanoseconds: dartDelay)
+            } catch {
+                return false
+            }
+            enteredDarts.append(dart)
+        } else {
+            let plannedDarts = DartBotEngine.generateKillerTurn(
+                state: killerState,
+                throwerIndex: killerState.currentPlayerIndex,
+                profile: profile,
+                rng: &rng
+            )
+            let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+            for dart in plannedDarts {
+                do {
+                    try await Task.sleep(nanoseconds: dartDelay)
+                } catch {
+                    return false
+                }
+                enteredDarts.append(dart)
+            }
+        }
+
+        do {
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+        } catch {
+            return false
+        }
+        await submitTurnAsync(fromBotPlayback: true)
+        guard session?.runtime.status != .completed else { return false }
+
+        if session?.runtime.killerState?.phase == .numberPick {
+            return currentBotSkillProfile != nil && state == .readyPick
+        }
+        return currentBotSkillProfile != nil && state == .readyTurn
+    }
+
+    private func submitTurnAsync(fromBotPlayback: Bool = false) async {
         await loadSessionIfNeeded()
         guard let current = session else {
             state = .error("killer.error.sessionMissing")
@@ -264,6 +382,9 @@ final class KillerMatchViewModel: ObservableObject {
                 syncInteractionState()
             }
             enteredDarts.removeAll()
+            if updated.runtime.status != .completed, !fromBotPlayback {
+                await playBotTurnIfNeeded()
+            }
         }
     }
 
@@ -280,6 +401,7 @@ final class KillerMatchViewModel: ObservableObject {
             session = undone
             enteredDarts.removeAll()
             syncInteractionState()
+            await playBotTurnIfNeeded()
         } catch is CancellationError {
             syncInteractionState()
         } catch {
@@ -305,6 +427,9 @@ final class KillerMatchViewModel: ObservableObject {
             session = result.session
             enteredDarts = result.restoredDarts
             syncInteractionState()
+            if result.restoredDarts.isEmpty {
+                await playBotTurnIfNeeded()
+            }
         } catch is CancellationError {
             syncInteractionState()
         } catch {
