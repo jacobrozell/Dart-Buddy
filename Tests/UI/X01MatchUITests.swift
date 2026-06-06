@@ -4,20 +4,16 @@ final class X01MatchUITests: DartBuddyUITestCase {
     func testStartMatchAndScoreTurn() {
         let app = launchApp(["-seed_players"])
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
 
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
 
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(start.waitForExistence(timeout: timeout))
         XCTAssertTrue(start.isEnabled, "START should be enabled with two players selected")
-        start.tap()
-
-        XCTAssertTrue(
-            app.staticTexts["501, Double Out, First to 3 Legs"].waitForExistence(timeout: timeout),
-            "X01 board should display the match configuration"
-        )
+        tapStartMatch(in: app, timeout: timeout)
+        waitForX01MatchBoard(in: app, timeout: timeout + 5)
 
         let twenty = app.buttons["pad_20"]
         XCTAssertTrue(twenty.waitForExistence(timeout: timeout))
@@ -35,9 +31,9 @@ final class X01MatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
+        tapStartMatch(in: app, timeout: timeout)
 
         let twenty = app.buttons["pad_20"]
         XCTAssertTrue(twenty.waitForExistence(timeout: timeout))
@@ -79,7 +75,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         confirm.tap()
 
         XCTAssertTrue(
-            app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
+            assertBrandAppTitleVisible(in: app, timeout: timeout),
             "Deleting from post-match stats should return to Play home"
         )
         XCTAssertFalse(
@@ -95,9 +91,9 @@ final class X01MatchUITests: DartBuddyUITestCase {
     func testUndoRemovesEnteredDart() {
         let app = launchApp(["-seed_players"])
 
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
+        tapStartMatch(in: app, timeout: timeout)
 
         let nineteen = app.buttons["pad_19"]
         XCTAssertTrue(nineteen.waitForExistence(timeout: timeout))
@@ -128,9 +124,9 @@ final class X01MatchUITests: DartBuddyUITestCase {
     func testX01ExitAndPadReachableInLandscape() {
         let app = launchApp(["-seed_players"])
 
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
+        tapStartMatch(in: app, timeout: timeout)
         XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
 
         XCUIDevice.shared.orientation = .landscapeLeft
@@ -147,9 +143,9 @@ final class X01MatchUITests: DartBuddyUITestCase {
     func testCompletedVisitPersistsOnInactiveScoreCard() {
         let app = launchApp(["-seed_players"])
 
-        app.buttons["select_Alice"].tap()
-        app.buttons["select_Bob"].tap()
-        app.buttons["startMatchButton"].tap()
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
+        tapStartMatch(in: app, timeout: timeout)
 
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
 

@@ -8,10 +8,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         XCTAssertTrue(skip.waitForExistence(timeout: timeout))
         skip.tap()
 
-        XCTAssertTrue(
-            app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
-            "Skipping onboarding should land on the Play tab"
-        )
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
     }
 
     func testBeginnerPathShowsRulesContent() {
@@ -58,10 +55,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
     func testSettingsReplayOpensOnboardingFlow() {
         let app = launchApp(["-skip_onboarding"])
 
-        XCTAssertTrue(
-            app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
-            "Skipped onboarding should show the main Play shell"
-        )
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
 
         app.tabBars.buttons["Settings"].tap()
         scrollToViewOnboarding(in: app)
@@ -91,10 +85,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         XCTAssertTrue(getStarted.waitForExistence(timeout: timeout))
         getStarted.tap()
 
-        XCTAssertTrue(
-            app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
-            "Completing onboarding should land on the Play tab"
-        )
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
     }
 
     private func scrollToViewOnboarding(in app: XCUIApplication) {

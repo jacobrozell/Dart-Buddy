@@ -9,9 +9,9 @@ final class DutchLocalizationSmokeUITests: DartBuddyUITestCase {
     func testTabBarUsesDutchLabels() {
         let app = launchApp(dutchLaunchArgs)
         XCTAssertTrue(app.tabBars.buttons["Spelen"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.tabBars.buttons["Modi"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.tabBars.buttons["Spelers"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Statistieken"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Geschiedenis"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.tabBars.buttons["Activiteit"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.tabBars.buttons["Instellingen"].waitForExistence(timeout: timeout))
     }
 
@@ -21,5 +21,16 @@ final class DutchLocalizationSmokeUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["Dart-scorebord"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["startMatchButton"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["STARTEN"].waitForExistence(timeout: timeout))
+    }
+
+    func testSettingsUsesDutchSectionLabels() {
+        let app = launchApp(dutchLaunchArgs + ["-ui_test_disable_feedback"])
+        app.tabBars.buttons["Instellingen"].tap()
+        XCTAssertTrue(app.staticTexts["Weergave"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Startmodus"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Wedstrijdstandaarden"].waitForExistence(timeout: timeout))
+        scrollToSettingsControl("settings_botStaggerToggle", in: app, timeout: timeout)
+        XCTAssertTrue(app.staticTexts["Tijdens het spel"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Bot-tegenstanders"].waitForExistence(timeout: timeout))
     }
 }

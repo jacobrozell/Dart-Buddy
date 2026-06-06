@@ -4,7 +4,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testStartingWithActiveMatchPromptsToReplaceIt() {
         let app = launchApp(["-seed_demo"])
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
         XCTAssertTrue(app.buttons["resumeMatchButton"].waitForExistence(timeout: timeout))
 
         // Stage bot first so the turn-order list does not cover the human roster on compact simulators.
@@ -47,7 +47,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testEmptyRosterGuidesUserToAddPlayers() {
         let app = launchApp()
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
         XCTAssertTrue(
             app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Add Players")).firstMatch
                 .waitForExistence(timeout: timeout),
@@ -66,20 +66,20 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testHumanPlusBotCanStartMatch() {
         let app = launchApp(["-seed_players"])
 
-        app.buttons["select_Alice"].tap()
+        selectPlayerFromRoster("Alice", in: app)
         addEasyBot(from: app, timeout: timeout)
 
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(start.isEnabled, "START should enable with one human and one bot")
-        start.tap()
+        tapStartMatch(in: app, timeout: timeout + 5)
 
-        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout + 5))
+        waitForX01MatchBoard(in: app, timeout: timeout + 5)
     }
 
     func testRemovePlayerFromTurnOrderRestoresAvailableRoster() {
         let app = launchApp(["-seed_players"])
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
 
         let selectAlice = app.buttons["select_Alice"]
         XCTAssertTrue(selectAlice.waitForExistence(timeout: timeout))
