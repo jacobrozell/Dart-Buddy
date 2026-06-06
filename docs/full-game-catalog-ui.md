@@ -514,6 +514,15 @@ struct GameModeCatalogEntry {
 
 **Do not** build 28 bespoke root views — build **~8–10 templates** + mode-specific scoreboard/banner config. New modes mostly add engine + catalog row + template config.
 
+> **Implemented (stub):** all 28 modes are now stubbed as data in
+> [`Features/Modes/GameModeCatalog.swift`](../Features/Modes/GameModeCatalog.swift)
+> — 5 `shipped` (routable via `MatchType`) + 23 `planned` (no `MatchType`, shown
+> as "coming soon"). Identity is keyed off the catalog `id` (not `MatchType`),
+> and each entry carries its `uiTemplate` and `statKind` per the review above.
+> Invariants are locked by
+> [`Tests/Unit/GameModeCatalogTests.swift`](../Tests/Unit/GameModeCatalogTests.swift).
+> Nothing renders it yet — the Modes tab UI is gated on `specs/ModesTabSpec.md`.
+
 > **UX review — the catalog entry is the right seam; add `statKind` and treat
 > `id` (not `matchType`) as the identity key.** With those two changes the model
 > carries everything the IA needs: routing (template), identity (id → accent /
