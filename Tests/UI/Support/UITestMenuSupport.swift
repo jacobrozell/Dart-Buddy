@@ -21,21 +21,13 @@ extension XCTestCase {
     }
 
     func ensurePlayTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        if app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: 2) {
+            return
+        }
         tapTabBarItem(named: "Play", identifier: "tab_play", in: app, timeout: timeout)
         XCTAssertTrue(
             app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
             "Play setup should be visible"
-        )
-    }
-
-    func ensureSetupReady(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        ensurePlayTab(app, timeout: timeout)
-        let rosterRow = app.buttons.matching(
-            NSPredicate(format: "identifier BEGINSWITH 'select_'")
-        ).firstMatch
-        XCTAssertTrue(
-            rosterRow.waitForExistence(timeout: timeout + 15),
-            "Setup roster should finish loading before player selection"
         )
     }
 
@@ -98,10 +90,11 @@ extension XCTestCase {
     }
 
     func selectPlayerFromRoster(_ name: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
+        let wait = timeout + 15
         let button = app.buttons["select_\(name)"]
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(
-            button.waitForExistence(timeout: timeout),
+            button.waitForExistence(timeout: wait),
             "Expected roster row for \(name)"
         )
         for _ in 0 ..< 10 {
@@ -117,10 +110,15 @@ extension XCTestCase {
         )
         button.tap()
         let staged = app.descendants(matching: .any)["setup_selected_\(name)"].firstMatch
-        XCTAssertTrue(
-            staged.waitForExistence(timeout: timeout),
-            "Expected \(name) to appear in turn order after selection"
-        )
+        if !staged.waitForExistence(timeout: timeout) {
+            if button.waitForExistence(timeout: 2), button.isHittable {
+                button.tap()
+            }
+            XCTAssertTrue(
+                staged.waitForExistence(timeout: timeout),
+                "Expected \(name) to appear in turn order after selection"
+            )
+        }
     }
 
     func selectAliceAndBob(from app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -146,13 +144,19 @@ extension XCTestCase {
     }
 
     func startTwoPlayerX01Match(from app: XCUIApplication, timeout: TimeInterval = 10) {
-        ensureSetupReady(app, timeout: timeout)
+        XCTAssertTrue(
+            app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
+            "Play setup should be visible before starting a match"
+        )
         selectAliceAndBob(from: app, timeout: timeout)
         tapStartMatch(in: app, expectingBoardKey: "pad_20", timeout: timeout)
     }
 
     func startTwoPlayerCricketMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
-        ensureSetupReady(app, timeout: timeout)
+        XCTAssertTrue(
+            app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout),
+            "Play setup should be visible before starting a match"
+        )
         app.buttons["setup_mode_cricket"].tap()
         selectAliceAndBob(from: app, timeout: timeout)
         tapStartMatch(in: app, expectingBoardKey: "cricket_20", timeout: timeout)

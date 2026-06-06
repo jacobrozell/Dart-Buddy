@@ -4,7 +4,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testStartingWithActiveMatchPromptsToReplaceIt() {
         let app = launchApp(["-seed_demo"])
 
-        ensureSetupReady(app)
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["resumeMatchButton"].waitForExistence(timeout: timeout))
 
         // Stage bot first so the turn-order list does not cover the human roster on compact simulators.
@@ -66,7 +66,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testHumanPlusBotCanStartMatch() {
         let app = launchApp(["-seed_players"])
 
-        ensureSetupReady(app)
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         selectPlayerFromRoster("Alice", in: app)
         addEasyBot(from: app, timeout: timeout)
         tapStartMatch(in: app, expectingBoardKey: "pad_20")
@@ -75,7 +75,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testRemovePlayerFromTurnOrderRestoresAvailableRoster() {
         let app = launchApp(["-seed_players"])
 
-        ensureSetupReady(app)
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         selectAliceAndBob(from: app)
 
         let start = app.buttons["startMatchButton"]
@@ -106,7 +106,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testStartRequiresTwoSelectedPlayers() {
         let app = launchApp(["-seed_players"])
 
-        ensureSetupReady(app)
+        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         selectPlayerFromRoster("Alice", in: app)
 
         let start = app.buttons["startMatchButton"]

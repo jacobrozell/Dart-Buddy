@@ -89,20 +89,20 @@ extension DartBuddyUITestCase {
     }
 
     func startThreePlayerX01Match(from app: XCUIApplication) {
-        ensureSetupReady(app, timeout: timeout)
+        ensurePlayTab(app, timeout: timeout)
         selectAliceBobAndCarol(from: app)
         tapStartMatch(in: app, expectingBoardKey: "pad_20", timeout: timeout)
     }
 
     func startThreePlayerCricketMatch(from app: XCUIApplication) {
-        ensureSetupReady(app, timeout: timeout)
+        ensurePlayTab(app, timeout: timeout)
         app.buttons["setup_mode_cricket"].tap()
         selectAliceBobAndCarol(from: app)
         tapStartMatch(in: app, expectingBoardKey: "cricket_20", timeout: timeout)
     }
 
     func selectCricketMode(in app: XCUIApplication) {
-        ensureSetupReady(app, timeout: timeout)
+        ensurePlayTab(app, timeout: timeout)
         app.buttons["setup_mode_cricket"].tap()
     }
 
