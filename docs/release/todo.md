@@ -8,7 +8,9 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ## 1.0 — Still needed
 
-Ship blockers before App Store. Product scope is complete; remaining work is **evidence + store ops**.
+Ship blockers before App Store. **Scope:** lean 1.0 — X01 + Cricket only, 4 tabs, English, preset bots. See [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) for implementation tasks; [`ongoing-release-plan.md`](ongoing-release-plan.md) for release train.
+
+Remaining work after lean trim lands: **evidence + store ops**.
 
 **Master runbook:** [`release_checklist.md`](release_checklist.md) — device QA, App Store Connect, launch week, Reddit.
 

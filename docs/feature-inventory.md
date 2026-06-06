@@ -14,6 +14,7 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 3. **When something is behind a flag** — mark **Partial** and note the flag in the Notes column.
 4. **Source of truth for mode list** — `GameModeCatalog.swift` (29 modes). This doc mirrors it.
 5. Do **not** duplicate release QA checklists here; track blockers in [`release/todo.md`](release/todo.md).
+6. **Release sequencing** — what ships in 1.0 vs 1.1+ lives in [`release/ongoing-release-plan.md`](release/ongoing-release-plan.md). **Lean 1.0 execution:** [`release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md).
 
 ---
 
@@ -327,6 +328,8 @@ All flags: `Support/FeatureFlags/FeatureFlag.swift` · config: [`FeatureFlagConf
 |-----|---------|
 | [`specs/README.md`](../specs/README.md) | Governed feature specs (40+) |
 | [`docs/release/todo.md`](release/todo.md) | 1.0 ship blockers & UX audit |
+| [`docs/release/ongoing-release-plan.md`](release/ongoing-release-plan.md) | Versioned release train (scope by test confidence) |
+| [`docs/release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md) | Lean 1.0 implementation tasks (approved) |
 | [`FutureIdeas/`](../FutureIdeas/) | Post-1.0 briefs |
 | [`roadmap/README.md`](../roadmap/README.md) | Phase delivery history |
 | [`specs/SpecGovernance.md`](../specs/SpecGovernance.md) | How specs relate to code |
