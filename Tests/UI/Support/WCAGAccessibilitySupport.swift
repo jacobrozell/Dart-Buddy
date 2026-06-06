@@ -183,38 +183,6 @@ extension XCTestCase {
         )
     }
 
-    func selectPlayerFromRoster(_ name: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
-        let wait = timeout + 15
-        let button = app.buttons["select_\(name)"]
-        let start = app.buttons["startMatchButton"]
-        XCTAssertTrue(
-            button.waitForExistence(timeout: wait),
-            "Expected roster row for \(name)"
-        )
-        for _ in 0 ..< 10 {
-            let clearsStartFooter = !start.exists || button.frame.maxY < start.frame.minY - 8
-            if button.isHittable, clearsStartFooter {
-                break
-            }
-            app.swipeUp()
-        }
-        XCTAssertTrue(
-            button.isHittable,
-            "Expected roster row for \(name) to be reachable above the sticky Start footer"
-        )
-        button.tap()
-        let staged = app.descendants(matching: .any)["setup_selected_\(name)"].firstMatch
-        if !staged.waitForExistence(timeout: timeout) {
-            if button.waitForExistence(timeout: 2), button.isHittable {
-                button.tap()
-            }
-            XCTAssertTrue(
-                staged.waitForExistence(timeout: timeout),
-                "Expected \(name) to appear in turn order after selection"
-            )
-        }
-    }
-
     func selectAliceAndBob(from app: XCUIApplication, timeout: TimeInterval = 10) {
         selectPlayerFromRoster("Alice", in: app, timeout: timeout)
         selectPlayerFromRoster("Bob", in: app, timeout: timeout)
