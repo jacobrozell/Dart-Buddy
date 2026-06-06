@@ -11,6 +11,12 @@ public enum PlayerAvatarStyle: String, CaseIterable, Codable, Sendable, Identifi
     case heart
     case medal
     case shield
+    case gameController
+    case sparkles
+    case thumbsUp
+    case dice
+    case leaf
+    case moon
 
     public var id: String { rawValue }
 
@@ -26,6 +32,12 @@ public enum PlayerAvatarStyle: String, CaseIterable, Codable, Sendable, Identifi
         case .heart: "heart.fill"
         case .medal: "medal.fill"
         case .shield: "shield.fill"
+        case .gameController: "gamecontroller.fill"
+        case .sparkles: "sparkles"
+        case .thumbsUp: "hand.thumbsup.fill"
+        case .dice: "die.face.5.fill"
+        case .leaf: "leaf.fill"
+        case .moon: "moon.stars.fill"
         }
     }
 
@@ -57,6 +69,12 @@ public enum PlayerColorToken: String, CaseIterable, Codable, Sendable, Identifia
     case cyan
     case lime
     case coral
+    case mint
+    case magenta
+    case slate
+    case gold
+    case brown
+    case maroon
 
     public var id: String { rawValue }
 
