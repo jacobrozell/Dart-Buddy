@@ -3,7 +3,7 @@
 Living register of every product feature: shipped, partial, and planned. Use this to answer “what exists?” and “what’s next?” without hunting through specs, code, and `FutureIdeas/`.
 
 **Last reviewed:** 2026-06-06  
-**App status:** 1.0 RC — MVP scope complete; App Store evidence + ops remain ([`release/todo.md`](release/todo.md))
+**App status:** 1.0 RC (lean core) — see [`release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md)
 
 ---
 
@@ -33,17 +33,17 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 
 | Area | Shipped | Partial | Planned / assessed |
 |------|---------|---------|-------------------|
-| Game modes (catalog) | 5 | 0 | 24 |
-| App shell & navigation | 5 tabs | iPad two-pane IA | — |
-| Localization | 4 locales | — | 3 items |
+| Game modes (catalog) | 2 (X01, Cricket) in 1.0 UI | 3 party engines hidden | 24 catalog stubs |
+| App shell & navigation | 4 tabs (lean 1.0) | Activity merge | Modes tab (1.3) |
+| Localization | en bundled | de/es/nl in repo only | in-app picker |
 | Shortcuts & deep links | Deep links | App Intents (flagged off) | Widgets, query intents |
 | CI / release | GitHub Actions, Xcode Cloud | Slack notify, perf tests | — |
-| Players & bots | Full CRUD + 3 bot types | — | — |
-| Stats & activity | History + statistics | Per-mode stats (5 of 29) | — |
+| Players & bots | CRUD + preset bots | Training/custom hidden | Game Center |
+| Stats & activity | History + statistics | — | — |
 | Settings & a11y | Core prefs + TTS caller | WCAG evidence, AXXXL layout | Talk mode |
 | Firebase | Analytics + Crashlytics | — | Auth, Firestore, FCM |
 | Platforms | iPhone, iPad universal | iPad layout polish | watchOS, macOS, visionOS |
-| Post-1.0 product | — | — | Achievements, campaign, online, vision scoring, reminders |
+| Post-1.0 product | — | Party modes, Modes tab (code, hidden) | Achievements, campaign, online |
 
 **Targets today:** `DartBuddy` (iOS, iPhone + iPad), `DartBuddyTests`, `DartBuddyPerformanceTests`, `DartBuddyUITests` — no Widget, Watch, or macOS extensions (`project.yml`).
 

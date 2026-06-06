@@ -6,11 +6,12 @@
 
 Product behavior and UX contracts live under [`specs/`](specs/README.md). A cross-cutting **feature inventory** (shipped vs planned) lives at [`docs/feature-inventory.md`](docs/feature-inventory.md). This file is the repo entry point — not a second spec.
 
-## Status (1.0 RC)
+## Status (1.0 RC — lean core)
 
-- **Product:** MVP scope complete — play, players, history, statistics, settings; X01 and Cricket (Normal + Cut Throat) with bot opponents and Training Partner bots.
-- **Localization:** English plus German, Spanish, and Dutch (`de` / `es` / `nl`) via system locale — see [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md).
-- **Remaining for App Store:** QA sign-off, accessibility evidence, migration recovery smoke, listing assets (including localized metadata where applicable) — tracked in [`docs/release/todo.md`](docs/release/todo.md).
+- **Product:** Lean 1.0 — X01 + Cricket (Normal + Cut Throat), preset bots, Play · Players · Activity · Settings. Party modes, Modes tab, Training/Custom bots, and export are **hidden** until 1.1+ ([`docs/release/lean-1.0-implementation-plan.md`](docs/release/lean-1.0-implementation-plan.md)).
+- **Localization:** **English only** in the 1.0 app bundle (`de` / `es` / `nl` files remain in repo for a future release).
+- **Telemetry:** Firebase Analytics + Crashlytics in Release builds with a real plist.
+- **Remaining for App Store:** Device QA on lean matrix, accessibility evidence, migration recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md).
 
 ## Getting started
 
@@ -49,26 +50,27 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request 
 
 High-level summary only — authoritative rules are in feature specs:
 
-- X01 and Cricket matches with guided scoring, undo, and bot opponents (including Cut Throat Cricket + Points On)
-- Training Partner bots (progress-gated custom opponents on Player Detail and Play setup)
-- Match setup with roster selection, turn order, and mode-specific options
+- **X01** and **Cricket** (Normal + Cut Throat) with guided scoring, undo, and **preset difficulty** bots
+- Match setup with roster selection, turn order, and mode-specific options (X01/Cricket chips on Play home)
 - Resume in-progress matches; match summary on completion
 - Player management (create, edit, archive, delete)
-- Match history with filtering and detail views; dedicated statistics tab
+- **Activity** tab: match history + statistics with shared filters
 - Settings: appearance, default game options, haptics, sound, bot pacing
-- UI in English, German, Spanish, or Dutch when the device language matches (`en` / `de` / `es` / `nl`)
+- **English UI** in 1.0 (additional locales ship in a later release)
+
+Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, Training Partner / custom bots, player export — see [`docs/feature-inventory.md`](docs/feature-inventory.md).
 
 ## Project layout
 
 | Path | Role |
 |------|------|
 | `App/` | Entry point, dependency wiring, tab shell, navigation |
-| `Features/` | Play, History, Players, Statistics, Settings screens |
+| `Features/` | Play, Activity, Players, Settings screens |
 | `Domain/` | Rules engines, entities, business logic |
 | `Data/` | Repository protocols and SwiftData implementations |
 | `Persistence/` | Schema, migrations, container factory |
 | `DesignSystem/` | Tokens, shared components, gameplay layout |
-| `Resources/` | Asset catalog, `en`/`de`/`es`/`nl` `Localizable.strings`, Firebase plist template |
+| `Resources/` | Asset catalog, `en.lproj/Localizable.strings` (1.0 bundle); `de`/`es`/`nl` in repo for future releases, Firebase plist template |
 | `Scripts/` | CI helpers, locale generator (`generate_localizable.py`) |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
@@ -80,7 +82,7 @@ High-level summary only — authoritative rules are in feature specs:
 ## App flow
 
 1. `App/DartBuddyApp.swift` bootstraps dependencies.
-2. `App/MainTabView.swift` presents Play, Players, Statistics, History, and Settings tabs.
+2. `App/MainTabView.swift` presents Play, Players, Activity, and Settings tabs (lean 1.0).
 3. Feature root views own their view models and navigation.
 
 ## Documentation map
@@ -93,6 +95,7 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 | Localization | [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md) |
 | Feature specs (full index) | [`specs/README.md`](specs/README.md) § Feature Specs |
 | Active release work | [`docs/release/todo.md`](docs/release/todo.md) |
+| Lean 1.0 scope & tasks | [`docs/release/lean-1.0-implementation-plan.md`](docs/release/lean-1.0-implementation-plan.md) |
 | Device + App Store runbook | [`docs/release/release_checklist.md`](docs/release/release_checklist.md) |
 | Contributing & code style | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | iOS code audit | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) |
