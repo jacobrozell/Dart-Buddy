@@ -157,13 +157,25 @@ struct X01MatchScreen: View {
         && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
+    private var usesLandscapeIPhoneMatchLayout: Bool {
+        GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+    }
+
     private func landscapeScoringStack(state: X01State) -> some View {
         HStack(alignment: .top, spacing: DS.Spacing.s2) {
             VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                ScrollView {
+                if usesLandscapeIPhoneMatchLayout {
                     playerCardsStack
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                } else {
+                    ScrollView {
+                        playerCardsStack
+                    }
+                    .scrollIndicators(.hidden)
                 }
-                .scrollIndicators(.hidden)
                 statusBanners
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -238,7 +250,7 @@ struct X01MatchScreen: View {
 
     private func playerCardsContent(for cards: [X01MatchViewModel.PlayerCard]) -> some View {
         Group {
-            if usesSideBySideMatchLayout, cards.count >= 2, cards.count <= 4 {
+            if usesIPadPortraitPlayerGrid(for: cards) {
                 LazyVGrid(
                     columns: Array(
                         repeating: GridItem(.flexible(), spacing: DS.Spacing.s2),
@@ -254,11 +266,21 @@ struct X01MatchScreen: View {
                 VStack(spacing: DS.Spacing.s2) {
                     ForEach(cards) { card in
                         playerScoreCard(card)
+                            .frame(maxHeight: usesLandscapeIPhoneMatchLayout ? .infinity : nil)
                     }
                 }
             }
         }
         .padding(.horizontal, DS.Spacing.s4)
+    }
+
+    private func usesIPadPortraitPlayerGrid(for cards: [X01MatchViewModel.PlayerCard]) -> Bool {
+        GameplayLayout.usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+        && cards.count >= 2
+        && cards.count <= 4
     }
 
     private func playerScoreCard(_ card: X01MatchViewModel.PlayerCard) -> some View {

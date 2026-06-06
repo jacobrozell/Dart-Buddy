@@ -43,6 +43,50 @@ func gameplayLayoutUsesAccessibilitySetupHomeOnlyAtAXSizes() {
 }
 
 @Test(.tags(.unit, .regression))
+func gameplayLayoutUsesLandscapeIPhoneMatchScoringOnlyOnCompactSizeClasses() {
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact
+        ) == true
+    )
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutUsesIPadPortraitMatchScoringOnlyOnRegularSizeClasses() {
+    #expect(
+        GameplayLayout.usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact
+        ) == false
+    )
+}
+
+@Test(.tags(.unit, .regression))
 func gameplayLayoutUsesSideBySideMatchScoringOnRegularHorizontalSizeClass() {
     #expect(
         GameplayLayout.usesSideBySideMatchScoringLayout(

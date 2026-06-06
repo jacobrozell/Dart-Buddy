@@ -55,6 +55,14 @@ func cricketBoardLandscapeCompactSizingIsShorterThanStandard() {
 }
 
 @Test(.tags(.unit, .cricket, .regression))
+func cricketBoardScaledToFillGrowsMarkRowsToUseAvailableHeight() {
+    let base = CricketBoardSizing.landscapeCompact
+    let scaled = base.scaledToFill(height: 360)
+    #expect(scaled.markRowHeight > base.markRowHeight)
+    #expect(scaled.boardBodyHeight >= 360 - 0.5)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
 func cricketBoardColumnLayoutDistributesThreePlayersOnTypicalPhoneWidth() {
     let layout = CricketBoardColumnLayout.resolve(availableWidth: 360, playerCount: 3)
     #expect(layout.scrollsHorizontally == false)

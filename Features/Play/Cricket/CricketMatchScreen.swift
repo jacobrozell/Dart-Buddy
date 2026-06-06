@@ -109,7 +109,8 @@ struct CricketMatchScreen: View {
     private var cricketBoard: some View {
         CricketBoardView(
             columns: viewModel.boardColumns,
-            activeColumnScrollID: viewModel.activeBoardColumnID
+            activeColumnScrollID: viewModel.activeBoardColumnID,
+            fillsAvailableHeight: usesLandscapeIPhoneMatchLayout
         )
     }
 
@@ -142,16 +143,28 @@ struct CricketMatchScreen: View {
         && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
+    private var usesLandscapeIPhoneMatchLayout: Bool {
+        GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+    }
+
     private var landscapeScoringStack: some View {
         HStack(alignment: .top, spacing: DS.Spacing.s2) {
             VStack(alignment: .leading, spacing: DS.Spacing.s1) {
                 if let state = viewModel.cricketState {
                     landscapeRoundTurnLabel(state: state)
                 }
-                ScrollView {
+                if usesLandscapeIPhoneMatchLayout {
                     cricketBoard
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                } else {
+                    ScrollView {
+                        cricketBoard
+                    }
+                    .scrollIndicators(.hidden)
                 }
-                .scrollIndicators(.hidden)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
