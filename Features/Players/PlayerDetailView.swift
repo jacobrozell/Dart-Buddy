@@ -236,6 +236,7 @@ struct PlayerDetailStatsContent: View {
                 ProgressView().tint(Brand.textPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s6)
+                    .accessibilityLabel(L10n.loading)
             } else if !viewModel.hasAnyGames {
                 Text(L10n.playersDetailNoGames)
                     .foregroundStyle(Brand.textSecondary)

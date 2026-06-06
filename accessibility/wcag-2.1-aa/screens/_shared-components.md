@@ -31,6 +31,7 @@ Cross-screen UI that affects multiple WCAG rows. Update here when fixing pad, bo
 - [x] `BrandSegmented` selected trait
 - [x] `StatTable` row labels
 - [x] Trend chart dates in accessibility value
+- [x] Loading `ProgressView` spinners carry `L10n.loading` label (match screens, summary, history, statistics, player detail)
 - [ ] Replace fixed gameplay font sizes with scaled styles
 - [ ] DesignSystem: default a11y props on primitives
 
@@ -39,3 +40,4 @@ Cross-screen UI that affects multiple WCAG rows. Update here when fixing pad, bo
 | Date | Tester | Result | Notes |
 |------|--------|--------|-------|
 | 2026-06-02 | Agent | Partial | All shared gameplay/tab components labeled in code |
+| 2026-06-06 | Agent | Partial | Unlabeled loading `ProgressView` spinners across 12 sites now expose `common.loading` (R-4.1.2 / P-1.1.1) |

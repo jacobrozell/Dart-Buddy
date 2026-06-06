@@ -75,6 +75,7 @@ struct X01MatchScreen: View {
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
+                    .accessibilityLabel(L10n.loading)
                 Spacer()
             }
         }

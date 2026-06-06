@@ -87,6 +87,7 @@ struct BaseballMatchScreen: View {
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
+                    .accessibilityLabel(L10n.loading)
                 Spacer()
             }
         }
