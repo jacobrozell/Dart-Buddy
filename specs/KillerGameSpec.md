@@ -9,7 +9,7 @@ Authoritative rules reference: [`FutureIdeas/killer-darts.md`](../FutureIdeas/ki
 
 ## 2. MVP Scope
 - `killer_double_standard` ruleset only
-- 3..N human players (no bots in v1)
+- 3..N players; preset difficulty bots supported (at least one human required)
 - Number-pick phase (one dart per player, non-dominant hand — honor system + copy)
 - Starting lives: 3–5 (default 3)
 - Become Killer on own double; damage opponents with doubles only
@@ -21,7 +21,7 @@ Authoritative rules reference: [`FutureIdeas/killer-darts.md`](../FutureIdeas/ki
 
 ### Out of Scope (v1)
 - `killer_marks_progression` variant
-- Bots, achievements, eliminated players as targets
+- Training/custom bots, achievements, eliminated players as targets
 
 ---
 
@@ -47,7 +47,7 @@ Replay from events restores assigned numbers, lives, killer flags, elimination, 
 ### Setup (`SetupHomeView+KillerOptionChips`)
 - Party category → Killer game picker
 - Chip: starting lives (3/4/5)
-- Validation: min 3 players, humans only
+- Validation: min 3 players, at least 1 human, preset bots only
 
 ### Play screen (`KillerMatchScreen`)
 | Region | Content |
@@ -75,4 +75,4 @@ Payload fields: see `KillerEngine.swift` and `SwiftData.md` when payload version
 
 ## 6. Testing
 - Unit: pick collision, become killer, damage gates, elimination, undo (`KillerEngineTests.swift`, `MatchLifecycleService` replay)
-- Setup: 3+ humans, bot rejection (`MatchSetupViewModelTests.swift`)
+- Setup: 3+ players, preset bot support, training/custom rejection (`MatchSetupViewModelTests.swift`)

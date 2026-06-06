@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SetupHomeView: View {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var rosterRowHeight: CGFloat = 52
@@ -283,9 +283,12 @@ struct SetupHomeView: View {
         .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
     }
 
-    /// Killer is humans-only; baseball and Shanghai allow preset difficulty bots only.
+    /// Killer, baseball, and Shanghai allow preset difficulty bots only.
     private var showsBotMenu: Bool {
-        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball || setupViewModel.partyGame == .shanghai
+        setupViewModel.setupCategory != .party
+            || setupViewModel.partyGame == .baseball
+            || setupViewModel.partyGame == .shanghai
+            || setupViewModel.partyGame == .killer
     }
 
     private var showsTrainingAndCustomBots: Bool {

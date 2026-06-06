@@ -257,8 +257,8 @@ final class MatchSetupViewModel: ObservableObject {
                     }
                 }
                 if partyGame == .killer {
-                    if selected.contains(where: \.isBot) {
-                        errors.append("setup.validation.killerHumansOnly")
+                    if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
+                        errors.append("setup.validation.killerBotsPresetOnly")
                     }
                 }
             }
@@ -500,7 +500,7 @@ final class MatchSetupViewModel: ObservableObject {
                         var botDifficultyRaw = entry.botDifficulty?.rawValue
                         var botKindRaw: String?
                         var botSkillProfilePayload: Data?
-                        if isBaseballParty || isShanghaiParty {
+                        if isBaseballParty || isShanghaiParty || isKillerParty {
                             if entry.botDifficulty != nil {
                                 botKindRaw = BotKind.preset.rawValue
                             }

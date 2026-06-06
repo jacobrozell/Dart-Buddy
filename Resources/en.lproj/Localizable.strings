@@ -662,8 +662,9 @@
 "play.killer.unknownPlayer" = "Player";
 "play.killer.setup.lives" = "Starting lives";
 "play.killer.setup.livesValueFormat" = "%d lives";
-"setup.validation.killerHumansOnly" = "Killer requires human players only.";
-"setup.validation.killerHumansOnly.short" = "Humans only.";
+"play.killer.pad.disabledWhileBot" = "Waiting for bot turn";
+"setup.validation.killerBotsPresetOnly" = "Killer supports preset difficulty bots only.";
+"setup.validation.killerBotsPresetOnly.short" = "Preset bots only.";
 "error.match.players.killerMinimum" = "Killer requires at least 3 players.";
 "error.match.mode.killerUnavailable" = "Killer state is unavailable for this match.";
 "error.match.killer.notPickPhase" = "Number pick is not active.";

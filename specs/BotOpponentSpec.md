@@ -64,6 +64,12 @@ Pure, deterministic given RNG seed. View models call engine → persist via `Mat
 - **Normal:** prefer highest open target for marks; scoring visits when overflow possible
 - **Cut Throat:** prefer punish targets on opponents who still have the bed open; inflict points on closed beds when opponents remain open (`cutThroatPunishTargets`)
 
+### Killer (preset only)
+- **Pick phase:** random available segment 1–20; intend single; cricket-style resolution (miss/wrong-bed → natural rethrow)
+- **Play phase:** up to 3 darts; pre-killer aims double on own number; post-killer targets lowest-lives opponent; easy tiers may wrong-bed to own double via `cricket.wrongBedChance`
+- Reuses `profile.cricket` hit tables for double accuracy
+- Setup validation: `setup.validation.killerBotsPresetOnly` (training/custom blocked)
+
 ### Shared resolution
 - Intended dart → hit/miss resolution using profile hit tables + boosts
 - Outputs `[DartInput]` consumed by mode engines like human input
@@ -119,7 +125,7 @@ Bot detail UI renders `BotDifficultyDisplayProfile` (hit %, visit range, checkou
 ## 9. Testing
 
 ## Unit
-- `DartBotEngineTests` — X01 checkout/check-in, Cricket normal/cut-throat targeting and punish scoring
+- `DartBotEngineTests` — X01 checkout/check-in, Cricket normal/cut-throat targeting and punish scoring, Killer pick/play targeting
 - `BotPlayerTests` — roster naming, creation
 - `BotLongTermSimulationTests` (performance target, not CI scheme)
 

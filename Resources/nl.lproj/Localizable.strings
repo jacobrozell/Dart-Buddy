@@ -662,8 +662,9 @@
 "play.killer.unknownPlayer" = "Speler";
 "play.killer.setup.lives" = "Startlevens";
 "play.killer.setup.livesValueFormat" = "%d levens";
-"setup.validation.killerHumansOnly" = "Killer vereist alleen menselijke spelers.";
-"setup.validation.killerHumansOnly.short" = "Alleen mensen.";
+"play.killer.pad.disabledWhileBot" = "Wachten op botbeurt";
+"setup.validation.killerBotsPresetOnly" = "Killer ondersteunt alleen vooraf ingestelde bot-moeilijkheidsgraden.";
+"setup.validation.killerBotsPresetOnly.short" = "Alleen preset-bots.";
 "error.match.players.killerMinimum" = "Killer vereist minstens 3 spelers.";
 "error.match.mode.killerUnavailable" = "Killer-status is niet beschikbaar voor deze wedstrijd.";
 "error.match.killer.notPickPhase" = "Nummerkeuze is niet actief.";

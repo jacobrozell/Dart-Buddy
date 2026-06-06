@@ -529,6 +529,101 @@ import Testing
     #expect(darts.contains { $0.points > 0 })
 }
 
+@Test func dartBotEngine_killerPickAvoidsTakenNumbers() {
+    var rng = SeededRandomNumberGenerator(seed: 11)
+    let profile = BotDifficulty.medium.skillProfile
+    let taken: Set<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    for _ in 0 ..< 32 {
+        let dart = DartBotEngine.generateKillerPick(takenNumbers: taken, profile: profile, rng: &rng)
+        if case let .oneToTwenty(value) = dart.segment {
+            #expect(value == 20)
+        }
+    }
+}
+
+@Test func dartBotEngine_killerTurnAimsOwnDoublePreKiller() throws {
+    let players = [UUID(), UUID(), UUID()]
+    var state = try KillerEngine.makeInitialState(
+        config: MatchConfigKiller(startingLives: 3),
+        playerIds: players
+    )
+    state.phase = .playing
+    state.players[0].assignedNumber = 12
+    state.players[1].assignedNumber = 8
+    state.players[2].assignedNumber = 16
+    state.currentPlayerIndex = 0
+
+    var foundOwnDouble = false
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+        let darts = DartBotEngine.generateKillerTurn(
+            state: state,
+            throwerIndex: 0,
+            profile: BotDifficulty.pro.skillProfile,
+            rng: &rng
+        )
+        if darts.contains(where: killerDartAims(at: 12, multiplier: .double, dart: $0)) {
+            foundOwnDouble = true
+            break
+        }
+    }
+    #expect(foundOwnDouble)
+}
+
+@Test func dartBotEngine_killerTurnTargetsWeakestOpponentWhenKiller() throws {
+    let players = [UUID(), UUID(), UUID()]
+    var state = try KillerEngine.makeInitialState(
+        config: MatchConfigKiller(startingLives: 3),
+        playerIds: players
+    )
+    state.phase = .playing
+    state.players[0].assignedNumber = 12
+    state.players[0].isKiller = true
+    state.players[1].assignedNumber = 8
+    state.players[1].lives = 1
+    state.players[2].assignedNumber = 16
+    state.players[2].lives = 3
+    state.currentPlayerIndex = 0
+
+    var foundWeakestTarget = false
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+        let darts = DartBotEngine.generateKillerTurn(
+            state: state,
+            throwerIndex: 0,
+            profile: BotDifficulty.pro.skillProfile,
+            rng: &rng
+        )
+        if darts.contains(where: killerDartAims(at: 8, multiplier: .double, dart: $0)) {
+            foundWeakestTarget = true
+            break
+        }
+    }
+    #expect(foundWeakestTarget)
+}
+
+@Test func dartBotEngine_killerTurnGeneratesThreeDarts() throws {
+    let players = [UUID(), UUID(), UUID()]
+    var state = try KillerEngine.makeInitialState(
+        config: MatchConfigKiller(startingLives: 3),
+        playerIds: players
+    )
+    state.phase = .playing
+    state.players[0].assignedNumber = 12
+    state.players[1].assignedNumber = 8
+    state.players[2].assignedNumber = 16
+    state.currentPlayerIndex = 0
+
+    var rng = SeededRandomNumberGenerator(seed: 42)
+    let darts = DartBotEngine.generateKillerTurn(
+        state: state,
+        throwerIndex: 0,
+        profile: BotDifficulty.medium.skillProfile,
+        rng: &rng
+    )
+    #expect(darts.count == 3)
+}
+
 private func scoreShanghaiVisit(darts: [DartInput], round: Int) throws -> Int {
     var state = try ShanghaiEngine.makeInitialState(
         config: MatchConfigShanghai(roundCount: round),
@@ -556,6 +651,10 @@ private func cricketDartAims(at value: Int, dart: DartInput) -> Bool {
     default:
         return false
     }
+}
+
+private func killerDartAims(at value: Int, multiplier: DartMultiplier, dart: DartInput) -> Bool {
+    dart.multiplier == multiplier && cricketDartAims(at: value, dart: dart)
 }
 
 private struct SeededRandomNumberGenerator: RandomNumberGenerator {
