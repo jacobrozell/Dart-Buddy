@@ -22,7 +22,13 @@ public enum FirebaseAnalyticsEventMapping {
         "match_abandoned",
         "match_start_failed",
         "turn_persist_failed",
-        "app_bootstrap_migration_failure"
+        "app_bootstrap_migration_failure",
+        "deep_link_received",
+        "deep_link_applied",
+        "deep_link_deferred",
+        "deep_link_failed",
+        "intent_performed",
+        "intent_failed"
     ]
 
     private static let allowlistedParameterKeys: Set<String> = [
@@ -38,7 +44,10 @@ public enum FirebaseAnalyticsEventMapping {
         "legIndex",
         "setIndex",
         "source",
-        "isBot"
+        "isBot",
+        "path",
+        "version",
+        "intentName"
     ]
 
     private static let firebaseNameOverrides: [String: String] = [

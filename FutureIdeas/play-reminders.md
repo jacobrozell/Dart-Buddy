@@ -93,6 +93,8 @@ Never request permission on cold launch without user action.
 
 **Recommended:** Deep link to **Play tab** (match setup home). Log `reminder_opened` analytics event. No special modal.
 
+**Implementation (router ready):** Set notification `userInfo["url"]` to `DartBuddyURL.play().absoluteString` (`dartbuddy://v1/play`). Parsing and deferred delivery are defined in [`specs/DeepLinkSpec.md`](../specs/DeepLinkSpec.md) §9.
+
 ### 5. Reset all local data
 
 **Recommended:** `resetAllLocalData()` cancels pending reminder notifications and resets reminder prefs to off (same as other settings defaults).
