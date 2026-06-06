@@ -383,7 +383,7 @@
 "stats.section.marksPerRound" = "Marcas por ronda";
 "stats.column.highest" = "más alto";
 "stats.column.bestCO" = "Mejor CO";
-"stats.column.winsPercent" = "% de victorias";
+"stats.column.winsPercent" = "Victorias %";
 "stats.column.legs" = "Legs";
 "stats.table.playersColumn" = "Jugadores";
 "history.filter.allGames" = "Todos los juegos";
