@@ -24,7 +24,7 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 | Idea | Notes |
 |------|--------|
-| **More colors and symbols (Edit Player)** | Expand palette and symbol choices on the Edit Player screen. |
+| ~~**More colors and symbols (Edit Player)**~~ | _Shipped._ Avatar set expanded to 16 symbols and the color palette to 18 tokens (`PlayerAvatarStyle` / `PlayerColorToken`), surfaced on the Edit Player pickers and localized across `en`/`de`/`es`/`nl`. |
 | **Random bot names with clear difficulty** | Bots get varied display names while difficulty (Very Easy, Easy, Medium, …) stays obvious. **Define fixed colors per difficulty tier** so bot names always render in the tier color regardless of random name. |
 | **Custom bot with user-defined metrics** | User-configurable bot opponent (skill/metrics) beyond preset tiers. |
 

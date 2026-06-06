@@ -259,6 +259,12 @@
 "players.avatar.heart" = "Herz";
 "players.avatar.medal" = "Medaille";
 "players.avatar.shield" = "Schild";
+"players.avatar.gameController" = "Controller";
+"players.avatar.sparkles" = "Funkeln";
+"players.avatar.thumbsUp" = "Daumen hoch";
+"players.avatar.dice" = "Würfel";
+"players.avatar.leaf" = "Blatt";
+"players.avatar.moon" = "Mond";
 "players.identity.color.green" = "Grün";
 "players.identity.color.amber" = "Bernstein";
 "players.identity.color.red" = "Rot";
@@ -271,6 +277,12 @@
 "players.identity.color.cyan" = "Cyan";
 "players.identity.color.lime" = "Limette";
 "players.identity.color.coral" = "Koralle";
+"players.identity.color.mint" = "Minze";
+"players.identity.color.magenta" = "Magenta";
+"players.identity.color.slate" = "Schiefer";
+"players.identity.color.gold" = "Gold";
+"players.identity.color.brown" = "Braun";
+"players.identity.color.maroon" = "Kastanienbraun";
 "history.filter.7d" = "7 T.";
 "history.filter.30d" = "30 T.";
 "history.filter.all" = "Alle";
