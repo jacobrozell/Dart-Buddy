@@ -339,11 +339,30 @@ first and the rest get cheaper.
 
 ---
 
+## Implemented in this PR (foundation)
+
+A first, deliberately low-risk slice — additive tokens/polish that don't
+restructure tested flows — landed alongside this review:
+
+- **D2 (foundation)** — `GameModeAccent` token (`DesignSystem/Tokens/GameModeAccent.swift`):
+  a per-mode identity accent + SF Symbol, plus a `GameModeBadge` view, drawn from
+  the existing `Brand` palette and registered in `DesignSystem/README.md` with an
+  "identity, never status" rule. First adoption: a mode badge on each History row
+  (`MatchHistoryCard`). Remaining adoptions (mode catalog, stats filters) follow
+  once those surfaces are built.
+- **D6** — Monospaced digits on live-scoring numerics in the X01 `PlayerScoreCard`
+  (remaining score, visit total, darts, average) and History result scores, so
+  totals don't jitter as they change. Same one-line treatment can extend to the
+  Cricket/Baseball/Killer/Shanghai scoreboards as a follow-up.
+
+The larger structural items below intentionally remain proposals: they need
+build/UI-test verification and, per `SpecGovernance`, a spec update first.
+
 ## Prioritized roadmap
 
 ### Quick wins (low risk, high polish — mostly token/visual)
+- ~~**D6** Monospaced digits on live-scoring numerics.~~ *(started — X01 + History)*
 - **D9** Regenerate marketing screenshots from current UI.
-- **D6** Monospaced digits on all live-scoring numerics.
 - **C1** Stronger active-player cue (border/elevation).
 - **C4** Spell out / icon-label Players micro-stats.
 - **A4** Single canonical active-match affordance.
@@ -351,8 +370,10 @@ first and the rest get cheaper.
 ### Structural (sequence deliberately; touch specs first)
 - **D1** Consolidate `Brand` + `DS.ColorRole` into one semantic token layer;
   split status colors from brand/action.
-- **D2** Per-mode accent tokens.
-- **D5** `EmptyState` component + a `#Preview` component gallery.
+- ~~**D2** Per-mode accent tokens.~~ *(token + first adoption landed; wire into
+  the mode catalog and stats filters as those surfaces ship)*
+- **D5** A `#Preview` component gallery (empty states already covered by
+  `ContentUnavailableView` + `brandScoreboardEmptyState()`).
 
 ### Flow & IA (bigger UX shifts — prototype before committing)
 - **A2 / B1** Game-mode catalog + split setup (what to play / who plays).

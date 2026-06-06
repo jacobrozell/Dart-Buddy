@@ -244,7 +244,8 @@ struct MatchHistoryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            HStack {
+            HStack(spacing: DS.Spacing.s2) {
+                GameModeBadge(type: row.summary.type)
                 Text(row.dateText)
                     .font(.headline)
                     .foregroundStyle(Brand.textPrimary)
@@ -272,6 +273,7 @@ struct MatchHistoryCard: View {
                         }
                         Text("\(standing.score)")
                             .font(.title3.weight(.bold))
+                            .monospacedDigit()
                             .foregroundStyle(Brand.textPrimary)
                     }
                 }
