@@ -278,10 +278,20 @@ struct SetupHomeView: View {
         .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
     }
 
+    /// Killer is humans-only; baseball allows preset difficulty bots only.
+    private var showsBotMenu: Bool {
+        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball
+    }
+
+    private var showsTrainingAndCustomBots: Bool {
+        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball
+    }
+
     private var rosterActionButtons: some View {
         HStack(spacing: DS.Spacing.s2) {
+            if showsBotMenu {
             Menu {
-                if setupViewModel.setupCategory != .party || setupViewModel.partyGame != .baseball {
+                if showsTrainingAndCustomBots {
                     if !setupViewModel.availableTrainingBots.isEmpty {
                         Section(L10n.trainingBotSetupSection) {
                             ForEach(setupViewModel.availableTrainingBots) { bot in
@@ -313,7 +323,7 @@ struct SetupHomeView: View {
                     }
                 }
                 Section(L10n.addBotTitle) {
-                    if setupViewModel.setupCategory != .party || setupViewModel.partyGame != .baseball {
+                    if showsTrainingAndCustomBots {
                         Button {
                             showsCustomBotSheet = true
                         } label: {
@@ -337,6 +347,7 @@ struct SetupHomeView: View {
                 .overlay(RoundedRectangle(cornerRadius: DS.Radius.sm).stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
             }
             .accessibilityLabel(L10n.addBotTitle)
+            }
             Button { onQuickAddPlayer() } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "person.badge.plus")
