@@ -1,13 +1,12 @@
 import SwiftUI
 
 @MainActor
-final class BaseballMatchViewModel: ObservableObject {
+final class ShanghaiMatchViewModel: ObservableObject {
     enum State: Equatable {
         case readyTurn
         case entryInvalid(String)
         case submittingTurn
-        case stretchGateHint
-        case perfectInningFeedback
+        case shanghaiFeedback
         case matchCompleted
         case error(String)
     }
@@ -42,8 +41,8 @@ final class BaseballMatchViewModel: ObservableObject {
         self.feedbackPreferences = feedbackPreferences
         self.turnSubmitter = MatchTurnSubmitter(
             matchId: matchId,
-            matchType: .baseball,
-            eventTypeRaw: "baseballTurn",
+            matchType: .shanghai,
+            eventTypeRaw: "shanghaiTurn",
             store: store,
             logger: logger,
             matchRepository: matchRepository
@@ -51,7 +50,7 @@ final class BaseballMatchViewModel: ObservableObject {
         self.session = store.session(for: matchId)
     }
 
-    var baseballState: BaseballState? { session?.runtime.baseballState }
+    var shanghaiState: ShanghaiState? { session?.runtime.shanghaiState }
 
     var canSubmit: Bool { enteredDarts.count == 3 && canHumanInput }
 
@@ -64,7 +63,7 @@ final class BaseballMatchViewModel: ObservableObject {
     }
 
     var currentBotSkillProfile: BotSkillProfile? {
-        guard let session, let state = session.runtime.baseballState else { return nil }
+        guard let session, let state = session.runtime.shanghaiState else { return nil }
         guard session.runtime.status == .inProgress else { return nil }
         let player = state.players[state.currentPlayerIndex]
         return DartBotEngine.botSkillProfile(
@@ -74,81 +73,41 @@ final class BaseballMatchViewModel: ObservableObject {
     }
 
     var lockedSegment: Int? {
-        guard let state = baseballState else { return nil }
-        switch state.phase {
-        case .innings:
-            return state.currentInning
-        case .bullPlayoff:
-            return 25
-        case .completed:
-            return nil
-        }
-    }
-
-    var showsBullOnPad: Bool {
-        guard let state = baseballState else { return false }
-        switch state.phase {
-        case .bullPlayoff:
-            return true
-        case .innings:
-            return state.config.seventhInningStretch && state.currentInning == 7
-        case .completed:
-            return false
-        }
+        shanghaiState?.currentRound
     }
 
     var headerText: String {
-        guard let state = baseballState else { return "" }
-        switch state.phase {
-        case .bullPlayoff:
-            return L10n.string("play.baseball.header.bullPlayoff")
-        case .innings, .completed:
-            return L10n.format("play.baseball.headerFormat", state.currentInning, state.currentInning)
-        }
+        guard let state = shanghaiState else { return "" }
+        return L10n.format("play.shanghai.headerFormat", state.currentRound, state.currentRound)
     }
 
-    var showsExtraInningBadge: Bool {
-        baseballState?.isExtraInning == true && baseballState?.phase == .innings
+    var showsExtraRoundBadge: Bool {
+        shanghaiState?.isExtraRound == true
     }
 
     var headerAccessibilityLabel: String {
-        var parts = [L10n.string("play.baseball.title"), headerText]
-        if showsExtraInningBadge {
-            parts.append(L10n.string("play.baseball.extraInning"))
+        var parts = [L10n.string("play.shanghai.title"), headerText]
+        if showsExtraRoundBadge {
+            parts.append(L10n.string("play.shanghai.extraRound"))
         }
         return parts.joined(separator: ", ")
     }
 
-    var showsInningProgressStrip: Bool {
-        baseballState?.phase == .innings
-    }
-
-    var stretchGateHint: String? {
-        guard let state = baseballState,
-              state.phase == .innings,
-              state.config.seventhInningStretch,
-              state.currentInning == 7,
-              state.players[state.currentPlayerIndex].stretchGateOpen == false,
-              canHumanInput || isBotPlaying else { return nil }
-        return L10n.string("play.baseball.stretchGateHint")
-    }
-
-    var scoreboardRows: [BaseballScoreboardView.Row] {
-        guard let session, let state = session.runtime.baseballState else { return [] }
+    var scoreboardRows: [ShanghaiScoreboardView.Row] {
+        guard let session, let state = session.runtime.shanghaiState else { return [] }
         let isInProgress = session.runtime.status == .inProgress
-        let showsVisitColumn = state.players.count < 6 && state.phase != .completed
+        let showsRoundColumn = state.players.count < 6 && !state.isComplete
         return state.players.enumerated().map { index, player in
             let participant = participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
-            let visitPreview = showsVisitColumn
-                ? previewVisitRuns(for: player, playerIndex: index, isActive: isActive, state: state)
+            let roundPreview = showsRoundColumn
+                ? previewRoundPoints(for: player, playerIndex: index, isActive: isActive, state: state)
                 : nil
-            return BaseballScoreboardView.Row(
+            return ShanghaiScoreboardView.Row(
                 id: player.playerId,
                 name: participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: index),
-                cumulativeRuns: player.cumulativeRuns,
-                visitRuns: visitPreview?.runs,
-                visitRunsKind: visitPreview?.kind,
+                cumulativePoints: player.cumulativePoints,
+                roundPoints: roundPreview,
                 isActive: isActive,
                 isLeading: isPlayerLeading(playerIndex: index, state: state),
                 colorToken: participant?.colorToken ?? PlayerColorToken.defaultForPlayer(id: player.playerId)
@@ -156,9 +115,9 @@ final class BaseballMatchViewModel: ObservableObject {
         }
     }
 
-    var showsVisitRunsColumn: Bool {
-        guard let state = baseballState else { return false }
-        return state.players.count < 6 && state.phase != .completed
+    var showsRoundPointsColumn: Bool {
+        guard let state = shanghaiState else { return false }
+        return state.players.count < 6 && !state.isComplete
     }
 
     func submitTurn() async {
@@ -176,10 +135,10 @@ final class BaseballMatchViewModel: ObservableObject {
     func onAppear() async {
         logger.matchDebug(
             matchId: matchId,
-            matchType: .baseball,
+            matchType: .shanghai,
             category: .ui,
             eventName: "match_screen_appeared",
-            message: "Baseball match screen presented."
+            message: "Shanghai match screen presented."
         )
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
@@ -207,118 +166,52 @@ final class BaseballMatchViewModel: ObservableObject {
         } catch {
             logger.matchError(
                 matchId: matchId,
-                matchType: .baseball,
+                matchType: .shanghai,
                 category: .appLifecycle,
-                eventName: "baseball_abandon_failed",
+                eventName: "shanghai_abandon_failed",
                 message: "Abandon failed.",
                 metadata: MatchTurnSupport.appErrorMetadata(for: error)
             )
         }
     }
 
-    func announceTurnIfNeeded(visitRuns: Int, cumulativeRuns: Int) {
+    func announceTurnIfNeeded(visitPoints: Int, cumulativePoints: Int) {
         let announcement = L10n.format(
-            "play.baseball.announce.turnFormat",
-            visitRuns,
-            cumulativeRuns
+            "play.shanghai.announce.turnFormat",
+            visitPoints,
+            cumulativePoints
         )
         postAccessibilityAnnouncement(announcement)
     }
 
-    private struct VisitRunsPreview {
-        let runs: Int
-        let kind: BaseballScoreboardView.VisitRunsKind
+    private func isPlayerLeading(playerIndex: Int, state: ShanghaiState) -> Bool {
+        let maxPoints = state.players.map(\.cumulativePoints).max() ?? 0
+        guard maxPoints > 0 else { return false }
+        let leaderCount = state.players.filter { $0.cumulativePoints == maxPoints }.count
+        return leaderCount == 1 && state.players[playerIndex].cumulativePoints == maxPoints
     }
 
-    private func isPlayerLeading(playerIndex: Int, state: BaseballState) -> Bool {
-        switch state.phase {
-        case .bullPlayoff:
-            let indices = state.playoffPlayerIndices
-            guard indices.contains(playerIndex) else { return false }
-            let scores = indices.map { playoffRuns(forLeading: $0, state: state) }
-            guard let maxScore = scores.max(), maxScore > 0 else { return false }
-            let leaders = indices.filter { playoffRuns(forLeading: $0, state: state) == maxScore }
-            return leaders.count == 1 && leaders[0] == playerIndex
-        case .innings:
-            let maxRuns = state.players.map(\.cumulativeRuns).max() ?? 0
-            guard maxRuns > 0 else { return false }
-            let leaderCount = state.players.filter { $0.cumulativeRuns == maxRuns }.count
-            return leaderCount == 1 && state.players[playerIndex].cumulativeRuns == maxRuns
-        case .completed:
-            return state.winnerPlayerId == state.players[playerIndex].playerId
-        }
-    }
-
-    private func playoffRuns(forLeading playerIndex: Int, state: BaseballState) -> Int {
-        var runs = state.players[playerIndex].playoffRunsThisRound
-        if playerIndex == state.currentPlayerIndex, canHumanInput || isBotPlaying {
-            for dart in enteredDarts {
-                runs += previewRuns(for: dart, state: state, playerIndex: playerIndex)
-            }
-        }
-        return runs
-    }
-
-    private func previewVisitRuns(
-        for player: BaseballPlayerState,
+    private func previewRoundPoints(
+        for player: ShanghaiPlayerState,
         playerIndex: Int,
         isActive: Bool,
-        state: BaseballState
-    ) -> VisitRunsPreview? {
-        switch state.phase {
-        case .bullPlayoff:
-            guard state.playoffPlayerIndices.contains(playerIndex) else { return nil }
-            var preview = player.playoffRunsThisRound
-            if isActive, canHumanInput || isBotPlaying {
-                for dart in enteredDarts {
-                    preview += previewRuns(for: dart, state: state, playerIndex: playerIndex)
-                }
-            }
-            return VisitRunsPreview(runs: preview, kind: .playoffRound)
-        case .innings:
-            let runs = previewRunsThisInning(for: player, isActive: isActive)
-            return VisitRunsPreview(runs: runs, kind: .inning)
-        case .completed:
-            return nil
-        }
-    }
-
-    private func previewRunsThisInning(for player: BaseballPlayerState, isActive: Bool) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return player.runsThisInning }
-        guard let state = baseballState, isActive else { return player.runsThisInning }
-        var preview = player.runsThisInning
+        state: ShanghaiState
+    ) -> Int {
+        guard isActive, canHumanInput || isBotPlaying else { return player.pointsThisRound }
+        var preview = player.pointsThisRound
         for dart in enteredDarts {
-            preview += previewRuns(for: dart, state: state, playerIndex: state.currentPlayerIndex)
+            preview += previewPoints(for: dart, target: state.currentRound)
         }
         return preview
     }
 
-    private func previewRuns(for dart: DartInput, state: BaseballState, playerIndex: Int) -> Int {
+    private func previewPoints(for dart: DartInput, target: Int) -> Int {
         if dart.isMiss { return 0 }
-        switch state.phase {
-        case .bullPlayoff:
-            switch dart.segment {
-            case .outerBull: return 1
-            case .innerBull: return 2
-            default: return 0
-            }
-        case .innings:
-            let target = state.currentInning
-            if state.config.seventhInningStretch, target == 7, !state.players[playerIndex].stretchGateOpen {
-                if dart.segment == .outerBull || dart.segment == .innerBull { return 0 }
-                if case let .oneToTwenty(value) = dart.segment, value == target { return 0 }
-                return 0
-            }
-            if case let .oneToTwenty(value) = dart.segment, value == target {
-                switch dart.multiplier {
-                case .single: return 1
-                case .double: return 2
-                case .triple: return 3
-                }
-            }
-            return 0
-        case .completed:
-            return 0
+        guard case let .oneToTwenty(value) = dart.segment, value == target else { return 0 }
+        switch dart.multiplier {
+        case .single: return target
+        case .double: return target * 2
+        case .triple: return target * 3
         }
     }
 
@@ -353,18 +246,15 @@ final class BaseballMatchViewModel: ObservableObject {
         guard let profile = currentBotSkillProfile,
               state == .readyTurn,
               isBotPlaying == false,
-              let baseballState = session?.runtime.baseballState else { return false }
+              let shanghaiState = session?.runtime.shanghaiState else { return false }
 
         isBotPlaying = true
         defer { isBotPlaying = false }
 
         enteredDarts.removeAll()
         var rng = SystemRandomNumberGenerator()
-        let plannedDarts = DartBotEngine.generateBaseballTurn(
-            targetSegment: baseballState.phase == .bullPlayoff ? 25 : baseballState.currentInning,
-            phase: baseballState.phase,
-            stretchGateOpen: baseballState.players[baseballState.currentPlayerIndex].stretchGateOpen,
-            seventhInningStretch: baseballState.config.seventhInningStretch,
+        let plannedDarts = DartBotEngine.generateShanghaiTurn(
+            targetSegment: shanghaiState.currentRound,
             profile: profile,
             rng: &rng
         )
@@ -392,18 +282,17 @@ final class BaseballMatchViewModel: ObservableObject {
     private func submitTurnAsync(fromBotPlayback: Bool = false) async {
         await loadSessionIfNeeded()
         guard let current = session else {
-            state = .error("baseball.error.sessionMissing")
+            state = .error("shanghai.error.sessionMissing")
             return
         }
         state = .submittingTurn
         let darts = enteredDarts
-        let playerIndex = current.runtime.baseballState?.currentPlayerIndex
 
         let outcome = await turnSubmitter.submitTurn(
             from: current,
-            invalidTurnFallbackKey: "baseball.error.invalidTurn"
+            invalidTurnFallbackKey: "shanghai.error.invalidTurn"
         ) {
-            try MatchLifecycleService.submitBaseballTurn(session: current, darts: darts)
+            try MatchLifecycleService.submitShanghaiTurn(session: current, darts: darts)
         }
 
         switch outcome {
@@ -415,23 +304,17 @@ final class BaseballMatchViewModel: ObservableObject {
             state = .error(messageKey)
         case let .succeeded(updated):
             session = updated
-            if let event = lastBaseballTurn(in: updated) {
-                announceTurnIfNeeded(visitRuns: event.runsThisVisit, cumulativeRuns: event.cumulativeRunsAfterTurn)
-                if event.runsThisVisit == 9 {
-                    state = .perfectInningFeedback
+            if let event = lastShanghaiTurn(in: updated) {
+                announceTurnIfNeeded(visitPoints: event.pointsThisVisit, cumulativePoints: event.cumulativePointsAfterTurn)
+                if event.achievedShanghai {
+                    postAccessibilityAnnouncement(L10n.string("play.shanghai.achieved"))
+                    state = .shanghaiFeedback
                     try? await Task.sleep(nanoseconds: 800_000_000)
                 }
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted
             } else {
-                if updated.runtime.baseballState?.config.seventhInningStretch == true,
-                   updated.runtime.baseballState?.currentInning == 7,
-                   playerIndex.flatMap({ updated.runtime.baseballState?.players[$0].stretchGateOpen }) == false,
-                   darts.contains(where: { $0.segment == .outerBull || $0.segment == .innerBull }) {
-                    state = .stretchGateHint
-                    try? await Task.sleep(nanoseconds: 600_000_000)
-                }
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {
                     await playBotTurnIfNeeded()
@@ -458,7 +341,7 @@ final class BaseballMatchViewModel: ObservableObject {
         } catch is CancellationError {
             state = .readyTurn
         } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "baseball.error.undoFailed"))
+            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "shanghai.error.undoFailed"))
         }
     }
 
@@ -486,7 +369,7 @@ final class BaseballMatchViewModel: ObservableObject {
         } catch is CancellationError {
             state = .readyTurn
         } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "baseball.error.undoFailed"))
+            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "shanghai.error.undoFailed"))
         }
     }
 
@@ -516,13 +399,13 @@ final class BaseballMatchViewModel: ObservableObject {
             store.save(rehydrated)
             session = rehydrated
         } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "baseball.error.sessionMissing"))
+            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "shanghai.error.sessionMissing"))
         }
     }
 
-    private func lastBaseballTurn(in session: MatchLifecycleSession) -> BaseballTurnEvent? {
+    private func lastShanghaiTurn(in session: MatchLifecycleSession) -> ShanghaiTurnEvent? {
         guard let envelope = session.events.last,
-              case let .baseballTurn(event) = envelope.payload else { return nil }
+              case let .shanghaiTurn(event) = envelope.payload else { return nil }
         return event
     }
 }

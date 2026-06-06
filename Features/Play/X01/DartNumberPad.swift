@@ -15,6 +15,7 @@ struct DartNumberPad: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
+    @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
     private var usesAccessibilityLayout: Bool {
         GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
@@ -26,6 +27,10 @@ struct DartNumberPad: View {
 
     private var displayKeyMinHeight: CGFloat {
         usesAccessibilityLayout ? min(keyMinHeight, 56) : keyMinHeight
+    }
+
+    private var displayVisitSlotMinHeight: CGFloat {
+        usesAccessibilityLayout ? min(visitSlotMinHeight, 40) : min(visitSlotMinHeight, 30)
     }
 
     private let compactRows: [[Int]] = [
@@ -62,6 +67,7 @@ struct DartNumberPad: View {
 
     private var compactPad: some View {
         VStack(spacing: padSpacing) {
+            visitPreview
             ForEach(visibleCompactRows, id: \.self) { row in
                 HStack(spacing: padSpacing) {
                     ForEach(row, id: \.self) { value in
@@ -79,6 +85,7 @@ struct DartNumberPad: View {
             count: GameplayLayout.scoringPadColumnCount(dynamicTypeSize: dynamicTypeSize)
         )
         return VStack(spacing: padSpacing) {
+            visitPreview
             LazyVGrid(columns: columns, spacing: padSpacing) {
                 ForEach(visibleAccessibilitySegments, id: \.self) { value in
                     numberKey(value)
@@ -86,6 +93,30 @@ struct DartNumberPad: View {
             }
             controlRow
         }
+    }
+
+    private var visitPreview: some View {
+        HStack(spacing: 6) {
+            ForEach(0 ..< maxDarts, id: \.self) { slot in
+                Text(slot < enteredDarts.count ? enteredDarts[slot].compactDisplayLabel : "")
+                    .font(.caption.weight(.bold).monospacedDigit())
+                    .foregroundStyle(Brand.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(maxWidth: .infinity, minHeight: displayVisitSlotMinHeight)
+                    .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(visitPreviewAccessibilityLabel)
+        .accessibilityHidden(enteredDarts.isEmpty)
+        .accessibilityIdentifier("dart_visit_preview")
+    }
+
+    private var visitPreviewAccessibilityLabel: String {
+        let names = enteredDarts.map(\.spokenAccessibilityName)
+        guard !names.isEmpty else { return "" }
+        return L10n.format("scoring.visitDartsFormat", names.joined(separator: ", "))
     }
 
     private var controlRow: some View {

@@ -196,6 +196,7 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
     case cricket(MatchConfigCricket)
     case baseball(MatchConfigBaseball)
     case killer(MatchConfigKiller)
+    case shanghai(MatchConfigShanghai)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -203,6 +204,7 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case cricket
         case baseball
         case killer
+        case shanghai
     }
 
     private enum PayloadType: String, Codable {
@@ -210,6 +212,7 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case cricket
         case baseball
         case killer
+        case shanghai
     }
 
     public init(from decoder: any Decoder) throws {
@@ -224,6 +227,8 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
             self = .baseball(try container.decode(MatchConfigBaseball.self, forKey: .baseball))
         case .killer:
             self = .killer(try container.decode(MatchConfigKiller.self, forKey: .killer))
+        case .shanghai:
+            self = .shanghai(try container.decode(MatchConfigShanghai.self, forKey: .shanghai))
         }
     }
 
@@ -242,6 +247,9 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case let .killer(config):
             try container.encode(PayloadType.killer, forKey: .type)
             try container.encode(config, forKey: .killer)
+        case let .shanghai(config):
+            try container.encode(PayloadType.shanghai, forKey: .type)
+            try container.encode(config, forKey: .shanghai)
         }
     }
 }

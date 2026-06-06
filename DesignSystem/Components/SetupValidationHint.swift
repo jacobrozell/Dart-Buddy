@@ -40,6 +40,7 @@ enum SetupValidationMessages {
         case "setup.validation.partyKillerMinimumPlayers": return "setup.validation.partyKillerMinimumPlayers.short"
         case "setup.validation.killerHumansOnly": return "setup.validation.killerHumansOnly.short"
         case "setup.validation.baseballBotsPresetOnly": return "setup.validation.baseballBotsPresetOnly.short"
+        case "setup.validation.shanghaiBotsPresetOnly": return "setup.validation.shanghaiBotsPresetOnly.short"
         default: return messageKey
         }
     }

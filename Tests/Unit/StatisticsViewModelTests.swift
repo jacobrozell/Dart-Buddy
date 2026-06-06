@@ -28,11 +28,11 @@ func statisticsViewModelFiltersByMode() async throws {
         playerRepository: StatsVMFakePlayerRepository()
     )
 
-    vm.mode = .cricket
+    vm.modeFilter = .cricket
     await vm.load()
     #expect(vm.rows.isEmpty)
 
-    vm.mode = .x01
+    vm.modeFilter = .x01
     await vm.load()
     #expect(vm.rows.count == 2)
 }
@@ -65,7 +65,7 @@ func statisticsViewModelIncludesPartialActiveMatch() async throws {
         statsRepository: StatsVMFakeStatsRepository(events: partial.events),
         playerRepository: StatsVMFakePlayerRepository()
     )
-    vm.mode = .x01
+    vm.modeFilter = .x01
     vm.period = .all
     await vm.load()
 
@@ -87,7 +87,7 @@ func statisticsViewModelOmitsPartialWhenModeDiffers() async throws {
         statsRepository: StatsVMFakeStatsRepository(events: partial.events),
         playerRepository: StatsVMFakePlayerRepository()
     )
-    vm.mode = .cricket
+    vm.modeFilter = .cricket
     await vm.load()
 
     #expect(!vm.includesPartialActiveMatch)

@@ -237,6 +237,32 @@ extension XCTestCase {
         assertInteractiveElement(app.otherElements["baseball_inning_strip"], identifier: "baseball_inning_strip", timeout: timeout)
     }
 
+    func startTwoPlayerShanghaiMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        ensurePlayTab(app, timeout: timeout)
+        app.buttons["setup_category_party"].tap()
+        let shanghai = app.buttons["setup_party_game_shanghai"]
+        if shanghai.waitForExistence(timeout: timeout) {
+            shanghai.tap()
+        }
+        assertInteractiveElement(
+            app.descendants(matching: .any)["setup_shanghaiRoundsChip"],
+            identifier: "setup_shanghaiRoundsChip",
+            timeout: timeout
+        )
+        assertInteractiveElement(app.buttons["setup_shanghaiBonusChip"], identifier: "setup_shanghaiBonusChip", timeout: timeout)
+        selectAliceAndBobForPartySetup(from: app, timeout: timeout)
+        app.buttons["startMatchButton"].tap()
+        XCTAssertTrue(app.otherElements["shanghai_match_header"].waitForExistence(timeout: timeout))
+        assertInteractiveElement(app.buttons["shanghai_submit"], identifier: "shanghai_submit", timeout: timeout)
+        assertInteractiveElement(app.buttons["shanghai_undo"], identifier: "shanghai_undo", timeout: timeout)
+        assertInteractiveElement(app.otherElements["shanghai_round_strip"], identifier: "shanghai_round_strip", timeout: timeout)
+        assertInteractiveElement(
+            app.descendants(matching: .any)["shanghai_scoreboard_row_0"],
+            identifier: "shanghai_scoreboard_row_0",
+            timeout: timeout
+        )
+    }
+
     func configureQuickX01Match(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         let startScore = app.buttons["setup_startScoreChip"]
         XCTAssertTrue(startScore.waitForExistence(timeout: timeout))

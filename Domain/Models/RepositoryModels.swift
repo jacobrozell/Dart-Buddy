@@ -5,6 +5,7 @@ public enum MatchType: String, Codable, Sendable {
     case cricket
     case baseball
     case killer
+    case shanghai
 }
 
 public enum MatchStatus: String, Codable, Sendable {

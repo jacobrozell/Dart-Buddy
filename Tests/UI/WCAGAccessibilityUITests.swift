@@ -96,6 +96,16 @@ final class WCAGAccessibilityUITests: XCTestCase {
         )
     }
 
+    func testShanghaiMatchAccessibilityContract() throws {
+        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        startTwoPlayerShanghaiMatch(from: app, timeout: timeout)
+        assertInteractiveElement(
+            app.descendants(matching: .any)["shanghai_scoreboard_row_0"],
+            identifier: "shanghai_scoreboard_row_0",
+            timeout: timeout
+        )
+    }
+
     // MARK: - Play home resume path
 
     func testResumeMatchAccessibilityContract() {

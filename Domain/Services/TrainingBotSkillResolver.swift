@@ -38,7 +38,7 @@ public enum TrainingBotSkillResolver {
                 return BotSkillProfileInterpolator.profile(forCricketMPR: target)
             }
             return bumpedEasyProfile(for: .cricket)
-        case .baseball, .killer:
+        case .baseball, .killer, .shanghai:
             let playerAvg = breakdown.average3Dart
             if playerAvg > 0 {
                 let target = min(
@@ -57,7 +57,7 @@ public enum TrainingBotSkillResolver {
             return BotSkillProfileInterpolator.profile(forX01Average: 24)
         case .cricket:
             return BotSkillProfileInterpolator.profile(forCricketMPR: 1.35)
-        case .baseball, .killer:
+        case .baseball, .killer, .shanghai:
             return BotSkillProfileInterpolator.profile(forX01Average: 24)
         }
     }

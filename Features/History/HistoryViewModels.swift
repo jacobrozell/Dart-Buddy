@@ -54,6 +54,7 @@ final class HistoryListViewModel: ObservableObject {
         case cricket
         case baseball
         case killer
+        case shanghai
         var id: String { rawValue }
     }
 
@@ -174,6 +175,7 @@ final class HistoryListViewModel: ObservableObject {
         case .cricket: .cricket
         case .baseball: .baseball
         case .killer: .killer
+        case .shanghai: .shanghai
         }
         let startedAfter: Date? = switch dateFilter {
         case .all: nil
@@ -291,6 +293,20 @@ final class HistoryListViewModel: ObservableObject {
                 )
             }
             return (MatchConfigText.modeLabel(for: .killer), sortStandings(standings))
+        }
+
+        if let state = runtime.shanghaiState {
+            let standings = state.players.map { player in
+                HistoryStanding(
+                    id: player.playerId,
+                    name: MatchConfigText.playerName(nameById[player.playerId]),
+                    isWinner: player.playerId == runtime.winnerPlayerId,
+                    sets: 0,
+                    legs: 0,
+                    score: player.cumulativePoints
+                )
+            }
+            return (MatchConfigText.modeLabel(for: .shanghai), sortStandings(standings))
         }
 
         return fallback()
@@ -412,6 +428,14 @@ final class HistoryDetailViewModel: ObservableObject {
                 case let .killerTurn(turn):
                     let name = participantNames[turn.playerId] ?? String(turn.playerId.uuidString.prefix(6))
                     return L10n.format("history.timeline.killerTurnFormat", turn.turnIndex + 1, name)
+                case let .shanghaiTurn(turn):
+                    let name = participantNames[turn.playerId] ?? String(turn.playerId.uuidString.prefix(6))
+                    return L10n.format(
+                        "history.timeline.shanghaiTurnFormat",
+                        turn.round,
+                        name,
+                        turn.pointsThisVisit
+                    )
                 }
             }
             matchType = match.type
@@ -526,6 +550,13 @@ final class HistoryDetailViewModel: ObservableObject {
                     return nil
                 }
                 return L10n.format("history.detail.killerSummaryFormat", turns.count)
+            case .shanghai:
+                let turns = envelopes.compactMap { envelope -> ShanghaiTurnEvent? in
+                    if case let .shanghaiTurn(turn) = envelope.payload { return turn }
+                    return nil
+                }
+                let points = turns.reduce(0) { $0 + $1.pointsThisVisit }
+                return L10n.format("history.detail.shanghaiSummaryFormat", points, turns.count)
             }
         }()
         return HistoryDetailHeader(
@@ -600,6 +631,18 @@ final class HistoryDetailViewModel: ObservableObject {
                         score: $0.lives
                     )
                 })
+            } else if let s = runtime.shanghaiState {
+                configText = MatchConfigText.modeLabel(for: .shanghai)
+                standings = sortStandings(s.players.map {
+                    HistoryStanding(
+                        id: $0.playerId,
+                        name: MatchConfigText.playerName(participantNames[$0.playerId]),
+                        isWinner: $0.playerId == runtime.winnerPlayerId,
+                        sets: 0,
+                        legs: 0,
+                        score: $0.cumulativePoints
+                    )
+                })
             }
         }
 
@@ -631,6 +674,12 @@ final class HistoryDetailViewModel: ObservableObject {
                 if pick.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[pick.playerId, default: 0] += 1 }
                 if pick.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[pick.playerId, default: 0] += 1 }
             case let .killerTurn(turn):
+                for dart in turn.darts {
+                    throwsByPlayer[turn.playerId, default: 0] += 1
+                    if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[turn.playerId, default: 0] += 1 }
+                    if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[turn.playerId, default: 0] += 1 }
+                }
+            case let .shanghaiTurn(turn):
                 for dart in turn.darts {
                     throwsByPlayer[turn.playerId, default: 0] += 1
                     if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[turn.playerId, default: 0] += 1 }

@@ -228,6 +228,17 @@ public enum StatsService {
                         if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
                     }
                     byPlayer[turn.playerId] = entry
+                case let .shanghaiTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.pointsThisVisit
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(for: dart, turn: turn), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
                 }
             }
         }
@@ -290,6 +301,8 @@ public enum StatsService {
                     break
                 case .killerPick, .killerTurn:
                     break
+                case .shanghaiTurn:
+                    break
                 }
             }
 
@@ -340,6 +353,18 @@ public enum StatsService {
 
         static func key(for dart: KillerDartResolution) -> String {
             dart.wasMiss ? miss : normalized(dart.segmentRaw)
+        }
+
+        static func key(for dart: ShanghaiDartEvent) -> String {
+            dart.wasMiss ? miss : normalized(dart.segmentRaw)
+        }
+
+        static func key(for dart: ShanghaiDartEvent, turn: ShanghaiTurnEvent) -> String {
+            if dart.wasMiss { return miss }
+            if dart.hitTarget {
+                return String(turn.round)
+            }
+            return miss
         }
 
         private static func normalized(_ raw: String) -> String {

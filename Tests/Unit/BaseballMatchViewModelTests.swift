@@ -91,7 +91,11 @@ func baseballViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws
 @Test(.tags(.integration, .baseball, .match, .critical, .regression))
 func baseballViewModelHumanSubmitUpdatesRuns() async throws {
     let (vm, _) = try makeBaseballViewModel()
-    vm.enteredDarts = [baseballDart(.single, 1), baseballDart(.double, 1)]
+    vm.enteredDarts = [
+        baseballDart(.single, 1),
+        baseballDart(.double, 1),
+        DartInput(multiplier: .single, segment: .miss, isMiss: true)
+    ]
 
     await vm.submitTurn()
 
@@ -101,13 +105,26 @@ func baseballViewModelHumanSubmitUpdatesRuns() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .baseball, .match, .regression))
+func baseballViewModelRequiresThreeDartsBeforeSubmit() async throws {
+    let (vm, _) = try makeBaseballViewModel()
+    vm.enteredDarts = [baseballDart(.single, 1), baseballDart(.double, 1)]
+
+    #expect(vm.canSubmit == false)
+}
+
+@MainActor
 @Test(.tags(.integration, .baseball, .match, .critical, .regression))
 func baseballViewModelCompletesSingleInningMatch() async throws {
     let (vm, store) = try makeBaseballViewModel(
         inningCount: 1,
         preTurns: [[baseballDart(.single, 1)]]
     )
-    vm.enteredDarts = [baseballDart(.triple, 1)]
+    vm.enteredDarts = [
+        baseballDart(.triple, 1),
+        DartInput(multiplier: .single, segment: .miss, isMiss: true),
+        DartInput(multiplier: .single, segment: .miss, isMiss: true)
+    ]
 
     await vm.submitTurn()
 
@@ -129,7 +146,11 @@ func baseballViewModelScoreboardShowsPlayoffRoundRuns() async throws {
     )
 
     #expect(vm.baseballState?.phase == .bullPlayoff)
-    vm.enteredDarts = [DartInput(multiplier: .single, segment: .outerBull)]
+    vm.enteredDarts = [
+        DartInput(multiplier: .single, segment: .outerBull),
+        DartInput(multiplier: .single, segment: .miss, isMiss: true),
+        DartInput(multiplier: .single, segment: .miss, isMiss: true)
+    ]
 
     let row = vm.scoreboardRows.first
     #expect(row?.visitRunsKind == .playoffRound)

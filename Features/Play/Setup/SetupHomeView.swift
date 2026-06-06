@@ -49,6 +49,9 @@ struct SetupHomeView: View {
                     } else if setupViewModel.partyGame == .killer {
                         learnToPlayButton
                         killerChipsGrid
+                    } else if setupViewModel.partyGame == .shanghai {
+                        learnToPlayButton
+                        shanghaiChipsGrid
                     }
                 }
                 rosterControls
@@ -110,7 +113,7 @@ struct SetupHomeView: View {
             switch setupViewModel.partyGame {
             case .baseball: return .baseball
             case .killer: return .killer
-            case .shanghai: break
+            case .shanghai: return .shanghai
             }
         }
         return setupViewModel.mode.matchType
@@ -278,13 +281,13 @@ struct SetupHomeView: View {
         .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
     }
 
-    /// Killer is humans-only; baseball allows preset difficulty bots only.
+    /// Killer is humans-only; baseball and Shanghai allow preset difficulty bots only.
     private var showsBotMenu: Bool {
-        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball
+        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball || setupViewModel.partyGame == .shanghai
     }
 
     private var showsTrainingAndCustomBots: Bool {
-        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball
+        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball || setupViewModel.partyGame == .shanghai
     }
 
     private var rosterActionButtons: some View {

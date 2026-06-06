@@ -7,7 +7,7 @@ public enum CustomBotSkillResolver {
             return BotSkillProfileInterpolator.profile(forX01Average: metrics.x01Average, clampToTierRange: false)
         case .cricket:
             return BotSkillProfileInterpolator.profile(forCricketMPR: metrics.cricketMPR, clampToTierRange: false)
-        case .baseball, .killer:
+        case .baseball, .killer, .shanghai:
             return BotSkillProfileInterpolator.profile(forX01Average: metrics.x01Average, clampToTierRange: false)
         }
     }
