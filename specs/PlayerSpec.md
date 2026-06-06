@@ -265,7 +265,7 @@ Rationale: deleting referenced identities can corrupt stats/history semantics.
 |-------|--------|
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
-| **Code** | `PlayersRootView.swift`, `PlayerDetailView.swift`, `PlayersViewModels.swift` |
+| **Code** | `PlayersRootView.swift`, `PlayerDetailView.swift`, `PlayersListViewModel.swift`, `PlayerDetailViewModel.swift`, `PlayerEditViewModel.swift`, `EditablePlayer.swift` |
 
 ---
 
