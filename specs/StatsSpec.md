@@ -116,3 +116,42 @@ Recommended aggregate tables:
   - Cricket closure pace and points per round
 - Percentile comparisons across local player pool
 - Forecast-style trend smoothing
+
+---
+
+## 12. Multi-Mode Stat Model (catalog scale)
+
+As the catalog grows toward the full set in
+[`GameModeCatalog`](../Features/Modes/GameModeCatalog.swift), the MVP X01/Cricket
+metrics do not generalize (no 3-dart average for a grid game, no checkout % for
+a solo doubles drill). Design rationale and wireframes:
+[`docs/full-game-catalog-ui.md`](../docs/full-game-catalog-ui.md) §6a.
+
+### Three altitudes, one engine
+The **same** computation feeds three homes, each already in the app:
+1. **Single match** → `MatchSummaryScreen` / history detail.
+2. **Per player × per mode** → **`PlayerDetailView`** — the home for advanced,
+   mode-specific stats (per-mode breakdown section). See
+   [`PlayerSpec.md`](PlayerSpec.md).
+3. **Aggregate / trends** → Statistics segment (cross-mode comparables;
+   per-mode deep dive when filtered to one mode).
+
+### `StatKind` contract
+Each mode declares a `statKind` (on its `GameModeCatalogEntry`) naming the metric
+family it produces: `checkout`, `marks`, `innings`, `lives`, `sequence`,
+`soloScore`, `goals`, `boardClaim`, `roleScore`. UI renders **only** the matching
+card set, so a mode never shows a metric it can't compute. `StatsService` gains
+one deterministic reducer per `statKind`.
+
+### Storage
+- Extend `PlayerModeAggregate` (§5) to be **keyed by catalog `id`** (not only
+  `MatchType`, so the planned, type-less modes fit) with a `statKind`-shaped
+  payload.
+- Recompute/integrity rules (§3, §7) are unchanged: raw events remain
+  authoritative; only **shipped** modes produce aggregates.
+
+### Cross-mode display
+- "All games" / multi-mode filters show **per-mode mini-summaries**, never a
+  forced single average across incompatible metrics.
+- Match Summary and Player/Statistics cards are driven by the same `statKind` so
+  the three altitudes cannot diverge.
