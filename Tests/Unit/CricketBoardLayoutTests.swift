@@ -121,6 +121,29 @@ func cricketBoardKnockedOutTargetRequiresAllPlayersClosed() {
 }
 
 @Test(.tags(.unit, .cricket, .regression))
+func cricketBoardScaledToFillLeavesSizingUnchangedWhenHeightIsNotLarger() {
+    let base = CricketBoardSizing.standard
+    let unchanged = base.scaledToFill(height: base.boardBodyHeight)
+    #expect(unchanged == base)
+
+    let shorter = base.scaledToFill(height: base.boardBodyHeight - 40)
+    #expect(shorter == base)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
+func cricketBoardColumnLayoutHandlesZeroPlayersWithoutScrolling() {
+    let layout = CricketBoardColumnLayout.resolve(availableWidth: 320, playerCount: 0)
+    #expect(layout.scrollsHorizontally == false)
+    #expect(layout.fixedPlayerColumnWidth == CricketBoardMetrics.playerColumnWidth)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
+func cricketBoardResolveUsesLandscapeCompactSizingInLandscape() {
+    let sizing = CricketBoardSizing.resolve(verticalSizeClass: .compact, dynamicTypeSize: .large)
+    #expect(sizing == .landscapeCompact)
+}
+
+@Test(.tags(.unit, .cricket, .regression))
 func cricketEngineTargetClosedByAllPlayersMatchesBoardKnockout() throws {
     var state = try CricketEngine.makeInitialState(
         config: MatchConfigCricket(),
