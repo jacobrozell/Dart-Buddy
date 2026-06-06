@@ -85,6 +85,32 @@ func matchTracingAddsCorrelationMetadata() {
     #expect(sink.entries.first?.metadata["matchType"] == MatchType.x01.rawValue)
 }
 
+@Test(.tags(.unit, .logging, .performance, .regression))
+func performanceMonitorReturnsSyncBlockResultAndLogsElapsedMs() {
+    let sink = RecordingSink()
+    let logger = DefaultAppLogger(minimumLevel: .debug, sink: sink)
+    let result = PerformanceMonitor.measure(.submitTurn, logger: logger, metadata: ["matchType": "x01"]) {
+        42
+    }
+
+    #expect(result == 42)
+    #expect(sink.entries.count == 1)
+    #expect(sink.entries.first?.eventName == "performance_metric")
+    #expect(sink.entries.first?.metadata["operation"] == PerformanceOperation.submitTurn.rawValue)
+    #expect(sink.entries.first?.metadata["matchType"] == "x01")
+    #expect(Int(sink.entries.first?.metadata["elapsedMs"] ?? "") != nil)
+}
+
+@Test(.tags(.unit, .logging, .performance, .regression))
+func performanceMonitorReturnsAsyncBlockResult() async throws {
+    let result = try await PerformanceMonitor.measure(.historyLoad) {
+        try await Task.sleep(nanoseconds: 1_000)
+        return "done"
+    }
+
+    #expect(result == "done")
+}
+
 private final class RecordingSink: LogSink, @unchecked Sendable {
     var entries: [LogEntry] = []
 

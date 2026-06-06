@@ -36,3 +36,21 @@ func dartMultiplierMarkValues() {
     #expect(DartMultiplier.double.markValue == 2)
     #expect(DartMultiplier.triple.markValue == 3)
 }
+
+@Test(.tags(.unit, .scoringInput, .offline, .regression))
+func dartCompactDisplayLabelUsesMultiplierPrefixes() {
+    #expect(DartInput(multiplier: .single, segment: .oneToTwenty(20)).compactDisplayLabel == "20")
+    #expect(DartInput(multiplier: .double, segment: .oneToTwenty(16)).compactDisplayLabel == "D16")
+    #expect(DartInput(multiplier: .triple, segment: .oneToTwenty(20)).compactDisplayLabel == "T20")
+    #expect(DartInput(multiplier: .single, segment: .outerBull).compactDisplayLabel == "25")
+    #expect(DartInput(multiplier: .single, segment: .innerBull).compactDisplayLabel == "50")
+    #expect(DartInput(multiplier: .single, segment: .miss).compactDisplayLabel == "0")
+    #expect(DartInput(multiplier: .triple, segment: .oneToTwenty(20), isMiss: true).compactDisplayLabel == "0")
+}
+
+@Test(.tags(.unit, .scoringInput, .offline, .regression))
+func dartSegmentBaseValueTreatsBothBullsAsTwentyFive() {
+    #expect(DartSegment.outerBull.baseValue == 25)
+    #expect(DartSegment.innerBull.baseValue == 25)
+    #expect(DartSegment.miss.baseValue == 0)
+}

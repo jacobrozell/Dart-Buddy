@@ -10,6 +10,15 @@ func botNamingAssignsIncrementingDefaultNames() {
     #expect(BotNaming.nextDefaultName(difficulty: .hard, existingNames: ["Easy Bot 1"]) == "Hard Bot 1")
 }
 
+@Test(.tags(.unit, .settings, .regression))
+func botNamingAssignsIncrementingCustomBotNames() {
+    let prefix = L10n.string("customBot.namePrefix")
+    #expect(BotNaming.nextCustomBotName(existingNames: []) == "\(prefix)1")
+    #expect(BotNaming.nextCustomBotName(existingNames: ["\(prefix)1"]) == "\(prefix)2")
+    #expect(BotNaming.nextCustomBotName(existingNames: ["\(prefix)1", "\(prefix)4"]) == "\(prefix)5")
+    #expect(BotNaming.nextCustomBotName(existingNames: ["Easy Bot 1"]) == "\(prefix)1")
+}
+
 @MainActor
 @Test(.tags(.unit, .player, .regression))
 func playersListCreateBotAddsPersistedBot() async {

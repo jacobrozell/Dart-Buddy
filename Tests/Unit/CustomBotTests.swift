@@ -49,3 +49,25 @@ func botSkillProfilePayloadDecoderReadsCustomSnapshot() throws {
     let data = try CustomBotSkillSnapshot.encode(snapshot)
     #expect(BotSkillProfilePayloadDecoder.profile(from: data) == profile)
 }
+
+@Test(.tags(.unit, .regression))
+func botSkillProfilePayloadDecoderReadsTrainingSnapshot() throws {
+    let linkedPlayerId = UUID()
+    let profile = BotDifficulty.medium.skillProfile
+    let snapshot = TrainingBotSkillSnapshot(
+        profile: profile,
+        linkedPlayerId: linkedPlayerId,
+        sourcePlayerAvg: 55,
+        sourcePlayerMPR: 2.1,
+        resolvedAt: Date(timeIntervalSince1970: 1_700_000_000)
+    )
+    let data = try TrainingBotSkillSnapshot.encode(snapshot)
+    let decoded = try TrainingBotSkillSnapshot.decode(from: data)
+    #expect(decoded == snapshot)
+    #expect(BotSkillProfilePayloadDecoder.profile(from: data) == profile)
+}
+
+@Test(.tags(.unit, .regression))
+func botSkillProfilePayloadDecoderReturnsNilForUnknownPayload() {
+    #expect(BotSkillProfilePayloadDecoder.profile(from: Data("{}".utf8)) == nil)
+}
