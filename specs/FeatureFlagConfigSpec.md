@@ -44,6 +44,14 @@ Define how runtime feature flags and environment configuration are modeled so ph
 - `enableAdvancedDiagnostics` (default `false`)
 - `enableAppIntents` (default `false`; enable locally with `-enable_app_intents` — see [`AppIntentsSpec.md`](AppIntentsSpec.md))
 
+### Product surface (lean 1.0)
+
+Separate from feature flags — see `Support/Release/ProductSurface.swift` and [`docs/release/lean-1.0-implementation-plan.md`](../docs/release/lean-1.0-implementation-plan.md).
+
+- **Default (Release):** lean 1.0 — 4 tabs, X01 + Cricket only, preset bots, English bundle, no export / Training Partner UI
+- **Launch argument:** `-enable_full_product_surface` — restores Modes tab, party modes, training/custom bots, export, and documents full locale list (UI tests / dogfood)
+- **Do not** ship App Store builds with `-enable_full_product_surface`
+
 ---
 
 ## 6. Architecture

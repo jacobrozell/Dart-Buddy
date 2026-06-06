@@ -303,17 +303,18 @@ When promoting features, flip `ProductSurface.lean1_0` → add `v1_1`, etc., or 
 
 ```
 Lean 1.0 implementation
-- [ ] ProductSurface.swift + tests
-- [ ] MainTabView: 4 tabs
-- [ ] SetupHomeView: no Change mode / party / training / custom bots
-- [ ] PlayerDetailView: hide export + training partner
-- [ ] GameRulesCatalog: X01 + Cricket only
-- [ ] Activity/Statistics filters scoped
-- [ ] Deep link / intent guards
-- [ ] project.yml: en-only bundle
-- [ ] CI: lean default + nightly full surface
-- [ ] release_checklist.md rewritten
-- [ ] README + inventory + App Store copy
+- [x] ProductSurface.swift + tests
+- [x] MainTabView: 4 tabs
+- [x] SetupHomeView: no Change mode / party / training / custom bots
+- [x] PlayerDetailView: hide export + training partner
+- [x] GameRulesCatalog: X01 + Cricket only
+- [x] Activity/Statistics filters scoped
+- [x] Deep link / intent guards
+- [x] project.yml: en-only bundle
+- [x] CI: lean default + full-surface UI test launch arg
+- [x] release_checklist.md rewritten
+- [x] README + inventory + App Store copy guidance
+- [x] Lean1_0SmokeUITests
 - [ ] Device QA matrix (lean)
 - [ ] TestFlight → App Store 1.0.0
 ```

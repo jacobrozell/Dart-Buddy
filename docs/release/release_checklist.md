@@ -2,7 +2,9 @@
 
 **Customer brand:** Dart Buddy (App Store listing, marketing, Reddit)  
 **Technical target:** `DartBuddy` (Xcode scheme, bundle ID `com.jacobrozell.DartBuddy`, module)  
-**Version:** `1.0.0`  
+**Version:** `1.0.0` (lean core scorekeeper)  
+**Scope:** [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) — **X01 + Cricket** (Normal + Cut Throat), **4 tabs** (Play · Players · Activity · Settings), **preset bots only**, **English UI**, Analytics + Crashlytics on. **Not in 1.0:** Modes tab, party modes, Training/Custom bots, player export, bundled de/es/nl.
+
 **Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
 
 This is the **single runbook** for device QA, App Store setup, and launch marketing. Detailed criteria live in linked specs — log evidence paths here and in the sign-off doc, not duplicate prose.
@@ -57,13 +59,17 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 **Build:** Release · **Device:** Physical iPhone (simulator OK only if blocked)  
 **Pre-run:** Settings → **Reset All Local Data** → confirm → relaunch → land on **Play**.
 
-- [ ] App launches; all five tabs work: **Play**, **Players**, **Statistics**, **History**, **Settings**
+- [ ] App launches; **four tabs** work: **Play**, **Players**, **Activity**, **Settings** — **no Modes tab**
+- [ ] Play setup has **no Change mode** button (mode chosen via Edit options chips + Settings default)
 - [ ] Create players **Smoke Alice**, **Smoke Bob** on **Players**
-- [ ] **X01:** Play → New Match → X01 → 2 players → Start → submit turn → **Undo Last Turn** → no crash
-- [ ] **Cricket:** new match → submit turn → undo → board sane
-- [ ] **History:** at least one completed row → detail loads (header + timeline)
-- [ ] **Statistics:** tab loads; mode filter changes table
+- [ ] **X01:** Play → select Alice + Bob → Start → submit turn → **Undo Last Turn** → no crash
+- [ ] **Cricket (Normal):** new match → submit turn → undo → board sane
+- [ ] **Cricket (Cut Throat):** setup → Cut Throat chip → start match → pad loads
+- [ ] **Activity → History:** at least one completed row → detail loads (header + timeline)
+- [ ] **Activity → Statistics:** segment loads; mode filter shows All / X01 / Cricket only
 - [ ] **Settings:** toggle **Sound** → leave tab → relaunch → still persisted
+- [ ] **Hidden surface check:** no Modes tab, no party modes, no Export on player detail, no Training Partner section
+- [ ] **English UI:** device language de/es/nl still shows English strings (en-only bundle)
 - [ ] **AXXXL spot check:** Settings → Display → Larger Text → AXXXL → New Match setup + one in-match screen — primary CTA reachable
 
 **Decision:** [ ] **PASS** — continue · [ ] **FAIL** — fix before §2+
@@ -80,7 +86,8 @@ Spec reference: [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateC
 
 ### A. App shell
 
-- [ ] All five tabs; rapid tab switch 2–3×; background/foreground once — stable, no blank screens
+- [ ] All **four** tabs; rapid tab switch 2–3×; background/foreground once — stable, no blank screens
+- [ ] Confirm **Modes** tab absent; Play setup has no **Change mode** affordance
 
 ### B. Players
 
@@ -95,18 +102,19 @@ Spec reference: [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateC
 
 ### D. Cricket match
 
-- [ ] Setup: Cricket, ≥2 players → Start Match
+- [ ] Setup: Cricket (Normal), ≥2 players → Start Match
 - [ ] Enter turn via pad → submit → undo → resubmit — marks/progression correct
+- [ ] Setup: Cricket **Cut Throat** → start → at least one turn submits cleanly
 
-### E. History
+### E. Activity → History
 
 - [ ] Completed match visible (finish one if needed)
-- [ ] Filters: mode All/X01/Cricket; date 7d/30d/All
+- [ ] Filters: mode **All / X01 / Cricket** only; date 7d/30d/All
 - [ ] Detail: mode, winner, date/duration, participants, timeline — no error state
 
-### F. Statistics
+### F. Activity → Statistics
 
-- [ ] Games table + mode/date filters respond
+- [ ] Games table + mode/date filters respond (mode chips: All, X01, Cricket only)
 - [ ] Partial-data banner only when applicable ([`../../specs/StatsSpec.md`](../../specs/StatsSpec.md))
 
 ### G. Settings
@@ -116,7 +124,7 @@ Spec reference: [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateC
 
 ### H. Accessibility quick pass (AXXXL)
 
-- [ ] Setup, X01 match, Cricket match, Statistics, Settings — scrollable, no blocked primary CTA
+- [ ] Setup, X01 match, Cricket match, Activity (both segments), Settings — scrollable, no blocked primary CTA
 
 **Decision:** [ ] **PASS** · [ ] **FAIL**
 
@@ -131,20 +139,22 @@ Spec reference: [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestCheck
 | Flow | Done | Evidence / notes |
 |------|------|------------------|
 | Setup → X01 → **play to Match summary** (winner + stats) | [ ] | |
-| Setup → Cricket → **play to Match summary** | [ ] | |
+| Setup → Cricket (Normal) → **play to Match summary** | [ ] | |
+| Setup → Cricket (**Cut Throat**) → start + submit at least one turn | [ ] | |
 | **Resume** active match (background app → kill → relaunch) | [ ] | |
 | **Undo** on X01 and Cricket (mid-match, state restores) | [ ] | |
-| **History** list + detail integrity | [ ] | |
-| **Statistics** tab — filters + table after completed games | [ ] | |
+| **Activity → History** list + detail integrity | [ ] | |
+| **Activity → Statistics** — filters + table after completed games | [ ] | |
 | **Players:** archive player; **delete guard** on referenced player | [ ] | |
 | **Settings → Reset All Local Data** — confirm → clean bootstrap | [ ] | |
-| **Abandon** in-progress match — wording correct; hidden from History/Statistics ([`../../specs/MatchSpec.md`](../../specs/MatchSpec.md)) | [ ] | |
-| **Bot match:** stagger pacing; pad disabled during bot turn; bot dart haptics if enabled | [ ] | |
-| **Play home:** resume banner / in-progress row when applicable | [ ] | |
+| **Abandon** in-progress match — wording correct; hidden from Activity ([`../../specs/MatchSpec.md`](../../specs/MatchSpec.md)) | [ ] | |
+| **Preset bot match:** stagger pacing; pad disabled during bot turn; bot dart haptics if enabled | [ ] | |
+| **Play home:** resume banner when applicable | [ ] | |
 | **X01 checkout:** finish leg with double-out (if default) — summary correct | [ ] | |
 | **Cricket closure:** close a number — banner/haptic/VO sensible | [ ] | |
-| **Setup:** drag reorder roster; swipe remove player; random order at start | [ ] | |
+| **Setup:** drag reorder roster; random order at start | [ ] | |
 | **Quick-add player** from setup → returns with refreshed roster | [ ] | |
+| **Lean hidden surface:** no Modes tab, party modes, export, Training Partner | [ ] | |
 
 ---
 
@@ -207,7 +217,8 @@ Architecture ready; **device proof** still required — [`../../roadmap/reports/
 ### VoiceOver — end-to-end (required)
 
 - [ ] Play → setup → **X01** → match summary
-- [ ] Play → setup → **Cricket** → match summary
+- [ ] Play → setup → **Cricket (Normal)** → match summary
+- [ ] Play → setup → **Cricket (Cut Throat)** → at least one submitted turn
 - [ ] Resume banner / active match when present
 - [ ] Settings reset confirmation (destructive)
 - [ ] Migration recovery (if triggered in §5)
@@ -216,16 +227,16 @@ Architecture ready; **device proof** still required — [`../../roadmap/reports/
 
 - [ ] **X01:** pad, bust, checkout, bot turn disabled state
 - [ ] **Cricket:** board, closure announcement, bot turn
-- [ ] **History** list/detail; **Players** archive/delete swipe actions
-- [ ] **Statistics:** filters, partial banner, trend/table labels
-- [ ] **Player detail** + **edit** sheet save/cancel
+- [ ] **Activity → History** list/detail; **Players** archive/delete actions
+- [ ] **Activity → Statistics:** filters (All/X01/Cricket), partial banner, trend/table labels
+- [ ] **Player detail** + **edit** sheet save/cancel (no export / training partner in lean 1.0)
 
 ### Dynamic Type (AXXXL)
 
 - [ ] Match setup (roster, START, chips)
 - [ ] X01 match (score + pad)
 - [ ] Cricket match (board + pad on phone)
-- [ ] History list, Statistics, Settings
+- [ ] History list (Activity segment), Statistics (Activity segment), Settings
 
 ### Contrast & non-color meaning
 
@@ -243,7 +254,7 @@ Record on **physical device**, Release build → [`../../roadmap/reports/Phase06
 - [ ] Cold launch → usable Play home (target: feels instant, no multi-second blank)
 - [ ] `submitTurn` perceived latency during X01/Cricket (target: immediate UI update)
 - [ ] Resume active match after relaunch
-- [ ] History first paint with ≥10 completed matches
+- [ ] History first paint with ≥10 completed matches (Activity → History segment)
 
 ---
 
@@ -335,11 +346,12 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 - [ ] **App icon** 1024×1024 (no alpha, no rounded corners — Apple applies mask)
 - [ ] **iPhone screenshots** in `marketing-screenshots/raw/` (**no device frames**; default **1284×2778** for 6.5" slot — see `marketing-screenshots/README.md`)
   - [ ] X01 in-match
-  - [ ] Cricket board
-  - [ ] Match setup / Play home
-  - [ ] History
-  - [ ] Match summary or **Statistics** tab
+  - [ ] Cricket board (Normal or Cut Throat)
+  - [ ] Play setup (no Modes tab / no party modes visible)
+  - [ ] Activity → History
+  - [ ] Activity → Statistics
   - [ ] Players roster (optional 6th)
+- [ ] **English only** for 1.0 listing (no localized metadata until locales re-ship)
 - [ ] **iPad** screenshots (`marketing-screenshots/ipad/raw/` — **2064×2752**, `./Scripts/capture-ipad-marketing-screenshots.sh`)
 - [ ] Preview video (optional — skip for 1.0 if not ready)
 
