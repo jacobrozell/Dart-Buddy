@@ -97,6 +97,7 @@ func setupValidationRequiresMinimumPlayers() async {
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
 func setupPartyKillerAllowsThreeHumans() async {
+    guard ProductSurface.showsPartyModes else { return }
     let players = [makePlayer("A"), makePlayer("B"), makePlayer("C")]
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
@@ -118,6 +119,7 @@ func setupPartyKillerAllowsThreeHumans() async {
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
 func applyPendingModeSelectionPrefillsPartyKiller() async {
+    guard ProductSurface.showsPartyModes else { return }
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B"), makePlayer("C")]),
         settingsRepository: FakeSettingsRepository(),
@@ -142,6 +144,7 @@ func applyPendingModeSelectionPrefillsPartyKiller() async {
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
 func setupPartyKillerAllowsPresetBot() async {
+    guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
     let bot = PlayerSummary(
         id: UUID(),
@@ -174,6 +177,7 @@ func setupPartyKillerAllowsPresetBot() async {
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
 func setupPartyKillerBlocksCustomTrainingBots() async {
+    guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
     let custom = makeCustomBot("Custom")
     let third = makePlayer("Guest")
@@ -197,6 +201,7 @@ func setupPartyKillerBlocksCustomTrainingBots() async {
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
 func setupPartyBaseballBlocksCustomTrainingBots() async {
+    guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
     let custom = makeCustomBot("Custom")
     let vm = MatchSetupViewModel(
@@ -489,6 +494,7 @@ func setupBlocksCricketBotWhenPointsOff() async {
 @MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupPartyBaseballStartRoute() async {
+    guard ProductSurface.showsPartyModes else { return }
     let players = [makePlayer("A"), makePlayer("B")]
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),

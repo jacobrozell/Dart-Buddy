@@ -238,6 +238,7 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
+        if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
         setupCategory = selection.setupCategory
         if let mode = selection.mode {
             self.mode = mode
@@ -245,6 +246,8 @@ final class MatchSetupViewModel: ObservableObject {
         if let partyGame = selection.partyGame {
             self.partyGame = partyGame
         }
+        normalizeForProductSurface()
+        revalidate()
     }
 
     private func applyMatchTypePreferred(_ matchType: MatchType) {
@@ -255,12 +258,22 @@ final class MatchSetupViewModel: ObservableObject {
         }
         setupCategory = .standard
         mode = matchType == .cricket ? .cricket : .x01
+        normalizeForProductSurface()
+    }
+
+    private func normalizeForProductSurface() {
+        if setupCategory == .party, !ProductSurface.showsPartyModes {
+            setupCategory = .standard
+            mode = .x01
+        }
     }
 
     func revalidate() {
         var errors: [String] = []
         if setupCategory == .party {
-            if !partyGame.isAvailable {
+            if !ProductSurface.showsPartyModes {
+                errors.append("setup.validation.partyComingSoon")
+            } else if !partyGame.isAvailable {
                 errors.append("setup.validation.partyComingSoon")
             } else if selectedParticipantCount < partyGame.minimumPlayers {
                 errors.append(partyMinimumPlayersValidationKey)
@@ -328,6 +341,7 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     func startMatchRoute() async -> PlayRoute? {
+        normalizeForProductSurface()
         revalidate()
         guard canStart else { return nil }
         // A match is already in progress: ask the user to replace it instead of

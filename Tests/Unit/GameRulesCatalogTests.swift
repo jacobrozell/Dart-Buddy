@@ -36,8 +36,11 @@ struct GameRulesCatalogTests {
         }
     }
 
-    @Test("Supported match types match shipped engines")
+    @Test("Supported match types match current product surface")
     func supportedTypesCoverShippedModes() {
-        #expect(Set(GameRulesCatalog.supportedMatchTypes) == [.x01, .cricket, .baseball, .killer, .shanghai])
+        let expected: Set<MatchType> = ProductSurface.showsPartyModes
+            ? [.x01, .cricket, .baseball, .killer, .shanghai]
+            : [.x01, .cricket]
+        #expect(Set(GameRulesCatalog.supportedMatchTypes) == expected)
     }
 }

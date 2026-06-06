@@ -16,15 +16,19 @@ struct GameModeCatalogTests {
     }
 
     @Test
-    func fiveShippedModesCoverEveryMatchType() {
-        let shipped = GameModeCatalog.available
-        #expect(shipped.count == 5)
+    func availableModesMatchCurrentProductSurface() {
+        let available = GameModeCatalog.available
+        let mappedTypes = Set(available.compactMap(\.matchType))
 
-        let mappedTypes = Set(shipped.compactMap(\.matchType))
-        #expect(mappedTypes == [.x01, .cricket, .baseball, .killer, .shanghai])
+        if ProductSurface.showsPartyModes {
+            #expect(available.count == 5)
+            #expect(mappedTypes == [.x01, .cricket, .baseball, .killer, .shanghai])
+        } else {
+            #expect(available.count == 2)
+            #expect(mappedTypes == [.x01, .cricket])
+        }
 
-        // Each shipped entry round-trips back through the MatchType lookup.
-        for type in [MatchType.x01, .cricket, .baseball, .killer, .shanghai] {
+        for type in mappedTypes {
             #expect(GameModeCatalog.entry(for: type)?.matchType == type)
         }
     }

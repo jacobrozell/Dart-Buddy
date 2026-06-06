@@ -283,9 +283,13 @@ enum GameModeCatalog {
         all.filter { $0.section == section }
     }
 
-    /// Playable-today entries.
+    /// Playable-today entries for the current product surface.
     static var available: [GameModeCatalogEntry] {
-        all.filter(\.isAvailable)
+        all.filter { entry in
+            guard entry.isAvailable else { return false }
+            if entry.section == .party, !ProductSurface.showsPartyModes { return false }
+            return true
+        }
     }
 
     /// "Coming soon" entries — the ones the "+N more coming" teaser collapses.
@@ -344,6 +348,7 @@ extension GameModeCatalogEntry {
     /// Prefill payload when the user taps an available catalog card.
     var pendingModeSelection: PendingModeSelection? {
         guard isAvailable, let matchType else { return nil }
+        if section == .party, !ProductSurface.showsPartyModes { return nil }
         switch section {
         case .standard:
             let mode: MatchSetupViewModel.SetupMode = matchType == .cricket ? .cricket : .x01

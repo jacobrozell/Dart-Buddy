@@ -47,6 +47,18 @@ enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
     static func from(catalogEntryId: String) -> ActivityModeFilter? {
         allCases.first { $0.catalogEntryId == catalogEntryId }
     }
+
+    /// Filters shown in Activity UI for the current product surface.
+    static var visibleCases: [ActivityModeFilter] {
+        allCases.filter { filter in
+            switch filter {
+            case .all, .x01, .cricket:
+                true
+            case .baseball, .killer, .shanghai:
+                ProductSurface.showsPartyModes
+            }
+        }
+    }
 }
 
 /// Shared time period filter for Activity segments.

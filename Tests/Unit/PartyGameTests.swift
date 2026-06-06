@@ -19,6 +19,14 @@ struct PartyGameTests {
 
     @Test
     func partyGamesMapToShippedCatalogEntries() throws {
+        guard ProductSurface.showsPartyModes else {
+            for type in [MatchType.baseball, .killer, .shanghai] {
+                let entry = try #require(GameModeCatalog.entry(for: type))
+                #expect(entry.pendingModeSelection == nil)
+            }
+            return
+        }
+
         let mappings: [(PartyGame, MatchType)] = [
             (.baseball, .baseball),
             (.killer, .killer),

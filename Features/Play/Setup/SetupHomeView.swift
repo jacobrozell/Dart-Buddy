@@ -179,16 +179,18 @@ struct SetupHomeView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
-                Button(action: onChangeMode) {
-                    Text(L10n.string("play.setup.changeMode"))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Brand.green)
-                        .padding(.horizontal, DS.Spacing.s2)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
+                if ProductSurface.showsModesTab {
+                    Button(action: onChangeMode) {
+                        Text(L10n.string("play.setup.changeMode"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Brand.green)
+                            .padding(.horizontal, DS.Spacing.s2)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("setup_changeModeButton")
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("setup_changeModeButton")
             }
             .padding(DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
@@ -321,14 +323,17 @@ struct SetupHomeView: View {
 
     /// Killer, baseball, and Shanghai allow preset difficulty bots only.
     private var showsBotMenu: Bool {
-        setupViewModel.setupCategory != .party
+        guard setupViewModel.setupCategory != .party || ProductSurface.showsPartyModes else { return false }
+        return setupViewModel.setupCategory != .party
             || setupViewModel.partyGame == .baseball
             || setupViewModel.partyGame == .shanghai
             || setupViewModel.partyGame == .killer
     }
 
     private var showsTrainingAndCustomBots: Bool {
-        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball || setupViewModel.partyGame == .shanghai
+        ProductSurface.showsTrainingBots
+            && ProductSurface.showsCustomBots
+            && (setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball || setupViewModel.partyGame == .shanghai)
     }
 
     private var rosterActionButtons: some View {

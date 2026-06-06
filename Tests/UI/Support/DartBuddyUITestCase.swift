@@ -24,4 +24,8 @@ class DartBuddyUITestCase: XCTestCase {
         return app
     }
 
+    func launchAppWithFullProductSurface(_ extraArguments: [String] = []) -> XCUIApplication {
+        launchApp(["-enable_full_product_surface"] + extraArguments)
+    }
+
 }

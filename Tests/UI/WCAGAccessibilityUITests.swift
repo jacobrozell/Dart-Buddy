@@ -33,7 +33,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
     }
 
     func testBaseballMatchPassesNameRoleValueAudit() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        let app = launchForAccessibility(extraArguments: ["-enable_full_product_surface", "-seed_players"])
         startTwoPlayerBaseballMatch(from: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
@@ -85,7 +85,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
     }
 
     func testBaseballMatchAccessibilityContract() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        let app = launchForAccessibility(extraArguments: ["-enable_full_product_surface", "-seed_players"])
         startTwoPlayerBaseballMatch(from: app, timeout: timeout)
         assertInteractiveElement(
             app.descendants(matching: .any)["baseball_scoreboard_row_0"],
@@ -95,7 +95,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
     }
 
     func testShanghaiMatchAccessibilityContract() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
+        let app = launchForAccessibility(extraArguments: ["-enable_full_product_surface", "-seed_players"])
         startTwoPlayerShanghaiMatch(from: app, timeout: timeout)
         assertInteractiveElement(
             app.descendants(matching: .any)["shanghai_scoreboard_row_0"],

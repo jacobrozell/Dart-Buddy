@@ -26,7 +26,7 @@ struct StatisticsRootView: View {
                     BrandRootScreenTitle(title: L10n.statsTitle)
 
                     BrandSegmented(
-                        options: ActivityModeFilter.allCases.map { ($0, $0.title) },
+                        options: ActivityModeFilter.visibleCases.map { ($0, $0.title) },
                         selection: $viewModel.modeFilter
                     )
 

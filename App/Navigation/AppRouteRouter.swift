@@ -70,7 +70,7 @@ private extension TabDestination {
     var rootTab: MainTabView.RootTab {
         switch self {
         case .play: .play
-        case .modes: .modes
+        case .modes: ProductSurface.showsModesTab ? .modes : .play
         case .players: .players
         case .activity: .activity
         case .settings: .settings
