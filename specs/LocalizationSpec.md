@@ -53,6 +53,7 @@ Key rule:
 - Future waves: additional locales per backlog; same key-parity gate.
 - Prioritize strings used in core gameplay first when adding locales.
 - Baseball party mode keys: `play.baseball.*`, `play.party.baseball.*`, `history.detail.baseballSummaryFormat`, `history.timeline.baseballTurnFormat`, `history.detail.lineScore*` (including `history.lineScore.emptyCell`, `play.baseball.*AccessibilityFormat`, `play.baseball.playoffRound*`) — see [`BaseballGameSpec.md`](BaseballGameSpec.md).
+- App Intents / Shortcuts keys: `intent.openPlay.*`, `intent.resumeActiveMatch.*`, `intent.error.disabled` — see [`AppIntentsSpec.md`](AppIntentsSpec.md) §7.
 - Include localization QA and pseudo-localization in CI checks.
 
 ---
