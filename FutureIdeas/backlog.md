@@ -25,8 +25,8 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 | Idea | Notes |
 |------|--------|
 | ~~**More colors and symbols (Edit Player)**~~ | _Shipped._ Avatar set expanded to 16 symbols and the color palette to 18 tokens (`PlayerAvatarStyle` / `PlayerColorToken`), surfaced on the Edit Player pickers and localized across `en`/`de`/`es`/`nl`. |
-| **Random bot names with clear difficulty** | Bots get varied display names while difficulty (Very Easy, Easy, Medium, …) stays obvious. **Define fixed colors per difficulty tier** so bot names always render in the tier color regardless of random name. |
-| **Custom bot with user-defined metrics** | User-configurable bot opponent (skill/metrics) beyond preset tiers. |
+| **Random bot names with clear difficulty** | Bots get varied display names while difficulty (Very Easy, Easy, Medium, …) stays obvious. Tier colors are fixed today (`PlayerVisualViews.botDifficultyColor`); numbered default names ship (`BotNaming`). Remaining: more varied name pools per tier. |
+| ~~**Custom bot with user-defined metrics**~~ | _Shipped._ `CustomBotMetrics`, `createCustomBot`, setup roster + Players list UI, `CustomBotBadge`. |
 
 ---
 
@@ -34,7 +34,7 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 | Idea | Notes |
 |------|--------|
-| **More game types** | Additional formats beyond current X01 / Cricket scope (variants, party modes, etc.). R&D specs: [`additional-game-modes.md`](additional-game-modes.md) (Killer, Baseball, Golf, practice modes). |
+| **More game types** | Baseball, Killer, and Shanghai shipped (see `GameModeCatalog`). Remaining: practice modes (Bob's 27, Around the Clock), Golf, Halve-It, and 23 planned catalog entries — [`additional-game-modes.md`](additional-game-modes.md). |
 | **Online games** | See [`specs/OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md). |
 
 ---

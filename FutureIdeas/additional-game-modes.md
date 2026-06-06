@@ -1,33 +1,35 @@
 # Additional Game Modes — R&D Index
 
-Post-1.0 exploration of dart formats listed on [Target Darts — What Dart Games Can I Play?](https://www.target-darts.co.uk/dart-games). Deep specs for **Killer** and **Baseball** live in sibling files; lighter assessments for practice/party modes are in [`party-practice-modes.md`](party-practice-modes.md).
+Post-1.0 exploration of dart formats listed on [Target Darts — What Dart Games Can I Play?](https://www.target-darts.co.uk/dart-games). Lighter assessments for unshipped practice/party modes live in [`party-practice-modes.md`](party-practice-modes.md).
 
-**Status:** R&D only — not governed by `specs/SpecGovernance.md` until promoted to `specs/*GameSpec.md`.
+**Status:** R&D only for **planned** modes — not governed by `specs/SpecGovernance.md` until promoted to `specs/*GameSpec.md`.
 
 ---
 
-## Already in Dart Buddy (1.0)
+## Shipped in Dart Buddy
 
 | Target name | Dart Buddy | Authoritative spec |
 |-------------|------------|-------------------|
 | 501 | X01 (301 / 501) | [`specs/X01GameSpec.md`](../specs/X01GameSpec.md) |
-| Cricket | Cricket | [`specs/CricketSpec.md`](../specs/CricketSpec.md) |
+| Cricket | Cricket (incl. Cut Throat) | [`specs/CricketSpec.md`](../specs/CricketSpec.md) |
+| Baseball | Baseball | [`specs/BaseballGameSpec.md`](../specs/BaseballGameSpec.md) |
+| Killer | Killer | [`specs/KillerGameSpec.md`](../specs/KillerGameSpec.md) |
+| Shanghai | Shanghai | `Domain/Engines/ShanghaiEngine.swift` + `Features/Play/Shanghai/` (promote to `specs/ShanghaiGameSpec.md` when scheduled) |
 
-Shared lifecycle: [`specs/MatchSpec.md`](../specs/MatchSpec.md). `MatchType` today is `x01` \| `cricket` only (`Domain/Models/RepositoryModels.swift`).
+Shared lifecycle: [`specs/MatchSpec.md`](../specs/MatchSpec.md). `MatchType` today: `x01` \| `cricket` \| `baseball` \| `killer` \| `shanghai` (`Domain/Models/RepositoryModels.swift`). Catalog: [`Features/Modes/GameModeCatalog.swift`](../Features/Modes/GameModeCatalog.swift) (5 shipped + 24 planned).
 
 ---
 
-## Candidate modes (Target list)
+## Candidate modes (not yet shipped)
 
 | Game | Doc | Priority | Players | Complexity | Notes |
 |------|-----|----------|---------|------------|-------|
-| **Killer** | [`killer-darts.md`](killer-darts.md) | **P0** | 3+ | Medium | Party elimination; unique UI (lives, killer status, number assignment) |
-| **Baseball** | [`baseball-darts.md`](baseball-darts.md) | **P0** | 2+ | Medium | Inning-based runs; reuses dart-entry patterns |
 | Bob's 27 | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 1 | Low | Solo practice; doubles 1→20 + bull |
 | Around the Clock | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 1+ | Low–Med | Sequential 1→20 + bull; progress reset rules vary |
-| Shanghai | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 2+ | Med | Per-round target + S/D/T bonus |
 | Halve-It | [`party-practice-modes.md`](party-practice-modes.md) | P3 | 1+ | Med | Descending score targets; house rules heavy |
 | **Golf** | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 2+ | Med | 9/18 holes on segments 1→9/18; lowest strokes wins; last-dart-counts |
+
+Plus 23 additional **planned** catalog entries (Mickey Mouse, Golf, Football, …) in `GameModeCatalog` — see [`docs/full-game-catalog-ui.md`](../docs/full-game-catalog-ui.md).
 
 ---
 
@@ -39,8 +41,8 @@ Follow existing split:
 
 ```
 Features/Play          → setup, resume, history shell
-Features/KillerFeature → (new) board + VM
-Domain/KillerEngine    → pure rules
+Features/<Mode>Feature → board + VM
+Domain/<Mode>Engine    → pure rules
 Data                   → events + snapshots per specs/SwiftData.md
 ```
 
@@ -56,12 +58,10 @@ Each new mode needs:
 
 | Mode | Input model |
 |------|-------------|
-| Killer | Dart-by-dart on **assigned segment** (per player number); assignment phase may be 1-dart flow |
-| Baseball | Dart-by-dart on **current inning target**; same `ScoringInputPad` segment + S/D/T as X01 |
 | Golf | Dart-by-dart on **current hole target**; last dart counts; optional early turn end |
 | Practice modes | Often total-per-turn or strict sequence — see party doc |
 
-Reference: [`specs/ScoringInputSpec.md`](../specs/ScoringInputSpec.md).
+Reference: [`specs/ScoringInputSpec.md`](../specs/ScoringInputSpec.md). Shipped party modes (Baseball, Killer, Shanghai) already follow per-dart / segment-locked patterns.
 
 ### 3. Schema impact (when shipping)
 
@@ -73,20 +73,15 @@ Reference: [`specs/ScoringInputSpec.md`](../specs/ScoringInputSpec.md).
 
 | Mode | Bot feasibility | Stats v1 |
 |------|-----------------|----------|
-| Killer | Hard (social targeting); defer or “random target” bot | Lives remaining, kills dealt |
-| Baseball | Moderate (segment aim by skill tier) | Runs per inning, 9-inning total |
 | Golf | Moderate (segment aim; stop on double) | Strokes per hole, 9/18 total |
 | Solo practice | N/A or training bot | High scores, streaks |
 
-Align bot policy with [`FutureIdeas/backlog.md`](backlog.md) (custom bot metrics).
-
 ### 5. Suggested delivery order
 
-1. **Baseball** — clearest rules, closest to existing turn + 3-dart flow  
-2. **Killer** — higher UX cost (assignment, lives, killer flag, 3+ players)  
-3. **Golf** — reuses per-round segment flow; last-dart UX is the main new surface  
-4. **Around the Clock / Bob's 27** — solo/training tab or “Practice” entry  
-5. **Shanghai / Halve-It** — after party-mode patterns exist  
+1. **Around the Clock / Bob's 27** — solo/training; catalog stubs exist  
+2. **Golf** — reuses per-round segment flow; last-dart UX is the main new surface  
+3. **Halve-It** — after practice-mode patterns exist  
+4. Remaining **planned catalog** modes per [`docs/full-game-catalog-ui.md`](../docs/full-game-catalog-ui.md) priority  
 
 ---
 
@@ -98,7 +93,7 @@ Align bot policy with [`FutureIdeas/backlog.md`](backlog.md) (custom bot metrics
 - [ ] Setup options and `MatchType` raw value
 - [ ] UI blueprint wireframe or `UIImplementationSpec` section
 - [ ] Accessibility: lives/innings not color-only
-- [ ] Localization key prefix (`play.killer.*`, `play.baseball.*`)
+- [ ] Localization key prefix (`play.golf.*`, `play.practice.*`)
 - [ ] Entry in `specs/README.md` Feature Specs
 - [ ] `docs/release/todo.md` item if scheduled
 
@@ -107,5 +102,4 @@ Align bot policy with [`FutureIdeas/backlog.md`](backlog.md) (custom bot metrics
 ## References
 
 - [Target Darts — dart games](https://www.target-darts.co.uk/dart-games) (product marketing summaries)
-- Killer: [GLD Products](https://gldproducts.com/blogs/all/how-to-play-killer-darts), [Dart Scout](https://thedartscout.com/dart-rules-explained/)
-- Baseball: [GLD Products](https://gldproducts.com/blogs/all/how-to-play-baseball-darts), [Dartspin](https://dartspin.com/baseball-dart-game/)
+- Shipped party rules: [GLD Killer](https://gldproducts.com/blogs/all/how-to-play-killer-darts), [GLD Baseball](https://gldproducts.com/blogs/all/how-to-play-baseball-darts)

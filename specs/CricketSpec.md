@@ -7,7 +7,7 @@ Define Cricket gameplay rules, board UI, input model, and persistence for the iP
 
 ## 2. MVP Scope
 - Standard Cricket targets: `20,19,18,17,16,15,bull`
-- **Cut Throat** scoring mode (lowest total wins when points on) — shipped; historical note in `FutureIdeas/cut-throat-cricket.md` points here
+- **Cut Throat** scoring mode (lowest total wins when points on)
 - 2..N players
 - Mark-based input
 - Point overflow scoring when opponents have not closed target

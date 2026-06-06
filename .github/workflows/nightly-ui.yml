@@ -128,16 +128,9 @@ jobs:
           path: notify-artifacts
 
       - name: Prepare Slack context
-        id: slack-context
         run: |
           Scripts/ci/prepare-slack-context.sh notify-artifacts/slack-context.json \
             || echo '{}' > notify-artifacts/slack-context.json
-          delimiter="slack_ctx_${GITHUB_RUN_ID}_${RANDOM}"
-          {
-            echo "context_json<<${delimiter}"
-            cat notify-artifacts/slack-context.json
-            echo "${delimiter}"
-          } >> "$GITHUB_OUTPUT"
         env:
           ARTIFACTS_DIR: notify-artifacts
 
@@ -149,4 +142,4 @@ jobs:
           workflow_title: Nightly UI Tests
           workflow_kind: nightly
           jobs_json: '{"UI Tests":"${{ needs.ui-tests.result }}"}'
-          context_json: ${{ steps.slack-context.outputs.context_json }}
+          context_file: notify-artifacts/slack-context.json

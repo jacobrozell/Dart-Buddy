@@ -187,4 +187,4 @@ flowchart TB
 | Date | Change |
 |------|--------|
 | 2026-06-06 | Plan created; Phase 1 implemented (rich notify, dual webhooks, coverage, failure context) |
-| 2026-06-06 | Combined with TestFlight plan: trigger script, GHA workflow, xcode-cloud runbook, Worker scaffold |
+| 2026-06-06 | Added TestFlight trigger script, GHA workflow, xcode-cloud runbook, Worker scaffold |

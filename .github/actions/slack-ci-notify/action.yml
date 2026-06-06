@@ -12,6 +12,10 @@ inputs:
     description: Severity styling — ci, nightly, or release
     required: false
     default: ci
+  context_file:
+    description: Path to JSON context file (preferred over context_json)
+    required: false
+    default: ''
   context_json:
     description: Optional JSON with coverage, failed_tests, and failure_excerpt
     required: false
@@ -27,9 +31,14 @@ runs:
         WORKFLOW_TITLE: ${{ inputs.workflow_title }}
         JOBS_JSON: ${{ inputs.jobs_json }}
         WORKFLOW_KIND: ${{ inputs.workflow_kind }}
+        CONTEXT_FILE: ${{ inputs.context_file }}
         CONTEXT_JSON: ${{ inputs.context_json }}
       run: |
         set -euo pipefail
+
+        if [[ -n "${CONTEXT_FILE:-}" && -f "$CONTEXT_FILE" ]]; then
+          CONTEXT_JSON="$(cat "$CONTEXT_FILE")"
+        fi
 
         if [[ -z "${SLACK_WEBHOOK_URL:-}" ]]; then
           echo "SLACK_WEBHOOK_URL is not configured; skipping Slack notification."

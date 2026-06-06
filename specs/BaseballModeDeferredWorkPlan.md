@@ -2,7 +2,7 @@
 
 Follow-up work after the MVP implementation on branch `feature/baseball-mode`. The MVP covers engine, lifecycle, setup, play UI, basic history/stats, localization keys, and core unit tests. This plan closes every item explicitly deferred from the baseball MVP implementation pass.
 
-**Authoritative rules:** [FutureIdeas/baseball-darts.md](../FutureIdeas/baseball-darts.md) and [GLD Baseball rules](https://gldproducts.com/blogs/all/how-to-play-baseball-darts).
+**Authoritative rules:** [`specs/BaseballGameSpec.md`](BaseballGameSpec.md) and [GLD Baseball rules](https://gldproducts.com/blogs/all/how-to-play-baseball-darts).
 
 **Related:** When promoted, canonical product spec becomes `specs/BaseballGameSpec.md` (created in PR A).
 

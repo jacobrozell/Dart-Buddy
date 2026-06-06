@@ -6,7 +6,7 @@ todos:
     content: Draft specs/AppIntentsSpec.md — intent inventory, entities, open-app policy, analytics, feature flag (URL registry lives in DeepLinkSpec.md)
     status: completed
   - id: phase-0-routing
-    content: "DONE — Deep linking V1 core: AppRouteRouter, dartbuddy://v1/…, PendingAppDestination, unit tests (see deep_linking_setup plan + specs/DeepLinkSpec.md)"
+    content: "DONE — Deep linking V1 core: AppRouteRouter, dartbuddy://v1/…, PendingAppDestination, unit tests (see specs/DeepLinkSpec.md)"
     status: completed
   - id: deep-link-v1-remaining
     content: "Deep linking Phase 2 paths: /play/setup, /activity, /players/{id}, /activity/history/match/{id} — blocks StartModeMatch, OpenActivity, OpenHistory intents"
@@ -265,7 +265,7 @@ gantt
 | Phase | Deliverable | Effort (rough) | Depends on | Status |
 |---|---|---|---|---|
 | **0 — Foundation** | URL scheme, parser, `AppRouteRouter`, `PendingAppDestination`, MVP route tests | ~1 week | None | **Done** (Deep Linking V1) |
-| **0b — Remaining v1 paths** | `/play/setup`, activity/players/history routes + router actions | ~3–5 days | Phase 0 | Pending ([deep linking plan](.cursor/plans/deep_linking_setup_f4f0bb68.plan.md) Phase 2) |
+| **0b — Remaining v1 paths** | `/play/setup`, activity/players/history routes + router actions | ~3–5 days | Phase 0 | Pending ([`specs/DeepLinkSpec.md`](specs/DeepLinkSpec.md) Planned paths) |
 | **1 — Launch intents** | Open Play, Resume (now), Start Quick/Mode/Practice (after 0b) | ~1–2 weeks | Phase 0; 0b for parameterized starts | Next |
 | **2 — Query intents** | Active match status, player stats, recent match count | ~1–2 weeks | Phase 0 + stats read path | Pending |
 | **3 — System surfaces** | Resume widget, Control Center control, Spotlight indexing | ~2–3 weeks | Phase 1–2 snapshot APIs | Pending |
@@ -341,7 +341,7 @@ Update [`NavigationSpec.md`](specs/NavigationSpec.md) §5 cross-refs as intents 
 
 ## Deep linking — relationship to this plan
 
-Deep linking is a **separate, shipped foundation** ([`.cursor/plans/deep_linking_setup_f4f0bb68.plan.md`](.cursor/plans/deep_linking_setup_f4f0bb68.plan.md)). App Intents Phase 0 **is complete** via that work—not a duplicate effort.
+Deep linking is a **separate, shipped foundation** ([`specs/DeepLinkSpec.md`](specs/DeepLinkSpec.md)). App Intents Phase 0 **is complete** via that work—not a duplicate effort.
 
 | Layer | Status | App Intents impact |
 |---|---|---|
