@@ -9,32 +9,8 @@ final class HistoryListViewModel: ObservableObject {
         case error
     }
 
-    enum ModeFilter: String, CaseIterable, Identifiable {
-        case all
-        case x01
-        case cricket
-        case baseball
-        case killer
-        case shanghai
-        var id: String { rawValue }
-    }
-
-    enum DateFilter: String, CaseIterable, Identifiable {
-        case d7
-        case d30
-        case all
-        var id: String { rawValue }
-        var title: String {
-            switch self {
-            case .d7: L10n.string("stats.period.7d")
-            case .d30: L10n.string("stats.period.30d")
-            case .all: L10n.string("stats.period.all")
-            }
-        }
-    }
-
-    @Published var modeFilter: ModeFilter = .all
-    @Published var dateFilter: DateFilter = .all
+    @Published var modeFilter: ActivityModeFilter = .all
+    @Published var dateFilter: ActivityPeriod = .all
     @Published var playerFilter: UUID?
     @Published private(set) var rows: [HistoryListRow] = []
     @Published private(set) var playerOptions: [PlayerSummary] = []
@@ -130,22 +106,9 @@ final class HistoryListViewModel: ObservableObject {
     }
 
     private func repositoryFilter() -> MatchHistoryFilter {
-        let matchType: MatchType? = switch modeFilter {
-        case .all: nil
-        case .x01: .x01
-        case .cricket: .cricket
-        case .baseball: .baseball
-        case .killer: .killer
-        case .shanghai: .shanghai
-        }
-        let startedAfter: Date? = switch dateFilter {
-        case .all: nil
-        case .d7: Calendar.current.date(byAdding: .day, value: -7, to: Date())
-        case .d30: Calendar.current.date(byAdding: .day, value: -30, to: Date())
-        }
-        return MatchHistoryFilter(
-            matchType: matchType,
-            startedAfter: startedAfter,
+        MatchHistoryFilter(
+            matchType: modeFilter.matchType,
+            startedAfter: dateFilter.startedAfter,
             participantPlayerId: playerFilter
         )
     }

@@ -4,32 +4,34 @@ overview: "Restructure navigation for scale: merge History + Statistics into an 
 todos:
   - id: specs-update
     content: Update AppShellSpec, NavigationSpec, UIBlueprintSpec, SetupFlowSpec; add ModesTabSpec; revise History/Statistics specs for Activity segment
-    status: pending
+    status: in_progress
   - id: shared-foundation
     content: Add GameModeCatalog model, ActivityFilterBar, ActivityPeriod/ModeFilter dedupe, BrandSegmented scroll fix, extend PendingMatchPlayerSelections for mode prefill
-    status: pending
+    status: completed
   - id: activity-tab
     content: Build ActivityRootView (History | Statistics segment, shared filters, lazy VMs, badge migration); extract HistoryListContent and StatisticsContent from existing root views
-    status: pending
+    status: completed
   - id: modes-tab
     content: Build ModesRootView + GameModeCatalogCard with Standard/Party/Practice sections; wire quick-start to Play tab via prefill + tab switch
-    status: pending
+    status: completed
   - id: main-tab-wire
     content: Update MainTabView tab order (Play, Modes, Players, Activity, Settings); migrate badge, snapshot args, localization keys
-    status: pending
+    status: completed
   - id: setup-slim
     content: Remove category/mode pickers from SetupHomeView; add selected-mode header + config summary/Edit; collapse X01 advanced chips
-    status: pending
+    status: completed
   - id: audit-polish
     content: "Address release todo P1/P2: stats bot row clarity, tab bleed, SE keypad, AXXXL scaled metrics, single resume affordance"
     status: pending
   - id: tests-marketing-a11y
     content: Update UI tests, WCAG audits, marketing screenshot script, accessibility screen trackers for new tabs
-    status: pending
+    status: in_progress
 isProject: false
 ---
 
 # UI/UX Scale & Tab Restructure Plan
+
+> **Status (2026-06-06):** Core IA **implemented on feature branch** — `Play · Modes · Players · Activity · Settings` in [`MainTabView`](../App/MainTabView.swift), [`ActivityRootView`](../Features/Activity/ActivityRootView.swift), [`ModesRootView`](../Features/Modes/ModesRootView.swift), slim [`SetupHomeView`](../Features/Play/Setup/SetupHomeView.swift). Not yet on `master`. Remaining before merge: finish spec pass (NavigationSpec, StatisticsTabSpec, HistorySpec, SetupFlowSpec), Phase 5 audit polish ([`release/todo.md`](release/todo.md)), WCAG screen trackers for Activity/Modes, commit untracked feature files, merge/cherry-pick AX tab padding from `master` (`fc3d446`).
 
 > **Status:** Implementation plan + UI/UX reviewer's pass. Companion to the
 > higher-level [`docs/ux-design-review.md`](ux-design-review.md) and the

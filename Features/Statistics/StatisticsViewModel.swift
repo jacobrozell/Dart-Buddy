@@ -8,37 +8,8 @@ struct SectorHit: Identifiable, Equatable {
 
 @MainActor
 final class StatisticsViewModel: ObservableObject {
-    enum ModeFilter: String, CaseIterable, Identifiable {
-        case all, x01, cricket, baseball, killer, shanghai
-        var id: String { rawValue }
-
-        var matchType: MatchType? {
-            switch self {
-            case .all: nil
-            case .x01: .x01
-            case .cricket: .cricket
-            case .baseball: .baseball
-            case .killer: .killer
-            case .shanghai: .shanghai
-            }
-        }
-    }
-
-    enum Period: String, CaseIterable, Identifiable {
-        case today, d7, d30, all
-        var id: String { rawValue }
-        var title: String {
-            switch self {
-            case .today: L10n.string("stats.period.today")
-            case .d7: L10n.string("stats.period.7d")
-            case .d30: L10n.string("stats.period.30d")
-            case .all: L10n.string("stats.period.all")
-            }
-        }
-    }
-
-    @Published var modeFilter: ModeFilter = .all
-    @Published var period: Period = .all
+    @Published var modeFilter: ActivityModeFilter = .all
+    @Published var period: ActivityPeriod = .all
     /// `nil` = all players; otherwise filters to one player.
     @Published var playerFilter: UUID?
     @Published private(set) var rows: [PlayerStatBreakdown] = []
@@ -149,17 +120,7 @@ final class StatisticsViewModel: ObservableObject {
     }
 
     private func periodCutoff() -> Date? {
-        let calendar = Calendar.current
-        switch period {
-        case .all:
-            return nil
-        case .today:
-            return calendar.startOfDay(for: Date())
-        case .d7:
-            return calendar.date(byAdding: .day, value: -7, to: Date())
-        case .d30:
-            return calendar.date(byAdding: .day, value: -30, to: Date())
-        }
+        period.startedAfter
     }
 
     private func matchesModeFilter(_ active: MatchSummary) -> Bool {

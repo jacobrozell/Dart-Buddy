@@ -49,6 +49,7 @@ final class MatchSetupViewModel: ObservableObject {
     private let activeMatchStore: ActiveMatchStore
     private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
     private let logger: any AppLogger
+    private var hasAppliedSettingsDefaultMode = false
 
     init(
         playerRepository: any PlayerRepository,
@@ -100,9 +101,11 @@ final class MatchSetupViewModel: ObservableObject {
             let shanghaiPrefs = ShanghaiSetupPreferences.load()
             shanghaiRoundCount = shanghaiPrefs.roundCount
             shanghaiBonusRule = shanghaiPrefs.bonusRule
-            mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
-                mode = preferred == .cricket ? .cricket : .x01
+                applyMatchTypePreferred(preferred)
+            } else if !hasAppliedSettingsDefaultMode {
+                mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
+                hasAppliedSettingsDefaultMode = true
             }
         } catch {
             validationErrors = ["setup.error.load"]
@@ -232,6 +235,26 @@ final class MatchSetupViewModel: ObservableObject {
     func updateMode(_ mode: SetupMode) {
         self.mode = mode
         revalidate()
+    }
+
+    func applyPendingModeSelection(_ selection: PendingModeSelection) {
+        setupCategory = selection.setupCategory
+        if let mode = selection.mode {
+            self.mode = mode
+        }
+        if let partyGame = selection.partyGame {
+            self.partyGame = partyGame
+        }
+    }
+
+    private func applyMatchTypePreferred(_ matchType: MatchType) {
+        if let entry = GameModeCatalog.entry(for: matchType),
+           let selection = entry.pendingModeSelection {
+            applyPendingModeSelection(selection)
+            return
+        }
+        setupCategory = .standard
+        mode = matchType == .cricket ? .cricket : .x01
     }
 
     func revalidate() {
