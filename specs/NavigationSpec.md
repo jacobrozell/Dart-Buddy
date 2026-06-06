@@ -49,4 +49,18 @@ Example route groups:
 ## 5. Testing
 - Limited UI tests in CI: tab smoke, marketing snapshot harness, core happy paths (see `Tests/UI/DartBuddyUITests.swift`).
 - Full UI automation matrix (edge flows, accessibility suite) deferred post-1.0 UI lock.
-- Route resolution tests for deep-link readiness
+- Deep link routing: `Tests/Unit/DeepLinkParserTests.swift`, `Tests/Unit/AppRouteRouterTests.swift` (see [`DeepLinkSpec.md`](DeepLinkSpec.md)).
+- App Intents routing: `Tests/Unit/IntentRoutingBridgeTests.swift` (see [`AppIntentsSpec.md`](AppIntentsSpec.md)).
+
+---
+
+## 6. External entry points (deep links & App Intents)
+
+Navigation from outside the tab shell uses typed `AppDestination` values — never raw URL strings in views.
+
+| Entry | Flow | Spec |
+|---|---|---|
+| `dartbuddy://v1/…` URLs | `DeepLinkParser` → `PendingAppDestination` → `AppRouteRouter` | [`DeepLinkSpec.md`](DeepLinkSpec.md) |
+| Siri / Shortcuts | `AppIntent.perform()` → `IntentRoutingBridge` → same router | [`AppIntentsSpec.md`](AppIntentsSpec.md) |
+
+Resume flow equivalence: manual Play home resume banner, `dartbuddy://v1/play/resume`, and `ResumeActiveMatchIntent` all converge on `.play(.resumeActive)` in `AppRouteRouter`.

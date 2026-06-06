@@ -31,6 +31,8 @@
 - `specs/SwiftTestingTagsSpec.md`
 - `specs/AppStoreConnectSpec.md`
 - `specs/FeatureFlagConfigSpec.md`
+- `specs/DeepLinkSpec.md`
+- `specs/AppIntentsSpec.md`
 - `specs/ErrorModelSpec.md`
 
 ## Feature Specs
@@ -69,6 +71,8 @@
 | Spec | Covers |
 |------|--------|
 | [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) | Migration failure recovery UI |
+| [`DeepLinkSpec.md`](DeepLinkSpec.md) | Versioned `dartbuddy://v1/…` URLs, parser, router, deferred delivery |
+| [`AppIntentsSpec.md`](AppIntentsSpec.md) | Siri/Shortcuts intents, `IntentRoutingBridge`, feature flag, QA checklist |
 
 ## Post-1.0 / Assessment / Archive
 - `specs/AppleWatchCompanionSpec.md` + `specs/AppleWatchCompanionAssessment.md`

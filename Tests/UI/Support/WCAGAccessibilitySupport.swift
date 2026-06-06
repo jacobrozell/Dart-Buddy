@@ -18,21 +18,46 @@ enum WCAGAccessibilityAuditProfile {
 
 enum AccessibilityTestLaunch {
     static let defaultArguments = ["-ui_test_reset", "-disable_firebase_analytics"]
+    static let defaultContentSizeCategory = "UICTContentSizeCategoryL"
     static let axxxlContentSizeCategory = "UIAccessibilityExtraExtraExtraLargeCategory"
     /// Forces accessibility Dynamic Type layout branches under UI test (see `UITestDynamicTypeOverride` in app target).
     static let accessibilityTextSizeArguments = ["-ui_test_accessibility_text_size"]
+
+    /// Launch-environment hints for iOS accessibility settings exercised on iOS 26 Liquid Glass regression runs.
+    struct SimulatorPreferences {
+        var reduceTransparency = false
+        var increaseContrast = false
+        var reduceMotion = false
+
+        func merged(into environment: inout [String: String]) {
+            if reduceTransparency {
+                environment["ReduceTransparencyEnabled"] = "1"
+            }
+            if increaseContrast {
+                environment["UIPrefersHighContrast"] = "1"
+            }
+            if reduceMotion {
+                environment["ReduceMotionEnabled"] = "1"
+            }
+        }
+    }
 }
 
 extension XCTestCase {
     func launchForAccessibility(
         extraArguments: [String] = [],
-        contentSizeCategory: String? = nil
+        contentSizeCategory: String? = nil,
+        simulatorPreferences: AccessibilityTestLaunch.SimulatorPreferences = .init()
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = AccessibilityTestLaunch.defaultArguments + extraArguments
         if let contentSizeCategory {
             app.launchEnvironment["UIPreferredContentSizeCategoryName"] = contentSizeCategory
         }
+        applyDefaultLaunchEnvironment(to: app)
+        var environment = app.launchEnvironment
+        simulatorPreferences.merged(into: &environment)
+        app.launchEnvironment = environment
         app.launch()
         return app
     }
@@ -158,6 +183,38 @@ extension XCTestCase {
         )
     }
 
+    func selectPlayerFromRoster(_ name: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
+        let button = app.buttons["select_\(name)"]
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(
+            button.waitForExistence(timeout: timeout),
+            "Expected roster row for \(name)"
+        )
+        for _ in 0 ..< 10 {
+            let clearsStartFooter = !start.exists || button.frame.maxY < start.frame.minY - 8
+            if button.isHittable, clearsStartFooter {
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(
+            button.isHittable,
+            "Expected roster row for \(name) to be reachable above the sticky Start footer"
+        )
+        button.tap()
+    }
+
+    func selectAliceAndBob(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+        selectPlayerFromRoster("Bob", in: app, timeout: timeout)
+        XCTAssertTrue(
+            app.descendants(matching: .any)["setup_selected_Alice"].firstMatch.waitForExistence(timeout: timeout)
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["setup_selected_Bob"].firstMatch.waitForExistence(timeout: timeout)
+        )
+    }
+
     func selectAliceAndBobForPartySetup(from app: XCUIApplication, timeout: TimeInterval = 10) {
         selectPlayerFromRoster("Alice", in: app, timeout: timeout)
         selectPlayerFromRoster("Bob", in: app, timeout: timeout)
@@ -165,34 +222,40 @@ extension XCTestCase {
         waitForStartEnabled(start, timeout: timeout)
     }
 
-    func startTwoPlayerBaseballMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
+    func startTwoPlayerX01Match(from app: XCUIApplication, timeout: TimeInterval = 10) {
         ensurePlayTab(app, timeout: timeout)
-        app.buttons["setup_category_party"].tap()
+        selectAliceAndBob(from: app, timeout: timeout)
+        tapStartMatch(in: app, timeout: timeout)
+        waitForX01MatchBoard(in: app, timeout: timeout)
+    }
+
+    func startTwoPlayerCricketMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        selectModeFromCatalog("standard.cricket", in: app)
+        selectAliceAndBob(from: app, timeout: timeout)
+        tapStartMatch(in: app, timeout: timeout)
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+    }
+
+    func startTwoPlayerBaseballMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
+        selectModeFromCatalog("party.baseball", in: app, expectedModeName: "Baseball", timeout: timeout)
+        expandSetupOptions(in: app)
         assertInteractiveElement(
             app.descendants(matching: .any)["setup_baseballInningsChip"],
             identifier: "setup_baseballInningsChip",
             timeout: timeout
         )
         assertInteractiveElement(app.buttons["setup_baseballTieBreakerChip"], identifier: "setup_baseballTieBreakerChip", timeout: timeout)
-        let baseball = app.buttons["setup_party_game_baseball"]
-        if baseball.waitForExistence(timeout: timeout) {
-            baseball.tap()
-        }
         selectAliceAndBobForPartySetup(from: app, timeout: timeout)
-        app.buttons["startMatchButton"].tap()
+        tapStartMatch(in: app, timeout: timeout)
         XCTAssertTrue(app.otherElements["baseball_match_header"].waitForExistence(timeout: timeout))
-        assertInteractiveElement(app.buttons["baseball_submit"], identifier: "baseball_submit", timeout: timeout)
+        assertInteractiveElement(app.buttons["pad_1"], identifier: "pad_1", timeout: timeout)
         assertInteractiveElement(app.buttons["baseball_undo"], identifier: "baseball_undo", timeout: timeout)
         assertInteractiveElement(app.otherElements["baseball_inning_strip"], identifier: "baseball_inning_strip", timeout: timeout)
     }
 
     func startTwoPlayerShanghaiMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
-        ensurePlayTab(app, timeout: timeout)
-        app.buttons["setup_category_party"].tap()
-        let shanghai = app.buttons["setup_party_game_shanghai"]
-        if shanghai.waitForExistence(timeout: timeout) {
-            shanghai.tap()
-        }
+        selectModeFromCatalog("party.shanghai", in: app, expectedModeName: "Shanghai", timeout: timeout)
+        expandSetupOptions(in: app)
         assertInteractiveElement(
             app.descendants(matching: .any)["setup_shanghaiRoundsChip"],
             identifier: "setup_shanghaiRoundsChip",
@@ -200,9 +263,9 @@ extension XCTestCase {
         )
         assertInteractiveElement(app.buttons["setup_shanghaiBonusChip"], identifier: "setup_shanghaiBonusChip", timeout: timeout)
         selectAliceAndBobForPartySetup(from: app, timeout: timeout)
-        app.buttons["startMatchButton"].tap()
+        tapStartMatch(in: app, timeout: timeout)
         XCTAssertTrue(app.otherElements["shanghai_match_header"].waitForExistence(timeout: timeout))
-        assertInteractiveElement(app.buttons["shanghai_submit"], identifier: "shanghai_submit", timeout: timeout)
+        assertInteractiveElement(app.buttons["pad_1"], identifier: "pad_1", timeout: timeout)
         assertInteractiveElement(app.buttons["shanghai_undo"], identifier: "shanghai_undo", timeout: timeout)
         assertInteractiveElement(app.otherElements["shanghai_round_strip"], identifier: "shanghai_round_strip", timeout: timeout)
         assertInteractiveElement(
@@ -213,23 +276,21 @@ extension XCTestCase {
     }
 
     func configureQuickX01Match(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        let startScore = app.buttons["setup_startScoreChip"]
-        XCTAssertTrue(startScore.waitForExistence(timeout: timeout))
-        startScore.tap()
-        app.buttons["101"].tap()
-        app.buttons["setup_checkoutChip"].tap()
-        app.buttons["Straight Out"].tap()
+        expandSetupOptions(in: app, timeout: timeout)
+        tapMenuChip("setup_startScoreChip", in: app, timeout: timeout)
+        selectMenuOption(identifier: "setup_startScoreOption_101", title: "101", in: app, timeout: timeout)
+        tapMenuChip("setup_checkoutChip", in: app, timeout: timeout)
+        selectMenuOption(identifier: "setup_checkoutOption_singleOut", title: "Straight Out", in: app, timeout: timeout)
         tapMenuChip("setup_legsChip", in: app, timeout: timeout)
         selectMenuOption(identifier: "setup_legsOption_1", title: "1", in: app, timeout: timeout)
     }
 
     func configureDoubleOut101Match(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        let startScore = app.buttons["setup_startScoreChip"]
-        XCTAssertTrue(startScore.waitForExistence(timeout: timeout))
-        startScore.tap()
-        app.buttons["101"].tap()
-        app.buttons["setup_checkoutChip"].tap()
-        app.buttons["Double Out"].tap()
+        expandSetupOptions(in: app, timeout: timeout)
+        tapMenuChip("setup_startScoreChip", in: app, timeout: timeout)
+        selectMenuOption(identifier: "setup_startScoreOption_101", title: "101", in: app, timeout: timeout)
+        tapMenuChip("setup_checkoutChip", in: app, timeout: timeout)
+        selectMenuOption(identifier: "setup_checkoutOption_doubleOut", title: "Double Out", in: app, timeout: timeout)
         tapMenuChip("setup_legsChip", in: app, timeout: timeout)
         selectMenuOption(identifier: "setup_legsOption_1", title: "1", in: app, timeout: timeout)
     }
@@ -263,10 +324,9 @@ extension XCTestCase {
     /// Scores a quick 101 straight-out leg win for Alice vs Bob (core flow terminus).
     func finishQuickX01Checkout(for app: XCUIApplication, timeout: TimeInterval = 10) {
         configureQuickX01Match(app, timeout: timeout)
+        ensurePlayTab(app, timeout: timeout)
         selectAliceAndBob(from: app, timeout: timeout)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
+        tapStartMatch(in: app, timeout: timeout)
 
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
         submitMissVisit(on: app, timeout: timeout)
@@ -289,8 +349,7 @@ extension XCTestCase {
     }
 
     func openSeededHistoryDetail(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+        ensureActivityHistorySegment(app, timeout: timeout)
         let gameCard = app.buttons.containing(
             NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "X01", "301")
         ).firstMatch
@@ -304,10 +363,8 @@ extension XCTestCase {
         ensurePlayTab(app, timeout: timeout)
         selectPlayerFromRoster("Alice", in: app, timeout: timeout)
         addEasyBot(from: app, timeout: timeout)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
-        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+        tapStartMatch(in: app, timeout: timeout)
+        waitForX01MatchBoard(in: app, timeout: timeout)
     }
 
     func openSeededPlayerDetail(
@@ -320,11 +377,5 @@ extension XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: timeout + 5), "Expected player row for \(playerName)")
         row.tap()
         XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 10))
-    }
-
-    /// Tab list cards/charts still use some fixed display typography; ignore until a broader scaling pass.
-    func ignoresUnsupportedDynamicTypeFontAudit(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
-        issue.auditType == .dynamicType
-            && issue.compactDescription.localizedCaseInsensitiveContains("unsupported")
     }
 }

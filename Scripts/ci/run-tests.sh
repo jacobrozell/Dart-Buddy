@@ -11,6 +11,13 @@ PARALLEL_TESTING="${CI_PARALLEL_TESTING:-YES}"
 
 echo "::group::Running tests (without building)"
 echo "Scheme: $SCHEME (parallel testing: $PARALLEL_TESTING)"
+
+# AXXXL accessibility capture runs can leave the booted simulator at extra-large text,
+# which breaks default-size UI tests that expect footer validation instead of inline hints.
+if xcrun simctl list devices booted -j 2>/dev/null | python3 -c "import json,sys; print(len(json.load(sys.stdin).get('devices',{}).get('booted',[])))" | grep -qv '^0$'; then
+  echo "→ Resetting booted simulator content size to large"
+  xcrun simctl ui booted content_size large || true
+fi
 rm -rf TestResults.xcresult
 set -o pipefail
 xcodebuild test-without-building \

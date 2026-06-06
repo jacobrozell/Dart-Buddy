@@ -48,6 +48,12 @@ func statsAverageReturnsZeroWhenNoDarts() {
     #expect(StatsService.x01Average3Dart(totalPointsScored: 100, totalDartsThrown: 0) == 0)
 }
 
+@Test(.tags(.unit, .stats, .offline, .regression))
+func statsAverageUsesThreeDartFormula() {
+    #expect(StatsService.x01Average3Dart(totalPointsScored: 180, totalDartsThrown: 9) == 60)
+    #expect(StatsService.x01Average3Dart(totalPointsScored: 45, totalDartsThrown: 3) == 45)
+}
+
 private func d(_ multiplier: DartMultiplier, _ value: Int) -> DartInput {
     DartInput(multiplier: multiplier, segment: .oneToTwenty(value))
 }

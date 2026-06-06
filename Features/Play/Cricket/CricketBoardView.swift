@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 enum CricketBoardMetrics {
     static let targetColumnWidth: CGFloat = 28
@@ -36,22 +35,12 @@ struct CricketBoardSizing: Equatable {
         columnFooterHeight: 40
     )
 
-    static let accessibility = CricketBoardSizing(
-        markRowHeight: 44,
-        headerHeight: 60,
-        columnFooterHeight: 56
-    )
-
-    static func accessibility(for dynamicTypeSize: DynamicTypeSize) -> CricketBoardSizing {
-        let traits = UITraitCollection(preferredContentSizeCategory: dynamicTypeSize.uiContentSizeCategory)
-        let subheadline = UIFont.preferredFont(forTextStyle: .subheadline)
-        let scaledLineHeight = UIFontMetrics(forTextStyle: .subheadline)
-            .scaledValue(for: subheadline.lineHeight + DS.Spacing.s2 * 2, compatibleWith: traits)
-        let markRowHeight = max(Self.accessibility.markRowHeight, ceil(scaledLineHeight))
+    static func accessibility(dynamicTypeSize: DynamicTypeSize) -> CricketBoardSizing {
+        let scale = DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
         return CricketBoardSizing(
-            markRowHeight: markRowHeight,
-            headerHeight: max(Self.accessibility.headerHeight, markRowHeight + DS.Spacing.s4),
-            columnFooterHeight: Self.accessibility.columnFooterHeight
+            markRowHeight: max(44, CricketBoardMetrics.markRowHeight * scale),
+            headerHeight: max(56, CricketBoardMetrics.headerHeight * scale),
+            columnFooterHeight: max(56, CricketBoardMetrics.columnFooterHeight * scale)
         )
     }
 
@@ -61,25 +50,12 @@ struct CricketBoardSizing: Equatable {
             + columnFooterHeight
     }
 
-    /// Grows mark rows so the board fills the scoreboard column on iPhone landscape.
-    func scaledToFill(height availableHeight: CGFloat) -> CricketBoardSizing {
-        let rowCount = CGFloat(CricketTarget.allCases.count)
-        let fixedHeight = headerHeight + columnFooterHeight
-        let rowBudget = max(0, availableHeight - fixedHeight)
-        let scaledRowHeight = max(markRowHeight, rowBudget / rowCount)
-        return CricketBoardSizing(
-            markRowHeight: scaledRowHeight,
-            headerHeight: headerHeight,
-            columnFooterHeight: columnFooterHeight
-        )
-    }
-
     static func resolve(
         verticalSizeClass: UserInterfaceSizeClass?,
         dynamicTypeSize: DynamicTypeSize
     ) -> CricketBoardSizing {
         if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-            return .accessibility(for: dynamicTypeSize)
+            return .accessibility(dynamicTypeSize: dynamicTypeSize)
         }
         if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
             return .landscapeCompact
@@ -136,8 +112,6 @@ struct CricketBoardView: View {
 
     let columns: [Column]
     var activeColumnScrollID: UUID?
-    /// When true, mark rows grow to use the full scoreboard column height (iPhone landscape).
-    var fillsAvailableHeight: Bool = false
 
     @ScaledMetric(relativeTo: .body) private var playerColumnWidth = CricketBoardMetrics.playerColumnWidth
     @ScaledMetric(relativeTo: .body) private var targetColumnWidth = CricketBoardMetrics.targetColumnWidth
@@ -158,20 +132,16 @@ struct CricketBoardView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let effectiveSizing = fillsAvailableHeight
-                ? sizing.scaledToFill(height: geometry.size.height)
-                : sizing
             let layout = CricketBoardColumnLayout.resolve(
                 availableWidth: geometry.size.width,
                 playerCount: columns.count,
                 minimumPlayerColumnWidth: playerColumnWidth,
                 targetColumnWidth: targetColumnWidth
             )
-            boardContent(layout: layout, sizing: effectiveSizing)
+            boardContent(layout: layout, sizing: sizing)
                 .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
         }
-        .frame(height: fillsAvailableHeight ? nil : sizing.boardBodyHeight)
-        .frame(maxHeight: fillsAvailableHeight ? .infinity : nil)
+        .frame(height: sizing.boardBodyHeight)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Brand.card)
         .clipShape(RoundedRectangle(cornerRadius: DS.Radius.sm))
@@ -257,10 +227,7 @@ struct CricketBoardTargetColumn: View {
                     .font(.subheadline.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(Brand.textSecondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
                     .frame(width: width, height: sizing.markRowHeight)
-                    .accessibilityIdentifier(targetAccessibilityIdentifier(for: target))
                 Divider().overlay(Brand.cardElevated)
             }
             Color.clear
@@ -270,10 +237,6 @@ struct CricketBoardTargetColumn: View {
 
     private func label(for target: CricketTarget) -> String {
         target == .bull ? L10n.string("cricket.target.bull") : target.rawValue
-    }
-
-    private func targetAccessibilityIdentifier(for target: CricketTarget) -> String {
-        target == .bull ? "cricket_target_bull" : "cricket_target_\(target.rawValue)"
     }
 }
 

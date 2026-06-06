@@ -5,6 +5,7 @@ import SwiftData
 struct DartBuddyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var bootstrapResult: AppBootstrapResult?
+    @StateObject private var pendingDeepLink = PendingAppDestination()
 
     var body: some Scene {
         WindowGroup {
@@ -12,7 +13,7 @@ struct DartBuddyApp: App {
                 if let currentBootstrapResult = bootstrapResult {
                     switch currentBootstrapResult {
                     case let .ready(dependencies):
-                        MainTabView(dependencies: dependencies)
+                        MainTabView(dependencies: dependencies, pendingDeepLink: pendingDeepLink)
                             .modelContainer(dependencies.modelContainer)
                             .uiTestAccessibilityDynamicTypeOverride()
                     case let .migrationRecovery(context):
@@ -40,6 +41,22 @@ struct DartBuddyApp: App {
                 guard bootstrapResult == nil else { return }
                 await refreshBootstrapResult()
             }
+            .onAppear {
+                IntentRoutingBridge.setPendingDeepLink(pendingDeepLink)
+            }
+            .onOpenURL { url in
+                handleIncomingURL(url)
+            }
+        }
+    }
+
+    @MainActor
+    private func handleIncomingURL(_ url: URL) {
+        switch DeepLinkParser.parse(url) {
+        case let .success(destination):
+            pendingDeepLink.enqueue(destination)
+        case .failure:
+            break
         }
     }
 

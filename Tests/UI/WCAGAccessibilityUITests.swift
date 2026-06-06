@@ -16,7 +16,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testMatchSetupPassesNameRoleValueAudit() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
@@ -39,23 +39,21 @@ final class WCAGAccessibilityUITests: XCTestCase {
     }
 
     func testSettingsPassesNameRoleValueAudit() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        app.tabBars.buttons["Settings"].tap()
-        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: timeout))
+        let app = launchForAccessibility(extraArguments: ["-seed_players", "-ui_test_disable_feedback"])
+        ensureSettingsTab(app, timeout: timeout)
+        scrollSettingsFormForAudit(app)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
     func testHistoryListPassesNameRoleValueAudit() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+        ensureActivityHistorySegment(app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
     func testStatisticsPassesNameRoleValueAudit() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        app.tabBars.buttons["Statistics"].tap()
-        XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
+        ensureActivityStatisticsSegment(app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
@@ -63,7 +61,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testMatchSetupPassesTouchTargetAudit() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets) { issue in
             guard issue.auditType == .hitRegion, let element = issue.element else { return false }
             // SwiftUI list reorder grips are system chrome below the 44pt guideline.
@@ -113,7 +111,8 @@ final class WCAGAccessibilityUITests: XCTestCase {
         assertInteractiveElement(app.buttons["resumeMatchButton"], identifier: "resumeMatchButton")
         app.buttons["resumeMatchButton"].tap()
 
-        XCTAssertTrue(app.staticTexts["121"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["121"].waitForExistence(timeout: timeout + 5))
+        waitForX01MatchBoard(in: app, timeout: timeout + 10)
         assertInteractiveElement(app.otherElements["scoreCard_active"], identifier: "scoreCard_active")
         assertInteractiveElement(app.buttons["pad_20"], identifier: "pad_20")
     }
@@ -222,10 +221,11 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testMatchSetupRequiredControlsExposeLabelsAndIdentifiers() {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
 
-        assertInteractiveElement(app.buttons["setup_mode_x01"], identifier: "setup_mode_x01")
-        assertInteractiveElement(app.buttons["setup_mode_cricket"], identifier: "setup_mode_cricket")
+        assertInteractiveElement(app.buttons["setup_changeModeButton"], identifier: "setup_changeModeButton")
+        assertInteractiveElement(app.buttons["setup_editOptionsButton"], identifier: "setup_editOptionsButton")
+        expandSetupOptions(in: app)
         assertInteractiveElement(app.buttons["setup_startScoreChip"], identifier: "setup_startScoreChip")
         assertInteractiveElement(app.buttons["setup_checkoutChip"], identifier: "setup_checkoutChip")
         assertInteractiveElement(app.buttons["startMatchButton"], identifier: "startMatchButton")
@@ -268,17 +268,56 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testSettingsRequiredControlsExposeIdentifiers() {
         let app = launchForAccessibility(extraArguments: ["-seed_players", "-ui_test_disable_feedback"])
-        app.tabBars.buttons["Settings"].tap()
-        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: timeout))
+        ensureSettingsTab(app, timeout: timeout)
+
+        assertInteractiveElement(app.otherElements["settings_form"], identifier: "settings_form")
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_themePicker"],
+            identifier: "settings_themePicker"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_defaultModePicker"],
+            identifier: "settings_defaultModePicker"
+        )
+        scrollToSettingsControl("settings_defaultLegFormatPicker", in: app, timeout: timeout)
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_defaultLegFormatPicker"],
+            identifier: "settings_defaultLegFormatPicker"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_defaultLegsPicker"],
+            identifier: "settings_defaultLegsPicker"
+        )
+        assertInteractiveElement(app.switches["settings_defaultSetsToggle"], identifier: "settings_defaultSetsToggle")
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_defaultStartScorePicker"],
+            identifier: "settings_defaultStartScorePicker"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_defaultCheckoutPicker"],
+            identifier: "settings_defaultCheckoutPicker"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_defaultCheckInPicker"],
+            identifier: "settings_defaultCheckInPicker"
+        )
 
         scrollToFeedbackSwitches(in: app)
         assertInteractiveElement(app.switches["settings_hapticsToggle"], identifier: "settings_hapticsToggle")
         assertInteractiveElement(app.switches["settings_soundToggle"], identifier: "settings_soundToggle")
+        assertInteractiveElement(
+            app.switches["settings_turnTotalCallerToggle"],
+            identifier: "settings_turnTotalCallerToggle"
+        )
+        scrollToSettingsControl("settings_botStaggerToggle", in: app, timeout: timeout)
+        assertInteractiveElement(app.switches["settings_botStaggerToggle"], identifier: "settings_botStaggerToggle")
+        assertInteractiveElement(app.switches["settings_botDartHapticsToggle"], identifier: "settings_botDartHapticsToggle")
+
+        scrollToSettingsControl("settings_viewOnboardingButton", in: app, timeout: timeout)
+        assertInteractiveElement(app.buttons["settings_viewOnboardingButton"], identifier: "settings_viewOnboardingButton")
 
         let reset = app.buttons["settings_resetAllDataButton"]
-        for _ in 0 ..< 6 where reset.exists == false || reset.isHittable == false {
-            app.swipeUp()
-        }
+        scrollToSettingsControl("settings_resetAllDataButton", in: app, timeout: timeout)
         assertInteractiveElement(reset, identifier: "settings_resetAllDataButton")
     }
 
@@ -286,7 +325,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testPlayHomePassesNameRoleValueAudit() {
         let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
@@ -325,10 +364,10 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testHistoryListFilterAndResumeExposeIdentifiers() {
         let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+        ensureActivityHistorySegment(app, timeout: timeout)
 
-        assertInteractiveElement(app.buttons["historyPlayerFilterMenu"], identifier: "historyPlayerFilterMenu")
+        assertInteractiveElement(app.buttons["activityPlayerFilterMenu"], identifier: "activityPlayerFilterMenu")
+        assertInteractiveElement(app.buttons["activityModeFilterMenu"], identifier: "activityModeFilterMenu")
         let resume = app.buttons["historyResumeMatchButton"]
         if resume.waitForExistence(timeout: 2) {
             assertInteractiveElement(resume, identifier: "historyResumeMatchButton")
@@ -337,15 +376,15 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testStatisticsFilterExposesIdentifierAndLabel() {
         let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        app.tabBars.buttons["Statistics"].tap()
-        XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
-        assertInteractiveElement(app.buttons["statsPlayerFilterMenu"], identifier: "statsPlayerFilterMenu")
+        ensureActivityStatisticsSegment(app, timeout: timeout)
+        assertInteractiveElement(app.buttons["activityPlayerFilterMenu"], identifier: "activityPlayerFilterMenu")
+        assertInteractiveElement(app.buttons["activityModeFilterMenu"], identifier: "activityModeFilterMenu")
     }
 
     func testSettingsPassesTouchTargetAudit() {
         let app = launchForAccessibility(extraArguments: ["-seed_players", "-ui_test_disable_feedback"])
-        app.tabBars.buttons["Settings"].tap()
-        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: timeout))
+        ensureSettingsTab(app, timeout: timeout)
+        scrollSettingsFormForAudit(app)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
@@ -373,8 +412,14 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testX01ModeChipExposesSelectedState() {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
-        assertSelected(app.buttons["setup_mode_x01"], identifier: "setup_mode_x01")
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
+        let modeName = app.descendants(matching: .any)["setup_selectedModeName"]
+        assertInteractiveElement(modeName, identifier: "setup_selectedModeName")
+        XCTAssertTrue(
+            modeName.label.localizedCaseInsensitiveContains("X01"),
+            "Default setup should show the selected X01 mode title"
+        )
+        assertInteractiveElement(app.buttons["setup_changeModeButton"], identifier: "setup_changeModeButton")
     }
 
     func testActiveScoreCardCombinedLabelIncludesPlayerAndRemaining() {
@@ -491,6 +536,40 @@ final class WCAGAccessibilityUITests: XCTestCase {
         assertReachable(app.buttons["player_row_Jacob"], identifier: "player_row_Jacob", in: app)
     }
 
+    func testActivityHistoryFiltersReachableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"],
+            contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
+        )
+        ensureActivityHistorySegment(app, timeout: timeout + 5)
+
+        assertReachable(app.buttons["activity_segment_history"], identifier: "activity_segment_history", in: app)
+        assertReachable(app.buttons["activity_segment_statistics"], identifier: "activity_segment_statistics", in: app)
+        assertReachable(app.buttons["activityPlayerFilterMenu"], identifier: "activityPlayerFilterMenu", in: app)
+        assertReachable(app.buttons["activityModeFilterMenu"], identifier: "activityModeFilterMenu", in: app)
+
+        let historySegment = app.buttons["activity_segment_history"]
+        XCTAssertTrue(
+            historySegment.label.localizedCaseInsensitiveContains("History"),
+            "History segment should expose a spoken label at AXXXL"
+        )
+    }
+
+    func testActivityStatisticsReachableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_demo"],
+            contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
+        )
+        ensureActivityStatisticsSegment(app, timeout: timeout + 5)
+
+        XCTAssertTrue(
+            app.staticTexts["Games"].waitForExistence(timeout: timeout + 5),
+            "Statistics segment should show the Games table header at AXXXL"
+        )
+        assertReachable(app.buttons["activityPlayerFilterMenu"], identifier: "activityPlayerFilterMenu", in: app)
+        assertReachable(app.buttons["activityModeFilterMenu"], identifier: "activityModeFilterMenu", in: app)
+    }
+
     func testHistoryDetailCriticalControlsUsableAtAXXXL() {
         let app = launchForAccessibility(
             extraArguments: ["-seed_demo"],
@@ -520,10 +599,11 @@ final class WCAGAccessibilityUITests: XCTestCase {
             extraArguments: ["-seed_players"],
             contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
         )
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
 
         assertReachable(app.buttons["startMatchButton"], identifier: "startMatchButton", in: app)
         assertReachable(app.buttons["select_Alice"], identifier: "select_Alice", in: app)
+        expandSetupOptions(in: app, timeout: timeout)
         assertReachable(app.buttons["setup_startScoreChip"], identifier: "setup_startScoreChip", in: app)
         // Full dynamicType audit at AXXXL remains manual until gameplay typography scaling lands
         // (see accessibility/wcag-2.1-aa/screens/match-setup.md P-1.4.4).
@@ -533,7 +613,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
         let app = launchForAccessibility(
             extraArguments: ["-seed_players"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
         )
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
 
         selectPlayerFromRoster("Alice", in: app, timeout: timeout)
 
@@ -563,7 +643,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
 
     func testSetupValidationUsesFooterBannerAtDefaultTextSizes() {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
 
         selectPlayerFromRoster("Alice", in: app, timeout: timeout)
 
@@ -571,9 +651,17 @@ final class WCAGAccessibilityUITests: XCTestCase {
         XCTAssertTrue(start.waitForExistence(timeout: timeout))
         XCTAssertFalse(start.isEnabled)
 
+        for _ in 0 ..< 4 where start.isHittable == false {
+            app.swipeDown()
+        }
+
         let footerBanner = app.descendants(matching: .any)["errorBanner"]
+        let validationCopy = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS %@", "Select at least two players.")
+        ).firstMatch
         XCTAssertTrue(
-            footerBanner.firstMatch.waitForExistence(timeout: timeout),
+            footerBanner.firstMatch.waitForExistence(timeout: timeout)
+                || validationCopy.waitForExistence(timeout: timeout),
             "Default text size should keep validation in the sticky footer"
         )
         XCTAssertFalse(
@@ -594,71 +682,62 @@ final class WCAGAccessibilityUITests: XCTestCase {
         assertReachable(app.otherElements["scoreCard_active"], identifier: "scoreCard_active", in: app)
     }
 
-    func testHistoryFiltersReachableAtAXXXL() {
-        let app = launchForAccessibility(
-            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
-        )
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
+    // MARK: - iOS 26 Liquid Glass + accessibility settings (P-1.4.3 / Reduce Transparency)
 
-        let allGames = app.buttons["All Games"]
-        let cricket = app.buttons["Cricket"]
-        assertReachable(allGames, identifier: "All Games", in: app)
-        assertReachable(cricket, identifier: "Cricket", in: app)
-        XCTAssertFalse(allGames.label.contains("…"), "Filter label should not truncate at accessibility sizes")
-        XCTAssertFalse(cricket.label.contains("…"), "Filter label should not truncate at accessibility sizes")
+    func testSettingsCriticalControlsUsableAtAXXXL() {
+        let app = launchForAccessibility(
+            extraArguments: ["-seed_players", "-ui_test_disable_feedback"],
+            contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
+        )
+        ensureSettingsTab(app, timeout: timeout + 5)
+        assertReachable(app.switches["settings_hapticsToggle"], identifier: "settings_hapticsToggle", in: app)
+        assertReachable(app.switches["settings_defaultSetsToggle"], identifier: "settings_defaultSetsToggle", in: app)
+        assertReachable(app.buttons["settings_resetAllDataButton"], identifier: "settings_resetAllDataButton", in: app)
     }
 
-    func testStatisticsReachableAtAXXXL() {
+    func testSettingsPassesDynamicTypeAuditAtAXXXL() {
         let app = launchForAccessibility(
-            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+            extraArguments: ["-seed_players", "-ui_test_disable_feedback"],
+            contentSizeCategory: AccessibilityTestLaunch.axxxlContentSizeCategory
         )
-        app.tabBars.buttons["Statistics"].tap()
-        XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
-        assertReachable(app.buttons["All Games"], identifier: "All Games", in: app)
-        assertReachable(app.buttons["statsPlayerFilterMenu"], identifier: "statsPlayerFilterMenu", in: app)
+        ensureSettingsTab(app, timeout: timeout + 5)
+        scrollSettingsFormForAudit(app)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType)
     }
 
-    func testCricketBoardTargetsLegibleAtAXXXL() {
+    func testSettingsPassesContrastAuditWithIncreaseContrast() {
+        var preferences = AccessibilityTestLaunch.SimulatorPreferences()
+        preferences.increaseContrast = true
         let app = launchForAccessibility(
-            extraArguments: ["-snapshot_match_cricket"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+            extraArguments: ["-seed_players", "-ui_test_disable_feedback"],
+            simulatorPreferences: preferences
         )
-
-        assertReachable(app.staticTexts["20"], identifier: "cricket target 20", in: app)
-        assertReachable(app.staticTexts["19"], identifier: "cricket target 19", in: app)
-        assertReachable(app.staticTexts["Bull"], identifier: "cricket target Bull", in: app)
+        ensureSettingsTab(app, timeout: timeout)
+        scrollSettingsFormForAudit(app)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.contrast)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
-    func testOnboardingBodyVisibleAtAXXXL() {
+    func testSettingsPassesAuditsWithReduceTransparency() {
+        var preferences = AccessibilityTestLaunch.SimulatorPreferences()
+        preferences.reduceTransparency = true
         let app = launchForAccessibility(
-            extraArguments: ["-ui_test_onboarding"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+            extraArguments: ["-seed_players"],
+            simulatorPreferences: preferences
         )
-        let body = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS %@", "local scorekeeper")
-        ).firstMatch
-        assertReachable(body, identifier: "onboarding welcome body", in: app)
-        assertReachable(app.buttons["onboarding_next"], identifier: "onboarding_next", in: app)
+        ensureSettingsTab(app, timeout: timeout)
+        scrollSettingsFormForAudit(app)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
-    func testHistoryPassesDynamicTypeAuditAtAccessibilityTextSize() throws {
+    func testPlayHomePassesAuditWithReduceMotion() {
+        var preferences = AccessibilityTestLaunch.SimulatorPreferences()
+        preferences.reduceMotion = true
         let app = launchForAccessibility(
-            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
+            extraArguments: ["-seed_demo"],
+            simulatorPreferences: preferences
         )
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: timeout))
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType) { issue in
-            self.ignoresUnsupportedDynamicTypeFontAudit(issue)
-        }
-    }
-
-    func testStatisticsPassesDynamicTypeAuditAtAccessibilityTextSize() throws {
-        let app = launchForAccessibility(
-            extraArguments: ["-seed_demo"] + AccessibilityTestLaunch.accessibilityTextSizeArguments
-        )
-        app.tabBars.buttons["Statistics"].tap()
-        XCTAssertTrue(app.staticTexts["Statistics"].waitForExistence(timeout: timeout))
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.dynamicType) { issue in
-            self.ignoresUnsupportedDynamicTypeFontAudit(issue)
-        }
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 }

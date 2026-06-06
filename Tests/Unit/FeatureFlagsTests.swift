@@ -42,3 +42,15 @@ func crashlyticsHonorsDisableFirebaseAnalyticsArgument() {
     let provider = LocalFeatureFlagsProvider(arguments: ["-disable_firebase_analytics"])
     #expect(!provider.isEnabled(.enableFirebaseCrashlytics))
 }
+
+@Test(.tags(.unit, .regression))
+func appIntentsDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!provider.isEnabled(.enableAppIntents))
+}
+
+@Test(.tags(.unit, .regression))
+func appIntentsEnabledWithLaunchArgument() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-enable_app_intents"])
+    #expect(provider.isEnabled(.enableAppIntents))
+}

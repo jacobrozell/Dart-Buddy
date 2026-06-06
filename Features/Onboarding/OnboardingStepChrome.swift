@@ -22,7 +22,7 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
     }
 
     private var scrollBottomPadding: CGFloat {
-        dynamicTypeSize.isAccessibilitySize ? 140 : DS.Spacing.s4
+        dynamicTypeSize.isAccessibilitySize ? 120 : DS.Spacing.s4
     }
 
     var body: some View {
@@ -149,7 +149,6 @@ struct OnboardingHeroStepContent: View {
                 .font(.body)
                 .foregroundStyle(Brand.textSecondary)
                 .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
     }

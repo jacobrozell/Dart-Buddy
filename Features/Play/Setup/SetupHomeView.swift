@@ -12,47 +12,25 @@ struct SetupHomeView: View {
     let onResumeMatch: (MatchSummary) -> Void
     let onStartRoute: (PlayRoute) -> Void
     let onQuickAddPlayer: () -> Void
+    let onChangeMode: () -> Void
     @State private var startTask: Task<Void, Never>?
     @State private var showsGameRules = false
     @State private var showsCustomBotSheet = false
+    @State private var showsEditOptions = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                BrandRootScreenTitle(title: L10n.appTitle)
+                BrandAppTitle()
                     .padding(.top, DS.Spacing.s2)
 
                 if case let .readyWithActiveMatch(match) = homeViewModel.state {
                     resumeBanner(match)
                 }
 
-                setupCategorySelector
-                if setupViewModel.setupCategory == .standard {
-                    modeSelector
-                    learnToPlayButton
-                    if setupViewModel.mode == .x01 {
-                        chipsGrid
-                    } else {
-                        cricketChipsGrid
-                    }
-                } else {
-                    PartyGamePickerView(
-                        games: PartyGame.allCases,
-                        selection: Binding(
-                            get: { setupViewModel.partyGame },
-                            set: { setupViewModel.updatePartyGame($0) }
-                        )
-                    )
-                    if setupViewModel.partyGame == .baseball {
-                        learnToPlayButton
-                        baseballChipsGrid
-                    } else if setupViewModel.partyGame == .killer {
-                        learnToPlayButton
-                        killerChipsGrid
-                    } else if setupViewModel.partyGame == .shanghai {
-                        learnToPlayButton
-                        shanghaiChipsGrid
-                    }
+                selectedModeHeader
+                if showsEditOptions {
+                    modeOptionChips
                 }
                 if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
                    !setupViewModel.displayValidationErrors.isEmpty {
@@ -83,6 +61,9 @@ struct SetupHomeView: View {
                 }
         }
         .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
+            if let selection = pendingMatchPlayerSelections.consumeModeSelection() {
+                setupViewModel.applyPendingModeSelection(selection)
+            }
             Task { await setupViewModel.onAppear() }
         }
         .alert("play.setup.activeConflict.title", isPresented: $setupViewModel.showActiveMatchConflict) {
@@ -123,15 +104,11 @@ struct SetupHomeView: View {
 
     private var learnToPlayButton: some View {
         Button { showsGameRules = true } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "book.pages")
-                Text(L10n.gameRulesLearnButton)
-                    .font(.subheadline.weight(.semibold))
-            }
-            .foregroundStyle(Brand.green)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(minHeight: 44, alignment: .leading)
-            .contentShape(Rectangle())
+            Image(systemName: "book.pages")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(Brand.green)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(L10n.gameRulesLearnButton)
@@ -166,40 +143,98 @@ struct SetupHomeView: View {
         .accessibilityIdentifier("resumeMatchButton")
     }
 
-    private var setupCategorySelector: some View {
-        BrandSegmented(
-            options: [
-                (.standard, L10n.string("play.setup.category.standard")),
-                (.party, L10n.string("play.setup.category.party"))
-            ],
-            selection: Binding(
-                get: { setupViewModel.setupCategory },
-                set: { setupViewModel.updateSetupCategory($0) }
-            ),
-            accessibilityIdentifiers: [
-                .standard: "setup_category_standard",
-                .party: "setup_category_party"
-            ]
-        )
-        .frame(maxWidth: .infinity)
+    private var selectedCatalogEntry: GameModeCatalogEntry? {
+        if setupViewModel.setupCategory == .party {
+            switch setupViewModel.partyGame {
+            case .baseball: return GameModeCatalog.entry(for: .baseball)
+            case .killer: return GameModeCatalog.entry(for: .killer)
+            case .shanghai: return GameModeCatalog.entry(for: .shanghai)
+            }
+        }
+        return setupViewModel.mode == .cricket
+            ? GameModeCatalog.entry(for: .cricket)
+            : GameModeCatalog.entry(for: .x01)
     }
 
-    private var modeSelector: some View {
-        BrandSegmented(
-            options: [
-                (.x01, L10n.string("play.x01.title")),
-                (.cricket, L10n.string("play.cricket.title"))
-            ],
-            selection: Binding(
-                get: { setupViewModel.mode },
-                set: { setupViewModel.updateMode($0) }
-            ),
-            accessibilityIdentifiers: [
-                .x01: "setup_mode_x01",
-                .cricket: "setup_mode_cricket"
-            ]
-        )
-        .frame(maxWidth: .infinity)
+    private var selectedModeHeader: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            Text(L10n.string("play.setup.selectedMode"))
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+
+            HStack(alignment: .top, spacing: DS.Spacing.s3) {
+                learnToPlayButton
+                if let entry = selectedCatalogEntry, let matchType = entry.matchType {
+                    GameModeBadge(type: matchType, size: 36)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title"))
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(Brand.textPrimary)
+                        .accessibilityIdentifier("setup_selectedModeName")
+                    Text(modeConfigSummary)
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                Button(action: onChangeMode) {
+                    Text(L10n.string("play.setup.changeMode"))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.green)
+                        .padding(.horizontal, DS.Spacing.s2)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("setup_changeModeButton")
+            }
+            .padding(DS.Spacing.s3)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+
+            HStack {
+                Spacer(minLength: 0)
+                Button {
+                    showsEditOptions.toggle()
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(L10n.string(showsEditOptions ? "play.setup.hideOptions" : "play.setup.editOptions"))
+                            .font(.subheadline.weight(.semibold))
+                        Image(systemName: showsEditOptions ? "chevron.up" : "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .accessibilityHidden(true)
+                    }
+                    .foregroundStyle(Brand.green)
+                    .padding(.horizontal, DS.Spacing.s2)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("setup_editOptionsButton")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var modeOptionChips: some View {
+        if setupViewModel.setupCategory == .standard {
+            if setupViewModel.mode == .x01 {
+                chipsGrid
+            } else {
+                cricketChipsGrid
+            }
+        } else if setupViewModel.partyGame == .baseball {
+            baseballChipsGrid
+        } else if setupViewModel.partyGame == .killer {
+            killerChipsGrid
+        } else if setupViewModel.partyGame == .shanghai {
+            shanghaiChipsGrid
+        }
+    }
+
+    private var modeConfigSummary: String {
+        selectedCatalogEntry?.blurb ?? ""
     }
 
     private var startButton: some View {
@@ -274,6 +309,7 @@ struct SetupHomeView: View {
             HStack(spacing: 8) {
                 Image(systemName: setupViewModel.randomOrder ? "checkmark.square.fill" : "square")
                     .foregroundStyle(setupViewModel.randomOrder ? Brand.green : Brand.textSecondary)
+                    .accessibilityHidden(true)
                 Text(L10n.setupRandomOrder).foregroundStyle(Brand.textPrimary)
             }
             .frame(minHeight: 44, alignment: .leading)
@@ -345,6 +381,7 @@ struct SetupHomeView: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "cpu")
+                        .accessibilityHidden(true)
                     Text(L10n.addBotTitle).font(.subheadline.weight(.semibold))
                 }
                 .foregroundStyle(Brand.textPrimary)
@@ -359,11 +396,13 @@ struct SetupHomeView: View {
             Button { onQuickAddPlayer() } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "person.badge.plus")
+                        .accessibilityHidden(true)
                     Text(L10n.setupAddPlayers).font(.subheadline.weight(.semibold))
                 }
                 .foregroundStyle(Brand.textPrimary)
                 .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s2)
+                .padding(.vertical, DS.Spacing.s3)
+                .frame(minHeight: 44)
                 .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             }
             .buttonStyle(.plain)
@@ -552,6 +591,7 @@ struct SetupHomeView: View {
                 }
                 Image(systemName: "plus.circle")
                     .foregroundStyle(Brand.green)
+                    .accessibilityHidden(true)
             }
             .frame(minHeight: 44)
             .padding(.vertical, DS.Spacing.s3)

@@ -4,7 +4,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testStartingWithActiveMatchPromptsToReplaceIt() {
         let app = launchApp(["-seed_demo"])
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
         XCTAssertTrue(app.buttons["resumeMatchButton"].waitForExistence(timeout: timeout))
 
         // Stage bot first so the turn-order list does not cover the human roster on compact simulators.
@@ -47,7 +47,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testEmptyRosterGuidesUserToAddPlayers() {
         let app = launchApp()
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
         XCTAssertTrue(
             app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Add Players")).firstMatch
                 .waitForExistence(timeout: timeout),
@@ -66,17 +66,32 @@ final class MatchSetupUITests: DartBuddyUITestCase {
     func testHumanPlusBotCanStartMatch() {
         let app = launchApp(["-seed_players"])
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
         selectPlayerFromRoster("Alice", in: app)
         addEasyBot(from: app, timeout: timeout)
-        tapStartMatch(in: app, expectingBoardKey: "pad_20")
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.isEnabled, "START should enable with one human and one bot")
+        tapStartMatch(in: app, timeout: timeout + 5)
+
+        waitForX01MatchBoard(in: app, timeout: timeout + 5)
     }
 
     func testRemovePlayerFromTurnOrderRestoresAvailableRoster() {
         let app = launchApp(["-seed_players"])
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
-        selectAliceAndBob(from: app)
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
+
+        let selectAlice = app.buttons["select_Alice"]
+        XCTAssertTrue(selectAlice.waitForExistence(timeout: timeout))
+        selectAlice.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Alice"].waitForExistence(timeout: timeout))
+
+        let selectBob = app.buttons["select_Bob"]
+        XCTAssertTrue(selectBob.waitForExistence(timeout: timeout))
+        if !selectBob.isHittable {
+            app.swipeUp()
+        }
+        selectBob.tap()
 
         let start = app.buttons["startMatchButton"]
         waitForStartEnabled(start, timeout: timeout)
@@ -99,21 +114,24 @@ final class MatchSetupUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.buttons["select_Bob"].waitForExistence(timeout: timeout), "Bob should return to the available roster")
         XCTAssertFalse(start.isEnabled, "START should stay disabled with no staged players")
 
-        selectAliceAndBob(from: app)
+        app.buttons["select_Alice"].tap()
+        app.buttons["select_Bob"].tap()
         waitForStartEnabled(start, timeout: timeout)
     }
 
     func testStartRequiresTwoSelectedPlayers() {
         let app = launchApp(["-seed_players"])
 
-        XCTAssertTrue(app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: timeout))
-        selectPlayerFromRoster("Alice", in: app)
+        let alice = app.buttons["select_Alice"]
+        XCTAssertTrue(alice.waitForExistence(timeout: timeout))
+        alice.tap()
 
         let start = app.buttons["startMatchButton"]
-        waitForStartDisabled(start, timeout: timeout)
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertFalse(start.isEnabled, "START should be disabled with only one player selected")
 
-        selectPlayerFromRoster("Bob", in: app)
-        waitForStartEnabled(start, timeout: timeout)
+        app.buttons["select_Bob"].tap()
+        XCTAssertTrue(start.isEnabled, "START should enable once two players are selected")
     }
 
     func testMatchSetupAddsTrainingPartnerBot() {

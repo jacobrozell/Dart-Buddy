@@ -21,8 +21,7 @@ private struct BrandSettingsScreenChrome: ViewModifier {
         content
             .preferredColorScheme(AppAppearancePolicy.settingsColorScheme(appearanceModeRaw: appearanceModeRaw))
             .background(screenBackground.ignoresSafeArea())
-            .toolbarBackground(screenBackground, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .legacyOpaqueSettingsNavigationBarBackground(screenBackground)
             .toolbarColorScheme(usesBrandPalette ? .dark : .light, for: .navigationBar)
     }
 

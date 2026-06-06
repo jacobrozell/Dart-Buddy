@@ -57,7 +57,16 @@ struct KillerMatchScreen: View {
                     }
                 } controls: {
                     killerPad
-                    submitButton
+                    if showsPartialTurnSubmit {
+                        submitButton
+                    }
+                }
+                .onChange(of: viewModel.enteredDarts) { old, darts in
+                    guard viewModel.canHumanInput else { return }
+                    let threshold = viewModel.maxDartsPerSubmission
+                    if darts.count > old.count, darts.count == threshold {
+                        submitTurn()
+                    }
                 }
             } else {
                 Spacer()
@@ -137,26 +146,27 @@ struct KillerMatchScreen: View {
         )
     }
 
+    private var showsPartialTurnSubmit: Bool {
+        !viewModel.isPickPhase
+            && (1 ... 2).contains(viewModel.enteredDarts.count)
+            && viewModel.canHumanInput
+    }
+
     private var submitButton: some View {
-        Button {
-            actionTask?.cancel()
-            actionTask = Task { await viewModel.submitTurn() }
-        } label: {
-            Text(submitButtonTitle)
+        Button(action: submitTurn) {
+            Text(L10n.string("scoring.submitTurn"))
                 .font(.headline.weight(.bold))
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
         .tint(Brand.green)
         .disabled(!viewModel.canSubmit)
+        .accessibilityLabel(L10n.string("scoring.submitTurn"))
         .accessibilityIdentifier("killer_submit")
     }
 
-    private var submitButtonTitle: String {
-        if viewModel.isPickPhase {
-            L10n.string("play.killer.submitPick")
-        } else {
-            L10n.string("scoring.submitTurn")
-        }
+    private func submitTurn() {
+        actionTask?.cancel()
+        actionTask = Task { await viewModel.submitTurn() }
     }
 }

@@ -1,20 +1,32 @@
 import SwiftUI
 
-/// Root tab shell: Play, Players, Statistics, History, Settings.
+/// Root tab shell: Play, Modes, Players, Activity, Settings.
 /// Tab order matches `specs/AppShellSpec.md`.
 struct MainTabView: View {
     enum RootTab: String, CaseIterable {
         case play
-        case history
+        case modes
         case players
-        case statistics
+        case activity
         case settings
+
+        init?(snapshotArgument: String) {
+            switch snapshotArgument {
+            case "history", "statistics":
+                self = .activity
+            default:
+                guard let tab = RootTab(rawValue: snapshotArgument) else { return nil }
+                self = tab
+            }
+        }
     }
 
     let dependencies: AppDependencies
+    @ObservedObject var pendingDeepLink: PendingAppDestination
     @ObservedObject private var preferences: UserPreferencesStore
     @State private var selectedTab: RootTab = MainTabView.startupTab
     @State private var pendingPlayResume: MatchSummary?
+    @State private var playNavigationResetTrigger = 0
     @State private var showsActiveMatchBadge = false
     @State private var appStoreUpdateOffer: AppStoreUpdateOffer?
     @State private var showsOnboarding = false
@@ -22,19 +34,32 @@ struct MainTabView: View {
 
     private let onboardingStore = OnboardingStore()
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: AppDependencies, pendingDeepLink: PendingAppDestination) {
         self.dependencies = dependencies
+        self.pendingDeepLink = pendingDeepLink
         _preferences = ObservedObject(wrappedValue: dependencies.userPreferencesStore)
     }
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            PlayRootView(dependencies: dependencies, pendingResumeMatch: $pendingPlayResume)
+            PlayRootView(
+                dependencies: dependencies,
+                pendingResumeMatch: $pendingPlayResume,
+                navigationResetTrigger: playNavigationResetTrigger,
+                onChangeMode: { selectedTab = .modes }
+            )
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
                 .tag(RootTab.play)
                 .tabItem {
                     Label(L10n.tabPlay, systemImage: "house.fill")
                         .accessibilityIdentifier("tab_play")
+                }
+            ModesRootView(onSelectMode: handleModeSelection)
+                .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
+                .tag(RootTab.modes)
+                .tabItem {
+                    Label(L10n.tabModes, systemImage: "square.grid.2x2.fill")
+                        .accessibilityIdentifier("tab_modes")
                 }
             PlayersRootView(dependencies: dependencies)
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
@@ -43,24 +68,21 @@ struct MainTabView: View {
                     Label(L10n.tabPlayers, systemImage: "person.2.fill")
                         .accessibilityIdentifier("tab_players")
                 }
-            StatisticsRootView(dependencies: dependencies, onStartMatch: { selectedTab = .play })
+            ActivityRootView(
+                dependencies: dependencies,
+                onResumeActiveMatch: { match in
+                    pendingPlayResume = match
+                    selectedTab = .play
+                },
+                onStartMatch: { selectedTab = .play }
+            )
                 .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
-                .tag(RootTab.statistics)
+                .tag(RootTab.activity)
                 .tabItem {
-                    Label(L10n.tabStatistics, systemImage: "chart.bar.fill")
-                        .accessibilityIdentifier("tab_statistics")
+                    Label(L10n.tabActivity, systemImage: "clock.arrow.circlepath")
+                        .accessibilityIdentifier("tab_activity")
                 }
-            HistoryRootView(dependencies: dependencies, onResumeActiveMatch: { match in
-                pendingPlayResume = match
-                selectedTab = .play
-            }, onStartMatch: { selectedTab = .play })
-                .brandScoreboardChrome(appearanceModeRaw: preferences.appearanceModeRaw)
-                .tag(RootTab.history)
-                .tabItem {
-                    Label(L10n.tabHistory, systemImage: "clock.arrow.circlepath")
-                        .accessibilityIdentifier("tab_history")
-                }
-                .badge(showsActiveMatchBadge && selectedTab != .history ? 1 : 0)
+                .badge(showsActiveMatchBadge && selectedTab != .activity ? 1 : 0)
             SettingsRootView(dependencies: dependencies)
                 .tag(RootTab.settings)
                 .tabItem {
@@ -95,11 +117,15 @@ struct MainTabView: View {
                 onFinished: {
                     showsOnboarding = false
                     selectedTab = .play
-                    Task { await checkForAppStoreUpdate() }
+                    Task {
+                        await checkForAppStoreUpdate()
+                        await consumePendingDeepLink()
+                    }
                 }
             )
         }
         .task {
+            configureIntentRouting()
             dependencies.logger.debug(
                 .ui,
                 eventName: "main_tab_presented",
@@ -111,9 +137,13 @@ struct MainTabView: View {
             } else if !onboardingStore.shouldPresentOnLaunch {
                 await checkForAppStoreUpdate()
             }
+            await consumePendingDeepLink()
         }
         .onChange(of: selectedTab) { _, _ in
             Task { await refreshActiveMatchBadge() }
+        }
+        .onChange(of: pendingDeepLink.changeCount) { _, _ in
+            Task { await consumePendingDeepLink() }
         }
         .onReceive(NotificationCenter.default.publisher(for: LocalAppStateReset.didResetNotification)) { _ in
             appStoreUpdateOffer = nil
@@ -121,6 +151,12 @@ struct MainTabView: View {
                 showsOnboarding = true
             }
         }
+    }
+
+    private func handleModeSelection(_ entry: GameModeCatalogEntry) {
+        guard let selection = entry.pendingModeSelection else { return }
+        dependencies.pendingMatchPlayerSelections.enqueueModeSelection(selection)
+        selectedTab = .play
     }
 
     private func checkForAppStoreUpdate() async {
@@ -143,11 +179,64 @@ struct MainTabView: View {
         showsActiveMatchBadge = (try? await dependencies.matchRepository.fetchActiveMatch()) != nil
     }
 
+    private func consumePendingDeepLink() async {
+        configureIntentRouting()
+        guard !showsOnboarding else {
+            if pendingDeepLink.hasPending {
+                dependencies.logger.debug(
+                    .ui,
+                    eventName: "deep_link_deferred",
+                    message: "Deep link waiting for onboarding.",
+                    metadata: ["version": DartBuddyURL.pathVersion]
+                )
+            }
+            return
+        }
+        guard let destination = pendingDeepLink.consumeIfReady(
+            bootstrapReady: true,
+            onboardingComplete: true
+        ) else { return }
+
+        dependencies.logger.debug(
+            .ui,
+            eventName: "deep_link_received",
+            message: "Applying deep link.",
+            metadata: ["version": DartBuddyURL.pathVersion]
+        )
+
+        let router = AppRouteRouter(dependencies: dependencies)
+        let outcome = await router.handle(destination, actions: makeRouteActions())
+
+        switch outcome {
+        case .applied:
+            dependencies.logger.debug(
+                .ui,
+                eventName: "deep_link_applied",
+                message: "Deep link routed.",
+                metadata: ["version": DartBuddyURL.pathVersion]
+            )
+        case .failed:
+            break
+        }
+    }
+
+    private func makeRouteActions() -> AppRouteRouter.Actions {
+        AppRouteRouter.Actions(
+            setSelectedTab: { selectedTab = $0 },
+            setPendingPlayResume: { pendingPlayResume = $0 },
+            resetPlayNavigation: { playNavigationResetTrigger += 1 }
+        )
+    }
+
+    private func configureIntentRouting() {
+        IntentRoutingBridge.configure(dependencies: dependencies, actions: makeRouteActions())
+    }
+
     private static var startupTab: RootTab {
         let arguments = ProcessInfo.processInfo.arguments
         guard let tabFlagIndex = arguments.firstIndex(of: "-snapshot_tab"),
               arguments.indices.contains(tabFlagIndex + 1),
-              let tab = RootTab(rawValue: arguments[tabFlagIndex + 1]) else {
+              let tab = RootTab(snapshotArgument: arguments[tabFlagIndex + 1]) else {
             return .play
         }
         return tab

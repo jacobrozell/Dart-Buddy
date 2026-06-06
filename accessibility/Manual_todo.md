@@ -54,7 +54,8 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 
 ## VoiceOver — Settings (`settings`)
 
-- [ ] Reset all data → confirmation → destructive confirm (identifiers: `settings_resetAllDataButton`)
+- [x] Reset all data → confirmation → Cancel (AX spot-check + UI test — `evidence/voiceover/settings-reset-ax-spotcheck-2026-06-06.md`)
+- [ ] Reset flow audio pass + destructive confirm execution (`evidence/voiceover/core-flow-settings-reset.md`)
 
 ## VoiceOver — Migration recovery (`migration-recovery`)
 
@@ -100,6 +101,7 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 - [ ] `x01-match` — remaining score + pad usable
 - [ ] `cricket-match` — board + pad on phone
 - [ ] `history-list`, `history-detail`, `statistics`, `players-list`, `player-detail`, `settings`
+- [x] `settings` — automated Dynamic Type audit at AXXXL (`testSettingsPassesDynamicTypeAuditAtAXXXL`); capture `iphone-17-pro-settings_*_accessibility-extra-extra-extra-large.png`
 
 ## Contrast & appearance
 

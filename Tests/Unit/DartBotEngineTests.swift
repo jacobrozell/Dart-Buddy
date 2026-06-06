@@ -529,20 +529,38 @@ import Testing
     #expect(darts.contains { $0.points > 0 })
 }
 
-@Test func dartBotEngine_killerPickAvoidsTakenNumbers() {
-    var rng = SeededRandomNumberGenerator(seed: 11)
-    let profile = BotDifficulty.medium.skillProfile
-    let taken: Set<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-    var assignedAvailableNumber = false
-    for _ in 0 ..< 32 {
+@Test(.tags(.unit, .regression))
+func dartBotEngine_killerPickAvailableNumbersExcludeTaken() {
+    let taken: Set<Int> = Set(1 ... 19)
+    let available = (1 ... 20).filter { !taken.contains($0) }
+    #expect(available == [20])
+}
+
+@Test(.tags(.unit, .regression))
+func dartBotEngine_killerPickWithPerfectProfileEventuallyHitsLastAvailableNumber() {
+    let profile = killerPickTestProfile()
+    let taken: Set<Int> = Set(1 ... 19)
+    var hitTwenty = false
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
         let dart = DartBotEngine.generateKillerPick(takenNumbers: taken, profile: profile, rng: &rng)
-        guard dart.isMiss == false,
-              case let .oneToTwenty(value) = dart.segment,
-              taken.contains(value) == false else { continue }
-        assignedAvailableNumber = true
-        #expect(value == 20)
+        if case let .oneToTwenty(value) = dart.segment, value == 20 {
+            hitTwenty = true
+            break
+        }
     }
-    #expect(assignedAvailableNumber)
+    #expect(hitTwenty)
+}
+
+@Test(.tags(.unit, .regression))
+func dartBotEngine_killerPickReturnsMissWhenEveryNumberIsTaken() {
+    var rng = SeededRandomNumberGenerator(seed: 7)
+    let dart = DartBotEngine.generateKillerPick(
+        takenNumbers: Set(1 ... 20),
+        profile: BotDifficulty.medium.skillProfile,
+        rng: &rng
+    )
+    #expect(dart.isMiss)
 }
 
 @Test func dartBotEngine_killerTurnAimsOwnDoublePreKiller() throws {
@@ -659,6 +677,26 @@ private func cricketDartAims(at value: Int, dart: DartInput) -> Bool {
 
 private func killerDartAims(at value: Int, multiplier: DartMultiplier, dart: DartInput) -> Bool {
     dart.multiplier == multiplier && cricketDartAims(at: value, dart: dart)
+}
+
+private func availableKillerPickNumbers(excluding taken: Set<Int>) -> [Int] {
+    (1 ... 20).filter { !taken.contains($0) }
+}
+
+/// Perfect cricket accuracy so killer number-pick tests assert selection, not miss simulation.
+private func killerPickTestProfile() -> BotSkillProfile {
+    let base = BotDifficulty.medium.skillProfile
+    return BotSkillProfile(
+        x01: base.x01,
+        cricket: .init(
+            hitChances: .init(single: 1, double: 1, triple: 1),
+            offBoardMissChance: 0,
+            wrongBedChance: 0,
+            innerBullAimChance: 0,
+            tripleOnOpenChance: 0,
+            doubleOnOpenChance: 0
+        )
+    )
 }
 
 private struct SeededRandomNumberGenerator: RandomNumberGenerator {

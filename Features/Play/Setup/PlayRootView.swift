@@ -3,13 +3,22 @@ import SwiftUI
 struct PlayRootView: View {
     let dependencies: AppDependencies
     @Binding var pendingResumeMatch: MatchSummary?
+    var navigationResetTrigger: Int = 0
+    var onChangeMode: () -> Void = {}
     @State private var path: [PlayRoute] = []
     @State private var hasAppliedSnapshotRoute = false
     @StateObject private var viewModel: PlayHomeViewModel
     @StateObject private var setupViewModel: MatchSetupViewModel
 
-    init(dependencies: AppDependencies, pendingResumeMatch: Binding<MatchSummary?> = .constant(nil)) {
+    init(
+        dependencies: AppDependencies,
+        pendingResumeMatch: Binding<MatchSummary?> = .constant(nil),
+        navigationResetTrigger: Int = 0,
+        onChangeMode: @escaping () -> Void = {}
+    ) {
         self.dependencies = dependencies
+        self.navigationResetTrigger = navigationResetTrigger
+        self.onChangeMode = onChangeMode
         _pendingResumeMatch = pendingResumeMatch
         _viewModel = StateObject(
             wrappedValue: PlayHomeViewModel(
@@ -40,7 +49,8 @@ struct PlayRootView: View {
                     path.append(match.type.playRoute(matchId: match.id))
                 },
                 onStartRoute: { next in path.append(next) },
-                onQuickAddPlayer: { path.append(.quickAddPlayer) }
+                onQuickAddPlayer: { path.append(.quickAddPlayer) },
+                onChangeMode: onChangeMode
             )
             .navigationDestination(for: PlayRoute.self) { route in
                 switch route {
@@ -133,6 +143,9 @@ struct PlayRootView: View {
                 guard let match else { return }
                 path = [match.type.playRoute(matchId: match.id)]
                 pendingResumeMatch = nil
+            }
+            .onChange(of: navigationResetTrigger) { _, _ in
+                path.removeAll()
             }
         }
     }

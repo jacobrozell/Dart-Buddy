@@ -50,7 +50,7 @@ private func makeBotFirstX01ViewModel(
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
-func x01BotTurnCompletesWithBothPacingModes() async throws {
+func x01BotTurnCompletesWithAndWithoutStagger() async throws {
     let fastPrefs = FeedbackPreferences()
     fastPrefs.botStaggerEnabled = false
     let (fastVM, _) = try makeBotFirstX01ViewModel(feedbackPreferences: fastPrefs)
