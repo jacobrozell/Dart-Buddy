@@ -1,0 +1,132 @@
+name: Slack CI Notify
+description: Post GitHub Actions workflow results to a Slack channel via incoming webhook
+
+inputs:
+  workflow_title:
+    description: Display name for the workflow (e.g. CI, Nightly UI Tests)
+    required: true
+  jobs_json:
+    description: JSON map of job display names to results (success, failure, cancelled, skipped)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Post workflow result to Slack
+      shell: bash
+      env:
+        SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+        WORKFLOW_TITLE: ${{ inputs.workflow_title }}
+        JOBS_JSON: ${{ inputs.jobs_json }}
+      run: |
+        set -euo pipefail
+
+        if [[ -z "${SLACK_WEBHOOK_URL:-}" ]]; then
+          echo "SLACK_WEBHOOK_URL is not configured; skipping Slack notification."
+          exit 0
+        fi
+
+        payload="$(WORKFLOW_TITLE="$WORKFLOW_TITLE" JOBS_JSON="$JOBS_JSON" python3 <<'PY'
+        import json
+        import os
+
+        workflow_title = os.environ["WORKFLOW_TITLE"]
+        jobs = json.loads(os.environ["JOBS_JSON"])
+
+        results = list(jobs.values())
+        if "failure" in results:
+            overall = "failure"
+            status_emoji = ":x:"
+            status_text = "Failed"
+        elif "cancelled" in results:
+            overall = "cancelled"
+            status_emoji = ":warning:"
+            status_text = "Cancelled"
+        else:
+            overall = "success"
+            status_emoji = ":white_check_mark:"
+            status_text = "Passed"
+
+        event_path = os.environ.get("GITHUB_EVENT_PATH", "")
+        event = {}
+        if event_path and os.path.exists(event_path):
+            with open(event_path) as handle:
+                event = json.load(handle)
+
+        event_name = os.environ.get("GITHUB_EVENT_NAME", "")
+        ref_name = os.environ.get("GITHUB_REF_NAME", "")
+        actor = os.environ.get("GITHUB_ACTOR", "")
+        run_url = (
+            f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+            f"/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+        )
+        repo_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+        repository = os.environ["GITHUB_REPOSITORY"]
+
+        if event_name == "pull_request":
+            pr = event.get("pull_request", {})
+            context_line = f"PR #{pr.get('number', '?')}: <{pr.get('html_url', repo_url)}|{pr.get('title', 'Pull request')}>"
+        elif event_name == "schedule":
+            context_line = f"Scheduled run on `{ref_name}`"
+        elif event_name == "workflow_dispatch":
+            context_line = f"Manual run on `{ref_name}`"
+        else:
+            context_line = f"Push to `{ref_name}`"
+
+        icons = {
+            "success": ":white_check_mark:",
+            "failure": ":x:",
+            "cancelled": ":warning:",
+            "skipped": ":fast_forward:",
+        }
+        job_lines = "\n".join(
+            f"• {icons.get(result, ':grey_question:')} {name}: {result}"
+            for name, result in jobs.items()
+        )
+
+        blocks = [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": f"{workflow_title}: {status_text}",
+                },
+            },
+            {
+                "type": "section",
+                "fields": [
+                    {"type": "mrkdwn", "text": f"*Status*\n{status_emoji} {status_text}"},
+                    {"type": "mrkdwn", "text": f"*Triggered by*\n{actor}"},
+                    {"type": "mrkdwn", "text": f"*Repository*\n<{repo_url}|{repository}>"},
+                    {"type": "mrkdwn", "text": f"*Context*\n{context_line}"},
+                ],
+            },
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f"*Jobs*\n{job_lines}"},
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "View workflow run"},
+                        "url": run_url,
+                    }
+                ],
+            },
+        ]
+
+        print(json.dumps({
+            "text": f"{workflow_title}: {status_text}",
+            "blocks": blocks,
+        }))
+        PY
+        )"
+
+        curl -sS -X POST \
+          -H 'Content-type: application/json' \
+          --data "$payload" \
+          "$SLACK_WEBHOOK_URL" > /dev/null
+
+        echo "Slack notification sent."
