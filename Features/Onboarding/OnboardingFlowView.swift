@@ -16,7 +16,7 @@ struct OnboardingFlowView: View {
             stepContent
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .legacyHiddenNavigationBarBackground()
         .preferredColorScheme(preferredColorScheme)
         .interactiveDismissDisabled(mode == .firstLaunch)
     }

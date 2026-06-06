@@ -1,0 +1,20 @@
+# Local coverage reports for the DartBuddy app target.
+# Run: Scripts/coverage-report.sh (after tests) or `bundle exec slather coverage`.
+coverage_service: html
+xcodeproj: DartBuddy.xcodeproj
+scheme: DartBuddyCI
+build_directory: DerivedData
+output_directory: coverage_reports
+arch: arm64
+source_directory:
+  - Domain
+  - Data
+  - Persistence
+  - Features
+  - Support
+  - App
+ignore:
+  - Tests/**
+  - .packages/**
+  - DerivedData/**
+  - "**/*+Generated.swift"

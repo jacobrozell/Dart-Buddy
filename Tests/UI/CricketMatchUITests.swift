@@ -102,6 +102,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
     func testCricketMatchContinuesAfterFirstPlayerClosesAllTargets() {
         let app = launchApp(["-seed_players"])
+
         startTwoPlayerCricketMatch(from: app)
 
         closeAllCricketTargets(in: app, timeout: timeout)
@@ -116,6 +117,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
     func testCricketGridScoringRecordsMarks() {
         let app = launchApp(["-seed_players"])
+
         startTwoPlayerCricketMatch(from: app)
 
         let target20 = app.buttons["cricket_20"]
@@ -157,26 +159,31 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
     func testCricketSetupChipGridVisible() {
         let app = launchApp(["-seed_players"])
-        selectCricketMode(in: app)
-        XCTAssertTrue(app.buttons["setup_cricketPointsChip"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.buttons["setup_cricketModeChip"].exists)
-        XCTAssertTrue(app.buttons["setup_cricketSetLegChip"].exists)
-        XCTAssertTrue(app.buttons["setup_cricketSetsChip"].exists)
-        XCTAssertTrue(app.buttons["setup_cricketLegsChip"].exists)
+        selectCricketMode(in: app, timeout: timeout)
+        expandSetupOptions(in: app, timeout: timeout)
+        assertSetupChip("setup_cricketPointsChip", in: app, timeout: timeout)
+        assertSetupChip("setup_cricketModeChip", in: app, timeout: timeout)
+        assertSetupChip("setup_cricketSetLegChip", in: app, timeout: timeout)
+        assertSetupChip("setup_cricketSetsChip", in: app, timeout: timeout)
+        assertSetupChip("setup_cricketLegsChip", in: app, timeout: timeout)
     }
 
     func testCricketPointsOffDisablesModeChip() {
         let app = launchApp(["-seed_players"])
-        selectCricketMode(in: app)
+        selectCricketMode(in: app, timeout: timeout)
         tapCricketPointsOff(in: app)
-        XCTAssertFalse(app.buttons["setup_cricketModeChip"].isEnabled)
+        let modeChip = app.descendants(matching: .any)["setup_cricketModeChip"]
+        XCTAssertTrue(modeChip.waitForExistence(timeout: timeout))
+        XCTAssertFalse(modeChip.isEnabled)
     }
 
     func testCricketCutThroatSubtitleOnMatchStart() {
         let app = launchApp(["-seed_players"])
-        selectCricketMode(in: app)
+        selectCricketMode(in: app, timeout: timeout)
         tapCricketCutThroatMode(in: app)
-        startTwoPlayerCricketMatch(from: app)
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
+        tapStartMatch(in: app, timeout: timeout)
         let subtitle = app.staticTexts["cricket_match_subtitle"]
         XCTAssertTrue(subtitle.waitForExistence(timeout: timeout))
         XCTAssertTrue(subtitle.label.contains("Cut Throat") || subtitle.label.contains("Lowest"))
@@ -188,7 +195,8 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         tapCricketCutThroatMode(in: app)
         selectPlayerFromRoster("Alice", in: app)
         addEasyBot(from: app, timeout: timeout)
-        tapStartMatch(in: app, expectingBoardKey: "cricket_20", timeout: timeout + 10)
+        tapStartMatch(in: app, timeout: timeout + 10)
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 10))
 
         let padDisabledHint = app.staticTexts.containing(
             NSPredicate(format: "label CONTAINS[c] %@", "bot")

@@ -108,7 +108,8 @@ final class SettingsViewModel: ObservableObject {
         checkout: String,
         checkIn: String,
         legFormat: String,
-        legs: Int
+        legs: Int,
+        setsEnabled: Bool
     ) async {
         guard var current = settings else { return }
         current = SettingsSummary(
@@ -123,7 +124,7 @@ final class SettingsViewModel: ObservableObject {
             defaultCheckInModeRaw: checkIn,
             defaultLegFormatRaw: legFormat,
             defaultLegsToWin: max(1, legs),
-            defaultSetsEnabled: current.defaultSetsEnabled,
+            defaultSetsEnabled: setsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
             updatedAt: Date()
@@ -137,7 +138,8 @@ final class SettingsViewModel: ObservableObject {
         checkout: String,
         checkIn: String,
         legFormat: String,
-        legs: Int
+        legs: Int,
+        setsEnabled: Bool
     ) {
         queueMutation {
             await self.updateDefaults(
@@ -146,7 +148,8 @@ final class SettingsViewModel: ObservableObject {
                 checkout: checkout,
                 checkIn: checkIn,
                 legFormat: legFormat,
-                legs: legs
+                legs: legs,
+                setsEnabled: setsEnabled
             )
         }
     }

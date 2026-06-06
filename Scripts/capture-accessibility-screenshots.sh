@@ -110,22 +110,20 @@ capture "${DEVICE_SLUG}-x01-match_${APPEARANCE}_${SIZE_SLUG}.png" \
 capture "${DEVICE_SLUG}-cricket-match_${APPEARANCE}_${SIZE_SLUG}.png" \
   "${COMMON_ARGS[@]}" -snapshot_match_cricket
 
-capture "${DEVICE_SLUG}-history_${APPEARANCE}_${SIZE_SLUG}.png" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab history
+capture "${DEVICE_SLUG}-activity-history_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity
 
-capture "${DEVICE_SLUG}-statistics_${APPEARANCE}_${SIZE_SLUG}.png" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab statistics
+capture "${DEVICE_SLUG}-activity-statistics_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity -snapshot_activity_segment statistics
+
+capture "${DEVICE_SLUG}-modes_${APPEARANCE}_${SIZE_SLUG}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab modes
 
 capture "${DEVICE_SLUG}-settings_${APPEARANCE}_${SIZE_SLUG}.png" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab settings
 
-capture "${DEVICE_SLUG}-onboarding-welcome_${APPEARANCE}_${SIZE_SLUG}.png" \
+capture "${DEVICE_SLUG}-onboarding_${APPEARANCE}_${SIZE_SLUG}.png" \
   "${COMMON_ARGS[@]}" -ui_test_onboarding
-
-EVIDENCE_DIR="$ROOT/accessibility/wcag-2.1-aa/evidence/dynamic-type"
-mkdir -p "$EVIDENCE_DIR"
-echo "→ Copying to $EVIDENCE_DIR..."
-cp -f "$OUT_DIR"/*"${SIZE_SLUG}"*.png "$EVIDENCE_DIR/" 2>/dev/null || cp -f "$OUT_DIR"/*.png "$EVIDENCE_DIR/"
 
 echo ""
 echo "Done. Accessibility screenshots:"

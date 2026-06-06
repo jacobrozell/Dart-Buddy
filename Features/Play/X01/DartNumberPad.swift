@@ -14,6 +14,7 @@ struct DartNumberPad: View {
     let onUndoTurn: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
@@ -21,16 +22,39 @@ struct DartNumberPad: View {
         GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
+    private var usesLandscapeCompactLayout: Bool {
+        !usesAccessibilityLayout
+            && GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+    }
+
     private var padSpacing: CGFloat {
-        usesAccessibilityLayout ? ScoringPadStyle.accessibilitySpacing : ScoringPadStyle.compactSpacing
+        if usesAccessibilityLayout {
+            return ScoringPadStyle.accessibilitySpacing
+        }
+        if usesLandscapeCompactLayout {
+            return 6
+        }
+        return ScoringPadStyle.compactSpacing
     }
 
     private var displayKeyMinHeight: CGFloat {
-        usesAccessibilityLayout ? min(keyMinHeight, 56) : keyMinHeight
+        if usesAccessibilityLayout {
+            return min(keyMinHeight, 56)
+        }
+        if usesLandscapeCompactLayout {
+            return lockedSegment == nil ? 44 : 64
+        }
+        return keyMinHeight
     }
 
     private var displayVisitSlotMinHeight: CGFloat {
-        usesAccessibilityLayout ? min(visitSlotMinHeight, 40) : min(visitSlotMinHeight, 30)
+        if usesAccessibilityLayout {
+            return min(visitSlotMinHeight, 40)
+        }
+        if usesLandscapeCompactLayout {
+            return 32
+        }
+        return min(visitSlotMinHeight, 30)
     }
 
     private let compactRows: [[Int]] = [

@@ -50,6 +50,11 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
              .enableOnlinePlay,
              .enableAdvancedDiagnostics:
             return false
+        case .enableAppIntents:
+            if arguments.contains("-enable_app_intents") {
+                return true
+            }
+            return false
         }
     }
 }

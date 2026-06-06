@@ -34,7 +34,7 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 | Idea | Notes |
 |------|--------|
-| **More game types** | Additional formats beyond current X01 / Cricket scope (variants, party modes, etc.). R&D specs: [`additional-game-modes.md`](additional-game-modes.md) (Killer, Baseball, 20+ modes from Target + [Darts Corner catalog](https://www.dartscorner.co.uk/blogs/how-to/what-darts-games-can-you-play)). |
+| **More game types** | Additional formats beyond current X01 / Cricket scope (variants, party modes, etc.). R&D specs: [`additional-game-modes.md`](additional-game-modes.md) (Killer, Baseball, Golf, practice modes). |
 | **Online games** | See [`specs/OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md). |
 
 ---

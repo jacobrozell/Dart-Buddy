@@ -26,19 +26,12 @@ struct StatisticsRootView: View {
                     BrandRootScreenTitle(title: L10n.statsTitle)
 
                     BrandSegmented(
-                        options: [
-                            (StatisticsViewModel.ModeFilter.all, L10n.string("history.filter.allGames")),
-                            (StatisticsViewModel.ModeFilter.x01, L10n.string("play.x01.title")),
-                            (StatisticsViewModel.ModeFilter.cricket, L10n.string("play.cricket.title")),
-                            (StatisticsViewModel.ModeFilter.baseball, L10n.string("play.baseball.title")),
-                            (StatisticsViewModel.ModeFilter.killer, L10n.string("play.killer.title")),
-                            (StatisticsViewModel.ModeFilter.shanghai, L10n.string("play.shanghai.title"))
-                        ],
+                        options: ActivityModeFilter.allCases.map { ($0, $0.title) },
                         selection: $viewModel.modeFilter
                     )
 
                     BrandSegmented(
-                        options: StatisticsViewModel.Period.allCases.map { ($0, $0.title) },
+                        options: ActivityPeriod.allCases.map { ($0, $0.title) },
                         selection: $viewModel.period
                     )
 
@@ -83,10 +76,10 @@ struct StatisticsRootView: View {
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
+                .tabRootScrollChrome()
                 .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
                 .frame(maxWidth: .infinity)
             }
-            .tabRootScrollChrome()
             .background(Brand.background.ignoresSafeArea())
             .navigationBarHidden(true)
             .task { await viewModel.load() }
@@ -301,7 +294,6 @@ struct StatTable: View {
     let rows: [PlayerStatBreakdown]
     let values: (PlayerStatBreakdown) -> [String]
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         title: String? = nil,
@@ -329,8 +321,7 @@ struct StatTable: View {
                     ForEach(columns, id: \.label) { column in
                         Text(column.label)
                             .frame(minWidth: resolvedColumnWidth(column.width), alignment: .trailing)
-                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-                            .multilineTextAlignment(.trailing)
+                            .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
                     }
                 }
@@ -338,6 +329,7 @@ struct StatTable: View {
                 .foregroundStyle(Brand.textSecondary)
                 .padding(.horizontal, DS.Spacing.s3)
                 .padding(.vertical, DS.Spacing.s2)
+                .accessibilityHidden(true)
 
                 ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                     let cells = values(row)

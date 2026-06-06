@@ -147,6 +147,10 @@ jobs:
       - name: Run Tests
         run: Scripts/ci/run-tests.sh "${{ env.SIM_DESTINATION }}"
 
+      - name: Coverage Summary
+        if: always()
+        run: Scripts/ci/coverage-summary.sh
+
       - name: Dump Test Log on Failure
         if: failure()
         run: |
@@ -165,5 +169,6 @@ jobs:
           name: test-results
           path: |
             TestResults.xcresult
+            coverage-summary.txt
             xcodebuild-test.log
           if-no-files-found: ignore

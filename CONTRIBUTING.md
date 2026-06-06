@@ -77,7 +77,7 @@ hard-coded display text in views.
 - **Source of truth:** `Resources/en.lproj/Localizable.strings`
 - **Shipped locales:** `de`, `es`, `nl` (system locale only; no in-app language picker)
 - **PR rule:** new keys must update all four locale files; `LocalizationParityTests` enforces key and format-specifier parity in CI
-- **Generators:** `Scripts/generate_de_localizable.py`, `generate_es_localizable.py`, `generate_nl_localizable.py` (optional aid when bulk-updating translations)
+- **Generators (optional):** after adding keys to `en.lproj`, update `Scripts/locale_data/{de,es,nl}.json`, then run `python3 Scripts/generate_localizable.py all`. To import edits made directly in `.lproj` files back into JSON, run `python3 Scripts/sync_locale_data.py`.
 
 See [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md).
 
@@ -101,6 +101,47 @@ Run with `⌘U` or:
 xcodebuild test -scheme DartBuddy \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
+
+CI uses the `DartBuddyCI` scheme (unit + accessibility only).
+
+### Coverage
+
+The `DartBuddyCI` scheme gathers coverage for the **DartBuddy** app target (not
+UI tests). There are no PR thresholds yet — this is for local trend visibility
+and optional CI artifacts.
+
+**Quick summary after tests:**
+
+```bash
+# Runs tests if TestResults.xcresult is missing, then prints a summary
+Scripts/coverage-report.sh
+```
+
+**In Xcode:** run `DartBuddyCI` tests (`⌘U` with that scheme selected), then
+open the Report navigator → latest test run → **Coverage** tab.
+
+**Drill into files:** Xcode Report navigator → latest `DartBuddyCI` run →
+**Coverage** tab (per-file percentages, no extra tooling).
+
+**HTML report (optional, Slather):**
+
+```bash
+bundle install
+Scripts/coverage-report.sh   # xccov summary always; Slather HTML best-effort
+open coverage_reports/index.html
+```
+
+Slather config lives in `.slather.yml` (`build_directory: DerivedData`). It
+scopes reports to `Domain/`, `Data/`, `Persistence/`, `Features/`, `Support/`,
+and `App/`. Run tests with the same `DerivedData` path the script uses so
+Slather can find `Coverage.profdata`.
+
+**CI:** each test job uploads `coverage-summary.txt` (plain-text `xccov` output)
+alongside `TestResults.xcresult`. Download the artifact to inspect without
+running locally.
+
+To refresh coverage after adding tests: re-run `Scripts/coverage-report.sh` or
+`DartBuddyCI` tests — coverage updates automatically from the latest xcresult.
 
 ## Commits
 

@@ -65,7 +65,6 @@ xcrun simctl bootstatus "$SIM_UDID" -b
 open -a Simulator --args -CurrentDeviceUDID "$SIM_UDID"
 xcrun simctl ui "$SIM_UDID" appearance "$APPEARANCE"
 xcrun simctl ui "$SIM_UDID" content_size large
-echo "→ Content size: $(xcrun simctl ui "$SIM_UDID" content_size)"
 
 echo "→ Building app…"
 xcodebuild \
@@ -120,8 +119,11 @@ capture "${DEVICE_SLUG}-02-cricket-match-${APPEARANCE}.png" \
 capture "${DEVICE_SLUG}-03-match-setup-${APPEARANCE}.png" \
   "${COMMON_ARGS[@]}" -seed_demo
 
-capture "${DEVICE_SLUG}-04-history-${APPEARANCE}.png" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab history
+capture "${DEVICE_SLUG}-04-activity-history-${APPEARANCE}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity
+
+capture "${DEVICE_SLUG}-04b-modes-${APPEARANCE}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab modes
 
 capture "${DEVICE_SLUG}-05-match-summary-${APPEARANCE}.png" \
   "${COMMON_ARGS[@]}" -snapshot_match_summary
@@ -129,8 +131,8 @@ capture "${DEVICE_SLUG}-05-match-summary-${APPEARANCE}.png" \
 capture "${DEVICE_SLUG}-06-players-${APPEARANCE}.png" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab players
 
-capture "${DEVICE_SLUG}-07-statistics-${APPEARANCE}.png" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab statistics
+capture "${DEVICE_SLUG}-07-activity-statistics-${APPEARANCE}.png" \
+  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity -snapshot_activity_segment statistics
 
 capture "${DEVICE_SLUG}-08-onboarding-welcome-${APPEARANCE}.png" \
   "${COMMON_ARGS[@]}" -ui_test_onboarding

@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// Dart Buddy wordmark at the top of the Play tab.
+struct BrandAppTitle: View {
+    var body: some View {
+        BrandRootScreenTitle(title: L10n.brandTitle)
+            .accessibilityIdentifier("brand_app_title")
+    }
+}
+
 /// Root tab screens (Play, Statistics, Settings).
 struct BrandRootScreenTitle: View {
     let title: LocalizedStringKey
