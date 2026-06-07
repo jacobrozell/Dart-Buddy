@@ -339,6 +339,27 @@ func x01ViewModelPreviewUpdatesDuringBustFeedbackForActiveHuman() async throws {
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelSurfacesCheckoutForNextPlayerDuringBustFeedback() async throws {
+    // Regression: a busted visit advances play to the next player; their checkout
+    // suggestion must appear immediately instead of being suppressed until they
+    // throw by the lingering bust-feedback state.
+    let (vm, _, _) = try makeX01ViewModel(totals: [180, 180, 81, 81])
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "50" // Player 0 sits on 40; 50 busts and passes to player 1 (also on 40).
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .bustFeedback)
+    #expect(vm.x01State?.currentPlayerIndex == 1)
+    #expect(vm.playerCards[1].score == 40)
+
+    let route = vm.checkoutRoute
+    #expect(route != nil)
+    #expect(route == CheckoutSuggester.suggestion(remaining: 40, mode: .singleOut, dartsAvailable: 3))
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
 func x01ViewModelBlocksPadWhileBotTurnPendingAfterHumanBust() async throws {
     // Human bust is persisted via lifecycle; bot is up but has not thrown in this VM yet.
     var session = try MatchLifecycleService.createMatch(
