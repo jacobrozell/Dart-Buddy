@@ -298,13 +298,17 @@ final class MatchSetupViewModel: ObservableObject {
                     }
                 }
             }
-        } else if selectedParticipantCount < 2 {
-            errors.append("setup.validation.minimumPlayers")
-        } else {
-            let selected = selectedPlayers
-            if selected.allSatisfy(\.isBot) {
+        } else if mode == .x01 {
+            // Solo X01 is allowed (single-player practice); only require a human.
+            // `allSatisfy` is vacuously true for an empty roster, so this also
+            // covers the "no players selected" case.
+            if selectedPlayers.allSatisfy(\.isBot) {
                 errors.append("setup.validation.requiresHuman")
             }
+        } else if selectedParticipantCount < 2 {
+            errors.append("setup.validation.minimumPlayers")
+        } else if selectedPlayers.allSatisfy(\.isBot) {
+            errors.append("setup.validation.requiresHuman")
         }
         if setupCategory == .standard, mode == .x01 {
             if !X01StartScores.all.contains(x01StartScore) {

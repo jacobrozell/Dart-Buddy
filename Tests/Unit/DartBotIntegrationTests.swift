@@ -50,8 +50,9 @@ func setupRejectsSingleBot() async {
     await vm.addBot(.easy)
     vm.revalidate()
 
+    // Solo X01 is allowed, but a lone bot still can't start without a human.
     #expect(!vm.canStart)
-    #expect(vm.validationErrors.contains("setup.validation.minimumPlayers"))
+    #expect(vm.validationErrors.contains("setup.validation.requiresHuman"))
 }
 
 @MainActor

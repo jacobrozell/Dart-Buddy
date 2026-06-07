@@ -17,6 +17,21 @@ func x01SingleOutCheckoutCompletesMatch() throws {
 }
 
 @Test(.tags(.unit, .x01, .critical, .offline, .regression))
+func x01SoloMatchCompletesOnCheckout() throws {
+    // Solo X01 (single-player practice): one player can start and finish a leg.
+    let players = [UUID()]
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)
+    var state = try X01Engine.makeInitialState(config: config, playerIds: players)
+
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 180, darts: nil).updatedState
+    #expect(state.currentPlayerIndex == 0)
+    state = try X01Engine.submitTurn(state: state, enteredTotal: 121, darts: nil).updatedState
+
+    #expect(state.isComplete)
+    #expect(state.winnerPlayerId == players[0])
+}
+
+@Test(.tags(.unit, .x01, .critical, .offline, .regression))
 func x01CompletedMatchPreservesFinalRemainingScores() throws {
     let players = [UUID(), UUID()]
     let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)

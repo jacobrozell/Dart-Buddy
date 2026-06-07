@@ -127,7 +127,9 @@ public enum MatchLifecycleService {
         participants: [MatchParticipant],
         startedAt: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard participants.count >= 2 else {
+        // X01 supports solo practice (one player); every other mode needs at least two.
+        let minimumParticipants = type == .x01 ? 1 : 2
+        guard participants.count >= minimumParticipants else {
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.players.minimum")
         }
         let ordered = participants.sorted(by: { $0.turnOrder < $1.turnOrder })

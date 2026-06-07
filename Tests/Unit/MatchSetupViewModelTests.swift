@@ -85,6 +85,8 @@ func setupValidationRequiresMinimumPlayers() async {
         pendingMatchPlayerSelections: PendingMatchPlayerSelections()
     )
     await vm.onAppear()
+    // Cricket keeps the two-player minimum; X01 now allows solo play.
+    vm.mode = .cricket
     vm.selectedPlayerIds = []
     vm.revalidate()
 
@@ -92,6 +94,22 @@ func setupValidationRequiresMinimumPlayers() async {
     #expect(vm.validationErrors.contains("setup.validation.minimumPlayers"))
     #expect(!vm.isRosterEmpty)
     #expect(vm.displayValidationErrors.contains("setup.validation.minimumPlayers"))
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .regression))
+func setupAllowsSoloX01WithSingleHuman() async {
+    let player = makePlayer("Solo")
+    let vm = makeSetupViewModel(players: [player])
+    await vm.onAppear()
+    vm.mode = .x01
+    vm.togglePlayer(player.id)
+    vm.revalidate()
+
+    #expect(vm.selectedParticipantCount == 1)
+    #expect(vm.canStart)
+    #expect(!vm.validationErrors.contains("setup.validation.minimumPlayers"))
+    #expect(!vm.validationErrors.contains("setup.validation.requiresHuman"))
 }
 
 @MainActor
@@ -252,6 +270,8 @@ func displayValidationErrorsHidesMinimumPlayersWhenRosterEmpty() async {
         pendingMatchPlayerSelections: PendingMatchPlayerSelections()
     )
     await vm.onAppear()
+    // Cricket keeps the two-player minimum; X01 now allows solo play.
+    vm.mode = .cricket
     vm.revalidate()
 
     #expect(vm.isRosterEmpty)
@@ -349,6 +369,8 @@ func setupRemoveSelectedPlayersBlocksStartBelowMinimum() async {
     let players = [makePlayer("A"), makePlayer("B")]
     let vm = makeSetupViewModel(players: players)
     await vm.onAppear()
+    // Cricket keeps the two-player minimum; X01 now allows solo play.
+    vm.mode = .cricket
     vm.togglePlayer(players[0].id)
     vm.togglePlayer(players[1].id)
 
