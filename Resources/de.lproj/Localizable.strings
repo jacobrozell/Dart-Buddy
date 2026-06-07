@@ -413,7 +413,8 @@
 "modes.section.practice" = "Training";
 "modes.section.countFormat" = "%lld Modi";
 "modes.playerCount.solo" = "1 Spieler";
-"modes.playerCount.rangeFormat" = "%lld–%lld Spieler";
+"modes.playerCount.minimumFormat" = "%lld+ Spieler";
+"modes.playerCount.exactFormat" = "%lld Spieler";
 "modes.card.availableAccessibilityFormat" = "%@. %@";
 "modes.card.comingSoonAccessibilityFormat" = "%@. %@. %@";
 "modes.catalog.standard.x01.name" = "X01";

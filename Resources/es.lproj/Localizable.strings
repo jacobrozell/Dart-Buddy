@@ -413,7 +413,8 @@
 "modes.section.practice" = "Práctica";
 "modes.section.countFormat" = "%lld modos";
 "modes.playerCount.solo" = "1 jugador";
-"modes.playerCount.rangeFormat" = "%lld–%lld jugadores";
+"modes.playerCount.minimumFormat" = "%lld+ jugadores";
+"modes.playerCount.exactFormat" = "%lld jugadores";
 "modes.card.availableAccessibilityFormat" = "%@. %@";
 "modes.card.comingSoonAccessibilityFormat" = "%@. %@. %@";
 "modes.catalog.standard.x01.name" = "X01";

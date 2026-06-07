@@ -100,4 +100,35 @@ struct GameModeCatalogEntryTests {
             #expect(entry.playerCountLabel == L10n.string("modes.playerCount.solo"))
         }
     }
+
+    @Test
+    func multiplayerCapableModesUseMinimumPlusLabel() throws {
+        // X01 has a minimum of one player but is multiplayer-capable: it must read
+        // "1+ players", not the solo "1 player" label.
+        let x01 = try #require(GameModeCatalog.entry(for: .x01))
+        #expect(x01.isSolo == false)
+        #expect(x01.playerCountLabel == L10n.format("modes.playerCount.minimumFormat", 1))
+
+        let cricket = try #require(GameModeCatalog.entry(for: .cricket))
+        #expect(cricket.playerCountLabel == L10n.format("modes.playerCount.minimumFormat", 2))
+
+        let killer = try #require(GameModeCatalog.entry(for: .killer))
+        #expect(killer.playerCountLabel == L10n.format("modes.playerCount.minimumFormat", 3))
+    }
+
+    @Test
+    func everyModeMinimumDoesNotExceedMaximum() {
+        for entry in GameModeCatalog.all {
+            #expect(entry.minimumPlayers <= entry.maximumPlayers)
+            #expect(entry.minimumPlayers >= 1)
+        }
+    }
+
+    @Test
+    func onlySoloChallengeDrillsAreSinglePlayerCapped() {
+        // The roster-skip fork is reserved for true solo drills (max one player).
+        for entry in GameModeCatalog.all where entry.isSolo {
+            #expect(entry.uiTemplate == .soloChallenge)
+        }
+    }
 }

@@ -81,6 +81,8 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     let section: GameModeSection
     let status: GameModeStatus
     let minimumPlayers: Int
+    /// Most modes scale to a full board of players; solo-only drills set this to 1.
+    var maximumPlayers: Int = 8
     /// Non-nil only for shipped, routable modes.
     let matchType: MatchType?
     let uiTemplate: GameplayUITemplate
@@ -93,8 +95,9 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     /// Whether Play setup can apply this entry on the current product surface.
     var isSelectableInPlaySetup: Bool { pendingModeSelection != nil }
 
-    /// Solo modes skip the roster step in setup.
-    var isSolo: Bool { minimumPlayers <= 1 }
+    /// Solo modes skip the roster step in setup — they cap at a single player.
+    /// X01 has a minimum of one but is multiplayer-capable, so it is *not* solo.
+    var isSolo: Bool { maximumPlayers <= 1 }
 }
 
 /// The full mode catalog. Order within a section is the display order.
@@ -269,13 +272,13 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "practice.bobs27", name: "Bob's 27", blurb: "Doubles checkout drill",
-            section: .practice, status: .planned, minimumPlayers: 1,
+            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
             matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "scope"
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .planned, minimumPlayers: 1,
+            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
             matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
@@ -390,9 +393,14 @@ extension GameModeCatalogEntry {
     }
 
     var playerCountLabel: String {
-        minimumPlayers == 1
-            ? L10n.string("modes.playerCount.solo")
-            : L10n.format("modes.playerCount.rangeFormat", minimumPlayers, 8)
+        if isSolo {
+            return L10n.string("modes.playerCount.solo")
+        }
+        if minimumPlayers >= maximumPlayers {
+            return L10n.format("modes.playerCount.exactFormat", minimumPlayers)
+        }
+        // Modes accept the minimum and up; "+" avoids implying a hard upper cap.
+        return L10n.format("modes.playerCount.minimumFormat", minimumPlayers)
     }
 
     /// Prefill payload when the user taps an available catalog card.

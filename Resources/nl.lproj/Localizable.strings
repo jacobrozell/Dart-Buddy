@@ -413,7 +413,8 @@
 "modes.section.practice" = "Oefenen";
 "modes.section.countFormat" = "%lld modi";
 "modes.playerCount.solo" = "1 speler";
-"modes.playerCount.rangeFormat" = "%lld–%lld spelers";
+"modes.playerCount.minimumFormat" = "%lld+ spelers";
+"modes.playerCount.exactFormat" = "%lld spelers";
 "modes.card.availableAccessibilityFormat" = "%@. %@";
 "modes.card.comingSoonAccessibilityFormat" = "%@. %@. %@";
 "modes.catalog.standard.x01.name" = "X01";
