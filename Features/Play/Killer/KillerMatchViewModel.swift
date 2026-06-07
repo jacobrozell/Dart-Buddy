@@ -193,6 +193,15 @@ final class KillerMatchViewModel: ObservableObject {
         botPlayback.cancel { reconcileInterruptedBotPlayback() }
     }
 
+    func recoverBotPlaybackIfNeeded() {
+        MatchBotPlaybackRecovery.recoverIfNeeded(
+            isBotTurn: isCurrentActorBot,
+            isBotPlaying: isBotPlaying,
+            reconcile: reconcileInterruptedBotPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
     private func scheduleBotPlaybackIfNeeded() {
         botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }

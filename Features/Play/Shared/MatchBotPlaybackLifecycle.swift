@@ -27,6 +27,21 @@ final class MatchBotPlaybackLifecycle {
     }
 }
 
+@MainActor
+enum MatchBotPlaybackRecovery {
+    /// Restarts bot throws after a cancelled disappear (e.g. exit alert dismissed with Stay).
+    static func recoverIfNeeded(
+        isBotTurn: Bool,
+        isBotPlaying: Bool,
+        reconcile: () -> Void,
+        schedule: () -> Void
+    ) {
+        guard isBotTurn, !isBotPlaying else { return }
+        reconcile()
+        schedule()
+    }
+}
+
 /// Shared rules for folding an in-progress visit into live scoreboard stats.
 enum MatchVisitPreview {
     /// Whether `enteredDarts` for the active player should affect live UI totals.

@@ -17,14 +17,18 @@ struct X01MatchScreen: View {
     @State private var lastAnnouncedCheckout: String?
     @State private var showLegWinBanner = false
 
+    private var usesLandscapeMatchLayout: Bool {
+        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: usesLandscapeMatchLayout ? 0 : 2) {
                     BrandMatchScreenTitle(title: L10n.x01Title)
-                    if usesSideBySideMatchLayout, let summary = viewModel.configSummary {
+                    if showsConfigSummaryInHeader, let summary = viewModel.configSummary {
                         Text(summary)
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundStyle(Brand.textSecondary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.85)
@@ -36,14 +40,14 @@ struct X01MatchScreen: View {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
                         .foregroundStyle(Brand.green)
-                        .frame(width: 44, height: 44)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
                 .accessibilityLabel(L10n.scoringUndoLastTurn)
             }
 
             if let state = viewModel.x01State {
-                if !usesSideBySideMatchLayout {
+                if !showsConfigSummaryInHeader {
                     Text(viewModel.configSummary ?? "")
                         .font(dynamicTypeSize.isAccessibilitySize ? .caption : .subheadline)
                         .foregroundStyle(Brand.textSecondary)
@@ -84,9 +88,17 @@ struct X01MatchScreen: View {
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {}
-            Button("play.match.exit.saveAndExit") { dismiss() }
+            Button("common.stay", role: .cancel) {
+                viewModel.recoverBotPlaybackIfNeeded()
+            }
+            Button("play.match.exit.saveAndExit") {
+                showExitConfirmation = false
+                viewModel.onDisappear()
+                dismiss()
+            }
             Button("play.match.exit.abandon", role: .destructive) {
+                showExitConfirmation = false
+                viewModel.onDisappear()
                 actionTask?.cancel()
                 actionTask = Task {
                     await viewModel.abandonMatch()
@@ -146,6 +158,7 @@ struct X01MatchScreen: View {
         }
         .onDisappear {
             actionTask?.cancel()
+            guard !showExitConfirmation else { return }
             viewModel.onDisappear()
         }
     }
@@ -156,6 +169,11 @@ struct X01MatchScreen: View {
             verticalSizeClass: verticalSizeClass,
             dynamicTypeSize: dynamicTypeSize
         )
+    }
+
+    /// iPad portrait keeps config in the header; landscape folds the summary up to reclaim vertical space.
+    private var showsConfigSummaryInHeader: Bool {
+        usesSideBySideMatchLayout || usesLandscapeMatchLayout
     }
 
     private func landscapeScoringStack(state: X01State) -> some View {
@@ -191,32 +209,34 @@ struct X01MatchScreen: View {
             verticalSizeClass: verticalSizeClass
         )
 
+        let playerTopPadding = usesLandscapeMatchLayout ? DS.Spacing.s1 : DS.Spacing.s2
+
         return VStack(spacing: scrollPlayers ? 0 : DS.Spacing.s2) {
             if pinActive, let active = cards.first(where: \.isActive) {
                 playerScoreCard(active)
-                    .padding(.top, DS.Spacing.s2)
+                    .padding(.top, playerTopPadding)
                 if scrollPlayers {
                     ScrollView {
                         playerCardsContent(for: cards.filter { $0.id != active.id })
-                            .padding(.top, DS.Spacing.s2)
+                            .padding(.top, playerTopPadding)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     playerCardsContent(for: cards.filter { $0.id != active.id })
-                        .padding(.top, DS.Spacing.s2)
+                        .padding(.top, playerTopPadding)
                 }
             } else if scrollPlayers {
                 ScrollView {
                     playerCardsStack
-                        .padding(.top, DS.Spacing.s2)
+                        .padding(.top, playerTopPadding)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 playerCardsStack
-                    .padding(.top, DS.Spacing.s2)
+                    .padding(.top, playerTopPadding)
             }
             statusBanners
-                .padding(.vertical, scrollPlayers ? DS.Spacing.s2 : 0)
+                .padding(.vertical, scrollPlayers && !usesLandscapeMatchLayout ? DS.Spacing.s2 : 0)
             scoringPad(state: state)
         }
         .frame(maxHeight: .infinity)
@@ -344,7 +364,7 @@ struct X01MatchScreen: View {
 
     @ViewBuilder
     private var botTurnBanner: some View {
-        if viewModel.isBotPlaying || viewModel.isCurrentPlayerBot && viewModel.canHumanInput == false {
+        if viewModel.isBotPlaying {
             // Amber-on-background fails AA contrast in light mode, so the banner sits on an
             // amber-tinted pill with primary-text foreground (legible in both appearances).
             HStack(spacing: 8) {

@@ -193,6 +193,15 @@ final class BaseballMatchViewModel: ObservableObject {
         botPlayback.cancel { reconcileInterruptedBotPlayback() }
     }
 
+    func recoverBotPlaybackIfNeeded() {
+        MatchBotPlaybackRecovery.recoverIfNeeded(
+            isBotTurn: isCurrentPlayerBot,
+            isBotPlaying: isBotPlaying,
+            reconcile: reconcileInterruptedBotPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
     private func scheduleBotPlaybackIfNeeded() {
         botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
