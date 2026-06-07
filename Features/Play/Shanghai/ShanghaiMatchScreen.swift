@@ -92,9 +92,17 @@ struct ShanghaiMatchScreen: View {
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {}
-            Button("play.match.exit.saveAndExit") { dismiss() }
+            Button("common.stay", role: .cancel) {
+                viewModel.recoverBotPlaybackIfNeeded()
+            }
+            Button("play.match.exit.saveAndExit") {
+                showExitConfirmation = false
+                viewModel.onDisappear()
+                dismiss()
+            }
             Button("play.match.exit.abandon", role: .destructive) {
+                showExitConfirmation = false
+                viewModel.onDisappear()
                 actionTask?.cancel()
                 actionTask = Task {
                     await viewModel.abandonMatch()
@@ -123,6 +131,7 @@ struct ShanghaiMatchScreen: View {
         .task { await viewModel.onAppear() }
         .onDisappear {
             actionTask?.cancel()
+            guard !showExitConfirmation else { return }
             viewModel.onDisappear()
         }
     }

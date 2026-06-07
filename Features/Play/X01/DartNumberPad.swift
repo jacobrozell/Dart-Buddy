@@ -32,7 +32,7 @@ struct DartNumberPad: View {
             return ScoringPadStyle.accessibilitySpacing
         }
         if usesLandscapeCompactLayout {
-            return 6
+            return 4
         }
         return ScoringPadStyle.compactSpacing
     }
@@ -42,7 +42,7 @@ struct DartNumberPad: View {
             return min(keyMinHeight, 56)
         }
         if usesLandscapeCompactLayout {
-            return lockedSegment == nil ? 44 : 64
+            return lockedSegment == nil ? 40 : 56
         }
         return keyMinHeight
     }
@@ -52,7 +52,7 @@ struct DartNumberPad: View {
             return min(visitSlotMinHeight, 40)
         }
         if usesLandscapeCompactLayout {
-            return 32
+            return 28
         }
         return min(visitSlotMinHeight, 30)
     }

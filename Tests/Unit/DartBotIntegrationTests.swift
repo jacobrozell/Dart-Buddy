@@ -610,6 +610,62 @@ func x01DisappearAndReappearRestartsBotAfterInterruptedTurn() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01RecoverBotPlaybackRestartsAfterExitAlertDismissedWithStay() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
+    )
+
+    await vm.onAppear()
+    vm.onDisappear()
+    #expect(vm.isCurrentPlayerBot)
+    #expect(!vm.isBotPlaying)
+
+    vm.recoverBotPlaybackIfNeeded()
+    try await waitForX01BotVisitCompletion(on: vm)
+
+    #expect(vm.session?.events.count == 1)
+    #expect(!vm.isBotPlaying)
+    #expect(vm.canHumanInput)
+}
+
+@MainActor
 private func waitForX01BotVisitCompletion(on vm: X01MatchViewModel) async throws {
     // Staggered bot pacing can take ~2.9s for a three-dart visit; allow 3.5s in CI.
     for _ in 0 ..< 140 {

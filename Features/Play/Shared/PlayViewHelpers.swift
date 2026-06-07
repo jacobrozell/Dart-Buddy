@@ -14,6 +14,8 @@ struct MatchGameplayHeader<Title: View, Trailing: View>: View {
 
     private var usesCompactHeight: Bool { verticalSizeClass == .compact }
 
+    private var chromeButtonSize: CGFloat { usesCompactHeight ? 40 : 44 }
+
     init(
         onExit: @escaping () -> Void,
         exitAccessibilityLabel: LocalizedStringKey = L10n.x01LeaveMatchAccessibility,
@@ -27,25 +29,25 @@ struct MatchGameplayHeader<Title: View, Trailing: View>: View {
     }
 
     var body: some View {
-        HStack {
+        HStack(alignment: .center, spacing: usesCompactHeight ? DS.Spacing.s2 : DS.Spacing.s3) {
             Button(action: onExit) {
                 Image(systemName: "chevron.left")
-                    .font(.headline.weight(.bold))
+                    .font((usesCompactHeight ? Font.subheadline : Font.headline).weight(.bold))
                     .foregroundStyle(Brand.green)
-                    .frame(width: 44, height: 44)
+                    .frame(width: chromeButtonSize, height: chromeButtonSize)
                     .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             }
             .accessibilityLabel(exitAccessibilityLabel)
             .accessibilityIdentifier("match_exit")
-            Spacer()
+            Spacer(minLength: DS.Spacing.s2)
             title()
-            Spacer()
+            Spacer(minLength: DS.Spacing.s2)
             trailing()
-                .frame(width: 44, height: 44)
+                .frame(width: chromeButtonSize, height: chromeButtonSize)
         }
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.top, usesCompactHeight ? DS.Spacing.s1 : DS.Spacing.s2)
+        .padding(.horizontal, usesCompactHeight ? DS.Spacing.s3 : DS.Spacing.s4)
+        .padding(.top, usesCompactHeight ? 0 : DS.Spacing.s2)
         .padding(.bottom, usesCompactHeight ? DS.Spacing.s1 : DS.Spacing.s2)
-        .layoutPriority(1)
+        .layoutPriority(2)
     }
 }
