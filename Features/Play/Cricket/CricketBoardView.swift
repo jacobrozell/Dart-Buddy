@@ -598,6 +598,7 @@ struct CricketTapPad: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
@@ -610,12 +611,18 @@ struct CricketTapPad: View {
             && GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
     }
 
+    /// iPhone landscape: pad spans the full width below the board, so keys lay out wide and
+    /// short. iPad landscape keeps the narrow sidebar pad (`usesLandscapeCompactLayout`).
+    private var usesLandscapeWideLayout: Bool {
+        usesLandscapeCompactLayout && horizontalSizeClass == .compact
+    }
+
     private var padSpacing: CGFloat {
         if usesAccessibilityLayout {
             return ScoringPadStyle.accessibilitySpacing
         }
         if usesLandscapeCompactLayout {
-            return 4
+            return usesLandscapeWideLayout ? 6 : 4
         }
         return ScoringPadStyle.compactSpacing
     }
@@ -623,6 +630,9 @@ struct CricketTapPad: View {
     private var displayKeyMinHeight: CGFloat {
         if usesAccessibilityLayout {
             return min(keyMinHeight, 56)
+        }
+        if usesLandscapeWideLayout {
+            return 44
         }
         if usesLandscapeCompactLayout {
             return 40
@@ -633,6 +643,9 @@ struct CricketTapPad: View {
     private var displayBullMissKeyMinHeight: CGFloat {
         if usesAccessibilityLayout {
             return displayKeyMinHeight
+        }
+        if usesLandscapeWideLayout {
+            return 44
         }
         if usesLandscapeCompactLayout {
             return 36
@@ -645,7 +658,7 @@ struct CricketTapPad: View {
             return min(visitSlotMinHeight, 40)
         }
         if usesLandscapeCompactLayout {
-            return 28
+            return usesLandscapeWideLayout ? 30 : 28
         }
         return min(visitSlotMinHeight, 30)
     }
@@ -660,10 +673,39 @@ struct CricketTapPad: View {
     var body: some View {
         if usesAccessibilityLayout {
             accessibilityPad
+        } else if usesLandscapeWideLayout {
+            landscapeWidePad
         } else if usesLandscapeCompactLayout {
             landscapeCompactPad
         } else {
             compactPad
+        }
+    }
+
+    /// iPhone landscape full-width pad: one row of segments + bull/miss, then modifiers + enter.
+    /// Laying keys out wide keeps the pad short so the board stays visible above it.
+    private var landscapeWidePad: some View {
+        VStack(spacing: padSpacing) {
+            visitPreview
+            HStack(spacing: padSpacing) {
+                ForEach(accessibilitySegments, id: \.self) { segment in
+                    numberKey(segment, title: String(segment))
+                }
+                bullKey
+                missKey
+            }
+            HStack(spacing: padSpacing) {
+                modifierKey(.double, identifier: "cricket_double")
+                modifierKey(.triple, identifier: "cricket_triple")
+                ScoringPadIconKey(
+                    systemImage: "arrow.uturn.backward",
+                    minHeight: displayKeyMinHeight,
+                    accessibilityLabel: L10n.string("scoring.undoLastTurn"),
+                    identifier: "cricket_undo",
+                    action: undo
+                )
+                enterButton
+            }
         }
     }
 
@@ -737,30 +779,38 @@ struct CricketTapPad: View {
     @ViewBuilder
     private func bullMissRow(showSpacer: Bool) -> some View {
         HStack(spacing: padSpacing) {
-            ScoringPadKey(
-                title: L10n.string("scoring.pad.bullLabel"),
-                font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
-                minHeight: displayBullMissKeyMinHeight,
-                accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
-                accessibilityHint: L10n.string("scoring.segment.hint"),
-                identifier: "cricket_bull",
-                action: appendBull
-            )
-            ScoringPadKey(
-                title: L10n.string("scoring.pad.missLabel"),
-                font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
-                minHeight: displayBullMissKeyMinHeight,
-                accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
-                accessibilityHint: L10n.string("scoring.segment.hint"),
-                identifier: "cricket_miss",
-                action: appendMiss
-            )
+            bullKey
+            missKey
             if showSpacer {
                 Color.clear
                     .frame(maxWidth: .infinity, minHeight: displayBullMissKeyMinHeight)
                     .accessibilityHidden(true)
             }
         }
+    }
+
+    private var bullKey: some View {
+        ScoringPadKey(
+            title: L10n.string("scoring.pad.bullLabel"),
+            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
+            minHeight: displayBullMissKeyMinHeight,
+            accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
+            accessibilityHint: L10n.string("scoring.segment.hint"),
+            identifier: "cricket_bull",
+            action: appendBull
+        )
+    }
+
+    private var missKey: some View {
+        ScoringPadKey(
+            title: L10n.string("scoring.pad.missLabel"),
+            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
+            minHeight: displayBullMissKeyMinHeight,
+            accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
+            accessibilityHint: L10n.string("scoring.segment.hint"),
+            identifier: "cricket_miss",
+            action: appendMiss
+        )
     }
 
     private var controlRow: some View {

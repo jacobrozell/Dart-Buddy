@@ -109,6 +109,33 @@ enum GameplayLayout {
         )
     }
 
+    /// Cricket iPhone landscape: current player board pinned above a full-width pad (X01-style),
+    /// rather than the side-by-side board + sidebar pad used on iPad where there is more room.
+    static func usesCricketLandscapePinnedLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize
+    ) -> Bool {
+        usesLandscapeIPhoneOnlyMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        ) && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    /// Cricket pad spans the full width below the board (iPhone landscape) instead of a
+    /// fixed-width sidebar, so it lays keys out wide and short to leave room for the board.
+    static func usesCricketFullWidthLandscapePad(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize
+    ) -> Bool {
+        usesCricketLandscapePinnedLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
+
     /// Fixed scoring pad width in landscape (compact pad targets ~250pt).
     static let landscapeScoringPadWidth: CGFloat = 252
 

@@ -227,14 +227,23 @@ final class CricketMatchUITests: DartBuddyUITestCase {
             XCUIDevice.shared.orientation = .portrait
         }
 
+        // iPhone landscape pins the active player's board at the top with the full-width
+        // pad below it (X01-style), so both stay on screen at once.
         let column = app.otherElements["cricket_column_active"]
         XCTAssertTrue(column.waitForExistence(timeout: timeout))
-        XCTAssertTrue(column.isHittable, "Active player column should stay on screen beside the pad in landscape")
-        XCTAssertTrue(app.buttons["cricket_20"].isHittable, "Scoring pad should remain reachable in landscape")
+        XCTAssertTrue(column.isHittable, "Active player board should stay locked at the top in landscape")
+        XCTAssertTrue(app.buttons["cricket_20"].isHittable, "Scoring pad should remain reachable below the board")
 
         let enter = app.buttons["cricket_enter"]
         XCTAssertTrue(enter.waitForExistence(timeout: timeout))
         XCTAssertGreaterThan(enter.frame.height, 32, "Enter should not collapse to a thin bar in landscape")
+
+        // The pad sits above the board's footer; assert the keys are below the active board header.
+        XCTAssertGreaterThan(
+            enter.frame.minY,
+            column.frame.minY,
+            "Keyboard should be pinned below the current player's board in iPhone landscape"
+        )
 
         let dartsStat = app.staticTexts["cricket_column_darts"]
         XCTAssertTrue(

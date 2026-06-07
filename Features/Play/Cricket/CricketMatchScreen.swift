@@ -42,13 +42,15 @@ struct CricketMatchScreen: View {
             }
 
             if let state = viewModel.cricketState {
-                if !usesSideBySideMatchLayout {
+                if !usesSideBySideMatchLayout && !usesLandscapePinnedLayout {
                     roundTurnLabel(state: state)
                 }
 
                 Group {
                     if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
                         accessibilityScoringStack
+                    } else if usesLandscapePinnedLayout {
+                        landscapeIPhoneScoringStack
                     } else if usesSideBySideMatchLayout {
                         landscapeScoringStack
                     } else {
@@ -157,6 +159,15 @@ struct CricketMatchScreen: View {
         && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
+    /// iPhone landscape: current player board pinned at top, full-width pad pinned at bottom (X01-style).
+    private var usesLandscapePinnedLayout: Bool {
+        GameplayLayout.usesCricketLandscapePinnedLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
+
     private var usesTransposedCricketBoard: Bool {
         GameplayLayout.usesTransposedCricketBoardLayout(
             horizontalSizeClass: horizontalSizeClass,
@@ -203,6 +214,26 @@ struct CricketMatchScreen: View {
         .padding(.bottom, DS.Spacing.s2)
     }
 
+    /// iPhone landscape: the active player's board stays locked at the top while the
+    /// full-width tap pad is pinned to the bottom — mirrors the X01 landscape layout.
+    /// The board sits in a scroll view so the pad never clips on shorter devices.
+    private var landscapeIPhoneScoringStack: some View {
+        VStack(spacing: DS.Spacing.s2) {
+            if let state = viewModel.cricketState {
+                landscapeRoundTurnLabel(state: state)
+            }
+            ScrollView {
+                cricketBoard
+            }
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            cricketControls
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, DS.Spacing.s4)
+        .padding(.bottom, DS.Spacing.s2)
+    }
+
     private func landscapeRoundTurnLabel(state: CricketState) -> some View {
         let round = state.roundIndex + 1
         let turn = state.currentPlayerIndex + 1
@@ -216,7 +247,10 @@ struct CricketMatchScreen: View {
 
     private var accessibilityScoringStack: some View {
         Group {
-            if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+            // iPad landscape has the width for a side-by-side board + pad even at AX sizes;
+            // iPhone landscape scrolls the board above the pad so nothing clips.
+            if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+                && horizontalSizeClass == .regular {
                 landscapeScoringStack
             } else {
                 ScrollView {

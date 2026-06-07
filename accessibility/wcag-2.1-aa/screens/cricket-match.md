@@ -15,7 +15,7 @@
 | P-1.1.1 | Pass | Mark cells `20, Open` / `Closed`; pad full dart names | `evidence/voiceover/cricket-ax-spotcheck-2026-06-02.md` |
 | P-1.3.1 | Pass | Active column combined header; mark cells labeled per target | |
 | P-1.3.2 | Partial | Board above pad; manual VO order pending | |
-| P-1.3.4 | Partial | Landscape side-by-side board + pad (`CricketMatchScreen`) | |
+| P-1.3.4 | Partial | iPhone landscape pins current player board above full-width pad; iPad landscape keeps side-by-side full board (`CricketMatchScreen`) | |
 | P-1.4.1 | Pass | Marks + text + localized mark states | |
 | P-1.4.3 | Partial | `toolbarColorScheme(.dark)` on nav bar; Inspector pass not logged | |
 | P-1.4.4 | Partial | `CricketBoardSizing.accessibility` scales target rows at AX sizes | `WCAGAccessibilityUITests.testCricketBoardTargetsLegibleAtAXXXL` |
@@ -38,6 +38,7 @@
 - [x] VoiceOver: active player column context
 - [x] Announce closure transitions
 - [x] Landscape board beside pad (compact vertical size class)
+- [x] iPhone landscape pins current player above full-width pad (X01-style); iPad landscape shows full board
 - [ ] AXXXL landscape manual pass
 - [ ] Manual VoiceOver pass (`accessibility/Manual_todo.md`)
 
