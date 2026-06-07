@@ -182,9 +182,12 @@ extension SetupHomeView {
             .overlay(alignment: .topTrailing) {
                 if showsMenuIndicator {
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 9, weight: .bold))
+                        // Relative font so the menu indicator scales with Dynamic Type
+                        // instead of staying a fixed 9pt at accessibility sizes.
+                        .font(.caption2.weight(.bold))
                         .foregroundStyle(Brand.textSecondary)
                         .padding(5)
+                        .accessibilityHidden(true)
                 }
             }
     }
