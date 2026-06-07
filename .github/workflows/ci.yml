@@ -12,7 +12,12 @@ concurrency:
 env:
   CI_XCODE_PROJECT: DartBuddy.xcodeproj
   CI_XCODE_SCHEME: DartBuddyCI
-  CI_PARALLEL_TESTING: YES
+  # Parallel testing spawns multiple simulator clones; one clone intermittently
+  # crashes ("TEST EXECUTE FAILED", every test reported at 0.000s) and fails the
+  # whole job even though the suite is green. The unit/accessibility suite runs in
+  # ~3 min sequentially, so disable parallelism for deterministic CI runs (the
+  # nightly UI workflow already runs serially for the same reason).
+  CI_PARALLEL_TESTING: NO
   CI_PACKAGES_ROOT: .packages
   SIM_DESTINATION: platform=iOS Simulator,name=iPhone 17
 
