@@ -261,7 +261,13 @@ final class BaseballMatchViewModel: ObservableObject {
 
     private func playoffRuns(forLeading playerIndex: Int, state: BaseballState) -> Int {
         var runs = state.players[playerIndex].playoffRunsThisRound
-        if playerIndex == state.currentPlayerIndex, canHumanInput || isBotPlaying {
+        if playerIndex == state.currentPlayerIndex,
+           MatchVisitPreview.includesActiveVisit(
+               isActive: true,
+               canHumanInput: canHumanInput,
+               isBotPlaying: isBotPlaying,
+               isCurrentPlayerBot: isCurrentPlayerBot
+           ) {
             for dart in enteredDarts {
                 runs += previewRuns(for: dart, state: state, playerIndex: playerIndex)
             }
@@ -279,7 +285,12 @@ final class BaseballMatchViewModel: ObservableObject {
         case .bullPlayoff:
             guard state.playoffPlayerIndices.contains(playerIndex) else { return nil }
             var preview = player.playoffRunsThisRound
-            if isActive, canHumanInput || isBotPlaying {
+            if MatchVisitPreview.includesActiveVisit(
+                isActive: isActive,
+                canHumanInput: canHumanInput,
+                isBotPlaying: isBotPlaying,
+                isCurrentPlayerBot: isCurrentPlayerBot
+            ) {
                 for dart in enteredDarts {
                     preview += previewRuns(for: dart, state: state, playerIndex: playerIndex)
                 }
@@ -294,7 +305,12 @@ final class BaseballMatchViewModel: ObservableObject {
     }
 
     private func previewRunsThisInning(for player: BaseballPlayerState, isActive: Bool) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return player.runsThisInning }
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return player.runsThisInning }
         guard let state = baseballState, isActive else { return player.runsThisInning }
         var preview = player.runsThisInning
         for dart in enteredDarts {

@@ -94,8 +94,10 @@ struct SideBySideMatchBody<Board: View, Controls: View>: View {
     }
 
     private var usesPhoneLandscapeLayout: Bool {
-        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-            && horizontalSizeClass == .compact
+        GameplayLayout.usesLandscapeIPhoneOnlyMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
     }
 }
 

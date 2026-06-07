@@ -123,14 +123,17 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     private func dartsThrown(for playerId: UUID) -> Int {
-        cricketTurnEvents(for: playerId).reduce(0) { sum, event in
-            sum + event.targetsTouched.filter { !$0.wasMiss }.count
-        }
+        StatsService.cricketDartsThrown(from: cricketTurnEvents(for: playerId))
     }
 
     private func previewVisitDarts(isActive: Bool) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return 0 }
-        return enteredDarts.filter { !$0.isMiss }.count
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return 0 }
+        return enteredDarts.count
     }
 
     private func previewDartsThrown(for playerId: UUID, isActive: Bool) -> Int {
@@ -144,7 +147,12 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     private func previewVisitMarks(isActive: Bool) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return 0 }
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return 0 }
         guard let state = cricketState else { return 0 }
         let playerIndex = state.currentPlayerIndex
         let before = state.players[playerIndex].marks
@@ -167,7 +175,13 @@ final class CricketMatchViewModel: ObservableObject {
     private func previewMarksPerRound(for playerId: UUID, isActive: Bool) -> Double {
         let events = cricketTurnEvents(for: playerId)
         let marks = committedMarks(for: playerId) + previewVisitMarks(isActive: isActive)
-        let rounds = events.count + (isActive && !enteredDarts.isEmpty ? 1 : 0)
+        let includesPreviewRound = MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) && !enteredDarts.isEmpty
+        let rounds = events.count + (includesPreviewRound ? 1 : 0)
         guard rounds > 0 else { return 0 }
         return Double(marks) / Double(rounds)
     }

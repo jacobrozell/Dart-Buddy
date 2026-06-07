@@ -1,6 +1,17 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 enum GameplayLayout {
+    /// Larger iPhones report `.regular` horizontal size class in landscape, same as iPad.
+    private static var defaultIsPad: Bool {
+        #if canImport(UIKit)
+        UIDevice.current.userInterfaceIdiom == .pad
+        #else
+        false
+        #endif
+    }
     /// Readable column for setup, summary, and list-style screens on iPad.
     static func contentMaxWidth(horizontalSizeClass: UserInterfaceSizeClass?) -> CGFloat {
         horizontalSizeClass == .regular ? 760 : .infinity
@@ -62,50 +73,59 @@ enum GameplayLayout {
     /// iPhone landscape only — scoreboard fills the column; iPad portrait keeps scroll/grid layouts.
     static func usesLandscapeIPhoneMatchScoringLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?
+        verticalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
-        usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-            && !usesIPadPortraitMatchScoringLayout(
-                horizontalSizeClass: horizontalSizeClass,
-                verticalSizeClass: verticalSizeClass
-            )
+        usesLandscapeIPhoneOnlyMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
+        )
     }
 
-    /// True iPhone landscape (compact width and height).
+    /// True iPhone landscape — uses idiom because Plus/Max phones report regular width in landscape.
     static func usesLandscapeIPhoneOnlyMatchScoringLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?
+        verticalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
-        horizontalSizeClass == .compact && verticalSizeClass == .compact
+        _ = horizontalSizeClass
+        return verticalSizeClass == .compact && !isPad
     }
 
-    /// iPad landscape (regular width, compact height).
+    /// iPad landscape (compact height on pad idiom).
     static func usesLandscapeIPadMatchScoringLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?
+        verticalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
-        horizontalSizeClass == .regular && verticalSizeClass == .compact
+        _ = horizontalSizeClass
+        return verticalSizeClass == .compact && isPad
     }
 
     /// Cricket: targets as columns, active player only — iPhone landscape.
     static func usesTransposedCricketBoardLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?
+        verticalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
         usesLandscapeIPhoneOnlyMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
         )
     }
 
     /// Cricket: full multi-player board scales to the scoreboard column (iPad landscape).
     static func usesCricketBoardFillsAvailableHeight(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?
+        verticalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
         usesLandscapeIPadMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
         )
     }
 
@@ -114,12 +134,32 @@ enum GameplayLayout {
     static func usesCricketLandscapePinnedLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
-        dynamicTypeSize: DynamicTypeSize
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
         usesLandscapeIPhoneOnlyMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
         ) && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    /// Cricket side-by-side board + pad: iPad portrait and iPad landscape only (not iPhone landscape).
+    static func usesCricketSideBySideMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
+        return usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        ) || usesLandscapeIPadMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
+        )
     }
 
     /// Cricket pad spans the full width below the board (iPhone landscape) instead of a
@@ -127,12 +167,14 @@ enum GameplayLayout {
     static func usesCricketFullWidthLandscapePad(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
-        dynamicTypeSize: DynamicTypeSize
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
         usesCricketLandscapePinnedLayout(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
-            dynamicTypeSize: dynamicTypeSize
+            dynamicTypeSize: dynamicTypeSize,
+            isPad: isPad
         )
     }
 

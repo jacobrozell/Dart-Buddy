@@ -119,7 +119,12 @@ final class X01MatchViewModel: ObservableObject {
 
     /// Live remaining score while the active player is entering their visit.
     private func previewRemainingScore(for player: X01PlayerState, isActive: Bool) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return player.remainingScore }
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return player.remainingScore }
         let visitTotal: Int
         switch inputMode {
         case .dartEntry:
@@ -223,7 +228,12 @@ final class X01MatchViewModel: ObservableObject {
 
     /// In-progress visit dart count and points for the active player.
     private func previewVisitStats(isActive: Bool) -> (darts: Int, points: Int) {
-        guard isActive, canHumanInput || isBotPlaying else { return (0, 0) }
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return (0, 0) }
         switch inputMode {
         case .dartEntry:
             return (enteredDarts.count, enteredDarts.reduce(0) { $0 + $1.points })

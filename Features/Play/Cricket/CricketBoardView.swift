@@ -614,7 +614,11 @@ struct CricketTapPad: View {
     /// iPhone landscape: pad spans the full width below the board, so keys lay out wide and
     /// short. iPad landscape keeps the narrow sidebar pad (`usesLandscapeCompactLayout`).
     private var usesLandscapeWideLayout: Bool {
-        usesLandscapeCompactLayout && horizontalSizeClass == .compact
+        GameplayLayout.usesCricketFullWidthLandscapePad(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
     }
 
     private var padSpacing: CGFloat {

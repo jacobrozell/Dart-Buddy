@@ -27,6 +27,22 @@ final class MatchBotPlaybackLifecycle {
     }
 }
 
+/// Shared rules for folding an in-progress visit into live scoreboard stats.
+enum MatchVisitPreview {
+    /// Whether `enteredDarts` for the active player should affect live UI totals.
+    /// Human pads use `canHumanInput`; bot visits must also count when the bot is up
+    /// even if `isBotPlaying` has not flipped on yet.
+    static func includesActiveVisit(
+        isActive: Bool,
+        canHumanInput: Bool,
+        isBotPlaying: Bool,
+        isCurrentPlayerBot: Bool
+    ) -> Bool {
+        guard isActive else { return false }
+        return canHumanInput || isBotPlaying || isCurrentPlayerBot
+    }
+}
+
 @MainActor
 enum MatchGameplaySessionSync {
     static func refreshStoredSession(

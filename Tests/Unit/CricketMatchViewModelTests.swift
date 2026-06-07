@@ -373,6 +373,52 @@ func cricketViewModelSurfacesErrorWhenPersistenceFails() async throws {
     }
 }
 
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelDartsThrownCountsMissesLikePostGameStats() async throws {
+    let (vm, _) = try makeCricketViewModel(preTurns: [
+        [CricketTestDarts.triple(20), CricketTestDarts.miss(), CricketTestDarts.single(19)]
+    ])
+
+    let aliceColumn = try #require(vm.boardColumns.first)
+    #expect(aliceColumn.dartsThrown == 3)
+}
+
+@MainActor
+@Test(.tags(.integration, .cricket, .match, .regression))
+func cricketViewModelCountsActiveBotVisitDartsWhileBotIsUp() async throws {
+    let botId = UUID()
+    let humanId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            ),
+            MatchParticipant(playerId: humanId, displayNameAtMatchStart: "Human", turnOrder: 1)
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = CricketMatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        matchRepository: CricketFakeMatchRepository(),
+        statsRepository: CricketFakeStatsRepository()
+    )
+    vm.enteredDarts = [CricketTestDarts.triple(20), CricketTestDarts.miss()]
+
+    let botColumn = try #require(vm.boardColumns.first { $0.id == botId })
+    #expect(vm.isCurrentPlayerBot)
+    #expect(!vm.isBotPlaying)
+    #expect(botColumn.dartsThrown == 2)
+}
+
 // MARK: - Fakes
 
 private final class CricketSilentLogSink: LogSink, @unchecked Sendable {
