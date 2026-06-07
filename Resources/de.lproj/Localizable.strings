@@ -417,6 +417,8 @@
 "modes.playerCount.exactFormat" = "%lld Spieler";
 "modes.card.availableAccessibilityFormat" = "%@. %@";
 "modes.card.comingSoonAccessibilityFormat" = "%@. %@. %@";
+"modes.card.selectedAccessibilityFormat" = "%@. %@. Ausgewählt";
+"modes.section.moreComingFormat" = "+%lld weitere demnächst";
 "modes.catalog.standard.x01.name" = "X01";
 "modes.catalog.standard.x01.blurb" = "301 · 501 · Double Out";
 "modes.catalog.standard.cricket.name" = "Cricket";
@@ -476,6 +478,7 @@
 "modes.catalog.practice.halveIt.name" = "Halve-It";
 "modes.catalog.practice.halveIt.blurb" = "Verfehle das Ziel, halbiere deinen Score";
 "play.setup.selectedMode" = "Ausgewählter Modus";
+"play.setup.modePicker.title" = "Modus wählen";
 "play.setup.changeMode" = "Ändern";
 "play.setup.editOptions" = "Optionen bearbeiten";
 "play.setup.hideOptions" = "Optionen ausblenden";
