@@ -807,9 +807,11 @@ public enum DartBotEngine {
             return DartInput(multiplier: .single, segment: .oneToTwenty(face))
         }
 
-        let wrongFace = Int.random(in: 1 ... 20, using: &rng)
+        var wrongFace = Int.random(in: 1 ... 20, using: &rng)
         if wrongFace == targetSegment {
-            return DartInput(multiplier: .single, segment: .oneToTwenty(wrongFace))
+            // A missed inning throw must not land on the very segment it was aiming
+            // for; nudge to an adjacent face so the miss actually scores no runs.
+            wrongFace = targetSegment % 20 + 1
         }
         return DartInput(multiplier: .single, segment: .oneToTwenty(wrongFace))
     }

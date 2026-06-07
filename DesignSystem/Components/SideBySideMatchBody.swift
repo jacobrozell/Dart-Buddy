@@ -50,7 +50,12 @@ struct SideBySideMatchBody<Board: View, Controls: View>: View {
                     controls()
                     Spacer(minLength: 0)
                 }
-                .frame(width: GameplayLayout.regularWidthScoringPadWidth)
+                .frame(
+                    width: GameplayLayout.scoringPadFixedWidth(
+                        horizontalSizeClass: horizontalSizeClass,
+                        verticalSizeClass: verticalSizeClass
+                    )
+                )
                 .frame(maxHeight: .infinity)
             }
             .padding(.horizontal, DS.Spacing.s4)

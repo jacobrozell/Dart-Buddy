@@ -100,6 +100,8 @@ struct KillerMatchScreen: View {
                 onShowSummary()
             case .becameKillerFeedback:
                 haptics.playSuccess()
+                // Match X01/Cricket: the visual banner is also announced to VoiceOver.
+                AccessibilityNotification.Announcement(L10n.string("play.killer.becameKiller")).post()
             default:
                 break
             }
