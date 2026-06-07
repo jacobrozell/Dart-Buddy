@@ -255,4 +255,62 @@ final class CricketMatchUITests: DartBuddyUITestCase {
             "Transposed active-player board should keep footer stats on screen in iPhone landscape"
         )
     }
+
+    func testCricketFullWidthPadKeysReachableInLandscape() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock {
+            XCUIDevice.shared.orientation = .portrait
+        }
+
+        let column = app.otherElements["cricket_column_active"]
+        XCTAssertTrue(column.waitForExistence(timeout: timeout))
+
+        // The full-width landscape pad lays every Cricket key out below the board.
+        let keyIdentifiers = [
+            "cricket_20", "cricket_19", "cricket_18",
+            "cricket_17", "cricket_16", "cricket_15",
+            "cricket_bull", "cricket_miss",
+            "cricket_double", "cricket_triple", "cricket_undo", "cricket_enter"
+        ]
+        for identifier in keyIdentifiers {
+            let key = app.buttons[identifier]
+            XCTAssertTrue(key.waitForExistence(timeout: timeout), "\(identifier) should exist in landscape")
+            XCTAssertTrue(key.isHittable, "\(identifier) should be reachable in the full-width landscape pad")
+            XCTAssertGreaterThan(
+                key.frame.minY,
+                column.frame.minY,
+                "\(identifier) should sit below the pinned current-player board"
+            )
+        }
+    }
+
+    func testCricketLandscapeScoringRecordsMarkFromWidePad() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock {
+            XCUIDevice.shared.orientation = .portrait
+        }
+
+        let target20 = app.buttons["cricket_20"]
+        XCTAssertTrue(target20.waitForExistence(timeout: timeout))
+        XCTAssertTrue(target20.isHittable)
+        target20.tap()
+        target20.tap()
+        target20.tap()
+
+        let closedMark = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@", "Closed"))
+            .firstMatch
+        XCTAssertTrue(
+            closedMark.waitForExistence(timeout: timeout + 5),
+            "Scoring three 20s from the landscape pad should close the target on the board"
+        )
+    }
 }

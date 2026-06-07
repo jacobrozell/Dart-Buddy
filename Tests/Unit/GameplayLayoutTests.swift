@@ -169,6 +169,79 @@ func gameplayLayoutUsesFullWidthCricketPadOnlyInIPhoneLandscape() {
     )
 }
 
+/// Locks the Cricket landscape decision matrix: iPhone pins the board above a
+/// full-width pad, while iPad keeps the side-by-side full board. The two layouts
+/// must never both claim the same size-class combination.
+@Test(.tags(.unit, .cricket, .regression))
+func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
+    // iPhone landscape: pinned board + full-width pad, NOT the iPad fill-height board.
+    #expect(
+        GameplayLayout.usesCricketLandscapePinnedLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesCricketBoardFillsAvailableHeight(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact
+        ) == false
+    )
+
+    // iPad landscape: fill-height full board, NOT the iPhone pinned layout.
+    #expect(
+        GameplayLayout.usesCricketLandscapePinnedLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesCricketBoardFillsAvailableHeight(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact
+        ) == true
+    )
+
+    // Portrait (iPhone and iPad) uses neither landscape branch.
+    for horizontal in [UserInterfaceSizeClass.compact, .regular] {
+        #expect(
+            GameplayLayout.usesCricketLandscapePinnedLayout(
+                horizontalSizeClass: horizontal,
+                verticalSizeClass: .regular,
+                dynamicTypeSize: .large
+            ) == false
+        )
+    }
+}
+
+/// The pinned full-width pad layout is keyed off the same predicate, so they stay in lockstep.
+@Test(.tags(.unit, .cricket, .regression))
+func gameplayLayoutCricketPinnedLayoutAndFullWidthPadAgree() {
+    let combos: [(UserInterfaceSizeClass?, UserInterfaceSizeClass?, DynamicTypeSize)] = [
+        (.compact, .compact, .large),
+        (.regular, .compact, .large),
+        (.compact, .regular, .large),
+        (.regular, .regular, .large),
+        (.compact, .compact, .accessibility1),
+        (.compact, .compact, .accessibility5)
+    ]
+    for (horizontal, vertical, size) in combos {
+        #expect(
+            GameplayLayout.usesCricketLandscapePinnedLayout(
+                horizontalSizeClass: horizontal,
+                verticalSizeClass: vertical,
+                dynamicTypeSize: size
+            ) == GameplayLayout.usesCricketFullWidthLandscapePad(
+                horizontalSizeClass: horizontal,
+                verticalSizeClass: vertical,
+                dynamicTypeSize: size
+            )
+        )
+    }
+}
+
 @Test(.tags(.unit, .regression))
 func gameplayLayoutUsesIPadPortraitMatchScoringOnlyOnRegularSizeClasses() {
     #expect(
