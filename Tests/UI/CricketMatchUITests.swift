@@ -229,6 +229,8 @@ final class CricketMatchUITests: DartBuddyUITestCase {
 
         // iPhone landscape pins the active player's board at the top with the full-width
         // pad below it (X01-style), so both stay on screen at once.
+        // Run on Pro Max (or Plus-class) simulators: they report regular horizontal size class
+        // in landscape — the case that previously picked the iPad side-by-side layout.
         let column = app.otherElements["cricket_column_active"]
         XCTAssertTrue(column.waitForExistence(timeout: timeout))
         XCTAssertTrue(column.isHittable, "Active player board should stay locked at the top in landscape")

@@ -225,7 +225,12 @@ final class ShanghaiMatchViewModel: ObservableObject {
         isActive: Bool,
         state: ShanghaiState
     ) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return player.pointsThisRound }
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return player.pointsThisRound }
         var preview = player.pointsThisRound
         for dart in enteredDarts {
             preview += previewPoints(for: dart, target: state.currentRound)

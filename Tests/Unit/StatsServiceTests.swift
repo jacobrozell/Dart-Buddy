@@ -145,6 +145,45 @@ func breakdownsComputeX01PerPlayerStats() throws {
 }
 
 @Test(.tags(.unit, .stats, .cricket, .regression))
+func cricketDartsThrownCountsEveryTouchIncludingMisses() throws {
+    let event = CricketTurnEvent(
+        payloadVersion: 1,
+        id: UUID(),
+        playerId: UUID(),
+        turnIndex: 0,
+        roundIndex: 0,
+        legIndex: 0,
+        setIndex: 0,
+        totalPointsAdded: 0,
+        targetsTouched: [
+            CricketDartTouch(
+                dartOrder: 1,
+                targetRaw: "20",
+                multiplierRaw: DartMultiplier.triple.rawValue,
+                marksAdded: 3,
+                overflowMarks: 0,
+                pointsAdded: 0,
+                wasMiss: false,
+                segmentRaw: "20"
+            ),
+            CricketDartTouch(
+                dartOrder: 2,
+                targetRaw: "miss",
+                multiplierRaw: DartMultiplier.single.rawValue,
+                marksAdded: 0,
+                overflowMarks: 0,
+                pointsAdded: 0,
+                wasMiss: true,
+                segmentRaw: "miss"
+            )
+        ],
+        timestamp: Date()
+    )
+
+    #expect(StatsService.cricketDartsThrown(from: [event]) == 2)
+}
+
+@Test(.tags(.unit, .stats, .cricket, .regression))
 func breakdownsComputeCricketHitsAndPoints() throws {
     let p1 = UUID()
     let p2 = UUID()

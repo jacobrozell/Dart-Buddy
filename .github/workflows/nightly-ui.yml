@@ -15,7 +15,9 @@ env:
   CI_XCODE_SCHEME: DartBuddy
   CI_PARALLEL_TESTING: NO
   CI_PACKAGES_ROOT: .packages
-  SIM_DESTINATION: platform=iOS Simulator,name=iPhone 17
+  # Pro Max reports regular horizontal size class in landscape (Plus/Max class iPhones).
+  # Landscape layout UI tests must run on this form factor to catch phone-vs-iPad mistakes.
+  SIM_DESTINATION: platform=iOS Simulator,name=iPhone 17 Pro Max
 
 jobs:
   ui-tests:

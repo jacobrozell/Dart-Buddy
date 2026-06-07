@@ -388,6 +388,64 @@ func x01ViewModelBotTurnSubmitsVisit() async throws {
     #expect(vm.isCurrentPlayerBot == false)
     #expect(vm.canHumanInput)
     #expect(vm.enteredDarts.isEmpty)
+
+    let botCard = try #require(vm.playerCards.first { $0.id == botId })
+    let botEvent = try #require(vm.session?.events.first.flatMap { envelope -> X01TurnEvent? in
+        guard case let .x01Turn(event) = envelope.payload else { return nil }
+        return event
+    })
+    #expect(botCard.dartsThrown == botEvent.effectiveDartsThrown)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelCountsBotVisitDartsWhileBotIsActive() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.medium.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.medium.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .single, segment: .oneToTwenty(20))
+    ]
+
+    let botCard = try #require(vm.playerCards.first { $0.id == botId })
+    #expect(vm.isCurrentPlayerBot)
+    #expect(!vm.isBotPlaying)
+    #expect(botCard.dartsThrown == 2)
 }
 
 @MainActor

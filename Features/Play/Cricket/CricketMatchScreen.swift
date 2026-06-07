@@ -152,11 +152,11 @@ struct CricketMatchScreen: View {
     }
 
     private var usesSideBySideMatchLayout: Bool {
-        GameplayLayout.usesSideBySideMatchScoringLayout(
+        GameplayLayout.usesCricketSideBySideMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
         )
-        && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
     /// iPhone landscape: current player board pinned at top, full-width pad pinned at bottom (X01-style).
@@ -249,8 +249,10 @@ struct CricketMatchScreen: View {
         Group {
             // iPad landscape has the width for a side-by-side board + pad even at AX sizes;
             // iPhone landscape scrolls the board above the pad so nothing clips.
-            if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-                && horizontalSizeClass == .regular {
+            if GameplayLayout.usesLandscapeIPadMatchScoringLayout(
+                horizontalSizeClass: horizontalSizeClass,
+                verticalSizeClass: verticalSizeClass
+            ) {
                 landscapeScoringStack
             } else {
                 ScrollView {

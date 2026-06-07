@@ -144,6 +144,11 @@ public enum StatsService {
         return (Double(totalPointsScored) / Double(totalDartsThrown)) * 3
     }
 
+    /// Cricket dart count for a player — every recorded touch, including misses.
+    public static func cricketDartsThrown(from events: [CricketTurnEvent]) -> Int {
+        events.reduce(0) { $0 + $1.targetsTouched.count }
+    }
+
     /// Live X01 scorecard average while a visit may still be in progress.
     /// For the opening visit's first two darts (no committed history yet), show the
     /// running per-dart average so a single 11 reads as 11.00 instead of 33.00.
