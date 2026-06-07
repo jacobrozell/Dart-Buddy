@@ -553,7 +553,8 @@ func x01DisappearAndReappearRestartsBotAfterInterruptedTurn() async throws {
 
 @MainActor
 private func waitForX01BotVisitCompletion(on vm: X01MatchViewModel) async throws {
-    for _ in 0 ..< 80 {
+    // Staggered bot pacing can take ~2.9s for a three-dart visit; allow 3.5s in CI.
+    for _ in 0 ..< 140 {
         if vm.session?.events.count == 1, vm.isBotPlaying == false {
             return
         }
