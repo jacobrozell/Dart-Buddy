@@ -10,13 +10,19 @@ final class MatchBotPlaybackLifecycle {
     private var playbackTask: Task<Void, Never>?
 
     func schedule(_ work: @escaping @MainActor () async -> Void) {
-        playbackTask?.cancel()
-        playbackTask = Task { await work() }
+        let prior = playbackTask
+        prior?.cancel()
+        playbackTask = Task { @MainActor in
+            if let prior {
+                _ = await prior.value
+            }
+            guard !Task.isCancelled else { return }
+            await work()
+        }
     }
 
     func cancel(reconcile: () -> Void) {
         playbackTask?.cancel()
-        playbackTask = nil
         reconcile()
     }
 }
