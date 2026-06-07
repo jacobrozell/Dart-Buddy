@@ -25,6 +25,9 @@ struct GameModeCatalogCard: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(cardAccessibilityLabel)
+        // The combined label drops the visible player-count text; surface it as the
+        // element's value so VoiceOver still announces "1+ players" / "1 player".
+        .accessibilityValue(entry.playerCountLabel)
         .accessibilityAddTraits(selectable ? .isButton : [])
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier("modes_card_\(entry.id)")
