@@ -130,11 +130,15 @@ final class X01MatchViewModel: ObservableObject {
         return player.remainingScore - visitTotal
     }
 
-    /// Checkout route for the active player, shown only when a turn is armed and
-    /// the match is still in progress.
+    /// Checkout route for the active player, shown while a turn is armed and the
+    /// match is still in progress. `bustFeedback` is included because a busted visit
+    /// advances play to the next player — that player is already up and may be on a
+    /// checkout, so their suggestion must show before they throw (the bust banner
+    /// clears itself when they start scoring).
     var checkoutRoute: [String]? {
-        guard state == .readyTurn,
+        guard state == .readyTurn || state == .bustFeedback,
               isBotPlaying == false,
+              isCurrentPlayerBot == false,
               let x01State = session?.runtime.x01State,
               x01State.winnerPlayerId == nil else { return nil }
         let player = x01State.players[x01State.currentPlayerIndex]
