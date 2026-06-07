@@ -413,7 +413,8 @@
 "modes.section.practice" = "Practice";
 "modes.section.countFormat" = "%lld modes";
 "modes.playerCount.solo" = "1 player";
-"modes.playerCount.rangeFormat" = "%lld–%lld players";
+"modes.playerCount.minimumFormat" = "%lld+ players";
+"modes.playerCount.exactFormat" = "%lld players";
 "modes.card.availableAccessibilityFormat" = "%@. %@";
 "modes.card.comingSoonAccessibilityFormat" = "%@. %@. %@";
 "modes.card.selectedAccessibilityFormat" = "%@. %@. Selected";
