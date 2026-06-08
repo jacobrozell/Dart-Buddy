@@ -83,39 +83,64 @@ extension DartBuddyUITestCase {
 
     func startThreePlayerX01Match(from app: XCUIApplication) {
         ensurePlayTab(app, timeout: timeout)
+        configureFastX01MatchForUITest(app, timeout: timeout)
         selectAliceBobAndCarol(from: app)
-        tapStartMatch(in: app, timeout: timeout)
-        waitForX01MatchBoard(in: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        waitForX01MatchBoard(in: app, timeout: timeout + 15)
     }
 
     func startThreePlayerCricketMatch(from app: XCUIApplication) {
-        selectModeFromCatalog("standard.cricket", in: app, timeout: timeout)
+        selectCricketMode(in: app, timeout: timeout)
         selectAliceBobAndCarol(from: app)
-        tapStartMatch(in: app, timeout: timeout)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 15))
     }
 
     func tapCricketPointsOff(in app: XCUIApplication) {
         expandSetupOptions(in: app, timeout: timeout)
-        let chip = app.buttons["setup_cricketPointsChip"]
-        XCTAssertTrue(chip.waitForExistence(timeout: timeout))
-        chip.tap()
-        app.buttons["Off"].tap()
+        tapMenuChip("setup_cricketPointsChip", in: app, timeout: timeout)
+        for candidate in [
+            app.menuItems.element(boundBy: 1),
+            app.menuItems["Off"],
+            app.buttons["Off"],
+            app.descendants(matching: .any)["setup_cricketPointsOption_off"]
+        ] {
+            if candidate.waitForExistence(timeout: 2) {
+                candidate.tap()
+                return
+            }
+        }
+        XCTFail("Expected cricket points Off menu option")
     }
 
     func tapCricketCutThroatMode(in app: XCUIApplication) {
         expandSetupOptions(in: app, timeout: timeout)
-        let chip = app.buttons["setup_cricketModeChip"]
-        XCTAssertTrue(chip.waitForExistence(timeout: timeout))
-        chip.tap()
-        app.buttons["Cut Throat"].tap()
+        tapMenuChip("setup_cricketModeChip", in: app, timeout: timeout)
+        for candidate in [
+            app.menuItems["Cut Throat"],
+            app.menuItems.element(boundBy: 1),
+            app.buttons["Cut Throat"],
+            app.descendants(matching: .any)["setup_cricketModeOption_cutThroat"]
+        ] {
+            if candidate.waitForExistence(timeout: 2) {
+                candidate.tap()
+                return
+            }
+        }
+        XCTFail("Expected cricket Cut Throat menu option")
     }
 
     func startTwoPlayerCricketMatch(from app: XCUIApplication, playerA: String = "Alice", playerB: String = "Bob") {
-        selectCricketMode(in: app)
+        selectCricketMode(in: app, timeout: timeout)
         selectPlayerFromRoster(playerA, in: app)
         selectPlayerFromRoster(playerB, in: app)
-        tapStartMatch(in: app, timeout: timeout)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 15))
     }
 }

@@ -211,10 +211,16 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         startTwoPlayerCricketMatch(from: app)
         submitTripleCloseVisit(targets: ["20", "19", "18"], in: app, timeout: timeout)
-        let darts = app.staticTexts["cricket_column_darts"]
-        let mpr = app.staticTexts["cricket_column_mpr"]
-        XCTAssertTrue(darts.waitForExistence(timeout: timeout + 5))
-        XCTAssertTrue(mpr.exists)
+        let column = activeCricketColumn(in: app)
+        XCTAssertTrue(column.waitForExistence(timeout: timeout + 5))
+        XCTAssertTrue(
+            column.label.contains("3 darts"),
+            "Active cricket column should announce darts thrown in its combined label (got '\(column.label)')"
+        )
+        XCTAssertTrue(
+            column.label.contains("marks per round"),
+            "Active cricket column should announce MPR in its combined label (got '\(column.label)')"
+        )
     }
 
     func testCricketBoardVisibleInLandscape() {
@@ -247,13 +253,13 @@ final class CricketMatchUITests: DartBuddyUITestCase {
             "Keyboard should be pinned below the current player's board in iPhone landscape"
         )
 
-        let dartsStat = app.staticTexts["cricket_column_darts"]
+        let columnLabel = column.label
         XCTAssertTrue(
-            dartsStat.waitForExistence(timeout: timeout),
-            "Player footer stats should be visible without scrolling in landscape"
+            columnLabel.contains("darts"),
+            "Player footer stats should be spoken on the active column in landscape (got '\(columnLabel)')"
         )
         XCTAssertTrue(
-            dartsStat.isHittable,
+            column.isHittable,
             "Transposed active-player board should keep footer stats on screen in iPhone landscape"
         )
     }

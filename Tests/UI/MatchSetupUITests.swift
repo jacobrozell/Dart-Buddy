@@ -25,9 +25,9 @@ final class MatchSetupUITests: DartBuddyUITestCase {
         )
         abandonAndStart.tap()
 
-        XCTAssertTrue(
-            app.staticTexts["501, Double Out, First to 3 Legs"].waitForExistence(timeout: timeout),
-            "Confirming should delete the active match and open the new board"
+        assertX01MatchConfigSummaryVisible(
+            in: app,
+            timeout: timeout
         )
     }
 
@@ -38,9 +38,10 @@ final class MatchSetupUITests: DartBuddyUITestCase {
         XCTAssertTrue(resume.waitForExistence(timeout: timeout), "An in-progress match should be resumable")
         resume.tap()
 
-        XCTAssertTrue(
-            app.staticTexts["121"].waitForExistence(timeout: timeout),
-            "Resumed board should show the saved remaining score"
+        assertActiveScoreCardLabel(
+            app,
+            contains: "121",
+            timeout: timeout
         )
     }
 
@@ -60,11 +61,12 @@ final class MatchSetupUITests: DartBuddyUITestCase {
 
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(start.waitForExistence(timeout: timeout))
-        XCTAssertFalse(start.isEnabled, "START must stay disabled without two players")
+        XCTAssertFalse(start.isEnabled, "START must stay disabled with an empty roster")
     }
 
     func testHumanPlusBotCanStartMatch() {
         let app = launchApp(["-seed_players"])
+        configureFastX01MatchForUITest(app, timeout: timeout)
 
         selectPlayerFromRoster("Alice", in: app)
         addEasyBot(from: app, timeout: timeout)
@@ -103,7 +105,7 @@ final class MatchSetupUITests: DartBuddyUITestCase {
             "Alice should leave the turn order list after removal"
         )
         XCTAssertTrue(app.buttons["select_Alice"].waitForExistence(timeout: timeout), "Alice should return to the available roster")
-        XCTAssertFalse(start.isEnabled, "START should disable when only one player remains staged")
+        XCTAssertTrue(start.isEnabled, "Solo X01 practice should keep START enabled with one human staged")
 
         removePlayerFromTurnOrder(named: "Bob", in: app)
 
@@ -112,14 +114,14 @@ final class MatchSetupUITests: DartBuddyUITestCase {
             "Bob should leave the turn order list after removal"
         )
         XCTAssertTrue(app.buttons["select_Bob"].waitForExistence(timeout: timeout), "Bob should return to the available roster")
-        XCTAssertFalse(start.isEnabled, "START should stay disabled with no staged players")
+        XCTAssertFalse(start.isEnabled, "START should disable with no staged players")
 
         app.buttons["select_Alice"].tap()
         app.buttons["select_Bob"].tap()
         waitForStartEnabled(start, timeout: timeout)
     }
 
-    func testStartRequiresTwoSelectedPlayers() {
+    func testSoloX01PracticeCanStartWithOneHuman() {
         let app = launchApp(["-seed_players"])
 
         let alice = app.buttons["select_Alice"]
@@ -128,10 +130,10 @@ final class MatchSetupUITests: DartBuddyUITestCase {
 
         let start = app.buttons["startMatchButton"]
         XCTAssertTrue(start.waitForExistence(timeout: timeout))
-        XCTAssertFalse(start.isEnabled, "START should be disabled with only one player selected")
+        XCTAssertTrue(start.isEnabled, "Solo X01 practice should enable START with one human selected")
 
         app.buttons["select_Bob"].tap()
-        XCTAssertTrue(start.isEnabled, "START should enable once two players are selected")
+        XCTAssertTrue(start.isEnabled, "START should stay enabled once a second player is selected")
     }
 
     func testMatchSetupAddsTrainingPartnerBot() {

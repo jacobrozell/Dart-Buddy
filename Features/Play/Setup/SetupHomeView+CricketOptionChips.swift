@@ -53,11 +53,13 @@ extension SetupHomeView {
                     setupViewModel.cricketPointsEnabled = true
                     setupViewModel.revalidate()
                 }
+                .accessibilityIdentifier("setup_cricketPointsOption_on")
                 Button(L10n.string("play.cricket.points.off")) {
                     setupViewModel.cricketPointsEnabled = false
                     setupViewModel.cricketScoringMode = .standard
                     setupViewModel.revalidate()
                 }
+                .accessibilityIdentifier("setup_cricketPointsOption_off")
             } label: {
                 chipBox(
                     setupViewModel.cricketPointsEnabled
@@ -87,6 +89,7 @@ extension SetupHomeView {
                         setupViewModel.cricketScoringMode = value
                         setupViewModel.revalidate()
                     }
+                    .accessibilityIdentifier("setup_cricketModeOption_\(value.rawValue)")
                 }
             } label: {
                 chipBox(
