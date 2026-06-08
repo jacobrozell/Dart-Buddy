@@ -3,6 +3,8 @@ import XCTest
 /// Shared launch configuration for Dart Buddy UI tests.
 class DartBuddyUITestCase: XCTestCase {
     static let brandTitle = "Dart Buddy"
+    static let instantBotsLaunchArgument = "-ui_test_instant_bots"
+    static let disableFeedbackLaunchArgument = "-ui_test_disable_feedback"
     let timeout: TimeInterval = 10
 
     override func setUp() {

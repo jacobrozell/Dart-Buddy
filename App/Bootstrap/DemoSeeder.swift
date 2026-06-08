@@ -343,7 +343,7 @@ enum DemoSeeder {
                 defaultLegFormatRaw: current.defaultLegFormatRaw,
                 defaultLegsToWin: current.defaultLegsToWin,
                 defaultSetsEnabled: current.defaultSetsEnabled,
-                botStaggerEnabled: true,
+                botStaggerEnabled: false,
                 botDartHapticsEnabled: false,
                 updatedAt: Date()
             )

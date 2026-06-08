@@ -36,7 +36,7 @@ Locks in UI coverage for bugs that have regressed multiple times in git history.
 | `testCricketBotVisitUndoStepsThroughRestoredDarts` | `RegressionUITests` | `b53eaeb` (Cricket) |
 | `testCricketExitAlertStayRecoversBotPlayback` | `RegressionUITests` | `baae976` (Cricket; interrupts bot chain via exit on third miss) |
 
-**Launch args:** `-seed_players`, `-ui_test_disable_feedback` (fast bot pacing).
+**Launch args:** `-seed_players`, `-ui_test_disable_feedback` (haptics/sound off, fast bot stagger), `-ui_test_instant_bots` (zero bot/closure delays).
 
 **Helpers:** `waitForBotVisitToComplete`, `dismissExitAlertStay`, `startAliceVersusEasyBotX01MatchForRegression`, `assertScoringKeysBelowPinnedArea`.
 

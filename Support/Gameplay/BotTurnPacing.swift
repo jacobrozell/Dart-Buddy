@@ -11,10 +11,28 @@ enum BotTurnPacing {
     static let cricketClosureTransitionNanoseconds: UInt64 = 550_000_000
 
     static func dartDelayNanoseconds(staggerEnabled: Bool) -> UInt64 {
-        staggerEnabled ? staggeredDartNanoseconds : fastDartNanoseconds
+        resolvedDartDelayNanoseconds(staggerEnabled: staggerEnabled, instantBots: UITestLaunchArguments.instantBotsActive)
     }
 
     static func submitDelayNanoseconds(staggerEnabled: Bool) -> UInt64 {
-        staggerEnabled ? staggeredSubmitNanoseconds : fastSubmitNanoseconds
+        resolvedSubmitDelayNanoseconds(staggerEnabled: staggerEnabled, instantBots: UITestLaunchArguments.instantBotsActive)
+    }
+
+    static func cricketClosureDelayNanoseconds() -> UInt64 {
+        resolvedCricketClosureTransitionNanoseconds(instantBots: UITestLaunchArguments.instantBotsActive)
+    }
+
+    static func resolvedDartDelayNanoseconds(staggerEnabled: Bool, instantBots: Bool) -> UInt64 {
+        if instantBots { return 0 }
+        return staggerEnabled ? staggeredDartNanoseconds : fastDartNanoseconds
+    }
+
+    static func resolvedSubmitDelayNanoseconds(staggerEnabled: Bool, instantBots: Bool) -> UInt64 {
+        if instantBots { return 0 }
+        return staggerEnabled ? staggeredSubmitNanoseconds : fastSubmitNanoseconds
+    }
+
+    static func resolvedCricketClosureTransitionNanoseconds(instantBots: Bool) -> UInt64 {
+        instantBots ? 0 : cricketClosureTransitionNanoseconds
     }
 }

@@ -129,7 +129,7 @@ final class RegressionUITests: DartBuddyUITestCase {
         let app = launchForRegression()
         startTwoPlayerX01MatchForRegression(from: app, timeout: timeout)
 
-        rotateToLandscapeLeftForTest()
+        rotateToLandscapeLeftForTest(app: app)
         addTeardownBlock {
             XCUIDevice.shared.orientation = .portrait
         }
@@ -157,7 +157,7 @@ final class RegressionUITests: DartBuddyUITestCase {
         let app = launchForRegression()
         startTwoPlayerX01MatchForRegression(from: app, timeout: timeout)
 
-        rotateToLandscapeLeftForTest()
+        rotateToLandscapeLeftForTest(app: app)
         addTeardownBlock {
             XCUIDevice.shared.orientation = .portrait
         }

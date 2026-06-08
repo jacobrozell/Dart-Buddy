@@ -413,7 +413,7 @@ final class CricketMatchViewModel: ObservableObject {
                 )
                 if didCloseTarget {
                     state = .closureTransition
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds())
                 }
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {

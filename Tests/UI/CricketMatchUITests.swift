@@ -10,47 +10,35 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed)
     }
 
-    private func waitForCricketPadReady(_ app: XCUIApplication, timeout: TimeInterval) {
-        let key = app.buttons["cricket_20"]
-        XCTAssertTrue(key.waitForExistence(timeout: timeout))
-        XCTAssertTrue(key.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 5))
-        // Closure transitions briefly disable human input between visits.
-        Thread.sleep(forTimeInterval: 0.75)
-    }
-
     private func submitTripleCloseVisit(
         targets: [String],
         in app: XCUIApplication,
         timeout: TimeInterval
     ) {
         XCTAssertEqual(targets.count, 3)
-        waitForCricketPadReady(app, timeout: timeout)
+        waitForCricketScoringPadReady(app, timeout: timeout)
         app.buttons["cricket_triple"].tap()
         for target in targets {
             let key = app.buttons["cricket_\(target)"]
             XCTAssertTrue(key.waitForExistence(timeout: timeout))
             key.tap()
-            Thread.sleep(forTimeInterval: 0.15)
         }
-        // Three darts auto-submit; wait for the pad to return before the next visit.
-        waitForCricketPadReady(app, timeout: timeout + 5)
+        waitForCricketScoringPadReady(app, timeout: timeout + 5)
     }
 
     /// Submits one visit that closes the bull (two inner-bull marks).
     private func submitBullCloseVisit(in app: XCUIApplication, timeout: TimeInterval) {
-        waitForCricketPadReady(app, timeout: timeout)
+        waitForCricketScoringPadReady(app, timeout: timeout)
         let bull = app.buttons["cricket_bull"]
         XCTAssertTrue(bull.waitForExistence(timeout: timeout))
         for _ in 0 ..< 2 {
             app.buttons["cricket_double"].tap()
-            Thread.sleep(forTimeInterval: 0.35)
             bull.tap()
-            Thread.sleep(forTimeInterval: 0.15)
         }
         app.buttons["cricket_enter"].tap()
         let summary = app.otherElements["matchSummaryHeader"]
         if summary.waitForExistence(timeout: 3) { return }
-        waitForCricketPadReady(app, timeout: timeout + 5)
+        waitForCricketScoringPadReady(app, timeout: timeout + 5)
     }
 
     private func closeAllCricketTargets(in app: XCUIApplication, timeout: TimeInterval) {
@@ -60,15 +48,13 @@ final class CricketMatchUITests: DartBuddyUITestCase {
     }
 
     private func submitMissVisit(in app: XCUIApplication, timeout: TimeInterval) {
-        waitForCricketPadReady(app, timeout: timeout)
+        waitForCricketScoringPadReady(app, timeout: timeout)
         let miss = app.buttons["cricket_miss"]
         XCTAssertTrue(miss.waitForExistence(timeout: timeout))
         miss.tap()
-        Thread.sleep(forTimeInterval: 0.15)
         miss.tap()
-        Thread.sleep(forTimeInterval: 0.15)
         miss.tap()
-        waitForCricketPadReady(app, timeout: timeout + 5)
+        waitForCricketScoringPadReady(app, timeout: timeout + 5)
     }
 
     /// Closes every target for whoever is active, skipping `(playerCount - 1)` opponents between close visits.
@@ -190,7 +176,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
     }
 
     func testCutThroatCricketBotMatchStartsAndBotThrows() {
-        let app = launchApp(["-seed_players"])
+        let app = launchApp(["-seed_players", Self.instantBotsLaunchArgument])
         selectCricketMode(in: app)
         tapCricketCutThroatMode(in: app)
         selectPlayerFromRoster("Alice", in: app)

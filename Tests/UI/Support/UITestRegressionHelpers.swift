@@ -7,7 +7,11 @@ extension DartBuddyUITestCase {
         localeIdentifier: String? = nil
     ) -> XCUIApplication {
         launchApp(
-            ["-seed_players", "-ui_test_disable_feedback"] + extraArguments,
+            [
+                "-seed_players",
+                Self.disableFeedbackLaunchArgument,
+                Self.instantBotsLaunchArgument,
+            ] + extraArguments,
             localeLanguage: localeLanguage,
             localeIdentifier: localeIdentifier
         )
@@ -35,10 +39,7 @@ extension DartBuddyUITestCase {
     }
 
     func waitForRegressionCricketPadReady(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        let key = app.buttons["cricket_20"]
-        XCTAssertTrue(key.waitForExistence(timeout: timeout))
-        XCTAssertTrue(key.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 5))
-        Thread.sleep(forTimeInterval: 0.5)
+        waitForCricketScoringPadReady(app, timeout: timeout)
     }
 
     func dismissExitAlertStay(in app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -94,7 +95,6 @@ extension DartBuddyUITestCase {
                     }
                 }
             }
-            Thread.sleep(forTimeInterval: 0.1)
         }
         dismissExitAlertStay(in: app, timeout: timeout)
     }
@@ -145,9 +145,8 @@ extension DartBuddyUITestCase {
         }
     }
 
-    func rotateToLandscapeLeftForTest() {
-        XCUIDevice.shared.orientation = .landscapeLeft
-        Thread.sleep(forTimeInterval: 1.0)
+    func rotateToLandscapeLeftForTest(app: XCUIApplication, timeout: TimeInterval = 5) {
+        rotateToLandscapeLeft(for: app, timeout: timeout)
     }
 
     func assertActiveScoreCardNamesBot(in app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -168,7 +167,6 @@ extension DartBuddyUITestCase {
         XCTAssertTrue(miss.waitForExistence(timeout: timeout))
         for _ in 0 ..< 3 {
             miss.tap()
-            Thread.sleep(forTimeInterval: 0.15)
         }
         waitForRegressionCricketPadReady(app, timeout: timeout + 5)
     }
