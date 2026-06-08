@@ -3,14 +3,25 @@ import Testing
 
 @Test(.tags(.unit, .regression))
 func botTurnPacingUsesStaggeredDelaysWhenEnabled() {
-    #expect(BotTurnPacing.dartDelayNanoseconds(staggerEnabled: true) == BotTurnPacing.staggeredDartNanoseconds)
-    #expect(BotTurnPacing.dartDelayNanoseconds(staggerEnabled: false) == BotTurnPacing.fastDartNanoseconds)
+    #expect(BotTurnPacing.resolvedDartDelayNanoseconds(staggerEnabled: true, instantBots: false) == BotTurnPacing.staggeredDartNanoseconds)
+    #expect(BotTurnPacing.resolvedDartDelayNanoseconds(staggerEnabled: false, instantBots: false) == BotTurnPacing.fastDartNanoseconds)
 }
 
 @Test(.tags(.unit, .regression))
 func botTurnPacingUsesStaggeredSubmitDelayWhenEnabled() {
-    #expect(BotTurnPacing.submitDelayNanoseconds(staggerEnabled: true) == BotTurnPacing.staggeredSubmitNanoseconds)
-    #expect(BotTurnPacing.submitDelayNanoseconds(staggerEnabled: false) == BotTurnPacing.fastSubmitNanoseconds)
+    #expect(BotTurnPacing.resolvedSubmitDelayNanoseconds(staggerEnabled: true, instantBots: false) == BotTurnPacing.staggeredSubmitNanoseconds)
+    #expect(BotTurnPacing.resolvedSubmitDelayNanoseconds(staggerEnabled: false, instantBots: false) == BotTurnPacing.fastSubmitNanoseconds)
+}
+
+@Test(.tags(.unit, .regression))
+func botTurnPacingInstantBotsUsesZeroDelay() {
+    #expect(BotTurnPacing.resolvedDartDelayNanoseconds(staggerEnabled: true, instantBots: true) == 0)
+    #expect(BotTurnPacing.resolvedSubmitDelayNanoseconds(staggerEnabled: true, instantBots: true) == 0)
+    #expect(BotTurnPacing.resolvedCricketClosureTransitionNanoseconds(instantBots: true) == 0)
+    #expect(
+        BotTurnPacing.resolvedCricketClosureTransitionNanoseconds(instantBots: false)
+            == BotTurnPacing.cricketClosureTransitionNanoseconds
+    )
 }
 
 @Test(.tags(.unit, .regression))

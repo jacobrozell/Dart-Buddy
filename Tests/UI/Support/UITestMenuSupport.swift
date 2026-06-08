@@ -467,7 +467,54 @@ extension XCTestCase {
             app.swipeUp()
         }
         chip.tap()
-        Thread.sleep(forTimeInterval: 0.35)
+        waitForSetupMenu(in: app, timeout: 2)
+    }
+
+    /// Waits for a setup chip menu to finish presenting after `tapMenuChip`.
+    func waitForSetupMenu(in app: XCUIApplication, timeout: TimeInterval = 2) {
+        if app.menuItems.firstMatch.waitForExistence(timeout: timeout) {
+            return
+        }
+        let setupOption = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'setup_' AND identifier CONTAINS 'Option'")
+        ).firstMatch
+        _ = setupOption.waitForExistence(timeout: 1)
+    }
+
+    /// Waits until the cricket pad accepts input after auto-submit, bot visits, or closure transitions.
+    func waitForCricketScoringPadReady(
+        _ app: XCUIApplication,
+        keyIdentifier: String = "cricket_20",
+        timeout: TimeInterval = 10,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let key = app.buttons[keyIdentifier]
+        XCTAssertTrue(key.waitForExistence(timeout: timeout), file: file, line: line)
+        XCTAssertTrue(
+            key.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 5),
+            "Cricket pad key '\(keyIdentifier)' should enable when the visit is ready",
+            file: file,
+            line: line
+        )
+    }
+
+    /// Rotates to landscape and waits until a gameplay landmark is hittable again.
+    func rotateToLandscapeLeft(for app: XCUIApplication, timeout: TimeInterval = 5) {
+        XCUIDevice.shared.orientation = .landscapeLeft
+        let landmarks: [XCUIElement] = [
+            app.buttons["pad_20"],
+            app.buttons["cricket_20"],
+            app.otherElements["scoreCard_active"],
+            app.otherElements["cricket_column_active"],
+        ]
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if landmarks.contains(where: { $0.exists && $0.isHittable }) {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
     }
 
     func selectMenuOption(
