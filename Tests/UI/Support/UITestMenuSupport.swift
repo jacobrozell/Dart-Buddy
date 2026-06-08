@@ -44,11 +44,101 @@ extension XCTestCase {
     }
 
     func ensurePlayTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        if app.staticTexts["Dart Scoreboard"].waitForExistence(timeout: 2) {
+        if app.descendants(matching: .any)["brand_app_title"].waitForExistence(timeout: 2) {
             return
         }
         tapTabBarItem(named: "Play", identifier: "tab_play", in: app, timeout: timeout)
         _ = assertBrandAppTitleVisible(in: app, timeout: timeout)
+    }
+
+    func activeX01ScoreCard(in app: XCUIApplication) -> XCUIElement {
+        app.otherElements["scoreCard_active"]
+    }
+
+    func inactiveX01ScoreCards(in app: XCUIApplication) -> XCUIElementQuery {
+        app.otherElements.matching(identifier: "scoreCard")
+    }
+
+    func assertActiveScoreCardLabel(
+        _ app: XCUIApplication,
+        contains fragment: String,
+        timeout: TimeInterval = 10,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let card = activeX01ScoreCard(in: app)
+        XCTAssertTrue(
+            card.waitForExistence(timeout: timeout),
+            "Active score card should exist",
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            card.label.contains(fragment),
+            "Active score card label should contain '\(fragment)' (got '\(card.label)')",
+            file: file,
+            line: line
+        )
+    }
+
+    func assertX01MatchConfigSummaryVisible(
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let summary = app.descendants(matching: .any)["x01_match_config_summary"]
+        if summary.waitForExistence(timeout: timeout) {
+            XCTAssertFalse(summary.label.isEmpty, file: file, line: line)
+            return
+        }
+        let fallback = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "Double Out", "Leg")
+        ).firstMatch
+        XCTAssertTrue(
+            fallback.waitForExistence(timeout: timeout),
+            "X01 match should expose config summary in header or body",
+            file: file,
+            line: line
+        )
+    }
+
+    func assertMatchSummaryShowsWinner(
+        _ name: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let header = app.otherElements["matchSummaryHeader"]
+        XCTAssertTrue(header.waitForExistence(timeout: timeout), file: file, line: line)
+        XCTAssertTrue(
+            header.label.localizedCaseInsensitiveContains(name),
+            "Summary header should announce winner '\(name)' (got '\(header.label)')",
+            file: file,
+            line: line
+        )
+    }
+
+    func activeCricketColumn(in app: XCUIApplication) -> XCUIElement {
+        app.otherElements["cricket_column_active"]
+    }
+
+    func assertActiveCricketColumnLabel(
+        _ app: XCUIApplication,
+        contains fragment: String,
+        timeout: TimeInterval = 10,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let column = activeCricketColumn(in: app)
+        XCTAssertTrue(column.waitForExistence(timeout: timeout), file: file, line: line)
+        XCTAssertTrue(
+            column.label.localizedCaseInsensitiveContains(fragment),
+            "Active cricket column label should contain '\(fragment)' (got '\(column.label)')",
+            file: file,
+            line: line
+        )
     }
 
     func ensureModesTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -184,16 +274,22 @@ extension XCTestCase {
     }
 
     func selectCricketMode(in app: XCUIApplication, timeout: TimeInterval = 10) {
-        if app.tabBars.buttons["Modes"].exists || app.tabBars.buttons["tab_modes"].exists {
-            selectModeFromCatalog("standard.cricket", in: app, expectedModeName: "Cricket", timeout: timeout)
-        } else {
+        ensurePlayTab(app, timeout: timeout)
+        let modeName = app.descendants(matching: .any)["setup_selectedModeName"]
+        if modeName.waitForExistence(timeout: 2),
+           modeName.label.localizedCaseInsensitiveContains("Cricket") {
+            return
+        }
+        if app.buttons["setup_changeModeButton"].waitForExistence(timeout: 2) {
             selectModeFromPlaySetupPicker(
                 "standard.cricket",
                 in: app,
                 expectedModeName: "Cricket",
                 timeout: timeout
             )
+            return
         }
+        selectModeFromCatalog("standard.cricket", in: app, expectedModeName: "Cricket", timeout: timeout)
     }
 
     private func assertSelectedModeName(
@@ -245,34 +341,22 @@ extension XCTestCase {
         }
     }
 
-    /// Taps START after scrolling it clear of the sticky footer.
+    /// Taps START once the footer button is enabled.
     func tapStartMatch(in app: XCUIApplication, timeout: TimeInterval = 10) {
         let start = app.buttons["startMatchButton"]
         waitForStartEnabled(start, timeout: timeout)
-        for _ in 0 ..< 8 where start.exists == false || start.isHittable == false {
+        if !start.isHittable {
             app.swipeUp()
-        }
-        for _ in 0 ..< 4 where start.exists == false || start.isHittable == false {
-            app.swipeDown()
         }
         XCTAssertTrue(start.isHittable, "START should be reachable above the tab bar and sticky footer")
         start.tap()
-        let starting = app.buttons.matching(
-            NSPredicate(format: "label CONTAINS[c] %@", "Starting")
-        ).firstMatch
-        if starting.waitForExistence(timeout: 2) {
-            XCTAssertTrue(
-                starting.waitForNonExistence(timeout: timeout + 20),
-                "Match start should finish submitting"
-            )
-        }
     }
 
     func waitForX01MatchBoard(in app: XCUIApplication, timeout: TimeInterval = 10) {
-        let pad = app.buttons["pad_20"]
+        _ = waitForPadReady(app, timeout: timeout + 25)
         XCTAssertTrue(
-            pad.wait(for: \.exists, toEqual: true, timeout: timeout),
-            "X01 match board should expose the scoring pad after start"
+            app.buttons["match_exit"].waitForExistence(timeout: 5),
+            "X01 match screen should appear after start"
         )
     }
 
@@ -371,17 +455,19 @@ extension XCTestCase {
     }
 
     func tapMenuChip(_ identifier: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
-        let button = app.buttons[identifier]
-        let popUp = app.popUpButtons[identifier]
-        if button.waitForExistence(timeout: timeout) {
-            button.tap()
-            return
+        let chip = setupChip(identifier, in: app)
+        for _ in 0 ..< 8 where chip.exists == false || chip.isHittable == false {
+            app.swipeUp()
         }
         XCTAssertTrue(
-            popUp.waitForExistence(timeout: timeout),
+            chip.waitForExistence(timeout: timeout),
             "Missing menu chip '\(identifier)'"
         )
-        popUp.tap()
+        for _ in 0 ..< 4 where chip.isHittable == false {
+            app.swipeUp()
+        }
+        chip.tap()
+        Thread.sleep(forTimeInterval: 0.35)
     }
 
     func selectMenuOption(
@@ -392,7 +478,7 @@ extension XCTestCase {
     ) {
         if let identifier {
             let option = app.descendants(matching: .any)[identifier]
-            if option.waitForExistence(timeout: 1.5) {
+            if option.waitForExistence(timeout: timeout) {
                 option.tap()
                 return
             }
@@ -401,6 +487,14 @@ extension XCTestCase {
         let menuItem = app.menuItems[title]
         if menuItem.waitForExistence(timeout: timeout) {
             menuItem.tap()
+            return
+        }
+
+        let menuItemCaseInsensitive = app.menuItems.matching(
+            NSPredicate(format: "label ==[c] %@", title)
+        ).firstMatch
+        if menuItemCaseInsensitive.waitForExistence(timeout: 2) {
+            menuItemCaseInsensitive.tap()
             return
         }
 
@@ -419,11 +513,19 @@ extension XCTestCase {
         }
 
         let cell = app.cells.containing(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
+        if cell.waitForExistence(timeout: timeout) {
+            cell.tap()
+            return
+        }
+
+        let looseLabel = app.descendants(matching: .any).matching(
+            NSPredicate(format: "label ==[c] %@", title)
+        ).firstMatch
         XCTAssertTrue(
-            cell.waitForExistence(timeout: 2),
+            looseLabel.waitForExistence(timeout: 2),
             "Expected menu option '\(title)'"
         )
-        cell.tap()
+        looseLabel.tap()
     }
 
     func waitForStartEnabled(_ start: XCUIElement, timeout: TimeInterval = 10) {

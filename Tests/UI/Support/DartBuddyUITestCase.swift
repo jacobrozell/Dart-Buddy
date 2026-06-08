@@ -16,16 +16,34 @@ class DartBuddyUITestCase: XCTestCase {
         super.tearDown()
     }
 
-    func launchApp(_ extraArguments: [String] = []) -> XCUIApplication {
+    func launchApp(
+        _ extraArguments: [String] = [],
+        localeLanguage: String? = nil,
+        localeIdentifier: String? = nil
+    ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ui_test_reset", "-disable_firebase_analytics"] + extraArguments
         applyDefaultLaunchEnvironment(to: app)
+        if let localeLanguage, let localeIdentifier {
+            var environment = app.launchEnvironment
+            environment["AppleLanguages"] = "(\(localeLanguage))"
+            environment["AppleLocale"] = localeIdentifier
+            app.launchEnvironment = environment
+        }
         app.launch()
         return app
     }
 
-    func launchAppWithFullProductSurface(_ extraArguments: [String] = []) -> XCUIApplication {
-        launchApp(["-enable_full_product_surface"] + extraArguments)
+    func launchAppWithFullProductSurface(
+        _ extraArguments: [String] = [],
+        localeLanguage: String? = nil,
+        localeIdentifier: String? = nil
+    ) -> XCUIApplication {
+        launchApp(
+            ["-enable_full_product_surface"] + extraArguments,
+            localeLanguage: localeLanguage,
+            localeIdentifier: localeIdentifier
+        )
     }
 
 }

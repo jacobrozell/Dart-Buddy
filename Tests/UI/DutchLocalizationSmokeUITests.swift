@@ -1,36 +1,25 @@
 import XCTest
 
 /// Smoke tests with Dutch locale; functional UI tests keep English via default launch.
+/// Lean 1.0 bundles English only — see `project.yml` and skip until 1.2+ locale restore.
 final class DutchLocalizationSmokeUITests: DartBuddyUITestCase {
-    private var dutchLaunchArgs: [String] {
-        ["-AppleLanguages", "(nl)", "-AppleLocale", "nl_NL"]
+    private var leanLocalesUnavailable: String {
+        "Lean 1.0 bundles English resources only; restore de/es/nl in project.yml for 1.2+."
     }
 
-    func testTabBarUsesDutchLabels() {
-        let app = launchApp(dutchLaunchArgs)
-        XCTAssertTrue(app.tabBars.buttons["Spelen"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Modi"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Spelers"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Activiteit"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.tabBars.buttons["Instellingen"].waitForExistence(timeout: timeout))
+    func testLeanTabBarUsesDutchLabels() throws {
+        throw XCTSkip(leanLocalesUnavailable)
     }
 
-    func testPlaySetupUsesDutchChrome() {
-        let app = launchApp(dutchLaunchArgs)
-        app.tabBars.buttons["Spelen"].tap()
-        XCTAssertTrue(app.staticTexts["Dart-scorebord"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.buttons["startMatchButton"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.buttons["STARTEN"].waitForExistence(timeout: timeout))
+    func testFullSurfaceTabBarUsesDutchLabels() throws {
+        throw XCTSkip(leanLocalesUnavailable)
     }
 
-    func testSettingsUsesDutchSectionLabels() {
-        let app = launchApp(dutchLaunchArgs + ["-ui_test_disable_feedback"])
-        app.tabBars.buttons["Instellingen"].tap()
-        XCTAssertTrue(app.staticTexts["Weergave"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Startmodus"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Wedstrijdstandaarden"].waitForExistence(timeout: timeout))
-        scrollToSettingsControl("settings_botStaggerToggle", in: app, timeout: timeout)
-        XCTAssertTrue(app.staticTexts["Tijdens het spel"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Bot-tegenstanders"].waitForExistence(timeout: timeout))
+    func testPlaySetupUsesDutchChrome() throws {
+        throw XCTSkip(leanLocalesUnavailable)
+    }
+
+    func testSettingsUsesDutchSectionLabels() throws {
+        throw XCTSkip(leanLocalesUnavailable)
     }
 }

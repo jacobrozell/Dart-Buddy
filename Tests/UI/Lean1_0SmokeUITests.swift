@@ -54,6 +54,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
+        configureFastX01MatchForUITest(app, timeout: timeout)
         selectPlayerFromRoster("Alice", in: app)
         selectPlayerFromRoster("Bob", in: app)
         tapStartMatch(in: app, timeout: timeout)

@@ -111,7 +111,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
         assertInteractiveElement(app.buttons["resumeMatchButton"], identifier: "resumeMatchButton")
         app.buttons["resumeMatchButton"].tap()
 
-        XCTAssertTrue(app.staticTexts["121"].waitForExistence(timeout: timeout + 5))
+        assertActiveScoreCardLabel(app, contains: "121", timeout: timeout + 5)
         waitForX01MatchBoard(in: app, timeout: timeout + 10)
         assertInteractiveElement(app.otherElements["scoreCard_active"], identifier: "scoreCard_active")
         assertInteractiveElement(app.buttons["pad_20"], identifier: "pad_20")
@@ -146,9 +146,7 @@ final class WCAGAccessibilityUITests: XCTestCase {
         submitMissVisit(on: app, timeout: timeout + 5)
         _ = waitForPadReady(app, timeout: timeout + 5)
 
-        let remaining = app.staticTexts["scoreCard_remaining"]
-        XCTAssertTrue(remaining.waitForExistence(timeout: timeout))
-        XCTAssertEqual(remaining.label, "20", "Alice should return to the visit on 20 remaining")
+        assertActiveScoreCardLabel(app, contains: "20 remaining", timeout: timeout)
         assertInteractiveElement(
             app.descendants(matching: .any)["checkoutSuggestion"],
             identifier: "checkoutSuggestion",
