@@ -49,7 +49,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
                         avatarStyleAtMatchStart: participant.avatarStyleAtMatchStart,
                         botDifficultyRaw: participant.botDifficultyRaw,
                         botKindRaw: participant.botKindRaw,
-                        botSkillProfilePayload: participant.botSkillProfilePayload
+                        botSkillProfilePayload: participant.botSkillProfilePayload,
+                        botEffectiveTierRaw: participant.botEffectiveTierRaw
                     )
                 )
             }

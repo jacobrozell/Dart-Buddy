@@ -692,7 +692,8 @@ final class MatchSetupViewModel: ObservableObject {
                     avatarStyleAtMatchStart: participant.playerId.flatMap { avatarByPlayerId[$0] } ?? nil,
                     botDifficultyRaw: participant.botDifficultyRaw,
                     botKindRaw: participant.botKindRaw,
-                    botSkillProfilePayload: participant.botSkillProfilePayload
+                    botSkillProfilePayload: participant.botSkillProfilePayload,
+                    botEffectiveTierRaw: participant.botEffectiveTierRaw
                 )
             }
             let persisted = try await matchRepository.createMatch(

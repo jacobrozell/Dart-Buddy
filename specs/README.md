@@ -92,6 +92,7 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 | Spec | Covers |
 |------|--------|
 | [`AchievementsSpec.md`](AchievementsSpec.md) | Local profile achievements, evaluator hooks, undo/revoke, future Game Center bridge |
+| [`AchievementCatalogPhase1.md`](AchievementCatalogPhase1.md) | Locked Phase 1 catalog — IDs, predicates, hooks, incremental rules |
 | [`BadgesSpec.md`](BadgesSpec.md) | Profile medal/gallery UI for achievements |
 | [`CampaignSpec.md`](CampaignSpec.md) | Journey tab, stage JSON, stars, primary player, separate stats |
 | [`DailyChallengeSpec.md`](DailyChallengeSpec.md) | Once-per-day challenge, push integration with play reminders |

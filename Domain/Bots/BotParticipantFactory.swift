@@ -81,6 +81,14 @@ enum BotParticipantFactory {
             botDifficultyRaw: botDifficultyRaw,
             botKindRaw: botKindRaw,
             botSkillProfilePayload: botSkillProfilePayload,
+            botEffectiveTierRaw: BotAchievementTierResolver.effectiveTierRaw(
+                botKindRaw: botKindRaw,
+                botDifficultyRaw: botDifficultyRaw,
+                customConfiguration: input.customConfiguration,
+                isTrainingBot: input.isTrainingBot,
+                partyUsesPresetBotsOnly: input.partyUsesPresetBotsOnly,
+                presetDifficulty: input.botDifficulty
+            ),
             preferredColorTokenAtMatchStart: input.colorTokenRaw
         )
     }
