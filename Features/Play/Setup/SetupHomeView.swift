@@ -220,22 +220,27 @@ struct SetupHomeView: View {
             Text(L10n.string("play.setup.selectedMode"))
                 .font(.headline)
                 .foregroundStyle(Brand.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+                .accessibilityHidden(true)
 
             HStack(alignment: .top, spacing: DS.Spacing.s3) {
-                if let entry = selectedCatalogEntry, let matchType = entry.matchType {
-                    GameModeBadge(type: matchType, size: 36)
+                HStack(alignment: .top, spacing: DS.Spacing.s3) {
+                    if let entry = selectedCatalogEntry, let matchType = entry.matchType {
+                        GameModeBadge(type: matchType, size: 36)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title"))
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(Brand.textPrimary)
+                        Text(modeConfigSummary)
+                            .font(.subheadline)
+                            .foregroundStyle(Brand.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title"))
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(Brand.textPrimary)
-                        .accessibilityIdentifier("setup_selectedModeName")
-                    Text(modeConfigSummary)
-                        .font(.subheadline)
-                        .foregroundStyle(Brand.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(selectedModeAccessibilityLabel)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("setup_selectedModeName")
                 Spacer(minLength: 0)
                 Button(action: changeModeTapped) {
                     Text(L10n.string("play.setup.changeMode"))
@@ -297,6 +302,11 @@ struct SetupHomeView: View {
         selectedCatalogEntry?.blurb ?? ""
     }
 
+    private var selectedModeAccessibilityLabel: String {
+        let name = selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title")
+        return L10n.format("play.setup.selectedMode.accessibilityFormat", name, modeConfigSummary)
+    }
+
     private func changeModeTapped() {
         if ProductSurface.showsModesTab {
             onChangeMode()
@@ -325,6 +335,7 @@ struct SetupHomeView: View {
             if !GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
                 ForEach(setupViewModel.displayValidationErrors, id: \.self) { key in
                     ErrorBanner(messageKey: key)
+                        .accessibilityHidden(true)
                 }
             }
         }
@@ -602,7 +613,7 @@ struct SetupHomeView: View {
             .buttonStyle(.plain)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
-            .accessibilityLabel(L10n.setupRemoveFromMatch)
+            .accessibilityHidden(true)
             .accessibilityIdentifier("setup_remove_\(player.name)")
         }
         .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
