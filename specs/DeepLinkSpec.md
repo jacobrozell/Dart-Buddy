@@ -87,8 +87,8 @@ Same path parser; scheme/host layer expands in `DeepLinkParser`.
 ## 8. Cross-references
 
 - [`NavigationSpec.md`](NavigationSpec.md) — typed route enums
-- [`AppIntentsSpec.md`](AppIntentsSpec.md) — Siri/Shortcuts consumers call `AppRouteRouter` via `IntentRoutingBridge`
-- [App Intents plan](../.cursor/plans/app_intents_brainstorm_174c8c15.plan.md) — phased roadmap
+- [`AppIntentsSpec.md`](AppIntentsSpec.md) — Siri/Shortcuts consumers call `AppRouteRouter` via `IntentRoutingBridge`; Apple Intelligence entity/indexing roadmap in §13
+- [App Intents brainstorm](../.cursor/plans/app_intents_brainstorm_174c8c15.plan.md) — feature catalog and priority matrix (spec is authoritative for entities)
 - Play reminders (future) — notification `userInfo["url"]` uses `DartBuddyURL.play()`
 
 ---

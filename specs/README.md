@@ -72,7 +72,7 @@
 |------|--------|
 | [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) | Migration failure recovery UI |
 | [`DeepLinkSpec.md`](DeepLinkSpec.md) | Versioned `dartbuddy://v1/…` URLs, parser, router, deferred delivery |
-| [`AppIntentsSpec.md`](AppIntentsSpec.md) | Siri/Shortcuts intents, `IntentRoutingBridge`, feature flag, QA checklist |
+| [`AppIntentsSpec.md`](AppIntentsSpec.md) | Siri/Shortcuts/Apple Intelligence — Phase 1 intents, entities roadmap, `IndexedEntity`, on-screen context, testing ladder |
 
 ## Post-1.0 / Assessment / Archive
 - `specs/AppleWatchCompanionSpec.md` + `specs/AppleWatchCompanionAssessment.md`

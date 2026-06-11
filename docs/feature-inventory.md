@@ -158,11 +158,16 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Resume Active Match intent | Partial | Resume or “no active match” dialog | `ResumeActiveMatchIntent.swift` |
 | Shortcuts provider | Partial | Returns `[]` when flag off | `DartBuddyShortcutsProvider.swift` |
 | **`enableAppIntents` flag** | Shipped | **Default off**; `-enable_app_intents` to enable | [`FeatureFlagConfigSpec.md`](../specs/FeatureFlagConfigSpec.md) |
-| Query intents (stats, player, match status) | Planned | Phase 2 | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §11 |
-| Start Quick / Start Mode intents | Planned | Blocked on Deep Link Phase 2 | same |
-| Home Screen widgets | Planned | Resume / status tap targets | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) |
-| Control Center control (iOS 18+) | Planned | One-tap Resume | `.cursor/plans/app_intents_brainstorm_174c8c15.plan.md` |
-| Spotlight indexing | Planned | Tied to resume/status intents | same |
+| App entities (`Player`, `Match`, `GameMode`) | Planned | Phase 1b–2; wraps existing domain models | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.5 |
+| `IndexedEntity` / semantic history search | Planned | Phase 2 | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.6 |
+| Query intents (stats, player, match status) | Planned | Phase 2; Siri answers without opening app | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.3, §13 |
+| On-screen entity annotations | Planned | Phase 2b; “this game” on gameplay / history | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.7 |
+| `AppIntentsTesting` in CI | Planned | Phase 2 query/entity tests | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §10 |
+| Start Quick / Start Mode intents | Planned | Blocked on Deep Link Phase 2 | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.2 |
+| Home Screen widgets | Planned | Resume / status tap targets | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §11 |
+| Control Center control (iOS 18+) | Planned | One-tap Resume | [`.cursor/plans/app_intents_brainstorm_174c8c15.plan.md`](../.cursor/plans/app_intents_brainstorm_174c8c15.plan.md) |
+| Cross-app `Transferable` export | Planned | Low priority | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.8 |
+| Custom intents (no App Schema domains) | Policy | Sports scoring has no Apple schema domain | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.9, §13 |
 
 ---
 

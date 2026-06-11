@@ -23,7 +23,7 @@ App/Navigation/
 | Consumer | How it routes |
 |---|---|
 | `.onOpenURL` in `DartBuddyApp` | Parser → pending queue → `MainTabView` consumes |
-| App Intents | `IntentRoutingBridge` → same router (see [`Intents/README.md`](../Intents/README.md)) |
+| App Intents | `IntentRoutingBridge` → same router (see [`Intents/README.md`](../Intents/README.md), [`specs/AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §13 for Apple Intelligence roadmap) |
 | Play reminders (future) | `DartBuddyURL.play()` in notification payload |
 | Widgets (future) | `DartBuddyURL.resumeActiveMatch()` tap targets |
 

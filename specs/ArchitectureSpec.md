@@ -103,7 +103,7 @@ Authoritative folder names (XcodeGen `project.yml` sources):
 | Layer | Path | Contents |
 |-------|------|----------|
 | App shell | `App/` | `DartBuddyApp`, `MainTabView`, bootstrap, migration recovery, `AppRouteRouter` |
-| Intents | `Intents/` | App Intents, Shortcuts provider, `IntentRoutingBridge` — see [`AppIntentsSpec.md`](AppIntentsSpec.md) |
+| Intents | `Intents/` | App Intents, entities (planned), Shortcuts provider, `IntentRoutingBridge` — see [`AppIntentsSpec.md`](AppIntentsSpec.md) |
 | Features | `Features/{Play/{Setup,X01,Cricket,Shared},History,Players,Statistics,Settings}/` | SwiftUI + ViewModels per tab/flow |
 | Domain | `Domain/` | Engines, services, scoring models |
 | Data | `Data/Repositories/` | Protocols + SwiftData implementations |
