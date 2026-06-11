@@ -10,7 +10,7 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 | **`DS`** | `Tokens/DesignTokens.swift` | Spacing (`DS.Spacing`), corner radius (`DS.Radius`), and **semantic** colors for native UI (`DS.ColorRole`) |
 | **`AppAppearancePolicy`** | `Support/State/AppAppearancePolicy.swift` | Maps user theme to `preferredColorScheme` and Settings chrome |
 | **Chrome modifiers** | `Tokens/BrandChrome.swift` | `.brandScoreboardChrome`, `.brandSettingsScreenChrome`, `.brandSettingsFormChrome`, empty-state styling |
-| **`SystemNavigationPolicy`** | `Tokens/SystemNavigationPolicy.swift` | iOS 26+ system Liquid Glass for nav/tab chrome; legacy opaque toolbar helpers for iOS 17–25 |
+| **`SystemNavigationPolicy`** | `Tokens/SystemNavigationPolicy.swift` | iOS 26+ system Liquid Glass for nav/tab chrome; legacy opaque toolbar helpers for iOS 18–25 |
 | **`GameplayLayout`** | `Components/GameplayLayout.swift` | Phone vs iPad match/setup/tab layout predicates — see [`docs/gameplay-layout-modes.md`](../docs/gameplay-layout-modes.md) |
 | **`GameModeAccent`** | `Tokens/GameModeAccent.swift` | Per-mode **identity** accent + SF Symbol (catalog, history rows, stats filters) |
 | **`DynamicTypeSize` / `ScoringPadLabels`** | `Tokens/DynamicTypeLayout.swift` | AXXXL pad labels |

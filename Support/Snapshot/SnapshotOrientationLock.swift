@@ -34,10 +34,9 @@ enum SnapshotOrientationLock {
     static func applyIfNeeded() {
         guard let requested else { return }
 
-        if #available(iOS 16.0, *),
-           let windowScene = UIApplication.shared.connectedScenes
-           .compactMap({ $0 as? UIWindowScene })
-           .first {
+        if let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first {
             windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { _ in
                 Task { @MainActor in
                     forceDeviceOrientation(for: requested)

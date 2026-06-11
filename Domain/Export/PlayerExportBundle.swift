@@ -183,9 +183,7 @@ public enum PlayerExportBundleCoding {
 
     public static func encode(_ bundle: PlayerExportBundle) throws -> Data {
         let encoder = JSONEncoder()
-        if #available(iOS 17.0, *) {
-            encoder.outputFormatting = [.sortedKeys]
-        }
+        encoder.outputFormatting = [.sortedKeys]
         encoder.dateEncodingStrategy = .custom(encodeDate)
         return try encoder.encode(bundle)
     }

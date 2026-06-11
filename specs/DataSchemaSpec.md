@@ -9,7 +9,7 @@ This spec complements `specs/SwiftData.md` (versioning/migration policy).
 
 ## 2. Canonical Entities
 
-**1.0 ship baseline:** `SchemaV2` in `Persistence/Schemas/SchemaV2.swift` (see `specs/SwiftData.md` §15).
+**1.0 ship baseline:** `SchemaV2` (`2.2.0`) in `Persistence/Schemas/SchemaV2.swift` (see `specs/SwiftData.md` §15). Requires iOS 18+ for SwiftData `#Index`.
 
 - `PlayerRecord` — bot fields: `botKindRaw`, `linkedPlayerId` (training partner)
 - `MatchRecord`
@@ -59,8 +59,8 @@ This spec complements `specs/SwiftData.md` (versioning/migration policy).
 ---
 
 ## 7. Indexing and Performance
-- Index by `matchId`, `playerId`, `statusRaw`, `startedAt`, `endedAt`.
-- Keep history list fields denormalized on match for quick list rendering.
+- SwiftData `#Index` on `matchId`, `playerId`, `statusRaw`, `startedAt`, `endedAt`, `typeRaw` (implemented in `SchemaV2.2.0`; iOS 18+).
+- `MatchRecord.historyCardPayload` — denormalized history list blob written at match completion (`MatchHistoryCardPayload`).
 
 ---
 
