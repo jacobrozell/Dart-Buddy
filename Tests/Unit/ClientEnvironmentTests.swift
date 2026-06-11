@@ -3,6 +3,29 @@ import Testing
 @testable import DartBuddy
 
 @Test(.tags(.unit, .regression))
+func clientEnvironmentSnapshotCurrentReturnsStableShape() {
+    let snapshot = ClientEnvironmentSnapshot.current()
+    #expect(["iphone", "ipad", "mac", "tv", "carplay", "vision", "unspecified"].contains(snapshot.deviceClass))
+    #expect(["portrait", "landscape", "unknown"].contains(snapshot.interfaceOrientation))
+    #expect(snapshot.analyticsMetadata.keys.contains("deviceClass"))
+}
+
+@Test(.tags(.unit, .regression))
+func clientEnvironmentAccessorsMirrorSnapshot() {
+    let snapshot = ClientEnvironment.snapshot
+    #expect(ClientEnvironment.isVoiceOverRunning == snapshot.isVoiceOverRunning)
+    #expect(ClientEnvironment.isScreenCaptured == snapshot.isScreenCaptured)
+    #expect(ClientEnvironment.isExternalDisplayConnected == snapshot.isExternalDisplayConnected)
+    if snapshot.deviceClass == "ipad" {
+        #expect(ClientEnvironment.isPad)
+        #expect(!ClientEnvironment.isPhone)
+    } else if snapshot.deviceClass == "iphone" {
+        #expect(ClientEnvironment.isPhone)
+        #expect(!ClientEnvironment.isPad)
+    }
+}
+
+@Test(.tags(.unit, .regression))
 func clientEnvironmentSnapshotBuildsAnalyticsMetadata() {
     let snapshot = ClientEnvironmentSnapshot(
         deviceClass: "ipad",
@@ -173,6 +196,119 @@ func clientEnvironmentMetadataKeysAreAllowlistedForRedactionAndFirebase() {
     let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)
     #expect(event?.parameters["interfaceOrientation"] == "landscape")
     #expect(event?.parameters["trigger"] == "orientation")
+}
+
+@Test(.tags(.unit, .regression))
+func clientEnvironmentChangedSignalsDetectsEachField() {
+    let base = ClientEnvironmentSnapshot(
+        deviceClass: "iphone",
+        isVoiceOverRunning: false,
+        isSwitchControlRunning: false,
+        isBoldTextEnabled: false,
+        isReduceMotionEnabled: false,
+        isScreenCaptured: false,
+        isExternalDisplayConnected: false,
+        interfaceOrientation: "portrait"
+    )
+
+    let voiceOver = ClientEnvironmentSnapshot(
+        deviceClass: base.deviceClass,
+        isVoiceOverRunning: true,
+        isSwitchControlRunning: base.isSwitchControlRunning,
+        isBoldTextEnabled: base.isBoldTextEnabled,
+        isReduceMotionEnabled: base.isReduceMotionEnabled,
+        isScreenCaptured: base.isScreenCaptured,
+        isExternalDisplayConnected: base.isExternalDisplayConnected,
+        interfaceOrientation: base.interfaceOrientation
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: base, to: voiceOver) == "voiceover")
+
+    let switchControl = ClientEnvironmentSnapshot(
+        deviceClass: base.deviceClass,
+        isVoiceOverRunning: base.isVoiceOverRunning,
+        isSwitchControlRunning: true,
+        isBoldTextEnabled: base.isBoldTextEnabled,
+        isReduceMotionEnabled: base.isReduceMotionEnabled,
+        isScreenCaptured: base.isScreenCaptured,
+        isExternalDisplayConnected: base.isExternalDisplayConnected,
+        interfaceOrientation: base.interfaceOrientation
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: base, to: switchControl) == "switchControl")
+
+    let boldText = ClientEnvironmentSnapshot(
+        deviceClass: base.deviceClass,
+        isVoiceOverRunning: base.isVoiceOverRunning,
+        isSwitchControlRunning: base.isSwitchControlRunning,
+        isBoldTextEnabled: true,
+        isReduceMotionEnabled: base.isReduceMotionEnabled,
+        isScreenCaptured: base.isScreenCaptured,
+        isExternalDisplayConnected: base.isExternalDisplayConnected,
+        interfaceOrientation: base.interfaceOrientation
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: base, to: boldText) == "boldText")
+
+    let reduceMotion = ClientEnvironmentSnapshot(
+        deviceClass: base.deviceClass,
+        isVoiceOverRunning: base.isVoiceOverRunning,
+        isSwitchControlRunning: base.isSwitchControlRunning,
+        isBoldTextEnabled: base.isBoldTextEnabled,
+        isReduceMotionEnabled: true,
+        isScreenCaptured: base.isScreenCaptured,
+        isExternalDisplayConnected: base.isExternalDisplayConnected,
+        interfaceOrientation: base.interfaceOrientation
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: base, to: reduceMotion) == "reduceMotion")
+
+    let screenCapture = ClientEnvironmentSnapshot(
+        deviceClass: base.deviceClass,
+        isVoiceOverRunning: base.isVoiceOverRunning,
+        isSwitchControlRunning: base.isSwitchControlRunning,
+        isBoldTextEnabled: base.isBoldTextEnabled,
+        isReduceMotionEnabled: base.isReduceMotionEnabled,
+        isScreenCaptured: true,
+        isExternalDisplayConnected: base.isExternalDisplayConnected,
+        interfaceOrientation: base.interfaceOrientation
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: base, to: screenCapture) == "screenCapture")
+
+    let display = ClientEnvironmentSnapshot(
+        deviceClass: base.deviceClass,
+        isVoiceOverRunning: base.isVoiceOverRunning,
+        isSwitchControlRunning: base.isSwitchControlRunning,
+        isBoldTextEnabled: base.isBoldTextEnabled,
+        isReduceMotionEnabled: base.isReduceMotionEnabled,
+        isScreenCaptured: base.isScreenCaptured,
+        isExternalDisplayConnected: true,
+        interfaceOrientation: base.interfaceOrientation
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: base, to: display) == "display")
+
+    let deviceClass = ClientEnvironmentSnapshot(
+        deviceClass: "ipad",
+        isVoiceOverRunning: base.isVoiceOverRunning,
+        isSwitchControlRunning: base.isSwitchControlRunning,
+        isBoldTextEnabled: base.isBoldTextEnabled,
+        isReduceMotionEnabled: base.isReduceMotionEnabled,
+        isScreenCaptured: base.isScreenCaptured,
+        isExternalDisplayConnected: base.isExternalDisplayConnected,
+        interfaceOrientation: base.interfaceOrientation
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: base, to: deviceClass) == "deviceClass")
+}
+
+@Test(.tags(.unit, .regression))
+func clientEnvironmentChangedSignalsReturnsEmptyWhenUnchanged() {
+    let snapshot = ClientEnvironmentSnapshot(
+        deviceClass: "iphone",
+        isVoiceOverRunning: false,
+        isSwitchControlRunning: false,
+        isBoldTextEnabled: false,
+        isReduceMotionEnabled: false,
+        isScreenCaptured: false,
+        isExternalDisplayConnected: false,
+        interfaceOrientation: "portrait"
+    )
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: snapshot, to: snapshot).isEmpty)
 }
 
 @Test(.tags(.unit, .logging, .regression))

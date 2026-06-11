@@ -10,6 +10,13 @@ struct StatsSectorOrderTests {
     }
 
     @Test
+    func cricketSectorsRankHighNumbersBeforeMissBeforeBull() {
+        #expect(StatsSectorOrder.rank("20", mode: .cricket) < StatsSectorOrder.rank("15", mode: .cricket))
+        #expect(StatsSectorOrder.rank("15", mode: .cricket) < StatsSectorOrder.rank(StatsSectorOrder.missSectorKey, mode: .cricket))
+        #expect(StatsSectorOrder.rank(StatsSectorOrder.missSectorKey, mode: .cricket) < StatsSectorOrder.rank("innerBull", mode: .cricket))
+    }
+
+    @Test
     func x01SectorsRankTreblesBeforeSinglesBeforeBullBeforeMiss() {
         #expect(StatsSectorOrder.rank("20", mode: .x01) < StatsSectorOrder.rank("19", mode: .x01))
         #expect(StatsSectorOrder.rank("20", mode: .x01) < StatsSectorOrder.rank("1", mode: .x01))

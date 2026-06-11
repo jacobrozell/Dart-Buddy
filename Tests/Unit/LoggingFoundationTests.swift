@@ -111,6 +111,39 @@ func performanceMonitorReturnsAsyncBlockResult() async throws {
     #expect(result == "done")
 }
 
+@Test(.tags(.unit, .logging, .regression))
+func loggerRecordsWarningAndErrorLevels() {
+    let sink = RecordingSink()
+    let logger = DefaultAppLogger(minimumLevel: .debug, sink: sink)
+
+    logger.warning(.ui, eventName: "warning_event", message: "Warn.")
+    logger.error(.persistence, eventName: "error_event", message: "Err.")
+
+    #expect(sink.entries.map(\.eventName) == ["warning_event", "error_event"])
+    #expect(sink.entries.map(\.level) == [.warning, .error])
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func noOpLogSinkAcceptsEntriesWithoutStoring() {
+    let sink = NoOpLogSink()
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .ui,
+        eventName: "noop_event",
+        message: "Ignored.",
+        metadata: [:],
+        correlationId: nil
+    )
+    sink.write(entry)
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func performanceMonitorWorksWithoutLogger() {
+    let value = PerformanceMonitor.measure(.resumeMatch) { 99 }
+    #expect(value == 99)
+}
+
 private final class RecordingSink: LogSink, @unchecked Sendable {
     var entries: [LogEntry] = []
 

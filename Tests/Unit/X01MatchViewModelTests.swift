@@ -42,7 +42,19 @@ private let x01TotalsPlayer0OnForty: [Int] = [180, 0, 81, 0]
 
 /// Leaves player 0 on `remaining` with player 0 to throw (301 start).
 private func x01TotalsPlayer0OnRemaining(_ remaining: Int) -> [Int] {
-    [301 - remaining, 0]
+    var totals: [Int] = []
+    var toScore = 301 - remaining
+    while toScore > 0 {
+        totals.append(min(toScore, 180))
+        toScore -= totals.last!
+        if toScore > 0 {
+            totals.append(0)
+        }
+    }
+    if totals.count % 2 == 1 {
+        totals.append(0)
+    }
+    return totals
 }
 
 private func x01Miss() -> DartInput {
@@ -736,6 +748,215 @@ func x01ViewModelClearsVisitSlotsAtLegBoundary() async throws {
 }
 
 @MainActor
+@Test(.tags(.unit, .x01, .match, .regression))
+func x01ViewModelCanSubmitRejectsInvalidTotalEntry() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .totalEntry
+
+    vm.totalEntryText = ""
+    #expect(vm.canSubmit == false)
+
+    vm.totalEntryText = "abc"
+    #expect(vm.canSubmit == false)
+
+    vm.totalEntryText = "181"
+    #expect(vm.canSubmit == false)
+
+    vm.totalEntryText = "60"
+    #expect(vm.canSubmit)
+}
+
+@MainActor
+@Test(.tags(.unit, .x01, .match, .regression))
+func x01ViewModelCanSubmitRequiresDartsInDartEntryMode() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .dartEntry
+    #expect(vm.canSubmit == false)
+
+    vm.enteredDarts = [DartInput(multiplier: .single, segment: .oneToTwenty(20))]
+    #expect(vm.canSubmit)
+}
+
+@MainActor
+@Test(.tags(.unit, .x01, .match, .regression))
+func x01ViewModelConfigSummaryReflectsInlineMatchConfig() async throws {
+    let (vm, _, _) = try makeX01ViewModel(
+        totals: [],
+        checkoutMode: .doubleOut
+    )
+    await vm.onAppear()
+
+    let expected = MatchConfigText.x01InlineConfig(from: MatchConfigX01(
+        startScore: 301,
+        legsToWin: 1,
+        setsEnabled: false,
+        setsToWin: nil,
+        checkoutMode: .doubleOut
+    ))
+    #expect(vm.configSummary == expected)
+}
+
+@MainActor
+@Test(.tags(.unit, .x01, .match, .regression))
+func x01ViewModelCheckoutRoutesListsEveryFewestDartFinish() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnRemaining(60))
+    await vm.onAppear()
+    vm.inputMode = .dartEntry
+
+    let routes = vm.checkoutRoutes
+    #expect(routes.isEmpty == false)
+    #expect(routes.first == vm.checkoutRoute)
+    #expect(routes.allSatisfy { $0.count <= 3 })
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelAbandonMatchMarksAbandonedAndClearsStore() async throws {
+    let (_, matchId, store) = try makeX01ViewModel(totals: [60, 0])
+    let repo = X01AbandonCapturingMatchRepository()
+    let abandoningVM = X01MatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: repo,
+        statsRepository: X01FakeStatsRepository()
+    )
+    await abandoningVM.onAppear()
+
+    await abandoningVM.abandonMatch()
+
+    #expect(abandoningVM.session?.runtime.status == .abandoned)
+    #expect(store.session(for: matchId) == nil)
+    #expect(await repo.lastStatus == .abandoned)
+    #expect(await repo.snapshotSaved)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelAbandonMatchLeavesCompletedMatchUntouched() async throws {
+    let (vm, matchId, store) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "40"
+    await vm.submitTurn()
+    #expect(vm.state == .matchCompleted)
+
+    await vm.abandonMatch()
+
+    #expect(vm.session?.runtime.status == .completed)
+    #expect(store.session(for: matchId) != nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelUndoLastDartRestoresPartialVisit() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: [])
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .single, segment: .oneToTwenty(5))
+    ]
+    await vm.submitTurn()
+    #expect(vm.session?.events.count == 1)
+
+    await vm.undoLastDart()
+
+    #expect(vm.state == .readyTurn)
+    #expect(vm.enteredDarts.count == 1)
+    #expect(vm.session?.events.isEmpty == true)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelAcknowledgeBustFeedbackReturnsToReadyTurn() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "50"
+    await vm.submitTurn()
+    #expect(vm.state == .bustFeedback)
+
+    vm.acknowledgeBustFeedback()
+    #expect(vm.state == .readyTurn)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelReconcileAfterSummaryUndoOnAppear() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 0, darts: nil)
+    let matchId = session.runtime.matchId
+    let store = ActiveMatchStore()
+    store.save(session)
+    let matchRepo = X01FakeMatchRepository()
+    let vm = X01MatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: matchRepo,
+        statsRepository: X01FakeStatsRepository()
+    )
+    await vm.onAppear()
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "41"
+    await vm.submitTurn()
+    #expect(vm.state == .matchCompleted)
+
+    _ = try await MatchTurnSupport.undoLastDart(
+        session: store.session(for: matchId)!,
+        matchId: matchId,
+        store: store,
+        matchRepository: matchRepo
+    )
+
+    await vm.onAppear()
+    #expect(vm.state == .readyTurn)
+    #expect(vm.session?.runtime.status == .inProgress)
+    #expect(vm.session?.runtime.winnerPlayerId == nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelCheckoutRoutesEmptyWhenMatchCompleted() async throws {
+    let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "40"
+    await vm.submitTurn()
+    #expect(vm.state == .matchCompleted)
+    #expect(vm.checkoutRoutes.isEmpty)
+    #expect(vm.checkoutRoute == nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelSurfacesErrorWhenSnapshotPayloadInvalid() async throws {
+    let matchId = UUID()
+    let vm = X01MatchViewModel(
+        matchId: matchId,
+        store: ActiveMatchStore(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        matchRepository: X01CorruptSnapshotMatchRepository(matchId: matchId),
+        statsRepository: X01FakeStatsRepository()
+    )
+
+    await vm.onAppear()
+
+    if case .error = vm.state {
+        #expect(Bool(true))
+    } else {
+        Issue.record("Expected error state for corrupt snapshot, got \(vm.state)")
+    }
+}
+
+@MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
 func x01ViewModelUndoRevertsToReadyTurn() async throws {
     let (vm, _, store) = try makeX01ViewModel(totals: [])
@@ -767,6 +988,29 @@ private actor X01RehydratingFakeStatsRepository: StatsRepository {
     }
 
     func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
+}
+
+private actor X01CorruptSnapshotMatchRepository: MatchRepository {
+    let matchId: UUID
+
+    init(matchId: UUID) { self.matchId = matchId }
+
+    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
+        guard matchId == self.matchId else { return nil }
+        return MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: 1, snapshotPayload: Data([0xFF]), updatedAt: Date())
+    }
+
+    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fatalError() }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fatalError() }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { fatalError() }
+    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { fatalError() }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
 }
 
 private actor X01RehydratingFakeMatchRepository: MatchRepository {
@@ -809,6 +1053,37 @@ private actor X01RehydratingFakeMatchRepository: MatchRepository {
 private actor X01FakeStatsRepository: StatsRepository {
     func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
     func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
+}
+
+private actor X01AbandonCapturingMatchRepository: MatchRepository {
+    private(set) var lastStatus: MatchStatus?
+    private(set) var snapshotSaved = false
+
+    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        MatchSummary(
+            id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 0, createdAt: Date(), updatedAt: Date()
+        )
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_ match: MatchSummary) async throws { lastStatus = match.status }
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
+    }
+    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
+        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
+    }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        snapshotSaved = true
+        return MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
 }
 
 private actor X01FakeMatchRepository: MatchRepository {

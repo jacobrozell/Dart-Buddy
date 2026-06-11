@@ -68,6 +68,21 @@ func botSkillProfilePayloadDecoderReadsTrainingSnapshot() throws {
 }
 
 @Test(.tags(.unit, .regression))
+func customBotSkillResolverMapsKillerAndShanghaiToX01Profile() {
+    let metrics = CustomBotMetrics(x01Average: 55, cricketMPR: 2.0)
+    let killer = CustomBotSkillResolver.profile(for: .killer, metrics: metrics)
+    let shanghai = CustomBotSkillResolver.profile(for: .shanghai, metrics: metrics)
+    let x01 = CustomBotSkillResolver.profile(for: .x01, metrics: metrics)
+    #expect(killer.x01.hitChances.triple == x01.x01.hitChances.triple)
+    #expect(shanghai.x01.hitChances.triple == x01.x01.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
+func customBotMetricsDecodeReturnsNilForPresetDifficultyRaw() {
+    #expect(CustomBotMetrics.decode(botDifficultyRaw: BotDifficulty.easy.rawValue) == nil)
+}
+
+@Test(.tags(.unit, .regression))
 func botSkillProfilePayloadDecoderReturnsNilForUnknownPayload() {
     #expect(BotSkillProfilePayloadDecoder.profile(from: Data("{}".utf8)) == nil)
 }

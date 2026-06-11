@@ -80,6 +80,19 @@ func x01MasterInOpensOnTripleButDoubleInDoesNot() throws {
     #expect(doubleState.players[0].remainingScore == 301)
 }
 
+// MARK: - Straight in
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func x01StraightInScoresFromFirstDart() throws {
+    let players = twoPlayers()
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut, checkInMode: .straightIn)
+    var state = try X01Engine.makeInitialState(config: config, playerIds: players)
+
+    #expect(state.players[0].isCheckedIn == true)
+    state = try X01Engine.submitTurn(state: state, enteredTotal: nil, darts: [single(20), single(20), single(20)]).updatedState
+    #expect(state.players[0].remainingScore == 241)
+}
+
 // MARK: - Best of vs First to
 
 @Test(.tags(.unit, .x01, .regression, .offline))

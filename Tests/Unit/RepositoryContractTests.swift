@@ -293,3 +293,84 @@ func statsRepositoryStoresAndFetchesEventsByMatchId() async throws {
     let batch = try await repos.stats.fetchEvents(matchIds: [match.id])
     #expect(batch.count == 1)
 }
+
+@Test(.tags(.integration, .settings, .swiftdata, .regression))
+func settingsRepositoryResetsPreferencesToDefaults() async throws {
+    let repos = try makeRepositories()
+    let baseline = try await repos.settings.seedDefaultsIfNeeded()
+    let customized = SettingsSummary(
+        id: baseline.id,
+        appearanceModeRaw: "dark",
+        hapticsEnabled: false,
+        soundEnabled: false,
+        turnTotalCallerEnabled: true,
+        defaultMatchTypeRaw: "cricket",
+        defaultX01StartScore: 301,
+        defaultCheckoutModeRaw: "singleOut",
+        defaultCheckInModeRaw: "doubleIn",
+        defaultLegFormatRaw: "bestOf",
+        defaultLegsToWin: 5,
+        defaultSetsEnabled: true,
+        botStaggerEnabled: false,
+        botDartHapticsEnabled: false,
+        updatedAt: Date()
+    )
+    _ = try await repos.settings.updateSettings(customized)
+
+    try await repos.settings.resetPreferencesToDefaults()
+
+    let reloaded = try await repos.settings.fetchSettings()
+    #expect(reloaded.appearanceModeRaw == "system")
+    #expect(reloaded.defaultMatchTypeRaw == "x01")
+    #expect(reloaded.defaultX01StartScore == 501)
+    #expect(reloaded.hapticsEnabled)
+    #expect(reloaded.soundEnabled)
+    #expect(reloaded.botStaggerEnabled)
+    #expect(reloaded.botDartHapticsEnabled)
+}
+
+@Test(.tags(.integration, .settings, .swiftdata, .regression))
+func settingsRepositoryResetAllLocalDataClearsPlayersAndMatches() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.x01(MatchConfigX01(
+        startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut
+    )))
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    _ = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+    #expect(try await repos.player.fetchPlayers(includeArchived: false).count == 2)
+    #expect(try await repos.match.fetchActiveMatch() != nil)
+
+    try await repos.settings.resetAllLocalData()
+
+    #expect(try await repos.player.fetchPlayers(includeArchived: true).isEmpty)
+    #expect(try await repos.match.fetchActiveMatch() == nil)
+    #expect(try await repos.match.fetchHistory(page: 0, pageSize: 10).isEmpty)
+
+    let settings = try await repos.settings.fetchSettings()
+    #expect(settings.defaultMatchTypeRaw == "x01")
+    #expect(settings.hapticsEnabled)
+}
+
+@Test(.tags(.integration, .match, .swiftdata, .regression))
+func matchRepositoryFetchConfigPayloadReturnsPersistedData() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let config = MatchConfigX01(startScore: 501, legsToWin: 3, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.x01(config))
+    let matchId = UUID()
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    let created = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+
+    let fetched = try await repos.match.fetchConfigPayload(matchId: created.id)
+    let decoded = try CodablePayloadCoder.decode(MatchConfigPayload.self, from: try #require(fetched))
+    #expect(decoded == .x01(config))
+}

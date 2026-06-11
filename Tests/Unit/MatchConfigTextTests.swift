@@ -153,4 +153,25 @@ struct MatchConfigTextTests {
         #expect(!loser.contains(L10n.string("history.standing.winnerRole")))
         #expect(loser.contains("121"))
     }
+
+    @Test
+    func cricketDetailPartsIncludeSetsWhenEnabled() {
+        let config = MatchConfigCricket(pointsEnabled: true, legsToWin: 2, setsEnabled: true, setsToWin: 3)
+        let parts = MatchConfigText.cricketDetailParts(from: config)
+        #expect(parts.contains { $0.contains("3") })
+        #expect(parts.contains { $0.contains("2") })
+    }
+
+    @Test
+    func x01DetailPartsUseSingularCopyForSingleSetAndLeg() {
+        let config = MatchConfigX01(
+            startScore: 501,
+            legsToWin: 1,
+            setsEnabled: true,
+            setsToWin: 1,
+            checkoutMode: .doubleOut
+        )
+        let parts = MatchConfigText.x01DetailParts(from: config)
+        #expect(parts.filter { $0.contains("1") }.count >= 2)
+    }
 }

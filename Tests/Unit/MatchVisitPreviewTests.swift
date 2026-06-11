@@ -26,6 +26,18 @@ func matchVisitPreviewIncludesBotVisitWhileBotIsUp() {
 }
 
 @Test(.tags(.unit, .match, .regression))
+func matchVisitPreviewIncludesBotVisitWhileBotIsPlaying() {
+    #expect(
+        MatchVisitPreview.includesActiveVisit(
+            isActive: true,
+            canHumanInput: false,
+            isBotPlaying: true,
+            isCurrentPlayerBot: true
+        )
+    )
+}
+
+@Test(.tags(.unit, .match, .regression))
 func matchVisitPreviewSkipsInactivePlayers() {
     #expect(
         !MatchVisitPreview.includesActiveVisit(

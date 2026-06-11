@@ -15,7 +15,8 @@ private func miss() -> DartInput {
     DartInput(multiplier: .single, segment: .miss, isMiss: true)
 }
 
-/// Alternating visits until player 0 reaches `remaining` (opponent throws zero).
+/// Alternating visits until player 0 reaches `remaining` with player 0 to throw.
+/// Uses multiple visits capped at 180 because a single turn cannot exceed 180.
 private func stateWithPlayer0Remaining(
     _ remaining: Int,
     config: MatchConfigX01,
@@ -23,10 +24,20 @@ private func stateWithPlayer0Remaining(
 ) throws -> X01State {
     let players = twoPlayers()
     var state = try X01Engine.makeInitialState(config: config, playerIds: players)
-    let scored = startScore - remaining
-    state = try X01Engine.submitTurn(state: state, enteredTotal: scored, darts: nil).updatedState
-    state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+    var toScore = startScore - remaining
+    while toScore > 0 {
+        let visit = min(toScore, 180)
+        state = try X01Engine.submitTurn(state: state, enteredTotal: visit, darts: nil).updatedState
+        toScore -= visit
+        if toScore > 0 {
+            state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+        }
+    }
+    if state.currentPlayerIndex != 0 {
+        state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+    }
     #expect(state.players[0].remainingScore == remaining)
+    #expect(state.currentPlayerIndex == 0)
     return state
 }
 
