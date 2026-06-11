@@ -199,7 +199,9 @@ private struct X01MatchRouteView: View {
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
-            feedbackPreferences: dependencies.userPreferencesStore.feedback
+            feedbackPreferences: dependencies.userPreferencesStore.feedback,
+            visionScoringEnabled: dependencies.featureFlags.isEnabled(.enableVisionAutoScoring),
+            visionLogger: dependencies.logger
         )
     }
 }

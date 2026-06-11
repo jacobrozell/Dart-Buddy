@@ -20,6 +20,7 @@ extension Tag {
     @Tag static var settings: Self
     @Tag static var stats: Self
     @Tag static var scoringInput: Self
+    @Tag static var vision: Self
     @Tag static var navigation: Self
     @Tag static var setupFlow: Self
 

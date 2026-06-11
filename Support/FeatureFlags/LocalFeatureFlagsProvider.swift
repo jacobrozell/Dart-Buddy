@@ -46,9 +46,14 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             return true
             #endif
         case .enableAppleWatchCompanion,
-             .enableVisionAutoScoring,
              .enableOnlinePlay,
              .enableAdvancedDiagnostics:
+            return false
+        case .enableVisionAutoScoring:
+            // Phase A camera scoring; opt-in for local QA. See `specs/AutoScoringVisionSpec.md`.
+            if arguments.contains("-enable_vision_scoring") {
+                return true
+            }
             return false
         case .enableAppIntents:
             if arguments.contains("-enable_app_intents") {

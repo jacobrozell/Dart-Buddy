@@ -7,6 +7,8 @@ struct X01MatchScreen: View {
     let haptics: any HapticsService
     let turnTotalCaller: any TurnTotalCallerService
     let feedbackPreferences: FeedbackPreferences
+    var visionScoringEnabled: Bool = false
+    var visionLogger: (any AppLogger)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -17,6 +19,7 @@ struct X01MatchScreen: View {
     @State private var lastAnnouncedCheckout: String?
     @State private var showLegWinBanner = false
     @State private var selectedCheckoutIndex = 0
+    @State private var showVisionScoring = false
 
     private var usesLandscapeMatchLayout: Bool {
         GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
@@ -95,6 +98,16 @@ struct X01MatchScreen: View {
             }
         } message: {
             Text("play.match.exit.confirm.message")
+        }
+        .sheet(isPresented: $showVisionScoring) {
+            VisionScoringSheet(
+                logger: visionLogger,
+                isInputAllowed: viewModel.canHumanInput && viewModel.enteredDarts.count < 3,
+                onDartConfirmed: { dart, _ in
+                    guard viewModel.canHumanInput, viewModel.enteredDarts.count < 3 else { return }
+                    viewModel.enteredDarts.append(dart)
+                }
+            )
         }
         .onChange(of: viewModel.legFinishSoundToken) { _, token in
             if token > 0 {
@@ -230,6 +243,25 @@ struct X01MatchScreen: View {
             checkoutBanner
             botTurnBanner
             stateBanner
+            visionScoringButton
+        }
+    }
+
+    @ViewBuilder
+    private var visionScoringButton: some View {
+        if visionScoringEnabled {
+            Button {
+                showVisionScoring = true
+            } label: {
+                Label(L10n.string("vision.launchButton"), systemImage: "camera.viewfinder")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.green)
+                    .padding(.vertical, DS.Spacing.s2)
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+            }
+            .accessibilityLabel(L10n.string("vision.launchButton.accessibility"))
+            .accessibilityIdentifier("vision_scoring_button")
         }
     }
 
