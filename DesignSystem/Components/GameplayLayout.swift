@@ -13,9 +13,26 @@ enum GameplayLayout {
         #endif
     }
     /// Readable column for setup, summary, and list-style screens on iPad.
+    static let regularContentMaxWidth: CGFloat = 920
+
     static func contentMaxWidth(horizontalSizeClass: UserInterfaceSizeClass?) -> CGFloat {
-        horizontalSizeClass == .regular ? 760 : .infinity
+        horizontalSizeClass == .regular ? regularContentMaxWidth : .infinity
     }
+
+    /// Play setup uses a two-pane layout on iPad regular width.
+    static func usesWideSetupHomeLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize
+    ) -> Bool {
+        horizontalSizeClass == .regular
+            && !usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    /// Minimum width for the bottom-docked pad column on iPhone portrait.
+    static let phonePortraitBottomPadMinWidth: CGFloat = 220
+
+    /// Legacy cap retained for tests; bottom-docked pads use the compact grid instead.
+    static let iPadSideBySidePadKeyMaxHeight: CGFloat = 88
 
     /// Active X01/Cricket scoreboards use full width; horizontal padding defines the margins.
     static func matchContentMaxWidth(horizontalSizeClass: UserInterfaceSizeClass?) -> CGFloat {
@@ -178,32 +195,156 @@ enum GameplayLayout {
         )
     }
 
-    /// Fixed scoring pad width in landscape (compact pad targets ~250pt).
+    /// Fixed scoring pad width in iPhone landscape (compact pad targets ~250pt).
     static let landscapeScoringPadWidth: CGFloat = 252
 
-    /// Fixed scoring pad width on iPad portrait.
-    static let regularWidthScoringPadWidth: CGFloat = 340
+    /// Fixed scoring pad width on iPad portrait side-by-side layouts.
+    static let regularWidthScoringPadWidth: CGFloat = 420
+
+    /// Fixed scoring pad width on iPad landscape side-by-side layouts.
+    static let iPadLandscapeScoringPadWidth: CGFloat = 300
+
+    /// Taller keys on iPad side-by-side pads so targets stay comfortable on a tablet.
+    static let iPadSideBySidePadKeyMinHeight: CGFloat = 64
+
+    static let iPadSideBySidePadSpacing: CGFloat = 8
+
+    /// Number-pad columns on iPad side-by-side: fewer columns → wider keys in the sidebar.
+    static let iPadSideBySidePadColumnCount: Int = 5
 
     static func scoringPadFixedWidth(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?
+        verticalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
     ) -> CGFloat {
-        if horizontalSizeClass == .regular, verticalSizeClass == .regular {
+        if usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        ) {
             return regularWidthScoringPadWidth
+        }
+        if usesLandscapeIPadMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
+        ) {
+            return iPadLandscapeScoringPadWidth
         }
         return landscapeScoringPadWidth
     }
 
-    /// X01 side-by-side scoreboard + pad: iPad portrait only (landscape uses vertical stack).
-    static func usesX01SideBySideMatchScoringLayout(
+    /// Standard match layouts dock the pad beside inactive players — compact grid, not a full-height sidebar.
+    static func usesBottomDockedScoringPad(dynamicTypeSize: DynamicTypeSize) -> Bool {
+        !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
+    /// iPad only: inactive scoreboard scrolls beside a fixed-width pad column below the active band.
+    /// iPhone stacks scoreboard, banners, and pad full width (portrait and landscape).
+    static func usesSideBySideBottomScoringRegion(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
-        dynamicTypeSize: DynamicTypeSize
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        (isPad && usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )) || usesLandscapeIPadMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
+        )
+    }
+
+    /// Deprecated: pads no longer fill a full-height iPad sidebar.
+    static func usesIPadSideBySideScoringPad(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        _ = horizontalSizeClass
+        _ = verticalSizeClass
+        _ = isPad
+        return false
+    }
+
+    /// Width of the bottom-trailing pad column (landscape phone, iPad, or compact portrait phone).
+    static func bottomScoringPadColumnWidth(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
+    ) -> CGFloat {
+        if usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
+            return scoringPadFixedWidth(
+                horizontalSizeClass: horizontalSizeClass,
+                verticalSizeClass: verticalSizeClass,
+                isPad: isPad
+            )
+        }
+        if usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        ) {
+            return regularWidthScoringPadWidth
+        }
+        return phonePortraitBottomPadMinWidth
+    }
+
+    /// iPad portrait side-by-side only — landscape uses the fill-height board variant.
+    static func usesIPadPortraitSideBySideMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
     ) -> Bool {
         usesIPadPortraitMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass
-        ) && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+        )
+    }
+
+    /// X01 side-by-side scoreboard + pad: iPad portrait and iPad landscape (not iPhone landscape).
+    static func usesX01SideBySideMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
+        return usesIPadPortraitMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        ) || usesLandscapeIPadMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
+        )
+    }
+
+    /// iPhone landscape match summary: celebration beside player cards; actions along the bottom.
+    static func usesLandscapeIPhoneMatchSummaryLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        _ = horizontalSizeClass
+        guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
+        return usesLandscapeIPhoneOnlyMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            isPad: isPad
+        )
+    }
+
+    /// Side-by-side player stat cards when width allows (iPad regular, iPhone 2-player portrait).
+    static func usesMatchSummarySideBySidePlayerGrid(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
+        dynamicTypeSize: DynamicTypeSize
+    ) -> Bool {
+        guard playerCount >= 2 else { return false }
+        guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
+        if horizontalSizeClass == .regular { return true }
+        return playerCount == 2
     }
 
     /// Pins the active X01 card at the top in landscape; portrait scroll pins at 3+ players.

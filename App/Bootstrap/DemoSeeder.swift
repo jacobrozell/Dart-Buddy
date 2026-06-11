@@ -40,7 +40,9 @@ enum DemoSeeder {
             await disableFeedbackForUITest(dependencies)
         }
 
-        if arguments.contains("-snapshot_match_x01") {
+        if arguments.contains("-snapshot_match_x01_8player") {
+            await seedX01EightPlayerSnapshot(dependencies)
+        } else if arguments.contains("-snapshot_match_x01") {
             await seedX01Snapshot(dependencies)
         }
 
@@ -55,7 +57,12 @@ enum DemoSeeder {
         guard arguments.contains("-seed_demo") else { return }
         do {
             let existing = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
-            guard existing.isEmpty else { return }
+            guard existing.isEmpty else {
+                if arguments.contains("-snapshot_play_setup") {
+                    await seedPlaySetupSnapshot(dependencies)
+                }
+                return
+            }
 
             let jacob = try await dependencies.playerRepository.createPlayer(name: "Jacob")
             let bot = try await dependencies.playerRepository.createBot(difficulty: .easy)
@@ -95,18 +102,57 @@ enum DemoSeeder {
             )
 
             // In-progress X01 game: Jacob vs bot (301, double out).
-            try await seedX01(
-                dependencies: dependencies,
-                config: MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut),
-                players: [(jacob, "Jacob"), (bot, bot.name)],
-                turns: [
-                    [d(.triple, 20), d(.triple, 20), d(.triple, 20)],      // Jacob 180 -> 121
-                    [d(.single, 20), d(.single, 20), d(.single, 20)]       // DartBot 60 -> 241
-                ],
-                complete: false
-            )
+            if !arguments.contains("-snapshot_play_setup") {
+                try await seedX01(
+                    dependencies: dependencies,
+                    config: MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut),
+                    players: [(jacob, "Jacob"), (bot, bot.name)],
+                    turns: [
+                        [d(.triple, 20), d(.triple, 20), d(.triple, 20)],      // Jacob 180 -> 121
+                        [d(.single, 20), d(.single, 20), d(.single, 20)]       // DartBot 60 -> 241
+                    ],
+                    complete: false
+                )
+            }
+
+            if arguments.contains("-snapshot_play_setup") {
+                await seedPlaySetupSnapshot(dependencies)
+            }
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "demo_seed_failed", message: "Demo seed failed: \(error)")
+        }
+    }
+
+    /// Populates the fixed eight-player X01 match id used by `-snapshot_match_x01_8player`.
+    private static func seedX01EightPlayerSnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000008") ?? UUID()
+        let config = MatchConfigPayload.x01(
+            MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+        )
+        let names = ["Jacob", "Sam", "Alex", "Morgan", "Riley", "Jordan", "Casey", "Drew"]
+        let participants = names.enumerated().map { index, name in
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: name, turnOrder: index)
+        }
+        // One full rotation: Jacob back on 121 (checkout), others spread across 301.
+        let turnTotals = [180, 100, 95, 88, 72, 65, 78, 82]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .x01,
+                config: config,
+                participants: participants
+            )
+            for total in turnTotals {
+                session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+            }
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "x01_eight_player_snapshot_seed_failed",
+                message: "X01 eight-player snapshot seed failed: \(error)"
+            )
         }
     }
 
@@ -165,6 +211,28 @@ enum DemoSeeder {
             await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "cricket_snapshot_seed_failed", message: "Cricket snapshot seed failed: \(error)")
+        }
+    }
+
+    /// Clears the resume banner and pre-selects Jacob + Sam on Play setup for marketing screenshots.
+    private static func seedPlaySetupSnapshot(_ dependencies: AppDependencies) async {
+        do {
+            await MainActor.run { dependencies.activeMatchStore.clearAll() }
+            let players = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
+            guard let jacob = players.first(where: { $0.name == "Jacob" && !$0.isBot }),
+                  let sam = players.first(where: { $0.name == "Sam" && !$0.isBot }) else {
+                return
+            }
+            await MainActor.run {
+                dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(jacob.id)
+                dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(sam.id)
+            }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "play_setup_snapshot_seed_failed",
+                message: "Play setup snapshot seed failed: \(error)"
+            )
         }
     }
 

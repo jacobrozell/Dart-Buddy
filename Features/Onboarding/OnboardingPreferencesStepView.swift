@@ -2,6 +2,9 @@ import SwiftUI
 
 struct OnboardingPreferencesStepView: View {
     let dependencies: AppDependencies
+    let progressIndex: Int
+    let showsBack: Bool
+    let onBack: () -> Void
     let onContinue: () -> Void
 
     @ObservedObject private var preferences: UserPreferencesStore
@@ -14,8 +17,17 @@ struct OnboardingPreferencesStepView: View {
         horizontalSizeClass == .regular ? 560 : .infinity
     }
 
-    init(dependencies: AppDependencies, onContinue: @escaping () -> Void) {
+    init(
+        dependencies: AppDependencies,
+        progressIndex: Int,
+        showsBack: Bool,
+        onBack: @escaping () -> Void,
+        onContinue: @escaping () -> Void
+    ) {
         self.dependencies = dependencies
+        self.progressIndex = progressIndex
+        self.showsBack = showsBack
+        self.onBack = onBack
         self.onContinue = onContinue
         _preferences = ObservedObject(wrappedValue: dependencies.userPreferencesStore)
         _viewModel = StateObject(
@@ -79,6 +91,27 @@ struct OnboardingPreferencesStepView: View {
         }
         .navigationTitle(L10n.onboardingPreferencesTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(L10n.format("onboarding.stepProgress", progressIndex, OnboardingStep.progressTotal))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .accessibilityIdentifier("onboarding_step_progress")
+            }
+
+            if showsBack {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Brand.textPrimary)
+                    }
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityLabel(L10n.string("common.back"))
+                    .accessibilityIdentifier("onboarding_back")
+                }
+            }
+        }
         .task { await viewModel.onAppear() }
         .onDisappear {
             retryTask?.cancel()

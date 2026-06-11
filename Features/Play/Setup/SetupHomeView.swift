@@ -19,27 +19,21 @@ struct SetupHomeView: View {
     @State private var showsEditOptions = false
     @State private var showsModePicker = false
 
+    private var usesWideSetupLayout: Bool {
+        GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
+
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                BrandAppTitle()
-                    .padding(.top, DS.Spacing.s2)
-
-                if case let .readyWithActiveMatch(match) = homeViewModel.state {
-                    resumeBanner(match)
+            Group {
+                if usesWideSetupLayout {
+                    wideSetupContent
+                } else {
+                    compactSetupContent
                 }
-
-                selectedModeHeader
-                if showsEditOptions {
-                    modeOptionChips
-                }
-                if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
-                   !setupViewModel.displayValidationErrors.isEmpty {
-                    setupInlineValidationHints
-                }
-                rosterControls
-                selectedRosterSection
-                availablePlayerList
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, setupScrollBottomPadding)
@@ -111,6 +105,59 @@ struct SetupHomeView: View {
         return setupViewModel.mode.matchType
     }
 
+    private var compactSetupContent: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            setupHeader
+            selectedModeHeader
+            if showsEditOptions {
+                modeOptionChips
+            }
+            setupValidationSection
+            rosterControls
+            selectedRosterSection
+            availablePlayerList
+        }
+    }
+
+    private var wideSetupContent: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            setupHeader
+            HStack(alignment: .top, spacing: DS.Spacing.s4) {
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    selectedModeHeader
+                    if showsEditOptions {
+                        modeOptionChips
+                    }
+                    setupValidationSection
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    rosterControls
+                    selectedRosterSection
+                    availablePlayerList
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var setupHeader: some View {
+        BrandAppTitle()
+            .padding(.top, DS.Spacing.s2)
+        if case let .readyWithActiveMatch(match) = homeViewModel.state {
+            resumeBanner(match)
+        }
+    }
+
+    @ViewBuilder
+    private var setupValidationSection: some View {
+        if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
+           !setupViewModel.displayValidationErrors.isEmpty {
+            setupInlineValidationHints
+        }
+    }
+
     private var learnToPlayButton: some View {
         Button { showsGameRules = true } label: {
             HStack(spacing: 6) {
@@ -125,7 +172,6 @@ struct SetupHomeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(L10n.gameRulesLearnButton)
-        .accessibilityHint(L10n.string("play.rules.learnButton.hint"))
         .accessibilityIdentifier("setup_learnToPlayButton")
     }
 
@@ -624,7 +670,6 @@ struct SetupHomeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(nameAccessibilityLabel(for: player))
-        .accessibilityHint(L10n.string("play.setup.playerRow.accessibilityHint"))
         .accessibilityIdentifier(accessibilityId)
     }
 

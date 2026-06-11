@@ -14,8 +14,19 @@ struct PlayerScoreCard: View {
     let average: Double
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ScaledMetric(relativeTo: .largeTitle) private var scoreFontSize: CGFloat = 40
     @ScaledMetric(relativeTo: .caption) private var dartBoxSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .largeTitle) private var compactScoreFontSize: CGFloat = 34
+    @ScaledMetric(relativeTo: .caption) private var compactDartBoxSize: CGFloat = 30
+
+    private var usesWideLayout: Bool {
+        horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var usesCompactDensity: Bool {
+        !usesWideLayout && !dynamicTypeSize.isAccessibilitySize
+    }
 
     private var accentColor: Color {
         PlayerVisualViews.accentColor(token: colorToken)
@@ -29,11 +40,13 @@ struct PlayerScoreCard: View {
             Group {
                 if dynamicTypeSize.isAccessibilitySize {
                     accessibilityBody
+                } else if usesWideLayout {
+                    wideBody
                 } else {
                     compactBody
                 }
             }
-            .padding(DS.Spacing.s3)
+            .padding(usesCompactDensity ? DS.Spacing.s2 : DS.Spacing.s3)
         }
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
         .accessibilityElement(children: .ignore)
@@ -44,10 +57,27 @@ struct PlayerScoreCard: View {
     private var compactBody: some View {
         HStack(alignment: .center, spacing: DS.Spacing.s3) {
             scoreNameColumn
-            Spacer(minLength: DS.Spacing.s2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(1)
             visitColumn
-            Spacer(minLength: DS.Spacing.s2)
             statsColumn
+        }
+    }
+
+    /// iPad / regular width: score and name share a row so names are not squeezed by visit slots.
+    private var wideBody: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            HStack(alignment: .firstTextBaseline, spacing: DS.Spacing.s3) {
+                scoreLabel
+                Text(name)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(isActive ? accentColor : Brand.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                statsColumn
+            }
+            visitColumn
         }
     }
 
@@ -61,11 +91,23 @@ struct PlayerScoreCard: View {
     }
 
     private var displayScoreFontSize: CGFloat {
-        dynamicTypeSize.isAccessibilitySize ? min(scoreFontSize, 56) : scoreFontSize
+        if dynamicTypeSize.isAccessibilitySize { return min(scoreFontSize, 56) }
+        return usesCompactDensity ? compactScoreFontSize : scoreFontSize
     }
 
     private var displayDartBoxSize: CGFloat {
-        dynamicTypeSize.isAccessibilitySize ? min(dartBoxSize, 44) : dartBoxSize
+        if dynamicTypeSize.isAccessibilitySize { return min(dartBoxSize, 44) }
+        return usesCompactDensity ? compactDartBoxSize : dartBoxSize
+    }
+
+    private var scoreLabel: some View {
+        Text("\(score)")
+            .font(.system(size: displayScoreFontSize, weight: .heavy, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(Brand.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .accessibilityIdentifier(isActive ? "scoreCard_remaining" : "")
     }
 
     private var scoreNameColumn: some View {
@@ -76,24 +118,19 @@ struct PlayerScoreCard: View {
                     .foregroundStyle(accentColor)
                     .accessibilityHidden(true)
             }
-            Text("\(score)")
-                .font(.system(size: displayScoreFontSize, weight: .heavy, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(Brand.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .accessibilityIdentifier(isActive ? "scoreCard_remaining" : "")
+            scoreLabel
             Text(name)
                 .font(.subheadline)
                 .foregroundStyle(isActive ? accentColor : Brand.textSecondary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.85)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private var visitColumn: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 6) {
+        VStack(spacing: usesCompactDensity ? 2 : 4) {
+            HStack(spacing: usesCompactDensity ? 4 : 6) {
                 ForEach(0 ..< 3, id: \.self) { slot in
                     dartBox(slot < visitDarts.count ? dartLabel(visitDarts[slot]) : nil)
                         .accessibilityIdentifier(isActive ? "scoreCard_dartSlot_\(slot)" : "")
@@ -108,7 +145,7 @@ struct PlayerScoreCard: View {
     }
 
     private var statsColumn: some View {
-        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: 6) {
+        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: usesCompactDensity ? 4 : 6) {
             setsLegsLabels
             HStack(spacing: 4) {
                 Image(systemName: "scope").font(.footnote)
@@ -147,17 +184,12 @@ struct PlayerScoreCard: View {
 
     private var accessibilitySummary: String {
         var parts = [L10n.format("play.x01.scoreCard.summaryFormat", name, score)]
-        if isActive {
-            parts.append(L10n.string("play.x01.turn.active"))
-        }
+        guard isActive else { return parts.joined(separator: ". ") }
+        parts.append(L10n.string("play.x01.turn.active"))
         let dartSpeech = visitDarts.map(\.spokenAccessibilityName)
         if !dartSpeech.isEmpty {
             parts.append(L10n.format("play.x01.scoreCard.visitDartsFormat", dartSpeech.joined(separator: ", ")))
         }
-        parts.append(L10n.format("play.x01.scoreCard.visitTotalFormat", visitTotal))
-        parts.append(L10n.format("play.x01.setsLegsFormat", setsWon, legsWon))
-        parts.append(L10n.format("play.x01.scoreCard.dartsThrownFormat", dartsThrown))
-        parts.append(L10n.format("play.x01.scoreCard.averageFormat", average))
         return parts.joined(separator: ". ")
     }
 

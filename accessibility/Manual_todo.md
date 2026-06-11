@@ -2,7 +2,9 @@
 
 Human-only checks that simulator AX-tree tools cannot complete. Tick items when done and link evidence under `accessibility/wcag-2.1-aa/evidence/`.
 
-**Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02)
+**Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02; less-is-more pass 2026-06-10)
+
+**Less-is-more plan:** `accessibility/voiceover-less-is-more-plan.md`
 
 ---
 
@@ -11,7 +13,7 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 - [ ] Focus order: score cards → checkout (when shown) → pad → header actions
 - [ ] Leave match → Undo last turn → score 3 darts (hear visit on score card)
 - [ ] Arm TRIPLE, score 20 — pad says “Triple 20”; score card visit says “Triple 20” not “T20”
-- [ ] Bust: hear banner + announcement (`play.x01.bustFeedback`)
+- [ ] Bust: hear announcement only (`play.x01.bustFeedback`); banner is visual-only
 - [ ] Checkout banner: hear update when route changes
 - [ ] Leg won / match complete announcements
 - [ ] Bot match: “Bot throwing…” banner; pad disabled + hint while bot plays

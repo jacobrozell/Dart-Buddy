@@ -4,7 +4,7 @@ import Testing
 
 @Test(.tags(.unit, .regression))
 func gameplayLayoutUsesWideMaxOnRegularSizeClass() {
-    #expect(GameplayLayout.contentMaxWidth(horizontalSizeClass: .regular) == 760)
+    #expect(GameplayLayout.contentMaxWidth(horizontalSizeClass: .regular) == 920)
 }
 
 @Test(.tags(.unit, .regression))
@@ -401,9 +401,143 @@ func gameplayLayoutScoringPadWidthMatchesFormFactor() {
     )
     #expect(
         GameplayLayout.scoringPadFixedWidth(
-            horizontalSizeClass: .compact,
-            verticalSizeClass: .compact
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            isPad: true
+        ) == GameplayLayout.iPadLandscapeScoringPadWidth
+    )
+    #expect(
+        GameplayLayout.scoringPadFixedWidth(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            isPad: false
         ) == GameplayLayout.landscapeScoringPadWidth
+    )
+    #expect(
+        GameplayLayout.scoringPadFixedWidth(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact,
+            isPad: false
+        ) == GameplayLayout.landscapeScoringPadWidth
+    )
+    #expect(
+        GameplayLayout.scoringPadFixedWidth(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact,
+            isPad: true
+        ) == GameplayLayout.iPadLandscapeScoringPadWidth
+    )
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutUsesWideSetupHomeOnlyOnIPadRegularWidth() {
+    #expect(
+        GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: .regular,
+            dynamicTypeSize: .large
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: .compact,
+            dynamicTypeSize: .large
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: .regular,
+            dynamicTypeSize: .accessibility3
+        ) == false
+    )
+}
+
+@Test(.tags(.unit, .regression, .accessibility))
+func gameplayLayoutIPadSideBySidePadTargetsMeetComfortableTabletSizing() {
+    #expect(GameplayLayout.iPadSideBySidePadKeyMinHeight >= 44)
+    #expect(GameplayLayout.iPadSideBySidePadColumnCount == 5)
+    #expect(GameplayLayout.regularWidthScoringPadWidth > GameplayLayout.landscapeScoringPadWidth)
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutUsesBottomDockedScoringPadOutsideAccessibilitySizes() {
+    #expect(GameplayLayout.usesBottomDockedScoringPad(dynamicTypeSize: .large) == true)
+    #expect(GameplayLayout.usesBottomDockedScoringPad(dynamicTypeSize: .accessibility3) == false)
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutSideBySideBottomScoringRegionIsIPadOnly() {
+    #expect(
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .regular,
+            isPad: false
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            isPad: false
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular,
+            isPad: true
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular,
+            isPad: false
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            isPad: true
+        ) == true
+    )
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutBottomScoringPadColumnWidthTracksFormFactor() {
+    #expect(
+        GameplayLayout.bottomScoringPadColumnWidth(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular,
+            isPad: true
+        ) == GameplayLayout.regularWidthScoringPadWidth
+    )
+    #expect(
+        GameplayLayout.bottomScoringPadColumnWidth(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .regular,
+            isPad: false
+        ) == GameplayLayout.phonePortraitBottomPadMinWidth
+    )
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutDeprecatedIPadSideBySideScoringPadIsDisabled() {
+    #expect(
+        GameplayLayout.usesIPadSideBySideScoringPad(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesIPadSideBySideScoringPad(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == false
     )
 }
 
@@ -464,15 +598,72 @@ func gameplayLayoutPinsActiveX01CardInLandscape() {
         GameplayLayout.usesX01SideBySideMatchScoringLayout(
             horizontalSizeClass: .compact,
             verticalSizeClass: .compact,
-            dynamicTypeSize: .large
+            dynamicTypeSize: .large,
+            isPad: false
         ) == false
     )
     #expect(
         GameplayLayout.usesX01SideBySideMatchScoringLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .regular,
-            dynamicTypeSize: .large
+            dynamicTypeSize: .large,
+            isPad: true
         ) == true
+    )
+}
+
+@Test(.tags(.unit, .x01, .regression))
+func gameplayLayoutUsesX01SideBySideOnIPadLandscapeNotIPhoneLandscape() {
+    #expect(
+        GameplayLayout.usesX01SideBySideMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesX01SideBySideMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large,
+            isPad: false
+        ) == false
+    )
+}
+
+@Test(.tags(.unit, .x01, .cricket, .regression))
+func gameplayLayoutX01AndCricketSideBySideMatchOnIPadFormFactors() {
+    let iPadCombos: [(UserInterfaceSizeClass?, UserInterfaceSizeClass?)] = [
+        (.regular, .regular),
+        (.regular, .compact)
+    ]
+    for (horizontal, vertical) in iPadCombos {
+        #expect(
+            GameplayLayout.usesX01SideBySideMatchScoringLayout(
+                horizontalSizeClass: horizontal,
+                verticalSizeClass: vertical,
+                dynamicTypeSize: .large,
+                isPad: true
+            ) == GameplayLayout.usesCricketSideBySideMatchScoringLayout(
+                horizontalSizeClass: horizontal,
+                verticalSizeClass: vertical,
+                dynamicTypeSize: .large,
+                isPad: true
+            )
+        )
+    }
+    #expect(
+        GameplayLayout.usesIPadPortraitSideBySideMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesIPadPortraitSideBySideMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact
+        ) == false
     )
 }
 
@@ -486,4 +677,87 @@ func gameplayLayoutUsesAccessibilityTabListOnlyAtAXSizes() {
 func gameplayLayoutTabScrollPaddingIncreasesAtAXSizes() {
     #expect(GameplayLayout.tabScrollBottomPadding(dynamicTypeSize: .large) == DS.Spacing.s6)
     #expect(GameplayLayout.tabScrollBottomPadding(dynamicTypeSize: .accessibility3) > DS.Spacing.s6)
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutUsesLandscapeIPhoneMatchSummaryOnlyOnPhoneLandscape() {
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchSummaryLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large,
+            isPad: false
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchSummaryLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large,
+            isPad: false
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchSummaryLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchSummaryLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .regular,
+            dynamicTypeSize: .large,
+            isPad: false
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesLandscapeIPhoneMatchSummaryLayout(
+            horizontalSizeClass: .compact,
+            verticalSizeClass: .compact,
+            dynamicTypeSize: .accessibility1,
+            isPad: false
+        ) == false
+    )
+}
+
+@Test(.tags(.unit, .regression))
+func gameplayLayoutUsesMatchSummarySideBySidePlayerGridWhenWidthAllows() {
+    #expect(
+        GameplayLayout.usesMatchSummarySideBySidePlayerGrid(
+            horizontalSizeClass: .regular,
+            playerCount: 2,
+            dynamicTypeSize: .large
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesMatchSummarySideBySidePlayerGrid(
+            horizontalSizeClass: .regular,
+            playerCount: 4,
+            dynamicTypeSize: .large
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesMatchSummarySideBySidePlayerGrid(
+            horizontalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .large
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesMatchSummarySideBySidePlayerGrid(
+            horizontalSizeClass: .compact,
+            playerCount: 3,
+            dynamicTypeSize: .large
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesMatchSummarySideBySidePlayerGrid(
+            horizontalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .accessibility1
+        ) == false
+    )
 }

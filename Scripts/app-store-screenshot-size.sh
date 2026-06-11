@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# App Store Connect screenshot dimensions (portrait).
-# iPhone 6.5": 1284×2778 or 1242×2688
-# iPad 12.9"/13": 2064×2752 or 2048×2732
+# App Store Connect screenshot dimensions.
+# iPhone 6.5" portrait: 1284×2778 or 1242×2688 — landscape: swap width/height
+# iPad 12.9"/13" portrait: 2064×2752 or 2048×2732 — landscape: swap width/height
 #
 # Usage (sourced or run directly):
 #   ./Scripts/app-store-screenshot-size.sh resize path/to.png

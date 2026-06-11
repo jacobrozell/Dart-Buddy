@@ -69,8 +69,9 @@ struct ShanghaiMatchScreen: View {
                             isExtraRound: state.isExtraRound
                         )
                         .accessibilityIdentifier("shanghai_round_strip")
-                        stateBanner
                     }
+                } padChrome: {
+                    stateBanner
                 } controls: {
                     shanghaiPad
                 }
@@ -143,6 +144,7 @@ struct ShanghaiMatchScreen: View {
             ErrorBanner(messageKey: messageKey)
         case .shanghaiFeedback:
             MatchFeedbackBanner(text: "play.shanghai.achieved", style: .legWin)
+                .accessibilityHidden(true)
                 .accessibilityIdentifier("shanghai_shanghai_feedback")
         default:
             EmptyView()

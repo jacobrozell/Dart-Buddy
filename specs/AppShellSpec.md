@@ -53,19 +53,22 @@ A branching **onboarding flow** on first launch asks whether the user knows how 
 ### Flow
 
 ```text
-Welcome → Experience question → Preferences (experienced) or Learn to play (beginner) → Ready → Play tab
-Welcome → Skip → Play tab
+Welcome → Experience question → Preferences (experienced) or Learn to play (beginner)
+       → App tour → Support & feedback → Ready → Play tab
+Welcome → Skip → Ready → Play tab
 ```
 
 ### Behavior
 - **Trigger:** `UserDefaults` key `onboarding_completed` is unset and onboarding is enabled.
 - **Presentation:** `fullScreenCover` on `MainTabView` after bootstrap (before the App Store update check).
-- **Welcome:** One-screen intro with **Skip** (escape hatch) and **Next**.
-- **Experience question:** Two choice buttons — experienced path continues to preferences; beginner path continues to rules content (default mode X01).
+- **Welcome:** One-screen 1.0 intro with **Skip** (escape hatch) and **Next**.
+- **Experience question:** Two choice buttons — experienced path continues to preferences; beginner path continues to rules content (X01 + Cricket only via `ProductSurface`).
 - **Preferences (experienced path):** Curated subset of Settings (appearance, gameplay defaults, X01 defaults, feedback toggles). Changes persist immediately via `SettingsViewModel`.
 - **Learn to play (beginner path):** Reuses `GameRulesGuideContent` with onboarding **Continue** footer.
-- **Ready:** Shared finale with **Get Started**.
-- **Skip / Get Started:** Sets `onboarding_completed`; first launch selects the Play tab. **Get Started** also persists `onboarding_darts_experience` (`experienced` | `beginner`) when the user completed a branch. First launch cannot be swipe-dismissed (must use Skip or Get Started).
+- **App tour:** Four cards for Play, Players, Activity, and Settings tabs plus a short roadmap note.
+- **Support & feedback:** Links to hosted support FAQ, feedback mailto, and privacy policy (same destinations as Settings → Help & Feedback).
+- **Ready:** Shared finale with **Start a Match** and a Settings replay hint.
+- **Skip / Start a Match:** Sets `onboarding_completed`; first launch selects the Play tab. **Start a Match** also persists `onboarding_darts_experience` (`experienced` | `beginner`) when the user completed a branch. Skip from Welcome lands on Ready without persisting experience. First launch cannot be swipe-dismissed (must use Skip or Start a Match).
 - **Replay:** Settings → About → **View onboarding** presents the same flow in `.replay` mode without changing completion state or saved experience.
 - **Reset all data:** Clears `onboarding_completed` and `onboarding_darts_experience` with all other auxiliary `UserDefaults`; onboarding can present again immediately after reset (see `LocalAppStateReset`).
 

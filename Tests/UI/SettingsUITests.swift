@@ -143,4 +143,17 @@ final class SettingsUITests: DartBuddyUITestCase {
         cancel.tap()
         XCTAssertFalse(alert.waitForExistence(timeout: 2))
     }
+
+    func testSettingsHelpAndFeedbackLinksExist() {
+        let app = launchApp(["-skip_onboarding"])
+
+        ensureSettingsTab(app, timeout: timeout)
+        scrollToSettingsControl("settings_supportFAQLink", in: app, timeout: timeout)
+
+        XCTAssertTrue(app.descendants(matching: .any)["settings_supportFAQLink"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["settings_sendFeedbackLink"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["settings_rateAppLink"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["settings_privacyPolicyLink"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["settings_aboutVersion"].waitForExistence(timeout: timeout))
+    }
 }

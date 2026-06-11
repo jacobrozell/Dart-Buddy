@@ -8,6 +8,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         XCTAssertTrue(skip.waitForExistence(timeout: timeout))
         skip.tap()
 
+        finishOnboarding(in: app)
         assertBrandAppTitleVisible(in: app, timeout: timeout)
     }
 
@@ -27,10 +28,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         )
 
         app.buttons["onboarding_learn_continue"].tap()
-        XCTAssertTrue(
-            app.buttons["onboarding_get_started"].waitForExistence(timeout: timeout),
-            "Beginner path should reach the shared ready step"
-        )
+        advanceThroughSharedFinale(in: app)
     }
 
     func testExperiencedPathShowsPreferences() {
@@ -49,7 +47,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         )
 
         app.buttons["onboarding_preferences_continue"].tap()
-        finishOnboarding(in: app)
+        advanceThroughSharedFinale(in: app)
     }
 
     func testSettingsReplayOpensOnboardingFlow() {
@@ -58,7 +56,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         assertBrandAppTitleVisible(in: app, timeout: timeout)
 
         app.tabBars.buttons["Settings"].tap()
-        scrollToViewOnboarding(in: app)
+        scrollToSettingsControl("settings_viewOnboardingButton", in: app, timeout: timeout)
         app.buttons["settings_viewOnboardingButton"].tap()
 
         XCTAssertTrue(
@@ -80,22 +78,29 @@ final class OnboardingUITests: DartBuddyUITestCase {
         XCTAssertTrue(experienced.waitForExistence(timeout: timeout))
     }
 
+    private func advanceThroughSharedFinale(in app: XCUIApplication) {
+        let tourContinue = app.buttons["onboarding_tour_continue"]
+        XCTAssertTrue(
+            tourContinue.waitForExistence(timeout: timeout),
+            "Both paths should reach the app tour step"
+        )
+        tourContinue.tap()
+
+        let supportContinue = app.buttons["onboarding_support_continue"]
+        XCTAssertTrue(
+            supportContinue.waitForExistence(timeout: timeout),
+            "Both paths should reach the support step"
+        )
+        supportContinue.tap()
+
+        finishOnboarding(in: app)
+    }
+
     private func finishOnboarding(in app: XCUIApplication) {
         let getStarted = app.buttons["onboarding_get_started"]
         XCTAssertTrue(getStarted.waitForExistence(timeout: timeout))
         getStarted.tap()
 
         assertBrandAppTitleVisible(in: app, timeout: timeout)
-    }
-
-    private func scrollToViewOnboarding(in app: XCUIApplication) {
-        let button = app.buttons["settings_viewOnboardingButton"]
-        for _ in 0 ..< 6 where button.exists == false || button.isHittable == false {
-            app.swipeUp()
-        }
-        XCTAssertTrue(
-            button.waitForExistence(timeout: timeout),
-            "View onboarding control should be reachable after scrolling Settings"
-        )
     }
 }

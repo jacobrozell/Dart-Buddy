@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Capture App Store iPad screenshots (12.9" / 13" slot: 2064×2752 portrait).
+# Capture App Store iPad screenshots (12.9" / 13" slot: 2064×2752 portrait, 2752×2064 landscape).
 #
 # Usage:
 #   ./Scripts/capture-ipad-marketing-screenshots.sh
 #   APPEARANCE=light ./Scripts/capture-ipad-marketing-screenshots.sh
 #   SIM_NAME="iPad Pro 13-inch (M4)" ./Scripts/capture-ipad-marketing-screenshots.sh
+#   ORIENTATIONS=portrait ./Scripts/capture-ipad-marketing-screenshots.sh
 #
-# Output: marketing-screenshots/ipad/raw/*.png
-# Upload to App Store Connect → iPad 12.9" or 13" Displays (portrait 2064×2752).
+# Output: marketing-screenshots/ipad/raw/*.png (landscape files use -landscape suffix)
+# Upload to App Store Connect → iPad 12.9" or 13" Displays.
 
 set -euo pipefail
 

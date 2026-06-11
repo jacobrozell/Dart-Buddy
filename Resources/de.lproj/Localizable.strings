@@ -539,6 +539,12 @@
 "scoring.enter" = "OK";
 "play.x01.leaveMatch.accessibility" = "Spiel verlassen";
 "play.x01.checkout.accessibilityFormat" = "Checkout: %@";
+"play.x01.checkout.title" = "Checkout";
+"play.x01.checkout.cycle" = "Andere Checkout";
+"play.x01.checkout.cycleHint" = "Zeigt die nächste Checkout-Option.";
+"play.x01.checkout.optionTotalAccessibilityFormat" = "%d Checkout-Optionen";
+"play.x01.checkout.setupDartFormat" = "Dart %d, %@";
+"play.x01.checkout.finishDartFormat" = "Finish auf %@";
 "play.x01.turn.active" = "Du bist dran";
 "play.x01.pad.disabledWhileBot" = "Eingabe deaktiviert, während der Bot wirft.";
 "play.x01.announce.legWon" = "Leg gewonnen.";

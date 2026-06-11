@@ -141,6 +141,20 @@ final class X01MatchViewModel: ObservableObject {
     /// checkout, so their suggestion must show before they throw (the bust banner
     /// clears itself when they start scoring).
     var checkoutRoute: [String]? {
+        checkoutRoutes.first
+    }
+
+    /// Every fewest-dart checkout route for the active player (preferred route first).
+    var checkoutRoutes: [[String]] {
+        guard let context = activeCheckoutContext else { return [] }
+        return CheckoutSuggester.allSuggestions(
+            remaining: context.remaining,
+            mode: context.mode,
+            dartsAvailable: context.dartsLeft
+        )
+    }
+
+    private var activeCheckoutContext: (remaining: Int, mode: X01CheckoutMode, dartsLeft: Int)? {
         guard state == .readyTurn || state == .bustFeedback,
               isBotPlaying == false,
               isCurrentPlayerBot == false,
@@ -149,11 +163,7 @@ final class X01MatchViewModel: ObservableObject {
         let player = x01State.players[x01State.currentPlayerIndex]
         let dartsLeft = max(1, 3 - enteredDarts.count)
         let previewRemaining = previewRemainingScore(for: player, isActive: true)
-        return CheckoutSuggester.suggestion(
-            remaining: previewRemaining,
-            mode: x01State.config.checkoutMode,
-            dartsAvailable: dartsLeft
-        )
+        return (previewRemaining, x01State.config.checkoutMode, dartsLeft)
     }
 
     var configSummary: String? {

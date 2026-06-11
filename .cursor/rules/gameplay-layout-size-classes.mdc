@@ -6,7 +6,20 @@ alwaysApply: false
 
 # Gameplay layout: phone vs iPad in landscape
 
+Full mode matrix with UI examples: [`docs/gameplay-layout-modes.md`](../../docs/gameplay-layout-modes.md)
+
 Larger iPhones (Plus, Pro Max) report **regular** horizontal size class in landscape — the same as iPad. `horizontalSizeClass == .compact` is **not** a reliable "iPhone" signal.
+
+## Match scoring layout (all modes)
+
+Use `MatchScoringBody` (or `SideBySideMatchBody` for table scoreboards):
+
+1. **Active band** — current player/board spans full width at the top
+2. **iPad** (`usesSideBySideBottomScoringRegion`) — inactive scoreboard scrolls on the left; pad column on the right
+3. **iPhone** — inactive scoreboard, pad chrome, and pad stack **full width** below the active band
+4. **Pad chrome** — checkout, bot, and state banners sit **above** the pad (not in the scoreboard column)
+
+Pads use the **compact sidebar grid** only when `usesSideBySideBottomScoringRegion` is true (iPad portrait + iPad landscape).
 
 ## Rules
 
@@ -27,8 +40,12 @@ GameplayLayout.usesLandscapeIPadMatchScoringLayout(...)
 // ✅ Cricket: pinned top board + full-width pad (phone only)
 GameplayLayout.usesCricketLandscapePinnedLayout(...)
 
-// ✅ Cricket: side-by-side (iPad portrait + iPad landscape only)
+// ✅ Cricket / X01: side-by-side (iPad portrait + iPad landscape only)
 GameplayLayout.usesCricketSideBySideMatchScoringLayout(...)
+GameplayLayout.usesX01SideBySideMatchScoringLayout(...)
+
+// ✅ iPad portrait side-by-side only (board/pad top-grouped, not fill-height scroll)
+GameplayLayout.usesIPadPortraitSideBySideMatchScoringLayout(...)
 
 // ❌ BAD — treats Pro Max landscape as iPad
 verticalSizeClass == .compact && horizontalSizeClass == .compact

@@ -539,6 +539,12 @@
 "scoring.enter" = "OK";
 "play.x01.leaveMatch.accessibility" = "Wedstrijd verlaten";
 "play.x01.checkout.accessibilityFormat" = "Checkout: %@";
+"play.x01.checkout.title" = "Checkout";
+"play.x01.checkout.cycle" = "Andere checkout";
+"play.x01.checkout.cycleHint" = "Toont de volgende checkoutoptie.";
+"play.x01.checkout.optionTotalAccessibilityFormat" = "%d checkoutopties";
+"play.x01.checkout.setupDartFormat" = "Pijl %d, %@";
+"play.x01.checkout.finishDartFormat" = "Finish op %@";
 "play.x01.turn.active" = "Jij bent aan de beurt";
 "play.x01.pad.disabledWhileBot" = "Scorebord uitgeschakeld terwijl de bot gooit.";
 "play.x01.announce.legWon" = "Leg gewonnen.";

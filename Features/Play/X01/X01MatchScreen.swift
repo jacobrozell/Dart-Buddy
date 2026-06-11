@@ -16,6 +16,7 @@ struct X01MatchScreen: View {
     @State private var actionTask: Task<Void, Never>?
     @State private var lastAnnouncedCheckout: String?
     @State private var showLegWinBanner = false
+    @State private var selectedCheckoutIndex = 0
 
     private var usesLandscapeMatchLayout: Bool {
         GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
@@ -59,21 +60,8 @@ struct X01MatchScreen: View {
                         .padding(.bottom, DS.Spacing.s2)
                 }
 
-                Group {
-                    if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-                        accessibilityScoringStack(state: state)
-                    } else if usesSideBySideMatchLayout {
-                        landscapeScoringStack(state: state)
-                    } else if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
-                        verticalScoringStack(state: state, scrollPlayers: true)
-                    } else {
-                        ViewThatFits(in: .vertical) {
-                            verticalScoringStack(state: state, scrollPlayers: false)
-                            verticalScoringStack(state: state, scrollPlayers: true)
-                        }
-                    }
-                }
-                .frame(maxHeight: .infinity)
+                matchScoringBody(state: state)
+                    .frame(maxHeight: .infinity)
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
@@ -128,17 +116,13 @@ struct X01MatchScreen: View {
             guard let signal else { return }
             turnTotalCaller.announceTurnTotal(signal.total)
         }
-        .onChange(of: viewModel.checkoutRoute) { _, route in
-            guard let route else {
-                lastAnnouncedCheckout = nil
-                return
-            }
-            let spoken = route.joined(separator: ", ")
-            guard spoken != lastAnnouncedCheckout else { return }
-            lastAnnouncedCheckout = spoken
-            postAccessibilityAnnouncement(
-                L10n.format("play.x01.checkout.accessibilityFormat", spoken)
-            )
+        .onChange(of: viewModel.checkoutRoutes) { _, routes in
+            selectedCheckoutIndex = 0
+            announceCheckoutRoute(routes.first)
+        }
+        .onChange(of: selectedCheckoutIndex) { _, _ in
+            guard let route = displayedCheckoutRoute else { return }
+            announceCheckoutRoute(route)
         }
         .onChange(of: viewModel.state) { _, newValue in
             switch newValue {
@@ -163,112 +147,55 @@ struct X01MatchScreen: View {
         }
     }
 
-    private var usesSideBySideMatchLayout: Bool {
-        GameplayLayout.usesX01SideBySideMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass,
-            dynamicTypeSize: dynamicTypeSize
-        )
-    }
-
-    /// iPad portrait keeps config in the header; landscape folds the summary up to reclaim vertical space.
     private var showsConfigSummaryInHeader: Bool {
-        usesSideBySideMatchLayout || usesLandscapeMatchLayout
+        usesLandscapeMatchLayout || horizontalSizeClass == .regular
     }
 
-    private func landscapeScoringStack(state: X01State) -> some View {
-        HStack(alignment: .top, spacing: DS.Spacing.s2) {
-            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                ScrollView {
-                    playerCardsStack
-                }
-                .scrollIndicators(.hidden)
-                statusBanners
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-
-            scoringPad(state: state, landscape: true)
-                .frame(
-                    width: GameplayLayout.scoringPadFixedWidth(
-                        horizontalSizeClass: horizontalSizeClass,
-                        verticalSizeClass: verticalSizeClass
-                    ),
-                    alignment: .top
-                )
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.bottom, DS.Spacing.s2)
-    }
-
-    private func verticalScoringStack(state: X01State, scrollPlayers: Bool) -> some View {
-        let cards = viewModel.playerCards
-        let pinActive = GameplayLayout.usesPinnedActiveX01PlayerCard(
-            playerCount: cards.count,
+    private var pinsActivePlayerCard: Bool {
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: viewModel.playerCards.count,
             dynamicTypeSize: dynamicTypeSize,
             verticalSizeClass: verticalSizeClass
         )
-
-        let playerTopPadding = usesLandscapeMatchLayout ? DS.Spacing.s1 : DS.Spacing.s2
-
-        return VStack(spacing: scrollPlayers ? 0 : DS.Spacing.s2) {
-            if pinActive, let active = cards.first(where: \.isActive) {
-                playerScoreCard(active)
-                    .padding(.top, playerTopPadding)
-                if scrollPlayers {
-                    ScrollView {
-                        playerCardsContent(for: cards.filter { $0.id != active.id })
-                            .padding(.top, playerTopPadding)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    playerCardsContent(for: cards.filter { $0.id != active.id })
-                        .padding(.top, playerTopPadding)
-                }
-            } else if scrollPlayers {
-                ScrollView {
-                    playerCardsStack
-                        .padding(.top, playerTopPadding)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                playerCardsStack
-                    .padding(.top, playerTopPadding)
-            }
-            statusBanners
-                .padding(.vertical, scrollPlayers && !usesLandscapeMatchLayout ? DS.Spacing.s2 : 0)
-            scoringPad(state: state)
-        }
-        .frame(maxHeight: .infinity)
     }
 
-    /// Scrollable score, banners, and pad so nothing clips at accessibility text sizes.
-    private func accessibilityScoringStack(state: X01State) -> some View {
-        ScrollView {
-            VStack(spacing: DS.Spacing.s2) {
-                playerCardsStack
-                    .padding(.top, DS.Spacing.s2)
+    private func matchScoringBody(state: X01State) -> some View {
+        let cards = viewModel.playerCards
+        let active = cards.first(where: \.isActive)
+        let inactive = active.map { active in cards.filter { $0.id != active.id } } ?? cards
+        let pinsActive = pinsActivePlayerCard
+
+        return MatchScoringBody(
+            showsActiveBand: pinsActive && active != nil,
+            scoreboardSharesBottomRow: cards.count > 1,
+            active: {
+                if pinsActive, let active {
+                    playerScoreCard(active)
+                }
+            },
+            scoreboard: {
+                playerCardStack(pinsActive ? inactive : cards)
+            },
+            padChrome: {
                 statusBanners
-                scoringPad(state: state)
+            },
+            pad: {
+                scoringPad(
+                    state: state,
+                    landscape: GameplayLayout.usesLandscapeMatchScoringLayout(
+                        verticalSizeClass: verticalSizeClass
+                    )
+                )
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        )
     }
 
-    private var playerCardsStack: some View {
-        playerCardsContent(for: viewModel.playerCards)
-    }
-
-    private func playerCardsContent(for cards: [X01MatchViewModel.PlayerCard]) -> some View {
+    private func playerCardStack(_ cards: [X01MatchViewModel.PlayerCard]) -> some View {
         Group {
-            if usesIPadPortraitPlayerGrid(for: cards) {
-                LazyVGrid(
-                    columns: Array(
-                        repeating: GridItem(.flexible(), spacing: DS.Spacing.s2),
-                        count: min(2, cards.count)
-                    ),
-                    spacing: DS.Spacing.s2
-                ) {
+            if cards.isEmpty {
+                EmptyView()
+            } else if cards.count == 2 && horizontalSizeClass == .regular {
+                HStack(spacing: DS.Spacing.s2) {
                     ForEach(cards) { card in
                         playerScoreCard(card)
                     }
@@ -281,16 +208,6 @@ struct X01MatchScreen: View {
                 }
             }
         }
-        .padding(.horizontal, DS.Spacing.s4)
-    }
-
-    private func usesIPadPortraitPlayerGrid(for cards: [X01MatchViewModel.PlayerCard]) -> Bool {
-        GameplayLayout.usesIPadPortraitMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
-        )
-        && cards.count >= 2
-        && cards.count <= 4
     }
 
     private func playerScoreCard(_ card: X01MatchViewModel.PlayerCard) -> some View {
@@ -314,7 +231,6 @@ struct X01MatchScreen: View {
             botTurnBanner
             stateBanner
         }
-        .padding(.horizontal, DS.Spacing.s4)
     }
 
     private func scoringPad(state: X01State, landscape: Bool = false) -> some View {
@@ -331,8 +247,8 @@ struct X01MatchScreen: View {
                 hint: viewModel.canHumanInput ? nil : L10n.string("play.x01.pad.disabledWhileBot")
             )
         )
-        .padding(.horizontal, landscape ? DS.Spacing.s1 : DS.Spacing.s3)
-        .padding(.bottom, landscape ? 0 : DS.Spacing.s2)
+        .padding(.horizontal, landscape ? 0 : DS.Spacing.s1)
+        .padding(.bottom, landscape ? 0 : DS.Spacing.s1)
         .onChange(of: viewModel.enteredDarts) { old, darts in
             if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
             autoSubmitIfNeeded(darts: darts, state: state)
@@ -341,25 +257,32 @@ struct X01MatchScreen: View {
 
     @ViewBuilder
     private var checkoutBanner: some View {
-        if let route = viewModel.checkoutRoute {
-            let labels = CheckoutSuggester.localizedDisplayLabels(for: route)
-            HStack(spacing: 6) {
-                Image(systemName: "target")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(Brand.green)
-                Text(labels.joined(separator: "  "))
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Brand.textPrimary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, DS.Spacing.s2)
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(L10n.format("play.x01.checkout.accessibilityFormat", labels.joined(separator: ", ")))
-            .accessibilityIdentifier("checkoutSuggestion")
+        if viewModel.checkoutRoutes.isEmpty == false {
+            CheckoutSuggestionBanner(
+                routes: viewModel.checkoutRoutes,
+                selectedIndex: $selectedCheckoutIndex
+            )
         }
+    }
+
+    private var displayedCheckoutRoute: [String]? {
+        let routes = viewModel.checkoutRoutes
+        guard routes.isEmpty == false else { return nil }
+        let index = min(max(selectedCheckoutIndex, 0), routes.count - 1)
+        return routes[index]
+    }
+
+    private func announceCheckoutRoute(_ route: [String]?) {
+        guard let route else {
+            lastAnnouncedCheckout = nil
+            return
+        }
+        let spoken = CheckoutSuggester.localizedDisplayLabels(for: route).joined(separator: ", ")
+        guard spoken != lastAnnouncedCheckout else { return }
+        lastAnnouncedCheckout = spoken
+        postAccessibilityAnnouncement(
+            L10n.format("play.x01.checkout.accessibilityFormat", spoken)
+        )
     }
 
     @ViewBuilder
@@ -390,11 +313,13 @@ struct X01MatchScreen: View {
     private var stateBanner: some View {
         if showLegWinBanner {
             MatchFeedbackBanner(text: L10n.x01LegWonBanner, style: .legWin)
+                .accessibilityHidden(true)
                 .accessibilityIdentifier("legWonBanner")
         } else {
             switch viewModel.state {
             case .bustFeedback:
                 MatchFeedbackBanner(text: L10n.bustFeedback, style: .bust)
+                    .accessibilityHidden(true)
                     .accessibilityIdentifier("bustBanner")
             case let .entryInvalid(key), let .error(key):
                 ErrorBanner(messageKey: key)
