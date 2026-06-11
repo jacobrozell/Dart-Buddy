@@ -106,6 +106,24 @@ struct DemoSeederTests {
     }
 
     @Test
+    func customBotSnapshotLaunchArgumentSeedsTunedAce() async throws {
+        let dependencies = try makeDependencies()
+
+        await DemoSeeder.seedIfRequested(
+            dependencies,
+            arguments: ["-ui_test_reset", "-snapshot_custom_bot"]
+        )
+
+        let players = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
+        guard let customBot = players.first(where: \.isCustomBot) else {
+            Issue.record("Expected a custom bot after snapshot seed")
+            return
+        }
+        #expect(customBot.name == DemoSeeder.customBotSnapshotName)
+        #expect(customBot.customBotMetrics == DemoSeeder.customBotSnapshotMetrics)
+    }
+
+    @Test
     func seedDemoCreatesPlayersHistoryAndInProgressMatch() async throws {
         let dependencies = try makeDependencies()
 
@@ -118,7 +136,11 @@ struct DemoSeederTests {
         #expect(players.contains(where: { $0.name == "Sam" && !$0.isBot }))
 
         let history = try await dependencies.matchRepository.fetchHistory(page: 0, pageSize: 20)
-        #expect(history.count >= 3)
+        let expectedCompletedMatches = ProductSurface.showsPartyModes ? 3 : 2
+        #expect(history.count >= expectedCompletedMatches)
+        if !ProductSurface.showsPartyModes {
+            #expect(!history.contains { $0.type == .baseball })
+        }
 
         let active = await MainActor.run { dependencies.activeMatchStore.activeMatchSummary() }
         #expect(active?.status == .inProgress)

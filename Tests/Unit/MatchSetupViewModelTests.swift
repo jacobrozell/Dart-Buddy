@@ -720,6 +720,84 @@ func setupConfirmReplaceAbandonsActiveMatchThenStarts() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .match, .regression))
+func setupRematchAppliesCompletedMatchConfiguration() async throws {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 301,
+                legsToWin: 5,
+                setsEnabled: true,
+                setsToWin: 3,
+                checkoutMode: .masterOut,
+                checkInMode: .doubleIn,
+                legFormat: .bestOf
+            )
+        ),
+        participants: [
+            MatchParticipant(playerId: players[1].id, displayNameAtMatchStart: "B", turnOrder: 1),
+            MatchParticipant(playerId: players[0].id, displayNameAtMatchStart: "A", turnOrder: 0)
+        ]
+    )
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+
+    vm.applyRematchConfiguration(from: session.runtime)
+
+    #expect(vm.mode == .x01)
+    #expect(vm.selectedPlayerIds == [players[0].id, players[1].id])
+    #expect(vm.x01StartScore == 301)
+    #expect(vm.x01LegsToWin == 5)
+    #expect(vm.x01SetsEnabled)
+    #expect(vm.x01SetsToWin == 3)
+    #expect(vm.x01CheckoutMode == .masterOut)
+    #expect(vm.x01CheckInMode == .doubleIn)
+    #expect(vm.x01LegFormat == .bestOf)
+    #expect(!vm.randomOrder)
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .match, .regression))
+func setupStartRematchRouteStartsNewMatchWithSameRoster() async throws {
+    let players = [makePlayer("A"), makePlayer("B")]
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: players[0].id, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: players[1].id, displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    var completed = session
+    completed.runtime.status = .completed
+    let matchRepo = FakeMatchRepository()
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: matchRepo,
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+
+    let route = await vm.startRematchRoute(from: completed.runtime)
+
+    if case .x01Match = route {
+        #expect(vm.selectedPlayerIds == [players[0].id, players[1].id])
+        #expect(vm.x01StartScore == 101)
+    } else {
+        Issue.record("Expected x01 rematch route")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .match, .regression))
 func setupStartMatchSnapshotsTrainingBotSkill() async throws {
     let humanId = UUID()
     let trainingBotId = UUID()
