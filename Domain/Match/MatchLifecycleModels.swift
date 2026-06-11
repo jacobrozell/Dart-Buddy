@@ -265,11 +265,17 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
     public let botKindRaw: String?
     /// JSON snapshot for training bots (`TrainingBotSkillSnapshot`).
     public let botSkillProfilePayload: Data?
+    /// Preset ladder tier for bot-tier achievements, frozen at match start (`BotAchievementTierResolver`).
+    public let botEffectiveTierRaw: String?
     /// Snapshot of roster identity color at match start; optional for legacy in-progress matches.
     public let preferredColorTokenAtMatchStart: String?
 
     public var botDifficulty: BotDifficulty? {
         botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
+    }
+
+    public var botEffectiveTier: BotDifficulty? {
+        botEffectiveTierRaw.flatMap(BotDifficulty.init(rawValue:))
     }
 
     public var botKind: BotKind? {
@@ -295,6 +301,7 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
         botDifficultyRaw: String? = nil,
         botKindRaw: String? = nil,
         botSkillProfilePayload: Data? = nil,
+        botEffectiveTierRaw: String? = nil,
         preferredColorTokenAtMatchStart: String? = nil
     ) {
         self.id = id
@@ -304,6 +311,7 @@ public struct MatchParticipant: Codable, Equatable, Identifiable, Sendable {
         self.botDifficultyRaw = botDifficultyRaw
         self.botKindRaw = botKindRaw
         self.botSkillProfilePayload = botSkillProfilePayload
+        self.botEffectiveTierRaw = botEffectiveTierRaw
         self.preferredColorTokenAtMatchStart = preferredColorTokenAtMatchStart
     }
 }

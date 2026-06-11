@@ -137,19 +137,23 @@ Link to authoritative schema when implemented: [`SwiftData.md`](SwiftData.md), [
 
 ---
 
-## 8. Initial Catalog (Phase 1 — meaningful slice)
+## 8. Initial Catalog (Phase 1 — locked manifest)
 
-Full catalog and IDs: [`FutureIdeas/achievements.md`](../FutureIdeas/achievements.md). Phase 1 ships a **subset** — no meta/tab achievements.
+**Authoritative Phase 1 list:** [`AchievementCatalogPhase1.md`](AchievementCatalogPhase1.md) — **22 achievements** with exact predicates, hook timing, and incremental rules.
 
-| Category | Examples (IDs) | Modes |
-|----------|----------------|-------|
-| First steps | `db.play.first`, `db.win.first`, `db.dart.first_t20`, `db.dart.bull` | Any |
-| Scoring | `db.visit.100`, `db.visit.180`, `db.checkout.any` | X01 |
-| Wins | `db.mode.x01_win`, `db.mode.cricket_win`, `db.mode.both` | X01, Cricket |
-| Volume (incremental) | `db.play.10`, `db.play.50`, `db.legs.win_10`, `db.dart.t20_100` | Any |
-| Party (as modes ship) | `db.baseball.win`, `db.killer.win`, `db.shanghai.win` | Party |
+Full long-term catalog: [`FutureIdeas/achievements.md`](../FutureIdeas/achievements.md). Phase 2+ roadmap (mode wins, bot beats, hidden): manifest §12.
 
-**Excluded from Phase 1:** `db.modes.open`, `db.stats.open`, `db.history.open`, `db.play.rematch`, `db.setup.add_player`.
+| Category | Phase 1 IDs (summary) | Modes |
+|----------|----------------------|-------|
+| First steps | `db.play.first`, `db.win.first`, `db.dart.first_t20` | Any |
+| Scoring | `db.avg.match_60`, `db.avg.match_80`, `db.visit.180`, `db.visit.180_20`, `db.visit.180_100` | X01 |
+| Finishing | `db.checkout.100_plus`, `db.checkout.150_plus`, `db.checkout.rate_50`, `db.checkout.rate_100` | X01 |
+| Consistency | `db.streak.win_3`, `db.streak.days_3`, `db.streak.days_7_consecutive`, `db.streak.days_30_consecutive` | Any |
+| Milestones | `db.legs.win_100`, `db.play.10`, `db.play.50`, `db.play.100`, `db.play.250`, `db.play.500` | Any |
+
+**Campaign:** generic Phase 1 achievements count in Journey matches; `db.campaign.*` progression achievements ship separately ([`CampaignSpec.md`](CampaignSpec.md) Phase 2).
+
+**Phase 2+ (not Phase 1):** mode wins, bot-tier beats, party/Cricket expansions, hidden novelty, meta/tab opens.
 
 Add 2–4 achievements per newly shipped mode when promoting `game-modes/planned/` → `implemented/`.
 

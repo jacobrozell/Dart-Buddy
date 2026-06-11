@@ -122,6 +122,7 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
     public let botDifficultyRaw: String?
     public let botKindRaw: String?
     public let botSkillProfilePayload: Data?
+    public let botEffectiveTierRaw: String?
 
     public init(
         id: UUID,
@@ -132,7 +133,8 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
         avatarStyleAtMatchStart: String? = nil,
         botDifficultyRaw: String? = nil,
         botKindRaw: String? = nil,
-        botSkillProfilePayload: Data? = nil
+        botSkillProfilePayload: Data? = nil,
+        botEffectiveTierRaw: String? = nil
     ) {
         self.id = id
         self.matchId = matchId
@@ -143,6 +145,7 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
         self.botDifficultyRaw = botDifficultyRaw
         self.botKindRaw = botKindRaw
         self.botSkillProfilePayload = botSkillProfilePayload
+        self.botEffectiveTierRaw = botEffectiveTierRaw
     }
 }
 

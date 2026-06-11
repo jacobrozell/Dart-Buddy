@@ -1,8 +1,8 @@
 import Foundation
 import SwiftData
 
-public enum SchemaV2: VersionedSchema {
-    public static var versionIdentifier = Schema.Version(2, 1, 0)
+public enum SchemaV2_0_0: VersionedSchema {
+    public static var versionIdentifier = Schema.Version(2, 0, 0)
 
     public static var models: [any PersistentModel.Type] {
         [
@@ -117,8 +117,6 @@ public enum SchemaV2: VersionedSchema {
         public var botDifficultyRaw: String?
         public var botKindRaw: String?
         public var botSkillProfilePayload: Data?
-        /// Preset ladder tier for bot achievements (`BotAchievementTierResolver`), frozen at match start.
-        public var botEffectiveTierRaw: String?
 
         public init(
             id: UUID = UUID(),
@@ -129,8 +127,7 @@ public enum SchemaV2: VersionedSchema {
             avatarStyleAtMatchStart: String? = nil,
             botDifficultyRaw: String? = nil,
             botKindRaw: String? = nil,
-            botSkillProfilePayload: Data? = nil,
-            botEffectiveTierRaw: String? = nil
+            botSkillProfilePayload: Data? = nil
         ) {
             self.id = id
             self.matchId = matchId
@@ -141,7 +138,6 @@ public enum SchemaV2: VersionedSchema {
             self.botDifficultyRaw = botDifficultyRaw
             self.botKindRaw = botKindRaw
             self.botSkillProfilePayload = botSkillProfilePayload
-            self.botEffectiveTierRaw = botEffectiveTierRaw
         }
     }
 

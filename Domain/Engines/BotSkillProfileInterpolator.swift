@@ -140,4 +140,26 @@ public enum BotSkillProfileInterpolator {
             triple: lerp(a.triple, b.triple, t)
         )
     }
+
+    /// Highest preset tier whose anchor value is ≤ `metric` (achievement ladder floor).
+    public static func achievementTierFloor(forX01Average average: Double) -> BotDifficulty {
+        achievementTierFloor(metric: average, anchors: x01TierAverages)
+    }
+
+    /// Highest preset tier whose anchor value is ≤ `metric` (achievement ladder floor).
+    public static func achievementTierFloor(forCricketMPR mpr: Double) -> BotDifficulty {
+        achievementTierFloor(metric: mpr, anchors: cricketTierMPR)
+    }
+
+    private static func achievementTierFloor(
+        metric: Double,
+        anchors: [(BotDifficulty, Double)]
+    ) -> BotDifficulty {
+        guard let first = anchors.first else { return .veryEasy }
+        var floor = first.0
+        for (tier, anchorValue) in anchors where metric >= anchorValue {
+            floor = tier
+        }
+        return floor
+    }
 }

@@ -137,7 +137,8 @@ func mapParticipant(_ record: SchemaV2.MatchParticipantRecord) -> MatchParticipa
         avatarStyleAtMatchStart: record.avatarStyleAtMatchStart,
         botDifficultyRaw: record.botDifficultyRaw,
         botKindRaw: record.botKindRaw,
-        botSkillProfilePayload: record.botSkillProfilePayload
+        botSkillProfilePayload: record.botSkillProfilePayload,
+        botEffectiveTierRaw: record.botEffectiveTierRaw
     )
 }
 
