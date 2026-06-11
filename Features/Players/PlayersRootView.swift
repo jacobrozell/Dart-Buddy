@@ -28,10 +28,6 @@ struct PlayersRootView: View {
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
 
-    private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 760 : .infinity
-    }
-
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
         _viewModel = StateObject(wrappedValue: PlayersListViewModel(
@@ -59,13 +55,11 @@ struct PlayersRootView: View {
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
-                .frame(maxWidth: contentMaxWidth, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .center)
+                .readableRootContentWidth(horizontalSizeClass)
 
                 searchField
                     .padding(.horizontal, DS.Spacing.s4)
-                    .frame(maxWidth: contentMaxWidth, alignment: .leading)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .readableRootContentWidth(horizontalSizeClass)
 
                 Group {
                     if viewModel.state == .error {
@@ -119,11 +113,10 @@ struct PlayersRootView: View {
                         .tabRootScrollChrome()
                     }
                 }
+                .readableRootContentWidth(horizontalSizeClass)
             }
-            .background(Brand.background.ignoresSafeArea())
+            .tabRootScreenBackground()
             .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
-            .frame(maxWidth: contentMaxWidth, alignment: .center)
-            .frame(maxWidth: .infinity, alignment: .center)
             .navigationBarHidden(true)
             .safeAreaInset(edge: .bottom) {
                 if viewModel.state != .error && viewModel.players.isEmpty {
