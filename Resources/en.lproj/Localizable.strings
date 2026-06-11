@@ -66,7 +66,6 @@
 "play.setup.players" = "Players";
 "play.setup.playersEmptyHint" = "Tap Add Players to create players, or add a bot. Then tap + next to each name to add them to Turn order.";
 "play.setup.playersSelectionHint" = "Tap + next to each name to add them to Turn order. You need at least two players.";
-"play.setup.playerRow.accessibilityHint" = "Adds this player to the match roster.";
 "play.setup.chip.accessibilityFormat" = "%@, %@";
 "play.setup.start.disabledHint" = "Select at least two players to start.";
 "play.setup.mode.accessibilityFormat" = "%@ game mode";
@@ -76,7 +75,6 @@
 "history.loadMore.accessibility" = "Load more games";
 "players.search.accessibility" = "Search players";
 "players.row.accessibilityFormat" = "%@%@";
-"players.row.accessibilityHint" = "Shows player details.";
 "players.row.botSuffix" = ", bot %@";
 "players.row.archivedSuffix" = ", archived";
 "settings.reset.accessibility" = "Reset all data";
@@ -138,7 +136,7 @@
 "play.cricket.column.footer.mpr" = "%.2f MPR";
 "play.cricket.column.footer.legs" = "Leg %d";
 "play.cricket.column.footer.sets" = "Set %d";
-"play.cricket.column.accessibilityFormat" = "%@, score %d, %d darts, %.2f marks per round.%@";
+"play.cricket.column.accessibilityFormat" = "%@, score %d";
 "setup.validation.cricketBotUnsupported" = "Bots require points to be enabled.";
 "common.active" = "Active";
 "play.match.submittingTurn" = "Submitting turn...";
@@ -316,6 +314,8 @@
 "settings.support.feedback.accessibility" = "Send feedback by email";
 "settings.support.rate.accessibility" = "Rate Dart Buddy on the App Store";
 "settings.support.privacy.accessibility" = "Open privacy policy in browser";
+"settings.support.feedbackEmailSubject" = "Dart Buddy Feedback";
+"settings.support.feedbackEmailBodyFormat" = "App version: %@\n\n";
 "settings.support.buyCoffee" = "Buy Developer a Coffee";
 "settings.support.buyCoffee.footer" = "Optional tip to support development. Opens in Safari.";
 "settings.support.buyCoffee.accessibility" = "Buy developer a coffee, opens in browser";
@@ -489,6 +489,7 @@
 "modes.catalog.practice.halveIt.name" = "Halve-It";
 "modes.catalog.practice.halveIt.blurb" = "Miss the target, halve your score";
 "play.setup.selectedMode" = "Selected mode";
+"play.setup.selectedMode.accessibilityFormat" = "%@. %@";
 "play.setup.modePicker.title" = "Choose mode";
 "play.setup.changeMode" = "Change";
 "play.setup.editOptions" = "Edit options";
@@ -654,7 +655,6 @@
 "customBot.setup.section" = "Custom bots";
 "bot.namePrefixFormat" = "%@ Bot ";
 "play.rules.learnButton" = "Learn to play";
-"play.rules.learnButton.hint" = "Opens rules for the selected game type.";
 "play.rules.sheet.title" = "How to play";
 "play.rules.sheet.done" = "Done";
 "play.rules.x01.overview.title" = "The game";

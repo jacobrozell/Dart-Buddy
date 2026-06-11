@@ -314,6 +314,28 @@ final class WCAGAccessibilityUITests: XCTestCase {
         assertInteractiveElement(app.switches["settings_botStaggerToggle"], identifier: "settings_botStaggerToggle")
         assertInteractiveElement(app.switches["settings_botDartHapticsToggle"], identifier: "settings_botDartHapticsToggle")
 
+        scrollToSettingsControl("settings_supportFAQLink", in: app, timeout: timeout)
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_supportFAQLink"],
+            identifier: "settings_supportFAQLink"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_sendFeedbackLink"],
+            identifier: "settings_sendFeedbackLink"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_rateAppLink"],
+            identifier: "settings_rateAppLink"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any)["settings_privacyPolicyLink"],
+            identifier: "settings_privacyPolicyLink"
+        )
+        assertInteractiveElement(
+            app.staticTexts["settings_aboutVersion"],
+            identifier: "settings_aboutVersion"
+        )
+
         scrollToSettingsControl("settings_viewOnboardingButton", in: app, timeout: timeout)
         assertInteractiveElement(app.buttons["settings_viewOnboardingButton"], identifier: "settings_viewOnboardingButton")
 
