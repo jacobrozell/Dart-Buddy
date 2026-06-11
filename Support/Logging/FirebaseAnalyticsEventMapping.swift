@@ -32,34 +32,7 @@ public enum FirebaseAnalyticsEventMapping {
         "client_environment_changed"
     ]
 
-    private static let allowlistedParameterKeys: Set<String> = [
-        "matchType",
-        "errorCode",
-        "layer",
-        "status",
-        "participantCount",
-        "operation",
-        "schemaVersion",
-        "fromSchema",
-        "toSchema",
-        "legIndex",
-        "setIndex",
-        "source",
-        "isBot",
-        "path",
-        "version",
-        "intentName",
-        "deviceClass",
-        "isVoiceOverRunning",
-        "isSwitchControlRunning",
-        "isBoldTextEnabled",
-        "isReduceMotionEnabled",
-        "isScreenCaptured",
-        "isExternalDisplayConnected",
-        "interfaceOrientation",
-        "trigger",
-        "changedSignals"
-    ]
+    private static let allowlistedParameterKeys: Set<String> = AnalyticsMetadataKeys.firebaseParameters
 
     private static let firebaseNameOverrides: [String: String] = [
         "app_bootstrap_ready": "app_open",

@@ -47,6 +47,23 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
         ]
     }
 
+    /// Comma-separated signal names that differ between two snapshots (for change analytics).
+    public static func changedSignals(
+        from previous: ClientEnvironmentSnapshot,
+        to current: ClientEnvironmentSnapshot
+    ) -> String {
+        var changes: [String] = []
+        if previous.isVoiceOverRunning != current.isVoiceOverRunning { changes.append("voiceover") }
+        if previous.isSwitchControlRunning != current.isSwitchControlRunning { changes.append("switchControl") }
+        if previous.isBoldTextEnabled != current.isBoldTextEnabled { changes.append("boldText") }
+        if previous.isReduceMotionEnabled != current.isReduceMotionEnabled { changes.append("reduceMotion") }
+        if previous.isScreenCaptured != current.isScreenCaptured { changes.append("screenCapture") }
+        if previous.isExternalDisplayConnected != current.isExternalDisplayConnected { changes.append("display") }
+        if previous.deviceClass != current.deviceClass { changes.append("deviceClass") }
+        if previous.interfaceOrientation != current.interfaceOrientation { changes.append("orientation") }
+        return changes.joined(separator: ",")
+    }
+
     public static func current() -> ClientEnvironmentSnapshot {
         #if canImport(UIKit)
         ClientEnvironmentSnapshot(

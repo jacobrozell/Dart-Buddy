@@ -86,6 +86,95 @@ func loggerPreservesClientEnvironmentMetadataThroughRedaction() {
     #expect(firebaseEvent?.parameters["isVoiceOverRunning"] == "true")
 }
 
+@Test(.tags(.unit, .regression))
+func clientEnvironmentChangedSignalsIncludesOrientation() {
+    let portrait = ClientEnvironmentSnapshot(
+        deviceClass: "iphone",
+        isVoiceOverRunning: false,
+        isSwitchControlRunning: false,
+        isBoldTextEnabled: false,
+        isReduceMotionEnabled: false,
+        isScreenCaptured: false,
+        isExternalDisplayConnected: false,
+        interfaceOrientation: "portrait"
+    )
+    let landscape = ClientEnvironmentSnapshot(
+        deviceClass: "iphone",
+        isVoiceOverRunning: false,
+        isSwitchControlRunning: false,
+        isBoldTextEnabled: false,
+        isReduceMotionEnabled: false,
+        isScreenCaptured: false,
+        isExternalDisplayConnected: false,
+        interfaceOrientation: "landscape"
+    )
+
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: portrait, to: landscape) == "orientation")
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: landscape, to: portrait) == "orientation")
+}
+
+@Test(.tags(.unit, .regression))
+func clientEnvironmentChangedSignalsCombinesMultipleChanges() {
+    let before = ClientEnvironmentSnapshot(
+        deviceClass: "iphone",
+        isVoiceOverRunning: false,
+        isSwitchControlRunning: false,
+        isBoldTextEnabled: false,
+        isReduceMotionEnabled: false,
+        isScreenCaptured: false,
+        isExternalDisplayConnected: false,
+        interfaceOrientation: "portrait"
+    )
+    let after = ClientEnvironmentSnapshot(
+        deviceClass: "iphone",
+        isVoiceOverRunning: true,
+        isSwitchControlRunning: false,
+        isBoldTextEnabled: false,
+        isReduceMotionEnabled: false,
+        isScreenCaptured: false,
+        isExternalDisplayConnected: false,
+        interfaceOrientation: "landscape"
+    )
+
+    #expect(ClientEnvironmentSnapshot.changedSignals(from: before, to: after) == "voiceover,orientation")
+}
+
+@Test(.tags(.unit, .logging, .regression, .critical))
+func clientEnvironmentMetadataKeysAreAllowlistedForRedactionAndFirebase() {
+    let metadata = ClientEnvironmentSnapshot(
+        deviceClass: "ipad",
+        isVoiceOverRunning: true,
+        isSwitchControlRunning: false,
+        isBoldTextEnabled: false,
+        isReduceMotionEnabled: false,
+        isScreenCaptured: false,
+        isExternalDisplayConnected: true,
+        interfaceOrientation: "landscape"
+    ).analyticsMetadata
+
+    for key in AnalyticsMetadataKeys.clientEnvironment where key != "trigger" && key != "changedSignals" {
+        #expect(metadata.keys.contains(key))
+    }
+
+    let redacted = DefaultRedactionPolicy().redact(metadata: metadata)
+    for key in metadata.keys {
+        #expect(redacted[key] == metadata[key])
+    }
+
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .appLifecycle,
+        eventName: "client_environment_changed",
+        message: "Changed.",
+        metadata: metadata.merging(["trigger": "orientation", "changedSignals": "orientation"]) { _, new in new },
+        correlationId: nil
+    )
+    let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)
+    #expect(event?.parameters["interfaceOrientation"] == "landscape")
+    #expect(event?.parameters["trigger"] == "orientation")
+}
+
 @Test(.tags(.unit, .logging, .regression))
 func mapsClientEnvironmentChangedEvent() {
     let entry = LogEntry(

@@ -18,6 +18,8 @@ enum ClientEnvironmentMonitor {
 
     #if canImport(UIKit)
     private static func registerObservers(logger: any AppLogger) {
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+
         let center = NotificationCenter.default
         let names: [Notification.Name] = [
             UIAccessibility.voiceOverStatusDidChangeNotification,
@@ -25,6 +27,7 @@ enum ClientEnvironmentMonitor {
             UIAccessibility.boldTextStatusDidChangeNotification,
             UIAccessibility.reduceMotionStatusDidChangeNotification,
             UIScreen.capturedDidChangeNotification,
+            UIDevice.orientationDidChangeNotification,
             UIScene.willConnectNotification,
             UIScene.didDisconnectNotification
         ]
@@ -55,6 +58,8 @@ enum ClientEnvironmentMonitor {
             return "reduceMotion"
         case UIScreen.capturedDidChangeNotification:
             return "screenCapture"
+        case UIDevice.orientationDidChangeNotification:
+            return "orientation"
         case UIScene.willConnectNotification, UIScene.didDisconnectNotification:
             return "display"
         default:
@@ -72,7 +77,7 @@ enum ClientEnvironmentMonitor {
         var metadata = current.analyticsMetadata
         metadata["trigger"] = trigger
         if let previous = lastSnapshot {
-            metadata["changedSignals"] = changedSignals(from: previous, to: current)
+            metadata["changedSignals"] = ClientEnvironmentSnapshot.changedSignals(from: previous, to: current)
         }
 
         logger.info(
@@ -82,21 +87,5 @@ enum ClientEnvironmentMonitor {
             metadata: metadata
         )
         lastSnapshot = current
-    }
-
-    private static func changedSignals(
-        from previous: ClientEnvironmentSnapshot,
-        to current: ClientEnvironmentSnapshot
-    ) -> String {
-        var changes: [String] = []
-        if previous.isVoiceOverRunning != current.isVoiceOverRunning { changes.append("voiceover") }
-        if previous.isSwitchControlRunning != current.isSwitchControlRunning { changes.append("switchControl") }
-        if previous.isBoldTextEnabled != current.isBoldTextEnabled { changes.append("boldText") }
-        if previous.isReduceMotionEnabled != current.isReduceMotionEnabled { changes.append("reduceMotion") }
-        if previous.isScreenCaptured != current.isScreenCaptured { changes.append("screenCapture") }
-        if previous.isExternalDisplayConnected != current.isExternalDisplayConnected { changes.append("display") }
-        if previous.deviceClass != current.deviceClass { changes.append("deviceClass") }
-        if previous.interfaceOrientation != current.interfaceOrientation { changes.append("orientation") }
-        return changes.joined(separator: ",")
     }
 }

@@ -7,6 +7,7 @@ import Testing
 @MainActor
 private func makeX01ViewModel(
     totals: [Int],
+    checkoutMode: X01CheckoutMode = .singleOut,
     failAppend: Bool = false,
     seedSession: Bool = true
 ) throws -> (vm: X01MatchViewModel, matchId: UUID, store: ActiveMatchStore) {
@@ -14,7 +15,7 @@ private func makeX01ViewModel(
     let p1 = UUID()
     var session = try MatchLifecycleService.createMatch(
         type: .x01,
-        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: checkoutMode)),
         participants: [
             MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
             MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
@@ -38,6 +39,15 @@ private func makeX01ViewModel(
 
 /// Leaves player 0 on 40 remaining with player 1 to throw (301 start, alternating visits).
 private let x01TotalsPlayer0OnForty: [Int] = [180, 0, 81, 0]
+
+/// Leaves player 0 on `remaining` with player 0 to throw (301 start).
+private func x01TotalsPlayer0OnRemaining(_ remaining: Int) -> [Int] {
+    [301 - remaining, 0]
+}
+
+private func x01Miss() -> DartInput {
+    DartInput(multiplier: .single, segment: .miss, isMiss: true)
+}
 
 @MainActor
 private func makeHumanBotX01ViewModel(preloadedTotals: [Int] = []) throws -> X01MatchViewModel {
@@ -253,6 +263,58 @@ func x01ViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws {
     #expect(vm.session?.events.count == 1)
     #expect(vm.playerCards[0].score == 241)
     #expect(store.session(for: matchId) != nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelSingleOutThreeLeftTwoThenMissesLeavesOne() async throws {
+    let (vm, _, _) = try makeX01ViewModel(
+        totals: x01TotalsPlayer0OnRemaining(3),
+        checkoutMode: .singleOut
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .single, segment: .oneToTwenty(2)),
+        x01Miss(),
+        x01Miss()
+    ]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn)
+    #expect(vm.playerCards[0].score == 1)
+    if case let .x01Turn(event) = vm.session?.events.last?.payload {
+        #expect(!event.isBust)
+        #expect(event.appliedTotal == 2)
+    } else {
+        Issue.record("Expected last event to be an X01 turn")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .critical, .regression))
+func x01ViewModelDoubleOutThreeLeftTwoThenMissesBusts() async throws {
+    let (vm, _, _) = try makeX01ViewModel(
+        totals: x01TotalsPlayer0OnRemaining(3),
+        checkoutMode: .doubleOut
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .single, segment: .oneToTwenty(2)),
+        x01Miss(),
+        x01Miss()
+    ]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .bustFeedback)
+    #expect(vm.playerCards[0].score == 3)
+    if case let .x01Turn(event) = vm.session?.events.last?.payload {
+        #expect(event.isBust)
+        #expect(event.appliedTotal == 0)
+    } else {
+        Issue.record("Expected last event to be an X01 turn")
+    }
 }
 
 @MainActor
