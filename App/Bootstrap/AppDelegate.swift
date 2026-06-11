@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        SnapshotOrientationLock.configureFromLaunchArguments()
         if FirebaseBootstrap.shouldConfigure {
             FirebaseApp.configure()
             Analytics.setAnalyticsCollectionEnabled(FirebaseBootstrap.isAnalyticsCollectionEnabled)
@@ -21,5 +22,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         }
         #endif
         return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        supportedInterfaceOrientationsFor window: UIWindow?
+    ) -> UIInterfaceOrientationMask {
+        SnapshotOrientationLock.mask
     }
 }

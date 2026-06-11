@@ -9,6 +9,8 @@
 #
 # Output: marketing-screenshots/raw/*.png (resized for App Store Connect by default)
 # Landscape files use a -landscape suffix before .png (e.g. …-dark-landscape.png).
+# Custom bot detail captures all four light/dark × portrait/landscape frames:
+#   {device}-06b-custom-bot-{light|dark}[-landscape].png
 # Then run: ./Scripts/frame-marketing-screenshots.sh
 #
 # App Store 6.5" slot requires 1284×2778 or 1242×2688 (portrait) and matching landscape sizes.
@@ -31,6 +33,7 @@ SCHEME="DartBuddy"
 PROJECT="$ROOT/DartBuddy.xcodeproj"
 DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/marketing-screenshots}"
 LAUNCH_DELAY="${LAUNCH_DELAY:-5}"
+ORIENTATION_SETTLE_SEC="${ORIENTATION_SETTLE_SEC:-1.5}"
 APP_STORE_RESIZE="${APP_STORE_RESIZE:-1}"
 
 COMMON_ARGS=(-ui_test_reset -ui_test_disable_feedback -disable_firebase_analytics)
@@ -64,12 +67,12 @@ for runtime, devices in data.get('devices', {}).items():
             sys.exit(0)
 sys.exit(1)
 " "$SIM_NAME")"
+export SIM_UDID
 
 echo "→ Booting $SIM_NAME ($SIM_UDID)…"
 xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$SIM_UDID" -b
 open -a Simulator --args -CurrentDeviceUDID "$SIM_UDID"
-reset_simulator_orientation
 xcrun simctl ui "$SIM_UDID" appearance "$APPEARANCE"
 xcrun simctl ui "$SIM_UDID" content_size large
 
@@ -109,6 +112,8 @@ app_store_resize_png_for_orientation() {
     height="$APP_STORE_WIDTH"
   fi
 
+  verify_screenshot_orientation "$path" "$orientation"
+
   local w h
   w="$(magick identify -format "%w" "$path")"
   h="$(magick identify -format "%h" "$path")"
@@ -127,22 +132,55 @@ capture() {
     local suffix=""
     if [[ "$orientation" == "landscape" ]]; then
       suffix="-landscape"
-      ensure_landscape
-    else
-      ensure_portrait
     fi
 
     local filename="${DEVICE_SLUG}-${slug}-${APPEARANCE}${suffix}.png"
-    echo "→ Capturing ${filename} (${orientation})..."
-    xcrun simctl terminate "$SIM_UDID" "$BUNDLE_ID" 2>/dev/null || true
-    sleep 0.5
-    xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" "${args[@]}" >/dev/null
-    sleep "$LAUNCH_DELAY"
-    xcrun simctl io "$SIM_UDID" screenshot "$OUT_DIR/$filename"
-    if [[ "$APP_STORE_RESIZE" == 1 ]]; then
-      app_store_resize_png_for_orientation "$OUT_DIR/$filename" "$orientation"
-    fi
+    capture_frame "$filename" "$orientation" "${args[@]}"
   done
+}
+
+capture_frame() {
+  local filename="$1"
+  local orientation="$2"
+  shift 2
+  local -a args=("$@")
+
+  echo "→ Capturing ${filename} (${orientation})..."
+  xcrun simctl terminate "$SIM_UDID" "$BUNDLE_ID" 2>/dev/null || true
+  sleep 0.5
+  xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" \
+    "${args[@]}" -snapshot_orientation "$orientation" >/dev/null
+  sleep "$LAUNCH_DELAY"
+  sleep "$ORIENTATION_SETTLE_SEC"
+  xcrun simctl io "$SIM_UDID" screenshot "$OUT_DIR/$filename"
+  normalize_screenshot_for_orientation "$OUT_DIR/$filename" "$orientation"
+  verify_screenshot_orientation "$OUT_DIR/$filename" "$orientation"
+  if [[ "$APP_STORE_RESIZE" == 1 ]]; then
+    app_store_resize_png_for_orientation "$OUT_DIR/$filename" "$orientation"
+  fi
+}
+
+capture_custom_bot_matrix() {
+  echo "→ Custom bot detail matrix (light/dark × ${ORIENTATIONS})…"
+  local -a snapshot_args=(
+    "${COMMON_ARGS[@]}"
+    -seed_demo
+    -snapshot_tab
+    players
+    -snapshot_custom_bot
+  )
+  for appearance in light dark; do
+    xcrun simctl ui "$SIM_UDID" appearance "$appearance"
+    for orientation in $ORIENTATIONS; do
+      local suffix=""
+      if [[ "$orientation" == "landscape" ]]; then
+        suffix="-landscape"
+      fi
+      local filename="${DEVICE_SLUG}-06b-custom-bot-${appearance}${suffix}.png"
+      capture_frame "$filename" "$orientation" "${snapshot_args[@]}"
+    done
+  done
+  xcrun simctl ui "$SIM_UDID" appearance "$APPEARANCE"
 }
 
 DEVICE_SLUG="$(slugify "$SIM_NAME")"
@@ -169,6 +207,8 @@ capture "05-match-summary" \
 capture "06-players" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab players
 
+capture_custom_bot_matrix
+
 capture "07-activity-statistics" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity -snapshot_activity_segment statistics
 
@@ -177,8 +217,6 @@ capture "08-onboarding-welcome" \
 
 capture "10-settings" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab settings
-
-ensure_portrait
 
 echo ""
 first_png="$(ls -1 "$OUT_DIR"/*.png | head -1)"
