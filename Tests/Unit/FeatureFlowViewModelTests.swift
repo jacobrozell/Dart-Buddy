@@ -567,6 +567,68 @@ private func makeCompletedX01Fixture() throws -> StatsFixture {
     return StatsFixture(matchId: matchId, jacob: jacob, sam: sam, summary: summary, participants: participants, events: events, snapshot: snapshot)
 }
 
+private func makeCompletedCricketFixture() throws -> StatsFixture {
+    let matchId = UUID()
+    let carol = UUID()
+    let bob = UUID()
+    func triple(_ value: Int) -> DartInput {
+        DartInput(multiplier: .triple, segment: .oneToTwenty(value))
+    }
+    func miss() -> DartInput {
+        DartInput(multiplier: .single, segment: .miss, isMiss: true)
+    }
+    var session = try MatchLifecycleService.createMatch(
+        matchId: matchId,
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(playerId: carol, displayNameAtMatchStart: "Carol", turnOrder: 0),
+            MatchParticipant(playerId: bob, displayNameAtMatchStart: "Bob", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [triple(20)])
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [miss(), miss(), miss()])
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [triple(19)])
+
+    let now = Date()
+    let summary = MatchSummary(
+        id: matchId,
+        type: .cricket,
+        status: .completed,
+        startedAt: now,
+        endedAt: now,
+        winnerPlayerId: carol,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: session.events.count,
+        createdAt: now,
+        updatedAt: now
+    )
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: carol, turnOrder: 0, displayNameAtMatchStart: "Carol", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: bob, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    let events = try session.events.map { envelope in
+        MatchEventSummary(
+            id: UUID(),
+            matchId: matchId,
+            eventIndex: envelope.eventIndex,
+            eventTypeRaw: "cricketTurn",
+            eventPayload: try CodablePayloadCoder.encode(envelope),
+            createdAt: now
+        )
+    }
+    let snapshot = MatchSnapshotSummary(
+        id: UUID(),
+        matchId: matchId,
+        snapshotVersion: session.latestSnapshot.payloadVersion,
+        snapshotPayload: session.latestSnapshot.payload,
+        updatedAt: now
+    )
+    return StatsFixture(matchId: matchId, jacob: carol, sam: bob, summary: summary, participants: participants, events: events, snapshot: snapshot)
+}
+
 private actor StatsFakeMatchRepository: MatchRepository {
     private let fixture: StatsFixture
     private(set) var deletedIds: [UUID] = []
@@ -720,6 +782,45 @@ func historyDetailViewModelReportsNotFoundForMissingMatch() async {
     #expect(vm.state == "error")
     #expect(vm.errorMessageKey == "error.match.notFound")
     #expect(vm.timeline.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .cricket, .regression))
+func historyDetailViewModelBuildsCricketTimelineFromEvents() async throws {
+    let fixture = try makeCompletedCricketFixture()
+    let vm = HistoryDetailViewModel(
+        matchId: fixture.matchId,
+        matchRepository: StatsFakeMatchRepository(fixture: fixture),
+        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+    )
+    await vm.onAppear()
+
+    #expect(!vm.isX01)
+    #expect(vm.matchType == .cricket)
+    #expect(vm.timeline.count == 3)
+    #expect(vm.timeline.allSatisfy { $0.contains("Carol") || $0.contains("Bob") })
+    #expect(vm.header?.modeSpecificSummaryText.isEmpty == false)
+    #expect(vm.throwsRows.count == 2)
+    #expect(vm.throwsRows.allSatisfy { $0.throwCount > 0 })
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .cricket, .stats, .regression))
+func historyDetailViewModelLoadsCricketBreakdownsAndStandings() async throws {
+    let fixture = try makeCompletedCricketFixture()
+    let vm = HistoryDetailViewModel(
+        matchId: fixture.matchId,
+        matchRepository: StatsFakeMatchRepository(fixture: fixture),
+        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+    )
+    await vm.onAppear()
+
+    #expect(vm.state == "ready")
+    #expect(vm.breakdowns.count == 2)
+    #expect(vm.standings.count == 2)
+    #expect(vm.standings.contains { $0.name == "Carol" })
+    let carolBreakdown = try #require(vm.breakdowns.first { $0.playerId == fixture.jacob })
+    #expect(carolBreakdown.cricketMarks > 0)
 }
 
 @MainActor

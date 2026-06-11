@@ -152,3 +152,127 @@ func mapsIntentPerformedEvent() {
     #expect(event?.parameters["intentName"] == "open_play")
     #expect(event?.parameters["playerId"] == nil)
 }
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsIntentFailedEvent() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .debug,
+        category: .ui,
+        eventName: "intent_failed",
+        message: "Intent routing failed.",
+        metadata: ["intentName": "resume_match", "errorCode": "no_active_match"],
+        correlationId: nil
+    )
+
+    let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: "2.0.0")
+
+    #expect(event?.name == "intent_failed")
+    #expect(event?.parameters["intentName"] == "resume_match")
+    #expect(event?.parameters["errorCode"] == "no_active_match")
+    #expect(event?.parameters["app_version"] == "2.0.0")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsMatchCompletedAndTurnSubmittedEvents() {
+    let completed = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "match_completed",
+        message: "Done.",
+        metadata: ["matchType": "cricket", "participantCount": "2"],
+        correlationId: nil
+    )
+    let submitted = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "turn_submitted",
+        message: "Turn saved.",
+        metadata: ["matchType": "x01", "legIndex": "0", "matchId": "secret"],
+        correlationId: nil
+    )
+
+    #expect(FirebaseAnalyticsEventMapping.map(completed, appVersion: nil)?.name == "match_completed")
+    #expect(FirebaseAnalyticsEventMapping.map(submitted, appVersion: nil)?.name == "turn_submitted")
+    #expect(FirebaseAnalyticsEventMapping.map(submitted, appVersion: nil)?.parameters["matchId"] == nil)
+    #expect(FirebaseAnalyticsEventMapping.map(submitted, appVersion: nil)?.parameters["legIndex"] == "0")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsMatchAbandonedAndDartUndoneEvents() {
+    let abandoned = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "match_abandoned",
+        message: "Abandoned.",
+        metadata: ["matchType": "x01", "source": "setup"],
+        correlationId: nil
+    )
+    let dartUndone = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "dart_undone",
+        message: "Dart removed.",
+        metadata: ["matchType": "x01"],
+        correlationId: nil
+    )
+
+    #expect(FirebaseAnalyticsEventMapping.map(abandoned, appVersion: nil)?.name == "match_abandoned")
+    #expect(FirebaseAnalyticsEventMapping.map(dartUndone, appVersion: nil)?.name == "undo_used")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsDeepLinkReceivedEvent() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .debug,
+        category: .ui,
+        eventName: "deep_link_received",
+        message: "Received.",
+        metadata: ["path": "play", "version": "v1"],
+        correlationId: nil
+    )
+
+    let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)
+    #expect(event?.name == "deep_link_received")
+    #expect(event?.parameters["path"] == "play")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func sanitizesLongMetadataValues() {
+    let longValue = String(repeating: "x", count: 150)
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "match_started",
+        message: "Started.",
+        metadata: ["matchType": longValue],
+        correlationId: nil
+    )
+
+    let value = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)?.parameters["matchType"]
+    #expect(value?.count == 100)
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func dropsEmptyAllowlistedParameterValues() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "match_started",
+        message: "Started.",
+        metadata: ["matchType": "", "participantCount": "2"],
+        correlationId: nil
+    )
+
+    let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)
+    #expect(event?.parameters["matchType"] == nil)
+    #expect(event?.parameters["participantCount"] == "2")
+}
+

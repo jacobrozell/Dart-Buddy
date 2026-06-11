@@ -2,6 +2,33 @@ import Foundation
 import Testing
 @testable import DartBuddy
 
+@Test(.tags(.unit, .match, .regression, .offline))
+func lifecycleCreateMatchPreservesExplicitMatchId() throws {
+    let matchId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        matchId: matchId,
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Solo", turnOrder: 0)
+        ]
+    )
+    #expect(session.runtime.matchId == matchId)
+}
+
+@Test(.tags(.unit, .match, .regression, .offline))
+func lifecycleCreateMatchRejectsSingleParticipantCricket() {
+    #expect(throws: (any Error).self) {
+        _ = try MatchLifecycleService.createMatch(
+            type: .cricket,
+            config: .cricket(MatchConfigCricket()),
+            participants: [
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Only", turnOrder: 0)
+            ]
+        )
+    }
+}
+
 @Test(.tags(.unit, .match, .critical, .regression, .offline))
 func lifecycleUndoRevertsLastTurnDeterministically() throws {
     let player1 = UUID()

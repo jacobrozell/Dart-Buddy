@@ -110,3 +110,23 @@ func gatedTurnTotalCallerRequiresSoundAndSetting() {
     gated.announceTurnTotal(60)
     #expect(recorder.announcedTotals == [60])
 }
+
+@Test(.tags(.unit, .regression))
+func noopFeedbackServicesDoNotCrash() {
+    NoopHapticsService().playSelection()
+    NoopHapticsService().playImpact()
+    NoopHapticsService().playSuccess()
+    NoopAudioFeedbackService().playHit()
+    NoopAudioFeedbackService().playMiss()
+    NoopAudioFeedbackService().playLegFinished()
+    NoopAudioFeedbackService().playMatchFinished()
+    NoopTurnTotalCallerService().announceTurnTotal(100)
+}
+
+@Test(.tags(.unit, .regression))
+func turnTotalCallerSignalStoresTokenAndTotal() {
+    let signal = TurnTotalCallerSignal(token: 3, total: 180)
+    #expect(signal.token == 3)
+    #expect(signal.total == 180)
+    #expect(signal == TurnTotalCallerSignal(token: 3, total: 180))
+}

@@ -68,3 +68,56 @@ func dropsInfoLevelAndNonAllowlistedEvents() {
     )
     #expect(FirebaseCrashlyticsEventMapping.nonFatalError(for: errorEntry, appVersion: nil) == nil)
 }
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsEveryAllowlistedCrashlyticsEventCode() {
+    for (eventName, code) in FirebaseCrashlyticsEventMapping.eventCodes {
+        let entry = LogEntry(
+            timestamp: Date(),
+            level: .error,
+            category: .persistence,
+            eventName: eventName,
+            message: "Failure.",
+            metadata: ["errorCode": "test", "matchType": "x01"],
+            correlationId: nil
+        )
+        let error = FirebaseCrashlyticsEventMapping.nonFatalError(for: entry, appVersion: "1.0.0")
+        #expect(error?.code == code)
+        #expect(error?.userInfo["event_name"] as? String == eventName)
+    }
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func crashlyticsSanitizesLongParameterValues() {
+    let longValue = String(repeating: "y", count: 150)
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .error,
+        category: .persistence,
+        eventName: "turn_persist_failed",
+        message: "Failed.",
+        metadata: ["matchType": longValue],
+        correlationId: nil
+    )
+
+    let value = FirebaseCrashlyticsEventMapping.nonFatalError(for: entry, appVersion: nil)?.userInfo["matchType"] as? String
+    #expect(value?.count == 100)
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func crashlyticsOmitsEmptyAppVersion() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .error,
+        category: .persistence,
+        eventName: "match_start_failed",
+        message: "Failed.",
+        metadata: ["matchType": "x01"],
+        correlationId: nil
+    )
+
+    let withVersion = FirebaseCrashlyticsEventMapping.nonFatalError(for: entry, appVersion: "1.0.0")
+    let withoutVersion = FirebaseCrashlyticsEventMapping.nonFatalError(for: entry, appVersion: "")
+    #expect(withVersion?.userInfo["app_version"] as? String == "1.0.0")
+    #expect(withoutVersion?.userInfo["app_version"] == nil)
+}

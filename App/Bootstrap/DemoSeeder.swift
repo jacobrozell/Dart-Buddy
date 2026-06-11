@@ -4,8 +4,11 @@ import Foundation
 /// Only runs when launched with `-seed_demo` and the store has no players yet.
 enum DemoSeeder {
     static func seedIfRequested(_ dependencies: AppDependencies) async {
-        let arguments = ProcessInfo.processInfo.arguments
+        await seedIfRequested(dependencies, arguments: ProcessInfo.processInfo.arguments)
+    }
 
+    /// Allows unit tests to exercise launch-argument branches without mutating `ProcessInfo`.
+    static func seedIfRequested(_ dependencies: AppDependencies, arguments: [String]) async {
         if arguments.contains("-ui_test_reset") {
             LocalAppStateReset.clearAllPersistedAuxiliaryState()
             try? await dependencies.settingsRepository.resetAllLocalData()
