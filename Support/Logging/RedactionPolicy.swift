@@ -28,7 +28,20 @@ public struct DefaultRedactionPolicy: RedactionPolicy {
             "setIndex",
             "status",
             "source",
-            "isBot"
+            "isBot",
+            "path",
+            "version",
+            "intentName",
+            "deviceClass",
+            "isVoiceOverRunning",
+            "isSwitchControlRunning",
+            "isBoldTextEnabled",
+            "isReduceMotionEnabled",
+            "isScreenCaptured",
+            "isExternalDisplayConnected",
+            "interfaceOrientation",
+            "trigger",
+            "changedSignals"
         ],
         sensitiveKeyFragments: [String] = [
             "token",

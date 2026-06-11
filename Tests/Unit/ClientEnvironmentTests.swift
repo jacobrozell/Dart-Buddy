@@ -54,6 +54,38 @@ func mapsBootstrapReadyClientEnvironmentMetadata() {
     #expect(event?.parameters["interfaceOrientation"] == "portrait")
 }
 
+@Test(.tags(.unit, .logging, .regression, .critical))
+func loggerPreservesClientEnvironmentMetadataThroughRedaction() {
+    let sink = ClientEnvironmentRecordingSink()
+    let logger = DefaultAppLogger(minimumLevel: .info, sink: sink)
+
+    logger.info(
+        .appLifecycle,
+        eventName: "app_bootstrap_ready",
+        message: "Ready.",
+        metadata: ClientEnvironmentSnapshot(
+            deviceClass: "ipad",
+            isVoiceOverRunning: true,
+            isSwitchControlRunning: false,
+            isBoldTextEnabled: false,
+            isReduceMotionEnabled: false,
+            isScreenCaptured: false,
+            isExternalDisplayConnected: true,
+            interfaceOrientation: "landscape"
+        ).analyticsMetadata
+    )
+
+    #expect(sink.entries.count == 1)
+    #expect(sink.entries.first?.metadata["deviceClass"] == "ipad")
+    #expect(sink.entries.first?.metadata["isVoiceOverRunning"] == "true")
+    #expect(sink.entries.first?.metadata["isExternalDisplayConnected"] == "true")
+
+    let firebaseEvent = FirebaseAnalyticsEventMapping.map(sink.entries[0], appVersion: "1.0.0")
+    #expect(firebaseEvent?.name == "app_open")
+    #expect(firebaseEvent?.parameters["deviceClass"] == "ipad")
+    #expect(firebaseEvent?.parameters["isVoiceOverRunning"] == "true")
+}
+
 @Test(.tags(.unit, .logging, .regression))
 func mapsClientEnvironmentChangedEvent() {
     let entry = LogEntry(
@@ -77,4 +109,12 @@ func mapsClientEnvironmentChangedEvent() {
     #expect(event?.parameters["trigger"] == "voiceover")
     #expect(event?.parameters["isVoiceOverRunning"] == "true")
     #expect(event?.parameters["changedSignals"] == "voiceover")
+}
+
+private final class ClientEnvironmentRecordingSink: LogSink, @unchecked Sendable {
+    var entries: [LogEntry] = []
+
+    func write(_ entry: LogEntry) {
+        entries.append(entry)
+    }
 }
