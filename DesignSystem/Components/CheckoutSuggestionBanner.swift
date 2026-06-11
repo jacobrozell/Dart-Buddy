@@ -3,8 +3,14 @@ import SwiftUI
 /// Checkout route banner for X01 — one dart per pill, optional cycling when multiple
 /// fewest-dart routes exist.
 struct CheckoutSuggestionBanner: View {
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
     let routes: [[String]]
     @Binding var selectedIndex: Int
+
+    private var usesCompactLayout: Bool {
+        verticalSizeClass == .compact
+    }
 
     private var clampedIndex: Int {
         guard routes.isEmpty == false else { return 0 }
@@ -27,16 +33,25 @@ struct CheckoutSuggestionBanner: View {
                     cycleButton
                 }
             }
-            .padding(.horizontal, DS.Spacing.s4)
-            .padding(.vertical, DS.Spacing.s3)
+            .padding(.horizontal, usesCompactLayout ? DS.Spacing.s3 : DS.Spacing.s4)
+            .padding(.vertical, usesCompactLayout ? DS.Spacing.s2 : DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
     }
 
     private func checkoutContent(labels: [String], optionCount: Int) -> some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
-            titleRow
-            routeRow(labels: labels)
+        Group {
+            if usesCompactLayout {
+                HStack(alignment: .center, spacing: DS.Spacing.s2) {
+                    titleRow
+                    routeRow(labels: labels)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+                    titleRow
+                    routeRow(labels: labels)
+                }
+            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(combinedAccessibilityLabel(labels: labels, optionCount: optionCount))
@@ -44,16 +59,17 @@ struct CheckoutSuggestionBanner: View {
     }
 
     private var titleRow: some View {
-        HStack(spacing: DS.Spacing.s2) {
+        HStack(spacing: DS.Spacing.s1) {
             Image(systemName: "target")
-                .font(.subheadline.weight(.bold))
+                .font(usesCompactLayout ? .caption.weight(.bold) : .subheadline.weight(.bold))
                 .foregroundStyle(Brand.green)
                 .accessibilityHidden(true)
 
             Text(L10n.x01CheckoutTitle)
-                .font(.subheadline.weight(.semibold))
+                .font(usesCompactLayout ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
                 .foregroundStyle(Brand.textSecondary)
         }
+        .fixedSize()
     }
 
     private var cycleButton: some View {
@@ -83,14 +99,14 @@ struct CheckoutSuggestionBanner: View {
                 }
 
                 Text(label)
-                    .font(.title3.weight(.bold))
+                    .font(usesCompactLayout ? .subheadline.weight(.bold) : .title3.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(index == labels.count - 1 ? Brand.green : Brand.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
-                    .padding(.horizontal, DS.Spacing.s3)
-                    .padding(.vertical, DS.Spacing.s2)
-                    .frame(minWidth: 52)
+                    .padding(.horizontal, usesCompactLayout ? DS.Spacing.s2 : DS.Spacing.s3)
+                    .padding(.vertical, usesCompactLayout ? DS.Spacing.s1 : DS.Spacing.s2)
+                    .frame(minWidth: usesCompactLayout ? 44 : 52)
                     .background(
                         index == labels.count - 1
                             ? Brand.green.opacity(0.14)
