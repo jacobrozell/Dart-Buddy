@@ -1,6 +1,7 @@
 import Foundation
 
 public enum CustomBotSkillResolver {
+    /// Legacy match-type resolution kept for backward-compatible call sites and tests.
     public static func profile(for mode: MatchType, metrics: CustomBotMetrics) -> BotSkillProfile {
         switch mode {
         case .x01:
@@ -12,12 +13,18 @@ public enum CustomBotSkillResolver {
         }
     }
 
+    static func profile(
+        configuration: CustomBotConfiguration,
+        context: BotPlayContext
+    ) -> BotSkillProfile {
+        BotSkillProfileResolver.profile(configuration: configuration, context: context)
+    }
+
     public static func combinedDisplayProfile(metrics: CustomBotMetrics) -> BotDifficultyDisplayProfile {
-        let x01 = profile(for: .x01, metrics: metrics)
-        let cricket = profile(for: .cricket, metrics: metrics)
-        return BotDifficultyDisplayProfile(
-            x01: x01.displayProfile.x01,
-            cricket: cricket.displayProfile.cricket
-        )
+        combinedDisplayProfile(configuration: .from(metrics: metrics))
+    }
+
+    public static func combinedDisplayProfile(configuration: CustomBotConfiguration) -> BotDifficultyDisplayProfile {
+        configuration.resolvedCanonicalProfile().displayProfile
     }
 }
