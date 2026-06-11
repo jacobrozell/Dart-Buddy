@@ -128,6 +128,7 @@ struct MainTabView: View {
         }
         .task {
             configureIntentRouting()
+            ClientEnvironmentMonitor.startReportingChanges(using: dependencies.logger)
             dependencies.logger.debug(
                 .ui,
                 eventName: "main_tab_presented",
