@@ -152,6 +152,10 @@
 "play.match.completeRouting" = "Match complete. Opening summary...";
 "play.summary.title" = "Match Complete";
 "play.summary.newMatch" = "New Match";
+"play.summary.gameRecorded" = "Game recorded";
+"play.summary.done" = "Done";
+"play.summary.rematch" = "Rematch";
+"play.summary.rematchFailed" = "Could not start a rematch. Check that all players are still available.";
 "play.summary.viewHistoryDetail" = "View History Detail";
 "history.title" = "History";
 "history.empty" = "No completed matches";
@@ -540,6 +544,7 @@
 "play.summary.viewGameStatistics" = "View Game Statistics";
 "play.summary.undoLastThrow" = "Undo Last Throw";
 "play.summary.undoLastThrow.hint" = "Go back and keep playing if the last throw was entered by mistake.";
+"play.summary.undoLastThrow.warning" = "Only if the final dart was entered by mistake.";
 "play.summary.undoFailed" = "Could not undo the last throw.";
 "play.match.botThrowing" = "Bot throwing…";
 "scoring.pad.double" = "DOUBLE";
@@ -653,6 +658,17 @@
 "customBot.badge.accessibilityFormat" = "Custom bot, %.0f three-dart average, %.2f marks per round";
 "customBot.row.accessibilitySuffix" = ", custom bot, %.0f average, %.2f marks per round";
 "customBot.setup.section" = "Custom bots";
+"customBot.editor.simple" = "Simple";
+"customBot.editor.advanced" = "Advanced";
+"customBot.advanced.presetAnchor" = "Based on preset";
+"customBot.advanced.resetSimple" = "Reset to simple targets";
+"customBot.advanced.resetPreset" = "Reset to preset";
+"customBot.advanced.footer" = "These stats apply across X01, Cricket, Baseball, Killer, Shanghai, and future modes that share the same engine templates.";
+"customBot.advanced.x01Section" = "X01";
+"customBot.advanced.cricketSection" = "Cricket";
+"customBot.advanced.aimSection" = "Aim (Baseball, Killer, Shanghai…)";
+"customBot.advanced.visitMinFormat" = "Min visit %.0f";
+"customBot.advanced.visitMaxFormat" = "Max visit %.0f";
 "bot.namePrefixFormat" = "%@ Bot ";
 "play.rules.learnButton" = "Learn to play";
 "play.rules.sheet.title" = "How to play";

@@ -152,6 +152,10 @@
 "play.match.completeRouting" = "Wedstrijd afgerond. Samenvatting wordt geopend…";
 "play.summary.title" = "Wedstrijd afgerond";
 "play.summary.newMatch" = "Nieuwe wedstrijd";
+"play.summary.gameRecorded" = "Wedstrijd opgeslagen";
+"play.summary.done" = "Klaar";
+"play.summary.rematch" = "Herkansing";
+"play.summary.rematchFailed" = "Herkansing kon niet worden gestart. Controleer of alle spelers nog beschikbaar zijn.";
 "play.summary.viewHistoryDetail" = "Geschiedenisdetails bekijken";
 "history.title" = "Geschiedenis";
 "history.empty" = "Geen afgeronde wedstrijden";
@@ -540,6 +544,7 @@
 "play.summary.viewGameStatistics" = "Wedstrijdstatistieken bekijken";
 "play.summary.undoLastThrow" = "Laatste worp ongedaan maken";
 "play.summary.undoLastThrow.hint" = "Ga terug en blijf spelen als de laatste worp per ongeluk was ingevoerd.";
+"play.summary.undoLastThrow.warning" = "Alleen als de laatste worp per ongeluk was ingevoerd.";
 "play.summary.undoFailed" = "De laatste worp kon niet ongedaan worden gemaakt.";
 "play.match.botThrowing" = "Bot gooit…";
 "scoring.pad.double" = "DUBBEL";
