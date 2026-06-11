@@ -42,7 +42,9 @@ isProject: false
 
 **Not yet routed (Deep Linking plan Phase 2):** `/play/setup` query params, `/activity` segment, `/activity/history/match/{uuid}`, `/players/{uuid}`. Parser types exist in [`AppDestination.swift`](Support/DeepLinks/AppDestination.swift); router returns `.failed(.unknownPath)` for these today.
 
-**App Intents Phase 1 is shipped** (behind `enableAppIntents`). See [`specs/AppIntentsSpec.md`](specs/AppIntentsSpec.md) for the authoritative contract, QA checklist, and roadmap.
+**App Intents Phase 1 is shipped** (behind `enableAppIntents`). See [`specs/AppIntentsSpec.md`](specs/AppIntentsSpec.md) for the authoritative contract, QA checklist, roadmap, and **Apple Intelligence platform mapping** (§13 — entities, `IndexedEntity`, on-screen awareness, custom vs schema intents, testing ladder).
+
+This brainstorm doc retains the feature catalog, priority matrix, and risks. **Do not duplicate** entity schemas or Apple Intelligence guidance here — update the spec instead.
 
 What *does* exist and maps cleanly to intents:
 
@@ -309,11 +311,15 @@ gantt
 
 ## Testing strategy
 
-- **Unit (shipped):** `DeepLinkParserTests`, `AppRouteRouterTests`, `PendingAppDestinationTests`
-- **Unit (to add):** Intent parameter → `AppDestination` / `PendingModeSelection` mapping; query intents with in-memory repository fakes ([`Tests/Unit/`](Tests/Unit/))
-- **Integration:** Shortcuts app runs on simulator — Resume when active / none when idle
+See [`specs/AppIntentsSpec.md`](specs/AppIntentsSpec.md) §10 for the full validation ladder (unit → `AppIntentsTesting` → Shortcuts → Spotlight → Siri).
+
+- **Unit (shipped):** `DeepLinkParserTests`, `AppRouteRouterTests`, `PendingAppDestinationTests`, `IntentRoutingBridgeTests`
+- **Unit (to add):** Entity query resolution; intent parameter → `AppDestination` / `PendingModeSelection` mapping; query intents with in-memory repository fakes ([`Tests/Unit/`](Tests/Unit/))
+- **`AppIntentsTesting` (Phase 2):** Invoke query intents in isolation without Siri
+- **Shortcuts:** Validate intent shape and parameters before Siri
+- **Spotlight (Phase 2–3):** Validate `IndexedEntity` discoverability
 - **UI (optional):** Launch via `xcrun simctl openurl booted dartbuddy://v1/play/resume` in UI test
-- **Manual:** Siri on device for each pinned phrase in `en`; spot-check `de`/`es`/`nl` intent titles
+- **Manual Siri:** End-to-end NL only after layers above pass
 - **Regression:** Ensure intents respect `enableAppIntents` flag and migration recovery state (no intents when bootstrap fails)
 
 ---
@@ -323,17 +329,20 @@ gantt
 | Document | Status | Owner |
 |---|---|---|
 | [`specs/DeepLinkSpec.md`](specs/DeepLinkSpec.md) | **Shipped** (MVP paths + schema) | Deep linking plan |
-| [`specs/AppIntentsSpec.md`](specs/AppIntentsSpec.md) | **Shipped** (Phase 1 launch intents) | App Intents plan |
+| [`specs/AppIntentsSpec.md`](specs/AppIntentsSpec.md) | **Shipped** — Phase 1 intents + full Apple Intelligence roadmap | App Intents plan |
+| [`Intents/README.md`](Intents/README.md) | **Shipped** — dev quick reference | App Intents plan |
 
-Before App Intents coding, capture in `specs/AppIntentsSpec.md`:
+`specs/AppIntentsSpec.md` now includes:
 
-1. Intent inventory with parameters and open-app vs background policy
-2. **Reference** [`DeepLinkSpec.md`](specs/DeepLinkSpec.md) for URL registry (do not duplicate)
-3. Entity schema (`PlayerEntity`, `GameModeEntity`)
-4. Relationship to `MatchCommandService` and Watch ([`AppleWatchCompanionAssessment.md`](specs/AppleWatchCompanionAssessment.md))
-5. Localization keys for intent titles and dialog strings
-6. Feature flag + analytics event names (`intent_*` alongside existing `deep_link_*`)
-7. Explicit **out of scope**: online play intents, planned catalog modes, mid-match settings changes
+1. Intent inventory with parameters and open-app vs background policy (§4)
+2. **Reference** [`DeepLinkSpec.md`](specs/DeepLinkSpec.md) for URL registry (§9)
+3. Entity schema — `PlayerEntity`, `MatchEntity`, `GameModeEntity` (§4.5)
+4. `IndexedEntity`, on-screen annotations, `Transferable` (§4.6–4.8)
+5. Custom intents vs App Schema domains (§4.9, §13)
+6. Relationship to `MatchCommandService` and Watch (§4.4)
+7. Localization keys (§7), feature flag (§6), analytics (§8)
+8. Testing ladder including `AppIntentsTesting` (§10)
+9. Out of scope (§12)
 
 Update [`NavigationSpec.md`](specs/NavigationSpec.md) §5 cross-refs as intents land.
 
