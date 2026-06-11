@@ -12,6 +12,7 @@ struct LocalAppStateResetTests {
         defaults.set("9.9.9", forKey: "app_store_update_dismissed_version")
         defaults.set(false, forKey: "cricketSetup.pointsEnabled")
         defaults.set(CricketScoringMode.cutThroat.rawValue, forKey: "cricketSetup.scoringMode")
+        KillerSetupPreferences.save(startingLives: 5, userDefaults: defaults)
 
         LocalAppStateReset.clearAllPersistedAuxiliaryState(userDefaults: defaults)
 
@@ -20,6 +21,7 @@ struct LocalAppStateResetTests {
         #expect(defaults.string(forKey: "app_store_update_dismissed_version") == nil)
         #expect(defaults.object(forKey: "cricketSetup.pointsEnabled") == nil)
         #expect(defaults.string(forKey: "cricketSetup.scoringMode") == nil)
+        #expect(defaults.object(forKey: "killer.setup.startingLives") == nil)
     }
 
     private func makeIsolatedDefaults() -> UserDefaults {

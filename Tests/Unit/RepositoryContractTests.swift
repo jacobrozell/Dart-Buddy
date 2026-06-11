@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import DartBuddy
 
@@ -6,7 +7,8 @@ private func makeRepositories() throws -> (
     player: SwiftDataPlayerRepository,
     match: SwiftDataMatchRepository,
     stats: SwiftDataStatsRepository,
-    settings: SwiftDataSettingsRepository
+    settings: SwiftDataSettingsRepository,
+    container: ModelContainer
 ) {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let match = SwiftDataMatchRepository(container: container)
@@ -15,7 +17,8 @@ private func makeRepositories() throws -> (
         SwiftDataPlayerRepository(container: container, matchRepository: match, statsRepository: stats),
         match,
         stats,
-        SwiftDataSettingsRepository(container: container)
+        SwiftDataSettingsRepository(container: container),
+        container
     )
 }
 
@@ -330,7 +333,7 @@ func settingsRepositoryResetsPreferencesToDefaults() async throws {
 }
 
 @Test(.tags(.integration, .settings, .swiftdata, .regression))
-func settingsRepositoryResetAllLocalDataClearsPlayersAndMatches() async throws {
+func settingsRepositoryResetAllLocalDataClearsEverySwiftDataTable() async throws {
     let repos = try makeRepositories()
     let alice = try await repos.player.createPlayer(name: "Alice")
     let bob = try await repos.player.createPlayer(name: "Bob")
@@ -341,15 +344,40 @@ func settingsRepositoryResetAllLocalDataClearsPlayersAndMatches() async throws {
         MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
         MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
     ]
-    _ = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+    let match = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+    _ = try await repos.match.appendEvent(
+        matchId: match.id,
+        eventTypeRaw: "x01Turn",
+        eventPayload: Data([0x01])
+    )
+    _ = try await repos.match.saveSnapshot(
+        matchId: match.id,
+        snapshotVersion: 1,
+        snapshotPayload: Data([0x02])
+    )
     #expect(try await repos.player.fetchPlayers(includeArchived: false).count == 2)
     #expect(try await repos.match.fetchActiveMatch() != nil)
+
+    let beforeReset = try LocalDataResetInventory.swiftDataRecordCounts(in: repos.container)
+    #expect(beforeReset[String(describing: SchemaV2.PlayerRecord.self)] == 2)
+    #expect(beforeReset[String(describing: SchemaV2.MatchRecord.self)] == 1)
+    #expect(beforeReset[String(describing: SchemaV2.MatchParticipantRecord.self)] == 2)
+    #expect(beforeReset[String(describing: SchemaV2.MatchEventRecord.self)] == 1)
+    #expect(beforeReset[String(describing: SchemaV2.MatchSnapshotRecord.self)] == 1)
 
     try await repos.settings.resetAllLocalData()
 
     #expect(try await repos.player.fetchPlayers(includeArchived: true).isEmpty)
     #expect(try await repos.match.fetchActiveMatch() == nil)
     #expect(try await repos.match.fetchHistory(page: 0, pageSize: 10).isEmpty)
+
+    let afterReset = try LocalDataResetInventory.swiftDataRecordCounts(in: repos.container)
+    #expect(afterReset[String(describing: SchemaV2.PlayerRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchParticipantRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchEventRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchSnapshotRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.SettingsRecord.self)] == 1)
 
     let settings = try await repos.settings.fetchSettings()
     #expect(settings.defaultMatchTypeRaw == "x01")
