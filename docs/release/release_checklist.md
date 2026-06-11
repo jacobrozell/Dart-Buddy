@@ -307,7 +307,7 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 | **Support URL** | **Yes** | Contact method or FAQ; can be same site as privacy |
 | **Custom EULA** | No (1.0) | Default: [Apple Standard EULA](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/) — only add custom terms if you need special liability/limitation language |
 | **Terms of Service** | No (1.0) | Optional unless you add accounts, IAP, or online play |
-| **In-app privacy link** | Recommended | [`../../specs/SecurityPrivacySpec.md`](../../specs/SecurityPrivacySpec.md) — Settings row → privacy policy URL (not built yet) |
+| **In-app privacy link** | Recommended | [`../../specs/SecurityPrivacySpec.md`](../../specs/SecurityPrivacySpec.md) — Settings → Help & Feedback → Privacy Policy |
 
 **Privacy policy should cover (plain language, not legal boilerplate dump):**
 
