@@ -152,6 +152,10 @@
 "play.match.completeRouting" = "Partido completo. Resumen de apertura...";
 "play.summary.title" = "Partido completo";
 "play.summary.newMatch" = "Partida nueva";
+"play.summary.gameRecorded" = "Partida guardada";
+"play.summary.done" = "Listo";
+"play.summary.rematch" = "Revancha";
+"play.summary.rematchFailed" = "No se pudo iniciar la revancha. Comprueba que todos los jugadores sigan disponibles.";
 "play.summary.viewHistoryDetail" = "Ver detalles del historial";
 "history.title" = "Historial";
 "history.empty" = "Sin partidas terminadas";
@@ -540,6 +544,7 @@
 "play.summary.viewGameStatistics" = "Ver estadísticas del juego";
 "play.summary.undoLastThrow" = "Deshacer el último lanzamiento";
 "play.summary.undoLastThrow.hint" = "Vuelve atrás y sigue jugando si el último tiro se introdujo por error.";
+"play.summary.undoLastThrow.warning" = "Solo si el último dardo se introdujo por error.";
 "play.summary.undoFailed" = "No se pudo deshacer el último lanzamiento.";
 "play.match.botThrowing" = "El bot está tirando…";
 "scoring.pad.double" = "DOBLE";

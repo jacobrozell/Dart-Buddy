@@ -75,6 +75,7 @@ final class PlayerEditViewModel: ObservableObject {
             isCustomBot: existing?.isCustomBot ?? false,
             customX01Average: existing?.customX01Average ?? CustomBotMetrics.defaultX01Average,
             customCricketMPR: existing?.customCricketMPR ?? CustomBotMetrics.defaultCricketMPR,
+            customBotConfiguration: existing?.customBotConfiguration,
             linkedPlayerId: existing?.linkedPlayerId,
             botDifficulty: existing?.botDifficulty,
             avatarStyle: avatarStyle,

@@ -27,6 +27,7 @@ struct PlayersRootView: View {
     @State private var exportErrorKey: String?
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
+    @State private var didApplyCustomBotSnapshotNavigation = false
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -134,6 +135,7 @@ struct PlayersRootView: View {
             }
             .task {
                 await viewModel.onAppear()
+                applyCustomBotSnapshotNavigationIfNeeded()
             }
             .navigationDestination(for: PlayersRoute.self) { route in
                 switch route {
@@ -223,6 +225,16 @@ struct PlayersRootView: View {
         }
     }
 
+    private func applyCustomBotSnapshotNavigationIfNeeded() {
+        guard !didApplyCustomBotSnapshotNavigation else { return }
+        guard ProcessInfo.processInfo.arguments.contains("-snapshot_custom_bot") else { return }
+        let bot = viewModel.players.first(where: { $0.isCustomBot && $0.name == DemoSeeder.customBotSnapshotName })
+            ?? viewModel.players.first(where: \.isCustomBot)
+        guard let bot else { return }
+        didApplyCustomBotSnapshotNavigation = true
+        path = [.detail(playerId: bot.id)]
+    }
+
     private var playersToolbarMenu: some View {
         Menu {
             Button {
@@ -231,10 +243,13 @@ struct PlayersRootView: View {
                 Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
             }
             Menu {
-                Button {
-                    showsCustomBotSheet = true
-                } label: {
-                    Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                if ProductSurface.showsCustomBots {
+                    Button {
+                        showsCustomBotSheet = true
+                    } label: {
+                        Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                    }
+                    .accessibilityIdentifier("players_addCustomBot")
                 }
                 ForEach(BotDifficulty.allCases, id: \.rawValue) { difficulty in
                     Button(difficulty.displayName) {

@@ -2,7 +2,8 @@ import Foundation
 
 /// Controls which product areas are reachable in this build.
 ///
-/// Lean 1.0 defaults hide Modes, party modes, advanced bots, and export.
+/// Lean 1.0 defaults hide Modes, party modes, Training Partner bots, and export.
+/// Custom bots (user-tuned metrics) ship in 1.0.
 /// UI tests and dogfood builds pass `-enable_full_product_surface` to restore the full app.
 /// See `docs/release/lean-1.0-implementation-plan.md`.
 enum ProductSurface {
@@ -27,7 +28,7 @@ enum ProductSurface {
             showsModesTab: false,
             showsPartyModes: false,
             showsTrainingBots: false,
-            showsCustomBots: false,
+            showsCustomBots: true,
             showsPlayerExport: false,
             bundledLocaleCodes: ["en"]
         )

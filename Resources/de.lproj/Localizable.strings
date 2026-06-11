@@ -152,6 +152,10 @@
 "play.match.completeRouting" = "Spiel beendet. Zusammenfassung wird geöffnet…";
 "play.summary.title" = "Spiel beendet";
 "play.summary.newMatch" = "Neues Spiel";
+"play.summary.gameRecorded" = "Spiel gespeichert";
+"play.summary.done" = "Fertig";
+"play.summary.rematch" = "Revanche";
+"play.summary.rematchFailed" = "Revanche konnte nicht gestartet werden. Prüfe, ob alle Spieler noch verfügbar sind.";
 "play.summary.viewHistoryDetail" = "Spieldetails anzeigen";
 "history.title" = "Verlauf";
 "history.empty" = "Keine beendeten Spiele";
@@ -540,6 +544,7 @@
 "play.summary.viewGameStatistics" = "Spielstatistik anzeigen";
 "play.summary.undoLastThrow" = "Letzten Wurf rückgängig";
 "play.summary.undoLastThrow.hint" = "Zurückgehen und weiterspielen, wenn der letzte Wurf falsch war.";
+"play.summary.undoLastThrow.warning" = "Nur wenn der letzte Wurf versehentlich eingegeben wurde.";
 "play.summary.undoFailed" = "Letzter Wurf konnte nicht rückgängig gemacht werden.";
 "play.match.botThrowing" = "Bot wirft…";
 "scoring.pad.double" = "DOPPEL";

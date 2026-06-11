@@ -136,12 +136,18 @@ final class PlayersListViewModel: ObservableObject {
                     notes: player.notes
                 )
                 if player.isCustomBot {
-                    _ = try await repository.updateCustomBotMetrics(
-                        playerId: player.id,
-                        metrics: CustomBotMetrics(
-                            x01Average: player.customX01Average,
-                            cricketMPR: player.customCricketMPR
+                    var configuration = player.customBotConfiguration
+                        ?? CustomBotConfiguration.from(
+                            metrics: CustomBotMetrics(
+                                x01Average: player.customX01Average,
+                                cricketMPR: player.customCricketMPR
+                            )
                         )
+                    configuration.x01Average = player.customX01Average
+                    configuration.cricketMPR = player.customCricketMPR
+                    _ = try await repository.updateCustomBotConfiguration(
+                        playerId: player.id,
+                        configuration: configuration
                     )
                 }
             } else {
