@@ -52,7 +52,8 @@ Key rule:
 - **In-app language picker (post-1.0):** Settings override of `Locale`; feature specs remain locale-agnostic (describe behavior, not language). Picker must not break `LocalizationParityTests` key coverage.
 - Future waves: additional locales per backlog; same key-parity gate.
 - Prioritize strings used in core gameplay first when adding locales.
-- Baseball party mode keys: `play.baseball.*`, `play.party.baseball.*`, `history.detail.baseballSummaryFormat`, `history.timeline.baseballTurnFormat`, `history.detail.lineScore*` (including `history.lineScore.emptyCell`, `play.baseball.*AccessibilityFormat`, `play.baseball.playoffRound*`) — see [`BaseballGameSpec.md`](BaseballGameSpec.md).
+- Baseball party mode keys: `play.baseball.*`, `play.party.baseball.*`, `history.detail.baseballSummaryFormat`, `history.timeline.baseballTurnFormat`, `history.detail.lineScore*` (including `history.lineScore.emptyCell`, `play.baseball.*AccessibilityFormat`, `play.baseball.playoffRound*`) — see [`BaseballGameSpec.md`](game-modes/implemented/BaseballGameSpec.md).
+- In-app **How to play** sheets: `play.rules.{mode}.*` — source copy in each feature spec § **How to Play**; full key checklist (catalog, `play.{mode}.*`, history, errors, validation) in § **Localization** on the same spec. Wire through `GameRulesCatalog` / `GameRulesGuideView` when the mode ships. Catalog blurbs: `modes.catalog.{id}.name` / `.blurb` (all 29 modes **Exist** in `en` today).
 - App Intents / Shortcuts keys: `intent.openPlay.*`, `intent.resumeActiveMatch.*`, `intent.error.disabled` — see [`AppIntentsSpec.md`](AppIntentsSpec.md) §7.
 - Include localization QA and pseudo-localization in CI checks.
 

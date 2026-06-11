@@ -3,7 +3,7 @@
 **Customer brand:** Dart Buddy (App Store listing, marketing, Reddit)  
 **Technical target:** `DartBuddy` (Xcode scheme, bundle ID `com.jacobrozell.DartBuddy`, module)  
 **Version:** `1.0.0` (lean core scorekeeper)  
-**Scope:** [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) — **X01 + Cricket** (Normal + Cut Throat), **4 tabs** (Play · Players · Activity · Settings), **preset bots only**, **English UI**, Analytics + Crashlytics on. **Not in 1.0:** Modes tab, party modes, Training/Custom bots, player export, bundled de/es/nl.
+**Scope:** [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) — **X01 + Cricket** (Normal + Cut Throat), **4 tabs** (Play · Players · Activity · Settings), **preset + custom bots**, **English UI**, Analytics + Crashlytics on. **Not in 1.0:** Modes tab, party modes, Training Partner bots, player export, bundled de/es/nl.
 
 **Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
 
@@ -68,7 +68,7 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 - [ ] **Activity → History:** at least one completed row → detail loads (header + timeline)
 - [ ] **Activity → Statistics:** segment loads; mode filter shows All / X01 / Cricket only
 - [ ] **Settings:** toggle **Sound** → leave tab → relaunch → still persisted
-- [ ] **Hidden surface check:** no Modes tab, no party modes, no Export on player detail, no Training Partner section
+- [ ] **Hidden surface check:** no Modes tab, no party modes, no Export on player detail, no Training Partner section (custom bots **are** in 1.0)
 - [ ] **English UI:** device language de/es/nl still shows English strings (en-only bundle)
 - [ ] **AXXXL spot check:** Settings → Display → Larger Text → AXXXL → New Match setup + one in-match screen — primary CTA reachable
 
@@ -149,12 +149,14 @@ Spec reference: [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestCheck
 | **Settings → Reset All Local Data** — confirm → clean bootstrap | [ ] | |
 | **Abandon** in-progress match — wording correct; hidden from Activity ([`../../specs/MatchSpec.md`](../../specs/MatchSpec.md)) | [ ] | |
 | **Preset bot match:** stagger pacing; pad disabled during bot turn; bot dart haptics if enabled | [ ] | |
+| **Custom bot:** create from Play setup (or Players +) → X01 match completes | [ ] | |
+| **Custom bot:** same bot in Cricket (Normal or Cut Throat) match | [ ] | |
 | **Play home:** resume banner when applicable | [ ] | |
 | **X01 checkout:** finish leg with double-out (if default) — summary correct | [ ] | |
 | **Cricket closure:** close a number — banner/haptic/VO sensible | [ ] | |
 | **Setup:** drag reorder roster; random order at start | [ ] | |
 | **Quick-add player** from setup → returns with refreshed roster | [ ] | |
-| **Lean hidden surface:** no Modes tab, party modes, export, Training Partner | [ ] | |
+| **Lean hidden surface:** no Modes tab, party modes, export, Training Partner (custom bots allowed) | [ ] | |
 
 ---
 

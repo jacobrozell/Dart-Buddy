@@ -2,15 +2,15 @@
 
 Living register of every product feature: shipped, partial, and planned. Use this to answer “what exists?” and “what’s next?” without hunting through specs, code, and `FutureIdeas/`.
 
-**Last reviewed:** 2026-06-06  
+**Last reviewed:** 2026-06-11  
 **App status:** 1.0 RC (lean core) — see [`release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md)
 
 ---
 
 ## How to maintain
 
-1. **When shipping a feature** — change its status here, update the linked spec, and (for game modes) promote the row in `Features/Modes/GameModeCatalog.swift`.
-2. **When adding a planned feature** — add a row with status **Planned** and link the spec or `FutureIdeas/` brief.
+1. **When shipping a feature** — change its status here, update the linked spec, and (for game modes) promote `specs/game-modes/planned/` → `implemented/` plus `GameModeCatalog.swift`.
+2. **When adding a planned feature** — add a spec under `specs/game-modes/planned/` and a row here (use `FutureIdeas/` only for pre-spec R&D).
 3. **When something is behind a flag** — mark **Partial** and note the flag in the Notes column.
 4. **Source of truth for mode list** — `GameModeCatalog.swift` (29 modes). This doc mirrors it.
 5. Do **not** duplicate release QA checklists here; track blockers in [`release/todo.md`](release/todo.md).
@@ -57,42 +57,42 @@ Catalog source: [`Features/Modes/GameModeCatalog.swift`](../Features/Modes/GameM
 
 | Mode | Section | Engine / UI | Spec |
 |------|---------|-------------|------|
-| X01 (301 / 501) | Standard | `X01Engine`, `Features/Play/X01/` | [`X01GameSpec.md`](../specs/X01GameSpec.md) |
-| Cricket (Normal + Cut Throat) | Standard | `CricketEngine`, `Features/Play/Cricket/` | [`CricketSpec.md`](../specs/CricketSpec.md) |
-| Baseball | Party | `BaseballEngine`, `Features/Play/Baseball/` | [`BaseballGameSpec.md`](../specs/BaseballGameSpec.md) |
-| Killer | Party | `KillerEngine`, `Features/Play/Killer/` | [`KillerGameSpec.md`](../specs/KillerGameSpec.md) |
-| Shanghai | Party | `ShanghaiEngine`, `Features/Play/Shanghai/` | — |
+| X01 (301 / 501) | Standard | `X01Engine`, `Features/Play/X01/` | [`game-modes/implemented/X01GameSpec.md`](../specs/game-modes/implemented/X01GameSpec.md) |
+| Cricket (Normal + Cut Throat) | Standard | `CricketEngine`, `Features/Play/Cricket/` | [`game-modes/implemented/CricketSpec.md`](../specs/game-modes/implemented/CricketSpec.md) |
+| Baseball | Party | `BaseballEngine`, `Features/Play/Baseball/` | [`BaseballGameSpec.md`](../specs/game-modes/implemented/BaseballGameSpec.md) |
+| Killer | Party | `KillerEngine`, `Features/Play/Killer/` | [`KillerGameSpec.md`](../specs/game-modes/implemented/KillerGameSpec.md) |
+| Shanghai | Party | `ShanghaiEngine`, `Features/Play/Shanghai/` | [`game-modes/implemented/ShanghaiGameSpec.md`](../specs/game-modes/implemented/ShanghaiGameSpec.md) |
 
 ### Planned — catalog stubs (24)
 
 Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 
-| Mode | Section | UI template | R&D |
-|------|---------|-------------|-----|
-| American Cricket | Standard | Mark board | [`additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) |
-| Mickey Mouse | Party | Mark board | same |
-| Mulligan | Party | Mark board | same |
-| English Cricket | Party | Checkout score | same |
-| Blind Killer | Party | Lives elimination | same |
-| Knockout | Party | Checkout score | same |
-| Sudden Death | Party | Checkout score | same |
-| 51 By 5's | Party | Checkout score | same |
-| Golf | Party | Inning points | [`party-practice-modes.md`](../FutureIdeas/party-practice-modes.md) |
-| Football | Party | Phase race | same |
-| Grand National | Party | Sequence progress | same |
-| Hare and Hounds | Party | Sequence progress | same |
-| Follow the Leader | Party | Lives elimination | same |
-| Loop | Party | Lives elimination | same |
-| Prisoner | Party | Board state | same |
-| Scam | Party | Role split | same |
-| Snooker | Party | Role split | same |
-| Tic-Tac-Toe | Party | Board state | same |
-| Around the Clock | Practice | Sequence progress | [`party-practice-modes.md`](../FutureIdeas/party-practice-modes.md) |
-| 180 Around the Clock | Practice | Sequence progress | same |
-| Chase the Dragon | Practice | Sequence progress | same |
-| Nine Lives | Practice | Lives elimination | same |
-| Bob's 27 | Practice | Solo challenge | same |
-| Halve-It | Practice | Solo challenge | same |
+| Mode | Section | UI template | Spec |
+|------|---------|-------------|------|
+| American Cricket | Standard | Mark board | [`AmericanCricketGameSpec.md`](../specs/game-modes/planned/AmericanCricketGameSpec.md) |
+| Mickey Mouse | Party | Mark board | [`MickeyMouseGameSpec.md`](../specs/game-modes/planned/MickeyMouseGameSpec.md) |
+| Mulligan | Party | Mark board | [`MulliganGameSpec.md`](../specs/game-modes/planned/MulliganGameSpec.md) |
+| English Cricket | Party | Checkout score | [`EnglishCricketGameSpec.md`](../specs/game-modes/planned/EnglishCricketGameSpec.md) |
+| Blind Killer | Party | Lives elimination | [`BlindKillerGameSpec.md`](../specs/game-modes/planned/BlindKillerGameSpec.md) |
+| Knockout | Party | Checkout score | [`KnockoutGameSpec.md`](../specs/game-modes/planned/KnockoutGameSpec.md) |
+| Sudden Death | Party | Checkout score | [`SuddenDeathGameSpec.md`](../specs/game-modes/planned/SuddenDeathGameSpec.md) |
+| 51 By 5's | Party | Checkout score | [`FiftyOneByFivesGameSpec.md`](../specs/game-modes/planned/FiftyOneByFivesGameSpec.md) |
+| Golf | Party | Inning points | [`GolfGameSpec.md`](../specs/game-modes/planned/GolfGameSpec.md) |
+| Football | Party | Phase race | [`FootballGameSpec.md`](../specs/game-modes/planned/FootballGameSpec.md) |
+| Grand National | Party | Sequence progress | [`GrandNationalGameSpec.md`](../specs/game-modes/planned/GrandNationalGameSpec.md) |
+| Hare and Hounds | Party | Sequence progress | [`HareAndHoundsGameSpec.md`](../specs/game-modes/planned/HareAndHoundsGameSpec.md) |
+| Follow the Leader | Party | Lives elimination | [`FollowTheLeaderGameSpec.md`](../specs/game-modes/planned/FollowTheLeaderGameSpec.md) |
+| Loop | Party | Lives elimination | [`LoopGameSpec.md`](../specs/game-modes/planned/LoopGameSpec.md) |
+| Prisoner | Party | Board state | [`PrisonerGameSpec.md`](../specs/game-modes/planned/PrisonerGameSpec.md) |
+| Scam | Party | Role split | [`ScamGameSpec.md`](../specs/game-modes/planned/ScamGameSpec.md) |
+| Snooker | Party | Role split | [`SnookerGameSpec.md`](../specs/game-modes/planned/SnookerGameSpec.md) |
+| Tic-Tac-Toe | Party | Board state | [`TicTacToeGameSpec.md`](../specs/game-modes/planned/TicTacToeGameSpec.md) |
+| Around the Clock | Practice | Sequence progress | [`AroundTheClockGameSpec.md`](../specs/game-modes/planned/AroundTheClockGameSpec.md) |
+| 180 Around the Clock | Practice | Sequence progress | [`AroundTheClock180GameSpec.md`](../specs/game-modes/planned/AroundTheClock180GameSpec.md) |
+| Chase the Dragon | Practice | Sequence progress | [`ChaseTheDragonGameSpec.md`](../specs/game-modes/planned/ChaseTheDragonGameSpec.md) |
+| Nine Lives | Practice | Lives elimination | [`NineLivesGameSpec.md`](../specs/game-modes/planned/NineLivesGameSpec.md) |
+| Bob's 27 | Practice | Solo challenge | [`Bobs27GameSpec.md`](../specs/game-modes/planned/Bobs27GameSpec.md) |
+| Halve-It | Practice | Solo challenge | [`HalveItGameSpec.md`](../specs/game-modes/planned/HalveItGameSpec.md) |
 
 ### Game mode infrastructure
 
@@ -203,7 +203,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Player export (DBPE bundle) | Shipped | Human player match history | `PlayerExportBundle.swift` |
 | Preset difficulty bots | Shipped | Very Easy → Pro via `DartBotEngine` | [`BotOpponentSpec.md`](../specs/BotOpponentSpec.md) |
 | Training Partner bots | Shipped | Progress-gated custom opponents | [`TrainingBotSpec.md`](../specs/TrainingBotSpec.md) |
-| Custom bots (user metrics) | Shipped | Skill profile interpolation | `CustomBotMetrics.swift` |
+| Custom bots (user metrics) | Shipped (simple UI); Advanced phased | Template-aware resolution; facet editors planned | [`CustomBotSpec.md`](../specs/CustomBotSpec.md) · [`plans/custom-bot-architecture-ui-plan.md`](plans/custom-bot-architecture-ui-plan.md) |
 | Game Center achievements (~62 catalog) | Assessed | No GameKit code | [`achievements.md`](../FutureIdeas/achievements.md) |
 | Leaderboards | Assessed | Separate from achievements MVP | same |
 

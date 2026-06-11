@@ -37,7 +37,7 @@
 
 ## Feature Specs
 
-### Play & matches
+### Play & matches (shared)
 | Spec | Covers |
 |------|--------|
 | [`PlayHomeSpec.md`](PlayHomeSpec.md) | Play tab home, resume banner, recent games, navigation |
@@ -45,18 +45,35 @@
 | [`QuickAddPlayerSpec.md`](QuickAddPlayerSpec.md) | Fast player create from Play setup |
 | [`MatchSpec.md`](MatchSpec.md) | Lifecycle, resume, abandon, persistence |
 | [`MatchSummarySpec.md`](MatchSummarySpec.md) | Post-match screen, undo last throw |
-| [`X01GameSpec.md`](X01GameSpec.md) | X01 rules, board UI, checkout suggester |
-| [`CricketSpec.md`](CricketSpec.md) | Cricket rules, board UI, normal / cut throat |
-| [`BaseballGameSpec.md`](BaseballGameSpec.md) | Baseball party mode rules, play UI, history line score |
-| [`KillerGameSpec.md`](KillerGameSpec.md) | Killer elimination party mode rules, pick phase, play UI |
-| [`BaseballModeDeferredWorkPlan.md`](BaseballModeDeferredWorkPlan.md) | Post-MVP follow-ups (specs, line score, tests, WCAG, demo) |
 | [`ScoringInputSpec.md`](ScoringInputSpec.md) | Shared dart-entry pad, undo, submit |
+| [`ModesTabSpec.md`](ModesTabSpec.md) | Modes catalog tab, search, coming soon |
+
+### Game modes — [`game-modes/`](game-modes/)
+
+Split by **implementation status** (not moved to `docs/` — specs remain authoritative per [`SpecGovernance.md`](SpecGovernance.md)).
+
+| Folder | Modes |
+|--------|-------|
+| **[`game-modes/implemented/`](game-modes/implemented/)** | X01, Cricket, Baseball, Killer, Shanghai |
+| **[`game-modes/planned/`](game-modes/planned/)** | 24 catalog stubs |
+
+| Implemented spec | Covers |
+|------------------|--------|
+| [`game-modes/implemented/X01GameSpec.md`](game-modes/implemented/X01GameSpec.md) | X01 rules, board UI, checkout suggester |
+| [`game-modes/implemented/CricketSpec.md`](game-modes/implemented/CricketSpec.md) | Cricket rules, board UI, normal / cut throat |
+| [`BaseballGameSpec.md`](game-modes/implemented/BaseballGameSpec.md) | Baseball party mode |
+| [`KillerGameSpec.md`](game-modes/implemented/KillerGameSpec.md) | Killer elimination |
+| [`game-modes/implemented/ShanghaiGameSpec.md`](game-modes/implemented/ShanghaiGameSpec.md) | Shanghai rounds + bonus |
+| [`BaseballModeDeferredWorkPlan.md`](game-modes/implemented/BaseballModeDeferredWorkPlan.md) | Post-MVP baseball follow-ups |
+
+Each game spec includes **§ Player count**, **§ How to Play**, and **§ Localization**. Promote `planned/` → `implemented/` when the engine ships — see [`game-modes/README.md`](game-modes/README.md).
 
 ### Opponents
 | Spec | Covers |
 |------|--------|
 | [`BotOpponentSpec.md`](BotOpponentSpec.md) | Preset difficulty bots, `DartBotEngine`, pacing |
 | [`TrainingBotSpec.md`](TrainingBotSpec.md) | Training Partner bots, eligibility, skill calibration |
+| [`CustomBotSpec.md`](CustomBotSpec.md) | User-defined custom bots, configuration, template resolution, UI phases |
 
 ### Players, history, stats, settings
 | Spec | Covers |
@@ -79,8 +96,8 @@
 - `specs/OnlinePlaySpec.md`, `specs/AutoScoringVisionSpec.md`
 - `specs/archive/FigmaBuildPlan.md` — historical Figma handoff (UI complete for 1.0)
 - `FutureIdeas/backlog.md` — Post-1.0 product backlog (linked from `docs/release/todo.md`)
-- `FutureIdeas/additional-game-modes.md` — R&D index for unshipped Target-style game modes
-- `FutureIdeas/party-practice-modes.md` — Brief R&D for Bob's 27, Around the Clock, Halve-It, Golf
+- `FutureIdeas/additional-game-modes.md` — delivery index (rules live in `game-modes/planned/`)
+- `FutureIdeas/party-practice-modes.md` — effort notes (superseded for rules by planned specs)
 - `FutureIdeas/achievements.md` — Game Center assessment (linked from `docs/release/todo.md`)
 - `FutureIdeas/play-reminders.md` — Play reminder notifications (linked from `docs/release/todo.md`)
 

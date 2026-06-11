@@ -6,8 +6,8 @@ Ship deterministic domain behavior first: setup payload handling, turn processin
 ## Specs Anchored
 - `specs/MatchSpec.md`
 - `specs/SetupFlowSpec.md`
-- `specs/X01GameSpec.md`
-- `specs/CricketSpec.md`
+- `specs/game-modes/implemented/X01GameSpec.md`
+- `specs/game-modes/implemented/CricketSpec.md`
 - `specs/ScoringInputSpec.md`
 - `specs/StatsSpec.md`
 

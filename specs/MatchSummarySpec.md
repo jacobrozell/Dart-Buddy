@@ -3,7 +3,7 @@
 ## 1. Purpose
 Define the post-match summary screen: celebration, per-player stats, undo-last-throw, and navigation to a new match or history detail.
 
-Shared lifecycle completion rules live in [`MatchSpec.md`](MatchSpec.md). Mode-specific metrics follow [`X01GameSpec.md`](X01GameSpec.md) and [`CricketSpec.md`](CricketSpec.md).
+Shared lifecycle completion rules live in [`MatchSpec.md`](MatchSpec.md). Mode-specific metrics follow [`game-modes/implemented/X01GameSpec.md`](game-modes/implemented/X01GameSpec.md) and [`game-modes/implemented/CricketSpec.md`](game-modes/implemented/CricketSpec.md).
 
 ---
 

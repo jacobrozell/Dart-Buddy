@@ -31,7 +31,7 @@ Derived from commit history + `Tests/` coverage. This is why the plan splits the
 | Shanghai | Strong + bot sim | WCAG contract only | Not in checklist | **Medium-low** |
 | Preset bots (X01/Cricket) | Strong | Via mode UI tests | Implicit | **High** |
 | Training Partner bots | Strong | PlayerDetail + setup UI | Not in checklist | **Medium** |
-| Custom bots | Unit only | None | Not in checklist | **Low** |
+| Custom bots | Unit + lean UI smoke | Simple UI in 1.0; Advanced UI phased | Checklist §3 custom bot rows | **Medium** (architecture plan) |
 | Play setup / lifecycle | Strong | MatchSetup UI | Partial | **High** |
 | History + Statistics | Strong | HistoryDetail UI | §1 (Statistics named) | **High** |
 | Activity tab (merged) | Some | 1 UI test | Checklist **stale** (old tab names) | **Medium** |
@@ -107,7 +107,7 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 |------|---------|
 | **Game modes** | X01 (301/501, double-out, checkout suggester) · Cricket Normal · Cricket Cut Throat |
 | **Tabs** | Play · Players · **Activity** (History + Statistics) · Settings — **4 tabs, no Modes** |
-| **Bots** | Preset difficulty only (Very Easy → Pro) |
+| **Bots** | Preset difficulty (Very Easy → Pro) + custom bots (tunable X01 avg / Cricket MPR) |
 | **Players** | CRUD, archive, delete guards, avatars |
 | **Core flows** | Setup → match → summary · resume · undo · settings reset |
 | **Onboarding** | First launch + replay from Settings |
@@ -122,7 +122,7 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 |------|--------|-----------|
 | **Modes tab** | Remove from tab bar for 1.0; Play setup uses Standard category only | Tab is weeks old; 1 UI test; 24 “coming soon” cards |
 | **Party modes** | Set `PartyGame.isAvailable = false` for baseball/killer/shanghai **or** hide Party category in setup | No gameplay UI smoke; not in release checklist |
-| **Training Partner + Custom bots** | Hide from Add Bot menu and Player Detail | Medium unit coverage, weak device QA |
+| **Training Partner bots** | Hide from Add Bot menu and Player Detail | Medium unit coverage, weak device QA |
 | **Player export** | Hide export button | Unit tests only; recovery export still planned separately |
 | **Deep links** | Keep code; don’t document in App Store | Low risk if not advertised |
 | **App Intents** | Keep flag **off** | Already default |
@@ -149,7 +149,7 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 
 1. Hide Modes tab (`MainTabView` — 4-tab shell).
 2. Hide Party setup category or mark all `PartyGame` unavailable.
-3. Hide Training Partner + Custom bot entry points.
+3. Hide Training Partner entry points (custom bots ship in 1.0).
 4. Hide player export affordance.
 5. Refresh README, release checklist, App Store screenshots, feature inventory statuses.
 6. Default TTS caller off in `UserPreferencesStore` seed / first-run.

@@ -2,9 +2,9 @@
 
 Follow-up work after the MVP implementation on branch `feature/baseball-mode`. The MVP covers engine, lifecycle, setup, play UI, basic history/stats, localization keys, and core unit tests. This plan closes every item explicitly deferred from the baseball MVP implementation pass.
 
-**Authoritative rules:** [`specs/BaseballGameSpec.md`](BaseballGameSpec.md) and [GLD Baseball rules](https://gldproducts.com/blogs/all/how-to-play-baseball-darts).
+**Authoritative rules:** [`BaseballGameSpec.md`](BaseballGameSpec.md) and [GLD Baseball rules](https://gldproducts.com/blogs/all/how-to-play-baseball-darts).
 
-**Related:** When promoted, canonical product spec becomes `specs/BaseballGameSpec.md` (created in PR A).
+**Related:** When promoted, canonical product spec becomes `specs/game-modes/implemented/BaseballGameSpec.md` (created in PR A).
 
 ---
 
@@ -28,7 +28,7 @@ Follow-up work after the MVP implementation on branch `feature/baseball-mode`. T
 
 | ID | Item | MVP gap |
 |----|------|---------|
-| D1 | Spec promotion | No `specs/BaseballGameSpec.md`; sibling specs not updated |
+| D1 | Spec promotion | No `specs/game-modes/implemented/BaseballGameSpec.md`; sibling specs not updated |
 | D2 | History line score | No `BaseballLineScoreView`; detail shows summary only |
 | D3 | `BaseballMatchViewModelTests` | Not created |
 | D4 | `MatchLifecycleServiceBaseballTests` | Lifecycle cases live inside `BaseballEngineTests` |
@@ -50,14 +50,14 @@ Split for reviewability on top of `feature/baseball-mode` (or stacked PRs after 
 
 **D1 — Spec promotion** (per [SpecGovernance.md](SpecGovernance.md)):
 
-1. Create **`specs/BaseballGameSpec.md`** — GLD rules, config defaults, engine invariants, undo guarantees, preset-bot-only v1, accessibility requirements (runs as text, inning strip not color-only).
+1. Create **`specs/game-modes/implemented/BaseballGameSpec.md`** — GLD rules, config defaults, engine invariants, undo guarantees, preset-bot-only v1, accessibility requirements (runs as text, inning strip not color-only).
 2. Update **`specs/MatchSpec.md`**, **`specs/SetupFlowSpec.md`**, **`specs/PlayHomeSpec.md`**, **`specs/SwiftData.md`** (payload variants only), **`specs/ScoringInputSpec.md`** (segment-locked pad), **`specs/LocalizationSpec.md`** (`play.baseball.*`).
 3. Add wireframe section to **`specs/UIBlueprintSpec.md`** (header, scoreboard, inning strip, pad, match end).
 4. Add row to **`specs/README.md`** feature table.
 
 **D8 — Custom bot menu:**
 
-- In [SetupHomeView.swift](../Features/Play/Setup/SetupHomeView.swift), fix custom-bot menu action to add/select a custom bot, not `addTrainingBot`.
+- In [SetupHomeView.swift](../../../Features/Play/Setup/SetupHomeView.swift), fix custom-bot menu action to add/select a custom bot, not `addTrainingBot`.
 - Add or extend `MatchSetupViewModelTests` if behavior is testable without UI.
 
 **Exit criteria:** Spec index links `BaseballGameSpec.md`; governance docs reference baseball payloads; custom bot path works for non-party setup.
@@ -72,8 +72,8 @@ Split for reviewability on top of `feature/baseball-mode` (or stacked PRs after 
 
 - New view under `Features/History/` (or `Features/Play/Baseball/` if shared with summary).
 - Columns: innings 1–9 (+ extra inning columns when applicable); rows: players; cells: runs that inning; footer: totals.
-- Wire into [MatchHistoryDetailScreen.swift](../Features/History/MatchHistoryDetailScreen.swift) when `match.type == .baseball`.
-- Build data from replayed `BaseballState` or aggregated `.baseballTurn` events in [HistoryViewModels.swift](../Features/History/HistoryViewModels.swift).
+- Wire into [MatchHistoryDetailScreen.swift](../../../Features/History/MatchHistoryDetailScreen.swift) when `match.type == .baseball`.
+- Build data from replayed `BaseballState` or aggregated `.baseballTurn` events in [HistoryViewModels.swift](../../../Features/History/HistoryViewModels.swift).
 
 **Tests:**
 
@@ -105,7 +105,7 @@ Split for reviewability on top of `feature/baseball-mode` (or stacked PRs after 
 
 **D6 — Screen doc:**
 
-- Add **`accessibility/wcag-2.1-aa/screens/baseball-match.md`** (template: [cricket-match.md](../accessibility/wcag-2.1-aa/screens/cricket-match.md)).
+- Add **`accessibility/wcag-2.1-aa/screens/baseball-match.md`** (template: [cricket-match.md](../../../accessibility/wcag-2.1-aa/screens/cricket-match.md)).
 - Link from `BaseballGameSpec.md`, `MatchSpec.md`, and `accessibility/wcag-2.1-aa/README.md` index if present.
 
 **Exit criteria:** New test targets pass in CI; WCAG suite includes baseball smoke; screen doc status `Partial` with engineering checklist filled.
@@ -136,7 +136,7 @@ Split for reviewability on top of `feature/baseball-mode` (or stacked PRs after 
 | — | Achievements | Perfect inning, 81-run game |
 | — | Practice tab | Bob's 27, Around the Clock — separate from party baseball |
 
-Track optional items in [docs/release/todo.md](../docs/release/todo.md) or `FutureIdeas/backlog.md` when scheduled; do not block baseball MVP merge on D9.
+Track optional items in [docs/release/todo.md](../../../docs/release/todo.md) or `FutureIdeas/backlog.md` when scheduled; do not block baseball MVP merge on D9.
 
 ---
 
@@ -165,7 +165,7 @@ flowchart LR
 
 ## Verification checklist (all PRs merged)
 
-- [x] `specs/BaseballGameSpec.md` linked from `specs/README.md`
+- [x] `specs/game-modes/implemented/BaseballGameSpec.md` linked from `specs/README.md`
 - [x] History detail shows `BaseballLineScoreView` for baseball matches
 - [x] `BaseballMatchViewModelTests` + `MatchLifecycleServiceBaseballTests` pass
 - [x] `WCAGAccessibilityUITests` includes party baseball smoke

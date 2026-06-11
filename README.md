@@ -8,7 +8,7 @@ Product behavior and UX contracts live under [`specs/`](specs/README.md). A cros
 
 ## Status (1.0 RC — lean core)
 
-- **Product:** Lean 1.0 — X01 + Cricket (Normal + Cut Throat), preset bots, Play · Players · Activity · Settings. Party modes, Modes tab, Training/Custom bots, and export are **hidden** until 1.1+ ([`docs/release/lean-1.0-implementation-plan.md`](docs/release/lean-1.0-implementation-plan.md)).
+- **Product:** Lean 1.0 — X01 + Cricket (Normal + Cut Throat), preset + custom bots, Play · Players · Activity · Settings. Party modes, Modes tab, Training Partner bots, and export are **hidden** until later releases ([`docs/release/lean-1.0-implementation-plan.md`](docs/release/lean-1.0-implementation-plan.md)).
 - **Localization:** **English only** in the 1.0 app bundle (`de` / `es` / `nl` files remain in repo for a future release).
 - **Telemetry:** Firebase Analytics + Crashlytics in Release builds with a real plist.
 - **Remaining for App Store:** Device QA on lean matrix, accessibility evidence, migration recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md).
@@ -50,7 +50,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request 
 
 High-level summary only — authoritative rules are in feature specs:
 
-- **X01** and **Cricket** (Normal + Cut Throat) with guided scoring, undo, and **preset difficulty** bots
+- **X01** and **Cricket** (Normal + Cut Throat) with guided scoring, undo, **preset difficulty** bots, and **custom bots** (tunable X01 average / Cricket MPR)
 - Match setup with roster selection, turn order, and mode-specific options (X01/Cricket chips on Play home)
 - Resume in-progress matches; match summary on completion
 - Player management (create, edit, archive, delete)
@@ -58,7 +58,7 @@ High-level summary only — authoritative rules are in feature specs:
 - Settings: appearance, default game options, haptics, sound, bot pacing
 - **English UI** in 1.0 (additional locales ship in a later release)
 
-Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, Training Partner / custom bots, player export — see [`docs/feature-inventory.md`](docs/feature-inventory.md).
+Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, Training Partner bots, player export — see [`docs/feature-inventory.md`](docs/feature-inventory.md).
 
 ## Project layout
 

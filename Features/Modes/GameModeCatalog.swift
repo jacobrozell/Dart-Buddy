@@ -13,7 +13,7 @@ import SwiftUI
 /// Identity (icon/accent) is keyed off the catalog `id`, **not** `MatchType`,
 /// so the 23 modes without a `MatchType` still get a stable look. Nothing here
 /// renders yet; promoting these into UI is gated on `specs/ModesTabSpec.md`
-/// (per `specs/SpecGovernance.md`).
+/// (per `specs/SpecGovernance.md`). Per-mode rules: `specs/game-modes/implemented/` or `planned/`.
 
 /// Top-level grouping a mode is browsed under in the catalog.
 enum GameModeSection: String, CaseIterable, Identifiable, Hashable {
@@ -156,7 +156,7 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.englishCricket", name: "English Cricket", blurb: "Batter vs bowler scoring",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "figure.cricket"
         ),
@@ -192,7 +192,7 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.football", name: "Football", blurb: "Kickoff on bull, then score goals",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .phaseRace, statKind: .goals,
             iconSystemName: "soccerball"
         ),
@@ -204,7 +204,7 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.hareAndHounds", name: "Hare and Hounds", blurb: "Chase around the board",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "hare.fill"
         ),
@@ -228,19 +228,19 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.scam", name: "Scam", blurb: "Stopper blocks, scorer scores",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "theatermasks.fill"
         ),
         GameModeCatalogEntry(
             id: "party.snooker", name: "Snooker", blurb: "Reds and colours on the board",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "circle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.ticTacToe", name: "Tic-Tac-Toe", blurb: "Claim three segments in a row",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "number.square.fill"
         ),
@@ -278,7 +278,7 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
+            section: .practice, status: .planned, minimumPlayers: 1,
             matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
