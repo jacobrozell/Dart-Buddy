@@ -149,3 +149,40 @@ Authoritative schema: [`SwiftData.md`](SwiftData.md), [`DataSchemaSpec.md`](Data
 ## 12. Future Improvements
 - Collapse advanced X01 chips (check-in, set/leg) behind “Advanced”
 - Named setup presets
+
+---
+
+## 13. Solo practice setup (planned)
+
+Shared platform for all `isSolo` modes: [`SoloPracticeModesSpec.md`](SoloPracticeModesSpec.md) §5.
+
+### Call & Hit
+
+When Modes tab routes `practice.callAndHit` → Play setup ([`CallAndHitGameSpec.md`](game-modes/planned/CallAndHitGameSpec.md)):
+
+### Layout additions
+- **Session preset** horizontal chips (Standard, Sharp, Blitz, …) above advanced chips
+- **Custom** expands: target count, darts per target, target kind, include bull, callout voice
+- **No roster section** (`isSolo` — single human from active profile or picker sheet)
+- **No bot menu**
+
+### Validation
+| Rule | Key |
+|------|-----|
+| Exactly one human participant | reuse `setup.validation.requiresHuman` |
+| Config | `targetCount` ∈ {25, 50, 100} | `setup.validation.callAndHit.invalidTargetCount` |
+| Config | `dartsPerTarget` ∈ {1, 2, 3} | `setup.validation.callAndHit.invalidDartsPerTarget` |
+| Config | Triples + include bull | disallowed — bull chip hidden |
+
+### Start flow
+- `MatchConfigCallAndHit` payload → `MatchType.callAndHit`
+- Route: `.callAndHitMatch` → `VoiceDrillMatchScreen`
+- Persist last preset + custom chips to `SettingsRecord` or `CallAndHitSetupPreferences`
+
+### Prefill
+- Dequeue `PendingModeSelection` from Modes tab with catalog id `practice.callAndHit`
+- **Practice again** from summary preloads prior session config
+
+### Bob's 27 / Halve-It (future)
+
+Same solo platform: skip roster, mode-specific chips (round/score rules per game spec), `MatchType` route to Template F screen, **Practice again** CTA on summary.

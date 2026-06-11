@@ -34,12 +34,12 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 
 | Area | Shipped | Partial | Planned / assessed |
 |------|---------|---------|-------------------|
-| Game modes (catalog) | 2 (X01, Cricket) in 1.0 UI | 3 party engines hidden | 24 catalog stubs |
+| Game modes (catalog) | 2 (X01, Cricket) in 1.0 UI | 3 party engines hidden | 25 catalog stubs |
 | App shell & navigation | 4 tabs (lean 1.0) | Activity merge | Modes tab (1.3) |
 | Localization | en bundled | de/es/nl in repo only | in-app picker |
 | Shortcuts & deep links | Deep links | App Intents (flagged off) | Widgets, query intents |
 | CI / release | GitHub Actions, Xcode Cloud | Slack notify, perf tests | — |
-| Players & bots | CRUD + preset bots | Training/custom hidden | Local achievements, Journey |
+| Players & bots | CRUD + preset + custom bots | Training hidden | Local achievements, Journey |
 | Stats & activity | History + statistics | — | — |
 | Settings & a11y | Core prefs + TTS caller | WCAG evidence, AXXXL layout | Talk mode |
 | Firebase | Analytics + Crashlytics | — | Auth, Firestore, FCM |
@@ -94,6 +94,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Nine Lives | Practice | Lives elimination | [`NineLivesGameSpec.md`](../specs/game-modes/planned/NineLivesGameSpec.md) |
 | Bob's 27 | Practice | Solo challenge | [`Bobs27GameSpec.md`](../specs/game-modes/planned/Bobs27GameSpec.md) |
 | Halve-It | Practice | Solo challenge | [`HalveItGameSpec.md`](../specs/game-modes/planned/HalveItGameSpec.md) |
+| Call & Hit | Practice | Voice drill (Template J) | [`CallAndHitGameSpec.md`](../specs/game-modes/planned/CallAndHitGameSpec.md) (+ stats, UI template, schema supplements) |
 
 ### Game mode infrastructure
 
@@ -101,9 +102,10 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 |---------|--------|-------|-----------|
 | Modes tab (browse, search, quick-start) | Shipped | Standard / Party / Practice sections; iPad 2-col grid | [`ModesTabSpec.md`](../specs/ModesTabSpec.md) |
 | Game rules guide (in-app) | Shipped | Shipped modes only | `Features/Play/Rules/GameRulesGuideView.swift` |
-| 8 gameplay UI templates | Partial | Enum defined; 5 modes mapped | [`full-game-catalog-ui.md`](full-game-catalog-ui.md) |
+| 8 gameplay UI templates | Partial | Enum A–I defined; **J (voice drill)** spec'd for Call & Hit | [`VoiceDrillUITemplateSpec.md`](../specs/game-modes/planned/VoiceDrillUITemplateSpec.md) |
 | Per-mode stat kinds (29 declared) | Partial | Data only for 5 shipped modes | `ModeStatKind` in `GameModeCatalog.swift` |
 | Campaign mode (Journey tab) | **Planned** | Spec’d; no implementation; flag `enableCampaign` | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
+| Solo practice platform | **Planned** | Shared spec for Call & Hit, Bob's 27, Halve-It | [`SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |
 | Vision auto-scoring | Planned | Camera dart detection | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
 

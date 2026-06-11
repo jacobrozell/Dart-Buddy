@@ -5,6 +5,8 @@ Define the post-match summary screen: celebration, per-player stats, undo-last-t
 
 Shared lifecycle completion rules live in [`MatchSpec.md`](MatchSpec.md). Mode-specific metrics follow [`game-modes/implemented/X01GameSpec.md`](game-modes/implemented/X01GameSpec.md) and [`game-modes/implemented/CricketSpec.md`](game-modes/implemented/CricketSpec.md).
 
+**Solo practice modes** (Call & Hit, Bob's 27, Halve-It): use the shared solo shell — no winner card. See [`SoloPracticeModesSpec.md`](SoloPracticeModesSpec.md) and [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplement.md).
+
 ---
 
 ## 2. MVP Scope
@@ -112,3 +114,20 @@ Undo does not appear for abandoned matches (never reach summary).
 ## 12. Future Improvements
 - Share match result card
 - Animated celebration pass (post-1.0 motion)
+
+---
+
+## 13. Solo practice summary (planned)
+
+When `GameModeCatalogEntry.isSolo == true`:
+
+| Element | Competitive | Solo practice |
+|---------|-------------|---------------|
+| Hero | Winner + trophy | Performance metric (accuracy, score, time) |
+| Participants | Rows + winner badge | Single strip, no winner |
+| Primary CTA | New Match | **Practice again** (prefill setup) |
+| Undo | Last dart (pad modes) | Mode-specific (last target / round) |
+
+Wireframes, protocol sketch, and per-stat-kind hero variants: [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplement.md).
+
+Platform contract (catalog, setup, history, stats): [`SoloPracticeModesSpec.md`](SoloPracticeModesSpec.md).

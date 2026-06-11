@@ -47,7 +47,10 @@ Catalog of all product and system specifications. For **audit coverage** (spec +
 | [`QuickAddPlayerSpec.md`](QuickAddPlayerSpec.md) | Fast player create from Play setup |
 | [`MatchSpec.md`](MatchSpec.md) | Lifecycle, resume, abandon, persistence |
 | [`MatchSummarySpec.md`](MatchSummarySpec.md) | Post-match screen, undo last throw |
+| [`SoloPracticeModesSpec.md`](SoloPracticeModesSpec.md) | Shared solo-only practice platform (catalog, setup, summary, history) |
+| [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplement.md) | Solo summary layout (no winner card) |
 | [`ScoringInputSpec.md`](ScoringInputSpec.md) | Shared dart-entry pad, undo, submit |
+| [`CalloutVoicesSpec.md`](CalloutVoicesSpec.md) | Practice target TTS, voice catalog, Settings picker |
 | [`ModesTabSpec.md`](ModesTabSpec.md) | Modes catalog tab, search, coming soon |
 
 ### Game modes — [`game-modes/`](game-modes/)
@@ -57,7 +60,7 @@ Split by **implementation status** (not moved to `docs/` — specs remain author
 | Folder | Modes |
 |--------|-------|
 | **[`game-modes/implemented/`](game-modes/implemented/)** | X01, Cricket, Baseball, Killer, Shanghai |
-| **[`game-modes/planned/`](game-modes/planned/)** | 24 catalog stubs |
+| **[`game-modes/planned/`](game-modes/planned/)** | 25 catalog stubs |
 
 | Implemented spec | Covers |
 |------------------|--------|
