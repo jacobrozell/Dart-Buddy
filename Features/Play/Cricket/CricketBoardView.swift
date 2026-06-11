@@ -135,6 +135,14 @@ struct CricketBoardView: View {
         let setsWon: Int
         let setsEnabled: Bool
         var isClosureHighlight: Bool = false
+
+        var accessibilitySummary: String {
+            var label = L10n.format("play.cricket.column.accessibilityFormat", name, score)
+            if isActive {
+                label += ". \(L10n.string("play.x01.turn.active"))"
+            }
+            return label
+        }
     }
 
     let columns: [Column]
@@ -309,7 +317,7 @@ struct CricketBoardPlayerColumn: View {
         .scaleEffect(column.isClosureHighlight ? 1.03 : 1)
         .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(columnAccessibilityLabel)
+        .accessibilityLabel(column.accessibilitySummary)
         .accessibilityIdentifier(column.isActive ? "cricket_column_active" : "cricket_column")
     }
 
@@ -338,18 +346,6 @@ struct CricketBoardPlayerColumn: View {
         .modifier(CricketBoardColumnWidthModifier(width: width))
         .padding(.vertical, sizing == .landscapeCompact ? DS.Spacing.s1 : DS.Spacing.s2)
         .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
-    }
-
-    private var columnAccessibilityLabel: String {
-        let turn = column.isActive ? " \(L10n.string("play.x01.turn.active"))" : ""
-        return L10n.format(
-            "play.cricket.column.accessibilityFormat",
-            column.name,
-            column.score,
-            column.dartsThrown,
-            column.marksPerRound,
-            turn
-        )
     }
 
     private func label(for target: CricketTarget) -> String {
@@ -440,7 +436,7 @@ struct CricketTransposedBoardView: View {
         .scaleEffect(column.isClosureHighlight ? 1.02 : 1)
         .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(columnAccessibilityLabel)
+        .accessibilityLabel(column.accessibilitySummary)
         .accessibilityIdentifier("cricket_column_active")
     }
 
@@ -485,18 +481,6 @@ struct CricketTransposedBoardView: View {
             Divider().overlay(Brand.cardElevated)
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private var columnAccessibilityLabel: String {
-        let turn = L10n.string("play.x01.turn.active")
-        return L10n.format(
-            "play.cricket.column.accessibilityFormat",
-            column.name,
-            column.score,
-            column.dartsThrown,
-            column.marksPerRound,
-            " \(turn)"
-        )
     }
 
     private func label(for target: CricketTarget) -> String {

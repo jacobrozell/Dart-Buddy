@@ -92,12 +92,15 @@ struct OnboardingPreferencesStepView: View {
         .navigationTitle(L10n.onboardingPreferencesTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(L10n.format("onboarding.stepProgress", progressIndex, OnboardingStep.progressTotal))
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Brand.textSecondary)
-                    .accessibilityIdentifier("onboarding_step_progress")
-            }
+                ToolbarItem(placement: .principal) {
+                    Text(L10n.format("onboarding.stepProgress", progressIndex, OnboardingStep.progressTotal))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                        .accessibilityLabel(
+                            L10n.format("onboarding.stepProgress", progressIndex, OnboardingStep.progressTotal)
+                        )
+                        .accessibilityIdentifier("onboarding_step_progress")
+                }
 
             if showsBack {
                 ToolbarItem(placement: .topBarLeading) {

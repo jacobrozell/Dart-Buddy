@@ -78,6 +78,7 @@ struct OnboardingSupportStepView: View {
                 Image(systemName: "arrow.up.right")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
             }
             .padding(DS.Spacing.s4)
             .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)

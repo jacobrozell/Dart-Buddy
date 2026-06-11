@@ -97,6 +97,9 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
                     Text(L10n.format("onboarding.stepProgress", progressIndex, progressTotal))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Brand.textSecondary)
+                        .accessibilityLabel(
+                            L10n.format("onboarding.stepProgress", progressIndex, progressTotal)
+                        )
                         .accessibilityIdentifier("onboarding_step_progress")
                 }
             }
