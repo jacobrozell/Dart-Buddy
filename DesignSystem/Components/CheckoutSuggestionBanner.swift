@@ -37,9 +37,6 @@ struct CheckoutSuggestionBanner: View {
         VStack(alignment: .leading, spacing: DS.Spacing.s3) {
             titleRow
             routeRow(labels: labels)
-            if optionCount > 1 {
-                optionCountFootnote(optionCount)
-            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(combinedAccessibilityLabel(labels: labels, optionCount: optionCount))
@@ -72,16 +69,6 @@ struct CheckoutSuggestionBanner: View {
         .buttonStyle(.plain)
         .accessibilityLabel(L10n.x01CheckoutCycle)
         .accessibilityIdentifier("checkoutCycleButton")
-    }
-
-    private func optionCountFootnote(_ count: Int) -> some View {
-        Text("\(count)")
-            .font(.caption2)
-            .foregroundStyle(Brand.textSecondary)
-            .monospacedDigit()
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            .accessibilityHidden(true)
-            .accessibilityIdentifier("checkoutOptionCount")
     }
 
     @ViewBuilder

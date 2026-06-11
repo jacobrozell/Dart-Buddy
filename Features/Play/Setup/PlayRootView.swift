@@ -94,7 +94,15 @@ struct PlayRootView: View {
                             matchRepository: dependencies.matchRepository,
                             statsRepository: dependencies.statsRepository
                         ),
-                        onStartNewMatch: { path.removeAll() },
+                        onRematch: { runtime in
+                            if let route = await setupViewModel.startRematchRoute(from: runtime) {
+                                path = [route]
+                                return nil
+                            }
+                            return setupViewModel.displayValidationErrors.first
+                                ?? "play.summary.rematchFailed"
+                        },
+                        onDone: { path.removeAll() },
                         onViewHistoryDetail: { id in path.append(.historyDetail(matchId: id)) },
                         onUndoLastThrow: { restoredDarts in
                             dependencies.activeMatchStore.setResumeHint(

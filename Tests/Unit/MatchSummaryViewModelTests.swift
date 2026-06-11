@@ -238,6 +238,49 @@ func matchSummaryCricketStatsBuilderIncludesScoreAndMPR() throws {
 
 @MainActor
 @Test(.tags(.unit, .match, .regression))
+func matchSummaryCanRematchOnlyWhenCompleted() async throws {
+    var inProgress = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    inProgress = try MatchLifecycleService.submitX01Turn(session: inProgress, enteredTotal: 60, darts: nil)
+    let store = ActiveMatchStore()
+    store.save(inProgress)
+    let inProgressVM = MatchSummaryViewModel(
+        matchId: inProgress.runtime.matchId,
+        store: store,
+        matchRepository: SummaryUndoFakeMatchRepository(),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    inProgressVM.refresh()
+    #expect(!inProgressVM.canRematch)
+
+    var completed = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    completed.runtime.status = .completed
+    store.save(completed)
+    let completedVM = MatchSummaryViewModel(
+        matchId: completed.runtime.matchId,
+        store: store,
+        matchRepository: SummaryUndoFakeMatchRepository(),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    completedVM.refresh()
+    #expect(completedVM.canRematch)
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
 func matchSummaryCannotUndoInProgressMatch() async throws {
     var session = try MatchLifecycleService.createMatch(
         type: .x01,

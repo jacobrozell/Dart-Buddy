@@ -21,7 +21,10 @@ struct PlayerScoreCard: View {
     @ScaledMetric(relativeTo: .caption) private var compactDartBoxSize: CGFloat = 30
 
     private var usesWideLayout: Bool {
-        horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize
+        GameplayLayout.usesWidePlayerScoreCardLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
     }
 
     private var usesCompactDensity: Bool {

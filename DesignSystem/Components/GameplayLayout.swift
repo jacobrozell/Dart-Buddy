@@ -71,6 +71,17 @@ enum GameplayLayout {
         verticalSizeClass == .compact
     }
 
+    /// Stacked score/name row on iPad regular width. iPhone Pro landscape also reports `.regular` width.
+    static func usesWidePlayerScoreCardLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        horizontalSizeClass == .regular
+            && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+            && isPad
+    }
+
     /// iPad portrait or iPhone landscape: scoreboard beside a fixed-width scoring pad.
     static func usesSideBySideMatchScoringLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,

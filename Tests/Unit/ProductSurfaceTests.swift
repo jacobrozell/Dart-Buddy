@@ -13,7 +13,7 @@ struct ProductSurfaceTests {
         #expect(!ProductSurface.showsModesTab)
         #expect(!ProductSurface.showsPartyModes)
         #expect(!ProductSurface.showsTrainingBots)
-        #expect(!ProductSurface.showsCustomBots)
+        #expect(ProductSurface.showsCustomBots)
         #expect(!ProductSurface.showsPlayerExport)
         #expect(ProductSurface.bundledLocaleCodes == ["en"])
     }

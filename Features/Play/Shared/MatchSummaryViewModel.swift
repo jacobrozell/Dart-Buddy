@@ -68,6 +68,13 @@ final class MatchSummaryViewModel: ObservableObject {
         return session.runtime.status == .completed
     }
 
+    var canRematch: Bool {
+        guard let runtime = session?.runtime, runtime.status == .completed else { return false }
+        let participantCount = runtime.participants.count
+        let minimum = runtime.type == .x01 ? 1 : 2
+        return participantCount >= minimum
+    }
+
     /// Reverts the last accepted throw and returns restored in-progress darts, if any.
     func undoLastThrow() async -> [DartInput]? {
         undoErrorKey = nil

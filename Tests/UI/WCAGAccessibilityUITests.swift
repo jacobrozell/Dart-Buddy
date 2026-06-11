@@ -124,7 +124,8 @@ final class WCAGAccessibilityUITests: XCTestCase {
         finishQuickX01Checkout(for: app, timeout: timeout)
 
         assertInteractiveElement(app.otherElements["matchSummaryHeader"], identifier: "matchSummaryHeader")
-        assertInteractiveElement(app.buttons["New Match"], identifier: "New Match")
+        assertInteractiveElement(app.buttons["Rematch"], identifier: "matchSummaryRematch")
+        assertInteractiveElement(app.buttons["Done"], identifier: "matchSummaryDone")
         assertInteractiveElement(app.buttons["View Game Statistics"], identifier: "View Game Statistics")
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }

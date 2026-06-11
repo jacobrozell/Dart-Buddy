@@ -2,11 +2,16 @@ import SwiftUI
 
 struct MatchSummaryScreen: View {
     @StateObject var viewModel: MatchSummaryViewModel
-    let onStartNewMatch: () -> Void
+    /// Returns an error message key when rematch cannot start; `nil` on success.
+    let onRematch: (MatchRuntimeState) async -> String?
+    let onDone: () -> Void
     let onViewHistoryDetail: (UUID) -> Void
     let onUndoLastThrow: ([DartInput]) -> Void
 
     @State private var undoTask: Task<Void, Never>?
+    @State private var rematchTask: Task<Void, Never>?
+    @State private var isRematching = false
+    @State private var rematchErrorKey: String?
 
     @State private var celebrate = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -62,7 +67,10 @@ struct MatchSummaryScreen: View {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { celebrate = true }
             }
         }
-        .onDisappear { undoTask?.cancel() }
+        .onDisappear {
+            undoTask?.cancel()
+            rematchTask?.cancel()
+        }
     }
 
     private var landscapeSplitContent: some View {
@@ -161,6 +169,9 @@ struct MatchSummaryScreen: View {
             Text(viewModel.typeLabel)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Brand.textSecondary)
+            if viewModel.hasResult {
+                gameRecordedBadge
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, usesLandscapeSplit ? 0 : DS.Spacing.s4)
@@ -208,9 +219,21 @@ struct MatchSummaryScreen: View {
         }
     }
 
+    private var gameRecordedBadge: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "checkmark.circle.fill")
+            Text(L10n.summaryGameRecorded)
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(Brand.green)
+        .accessibilityIdentifier("matchSummaryGameRecorded")
+    }
+
     private var celebrationHeaderAccessibilityLabel: String {
         guard let winnerName = viewModel.winnerName else { return viewModel.typeLabel }
+        let recorded = viewModel.hasResult ? L10n.string("play.summary.gameRecorded") : ""
         return L10n.format("play.summary.header.accessibilityFormat", winnerName, viewModel.typeLabel)
+            + (recorded.isEmpty ? "" : ". \(recorded)")
     }
 
     private enum PlayerCardStatLayout {
@@ -302,57 +325,58 @@ struct MatchSummaryScreen: View {
     }
 
     private var landscapeActions: some View {
-        HStack(spacing: DS.Spacing.s3) {
-            if viewModel.canUndoLastThrow {
+        VStack(spacing: DS.Spacing.s2) {
+            HStack(spacing: DS.Spacing.s3) {
+                PrimaryActionButton(
+                    title: L10n.summaryRematch,
+                    isEnabled: viewModel.canRematch,
+                    isLoading: isRematching,
+                    accessibilityIdentifier: "matchSummaryRematch",
+                    action: runRematch
+                )
+                PrimaryActionButton(
+                    title: L10n.summaryDone,
+                    accent: .green,
+                    accessibilityIdentifier: "matchSummaryDone",
+                    action: onDone
+                )
                 summarySecondaryButton(
-                    title: L10n.summaryUndoLastThrow,
-                    action: runUndoLastThrow,
-                    isLoading: viewModel.isUndoing,
-                    identifier: "matchSummaryUndoLastThrow",
-                    hint: L10n.summaryUndoLastThrowHint,
+                    title: L10n.summaryViewGameStatistics,
+                    action: { onViewHistoryDetail(viewModel.matchId) },
                     compact: true
                 )
+            }
+            if let rematchErrorKey {
+                ErrorBanner(messageKey: rematchErrorKey)
             }
             if let undoErrorKey = viewModel.undoErrorKey {
                 ErrorBanner(messageKey: undoErrorKey)
             }
-            PrimaryActionButton(title: L10n.summaryNewMatch, action: onStartNewMatch)
-            summarySecondaryButton(
-                title: L10n.summaryViewGameStatistics,
-                action: { onViewHistoryDetail(viewModel.matchId) },
-                compact: true
-            )
+            if viewModel.canUndoLastThrow {
+                undoLastThrowSection(compact: true)
+            }
         }
         .padding(.top, DS.Spacing.s1)
     }
 
     @ViewBuilder
     private var portraitActionButtons: some View {
-        if viewModel.canUndoLastThrow {
-            Button(action: runUndoLastThrow) {
-                Group {
-                    if viewModel.isUndoing {
-                        ProgressView()
-                            .tint(Brand.textPrimary)
-                            .accessibilityLabel(L10n.loading)
-                    } else {
-                        Text(L10n.summaryUndoLastThrow)
-                            .font(.headline)
-                            .foregroundStyle(Brand.textPrimary)
-                    }
-                }
-                .frame(maxWidth: .infinity, minHeight: 52)
-                .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-            }
-            .buttonStyle(.plain)
-            .disabled(viewModel.isUndoing)
-            .accessibilityHint(L10n.summaryUndoLastThrowHint)
-            .accessibilityIdentifier("matchSummaryUndoLastThrow")
+        if let rematchErrorKey {
+            ErrorBanner(messageKey: rematchErrorKey)
         }
-        if let undoErrorKey = viewModel.undoErrorKey {
-            ErrorBanner(messageKey: undoErrorKey)
-        }
-        PrimaryActionButton(title: L10n.summaryNewMatch, action: onStartNewMatch)
+        PrimaryActionButton(
+            title: L10n.summaryRematch,
+            isEnabled: viewModel.canRematch,
+            isLoading: isRematching,
+            accessibilityIdentifier: "matchSummaryRematch",
+            action: runRematch
+        )
+        PrimaryActionButton(
+            title: L10n.summaryDone,
+            accent: .green,
+            accessibilityIdentifier: "matchSummaryDone",
+            action: onDone
+        )
         Button(action: { onViewHistoryDetail(viewModel.matchId) }) {
             Text(L10n.summaryViewGameStatistics)
                 .font(.headline).foregroundStyle(Brand.textPrimary)
@@ -360,6 +384,32 @@ struct MatchSummaryScreen: View {
                 .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
         }
         .buttonStyle(.plain)
+        if let undoErrorKey = viewModel.undoErrorKey {
+            ErrorBanner(messageKey: undoErrorKey)
+        }
+        if viewModel.canUndoLastThrow {
+            undoLastThrowSection(compact: false)
+        }
+    }
+
+    @ViewBuilder
+    private func undoLastThrowSection(compact: Bool) -> some View {
+        VStack(spacing: DS.Spacing.s1) {
+            summarySecondaryButton(
+                title: L10n.summaryUndoLastThrow,
+                action: runUndoLastThrow,
+                isLoading: viewModel.isUndoing,
+                identifier: "matchSummaryUndoLastThrow",
+                hint: L10n.summaryUndoLastThrowHint,
+                compact: compact
+            )
+            Text(L10n.summaryUndoLastThrowWarning)
+                .font(compact ? .caption2 : .caption)
+                .foregroundStyle(Brand.textSecondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityIdentifier("matchSummaryUndoLastThrowWarning")
+        }
     }
 
     private func summarySecondaryButton(
@@ -391,6 +441,17 @@ struct MatchSummaryScreen: View {
         .buttonStyle(.plain)
         .disabled(isLoading)
         .modifier(SummarySecondaryButtonAccessibility(identifier: identifier, hint: hint))
+    }
+
+    private func runRematch() {
+        guard viewModel.canRematch, let runtime = viewModel.session?.runtime else { return }
+        rematchTask?.cancel()
+        rematchTask = Task {
+            rematchErrorKey = nil
+            isRematching = true
+            defer { isRematching = false }
+            rematchErrorKey = await onRematch(runtime)
+        }
     }
 
     private func runUndoLastThrow() {
