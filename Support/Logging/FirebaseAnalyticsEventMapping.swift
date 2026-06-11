@@ -28,7 +28,8 @@ public enum FirebaseAnalyticsEventMapping {
         "deep_link_deferred",
         "deep_link_failed",
         "intent_performed",
-        "intent_failed"
+        "intent_failed",
+        "client_environment_changed"
     ]
 
     private static let allowlistedParameterKeys: Set<String> = [
@@ -47,7 +48,17 @@ public enum FirebaseAnalyticsEventMapping {
         "isBot",
         "path",
         "version",
-        "intentName"
+        "intentName",
+        "deviceClass",
+        "isVoiceOverRunning",
+        "isSwitchControlRunning",
+        "isBoldTextEnabled",
+        "isReduceMotionEnabled",
+        "isScreenCaptured",
+        "isExternalDisplayConnected",
+        "interfaceOrientation",
+        "trigger",
+        "changedSignals"
     ]
 
     private static let firebaseNameOverrides: [String: String] = [

@@ -56,7 +56,12 @@ public enum AppBootstrapper {
                 pendingMatchPlayerSelections: pendingMatchPlayerSelections
             )
             await DemoSeeder.seedIfRequested(dependencies)
-            logger.info(.appLifecycle, eventName: "app_bootstrap_ready", message: "App bootstrap completed.")
+            logger.info(
+                .appLifecycle,
+                eventName: "app_bootstrap_ready",
+                message: "App bootstrap completed.",
+                metadata: ClientEnvironment.snapshot.analyticsMetadata
+            )
             return .ready(dependencies)
         } catch {
             let appError = AppError.migrationFailure(error)
