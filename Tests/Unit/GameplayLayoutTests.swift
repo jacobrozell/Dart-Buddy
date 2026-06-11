@@ -548,6 +548,31 @@ func gameplayLayoutUsesLandscapeMatchScoringOnlyWithCompactVerticalSizeClass() {
     #expect(GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: nil) == false)
 }
 
+@Test(.tags(.unit, .x01, .regression))
+func gameplayLayoutWidePlayerScoreCardRequiresPadIdiom() {
+    #expect(
+        GameplayLayout.usesWidePlayerScoreCardLayout(
+            horizontalSizeClass: .regular,
+            dynamicTypeSize: .large,
+            isPad: false
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesWidePlayerScoreCardLayout(
+            horizontalSizeClass: .regular,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesWidePlayerScoreCardLayout(
+            horizontalSizeClass: .compact,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == false
+    )
+}
+
 @Test(.tags(.unit, .regression))
 func gameplayLayoutLandscapePadWidthIsFixedForCompactPad() {
     #expect(GameplayLayout.landscapeScoringPadWidth == 252)

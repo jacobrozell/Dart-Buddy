@@ -10,6 +10,8 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
     var showsActiveBand: Bool = true
     /// When false, the pad and chrome span the full width under the active band (solo matches).
     var scoreboardSharesBottomRow: Bool = true
+    /// When false, the inactive scoreboard only grows to fit its content; checkout stays adjacent and the pad docks to the bottom.
+    var scoreboardFillsRemainingHeight: Bool = true
     @ViewBuilder var active: () -> Active
     @ViewBuilder var scoreboard: () -> Scoreboard
     @ViewBuilder var padChrome: () -> PadChrome
@@ -59,14 +61,12 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
         if usesFullWidthPadColumn {
             VStack(spacing: DS.Spacing.s2) {
                 if scoreboardSharesBottomRow {
-                    ScrollView {
-                        scoreboard()
-                            .frame(maxWidth: .infinity, alignment: .topLeading)
-                    }
-                    .scrollIndicators(.hidden)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    scoreboardScroll
                 }
                 padChrome()
+                if !scoreboardFillsRemainingHeight {
+                    Spacer(minLength: 0)
+                }
                 pad()
             }
         } else {
@@ -111,6 +111,21 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass
         )
+    }
+
+    @ViewBuilder
+    private var scoreboardScroll: some View {
+        let scroll = ScrollView {
+            scoreboard()
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+        .scrollIndicators(.hidden)
+
+        if scoreboardFillsRemainingHeight {
+            scroll.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else {
+            scroll.frame(maxWidth: .infinity, alignment: .topLeading)
+        }
     }
 }
 

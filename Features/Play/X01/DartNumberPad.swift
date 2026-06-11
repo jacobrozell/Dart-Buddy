@@ -10,6 +10,8 @@ struct DartNumberPad: View {
     var lockedSegment: Int? = nil
     var showsBull: Bool = true
     var maxDarts: Int = 3
+    /// When false, hides the in-pad visit row (e.g. X01 landscape where the score card already shows darts).
+    var showsVisitPreview: Bool = true
     /// Called when undo is tapped with an empty in-progress visit to revert the last accepted throw.
     let onUndoTurn: () -> Void
 
@@ -111,7 +113,9 @@ struct DartNumberPad: View {
 
     private var compactPad: some View {
         VStack(spacing: padSpacing) {
-            visitPreview
+            if showsVisitPreview {
+                visitPreview
+            }
             ForEach(visibleCompactRows, id: \.self) { row in
                 HStack(spacing: padSpacing) {
                     ForEach(row, id: \.self) { value in
@@ -129,7 +133,9 @@ struct DartNumberPad: View {
             count: GameplayLayout.scoringPadColumnCount(dynamicTypeSize: dynamicTypeSize)
         )
         return VStack(spacing: padSpacing) {
-            visitPreview
+            if showsVisitPreview {
+                visitPreview
+            }
             LazyVGrid(columns: columns, spacing: padSpacing) {
                 ForEach(visibleAccessibilitySegments, id: \.self) { value in
                     numberKey(value)

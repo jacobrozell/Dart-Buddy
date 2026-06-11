@@ -168,6 +168,7 @@ struct X01MatchScreen: View {
         return MatchScoringBody(
             showsActiveBand: pinsActive && active != nil,
             scoreboardSharesBottomRow: cards.count > 1,
+            scoreboardFillsRemainingHeight: inactive.count >= 3,
             active: {
                 if pinsActive, let active {
                     playerScoreCard(active)
@@ -194,7 +195,11 @@ struct X01MatchScreen: View {
         Group {
             if cards.isEmpty {
                 EmptyView()
-            } else if cards.count == 2 && horizontalSizeClass == .regular {
+            } else if cards.count == 2,
+                      GameplayLayout.usesIPadPortraitMatchScoringLayout(
+                          horizontalSizeClass: horizontalSizeClass,
+                          verticalSizeClass: verticalSizeClass
+                      ) {
                 HStack(spacing: DS.Spacing.s2) {
                     ForEach(cards) { card in
                         playerScoreCard(card)
@@ -237,6 +242,7 @@ struct X01MatchScreen: View {
         DartNumberPad(
             enteredDarts: $viewModel.enteredDarts,
             selectedMultiplier: $viewModel.selectedMultiplier,
+            showsVisitPreview: !landscape,
             onUndoTurn: { runUndo() }
         )
         .disabled(viewModel.canHumanInput == false)

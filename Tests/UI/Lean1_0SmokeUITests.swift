@@ -100,6 +100,33 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["Games"].waitForExistence(timeout: timeout))
     }
 
+    func testLeanAddBotMenuOffersCustomBotCreation() {
+        let app = launchApp(["-seed_players"])
+        ensurePlayTab(app, timeout: timeout)
+
+        let addBot = app.buttons["Add Bot"]
+        XCTAssertTrue(addBot.waitForExistence(timeout: timeout))
+        addBot.tap()
+
+        let customBotOption = app.buttons["setup_addCustomBot"]
+        let customBotByLabel = app.buttons.containing(
+            NSPredicate(format: "label CONTAINS %@", "Custom Bot")
+        ).firstMatch
+        if customBotOption.waitForExistence(timeout: 2) {
+            XCTAssertTrue(customBotOption.exists)
+        } else {
+            XCTAssertTrue(
+                customBotByLabel.waitForExistence(timeout: timeout),
+                "Lean 1.0 should offer custom bot creation in Add Bot menu"
+            )
+        }
+
+        XCTAssertFalse(
+            app.staticTexts["Training Partner"].exists,
+            "Lean 1.0 should not expose Training Partner in Add Bot menu"
+        )
+    }
+
     func testLeanPlayerDetailHidesExportAndTrainingPartner() {
         let app = launchApp(["-seed_demo"])
 

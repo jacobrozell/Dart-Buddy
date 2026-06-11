@@ -51,7 +51,8 @@ final class X01MatchUITests: DartBuddyUITestCase {
         finishQuickX01Checkout(for: app, timeout: timeout)
 
         assertMatchSummaryShowsWinner("Alice", in: app, timeout: timeout)
-        XCTAssertTrue(app.buttons["New Match"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["Rematch"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: timeout))
     }
 
     func testPostMatchStatsDeleteReturnsToPlayHome() {

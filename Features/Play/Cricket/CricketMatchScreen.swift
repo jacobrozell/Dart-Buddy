@@ -128,9 +128,12 @@ struct CricketMatchScreen: View {
         let inactiveColumns = columns.filter { !$0.isActive }
         let split = usesSplitCricketScoreboard
 
+        let inactiveCount = split ? inactiveColumns.count : max(0, columns.count - 1)
+
         return MatchScoringBody(
             showsActiveBand: split && !activeColumns.isEmpty,
             scoreboardSharesBottomRow: split ? !inactiveColumns.isEmpty : true,
+            scoreboardFillsRemainingHeight: inactiveCount >= 3,
             active: {
                 if split {
                     activeCricketBoard(columns: activeColumns, allColumns: columns)
