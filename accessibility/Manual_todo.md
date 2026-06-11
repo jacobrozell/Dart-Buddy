@@ -2,7 +2,7 @@
 
 Human-only checks that simulator AX-tree tools cannot complete. Tick items when done and link evidence under `accessibility/wcag-2.1-aa/evidence/`.
 
-**Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02; less-is-more pass 2026-06-10)
+**Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02; X01 less-is-more 2026-06-10; Cricket less-is-more 2026-06-11)
 
 **Less-is-more plan:** `accessibility/voiceover-less-is-more-plan.md`
 
@@ -28,7 +28,8 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 ## VoiceOver — Cricket match (`cricket-match`)
 
 - [ ] Focus order: board (active column) → pad → Cancel / state banner
-- [ ] Active column: name, score, “Your turn” in one label
+- [ ] Active column: name, score, “Your turn” in one label (no per-visit darts/marks — see `evidence/voiceover/cricket-less-is-more-ax-spotcheck-2026-06-11.md`)
+- [ ] **Mid-game spot-check:** after several visits, confirm column labels stay concise and marks remain discoverable via pad focus (not duplicated on every column swipe)
 - [ ] Pad: “Triple 20”, “Miss”, “Double Bull” when modifiers armed
 - [ ] Close a target (3 marks): hear closure / board updated announcement
 - [ ] Bot match: pad disabled + bot banner (same pattern as X01)

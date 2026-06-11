@@ -40,7 +40,7 @@
 - [x] Landscape board beside pad (compact vertical size class)
 - [x] iPhone landscape pins current player above full-width pad (X01-style); iPad landscape shows full board
 - [ ] AXXXL landscape manual pass
-- [ ] Manual VoiceOver pass (`accessibility/Manual_todo.md`)
+- [ ] Manual VoiceOver pass — mid-game column labels (`accessibility/Manual_todo.md`, `evidence/voiceover/cricket-less-is-more-ax-spotcheck-2026-06-11.md`)
 
 ## Verification log
 
