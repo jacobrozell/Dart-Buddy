@@ -46,7 +46,7 @@ func mapPlayer(_ record: SchemaV2.PlayerRecord) -> PlayerSummary {
     let botKind: String?
     if let rawKind = record.botKindRaw {
         botKind = rawKind
-    } else if isBot, CustomBotMetrics.decode(botDifficultyRaw: record.botDifficultyRaw) != nil {
+    } else if isBot, CustomBotConfigurationCodec.decode(botDifficultyRaw: record.botDifficultyRaw) != nil {
         botKind = BotKind.custom.rawValue
     } else if isBot, record.botDifficultyRaw != nil {
         botKind = BotKind.preset.rawValue

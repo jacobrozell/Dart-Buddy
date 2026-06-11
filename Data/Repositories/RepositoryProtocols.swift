@@ -5,7 +5,10 @@ public protocol PlayerRepository: Sendable {
     func createPlayer(name: String) async throws -> PlayerSummary
     func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary
     func createCustomBot(name: String, metrics: CustomBotMetrics) async throws -> PlayerSummary
+    func createCustomBot(name: String, configuration: CustomBotConfiguration) async throws -> PlayerSummary
     func updateCustomBotMetrics(playerId: UUID, metrics: CustomBotMetrics) async throws -> PlayerSummary
+    func updateCustomBotConfiguration(playerId: UUID, configuration: CustomBotConfiguration) async throws -> PlayerSummary
+    func decodeCustomBotConfiguration(player: PlayerSummary) -> CustomBotConfiguration?
     func updatePlayerName(playerId: UUID, name: String) async throws -> PlayerSummary
     func updatePlayerProfile(
         playerId: UUID,
@@ -34,6 +37,17 @@ public extension PlayerRepository {
         )
     }
 
+    func createCustomBot(name _: String, configuration _: CustomBotConfiguration) async throws -> PlayerSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "createCustomBot(configuration:)"]
+        )
+    }
+
     func updateCustomBotMetrics(playerId _: UUID, metrics _: CustomBotMetrics) async throws -> PlayerSummary {
         throw AppError(
             code: .unsupportedOperation,
@@ -43,6 +57,21 @@ public extension PlayerRepository {
             userMessageKey: "error.repository.notImplemented",
             debugContext: ["repository": "PlayerRepository", "method": "updateCustomBotMetrics"]
         )
+    }
+
+    func updateCustomBotConfiguration(playerId _: UUID, configuration _: CustomBotConfiguration) async throws -> PlayerSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "updateCustomBotConfiguration"]
+        )
+    }
+
+    func decodeCustomBotConfiguration(player: PlayerSummary) -> CustomBotConfiguration? {
+        player.customBotConfiguration
     }
 
     func fetchTrainingBot(linkedTo _: UUID) async throws -> PlayerSummary? { nil }

@@ -57,8 +57,16 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         botKind == .custom
     }
 
+    public var customBotConfiguration: CustomBotConfiguration? {
+        guard isCustomBot else { return nil }
+        return CustomBotConfigurationCodec.decode(botDifficultyRaw: botDifficultyRaw)
+    }
+
     public var customBotMetrics: CustomBotMetrics? {
-        CustomBotMetrics.decode(botDifficultyRaw: botDifficultyRaw)
+        if let configuration = customBotConfiguration {
+            return configuration.metrics
+        }
+        return CustomBotMetrics.decode(botDifficultyRaw: botDifficultyRaw)
     }
 
     public var isPresetBot: Bool {
