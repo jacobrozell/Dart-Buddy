@@ -74,6 +74,10 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     }
 
     public func createCustomBot(name: String, metrics: CustomBotMetrics) async throws -> PlayerSummary {
+        try await createCustomBot(name: name, configuration: .from(metrics: metrics))
+    }
+
+    public func createCustomBot(name: String, configuration: CustomBotConfiguration) async throws -> PlayerSummary {
         try dataCall {
             let context = ModelContext(container)
             let existing = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
@@ -87,7 +91,7 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
                 name: resolvedName,
                 isArchived: false,
                 isBot: true,
-                botDifficultyRaw: metrics.encode(),
+                botDifficultyRaw: CustomBotConfigurationCodec.encode(configuration),
                 botKindRaw: BotKind.custom.rawValue,
                 createdAt: now,
                 updatedAt: now
@@ -101,13 +105,27 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     }
 
     public func updateCustomBotMetrics(playerId: UUID, metrics: CustomBotMetrics) async throws -> PlayerSummary {
+        let existing = try await fetchPlayers(includeArchived: true)
+        guard let player = existing.first(where: { $0.id == playerId }) else {
+            throw customBotError("customBot.error.notCustomBot")
+        }
+        var configuration = decodeCustomBotConfiguration(player: player) ?? .from(metrics: metrics)
+        configuration.x01Average = metrics.x01Average
+        configuration.cricketMPR = metrics.cricketMPR
+        return try await updateCustomBotConfiguration(playerId: playerId, configuration: configuration)
+    }
+
+    public func updateCustomBotConfiguration(
+        playerId: UUID,
+        configuration: CustomBotConfiguration
+    ) async throws -> PlayerSummary {
         try dataCall {
             let context = ModelContext(container)
             let player = try fetchPlayerRecord(id: playerId, in: context)
             guard player.isBot == true, player.botKindRaw == BotKind.custom.rawValue else {
                 throw customBotError("customBot.error.notCustomBot")
             }
-            player.botDifficultyRaw = metrics.encode()
+            player.botDifficultyRaw = CustomBotConfigurationCodec.encode(configuration)
             player.updatedAt = Date()
             try context.save()
             return mapPlayer(player)
