@@ -48,7 +48,9 @@ struct BaseballMatchScreen: View {
 
             if let state = viewModel.baseballState {
                 SideBySideMatchBody {
-                    scoreboardSection(state: state)
+                    scoreboardSection(state: state, includesBanner: false)
+                } padChrome: {
+                    stateBanner
                 } controls: {
                     baseballPad
                 }
@@ -117,7 +119,7 @@ struct BaseballMatchScreen: View {
     }
 
     @ViewBuilder
-    private func scoreboardSection(state: BaseballState) -> some View {
+    private func scoreboardSection(state: BaseballState, includesBanner: Bool = true) -> some View {
         VStack(spacing: DS.Spacing.s3) {
             BaseballScoreboardView(
                 rows: viewModel.scoreboardRows,
@@ -137,7 +139,9 @@ struct BaseballMatchScreen: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("baseball_playoff_strip")
             }
-            stateBanner
+            if includesBanner {
+                stateBanner
+            }
         }
     }
 
@@ -150,6 +154,7 @@ struct BaseballMatchScreen: View {
             MatchFeedbackBanner(text: "play.baseball.stretchGateOpened", style: .cricketClosure)
         case .perfectInningFeedback:
             MatchFeedbackBanner(text: "play.baseball.perfectInning", style: .legWin)
+                .accessibilityHidden(true)
         default:
             if let hint = viewModel.stretchGateHint {
                 MatchFeedbackBanner(text: LocalizedStringKey(hint), style: .cricketClosure)

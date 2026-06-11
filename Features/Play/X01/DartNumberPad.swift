@@ -14,6 +14,7 @@ struct DartNumberPad: View {
     let onUndoTurn: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
@@ -24,12 +25,25 @@ struct DartNumberPad: View {
 
     private var usesLandscapeCompactLayout: Bool {
         !usesAccessibilityLayout
-            && GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+            && (
+                GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+                    || GameplayLayout.usesSideBySideBottomScoringRegion(
+                        horizontalSizeClass: horizontalSizeClass,
+                        verticalSizeClass: verticalSizeClass
+                    )
+            )
+    }
+
+    private var usesIPadSideBySidePad: Bool {
+        false
     }
 
     private var padSpacing: CGFloat {
         if usesAccessibilityLayout {
             return ScoringPadStyle.accessibilitySpacing
+        }
+        if usesIPadSideBySidePad {
+            return GameplayLayout.iPadSideBySidePadSpacing
         }
         if usesLandscapeCompactLayout {
             return 4
@@ -41,6 +55,9 @@ struct DartNumberPad: View {
         if usesAccessibilityLayout {
             return min(keyMinHeight, 56)
         }
+        if usesIPadSideBySidePad {
+            return GameplayLayout.iPadSideBySidePadKeyMinHeight
+        }
         if usesLandscapeCompactLayout {
             return lockedSegment == nil ? 40 : 56
         }
@@ -50,6 +67,9 @@ struct DartNumberPad: View {
     private var displayVisitSlotMinHeight: CGFloat {
         if usesAccessibilityLayout {
             return min(visitSlotMinHeight, 40)
+        }
+        if usesIPadSideBySidePad {
+            return 40
         }
         if usesLandscapeCompactLayout {
             return 28
@@ -99,7 +119,7 @@ struct DartNumberPad: View {
                     }
                 }
             }
-            controlRow
+            controlRow()
         }
     }
 
@@ -115,7 +135,7 @@ struct DartNumberPad: View {
                     numberKey(value)
                 }
             }
-            controlRow
+            controlRow()
         }
     }
 
@@ -131,33 +151,25 @@ struct DartNumberPad: View {
                     .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(visitPreviewAccessibilityLabel)
-        .accessibilityHidden(enteredDarts.isEmpty)
+        .accessibilityHidden(true)
         .accessibilityIdentifier("dart_visit_preview")
     }
 
-    private var visitPreviewAccessibilityLabel: String {
-        let names = enteredDarts.map(\.spokenAccessibilityName)
-        guard !names.isEmpty else { return "" }
-        return L10n.format("scoring.visitDartsFormat", names.joined(separator: ", "))
-    }
-
-    private var controlRow: some View {
-        HStack(spacing: padSpacing) {
+    private func controlRow(minHeight: CGFloat? = nil) -> some View {
+        let keyHeight = minHeight ?? displayKeyMinHeight
+        return HStack(spacing: padSpacing) {
             ScoringPadKey(
                 title: "0",
-                minHeight: displayKeyMinHeight,
+                minHeight: keyHeight,
                 accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
-                accessibilityHint: L10n.string("scoring.segment.hint"),
                 identifier: "pad_0",
                 action: appendMiss
             )
-            modifierKey(.double, identifier: "pad_double")
-            modifierKey(.triple, identifier: "pad_triple")
+            modifierKey(.double, identifier: "pad_double", minHeight: keyHeight)
+            modifierKey(.triple, identifier: "pad_triple", minHeight: keyHeight)
             ScoringPadIconKey(
                 systemImage: "arrow.uturn.backward",
-                minHeight: displayKeyMinHeight,
+                minHeight: keyHeight,
                 accessibilityLabel: L10n.string("scoring.undoLastTurn"),
                 identifier: "pad_undo",
                 action: undo
@@ -165,17 +177,23 @@ struct DartNumberPad: View {
         }
     }
 
-    private func numberKey(_ value: Int) -> some View {
+    private var numberKeyFont: Font {
+        if usesAccessibilityLayout || usesIPadSideBySidePad {
+            return .title3.weight(.semibold)
+        }
+        return .body.weight(.semibold)
+    }
+
+    private func numberKey(_ value: Int, minHeight: CGFloat? = nil) -> some View {
         let enabled = value == 25 ? showsBull : isSegmentEnabled(value)
         return ScoringPadKey(
             title: String(value),
-            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
-            minHeight: displayKeyMinHeight,
+            font: numberKeyFont,
+            minHeight: minHeight ?? displayKeyMinHeight,
             accessibilityLabel: DartInput.padKeyAccessibilityLabel(
                 segmentValue: value,
                 armedMultiplier: selectedMultiplier
             ),
-            accessibilityHint: L10n.string("scoring.segment.hint"),
             identifier: "pad_\(value)",
             action: { append(value) }
         )
@@ -188,7 +206,12 @@ struct DartNumberPad: View {
         return value == lockedSegment
     }
 
-    private func modifierKey(_ multiplier: DartMultiplier, identifier: String) -> some View {
+    private func modifierKey(
+        _ multiplier: DartMultiplier,
+        identifier: String,
+        minHeight: CGFloat? = nil
+    ) -> some View {
+        let keyHeight = minHeight ?? displayKeyMinHeight
         let title = ScoringPadLabels.modifierTitle(multiplier, dynamicTypeSize: dynamicTypeSize)
         let isSelected = selectedMultiplier == multiplier
         let background: Color = {
@@ -206,8 +229,8 @@ struct DartNumberPad: View {
             title: title,
             background: background,
             foreground: foreground,
-            font: usesAccessibilityLayout ? .title3.weight(.bold) : .body.weight(.bold),
-            minHeight: displayKeyMinHeight,
+            font: usesAccessibilityLayout || usesIPadSideBySidePad ? .title3.weight(.bold) : .body.weight(.bold),
+            minHeight: keyHeight,
             accessibilityLabel: multiplierAccessibilityLabel(multiplier),
             accessibilityHint: modifierHint(multiplier, isSelected: isSelected),
             isSelected: isSelected,
@@ -228,24 +251,15 @@ struct DartNumberPad: View {
         }
     }
 
-    private func modifierHint(_ multiplier: DartMultiplier, isSelected: Bool) -> String {
-        if isSelected {
-            switch multiplier {
-            case .double:
-                return L10n.string("scoring.pad.double.hint.armed")
-            case .triple:
-                return L10n.string("scoring.pad.triple.hint.armed")
-            case .single:
-                return L10n.string("scoring.multiplier.hint")
-            }
-        }
+    private func modifierHint(_ multiplier: DartMultiplier, isSelected: Bool) -> String? {
+        guard isSelected else { return nil }
         switch multiplier {
         case .double:
-            return L10n.string("scoring.pad.double.hint")
+            return L10n.string("scoring.pad.double.hint.armed")
         case .triple:
-            return L10n.string("scoring.pad.triple.hint")
+            return L10n.string("scoring.pad.triple.hint.armed")
         case .single:
-            return L10n.string("scoring.multiplier.hint")
+            return nil
         }
     }
 

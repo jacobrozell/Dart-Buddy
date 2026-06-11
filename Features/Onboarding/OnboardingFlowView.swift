@@ -10,6 +10,7 @@ struct OnboardingFlowView: View {
 
     @State private var step: OnboardingStep = .welcome
     @State private var experience: OnboardingExperience?
+    @State private var skippedFromWelcome = false
 
     var body: some View {
         NavigationStack {
@@ -27,10 +28,16 @@ struct OnboardingFlowView: View {
         case .welcome:
             OnboardingWelcomeStepView(
                 onNext: { step = .experienceQuestion },
-                onSkip: { finish(skipped: true) }
+                onSkip: {
+                    skippedFromWelcome = true
+                    step = .ready
+                }
             )
         case .experienceQuestion:
             OnboardingExperienceStepView(
+                progressIndex: step.progressIndex,
+                showsBack: true,
+                onBack: { goBack() },
                 onExperienced: {
                     experience = .experienced
                     step = .preferences
@@ -41,18 +48,52 @@ struct OnboardingFlowView: View {
                 }
             )
         case .preferences:
-            OnboardingPreferencesStepView(dependencies: dependencies) {
-                step = .ready
+            OnboardingPreferencesStepView(
+                dependencies: dependencies,
+                progressIndex: step.progressIndex,
+                showsBack: true,
+                onBack: { goBack() }
+            ) {
+                step = .appTour
             }
         case .learnToPlay:
-            OnboardingLearnStepView {
+            OnboardingLearnStepView(
+                progressIndex: step.progressIndex,
+                showsBack: true,
+                onBack: { goBack() }
+            ) {
+                step = .appTour
+            }
+        case .appTour:
+            OnboardingAppTourStepView(
+                progressIndex: step.progressIndex,
+                showsBack: true,
+                onBack: { goBack() }
+            ) {
+                step = .support
+            }
+        case .support:
+            OnboardingSupportStepView(
+                progressIndex: step.progressIndex,
+                showsBack: true,
+                onBack: { goBack() }
+            ) {
                 step = .ready
             }
         case .ready:
-            OnboardingReadyStepView {
-                finish(skipped: false)
+            OnboardingReadyStepView(
+                progressIndex: step.progressIndex,
+                showsBack: step.backStep(experience: experience) != nil,
+                onBack: { goBack() }
+            ) {
+                finish(skipped: skippedFromWelcome)
             }
         }
+    }
+
+    private func goBack() {
+        guard let previous = step.backStep(experience: experience) else { return }
+        step = previous
     }
 
     private func finish(skipped: Bool) {
@@ -60,6 +101,9 @@ struct OnboardingFlowView: View {
             store.markCompleted()
             if let experience, !skipped {
                 store.saveExperience(experience)
+                if experience == .beginner {
+                    applyBeginnerGameplayDefaults()
+                }
             }
             var metadata: [String: String] = ["skipped": skipped ? "true" : "false"]
             if let experience, !skipped {
@@ -73,5 +117,39 @@ struct OnboardingFlowView: View {
             )
         }
         onFinished()
+    }
+
+    private func applyBeginnerGameplayDefaults() {
+        Task {
+            do {
+                let current = try await dependencies.settingsRepository.fetchSettings()
+                guard current.defaultMatchTypeRaw != MatchType.x01.rawValue else { return }
+                let updated = SettingsSummary(
+                    id: current.id,
+                    appearanceModeRaw: current.appearanceModeRaw,
+                    hapticsEnabled: current.hapticsEnabled,
+                    soundEnabled: current.soundEnabled,
+                    turnTotalCallerEnabled: current.turnTotalCallerEnabled,
+                    defaultMatchTypeRaw: MatchType.x01.rawValue,
+                    defaultX01StartScore: current.defaultX01StartScore,
+                    defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+                    defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+                    defaultLegFormatRaw: current.defaultLegFormatRaw,
+                    defaultLegsToWin: current.defaultLegsToWin,
+                    defaultSetsEnabled: current.defaultSetsEnabled,
+                    botStaggerEnabled: current.botStaggerEnabled,
+                    botDartHapticsEnabled: current.botDartHapticsEnabled,
+                    updatedAt: current.updatedAt
+                )
+                _ = try await dependencies.settingsRepository.updateSettings(updated)
+            } catch {
+                logger?.debug(
+                    .ui,
+                    eventName: "onboarding_beginner_defaults_failed",
+                    message: "Could not apply beginner gameplay defaults.",
+                    metadata: ["error": String(describing: error)]
+                )
+            }
+        }
     }
 }

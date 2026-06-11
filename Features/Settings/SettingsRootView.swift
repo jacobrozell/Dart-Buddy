@@ -123,6 +123,7 @@ struct SettingsRootView: View {
             duringPlaySection(usesBrand: usesBrand)
             botOpponentsSection(usesBrand: usesBrand)
             dataSection(usesBrand: usesBrand)
+            helpAndFeedbackSection(usesBrand: usesBrand)
             aboutSection(usesBrand: usesBrand)
         }
         .accessibilityElement(children: .contain)
@@ -306,6 +307,37 @@ struct SettingsRootView: View {
         .brandFormRowBackground(when: usesBrand)
     }
 
+    private func helpAndFeedbackSection(usesBrand: Bool) -> some View {
+        Section {
+            Link(destination: AppLinks.support) {
+                Label(L10n.settingsSupportFAQ, systemImage: "questionmark.circle")
+            }
+            .accessibilityLabel(L10n.settingsSupportFAQAccessibility)
+            .accessibilityIdentifier("settings_supportFAQLink")
+
+            Link(destination: AppSupport.feedbackMailtoURL) {
+                Label(L10n.settingsSupportFeedback, systemImage: "envelope")
+            }
+            .accessibilityLabel(L10n.settingsSupportFeedbackAccessibility)
+            .accessibilityIdentifier("settings_sendFeedbackLink")
+
+            Link(destination: AppLinks.appStoreReview) {
+                Label(L10n.settingsSupportRate, systemImage: "star")
+            }
+            .accessibilityLabel(L10n.settingsSupportRateAccessibility)
+            .accessibilityIdentifier("settings_rateAppLink")
+
+            Link(destination: AppLinks.privacy) {
+                Label(L10n.settingsSupportPrivacy, systemImage: "hand.raised")
+            }
+            .accessibilityLabel(L10n.settingsSupportPrivacyAccessibility)
+            .accessibilityIdentifier("settings_privacyPolicyLink")
+        } header: {
+            Text(L10n.settingsHelpAndFeedbackSection)
+        }
+        .brandFormRowBackground(when: usesBrand)
+    }
+
     private func aboutSection(usesBrand: Bool) -> some View {
         Section {
             Button {
@@ -316,7 +348,7 @@ struct SettingsRootView: View {
             .accessibilityLabel(L10n.settingsViewOnboardingAccessibility)
             .accessibilityIdentifier("settings_viewOnboardingButton")
 
-            Text("settings.about.value")
+            Text(AppSupport.versionLabel)
                 .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
                 .accessibilityIdentifier("settings_aboutVersion")
 

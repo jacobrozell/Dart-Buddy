@@ -44,35 +44,15 @@ for runtime, devices in data.get('devices', {}).items():
 sys.exit(1)
 " "$SIM_NAME")"
 
-rotate_simulator_left() {
-  osascript <<'APPLESCRIPT' >/dev/null 2>&1 || true
-tell application "Simulator" to activate
-delay 0.2
-tell application "System Events"
-  tell process "Simulator"
-    key code 123 using {command down}
-  end tell
-end tell
-APPLESCRIPT
-  sleep 0.6
-}
-
-ensure_portrait() {
-  rotate_simulator_left
-  rotate_simulator_left
-  rotate_simulator_left
-  rotate_simulator_left
-}
-
-ensure_landscape() {
-  ensure_portrait
-  rotate_simulator_left
-}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=simulator-orientation.sh
+source "$SCRIPT_DIR/simulator-orientation.sh"
 
 echo "→ Booting $SIM_NAME ($SIM_UDID)…"
 xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
 xcrun simctl bootstatus "$SIM_UDID" -b
 open -a Simulator --args -CurrentDeviceUDID "$SIM_UDID"
+reset_simulator_orientation
 
 echo "→ Building app…"
 xcodebuild \

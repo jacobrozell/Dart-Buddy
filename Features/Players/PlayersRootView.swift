@@ -302,7 +302,6 @@ struct PlayersRootView: View {
         .listRowBackground(Brand.background)
         .listRowSeparatorTint(Brand.cardElevated)
         .accessibilityLabel(playerRowAccessibilityLabel(player))
-        .accessibilityHint(L10n.string("players.row.accessibilityHint"))
         .accessibilityIdentifier(player.botDifficulty == nil ? "player_row_\(player.name)" : "player_row_bot_\(player.id.uuidString)")
         .swipeActions {
             Button(player.isArchived ? "players.unarchive" : "players.archive") {

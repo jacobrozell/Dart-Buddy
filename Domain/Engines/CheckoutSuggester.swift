@@ -15,37 +15,50 @@ public enum CheckoutSuggester {
         mode: X01CheckoutMode,
         dartsAvailable: Int = 3
     ) -> [String]? {
-        guard dartsAvailable >= 1 else { return nil }
-        if remaining < 2 {
-            if mode == .singleOut, remaining == 1 { return ["1"] }
-            return nil
-        }
-        for darts in 1 ... min(dartsAvailable, 3) {
-            if let route = route(remaining: remaining, darts: darts, mode: mode) {
-                return route
-            }
-        }
-        return nil
+        allSuggestions(remaining: remaining, mode: mode, dartsAvailable: dartsAvailable).first
     }
 
-    private static func route(remaining: Int, darts: Int, mode: X01CheckoutMode) -> [String]? {
+    /// Every fewest-dart checkout route for the score, in preference order (same route
+    /// as `suggestion` is always first when one exists).
+    public static func allSuggestions(
+        remaining: Int,
+        mode: X01CheckoutMode,
+        dartsAvailable: Int = 3
+    ) -> [[String]] {
+        guard dartsAvailable >= 1 else { return [] }
+        if remaining < 2 {
+            if mode == .singleOut, remaining == 1 { return [["1"]] }
+            return []
+        }
+        for darts in 1 ... min(dartsAvailable, 3) {
+            let routes = allRoutes(remaining: remaining, darts: darts, mode: mode)
+            if routes.isEmpty == false { return routes }
+        }
+        return []
+    }
+
+    private static func allRoutes(remaining: Int, darts: Int, mode: X01CheckoutMode) -> [[String]] {
         switch darts {
         case 1:
-            return finishLabel(remaining, mode: mode).map { [$0] }
+            return finishLabel(remaining, mode: mode).map { [[$0]] } ?? []
         case 2:
+            var routes: [[String]] = []
             for finisher in finishers(mode: mode) {
                 let setup = remaining - finisher.value
                 guard setup >= 1, let setupLabel = setupLabel(setup) else { continue }
-                return [setupLabel, finisher.label]
+                routes.append([setupLabel, finisher.label])
             }
-            return nil
+            return routes
         default:
+            var routes: [[String]] = []
             for opener in setups {
                 let rest = remaining - opener.value
-                guard rest >= 2, let tail = route(remaining: rest, darts: 2, mode: mode) else { continue }
-                return [opener.label] + tail
+                guard rest >= 2 else { continue }
+                for tail in allRoutes(remaining: rest, darts: 2, mode: mode) {
+                    routes.append([opener.label] + tail)
+                }
             }
-            return nil
+            return routes
         }
     }
 

@@ -42,22 +42,12 @@ struct CricketMatchScreen: View {
             }
 
             if let state = viewModel.cricketState {
-                if !usesSideBySideMatchLayout && !usesLandscapePinnedLayout {
+                if shouldShowPortraitRoundLabel {
                     roundTurnLabel(state: state)
                 }
 
-                Group {
-                    if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-                        accessibilityScoringStack
-                    } else if usesLandscapePinnedLayout {
-                        landscapeIPhoneScoringStack
-                    } else if usesSideBySideMatchLayout {
-                        landscapeScoringStack
-                    } else {
-                        portraitScoringStack
-                    }
-                }
-                .frame(maxHeight: .infinity)
+                cricketScoringBody
+                    .frame(maxHeight: .infinity)
             } else {
                 Spacer()
                 ProgressView().tint(Brand.textPrimary)
@@ -120,61 +110,95 @@ struct CricketMatchScreen: View {
         }
     }
 
-    private var cricketBoard: some View {
-        Group {
-            if usesTransposedCricketBoard {
-                if let active = viewModel.boardColumns.first(where: \.isActive) {
-                    CricketTransposedBoardView(
-                        column: active,
-                        allColumns: viewModel.boardColumns
-                    )
+    private var shouldShowPortraitRoundLabel: Bool {
+        !GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+            && horizontalSizeClass != .regular
+    }
+
+    private var usesSplitCricketScoreboard: Bool {
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+    }
+
+    private var cricketScoringBody: some View {
+        let columns = viewModel.boardColumns
+        let activeColumns = columns.filter(\.isActive)
+        let inactiveColumns = columns.filter { !$0.isActive }
+        let split = usesSplitCricketScoreboard
+
+        return MatchScoringBody(
+            showsActiveBand: split && !activeColumns.isEmpty,
+            scoreboardSharesBottomRow: split ? !inactiveColumns.isEmpty : true,
+            active: {
+                if split {
+                    activeCricketBoard(columns: activeColumns, allColumns: columns)
                 }
-            } else {
-                CricketBoardView(
-                    columns: viewModel.boardColumns,
-                    activeColumnScrollID: viewModel.activeBoardColumnID,
-                    fillsAvailableHeight: usesCricketBoardFillsAvailableHeight
-                )
+            },
+            scoreboard: {
+                VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                    if GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass),
+                       let state = viewModel.cricketState {
+                        landscapeRoundTurnLabel(state: state)
+                    }
+                    if split {
+                        inactiveCricketBoard(columns: inactiveColumns, allColumns: columns)
+                    } else {
+                        fullCricketBoard(columns: columns)
+                    }
+                }
+            },
+            padChrome: {
+                stateBanner
+            },
+            pad: {
+                cricketTapPad
             }
-        }
-    }
-
-    private var cricketControls: some View {
-        VStack(spacing: DS.Spacing.s2) {
-            stateBanner
-            cricketTapPad
-        }
-    }
-
-    /// Board scrolls above a pinned pad so stats and keys never overlap.
-    private var portraitScoringStack: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                cricketBoard
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            cricketControls
-                .padding(.top, DS.Spacing.s2)
-        }
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.bottom, DS.Spacing.s2)
-    }
-
-    private var usesSideBySideMatchLayout: Bool {
-        GameplayLayout.usesCricketSideBySideMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass,
-            dynamicTypeSize: dynamicTypeSize
         )
     }
 
-    /// iPhone landscape: current player board pinned at top, full-width pad pinned at bottom (X01-style).
-    private var usesLandscapePinnedLayout: Bool {
-        GameplayLayout.usesCricketLandscapePinnedLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass,
-            dynamicTypeSize: dynamicTypeSize
-        )
+    @ViewBuilder
+    private func fullCricketBoard(columns: [CricketBoardView.Column]) -> some View {
+        if usesTransposedCricketBoard, let active = columns.first(where: \.isActive) {
+            CricketTransposedBoardView(column: active, allColumns: columns)
+        } else {
+            CricketBoardView(
+                columns: columns,
+                activeColumnScrollID: viewModel.activeBoardColumnID,
+                fillsAvailableHeight: usesCricketBoardFillsAvailableHeight
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func activeCricketBoard(columns: [CricketBoardView.Column], allColumns: [CricketBoardView.Column]) -> some View {
+        if usesTransposedCricketBoard, let active = columns.first {
+            CricketTransposedBoardView(column: active, allColumns: allColumns)
+        } else if let active = columns.first {
+            CricketBoardView(
+                columns: [active],
+                activeColumnScrollID: viewModel.activeBoardColumnID
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func inactiveCricketBoard(columns: [CricketBoardView.Column], allColumns: [CricketBoardView.Column]) -> some View {
+        if columns.isEmpty {
+            EmptyView()
+        } else if usesTransposedCricketBoard {
+            CricketBoardView(
+                columns: columns,
+                activeColumnScrollID: viewModel.activeBoardColumnID
+            )
+        } else {
+            CricketBoardView(
+                columns: columns,
+                activeColumnScrollID: viewModel.activeBoardColumnID,
+                fillsAvailableHeight: usesCricketBoardFillsAvailableHeight
+            )
+        }
     }
 
     private var usesTransposedCricketBoard: Bool {
@@ -191,58 +215,6 @@ struct CricketMatchScreen: View {
         )
     }
 
-    private var landscapeScoringStack: some View {
-        HStack(alignment: .top, spacing: DS.Spacing.s2) {
-            VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                if let state = viewModel.cricketState {
-                    landscapeRoundTurnLabel(state: state)
-                }
-                if usesTransposedCricketBoard || usesCricketBoardFillsAvailableHeight {
-                    cricketBoard
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                } else {
-                    ScrollView {
-                        cricketBoard
-                    }
-                    .scrollIndicators(.hidden)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-
-            cricketControls
-                .frame(
-                    width: GameplayLayout.scoringPadFixedWidth(
-                        horizontalSizeClass: horizontalSizeClass,
-                        verticalSizeClass: verticalSizeClass
-                    ),
-                    alignment: .top
-                )
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.bottom, DS.Spacing.s2)
-    }
-
-    /// iPhone landscape: the active player's board stays locked at the top while the
-    /// full-width tap pad is pinned to the bottom — mirrors the X01 landscape layout.
-    /// The board sits in a scroll view so the pad never clips on shorter devices.
-    private var landscapeIPhoneScoringStack: some View {
-        VStack(spacing: DS.Spacing.s2) {
-            if let state = viewModel.cricketState {
-                landscapeRoundTurnLabel(state: state)
-            }
-            ScrollView {
-                cricketBoard
-            }
-            .scrollIndicators(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            cricketControls
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.bottom, DS.Spacing.s2)
-    }
-
     private func landscapeRoundTurnLabel(state: CricketState) -> some View {
         let round = state.roundIndex + 1
         let turn = state.currentPlayerIndex + 1
@@ -252,28 +224,6 @@ struct CricketMatchScreen: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, DS.Spacing.s2)
             .padding(.top, DS.Spacing.s1)
-    }
-
-    private var accessibilityScoringStack: some View {
-        Group {
-            // iPad landscape has the width for a side-by-side board + pad even at AX sizes;
-            // iPhone landscape scrolls the board above the pad so nothing clips.
-            if GameplayLayout.usesLandscapeIPadMatchScoringLayout(
-                horizontalSizeClass: horizontalSizeClass,
-                verticalSizeClass: verticalSizeClass
-            ) {
-                landscapeScoringStack
-            } else {
-                ScrollView {
-                    VStack(spacing: DS.Spacing.s2) {
-                        cricketBoard
-                        cricketControls
-                    }
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.bottom, DS.Spacing.s2)
-                }
-            }
-        }
     }
 
     @ViewBuilder
@@ -364,6 +314,7 @@ struct CricketMatchScreen: View {
             Text(L10n.submittingTurn).foregroundStyle(Brand.textPrimary)
         case .closureTransition:
             MatchFeedbackBanner(text: L10n.cricketTargetClosed, style: .cricketClosure)
+                .accessibilityHidden(true)
                 .accessibilityIdentifier("cricketTargetClosedBanner")
         case let .entryInvalid(key), let .error(key):
             ErrorBanner(messageKey: key)

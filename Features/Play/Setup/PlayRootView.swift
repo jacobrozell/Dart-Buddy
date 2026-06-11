@@ -152,7 +152,9 @@ struct PlayRootView: View {
 
     private func initialSnapshotRoute() -> PlayRoute? {
         let arguments = ProcessInfo.processInfo.arguments
-        if arguments.contains("-snapshot_match_x01") {
+        if arguments.contains("-snapshot_match_x01_8player") {
+            return .x01Match(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000008") ?? UUID())
+        } else if arguments.contains("-snapshot_match_x01") {
             return .x01Match(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID())
         }
         if arguments.contains("-snapshot_match_cricket") {

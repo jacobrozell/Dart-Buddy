@@ -23,6 +23,32 @@ private func isDoubleFinish(_ label: String) -> Bool {
 }
 
 @Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutAllSuggestionsIncludesEveryFewestDartRoute() {
+    let routes = CheckoutSuggester.allSuggestions(remaining: 60, mode: .doubleOut)
+    #expect(routes.count >= 2)
+    #expect(routes.first == ["20", "D20"])
+    for route in routes {
+        #expect(route.count == 2)
+        #expect(route.reduce(0) { $0 + value(of: $1) } == 60)
+        #expect(isDoubleFinish(route.last ?? ""))
+    }
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutAllSuggestionsMatchesPrimarySuggestion() {
+    for remaining in 2 ... 170 {
+        let primary = CheckoutSuggester.suggestion(remaining: remaining, mode: .doubleOut)
+        let all = CheckoutSuggester.allSuggestions(remaining: remaining, mode: .doubleOut)
+        if let primary {
+            #expect(all.first == primary)
+            #expect(all.isEmpty == false)
+        } else {
+            #expect(all.isEmpty)
+        }
+    }
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
 func checkoutSuggestsStandardMarqueeFinishes() {
     #expect(CheckoutSuggester.suggestion(remaining: 170, mode: .doubleOut) == ["T20", "T20", "Bull"])
     #expect(CheckoutSuggester.suggestion(remaining: 167, mode: .doubleOut) == ["T20", "T19", "Bull"])

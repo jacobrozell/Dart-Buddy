@@ -53,12 +53,15 @@ struct KillerMatchScreen: View {
                                 KillerNumberGridView(assignments: viewModel.numberGridAssignments)
                             }
                         }
-                        stateBanner
                     }
+                } padChrome: {
+                    stateBanner
                 } controls: {
-                    killerPad
-                    if showsPartialTurnSubmit {
-                        submitButton
+                    VStack(spacing: DS.Spacing.s2) {
+                        killerPad
+                        if showsPartialTurnSubmit {
+                            submitButton
+                        }
                     }
                 }
                 .onChange(of: viewModel.enteredDarts) { old, darts in
@@ -134,6 +137,7 @@ struct KillerMatchScreen: View {
             ErrorBanner(messageKey: messageKey)
         case .becameKillerFeedback:
             MatchFeedbackBanner(text: "play.killer.becameKiller", style: .legWin)
+                .accessibilityHidden(true)
         default:
             EmptyView()
         }

@@ -1,11 +1,20 @@
 import SwiftUI
 
 struct OnboardingExperienceStepView: View {
+    let progressIndex: Int
+    let showsBack: Bool
+    let onBack: () -> Void
     let onExperienced: () -> Void
     let onBeginner: () -> Void
 
     var body: some View {
-        OnboardingStepChrome(showsSkip: false, onSkip: {}) {
+        OnboardingStepChrome(
+            showsSkip: false,
+            onSkip: {},
+            progressIndex: progressIndex,
+            showsBack: showsBack,
+            onBack: onBack
+        ) {
             VStack(spacing: DS.Spacing.s4) {
                 OnboardingHeroStepContent(
                     symbolName: "questionmark.circle",
