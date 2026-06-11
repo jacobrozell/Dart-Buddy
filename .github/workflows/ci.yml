@@ -165,6 +165,10 @@ jobs:
         if: always()
         run: Scripts/ci/coverage-summary.sh
 
+      - name: Documentation Summary
+        if: always()
+        run: Scripts/ci/documentation-summary.sh
+
       - name: Dump Test Log on Failure
         if: failure()
         run: |
@@ -184,6 +188,7 @@ jobs:
           path: |
             TestResults.xcresult
             coverage-summary.txt
+            documentation-summary.txt
             xcodebuild-test.log
           if-no-files-found: ignore
 

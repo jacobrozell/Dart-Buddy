@@ -12,6 +12,7 @@ TestResults-*.xcresult/
 xcodebuild*.log
 coverage_reports/
 coverage-summary.txt
+documentation-summary.txt
 *.xcuserstate
 *.xcuserdatad/
 
