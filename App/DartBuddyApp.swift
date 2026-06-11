@@ -41,6 +41,9 @@ struct DartBuddyApp: App {
                 guard bootstrapResult == nil else { return }
                 await refreshBootstrapResult()
             }
+            .task {
+                SnapshotOrientationLock.applyIfNeeded()
+            }
             .onAppear {
                 IntentRoutingBridge.setPendingDeepLink(pendingDeepLink)
             }

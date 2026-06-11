@@ -1,66 +1,51 @@
 #!/usr/bin/env bash
-# Shared Simulator orientation helpers (Cmd+Left/Right in Simulator.app).
-# Tracks current orientation and rotates at most once per transition.
+# Screenshot orientation helpers for simulator captures.
+# Orientation is applied in-app via `-snapshot_orientation portrait|landscape`.
+# simctl may still write landscape UI into a portrait-sized buffer; normalize before resize.
 
-SIMULATOR_ORIENTATION="${SIMULATOR_ORIENTATION:-portrait}"
-
-_rotate_simulator() {
-  local keycode="$1"
-  osascript <<APPLESCRIPT >/dev/null 2>&1 || true
-tell application "Simulator" to activate
-delay 0.15
-tell application "System Events"
-  tell process "Simulator"
-    key code ${keycode} using {command down}
-  end tell
-end tell
-APPLESCRIPT
-  sleep 0.8
-}
-
-rotate_simulator_left() {
-  _rotate_simulator 123
-}
-
-rotate_simulator_right() {
-  _rotate_simulator 124
-}
-
-reset_simulator_orientation() {
-  osascript <<'APPLESCRIPT' >/dev/null 2>&1 || true
-tell application "Simulator" to activate
-delay 0.15
-tell application "System Events"
-  tell process "Simulator"
-    try
-      click menu item "Portrait" of menu "Orientation" of menu item "Device" of menu bar 1
-    end try
-  end tell
-end tell
-APPLESCRIPT
-  sleep 0.8
-  SIMULATOR_ORIENTATION="portrait"
-}
-
-set_simulator_orientation() {
-  local target="$1"
-  if [[ "$SIMULATOR_ORIENTATION" == "$target" ]]; then
-    return 0
-  fi
-
-  if [[ "$target" == "landscape" ]]; then
-    rotate_simulator_left
-    SIMULATOR_ORIENTATION="landscape"
-  else
-    rotate_simulator_right
-    SIMULATOR_ORIENTATION="portrait"
+_require_imagemagick() {
+  if ! command -v magick >/dev/null 2>&1; then
+    echo "ImageMagick is required. Install with: brew install imagemagick" >&2
+    return 1
   fi
 }
 
-ensure_portrait() {
-  set_simulator_orientation portrait
+_screenshot_dimensions() {
+  magick identify -format "%w %h" "$1"
 }
 
-ensure_landscape() {
-  set_simulator_orientation landscape
+normalize_screenshot_for_orientation() {
+  local path="$1"
+  local orientation="$2"
+  local w h
+
+  _require_imagemagick || return 1
+  read -r w h <<< "$(_screenshot_dimensions "$path")"
+
+  if [[ "$orientation" == "landscape" && "$w" -lt "$h" ]]; then
+    echo "→ Normalizing $(basename "$path"): rotating landscape capture (${w}×${h})…" >&2
+    magick "$path" -rotate -90 "$path"
+  elif [[ "$orientation" == "portrait" && "$w" -gt "$h" ]]; then
+    echo "→ Normalizing $(basename "$path"): rotating portrait capture (${w}×${h})…" >&2
+    magick "$path" -rotate -90 "$path"
+  fi
+}
+
+verify_screenshot_orientation() {
+  local path="$1"
+  local expected="$2"
+  local w h
+
+  _require_imagemagick || return 1
+  read -r w h <<< "$(_screenshot_dimensions "$path")"
+
+  if [[ "$expected" == "landscape" && "$w" -le "$h" ]]; then
+    echo "Screenshot $(basename "$path") is ${w}×${h} but expected landscape." >&2
+    return 1
+  fi
+  if [[ "$expected" == "portrait" && "$h" -le "$w" ]]; then
+    echo "Screenshot $(basename "$path") is ${w}×${h} but expected portrait." >&2
+    return 1
+  fi
+  return 0
 }
