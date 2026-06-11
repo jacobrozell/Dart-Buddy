@@ -16,13 +16,13 @@ enum AppSupport {
         components.scheme = "mailto"
         components.path = feedbackEmail
         components.queryItems = [
-            URLQueryItem(name: "subject", value: "Dart Buddy Feedback"),
+            URLQueryItem(
+                name: "subject",
+                value: L10n.string("settings.support.feedbackEmailSubject")
+            ),
             URLQueryItem(
                 name: "body",
-                value: """
-                App version: \(installedVersion)
-
-                """
+                value: L10n.format("settings.support.feedbackEmailBodyFormat", installedVersion)
             )
         ]
         return components.url ?? URL(string: "mailto:\(feedbackEmail)")!
