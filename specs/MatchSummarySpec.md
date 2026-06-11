@@ -17,9 +17,13 @@ Shared lifecycle completion rules live in [`MatchSpec.md`](MatchSpec.md). Mode-s
 - **View in History** — pushes history detail for same `matchId`
 - **Undo last throw** — reopens completed match as in-progress with restored dart pad state (single throw only)
 
-### Out of Scope
+### Out of Scope (1.0.0)
 - Editing completed match scores
 - Share sheet / screenshot export from summary
+
+### Post-1.0 (when flagged)
+- **Achievement unlocks** — section on summary when new local achievements unlock; revoked if user undoes last throw (see [`AchievementsSpec.md`](AchievementsSpec.md) §7)
+- **Campaign layer** — stars and Journey CTAs on campaign-tagged matches (see [`CampaignSpec.md`](CampaignSpec.md) §10)
 
 ---
 

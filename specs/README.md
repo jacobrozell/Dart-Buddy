@@ -85,7 +85,16 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 | [`HistorySpec.md`](HistorySpec.md) | Activity tab History segment — list, filters, detail |
 | [`StatsSpec.md`](StatsSpec.md) | Formulas, aggregates, recompute policy |
 | [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | Activity tab Statistics segment — charts, filters |
-| [`SettingsSpec.md`](SettingsSpec.md) | Preferences, defaults, data reset |
+| [`SettingsSpec.md`](SettingsSpec.md) | Preferences, defaults, data reset entry point |
+| [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md) | Reset inventory, scaling checklist, regression tests |
+
+### Gamification (post-1.0 R&D)
+| Spec | Covers |
+|------|--------|
+| [`AchievementsSpec.md`](AchievementsSpec.md) | Local profile achievements, evaluator hooks, undo/revoke, future Game Center bridge |
+| [`BadgesSpec.md`](BadgesSpec.md) | Profile medal/gallery UI for achievements |
+| [`CampaignSpec.md`](CampaignSpec.md) | Journey tab, stage JSON, stars, primary player, separate stats |
+| [`DailyChallengeSpec.md`](DailyChallengeSpec.md) | Once-per-day challenge, push integration with play reminders |
 
 ### App health
 | Spec | Covers |
@@ -101,8 +110,9 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 - `FutureIdeas/backlog.md` — Post-1.0 product backlog (linked from `docs/release/todo.md`)
 - `FutureIdeas/additional-game-modes.md` — delivery index (rules live in `game-modes/planned/`)
 - `FutureIdeas/party-practice-modes.md` — effort notes (superseded for rules by planned specs)
-- `FutureIdeas/achievements.md` — Game Center assessment (linked from `docs/release/todo.md`)
-- `FutureIdeas/play-reminders.md` — Play reminder notifications (linked from `docs/release/todo.md`)
+- `FutureIdeas/achievements.md` — Game Center catalog assessment (IDs reused by [`AchievementsSpec.md`](AchievementsSpec.md); GC reporting deferred)
+- `FutureIdeas/campaign-mode.md` — R&D brief (superseded for behavior by [`CampaignSpec.md`](CampaignSpec.md))
+- `FutureIdeas/play-reminders.md` — Play reminder notifications (scheduling patterns shared with [`DailyChallengeSpec.md`](DailyChallengeSpec.md))
 
 Active work and deferrals: [`docs/release/todo.md`](../docs/release/todo.md). Do not duplicate backlog items here.
 
