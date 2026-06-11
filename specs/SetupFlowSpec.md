@@ -46,6 +46,7 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 - Drag reorder on selected list
 - `QuickAddPlayerScreen` returns new id via `PendingMatchPlayerSelections`
 - At least one **human** required (`setup.validation.requiresHuman`)
+- Per-mode **minimum / maximum** participants come from [`GameModeCatalog`](../Features/Modes/GameModeCatalog.swift) (`minimumPlayers`, `maximumPlayers`); each `*GameSpec.md` § Player count documents solo eligibility and rationale. App-wide default max is **8** unless a mode sets lower (e.g. Football, Scam = 2). Solo-only modes (`maximumPlayers: 1`, e.g. Bob's 27) skip roster per `GameModeCatalogEntry.isSolo`.
 
 ## Random order
 - When enabled at start, shuffles participant order once before persisting match

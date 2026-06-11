@@ -171,8 +171,8 @@ Use `AppLogger` for debugging; add to Analytics allowlist only with product appr
 | `active_match_conflict`, `active_match_replaced` | `SetupFlowSpec.md` |
 | `match_setup_start` | `SetupFlowSpec.md` |
 | `match_setup_baseball` | `BaseballGameSpec.md`, `SetupFlowSpec.md` |
-| `match_screen_appeared`, `bot_turn_started` | `BotOpponentSpec.md`, `X01GameSpec.md`, `CricketSpec.md` |
-| `turn_submit_rejected`, `turn_bust` | `X01GameSpec.md` |
+| `match_screen_appeared`, `bot_turn_started` | `BotOpponentSpec.md`, `game-modes/implemented/X01GameSpec.md`, `game-modes/implemented/CricketSpec.md` |
+| `turn_submit_rejected`, `turn_bust` | `game-modes/implemented/X01GameSpec.md` |
 | `training_bot_created`, `training_bot_match_started` | `TrainingBotSpec.md` (planned Analytics — wire allowlist when shipping) |
 | `deep_link_*`, `intent_*` | [`DeepLinkSpec.md`](DeepLinkSpec.md), [`AppIntentsSpec.md`](AppIntentsSpec.md) |
 | `settings_seeded`, `settings_seed_skipped` | `SettingsSpec.md` |

@@ -15,7 +15,24 @@ Define Cricket gameplay rules, board UI, input model, and persistence for the iP
 - Local-only persistence with turn + dart granularity
 - Shared input component: see `specs/ScoringInputSpec.md`
 - Setup chips: Points On/Off, Normal/Cut Throat, Set/Leg format, Sets, Legs (`MatchConfigCricket` payload v2)
-- Bot matches: Points On required; scoring modes Normal and Cut Throat supported (Points Off bots deferred) — see [`BotOpponentSpec.md`](BotOpponentSpec.md)
+- Bot matches: Points On required; scoring modes Normal and Cut Throat supported (Points Off bots deferred) — see [`BotOpponentSpec.md`](../../BotOpponentSpec.md)
+
+---
+
+## Player count
+
+| Question | Answer |
+|----------|--------|
+| **Solo?** | No — needs at least one opponent for marks, closure, and scoring |
+| **Minimum** | 2 participants (≥1 human; bots OK on Points On) |
+| **Recommended** | 2–4 |
+| **App maximum** | 8 (Cricket board scrolls horizontally at 3+ players) |
+
+### Brainstorm
+- Cricket without an opponent is undefined: overflow points and leg completion require multiple player columns.
+- Points-off “close all on your turn” could technically be solo practice but is not a supported product shape.
+- **2** is the real floor; catalog `minimumPlayers: 2`.
+- **8** cap matches mark-board UI (`CricketBoardView` scroll threshold) and keeps leg length reasonable.
 
 ---
 
@@ -99,6 +116,89 @@ Single-leg Normal + Points On: same as “Points On” with one leg — match co
 
 ---
 
+## How to Play
+
+| | |
+|---|---|
+| **Key prefix** | `play.rules.cricket.` |
+| **Shipped in app** | Yes (`GameRulesCatalog.cricket`) |
+
+### Cricket basics
+| **Title key** | `play.rules.cricket.basics.title` |
+| **Body key** | `play.rules.cricket.basics.body` |
+
+Close targets 20 through 15 and the bull by landing marks. Singles, doubles, and triples add 1, 2, or 3 marks. A target closes at three marks. Outer bull counts as one mark; inner bull counts as two.
+
+### Normal · Points on
+| **Title key** | `play.rules.cricket.normalScore.title` |
+| **Body key** | `play.rules.cricket.normalScore.body` |
+
+While at least one opponent has not closed a target, extra marks on a closed target become points on that number.
+
+When everyone has closed all targets, the leg ends. Highest total score wins the leg.
+
+### Cut Throat · Points on
+| **Title key** | `play.rules.cricket.cutThroatScore.title` |
+| **Body key** | `play.rules.cricket.cutThroatScore.body` |
+
+Overflow points are credited to opponents who have not closed that target—the more marks you add, the more points they receive.
+
+When the board is fully closed, the leg ends. Lowest total score wins the leg.
+
+### No score (points off)
+| **Title key** | `play.rules.cricket.noScore.title` |
+| **Body key** | `play.rules.cricket.noScore.body` |
+
+Marks still close targets, but no points are scored. The leg ends when you close all targets on your turn—you win that leg immediately.
+
+---
+
+## Localization
+
+| Status | Meaning |
+|--------|---------|
+| **Exists** | In `en.lproj` today |
+| **New** | Add when extending |
+
+### Catalog & setup
+| Key | Status |
+|-----|--------|
+| `modes.catalog.standard.cricket.name` / `.blurb` | Exists |
+| `play.cricket.title` | Exists |
+| `play.cricket.points.on` / `.off` | Exists |
+| `play.cricket.mode.normal` / `.cutThroat` | Exists |
+| `play.cricket.subtitle.*` | Exists | normal, cutThroat, noScore variants |
+| `setup.validation.cricketBotUnsupported` | Exists |
+| `setup.validation.minimumPlayers` | Exists | Min 2 players |
+
+### Gameplay (`play.cricket.*`)
+| Key | Status |
+|-----|--------|
+| `play.cricket.navTitle` | Exists |
+| `play.cricket.roundTurn` / `round` / `turn` | Exists |
+| `play.cricket.pointsFormat` | Exists |
+| `play.cricket.boardUpdated` | Exists |
+| `play.cricket.targetClosed` | Exists |
+| `play.cricket.pad.disabledWhileBot` | Exists |
+| `play.cricket.column.footer.*` | Exists | darts, mpr, legs, sets |
+| `play.cricket.column.accessibilityFormat` | Exists |
+
+### How to play (`play.rules.cricket.*`)
+| Key | Status |
+|-----|--------|
+| `basics`, `normalScore`, `cutThroatScore`, `noScore` (`.title` + `.body`) | Exists |
+
+### History
+| Key | Status |
+|-----|--------|
+| `history.timeline.cricketTurnFormat` | Exists |
+| `history.detail.cricketSummaryFormat` | Exists |
+
+### Shared
+`play.rules.learnButton`, `play.rules.sheet.*`; mark-board accessibility per `CricketSpec` §8.
+
+---
+
 ## 7. Testing
 
 ## Unit
@@ -118,7 +218,7 @@ Single-leg Normal + Points On: same as “Points On” with one leg — match co
 ---
 
 ## 8. Accessibility verification
-- Manual: [`cricket-match.md`](../accessibility/wcag-2.1-aa/screens/cricket-match.md)
+- Manual: [`cricket-match.md`](../../../accessibility/wcag-2.1-aa/screens/cricket-match.md)
 
 ## 9. Analytics
 §12 — same match/turn events as X01; `cricket_abandon_failed` on Crashlytics.

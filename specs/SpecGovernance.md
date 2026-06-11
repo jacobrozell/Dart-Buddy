@@ -129,8 +129,11 @@ Audit after major releases or quarterly. Set **Last verified** to audit date and
 | Scoring input | `ScoringInputSpec.md` | `ScoringInputPad`, shared gameplay chrome |
 | Match lifecycle | `MatchSpec.md` | `MatchLifecycleService`, repositories |
 | Match summary | `MatchSummarySpec.md` | `MatchSummaryScreen`, `MatchSummaryViewModel` |
-| X01 | `X01GameSpec.md` | `X01Engine`, `X01MatchViewModel` |
-| Cricket | `CricketSpec.md` | `CricketEngine`, `CricketMatchViewModel` |
+| X01 | `game-modes/implemented/X01GameSpec.md` | `X01Engine`, `X01MatchViewModel` |
+| Cricket | `game-modes/implemented/CricketSpec.md` | `CricketEngine`, `CricketMatchViewModel` |
+| Shanghai | `game-modes/implemented/ShanghaiGameSpec.md` | `ShanghaiEngine`, `Features/Play/Shanghai/` |
+| Planned modes (24) | `specs/game-modes/planned/` | `GameModeCatalog` stubs only |
+| Baseball / Killer (implemented party) | `game-modes/implemented/BaseballGameSpec.md`, `KillerGameSpec.md` | Party engines |
 | Scoring input | `ScoringInputSpec.md` | `ScoringInputPad`, dart entry |
 | Preset bots | `BotOpponentSpec.md` | `DartBotEngine`, `BotDifficulty` |
 | Training bots | `TrainingBotSpec.md` | `TrainingBotSkillResolver`, Player Detail |

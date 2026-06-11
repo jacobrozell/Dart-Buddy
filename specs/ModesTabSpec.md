@@ -25,7 +25,7 @@ Browse all 28 game modes (5 shipped + 23 planned), search the catalog, and quick
 |--------|--------|
 | Tap available card | `PendingModeSelection` enqueued → switch to Play tab → setup applies selection |
 | Tap coming-soon card | No navigation; card is non-interactive |
-| Learn rules (shipped modes) | Sheet with `GameRulesGuideView` |
+| Learn rules (shipped modes) | Sheet with `GameRulesGuideView` — copy from spec § **How to Play** |
 | Change mode (Play setup) | Switch to Modes tab |
 
 ## Out of scope (v1)

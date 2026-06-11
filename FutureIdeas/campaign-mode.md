@@ -17,8 +17,8 @@ Single-player (or human vs bot) **ladder**: stages unlock harder bots and new ga
 
 | Stage content | Doc / spec | Status |
 |---------------|------------|--------|
-| Killer | [`specs/KillerGameSpec.md`](../specs/KillerGameSpec.md) | Shipped |
-| Baseball | [`specs/BaseballGameSpec.md`](../specs/BaseballGameSpec.md) | Shipped |
+| Killer | [`specs/game-modes/implemented/KillerGameSpec.md`](../specs/game-modes/implemented/KillerGameSpec.md) | Shipped |
+| Baseball | [`specs/game-modes/implemented/BaseballGameSpec.md`](../specs/game-modes/implemented/BaseballGameSpec.md) | Shipped |
 | Shanghai | `ShanghaiEngine` + play UI | Shipped |
 | Bob's 27, Around the Clock | [`party-practice-modes.md`](party-practice-modes.md) | ~3–6 d each |
 | Halve-It, Golf | [`party-practice-modes.md`](party-practice-modes.md) | ~6–10 d |

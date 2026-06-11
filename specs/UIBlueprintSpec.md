@@ -10,9 +10,9 @@ Primary references:
 - `specs/NavigationSpec.md`
 - `specs/MatchSpec.md`
 - `specs/SetupFlowSpec.md`
-- `specs/X01GameSpec.md`
-- `specs/CricketSpec.md`
-- `specs/BaseballGameSpec.md`
+- `specs/game-modes/implemented/X01GameSpec.md`
+- `specs/game-modes/implemented/CricketSpec.md`
+- `specs/game-modes/implemented/BaseballGameSpec.md`
 - `specs/ScoringInputSpec.md`
 - `specs/PlayerSpec.md`
 - `specs/HistorySpec.md`

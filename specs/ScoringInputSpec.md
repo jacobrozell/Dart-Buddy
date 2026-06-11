@@ -95,10 +95,10 @@ Turn submission:
 - Bulls use Cricket-specific mark and scoring rules.
 
 ## 7a. Baseball-Specific Behavior
-- Dart-by-dart entry only; pad segment locked to `currentInning` (see [`BaseballGameSpec.md`](BaseballGameSpec.md)).
+- Dart-by-dart entry only; pad segment locked to `currentInning` (see [`BaseballGameSpec.md`](game-modes/implemented/BaseballGameSpec.md)).
 - Multiplier maps to runs on active segment (S=1, D=2, T=3); off-segment = 0.
 - Bull appears on pad only during 7th-inning stretch (inning 7) or bull playoff phase.
-- See [`BaseballGameSpec.md`](BaseballGameSpec.md) for stretch gate and tie-breaker input rules.
+- See [`BaseballGameSpec.md`](game-modes/implemented/BaseballGameSpec.md) for stretch gate and tie-breaker input rules.
 
 ---
 

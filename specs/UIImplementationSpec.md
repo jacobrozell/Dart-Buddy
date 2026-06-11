@@ -39,8 +39,8 @@ Wireframes and visual behavior: [`UIBlueprintSpec.md`](UIBlueprintSpec.md).
 |---------------|--------------|-------------------------|
 | Play home + setup (combined) | [`PlayHomeSpec.md`](PlayHomeSpec.md), [`SetupFlowSpec.md`](SetupFlowSpec.md) | `SetupHomeView` + `PlayHomeViewModel` / `MatchSetupViewModel` |
 | Quick add player | [`QuickAddPlayerSpec.md`](QuickAddPlayerSpec.md) | Pushed from `PlayRoute.quickAddPlayer` |
-| X01 match | [`X01GameSpec.md`](X01GameSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `X01MatchScreen`, `DartNumberPad` |
-| Cricket match | [`CricketSpec.md`](CricketSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `CricketMatchScreen`, `CricketBoardView` |
+| X01 match | [`game-modes/implemented/X01GameSpec.md`](game-modes/implemented/X01GameSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `X01MatchScreen`, `DartNumberPad` |
+| Cricket match | [`game-modes/implemented/CricketSpec.md`](game-modes/implemented/CricketSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `CricketMatchScreen`, `CricketBoardView` |
 | Match summary | [`MatchSummarySpec.md`](MatchSummarySpec.md) | `MatchSummaryScreen` |
 | History list / detail | [`HistorySpec.md`](HistorySpec.md) | `HistoryRootView`, `MatchHistoryDetailScreen` |
 | Statistics tab | [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | `StatisticsRootView` |

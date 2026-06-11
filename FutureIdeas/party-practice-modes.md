@@ -4,9 +4,9 @@
 **Source:** [Target Darts — dart games](https://www.target-darts.co.uk/dart-games)  
 **Index:** [`additional-game-modes.md`](additional-game-modes.md)
 
-**Already shipped (see specs / code, not this file):** Baseball ([`specs/BaseballGameSpec.md`](../specs/BaseballGameSpec.md)), Killer ([`specs/KillerGameSpec.md`](../specs/KillerGameSpec.md)), Shanghai (`Domain/Engines/ShanghaiEngine.swift`).
+**Already shipped (see specs / code, not this file):** Baseball ([`specs/game-modes/implemented/BaseballGameSpec.md`](../specs/game-modes/implemented/BaseballGameSpec.md)), Killer ([`specs/game-modes/implemented/KillerGameSpec.md`](../specs/game-modes/implemented/KillerGameSpec.md)), Shanghai (`Domain/Engines/ShanghaiEngine.swift`).
 
-Lightweight assessments for modes not yet specced in depth. Promote to `specs/*GameSpec.md` when scheduled.
+**Superseded for rules** by `specs/*GameSpec.md` (see [`specs/README.md`](../specs/README.md)). This brief retains effort estimates and product-shape notes.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Use this checklist before release candidates and after major refactors to verify core app behavior has not regressed.
 
-**Authoritative flows:** [`README.md`](README.md) § Feature Specs — especially [`PlayHomeSpec.md`](PlayHomeSpec.md), [`SetupFlowSpec.md`](SetupFlowSpec.md), [`MatchSpec.md`](MatchSpec.md), [`X01GameSpec.md`](X01GameSpec.md), [`CricketSpec.md`](CricketSpec.md), [`HistorySpec.md`](HistorySpec.md), [`StatisticsTabSpec.md`](StatisticsTabSpec.md), [`SettingsSpec.md`](SettingsSpec.md).
+**Authoritative flows:** [`README.md`](README.md) § Feature Specs — especially [`PlayHomeSpec.md`](PlayHomeSpec.md), [`SetupFlowSpec.md`](SetupFlowSpec.md), [`MatchSpec.md`](MatchSpec.md), [`game-modes/implemented/X01GameSpec.md`](game-modes/implemented/X01GameSpec.md), [`game-modes/implemented/CricketSpec.md`](game-modes/implemented/CricketSpec.md), [`HistorySpec.md`](HistorySpec.md), [`StatisticsTabSpec.md`](StatisticsTabSpec.md), [`SettingsSpec.md`](SettingsSpec.md).
 
 ## Scope
 
