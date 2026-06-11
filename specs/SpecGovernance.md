@@ -61,8 +61,12 @@ If two specs disagree, the authoritative spec above wins.
 | `accessibility/wcag-2.1-aa/` | Per-screen/criterion status + evidence links | `specs/AccessibilitySpec.md` (requirements only) |
 | `FutureIdeas/` | Post-1.0 feature assessments (Game Center, play reminders, …) | `docs/release/todo.md` (one-line links only) |
 | `FutureIdeas/backlog.md` | Post-1.0 product backlog (short ideas) | `docs/release/todo.md` |
-| `FutureIdeas/achievements.md` | Game Center deep-dive | `docs/release/todo.md` |
-| `FutureIdeas/play-reminders.md` | Local play reminder notifications | `docs/release/todo.md` |
+| `FutureIdeas/achievements.md` | Game Center ID catalog (GC reporting deferred) | [`AchievementsSpec.md`](AchievementsSpec.md) |
+| `FutureIdeas/campaign-mode.md` | Campaign R&D brief | [`CampaignSpec.md`](CampaignSpec.md) |
+| `FutureIdeas/play-reminders.md` | Play reminder assessment | [`DailyChallengeSpec.md`](DailyChallengeSpec.md), `SettingsSpec.md` |
+| `specs/AchievementsSpec.md` | Local achievements + hooks | `FutureIdeas/achievements.md` (GC phase) |
+| `specs/CampaignSpec.md` | Journey / campaign mode | `FutureIdeas/campaign-mode.md` |
+| `specs/DailyChallengeSpec.md` | Daily challenge + push | `FutureIdeas/play-reminders.md` |
 | `docs/feature-inventory.md` | Shipped / partial / planned product register | Feature specs (behavior), `docs/release/todo.md` (blockers) |
 
 Full table with QA gates: [`README.md`](../README.md#documentation-map).
@@ -175,11 +179,16 @@ Bump **Last verified** and **Commit** when behavior in that spec changes.
 | Stats math | `StatsSpec.md` | `StatsService`, aggregates |
 | Statistics segment | `StatisticsTabSpec.md` | `ActivityRootView`, `StatisticsRootView`, `StatisticsViewModel` |
 | Settings | `SettingsSpec.md` | `SettingsRootView`, `SettingsViewModel` |
+| Delete all local data | `DeleteAllDataSpec.md` | `LocalDataResetInventory`, `SettingsViewModel`, `SwiftDataSettingsRepository` |
 | Migration recovery | `MigrationRecoverySpec.md` | `MigrationRecoveryView`, `AppBootstrapper` |
 | Deep links | `DeepLinkSpec.md` | `DeepLinkParser`, `AppRouteRouter` |
 | App Intents | `AppIntentsSpec.md` | `IntentRoutingBridge`, `Intents/` |
 | App shell | `AppShellSpec.md` | `DartBuddyApp`, `MainTabView` |
 | Telemetry | `FirebaseBackendAnalyticsSpec.md` §12 | `Firebase*EventMapping.swift` |
+| Local achievements | `AchievementsSpec.md` | (planned) `AchievementEvaluator`, `MatchSummaryScreen` |
+| Profile badges UI | `BadgesSpec.md` | (planned) `BadgeMedal`, `PlayerDetailView` |
+| Campaign / Journey | `CampaignSpec.md` | (planned) `Features/Campaign/` |
+| Daily challenge | `DailyChallengeSpec.md` | (planned) `DailyChallengeService` |
 
 ---
 

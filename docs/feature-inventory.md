@@ -2,7 +2,7 @@
 
 Living register of every product feature: shipped, partial, and planned. Use this to answer “what exists?” and “what’s next?” without hunting through specs, code, and `FutureIdeas/`.
 
-**Last reviewed:** 2026-06-11  
+**Last reviewed:** 2026-06-11 (gamification specs added — all **Planned**, not shipped)  
 **App status:** 1.0 RC (lean core) — see [`release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md)
 
 ---
@@ -39,12 +39,12 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 | Localization | en bundled | de/es/nl in repo only | in-app picker |
 | Shortcuts & deep links | Deep links | App Intents (flagged off) | Widgets, query intents |
 | CI / release | GitHub Actions, Xcode Cloud | Slack notify, perf tests | — |
-| Players & bots | CRUD + preset bots | Training/custom hidden | Game Center |
+| Players & bots | CRUD + preset bots | Training/custom hidden | Local achievements, Journey |
 | Stats & activity | History + statistics | — | — |
 | Settings & a11y | Core prefs + TTS caller | WCAG evidence, AXXXL layout | Talk mode |
 | Firebase | Analytics + Crashlytics | — | Auth, Firestore, FCM |
 | Platforms | iPhone, iPad universal | iPad layout polish | watchOS, macOS, visionOS |
-| Post-1.0 product | — | Party modes, Modes tab (code, hidden) | Achievements, campaign, online |
+| Post-1.0 product | — | Party modes, Modes tab (code, hidden) | Gamification (spec’d), online |
 
 **Targets today:** `DartBuddy` (iOS, iPhone + iPad), `DartBuddyTests`, `DartBuddyPerformanceTests`, `DartBuddyUITests` — no Widget, Watch, or macOS extensions (`project.yml`).
 
@@ -103,7 +103,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Game rules guide (in-app) | Shipped | Shipped modes only | `Features/Play/Rules/GameRulesGuideView.swift` |
 | 8 gameplay UI templates | Partial | Enum defined; 5 modes mapped | [`full-game-catalog-ui.md`](full-game-catalog-ui.md) |
 | Per-mode stat kinds (29 declared) | Partial | Data only for 5 shipped modes | `ModeStatKind` in `GameModeCatalog.swift` |
-| Campaign mode | Assessed | Single-player ladder / bosses | [`campaign-mode.md`](../FutureIdeas/campaign-mode.md) |
+| Campaign mode (Journey tab) | **Planned** | Spec’d; no implementation; flag `enableCampaign` | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |
 | Vision auto-scoring | Planned | Camera dart detection | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
 
@@ -205,8 +205,10 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Preset difficulty bots | Shipped | Very Easy → Pro via `DartBotEngine` | [`BotOpponentSpec.md`](../specs/BotOpponentSpec.md) |
 | Training Partner bots | Shipped | Progress-gated custom opponents | [`TrainingBotSpec.md`](../specs/TrainingBotSpec.md) |
 | Custom bots (user metrics) | Shipped (simple UI); Advanced phased | Template-aware resolution; facet editors planned | [`CustomBotSpec.md`](../specs/CustomBotSpec.md) · [`plans/custom-bot-architecture-ui-plan.md`](plans/custom-bot-architecture-ui-plan.md) |
-| Game Center achievements (~62 catalog) | Assessed | No GameKit code | [`achievements.md`](../FutureIdeas/achievements.md) |
-| Leaderboards | Assessed | Separate from achievements MVP | same |
+| Local achievements (profile) | **Planned** | Spec’d; no code; flag `enableAchievements` | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) |
+| Achievement badges UI (profile gallery) | **Planned** | Spec’d with achievements | [`BadgesSpec.md`](../specs/BadgesSpec.md) |
+| Game Center sync | **Planned** | Add-on on local achievements; sync reads local stats → updates GC | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) §10 |
+| Leaderboards | **Planned** | Not in achievements v1 | [`achievements.md`](../FutureIdeas/achievements.md) |
 
 ---
 
@@ -298,6 +300,28 @@ All flags: `Support/FeatureFlags/FeatureFlag.swift` · config: [`FeatureFlagConf
 | `enableVisionAutoScoring` | Off | Camera auto-scoring (not built) |
 | `enableOnlinePlay` | Off | Online multiplayer (not built) |
 | `enableAdvancedDiagnostics` | Off | Extra diagnostics |
+| `enableAchievements` | **Off** | Local profile achievements (**not built**) | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) |
+| `enableCampaign` | **Off** | Journey / campaign tab (**not built**) | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
+| `enableDailyChallenge` | **Off** | Daily challenge card + push (**not built**) | [`DailyChallengeSpec.md`](../specs/DailyChallengeSpec.md) |
+
+---
+
+## Gamification (post-1.0 — planned, not shipped)
+
+Authoritative specs exist; **no playable implementation** in the app today. All rows are **Planned** until code ships behind feature flags.
+
+| Feature | Status | Brief | Reference |
+|---------|--------|-------|-----------|
+| Local achievements | **Planned** | Per-player unlocks; X01/Cricket + modes as they ship; summary-only reveal | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) |
+| Profile badge gallery | **Planned** | `BadgeMedal` on Player detail | [`BadgesSpec.md`](../specs/BadgesSpec.md) |
+| Campaign / Journey tab | **Planned** | Scripted stages, bundled JSON, primary player, separate stats | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
+| Daily challenge | **Planned** | Once-per-day goal; ties to local push work | [`DailyChallengeSpec.md`](../specs/DailyChallengeSpec.md) |
+| Game Center reporting | **Planned** | Layer on local achievements; local is source of truth, GC mirrors on sign-in + unlock | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) §10 |
+| Gamification reset on delete-all | **Planned** | Inventory when models ship | [`DeleteAllDataSpec.md`](../specs/DeleteAllDataSpec.md) §6.6 |
+
+**Ship order (product):** local achievements → Journey shell → daily challenge → Game Center bridge → campaign-specific achievements.
+
+R&D catalog (IDs, GC estimates): [`FutureIdeas/achievements.md`](../FutureIdeas/achievements.md) · campaign brainstorm: [`FutureIdeas/campaign-mode.md`](../FutureIdeas/campaign-mode.md).
 
 ---
 
@@ -305,9 +329,7 @@ All flags: `Support/FeatureFlags/FeatureFlag.swift` · config: [`FeatureFlagConf
 
 | Feature | Status | Brief | Reference |
 |---------|--------|-------|-----------|
-| Game Center achievements | Assessed | ~62-achievement catalog, MVP estimate | [`achievements.md`](../FutureIdeas/achievements.md) |
 | Play reminders (local notifications) | Assessed | MVP local; FCM optional Phase 2 | [`play-reminders.md`](../FutureIdeas/play-reminders.md) |
-| Campaign mode | Assessed | Progression ladder | [`campaign-mode.md`](../FutureIdeas/campaign-mode.md) |
 | Talk mode | Assessed | Voice scoring input | [`talk-mode.md`](../FutureIdeas/talk-mode.md) |
 | Additional game modes R&D | Assessed | Target Darts–style index | [`additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) |
 | General post-1.0 backlog | Planned | CSV export, bot names, a11y layout, etc. | [`backlog.md`](../FutureIdeas/backlog.md) |
