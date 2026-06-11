@@ -105,6 +105,7 @@ APP_STORE_WIDTH=1242 APP_STORE_HEIGHT=2688 ./Scripts/capture-marketing-screensho
 | Screen | Arguments |
 |--------|-----------|
 | Reset + quiet | `-ui_test_reset -ui_test_disable_feedback -disable_firebase_analytics` |
+| Screenshot orientation | `-snapshot_orientation portrait` or `landscape` (set by capture script) |
 | X01 in progress | `-snapshot_match_x01` |
 | X01 in progress (8 players) | `-snapshot_match_x01_8player` |
 | Cricket in progress | `-snapshot_match_cricket` |
