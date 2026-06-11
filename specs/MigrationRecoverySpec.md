@@ -11,7 +11,7 @@ Define user-facing behavior when SwiftData store migration or container bootstra
 - Full-screen recovery UI blocking main tabs until bootstrap succeeds
 - **Retry migration** — re-run `AppBootstrapper.bootstrap()`
 - **Export diagnostics** — shareable diagnostic bundle path surfaced to user
-- **Reset local data** — destructive SQLite store delete + re-bootstrap
+- **Reset local data** — destructive SQLite store delete + re-bootstrap (same end state as Settings reset; see [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md))
 - Localized error key footnote for support
 - Never silent data wipe on first failure
 

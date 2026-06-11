@@ -201,7 +201,7 @@ Use a two-tier deletion model:
 Rationale: deleting referenced identities can corrupt stats/history semantics.
 
 ## 7.5 Data Retention and Reset
-- App-level reset in Settings can wipe all local data after explicit destructive confirmation
+- App-level reset in Settings can wipe all local data after explicit destructive confirmation — see [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md)
 - Player deletions/archives should emit internal audit events for debug logs (local only)
 
 ---

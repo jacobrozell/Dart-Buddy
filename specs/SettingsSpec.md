@@ -55,15 +55,9 @@ Recommended keys:
 
 ## 5. Data Reset Behavior
 
-`Reset All Local Data` must:
-1. Confirm with destructive modal
-2. Remove players, matches, events, stats cache, settings
-3. Return app to first-launch defaults
-4. Not leave partial data state if interrupted
+Authoritative reset policy, inventory, scaling checklist, and tests: [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md).
 
-Implementation note:
-- Execute reset in transactional sequence where possible.
-- On failure, present recoverable error and retry path.
+Summary: **Reset All Local Data** requires destructive confirmation, clears all inventoried SwiftData tables and UserDefaults, clears in-memory session stores, re-seeds default settings, and returns the app to first-launch data defaults. On failure, present a recoverable error.
 
 ---
 
@@ -82,7 +76,7 @@ Implementation note:
 
 ## Integration
 - Changed defaults appear in New Match setup prefill
-- Reset truly clears all local tables and preferences
+- Reset inventory and table coverage: [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md) §8
 
 ## UI
 - Appearance toggle behavior

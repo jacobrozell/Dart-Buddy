@@ -16,7 +16,7 @@ Define security, privacy, and data-protection requirements for MVP and future ne
 ## 3. Privacy Requirements
 - Clear in-app privacy summary
 - Explicit settings for optional diagnostics (future)
-- Data reset capability with confirmation
+- Data reset capability with confirmation — see [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md)
 - No silent data export
 
 ---
