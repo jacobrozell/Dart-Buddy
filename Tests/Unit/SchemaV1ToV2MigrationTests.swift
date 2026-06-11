@@ -59,4 +59,36 @@ struct SchemaV1ToV2MigrationTests {
         #expect(participant.botKindRaw == BotKind.preset.rawValue)
         #expect(participant.botSkillProfilePayload == nil)
     }
+
+    @Test(.tags(.migration, .swiftdata, .regression))
+    func migratesV2_1_0ToV2_2_0WithNullableScaleColumns() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appending(path: "dartbuddy-migration-v220-\(UUID().uuidString).sqlite")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let v210Schema = Schema(versionedSchema: SchemaV2_1_0.self)
+        let configuration = ModelConfiguration(schema: v210Schema, url: url)
+        let container = try ModelContainer(for: v210Schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let matchId = UUID()
+        context.insert(
+            SchemaV2_1_0.MatchRecord(
+                id: matchId,
+                typeRaw: MatchType.x01.rawValue,
+                statusRaw: MatchStatus.completed.rawValue,
+                configPayload: Data("{}".utf8)
+            )
+        )
+        try context.save()
+
+        let migratedContainer = try ModelContainerFactory.makeContainer(mode: .customURL(url))
+        let migratedContext = ModelContext(migratedContainer)
+        let match = try #require(
+            try migratedContext.fetch(FetchDescriptor<SchemaV2.MatchRecord>()).first { $0.id == matchId }
+        )
+        #expect(match.historyCardPayload == nil)
+        #expect(match.isCampaignMatch == nil)
+        #expect(match.campaignStageId == nil)
+    }
 }

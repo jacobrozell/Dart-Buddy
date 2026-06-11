@@ -137,6 +137,21 @@ final class HistoryListViewModel: ObservableObject {
     }()
 
     private func standingsAndConfig(for record: MatchHistoryRecord) async -> (String, [HistoryStanding]) {
+        if let data = record.historyCardPayload,
+           let payload = try? CodablePayloadCoder.decode(MatchHistoryCardPayload.self, from: data) {
+            let standings = payload.standings.map {
+                HistoryStanding(
+                    id: $0.playerId,
+                    name: $0.name,
+                    isWinner: $0.isWinner,
+                    sets: $0.sets,
+                    legs: $0.legs,
+                    score: $0.score
+                )
+            }
+            return (payload.configText, standings)
+        }
+
         let summary = record.summary
         let nameById = Dictionary(
             uniqueKeysWithValues: record.participants.map { ($0.playerId ?? $0.id, $0.displayNameAtMatchStart) }

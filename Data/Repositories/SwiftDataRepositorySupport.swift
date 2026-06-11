@@ -64,6 +64,7 @@ func mapPlayer(_ record: SchemaV2.PlayerRecord) -> PlayerSummary {
         avatarStyleRaw: record.avatarStyleRaw,
         preferredColorToken: record.preferredColorToken,
         notes: record.notes,
+        playerRoleRaw: record.playerRoleRaw,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt
     )
@@ -81,6 +82,8 @@ func mapMatch(_ record: SchemaV2.MatchRecord) -> MatchSummary {
         currentLegIndex: record.currentLegIndex,
         currentSetIndex: record.currentSetIndex,
         eventCount: record.eventCount,
+        isCampaignMatch: record.isCampaignMatch ?? false,
+        campaignStageId: record.campaignStageId,
         createdAt: record.createdAt,
         updatedAt: record.updatedAt
     )

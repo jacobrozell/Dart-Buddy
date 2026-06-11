@@ -129,7 +129,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
             return pageMatches.map {
                 MatchHistoryRecord(
                     summary: mapMatch($0),
-                    participants: participantsByMatchId[$0.id] ?? []
+                    participants: participantsByMatchId[$0.id] ?? [],
+                    historyCardPayload: $0.historyCardPayload
                 )
             }
         }
@@ -149,6 +150,13 @@ public actor SwiftDataMatchRepository: MatchRepository {
             record.currentLegIndex = match.currentLegIndex
             record.currentSetIndex = match.currentSetIndex
             record.eventCount = match.eventCount
+            if match.status == .completed {
+                record.historyCardPayload = try buildHistoryCardPayload(matchId: match.id, in: context)
+            } else {
+                record.historyCardPayload = nil
+            }
+            record.isCampaignMatch = match.isCampaignMatch ? true : nil
+            record.campaignStageId = match.campaignStageId
             record.updatedAt = Date()
             if match.eventCount < previousEventCount {
                 let matchId = match.id
@@ -176,6 +184,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
             record.endedAt = endedAt
             record.winnerPlayerId = winnerPlayerId
             record.currentTurnPlayerId = nil
+            record.historyCardPayload = try buildHistoryCardPayload(matchId: matchId, in: context)
             record.updatedAt = Date()
             try context.save()
             return mapMatch(record)
@@ -186,13 +195,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
         try dataCall {
             let context = ModelContext(container)
             let match = try fetchMatchRecord(id: matchId, in: context)
-            let existing = try context.fetch(
-                FetchDescriptor<SchemaV2.MatchEventRecord>(
-                    predicate: #Predicate<SchemaV2.MatchEventRecord> { $0.matchId == matchId },
-                    sortBy: [SortDescriptor(\.eventIndex, order: .reverse)]
-                )
-            )
-            let nextIndex = (existing.first?.eventIndex ?? -1) + 1
+            let nextIndex = match.eventCount
             let now = Date()
             let event = SchemaV2.MatchEventRecord(
                 matchId: matchId,
@@ -305,6 +308,26 @@ public actor SwiftDataMatchRepository: MatchRepository {
             context.delete(match)
             try context.save()
         }
+    }
+
+    private func buildHistoryCardPayload(matchId: UUID, in context: ModelContext) throws -> Data? {
+        let snapshotDescriptor = FetchDescriptor<SchemaV2.MatchSnapshotRecord>(
+            predicate: #Predicate<SchemaV2.MatchSnapshotRecord> { $0.matchId == matchId },
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
+        guard let snapshot = try context.fetch(snapshotDescriptor).first,
+              let runtime = try? CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.snapshotPayload) else {
+            return nil
+        }
+        let participantDescriptor = FetchDescriptor<SchemaV2.MatchParticipantRecord>(
+            predicate: #Predicate<SchemaV2.MatchParticipantRecord> { $0.matchId == matchId }
+        )
+        let participants = try context.fetch(participantDescriptor)
+        let nameById = Dictionary(
+            uniqueKeysWithValues: participants.map { ($0.playerId ?? $0.id, $0.displayNameAtMatchStart) }
+        )
+        let payload = MatchHistoryCardBuilder.build(from: runtime, nameById: nameById)
+        return try CodablePayloadCoder.encode(payload)
     }
 
     private func fetchMatchRecord(id: UUID, in context: ModelContext) throws -> SchemaV2.MatchRecord {
