@@ -1,6 +1,10 @@
 import Foundation
 
 /// Shared mode filter for Activity (History + Statistics segments).
+///
+/// Raw values mirror `MatchType` raw values (plus `all`) so per-mode lookups —
+/// catalog entry, title, visibility — derive from the catalog instead of
+/// hand-maintained switches now that the mode count is large.
 enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
     case all
     case x01
@@ -8,40 +12,45 @@ enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
     case baseball
     case killer
     case shanghai
+    case americanCricket
+    case mickeyMouse
+    case mulligan
+    case englishCricket
+    case blindKiller
+    case knockout
+    case suddenDeath
+    case fiftyOneByFives
+    case golf
+    case football
+    case grandNational
+    case hareAndHounds
+    case followTheLeader
+    case loop
+    case prisoner
+    case scam
+    case snooker
+    case ticTacToe
+    case aroundTheClock
+    case aroundTheClock180
+    case chaseTheDragon
+    case nineLives
+    case bobs27
+    case halveIt
 
     var id: String { rawValue }
 
     var matchType: MatchType? {
-        switch self {
-        case .all: nil
-        case .x01: .x01
-        case .cricket: .cricket
-        case .baseball: .baseball
-        case .killer: .killer
-        case .shanghai: .shanghai
-        }
+        self == .all ? nil : MatchType(rawValue: rawValue)
     }
 
     var catalogEntryId: String? {
-        switch self {
-        case .all: nil
-        case .x01: "standard.x01"
-        case .cricket: "standard.cricket"
-        case .baseball: "party.baseball"
-        case .killer: "party.killer"
-        case .shanghai: "party.shanghai"
-        }
+        guard let matchType else { return nil }
+        return GameModeCatalog.entry(for: matchType)?.id
     }
 
     var title: String {
-        switch self {
-        case .all: L10n.string("history.filter.allGames")
-        case .x01: L10n.string("play.x01.title")
-        case .cricket: L10n.string("play.cricket.title")
-        case .baseball: L10n.string("play.baseball.title")
-        case .killer: L10n.string("play.killer.title")
-        case .shanghai: L10n.string("play.shanghai.title")
-        }
+        guard let matchType else { return L10n.string("history.filter.allGames") }
+        return MatchConfigText.modeLabel(for: matchType)
     }
 
     static func from(catalogEntryId: String) -> ActivityModeFilter? {
@@ -51,12 +60,10 @@ enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
     /// Filters shown in Activity UI for the current product surface.
     static var visibleCases: [ActivityModeFilter] {
         allCases.filter { filter in
-            switch filter {
-            case .all, .x01, .cricket:
-                true
-            case .baseball, .killer, .shanghai:
-                ProductSurface.showsPartyModes
-            }
+            guard let matchType = filter.matchType else { return true }
+            guard let entry = GameModeCatalog.entry(for: matchType) else { return false }
+            if entry.section == .party { return ProductSurface.showsPartyModes }
+            return true
         }
     }
 }
