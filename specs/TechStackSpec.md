@@ -68,7 +68,7 @@ Example:
 ---
 
 ## 6. Project Configuration Notes
-- Target iOS 17+ to maximize SwiftUI/SwiftData stability and reduce compatibility complexity.
+- Target iOS 18+ (required for SwiftData `#Index` on `SchemaV2.2.0`; aligns with `PlayerSpec.md`).
 - Keep all external dependency declarations in one place (`Package.swift` or Xcode package list) and review quarterly.
 - Add dependency approval checklist before introducing any new package:
   - maintenance health

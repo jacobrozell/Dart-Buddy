@@ -278,7 +278,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 
 | Feature | Status | Notes | Reference |
 |---------|--------|-------|-----------|
-| iPhone (iOS 17+) | Shipped | Primary target | `project.yml` |
+| iPhone (iOS 18+) | Shipped | Primary target | `project.yml` |
 | iPad universal (`TARGETED_DEVICE_FAMILY: 1,2`) | Partial | Supported; full two-pane IA not done | `project.yml`, `GameplayLayout.swift` |
 | Apple Watch companion | Planned | Active-match scoring via WatchConnectivity | [`AppleWatchCompanionSpec.md`](../specs/AppleWatchCompanionSpec.md) · flag `enableAppleWatchCompanion` |
 | macOS target | Planned | Not in project | — |

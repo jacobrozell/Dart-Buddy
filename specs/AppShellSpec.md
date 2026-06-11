@@ -112,7 +112,7 @@ Store listing metadata and app ID: [`AppStoreConnectSpec.md`](AppStoreConnectSpe
 
 ## 8. Navigation chrome (iOS 26 Liquid Glass)
 
-- **Deployment target:** iOS 17+. On iOS 26+, system tab bars and `NavigationStack` toolbars use Liquid Glass automatically.
+- **Deployment target:** iOS 18+. On iOS 26+, system tab bars and `NavigationStack` toolbars use Liquid Glass automatically.
 - **Policy:** `SystemNavigationPolicy` in DesignSystem — do not override nav/tab chrome with opaque `.toolbarBackground` on iOS 26+. Scoreboard tab content stays opaque (`brandScoreboardChrome`).
 - **Accessibility:** Reduce Transparency uses system opaque fallbacks for glass chrome; content-layer contrast remains on `Brand` tokens. See `DesignSystem/README.md` § Navigation vs content layer.
 

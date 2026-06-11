@@ -115,7 +115,7 @@ flowchart LR
 
 ## Getting started
 
-Requirements: Xcode 16+, iOS 17+, [XcodeGen](https://github.com/yonaskolb/XcodeGen) 2.44+.
+Requirements: Xcode 16+, iOS 18+ deployment target, [XcodeGen](https://github.com/yonaskolb/XcodeGen) 2.44+.
 
 ```bash
 brew install xcodegen   # if needed

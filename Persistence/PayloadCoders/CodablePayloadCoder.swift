@@ -3,9 +3,7 @@ import Foundation
 public enum CodablePayloadCoder {
     private static let encoder: JSONEncoder = {
         let encoder = JSONEncoder()
-        if #available(iOS 17.0, *) {
-            encoder.outputFormatting = [.sortedKeys]
-        }
+        encoder.outputFormatting = [.sortedKeys]
         return encoder
     }()
 

@@ -4,7 +4,7 @@
 - Version: `1.0.0-rc1`
 - Build: `TBD`
 - Device(s): `TBD - minimum 1 physical iPhone + 1 simulator`
-- iOS version(s): `TBD`
+- iOS version(s): `18.x minimum` + latest GA (verify migration on 18.x device/simulator)
 - Execution owner: `TBD`
 - Execution date: `TBD`
 

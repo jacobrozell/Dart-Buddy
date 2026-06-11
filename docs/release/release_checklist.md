@@ -426,7 +426,7 @@ Post-submit ops: [`../../roadmap/release/Launch-Day-Runbook.md`](../../roadmap/r
 1. **Hook** — why you built it (pub night, existing apps had ads, wanted clean UI)
 2. **What it does** — X01 + Cricket, undo, bots, history, statistics, players, dark mode, VoiceOver basics
 3. **What it doesn’t** — no ads, no account required, data stays on device; online/watch deferred
-4. **Platform** — iPhone + iPad, iOS 17+
+4. **Platform** — iPhone + iPad, iOS 18+ (App Store minimum OS; verify on oldest supported device or simulator)
 5. **Ask** — feedback on scoring flow, Cricket UI, feature priorities
 6. **Link** — App Store URL (required once live)
 7. **Optional** — TestFlight story or “solo dev” transparency if comfortable
