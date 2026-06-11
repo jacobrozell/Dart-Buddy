@@ -658,6 +658,17 @@
 "customBot.badge.accessibilityFormat" = "Bot personalizado, promedio %.0f de 3 dardos, %.2f marcas por ronda";
 "customBot.row.accessibilitySuffix" = ", bot personalizado, promedio %.0f, %.2f marcas por ronda";
 "customBot.setup.section" = "Bots personalizados";
+"customBot.editor.simple" = "Simple";
+"customBot.editor.advanced" = "Avanzado";
+"customBot.advanced.presetAnchor" = "Basado en el ajuste predefinido";
+"customBot.advanced.resetSimple" = "Restablecer objetivos simples";
+"customBot.advanced.resetPreset" = "Restablecer al ajuste predefinido";
+"customBot.advanced.footer" = "Estas estadísticas se aplican en X01, Cricket, Baseball, Killer, Shanghai y futuros modos que compartan las mismas plantillas del motor.";
+"customBot.advanced.x01Section" = "X01";
+"customBot.advanced.cricketSection" = "Cricket";
+"customBot.advanced.aimSection" = "Puntería (Baseball, Killer, Shanghai…)";
+"customBot.advanced.visitMinFormat" = "Visita mín. %.0f";
+"customBot.advanced.visitMaxFormat" = "Visita máx. %.0f";
 "bot.namePrefixFormat" = "%@ Bot";
 "play.rules.learnButton" = "Aprende a jugar";
 "play.rules.sheet.title" = "Cómo jugar";
