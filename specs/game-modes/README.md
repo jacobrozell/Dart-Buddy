@@ -29,6 +29,22 @@ Catalog source: [`Features/Modes/GameModeCatalog.swift`](../../Features/Modes/Ga
 - [`KillerGameSpec.md`](implemented/KillerGameSpec.md)
 - [`ShanghaiGameSpec.md`](implemented/ShanghaiGameSpec.md)
 
-## Planned (24)
+## Planned (25)
 
-See [`planned/`](planned/) — American Cricket, Mickey Mouse, Mulligan, English Cricket, Blind Killer, Knockout, Sudden Death, 51 By 5's, Golf, Football, Grand National, Hare and Hounds, Follow the Leader, Loop, Prisoner, Scam, Snooker, Tic-Tac-Toe, Around the Clock, 180 Around the Clock, Chase the Dragon, Nine Lives, Bob's 27, Halve-It.
+See [`planned/`](planned/) — American Cricket, Mickey Mouse, Mulligan, English Cricket, Blind Killer, Knockout, Sudden Death, 51 By 5's, Golf, Football, Grand National, Hare and Hounds, Follow the Leader, Loop, Prisoner, Scam, Snooker, Tic-Tac-Toe, Around the Clock, 180 Around the Clock, Chase the Dragon, Nine Lives, Bob's 27, Halve-It, Call & Hit.
+
+### Call & Hit spec bundle
+| Doc | Covers |
+|-----|--------|
+| [`CallAndHitGameSpec.md`](planned/CallAndHitGameSpec.md) | Rules, setup presets, engine, history |
+| [`VoiceDrillUITemplateSpec.md`](planned/VoiceDrillUITemplateSpec.md) | Template J UI shell |
+| [`CallAndHitStatsSupplement.md`](planned/CallAndHitStatsSupplement.md) | `practiceAccuracy` stat kind |
+| [`CallAndHitDataSchemaSupplement.md`](planned/CallAndHitDataSchemaSupplement.md) | SwiftData / migration |
+| [`CalloutVoicesSpec.md`](../CalloutVoicesSpec.md) | TTS voice catalog |
+
+### Solo practice platform (shared)
+| Doc | Covers |
+|-----|--------|
+| [`SoloPracticeModesSpec.md`](../SoloPracticeModesSpec.md) | Cross-mode contract for all solo-only drills |
+| [`SoloPracticeMatchSummarySupplement.md`](../SoloPracticeMatchSummarySupplement.md) | Summary screen without winner ceremony |
+| [`SoloPracticeCatalogStubGuide.md`](planned/SoloPracticeCatalogStubGuide.md) | Catalog row copy-paste + promotion |

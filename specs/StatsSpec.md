@@ -139,7 +139,7 @@ The **same** computation feeds three homes, each already in the app:
 ### `StatKind` contract
 Each mode declares a `statKind` (on its `GameModeCatalogEntry`) naming the metric
 family it produces: `checkout`, `marks`, `innings`, `lives`, `sequence`,
-`soloScore`, `goals`, `boardClaim`, `roleScore`. UI renders **only** the matching
+`soloScore`, `goals`, `boardClaim`, `roleScore`, `practiceAccuracy`. UI renders **only** the matching
 card set, so a mode never shows a metric it can't compute. `StatsService` gains
 one deterministic reducer per `statKind`.
 
@@ -155,3 +155,11 @@ one deterministic reducer per `statKind`.
   forced single average across incompatible metrics.
 - Match Summary and Player/Statistics cards are driven by the same `statKind` so
   the three altitudes cannot diverge.
+
+### `practiceAccuracy` (Call & Hit)
+Authoritative detail: [`game-modes/planned/CallAndHitStatsSupplement.md`](game-modes/planned/CallAndHitStatsSupplement.md).
+
+- Primary metric: hit % (`hits / attempts`) per session
+- Aggregates keyed by config fingerprint (target kind, darts per target, count, bull)
+- Never merge 1-dart and 3-dart sessions in one trend series
+- Events: `CallAndHitTargetEvent` (no dart-level payloads in v1)

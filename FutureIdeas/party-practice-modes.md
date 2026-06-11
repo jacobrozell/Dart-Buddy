@@ -89,6 +89,23 @@
 
 ---
 
+## Call & Hit (50-target voice drill)
+
+**Type:** Solo practice — honor-scored accuracy drill.
+
+| Item | Detail |
+|------|--------|
+| Objective | App calls random targets; player throws (default 3 darts each); self-reports Hit/Miss |
+| Config | Target kind: singles · doubles · triples; session length 25/50/100 |
+| Dart Buddy fit | Practice section; Modes catalog card entry; full `MatchRecord` history |
+| Voice | Configurable callout voices — [`specs/CalloutVoicesSpec.md`](../specs/CalloutVoicesSpec.md) |
+| Effort | ~5–8 d including voice platform + history integration |
+
+**Authoritative spec:** [`specs/game-modes/planned/CallAndHitGameSpec.md`](../specs/game-modes/planned/CallAndHitGameSpec.md)  
+**Shared solo platform:** [`specs/SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md)
+
+---
+
 ## Suggested "Practice" hub (optional product shape)
 
 Instead of five new top-level Play tiles:
@@ -97,6 +114,7 @@ Instead of five new top-level Play tiles:
 Play
   ├── X01 / Cricket (existing)
   └── Practice ▾
+        ├── Call & Hit
         ├── Bob's 27
         ├── Around the Clock
         └── (future) Halve-It

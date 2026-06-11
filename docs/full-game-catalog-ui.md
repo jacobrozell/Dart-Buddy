@@ -399,6 +399,23 @@ New component: **`SequenceProgressStrip`** — horizontal scroll of segment chip
 
 **Modes:** Scam, Snooker. Role badge + phase-filtered pad. Snooker needs a phase indicator stack; start with a simplified-rules toggle.
 
+### Template J — Voice drill
+
+**Modes:** Call & Hit (first); future checkout-callout drills.
+
+```text
+| Hero: large target label + segment diagram           |
+| Progress: 12 / 50 · streak · "Up to 3 darts"         |
+| [ HIT ]  [ MISS ]   (no dart pad)                    |
+```
+
+Spec: [`specs/game-modes/planned/VoiceDrillUITemplateSpec.md`](../specs/game-modes/planned/VoiceDrillUITemplateSpec.md).
+
+> **UX review:** Honor-scored — app never validates darts. Voice + visual callout
+> are mandatory a11y pair. Hit/Miss must not rely on color alone. Stats use
+> `practiceAccuracy` stat kind with config fingerprint — do not compare 1-dart
+> and 3-dart presets on one chart.
+
 ---
 
 ## 6. Activity tab at full scale
