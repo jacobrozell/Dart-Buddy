@@ -658,6 +658,17 @@
 "customBot.badge.accessibilityFormat" = "Eigener Bot, %.0f 3-Dart-Durchschnitt, %.2f Marks pro Runde";
 "customBot.row.accessibilitySuffix" = ", eigener Bot, %.0f Durchschnitt, %.2f Marks pro Runde";
 "customBot.setup.section" = "Eigene Bots";
+"customBot.editor.simple" = "Einfach";
+"customBot.editor.advanced" = "Erweitert";
+"customBot.advanced.presetAnchor" = "Basierend auf Voreinstellung";
+"customBot.advanced.resetSimple" = "Auf einfache Zielwerte zurücksetzen";
+"customBot.advanced.resetPreset" = "Auf Voreinstellung zurücksetzen";
+"customBot.advanced.footer" = "Diese Werte gelten für X01, Cricket, Baseball, Killer, Shanghai und künftige Modi mit denselben Engine-Vorlagen.";
+"customBot.advanced.x01Section" = "X01";
+"customBot.advanced.cricketSection" = "Cricket";
+"customBot.advanced.aimSection" = "Zielen (Baseball, Killer, Shanghai…)";
+"customBot.advanced.visitMinFormat" = "Min. Aufnahme %.0f";
+"customBot.advanced.visitMaxFormat" = "Max. Aufnahme %.0f";
 "bot.namePrefixFormat" = "%@ Bot ";
 "play.rules.learnButton" = "Spielanleitung";
 "play.rules.sheet.title" = "So wird gespielt";

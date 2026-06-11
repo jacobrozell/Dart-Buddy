@@ -658,6 +658,17 @@
 "customBot.badge.accessibilityFormat" = "Eigen bot, %.0f 3-pijlengemiddelde, %.2f marks per ronde";
 "customBot.row.accessibilitySuffix" = ", eigen bot, %.0f gemiddelde, %.2f marks per ronde";
 "customBot.setup.section" = "Eigen bots";
+"customBot.editor.simple" = "Eenvoudig";
+"customBot.editor.advanced" = "Geavanceerd";
+"customBot.advanced.presetAnchor" = "Gebaseerd op voorinstelling";
+"customBot.advanced.resetSimple" = "Terugzetten naar eenvoudige doelen";
+"customBot.advanced.resetPreset" = "Terugzetten naar voorinstelling";
+"customBot.advanced.footer" = "Deze stats gelden voor X01, Cricket, Baseball, Killer, Shanghai en toekomstige modi met dezelfde engine-sjablonen.";
+"customBot.advanced.x01Section" = "X01";
+"customBot.advanced.cricketSection" = "Cricket";
+"customBot.advanced.aimSection" = "Richten (Baseball, Killer, Shanghai…)";
+"customBot.advanced.visitMinFormat" = "Min. beurt %.0f";
+"customBot.advanced.visitMaxFormat" = "Max. beurt %.0f";
 "bot.namePrefixFormat" = "%@-bot ";
 "play.rules.learnButton" = "Leer spelen";
 "play.rules.sheet.title" = "Speluitleg";

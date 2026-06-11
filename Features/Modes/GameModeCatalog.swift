@@ -278,7 +278,7 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .planned, minimumPlayers: 1,
+            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
             matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
