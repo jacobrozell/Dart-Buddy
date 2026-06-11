@@ -178,3 +178,12 @@ Use `AppLogger` for debugging; add to Analytics allowlist only with product appr
 | `settings_seeded`, `settings_seed_skipped` | `SettingsSpec.md` |
 
 Feature specs link here for analytics subsections; do not duplicate full tables.
+
+---
+
+## 13. Verification (§12 telemetry audit)
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `FirebaseAnalyticsEventMapping.swift`, `FirebaseCrashlyticsEventMapping.swift` |

@@ -118,7 +118,16 @@ Store listing metadata and app ID: [`AppStoreConnectSpec.md`](AppStoreConnectSpe
 
 ---
 
-## 9. Future Improvements
+## 9. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `DartBuddyApp.swift`, `MainTabView.swift` |
+
+---
+
+## 10. Future Improvements
 - ~~Deep links into active match/history detail~~ — **partial:** Play/tab/resume shipped ([`DeepLinkSpec.md`](DeepLinkSpec.md)); history/player paths planned
 - App Intents (Siri/Shortcuts/Apple Intelligence) — **Phase 1 shipped:** Open Play + Resume ([`AppIntentsSpec.md`](AppIntentsSpec.md)); entities, query intents, indexing, on-screen context, widgets, and voice scoring planned (§4.5–4.9, §11, §13)
 - Background restoration hints

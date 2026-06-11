@@ -369,8 +369,6 @@ Launch with URL as smoke alternative: `xcrun simctl openurl booted dartbuddy://v
 4. `GetPlayerStatsIntent`, `GetRecentMatchesIntent`.
 5. View annotations on active match + history rows.
 
-Planning doc (brainstorm, priority matrix, risks): [`.cursor/plans/app_intents_brainstorm_174c8c15.plan.md`](../.cursor/plans/app_intents_brainstorm_174c8c15.plan.md).
-
 ---
 
 ## 12. Out of scope
@@ -486,5 +484,13 @@ flowchart TB
 - [`LocalizationSpec.md`](LocalizationSpec.md) — string key policy
 - [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAnalyticsSpec.md) — event catalog
 - [`AppleWatchCompanionAssessment.md`](AppleWatchCompanionAssessment.md) — shared in-game command boundary
-- [`.cursor/plans/app_intents_brainstorm_174c8c15.plan.md`](../.cursor/plans/app_intents_brainstorm_174c8c15.plan.md) — brainstorm catalog, priority matrix, risks
 - [`docs/feature-inventory.md`](../docs/feature-inventory.md) — shipped vs planned intent features
+
+---
+
+## 15. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `IntentRoutingBridge.swift`, `Intents/Actions/` |

@@ -1,9 +1,7 @@
 # Campaign Mode — R&D Brief
 
 **Status:** R&D / post-1.0  
-**Depends on:** Campaign shell + progression UI; match engines for stage content already largely exist.
-
-Full vision: [`.cursor/plans/campaign_mode_brainstorm_871d477e.plan.md`](../.cursor/plans/campaign_mode_brainstorm_871d477e.plan.md).
+**Depends on:** Campaign shell + progression UI; match engines for stage content already largely exist. Detailed brainstorm: [`.cursor/plans/campaign_mode_brainstorm_871d477e.plan.md`](../.cursor/plans/campaign_mode_brainstorm_871d477e.plan.md).
 
 ---
 

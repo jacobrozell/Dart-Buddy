@@ -171,6 +171,22 @@ Payload fields: see `KillerEngine.swift` and `SwiftData.md` when payload version
 
 ---
 
-## 6. Testing
+## 6. Accessibility verification
+- Manual: [`killer-match.md`](../../../accessibility/wcag-2.1-aa/screens/killer-match.md)
+- Shared pad (play phase): [`_shared-components.md`](../../../accessibility/wcag-2.1-aa/screens/_shared-components.md)
+
+---
+
+## 7. Testing
 - Unit: pick collision, become killer, damage gates, elimination, undo (`KillerEngineTests.swift`, `MatchLifecycleService` replay)
 - Setup: 3+ players, preset bot support, training/custom rejection (`MatchSetupViewModelTests.swift`)
+
+---
+
+## 8. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `KillerEngine.swift`, `Features/Play/Killer/` |
+| **Catalog id** | `party.killer` |

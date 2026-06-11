@@ -15,6 +15,7 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 4. **Source of truth for mode list** — `GameModeCatalog.swift` (29 modes). This doc mirrors it.
 5. Do **not** duplicate release QA checklists here; track blockers in [`release/todo.md`](release/todo.md).
 6. **Release sequencing** — what ships in 1.0 vs 1.1+ lives in [`release/ongoing-release-plan.md`](release/ongoing-release-plan.md). **Lean 1.0 execution:** [`release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md).
+7. **PR rule** — when ship status changes, update this doc in the same PR as the feature spec (`SpecGovernance.md` §4.1 rule 6).
 
 ---
 
@@ -165,7 +166,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | `AppIntentsTesting` in CI | Planned | Phase 2 query/entity tests | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §10 |
 | Start Quick / Start Mode intents | Planned | Blocked on Deep Link Phase 2 | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.2 |
 | Home Screen widgets | Planned | Resume / status tap targets | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §11 |
-| Control Center control (iOS 18+) | Planned | One-tap Resume | [`.cursor/plans/app_intents_brainstorm_174c8c15.plan.md`](../.cursor/plans/app_intents_brainstorm_174c8c15.plan.md) |
+| Control Center control (iOS 18+) | Planned | One-tap Resume | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §11 |
 | Cross-app `Transferable` export | Planned | Low priority | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.8 |
 | Custom intents (no App Schema domains) | Policy | Sports scoring has no Apple schema domain | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.9, §13 |
 

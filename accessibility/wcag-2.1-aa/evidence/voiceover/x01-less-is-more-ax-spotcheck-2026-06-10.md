@@ -1,7 +1,7 @@
 # X01 match — less-is-more AX spot-check
 
 **Date:** 2026-06-10  
-**Plan:** `accessibility/voiceover-less-is-more-plan.md`  
+**Scope:** VoiceOver less-is-more pass (implemented 2026-06-10)  
 **Method:** Code review + build verification (manual VO audio still required)
 
 ## Expected AX behavior after changes

@@ -1,7 +1,7 @@
 # Apple Watch Companion — Assessment
 
 > Assessment date: June 2026  
-> Related: `specs/AppleWatchCompanionSpec.md`, `docs/release/todo.md` (user feedback), `roadmap/archive/phases/07-rc-launch-and-post-launch.md`
+> Related: `specs/AppleWatchCompanionSpec.md`, `docs/release/todo.md` (user feedback)
 
 ## Executive Summary
 

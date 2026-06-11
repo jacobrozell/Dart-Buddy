@@ -28,7 +28,7 @@ isProject: false
 
 # Full Game Catalog UI Draft
 
-Design target: every mode from [`FutureIdeas/additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) plus what ships today (X01, Cricket, Baseball, Killer, Shanghai). This extends the IA in [`docs/ux-scale-tab-restructure-plan.md`](ux-scale-tab-restructure-plan.md) with concrete wireframes and gameplay templates at full catalog scale.
+Design target: every mode from [`FutureIdeas/additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) plus what ships today (X01, Cricket, Baseball, Killer, Shanghai). Builds on the shipped tab IA (`Play · Modes · Players · Activity · Settings` in [`App/MainTabView.swift`](../App/MainTabView.swift)) with concrete wireframes and gameplay templates at full catalog scale.
 
 ---
 

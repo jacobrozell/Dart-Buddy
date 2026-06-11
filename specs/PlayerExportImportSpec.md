@@ -132,3 +132,19 @@ Documented for format design; not implemented in the export-only pass:
 - Unit: bundle encode/decode round-trip, validator edge cases
 - Integration: export seeded demo player includes all participants and events
 - UI: `playerDetail_export` accessibility identifier present on human player detail
+
+---
+
+## 11. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `PlayerExportService.swift`, `PlayerDetailView.swift` |
+
+---
+
+## 12. Related specs
+
+- [`PlayerSpec.md`](PlayerSpec.md) — player detail UI, export entry point
+- [`SecurityPrivacySpec.md`](SecurityPrivacySpec.md) §3 — user-initiated export policy

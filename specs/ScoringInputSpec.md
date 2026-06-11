@@ -16,7 +16,7 @@ Define a reusable custom scoring input system for X01 and Cricket, including `Si
 ## 3. Component Model
 
 ## Shared Component
-- `ScoringInputPad` (SwiftUI reusable component)
+- **Scoring input pad** (concept) — implemented as `DartNumberPad` (SwiftUI reusable component)
 
 Modes:
 1. `totalEntry`
@@ -144,9 +144,9 @@ Turn submission:
 ## 12. Verification
 | Field | Value |
 |-------|--------|
-| **Last verified** | 2026-06-04 |
-| **Commit** | `0c25396` |
-| **Code** | `DesignSystem/Components/ScoringInputPad.swift` (and mode screens) |
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `DartNumberPad.swift` (X01/Cricket/party match screens) |
 
 ---
 

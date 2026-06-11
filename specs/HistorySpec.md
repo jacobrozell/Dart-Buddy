@@ -6,14 +6,20 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 ---
 
 ## 2. MVP Scope
-- History tab with chronological completed matches
-- Basic filters (match type, player, date preset)
+- **Activity tab** — History is the default segment inside `ActivityRootView` (shared chrome with Statistics). See [`StatisticsTabSpec.md`](StatisticsTabSpec.md) for the sibling segment.
+- Chronological completed-match list with basic filters (match type, player, date preset)
 - Match detail view with participants and key metrics
 - Stable rendering even when player profiles change later
 
 ---
 
 ## 3. UI Specification
+
+### Activity shell
+- Tab label: **Activity** (`MainTabView`)
+- Segment picker: History | Statistics (`ActivitySegment`)
+- Shared filters (mode, period, player) apply to the active segment where applicable
+- Deep links to history detail push inside the History segment navigation stack
 
 ## History List
 - Card row includes:
@@ -83,7 +89,7 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 |-------|--------|
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
-| **Code** | `HistoryRootView.swift`, `MatchHistoryDetailScreen.swift` |
+| **Code** | `ActivityRootView.swift`, `HistoryRootView.swift`, `MatchHistoryDetailScreen.swift` |
 
 ---
 

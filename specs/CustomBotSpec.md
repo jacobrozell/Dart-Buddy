@@ -185,3 +185,12 @@ Log `bot_kind=custom`, `custom_schema_version`, `match_type` on match start — 
 - [`SetupFlowSpec.md`](SetupFlowSpec.md) — Add Bot menu
 - [`PlayerSpec.md`](PlayerSpec.md) — player detail
 - [`SwiftData.md`](SwiftData.md) — schema migrations
+
+---
+
+## 13. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `CustomBotViews.swift`, `CustomBotConfiguration.swift` |

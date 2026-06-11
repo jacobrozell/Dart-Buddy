@@ -33,3 +33,12 @@ Browse all 28 game modes (5 shipped + 23 planned), search the catalog, and quick
 - Notify-me for planned modes
 - Pinned/recent modes row
 - Cricket variants collapsible section (American Cricket listed under Standard)
+
+---
+
+## Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `ModesRootView.swift`, `GameModeCatalog.swift` |

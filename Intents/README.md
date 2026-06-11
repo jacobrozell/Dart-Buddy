@@ -67,4 +67,3 @@ Dart Buddy uses **custom intents**, not Apple App Schema domains (messages, mail
 ## Further reading
 
 - [`specs/AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §13 — Apple Intelligence platform model and phrase maturity table
-- [`.cursor/plans/app_intents_brainstorm_174c8c15.plan.md`](../.cursor/plans/app_intents_brainstorm_174c8c15.plan.md) — brainstorm catalog and priority matrix
