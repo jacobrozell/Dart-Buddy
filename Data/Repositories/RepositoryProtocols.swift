@@ -135,9 +135,15 @@ public protocol SettingsRepository: Sendable {
 public struct MatchHistoryRecord: Equatable, Sendable {
     public let summary: MatchSummary
     public let participants: [MatchParticipantSummary]
+    public let historyCardPayload: Data?
 
-    public init(summary: MatchSummary, participants: [MatchParticipantSummary]) {
+    public init(
+        summary: MatchSummary,
+        participants: [MatchParticipantSummary],
+        historyCardPayload: Data? = nil
+    ) {
         self.summary = summary
         self.participants = participants
+        self.historyCardPayload = historyCardPayload
     }
 }

@@ -1,8 +1,8 @@
 import Foundation
 import SwiftData
 
-public enum SchemaV2: VersionedSchema {
-    public static var versionIdentifier = Schema.Version(2, 2, 0)
+public enum SchemaV2_1_0: VersionedSchema {
+    public static var versionIdentifier = Schema.Version(2, 1, 0)
 
     public static var models: [any PersistentModel.Type] {
         [
@@ -27,12 +27,8 @@ public enum SchemaV2: VersionedSchema {
         public var avatarStyleRaw: String?
         public var preferredColorToken: String?
         public var notes: String?
-        /// Campaign primary vs guest — `PlayerRole` raw value (`CampaignSpec` §4).
-        public var playerRoleRaw: String?
         public var createdAt: Date
         public var updatedAt: Date
-
-        #Index<PlayerRecord>([\.isArchived])
 
         public init(
             id: UUID = UUID(),
@@ -45,7 +41,6 @@ public enum SchemaV2: VersionedSchema {
             avatarStyleRaw: String? = nil,
             preferredColorToken: String? = nil,
             notes: String? = nil,
-            playerRoleRaw: String? = nil,
             createdAt: Date = Date(),
             updatedAt: Date = Date()
         ) {
@@ -59,7 +54,6 @@ public enum SchemaV2: VersionedSchema {
             self.avatarStyleRaw = avatarStyleRaw
             self.preferredColorToken = preferredColorToken
             self.notes = notes
-            self.playerRoleRaw = playerRoleRaw
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }
@@ -78,15 +72,8 @@ public enum SchemaV2: VersionedSchema {
         public var currentLegIndex: Int
         public var currentSetIndex: Int
         public var eventCount: Int
-        /// Versioned `MatchHistoryCardPayload` blob for fast history list rendering.
-        public var historyCardPayload: Data?
-        /// Campaign journey tagging (`CampaignSpec` §4.3).
-        public var isCampaignMatch: Bool?
-        public var campaignStageId: String?
         public var createdAt: Date
         public var updatedAt: Date
-
-        #Index<MatchRecord>([\.statusRaw], [\.startedAt], [\.endedAt], [\.typeRaw])
 
         public init(
             id: UUID = UUID(),
@@ -100,9 +87,6 @@ public enum SchemaV2: VersionedSchema {
             currentLegIndex: Int = 0,
             currentSetIndex: Int = 0,
             eventCount: Int = 0,
-            historyCardPayload: Data? = nil,
-            isCampaignMatch: Bool? = nil,
-            campaignStageId: String? = nil,
             createdAt: Date = Date(),
             updatedAt: Date = Date()
         ) {
@@ -117,9 +101,6 @@ public enum SchemaV2: VersionedSchema {
             self.currentLegIndex = currentLegIndex
             self.currentSetIndex = currentSetIndex
             self.eventCount = eventCount
-            self.historyCardPayload = historyCardPayload
-            self.isCampaignMatch = isCampaignMatch
-            self.campaignStageId = campaignStageId
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }
@@ -138,8 +119,6 @@ public enum SchemaV2: VersionedSchema {
         public var botSkillProfilePayload: Data?
         /// Preset ladder tier for bot achievements (`BotAchievementTierResolver`), frozen at match start.
         public var botEffectiveTierRaw: String?
-
-        #Index<MatchParticipantRecord>([\.matchId], [\.playerId])
 
         public init(
             id: UUID = UUID(),
@@ -174,8 +153,6 @@ public enum SchemaV2: VersionedSchema {
         public var snapshotPayload: Data
         public var updatedAt: Date
 
-        #Index<MatchSnapshotRecord>([\.matchId])
-
         public init(
             id: UUID = UUID(),
             matchId: UUID,
@@ -199,8 +176,6 @@ public enum SchemaV2: VersionedSchema {
         public var eventTypeRaw: String
         public var eventPayload: Data
         public var createdAt: Date
-
-        #Index<MatchEventRecord>([\.matchId], [\.matchId, \.eventIndex])
 
         public init(
             id: UUID = UUID(),

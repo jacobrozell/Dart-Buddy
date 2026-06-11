@@ -38,8 +38,13 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
     public let avatarStyleRaw: String?
     public let preferredColorToken: String?
     public let notes: String?
+    public let playerRoleRaw: String?
     public let createdAt: Date
     public let updatedAt: Date
+
+    public var playerRole: PlayerRole? {
+        playerRoleRaw.flatMap(PlayerRole.init(rawValue:))
+    }
 
     public var botDifficulty: BotDifficulty? {
         botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
@@ -94,6 +99,7 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         avatarStyleRaw: String? = nil,
         preferredColorToken: String? = nil,
         notes: String? = nil,
+        playerRoleRaw: String? = nil,
         createdAt: Date,
         updatedAt: Date
     ) {
@@ -107,6 +113,7 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         self.avatarStyleRaw = avatarStyleRaw
         self.preferredColorToken = preferredColorToken
         self.notes = notes
+        self.playerRoleRaw = playerRoleRaw
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -160,8 +167,42 @@ public struct MatchSummary: Identifiable, Equatable, Sendable {
     public let currentLegIndex: Int
     public let currentSetIndex: Int
     public let eventCount: Int
+    public let isCampaignMatch: Bool
+    public let campaignStageId: String?
     public let createdAt: Date
     public let updatedAt: Date
+
+    public init(
+        id: UUID,
+        type: MatchType,
+        status: MatchStatus,
+        startedAt: Date,
+        endedAt: Date?,
+        winnerPlayerId: UUID?,
+        currentTurnPlayerId: UUID?,
+        currentLegIndex: Int,
+        currentSetIndex: Int,
+        eventCount: Int,
+        isCampaignMatch: Bool = false,
+        campaignStageId: String? = nil,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.type = type
+        self.status = status
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.winnerPlayerId = winnerPlayerId
+        self.currentTurnPlayerId = currentTurnPlayerId
+        self.currentLegIndex = currentLegIndex
+        self.currentSetIndex = currentSetIndex
+        self.eventCount = eventCount
+        self.isCampaignMatch = isCampaignMatch
+        self.campaignStageId = campaignStageId
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
 }
 
 public struct MatchEventSummary: Identifiable, Equatable, Sendable {
