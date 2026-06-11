@@ -17,6 +17,7 @@ When a planned mode ships:
 2. Update **Status** / **Shipped in app** rows in the spec; fill **Localization** **Exists** column.
 3. Update [`docs/feature-inventory.md`](../../docs/feature-inventory.md) and [`specs/README.md`](../README.md).
 4. Register `GameRulesCatalog` + `play.rules.{mode}.*` keys per spec § Localization.
+5. If the mode persists setup chips: register reset per [`DeleteAllDataSpec.md`](../DeleteAllDataSpec.md) §6.2 and §7.
 
 Catalog source: [`Features/Modes/GameModeCatalog.swift`](../../Features/Modes/GameModeCatalog.swift).
 
