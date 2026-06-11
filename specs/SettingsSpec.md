@@ -19,10 +19,14 @@ Define configurable app preferences and data management controls for MVP.
 ## Layout
 - Grouped SwiftUI form sections:
   - Appearance
-  - Gameplay Defaults
-  - Feedback
+  - Starting Mode
+  - Match Defaults
+  - X01 Defaults
+  - During Play (haptics, sound, turn-total caller)
+  - Bot Opponents
   - Data
-  - About
+  - Help & Feedback (support FAQ, send feedback mailto, rate app, privacy policy)
+  - About (view onboarding replay, dynamic version, optional tip link)
 
 ## Behavior
 - Preference changes apply immediately where safe.
