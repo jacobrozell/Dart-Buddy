@@ -34,6 +34,8 @@ Maps to `specs/UIBlueprintSpec.md` §3 plus Statistics tab.
 | `x01-match` | `X01MatchScreen` | [screens/x01-match.md](screens/x01-match.md) |
 | `cricket-match` | `CricketMatchScreen` | [screens/cricket-match.md](screens/cricket-match.md) |
 | `baseball-match` | `BaseballMatchScreen` | [screens/baseball-match.md](screens/baseball-match.md) |
+| `killer-match` | `KillerMatchScreen` | [screens/killer-match.md](screens/killer-match.md) |
+| `shanghai-match` | `ShanghaiMatchScreen` | [screens/shanghai-match.md](screens/shanghai-match.md) |
 | `match-summary` | `MatchSummaryScreen` | [screens/match-summary.md](screens/match-summary.md) |
 | `history-list` | `HistoryRootView` | [screens/history-list.md](screens/history-list.md) |
 | `history-detail` | `MatchHistoryDetailScreen` | [screens/history-detail.md](screens/history-detail.md) |

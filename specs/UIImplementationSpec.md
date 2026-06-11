@@ -38,16 +38,21 @@ Wireframes and visual behavior: [`UIBlueprintSpec.md`](UIBlueprintSpec.md).
 | Screen / flow | Feature spec | UI implementation notes |
 |---------------|--------------|-------------------------|
 | Play home + setup (combined) | [`PlayHomeSpec.md`](PlayHomeSpec.md), [`SetupFlowSpec.md`](SetupFlowSpec.md) | `SetupHomeView` + `PlayHomeViewModel` / `MatchSetupViewModel` |
+| Modes tab | [`ModesTabSpec.md`](ModesTabSpec.md) | `ModesRootView`, `GameModeCatalog` |
 | Quick add player | [`QuickAddPlayerSpec.md`](QuickAddPlayerSpec.md) | Pushed from `PlayRoute.quickAddPlayer` |
 | X01 match | [`game-modes/implemented/X01GameSpec.md`](game-modes/implemented/X01GameSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `X01MatchScreen`, `DartNumberPad` |
 | Cricket match | [`game-modes/implemented/CricketSpec.md`](game-modes/implemented/CricketSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `CricketMatchScreen`, `CricketBoardView` |
+| Baseball match | [`game-modes/implemented/BaseballGameSpec.md`](game-modes/implemented/BaseballGameSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `BaseballMatchScreen`, `DartNumberPad` |
+| Killer match | [`game-modes/implemented/KillerGameSpec.md`](game-modes/implemented/KillerGameSpec.md) | `KillerMatchScreen`, `KillerNumberGridView` |
+| Shanghai match | [`game-modes/implemented/ShanghaiGameSpec.md`](game-modes/implemented/ShanghaiGameSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md) | `ShanghaiMatchScreen`, `DartNumberPad` |
 | Match summary | [`MatchSummarySpec.md`](MatchSummarySpec.md) | `MatchSummaryScreen` |
-| History list / detail | [`HistorySpec.md`](HistorySpec.md) | `HistoryRootView`, `MatchHistoryDetailScreen` |
-| Statistics tab | [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | `StatisticsRootView` |
-| Players list / detail / edit | [`PlayerSpec.md`](PlayerSpec.md) | `PlayersRootView`, `PlayerDetailView` |
+| Activity tab (History + Statistics) | [`HistorySpec.md`](HistorySpec.md), [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | `ActivityRootView` → `HistoryRootView` / `StatisticsRootView` |
+| History list / detail | [`HistorySpec.md`](HistorySpec.md) | Embedded in Activity; `MatchHistoryDetailScreen` |
+| Statistics segment | [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | Embedded in Activity; charts in `StatsChartViews` |
+| Players list / detail / edit | [`PlayerSpec.md`](PlayerSpec.md), [`PlayerExportImportSpec.md`](PlayerExportImportSpec.md) | `PlayersRootView`, `PlayerDetailView`, export via `PlayerExportService` |
 | Settings | [`SettingsSpec.md`](SettingsSpec.md) | `SettingsRootView` |
 | Migration recovery | [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) | `MigrationRecoveryView` (no tabs) |
-| Preset / training bots | [`BotOpponentSpec.md`](BotOpponentSpec.md), [`TrainingBotSpec.md`](TrainingBotSpec.md) | Setup Add Bot + Player Detail sections |
+| Preset / training / custom bots | [`BotOpponentSpec.md`](BotOpponentSpec.md), [`TrainingBotSpec.md`](TrainingBotSpec.md), [`CustomBotSpec.md`](CustomBotSpec.md) | Setup Add Bot + Player Detail + `CustomBotCreationSheet` |
 
 When adding a screen: update the feature spec first, then add one row to this table. Add state/event detail here only if it is shared across multiple features (e.g. global loading chrome).
 

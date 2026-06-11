@@ -1,7 +1,7 @@
 # Cricket match — less-is-more AX spot-check
 
 **Date:** 2026-06-11  
-**Plan:** `accessibility/voiceover-less-is-more-plan.md`  
+**Scope:** VoiceOver less-is-more pass (implemented 2026-06-11)  
 **Method:** Code review + build verification (manual VO audio still required)
 
 ## Expected AX behavior after changes

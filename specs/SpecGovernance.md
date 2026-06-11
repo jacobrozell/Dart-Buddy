@@ -55,8 +55,7 @@ If two specs disagree, the authoritative spec above wins.
 | `README.md` | Repo entry, build steps, doc-role index | Feature specs, `docs/release/todo.md` |
 | `docs/release/todo.md` | Current sprint, 1.0 blockers, post-1.0 deferrals | README roadmaps, `roadmap/` phase files |
 | `docs/release/release_checklist.md` | Full device QA + App Store + launch marketing runbook | Spec checklists (abbrev only) |
-| `roadmap/` | Phase delivery history and release runbooks | `docs/release/todo.md` (link only) |
-| `roadmap/archive/` | Historical phase plans and one-time audits | Active docs above |
+| `roadmap/` | Release runbooks and QA evidence | `docs/release/todo.md` (link only) |
 | `accessibility/accessibility_todo.md` | A11y engineering phases | `Manual_todo.md` |
 | `accessibility/Manual_todo.md` | Human verification steps | `accessibility_todo.md`, `wcag-2.1-aa/SUMMARY.md` |
 | `accessibility/wcag-2.1-aa/` | Per-screen/criterion status + evidence links | `specs/AccessibilitySpec.md` (requirements only) |
@@ -64,8 +63,23 @@ If two specs disagree, the authoritative spec above wins.
 | `FutureIdeas/backlog.md` | Post-1.0 product backlog (short ideas) | `docs/release/todo.md` |
 | `FutureIdeas/achievements.md` | Game Center deep-dive | `docs/release/todo.md` |
 | `FutureIdeas/play-reminders.md` | Local play reminder notifications | `docs/release/todo.md` |
+| `docs/feature-inventory.md` | Shipped / partial / planned product register | Feature specs (behavior), `docs/release/todo.md` (blockers) |
 
 Full table with QA gates: [`README.md`](../README.md#documentation-map).
+
+### 3.2 Which index when
+
+| Question | Start here |
+|----------|------------|
+| What must the product do? (requirements) | Feature or system spec in `specs/` |
+| Does this exist in the app today? | [`docs/feature-inventory.md`](../docs/feature-inventory.md) |
+| Is the spec aligned with code? (audit) | §5 below + `Scripts/ci/documentation-summary.sh` |
+| What ships this sprint / blocks release? | [`docs/release/todo.md`](../docs/release/todo.md) |
+| Pre-spec R&D only | [`FutureIdeas/`](../FutureIdeas/) → promote to `specs/game-modes/planned/` when rules are ready |
+
+[`specs/README.md`](README.md) is the **catalog** of all specs. §5 is the **audit manifest** for feature areas (spec file + primary code paths + Verification dates).
+
+**Game mode promotion:** `FutureIdeas/` (assessment) → `specs/game-modes/planned/` (rules spec) → `implemented/` + `GameModeCatalog.swift` when the engine ships. Do not edit `FutureIdeas/` for rules once a planned spec exists — link only.
 
 ---
 
@@ -114,35 +128,56 @@ Full table with QA gates: [`README.md`](../README.md#documentation-map).
 3. **New localization keys** → all four `Localizable.strings` files (`LocalizationSpec.md` §7).
 4. **New Analytics/Crashlytics event** → §12 catalog + allowlist + tests (same PR).
 5. **Schema change** → `SwiftData.md` + `DataSchemaSpec.md` + affected feature specs (no full field dumps in feature specs).
+6. **Shipped / partial / planned status change** → [`docs/feature-inventory.md`](../docs/feature-inventory.md) row for that feature (same PR when behavior ships or is gated).
 
 ---
 
 ## 5. Feature spec coverage checklist
 
-Audit after major releases or quarterly. Set **Last verified** to audit date and **Commit** to `git rev-parse --short HEAD`.
+Audit after major releases or quarterly. Set **Last verified** to audit date and **Commit** to `git rev-parse --short HEAD`. Regenerate [`documentation-summary.txt`](../CONTRIBUTING.md#documentation-coverage) locally or download from CI artifacts.
+
+### 5.1 Verification block (required on feature specs)
+
+Every feature spec ends with:
+
+```markdown
+## N. Verification
+| Field | Value |
+|-------|--------|
+| **Last verified** | YYYY-MM-DD |
+| **Commit** | `abc1234` |
+| **Code** | `PrimaryFile.swift`, … |
+| **Catalog id** | `party.shanghai` (game mode specs only) |
+```
+
+Bump **Last verified** and **Commit** when behavior in that spec changes.
 
 | Feature area | Spec | Primary code paths |
 |--------------|------|-------------------|
-| Play home | `PlayHomeSpec.md` | `PlayHomeViewModel`, `SetupHomeView` (resume) |
+| Play home | `PlayHomeSpec.md` | `PlayHomeViewModel`, `SetupHomeView` |
 | Match setup | `SetupFlowSpec.md` | `MatchSetupViewModel`, setup chip extensions |
 | Quick add player | `QuickAddPlayerSpec.md` | `QuickAddPlayerScreen`, `PendingMatchPlayerSelections` |
-| Scoring input | `ScoringInputSpec.md` | `ScoringInputPad`, shared gameplay chrome |
+| Scoring input | `ScoringInputSpec.md` | `DartNumberPad`, shared gameplay chrome |
 | Match lifecycle | `MatchSpec.md` | `MatchLifecycleService`, repositories |
 | Match summary | `MatchSummarySpec.md` | `MatchSummaryScreen`, `MatchSummaryViewModel` |
 | X01 | `game-modes/implemented/X01GameSpec.md` | `X01Engine`, `X01MatchViewModel` |
 | Cricket | `game-modes/implemented/CricketSpec.md` | `CricketEngine`, `CricketMatchViewModel` |
 | Shanghai | `game-modes/implemented/ShanghaiGameSpec.md` | `ShanghaiEngine`, `Features/Play/Shanghai/` |
+| Baseball / Killer (party) | `game-modes/implemented/BaseballGameSpec.md`, `KillerGameSpec.md` | Party engines |
 | Planned modes (24) | `specs/game-modes/planned/` | `GameModeCatalog` stubs only |
-| Baseball / Killer (implemented party) | `game-modes/implemented/BaseballGameSpec.md`, `KillerGameSpec.md` | Party engines |
-| Scoring input | `ScoringInputSpec.md` | `ScoringInputPad`, dart entry |
+| Modes tab | `ModesTabSpec.md` | `ModesRootView`, `GameModeCatalog` |
 | Preset bots | `BotOpponentSpec.md` | `DartBotEngine`, `BotDifficulty` |
 | Training bots | `TrainingBotSpec.md` | `TrainingBotSkillResolver`, Player Detail |
+| Custom bots | `CustomBotSpec.md` | `CustomBotDetailView`, `CustomBotCreationSheet` |
 | Players | `PlayerSpec.md` | `PlayersRootView`, `PlayerDetailView` |
-| History | `HistorySpec.md` | `HistoryRootView`, detail screen |
+| Player export (DBPE) | `PlayerExportImportSpec.md` | `PlayerExportService`, `PlayerDetailView` |
+| Activity / history | `HistorySpec.md` | `ActivityRootView`, `HistoryRootView`, `MatchHistoryDetailScreen` |
 | Stats math | `StatsSpec.md` | `StatsService`, aggregates |
-| Statistics tab | `StatisticsTabSpec.md` | `StatisticsRootView`, `StatisticsViewModel` |
+| Statistics segment | `StatisticsTabSpec.md` | `ActivityRootView`, `StatisticsRootView`, `StatisticsViewModel` |
 | Settings | `SettingsSpec.md` | `SettingsRootView`, `SettingsViewModel` |
 | Migration recovery | `MigrationRecoverySpec.md` | `MigrationRecoveryView`, `AppBootstrapper` |
+| Deep links | `DeepLinkSpec.md` | `DeepLinkParser`, `AppRouteRouter` |
+| App Intents | `AppIntentsSpec.md` | `IntentRoutingBridge`, `Intents/` |
 | App shell | `AppShellSpec.md` | `DartBuddyApp`, `MainTabView` |
 | Telemetry | `FirebaseBackendAnalyticsSpec.md` §12 | `Firebase*EventMapping.swift` |
 
@@ -153,4 +188,4 @@ Before implementation:
 1. Confirm there is no conflict with authoritative specs.
 2. If conflict exists, resolve spec conflict first.
 3. Document assumptions in PR notes when spec is silent.
-4. After implementation, update feature spec + §5 checklist row if behavior changed.
+4. After implementation, update feature spec Verification block, §5 row if needed, and `docs/feature-inventory.md` when ship status changes.

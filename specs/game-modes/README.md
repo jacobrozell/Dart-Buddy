@@ -2,6 +2,8 @@
 
 Authoritative specs for each catalog game mode, split by implementation status.
 
+**Promotion path:** [`FutureIdeas/`](../../FutureIdeas/) (assessment only) → [`planned/`](planned/) (rules spec) → [`implemented/`](implemented/) + [`GameModeCatalog.swift`](../../Features/Modes/GameModeCatalog.swift) when the engine ships. Once a mode has a planned spec, do not edit `FutureIdeas/` for rules — link to the spec instead.
+
 | Folder | Status | When to edit here |
 |--------|--------|------------------|
 | [`implemented/`](implemented/) | Engine + gameplay UI shipped (`GameModeCatalog.status == .shipped`) | Behavior changes, localization, How to Play updates |

@@ -1,5 +1,7 @@
 # Specs Index
 
+Catalog of all product and system specifications. For **audit coverage** (spec + code paths + Verification dates), see [`SpecGovernance.md`](SpecGovernance.md) §5. For **shipped vs planned** status, see [`docs/feature-inventory.md`](../docs/feature-inventory.md).
+
 ## MVP Baselines (Locked)
 - Landscape and portrait are both required in MVP.
 - Accessibility target is WCAG 2.1 AA.
@@ -79,9 +81,10 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 | Spec | Covers |
 |------|--------|
 | [`PlayerSpec.md`](PlayerSpec.md) | CRUD, archive, identity, player detail |
-| [`HistorySpec.md`](HistorySpec.md) | Completed match list, filters, detail |
+| [`PlayerExportImportSpec.md`](PlayerExportImportSpec.md) | DBPE v1 export bundle (import deferred) |
+| [`HistorySpec.md`](HistorySpec.md) | Activity tab History segment — list, filters, detail |
 | [`StatsSpec.md`](StatsSpec.md) | Formulas, aggregates, recompute policy |
-| [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | Statistics tab UI, charts, filters |
+| [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | Activity tab Statistics segment — charts, filters |
 | [`SettingsSpec.md`](SettingsSpec.md) | Preferences, defaults, data reset |
 
 ### App health

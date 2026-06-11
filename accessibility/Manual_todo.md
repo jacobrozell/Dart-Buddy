@@ -4,7 +4,7 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 
 **Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02; X01 less-is-more 2026-06-10; Cricket less-is-more 2026-06-11)
 
-**Less-is-more plan:** `accessibility/voiceover-less-is-more-plan.md`
+**Less-is-more VO (implemented 2026-06-10):** evidence in `evidence/voiceover/x01-less-is-more-ax-spotcheck-2026-06-10.md` and `evidence/voiceover/cricket-less-is-more-ax-spotcheck-2026-06-11.md`
 
 ---
 

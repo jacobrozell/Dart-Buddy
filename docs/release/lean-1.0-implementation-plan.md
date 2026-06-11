@@ -2,7 +2,7 @@
 
 Actionable plan to ship **Dart Buddy 1.0 Core Scorekeeper** with owner decisions locked.
 
-**Status:** Approved scope · **Not yet implemented**  
+**Status:** Approved scope · **Implemented** (lean 1.0 RC)  
 **Target version:** `1.0.0`  
 **Companion:** [`ongoing-release-plan.md`](ongoing-release-plan.md) · [`lean-1.0-app-review-hardening-plan.md`](lean-1.0-app-review-hardening-plan.md) · [`feature-inventory.md`](../feature-inventory.md) · [`todo.md`](todo.md)
 

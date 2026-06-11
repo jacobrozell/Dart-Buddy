@@ -179,6 +179,8 @@ Authoritative payload fields: [`SwiftData.md`](../../SwiftData.md).
 - Turn announcement (`play.shanghai.announce.turnFormat`)
 - Round strip accessibility labels per dot
 - Stable identifiers: `shanghai_match_header`, `shanghai_submit`, `shanghai_undo`, `shanghai_round_strip`
+- Manual: [`shanghai-match.md`](../../../accessibility/wcag-2.1-aa/screens/shanghai-match.md)
+- Shared pad: [`_shared-components.md`](../../../accessibility/wcag-2.1-aa/screens/_shared-components.md)
 
 ---
 
