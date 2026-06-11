@@ -104,7 +104,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Per-mode stat kinds (29 declared) | Partial | Data only for 5 shipped modes | `ModeStatKind` in `GameModeCatalog.swift` |
 | Campaign mode | Assessed | Single-player ladder / bosses | [`campaign-mode.md`](../FutureIdeas/campaign-mode.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |
-| Vision auto-scoring | Planned | Camera dart detection | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
+| Vision auto-scoring | Partial | Phase A (guided calibration + assistive detection) behind flag; X01 only | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
 
 ---
 
@@ -294,7 +294,7 @@ All flags: `Support/FeatureFlags/FeatureFlag.swift` · config: [`FeatureFlagConf
 | `enableFirebaseCrashlytics` | On (Release + real plist) | Crashlytics |
 | `enableAppIntents` | **Off** | Siri / Shortcuts |
 | `enableAppleWatchCompanion` | Off | Watch companion (not built) |
-| `enableVisionAutoScoring` | Off | Camera auto-scoring (not built) |
+| `enableVisionAutoScoring` | Off | Camera auto-scoring Phase A (enable locally with `-enable_vision_scoring`) |
 | `enableOnlinePlay` | Off | Online multiplayer (not built) |
 | `enableAdvancedDiagnostics` | Off | Extra diagnostics |
 
