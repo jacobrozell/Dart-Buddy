@@ -93,25 +93,8 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
 
     public func resetAllLocalData() async throws {
         try dataCall {
+            try LocalDataResetInventory.deleteAllSwiftDataRecords(in: container)
             let context = ModelContext(container)
-            for player in try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>()) {
-                context.delete(player)
-            }
-            for match in try context.fetch(FetchDescriptor<SchemaV2.MatchRecord>()) {
-                context.delete(match)
-            }
-            for participant in try context.fetch(FetchDescriptor<SchemaV2.MatchParticipantRecord>()) {
-                context.delete(participant)
-            }
-            for snapshot in try context.fetch(FetchDescriptor<SchemaV2.MatchSnapshotRecord>()) {
-                context.delete(snapshot)
-            }
-            for event in try context.fetch(FetchDescriptor<SchemaV2.MatchEventRecord>()) {
-                context.delete(event)
-            }
-            for setting in try context.fetch(FetchDescriptor<SchemaV2.SettingsRecord>()) {
-                context.delete(setting)
-            }
             context.insert(SchemaV2.SettingsRecord())
             try context.save()
         }
