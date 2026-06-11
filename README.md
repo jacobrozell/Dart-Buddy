@@ -89,6 +89,8 @@ Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, T
 
 Each concern has one authoritative doc. Link to it rather than restating its content elsewhere.
 
+**Layers:** `specs/` defines behavior · [`docs/feature-inventory.md`](docs/feature-inventory.md) tracks what is built · [`docs/release/`](docs/release/) tracks active release work · [`accessibility/`](accessibility/) holds WCAG verification evidence · [`roadmap/`](roadmap/) is historical. Run `Scripts/ci/documentation-summary.sh` to audit spec/code gaps (also uploaded as a CI artifact).
+
 | Concern | Start here |
 |---------|------------|
 | Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md) — coverage checklist §5, PR rules §4.1) |

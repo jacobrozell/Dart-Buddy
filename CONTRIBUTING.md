@@ -143,6 +143,22 @@ running locally.
 To refresh coverage after adding tests: re-run `Scripts/coverage-report.sh` or
 `DartBuddyCI` tests — coverage updates automatically from the latest xcresult.
 
+## Documentation coverage
+
+Regenerate a plain-text audit of what is documented vs missing:
+
+```bash
+Scripts/ci/documentation-summary.sh   # writes documentation-summary.txt
+```
+
+The report cross-checks `SpecGovernance.md` §5 (spec file, primary code paths,
+Verification dates), `GameModeCatalog` vs `specs/game-modes/`, system specs in
+`specs/README.md`, the UI screen index, and WCAG screen trackers. It does not
+gate CI — use it after feature work or quarterly audits.
+
+**CI:** each test job uploads `documentation-summary.txt` with the test
+artifacts (same pattern as `coverage-summary.txt`).
+
 ## Commits
 
 Write present-tense, imperative subjects that describe the change
