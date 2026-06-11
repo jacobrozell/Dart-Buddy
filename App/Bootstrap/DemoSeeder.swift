@@ -3,6 +3,10 @@ import Foundation
 /// Seeds a small set of players and matches for screenshots / manual QA.
 /// Only runs when launched with `-seed_demo` and the store has no players yet.
 enum DemoSeeder {
+    /// Display name for marketing screenshots (`-snapshot_custom_bot`).
+    static let customBotSnapshotName = "Tuned Ace"
+    static let customBotSnapshotMetrics = CustomBotMetrics(x01Average: 45, cricketMPR: 2.1)
+
     static func seedIfRequested(_ dependencies: AppDependencies) async {
         await seedIfRequested(dependencies, arguments: ProcessInfo.processInfo.arguments)
     }
@@ -57,6 +61,10 @@ enum DemoSeeder {
             await seedSummarySnapshot(dependencies)
         }
 
+        if arguments.contains("-snapshot_custom_bot") {
+            await seedCustomBotSnapshot(dependencies)
+        }
+
         guard arguments.contains("-seed_demo") else { return }
         do {
             let existing = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
@@ -96,13 +104,15 @@ enum DemoSeeder {
                 complete: true
             )
 
-            // Completed Baseball game: Jacob beats Sam over 9 innings.
-            try await seedBaseball(
-                dependencies: dependencies,
-                config: MatchConfigBaseball(),
-                players: [(jacob, "Jacob"), (sam, "Sam")],
-                complete: true
-            )
+            if ProductSurface.showsPartyModes {
+                // Completed Baseball game: Jacob beats Sam over 9 innings.
+                try await seedBaseball(
+                    dependencies: dependencies,
+                    config: MatchConfigBaseball(),
+                    players: [(jacob, "Jacob"), (sam, "Sam")],
+                    complete: true
+                )
+            }
 
             // In-progress X01 game: Jacob vs bot (301, double out).
             if !arguments.contains("-snapshot_play_setup") {
@@ -177,7 +187,8 @@ enum DemoSeeder {
                 config: config,
                 participants: participants
             )
-            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 180, darts: nil)
+            // Jacob on 170 (T20 T20 Bull) — iconic checkout for marketing captures.
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 131, darts: nil)
             session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 100, darts: nil)
             let finalSession = session
             await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
@@ -214,6 +225,37 @@ enum DemoSeeder {
             await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "cricket_snapshot_seed_failed", message: "Cricket snapshot seed failed: \(error)")
+        }
+    }
+
+    /// Ensures a custom bot with screenshot-friendly metrics exists for `-snapshot_custom_bot`.
+    private static func seedCustomBotSnapshot(_ dependencies: AppDependencies) async {
+        do {
+            let players = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
+            if let existing = players.first(where: { $0.isCustomBot && $0.name == customBotSnapshotName }) {
+                _ = try await dependencies.playerRepository.updateCustomBotMetrics(
+                    playerId: existing.id,
+                    metrics: customBotSnapshotMetrics
+                )
+                return
+            }
+            if let existing = players.first(where: \.isCustomBot) {
+                _ = try await dependencies.playerRepository.updateCustomBotMetrics(
+                    playerId: existing.id,
+                    metrics: customBotSnapshotMetrics
+                )
+                return
+            }
+            _ = try await dependencies.playerRepository.createCustomBot(
+                name: customBotSnapshotName,
+                metrics: customBotSnapshotMetrics
+            )
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "custom_bot_snapshot_seed_failed",
+                message: "Custom bot snapshot seed failed: \(error)"
+            )
         }
     }
 

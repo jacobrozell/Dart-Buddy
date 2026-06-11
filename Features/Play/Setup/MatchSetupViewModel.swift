@@ -237,6 +237,68 @@ final class MatchSetupViewModel: ObservableObject {
         revalidate()
     }
 
+    /// Restores roster and mode options from a completed match for a one-tap rematch.
+    func applyRematchConfiguration(from runtime: MatchRuntimeState) {
+        applyMatchTypePreferred(runtime.type)
+
+        let ordered = runtime.participants.sorted { $0.turnOrder < $1.turnOrder }
+        selectedPlayerIds = ordered.map { $0.playerId ?? $0.id }
+        randomOrder = false
+
+        switch runtime.config {
+        case let .x01(config):
+            x01StartScore = X01StartScores.all.contains(config.startScore) ? config.startScore : 501
+            x01LegsToWin = max(1, config.legsToWin)
+            x01SetsEnabled = config.setsEnabled
+            x01SetsToWin = max(1, config.setsToWin ?? 1)
+            x01CheckoutMode = config.checkoutMode
+            x01CheckInMode = config.checkInMode
+            x01LegFormat = config.legFormat
+        case let .cricket(config):
+            cricketPointsEnabled = config.pointsEnabled
+            cricketScoringMode = config.scoringMode
+            cricketLegsToWin = max(1, config.legsToWin)
+            cricketSetsEnabled = config.setsEnabled
+            cricketSetsToWin = max(1, config.setsToWin ?? 1)
+            cricketLegFormat = config.legFormat
+        case let .baseball(config):
+            baseballInningCount = config.inningCount
+            baseballTieBreaker = config.tieBreaker
+            baseballSeventhInningStretch = config.seventhInningStretch
+        case let .killer(config):
+            killerStartingLives = config.startingLives
+        case let .shanghai(config):
+            shanghaiRoundCount = config.roundCount
+            shanghaiBonusRule = config.bonusRule
+        }
+
+        normalizeForProductSurface()
+        revalidate()
+    }
+
+    /// Starts a new match using the completed match's roster and configuration.
+    func startRematchRoute(from runtime: MatchRuntimeState) async -> PlayRoute? {
+        do {
+            availablePlayers = try await playerRepository.fetchPlayers(includeArchived: false)
+        } catch {
+            logger.error(
+                .ui,
+                eventName: "rematch_player_load_failed",
+                message: "Failed to load players for rematch.",
+                metadata: appErrorMetadata(for: error)
+            )
+            validationErrors = [(error as? AppError)?.userMessageKey ?? "setup.error.load"]
+            return nil
+        }
+
+        applyRematchConfiguration(from: runtime)
+        let loadedIds = Set(availablePlayers.map(\.id))
+        selectedPlayerIds.removeAll { !loadedIds.contains($0) }
+        revalidate()
+        guard canStart else { return nil }
+        return await performStart()
+    }
+
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
         if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
         setupCategory = selection.setupCategory
@@ -508,26 +570,31 @@ final class MatchSetupViewModel: ObservableObject {
                 ]
             )
         }
+        let catalogEntry = GameModeCatalog.entry(for: matchType)
+        let uiTemplate = catalogEntry?.uiTemplate ?? (matchType == .cricket ? .markBoard : .checkoutScore)
+        let partyUsesPresetBotsOnly = isBaseballParty || isShanghaiParty || isKillerParty
+
         struct RosterEntry {
             let id: UUID
             let name: String
             let botDifficulty: BotDifficulty?
             let isTrainingBot: Bool
             let isCustomBot: Bool
-            let customMetrics: CustomBotMetrics?
+            let customConfiguration: CustomBotConfiguration?
             let linkedPlayerId: UUID?
             let avatarStyleRaw: String?
             let colorTokenRaw: String
         }
 
-        let rosterEntries: [RosterEntry] = selectedPlayers.map { player in
+        let rosterForMatch = selectedPlayers
+        let rosterEntries: [RosterEntry] = rosterForMatch.map { player in
             RosterEntry(
                 id: player.id,
                 name: player.name,
                 botDifficulty: player.botDifficulty,
                 isTrainingBot: player.isTrainingBot,
                 isCustomBot: player.isCustomBot,
-                customMetrics: player.customBotMetrics,
+                customConfiguration: player.customBotConfiguration,
                 linkedPlayerId: player.linkedPlayerId,
                 avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue,
                 colorTokenRaw: player.colorToken.rawValue
@@ -538,48 +605,24 @@ final class MatchSetupViewModel: ObservableObject {
             let selectedPlayers: [MatchParticipant] = try await withThrowingTaskGroup(of: (Int, MatchParticipant).self) { group in
                 for (index, entry) in orderedRoster.enumerated() {
                     group.addTask {
-                        var botDifficultyRaw = entry.botDifficulty?.rawValue
-                        var botKindRaw: String?
-                        var botSkillProfilePayload: Data?
-                        if isBaseballParty || isShanghaiParty || isKillerParty {
-                            if entry.botDifficulty != nil {
-                                botKindRaw = BotKind.preset.rawValue
+                        let participant = try await BotParticipantFactory.makeParticipant(
+                            input: BotParticipantBuildInput(
+                                playerId: entry.id,
+                                displayName: entry.name,
+                                turnOrder: index,
+                                botDifficulty: entry.botDifficulty,
+                                isTrainingBot: entry.isTrainingBot,
+                                isCustomBot: entry.isCustomBot,
+                                customConfiguration: entry.customConfiguration,
+                                linkedPlayerId: entry.linkedPlayerId,
+                                colorTokenRaw: entry.colorTokenRaw,
+                                matchType: matchType,
+                                uiTemplate: uiTemplate,
+                                partyUsesPresetBotsOnly: partyUsesPresetBotsOnly
+                            ),
+                            resolveTrainingSkill: { botId, mode in
+                                try await self.playerRepository.resolveTrainingBotSkill(for: botId, mode: mode)
                             }
-                        } else if entry.isTrainingBot {
-                            let profile = try await self.playerRepository.resolveTrainingBotSkill(
-                                for: entry.id,
-                                mode: matchType
-                            )
-                            let snapshot = TrainingBotSkillSnapshot(
-                                profile: profile,
-                                linkedPlayerId: entry.linkedPlayerId ?? entry.id,
-                                sourcePlayerAvg: nil,
-                                sourcePlayerMPR: nil
-                            )
-                            botSkillProfilePayload = try TrainingBotSkillSnapshot.encode(snapshot)
-                            botKindRaw = BotKind.training.rawValue
-                            botDifficultyRaw = nil
-                        } else if entry.isCustomBot, let metrics = entry.customMetrics {
-                            let profile = CustomBotSkillResolver.profile(for: matchType, metrics: metrics)
-                            let snapshot = CustomBotSkillSnapshot(
-                                profile: profile,
-                                x01Average: metrics.x01Average,
-                                cricketMPR: metrics.cricketMPR
-                            )
-                            botSkillProfilePayload = try CustomBotSkillSnapshot.encode(snapshot)
-                            botKindRaw = BotKind.custom.rawValue
-                            botDifficultyRaw = nil
-                        } else if entry.botDifficulty != nil {
-                            botKindRaw = BotKind.preset.rawValue
-                        }
-                        let participant = MatchParticipant(
-                            playerId: entry.id,
-                            displayNameAtMatchStart: entry.name,
-                            turnOrder: index,
-                            botDifficultyRaw: botDifficultyRaw,
-                            botKindRaw: botKindRaw,
-                            botSkillProfilePayload: botSkillProfilePayload,
-                            preferredColorTokenAtMatchStart: entry.colorTokenRaw
                         )
                         return (index, participant)
                     }
