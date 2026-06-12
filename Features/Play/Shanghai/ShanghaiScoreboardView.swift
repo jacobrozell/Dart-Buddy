@@ -11,49 +11,27 @@ struct ShanghaiScoreboardView: View {
         let colorToken: PlayerColorToken
     }
 
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-
     let rows: [Row]
     let showsRoundPointsColumn: Bool
 
-    private var usesLandscapeLayout: Bool {
-        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-    }
-
     var body: some View {
-        VStack(spacing: usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2) {
-            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                HStack(spacing: DS.Spacing.s3) {
-                    Circle()
-                        .fill(PlayerVisualViews.color(for: row.colorToken))
-                        .frame(width: usesLandscapeLayout ? 12 : 10, height: usesLandscapeLayout ? 12 : 10)
-                    Text(row.name)
-                        .font(usesLandscapeLayout ? .body.weight(row.isActive || row.isLeading ? .bold : .regular) : .subheadline.weight(row.isActive || row.isLeading ? .bold : .regular))
-                        .foregroundStyle(Brand.textPrimary)
-                        .lineLimit(1)
-                    if row.isLeading {
-                        Text(L10n.string("play.shanghai.leading"))
-                            .font(usesLandscapeLayout ? .caption.weight(.semibold) : .caption2.weight(.semibold))
-                            .foregroundStyle(Brand.green)
-                    }
-                    Spacer()
-                    if showsRoundPointsColumn, let roundPoints = row.roundPoints {
-                        Text(L10n.format("play.shanghai.thisRoundFormat", roundPoints))
-                            .font(usesLandscapeLayout ? .subheadline : .caption)
-                            .foregroundStyle(Brand.textSecondary)
-                    }
-                    Text("\(row.cumulativePoints)")
-                        .font(usesLandscapeLayout ? .title2.weight(.bold) : .title3.weight(.bold))
-                        .foregroundStyle(row.isActive ? Brand.green : Brand.textPrimary)
-                }
-                .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
-                .padding(.vertical, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
-                .background(row.isActive ? Brand.cardElevated : Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(rowAccessibilityLabel(row))
-                .accessibilityIdentifier("shanghai_scoreboard_row_\(index)")
-            }
-        }
+        MatchScoreboardListView(
+            entries: rows.map { row in
+                MatchScoreboardListView.Entry(
+                    id: row.id,
+                    name: row.name,
+                    totalText: "\(row.cumulativePoints)",
+                    secondaryText: showsRoundPointsColumn
+                        ? row.roundPoints.map { L10n.format("play.shanghai.thisRoundFormat", $0) }
+                        : nil,
+                    leadingText: row.isLeading ? L10n.string("play.shanghai.leading") : nil,
+                    isActive: row.isActive,
+                    colorToken: row.colorToken,
+                    accessibilityLabel: rowAccessibilityLabel(row)
+                )
+            },
+            accessibilityIdentifierPrefix: "shanghai"
+        )
     }
 
     private func rowAccessibilityLabel(_ row: Row) -> String {
@@ -77,22 +55,11 @@ struct RoundProgressStrip: View {
     let isExtraRound: Bool
 
     var body: some View {
-        let totalDots = max(roundCount, currentRound)
-        HStack(spacing: 6) {
-            ForEach(1 ... totalDots, id: \.self) { round in
-                Circle()
-                    .fill(fillColor(for: round))
-                    .frame(width: 10, height: 10)
-                    .overlay {
-                        if round == currentRound {
-                            Circle().stroke(Brand.green, lineWidth: 2)
-                        }
-                    }
-                    .accessibilityHidden(true)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(roundStripAccessibilityLabel(totalDots: totalDots))
+        MatchProgressDotStrip(
+            count: roundCount,
+            current: currentRound,
+            accessibilityLabel: roundStripAccessibilityLabel(totalDots: max(roundCount, currentRound))
+        )
     }
 
     private func roundStripAccessibilityLabel(totalDots: Int) -> String {
@@ -106,11 +73,5 @@ struct RoundProgressStrip: View {
             label += ", \(L10n.string("play.shanghai.extraRound"))"
         }
         return label
-    }
-
-    private func fillColor(for round: Int) -> Color {
-        if round < currentRound { return Brand.green }
-        if round == currentRound { return Brand.amber }
-        return Brand.textSecondary.opacity(0.35)
     }
 }

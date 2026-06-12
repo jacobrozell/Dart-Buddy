@@ -139,7 +139,7 @@ final class BaseballMatchViewModel: ObservableObject {
         let isInProgress = session.runtime.status == .inProgress
         let showsVisitColumn = state.players.count < 6 && state.phase != .completed
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
             let visitPreview = showsVisitColumn
                 ? previewVisitRuns(for: player, playerIndex: index, isActive: isActive, state: state)
@@ -228,16 +228,11 @@ final class BaseballMatchViewModel: ObservableObject {
         switch state.phase {
         case .bullPlayoff:
             let indices = state.playoffPlayerIndices
-            guard indices.contains(playerIndex) else { return false }
+            guard let position = indices.firstIndex(of: playerIndex) else { return false }
             let scores = indices.map { playoffRuns(forLeading: $0, state: state) }
-            guard let maxScore = scores.max(), maxScore > 0 else { return false }
-            let leaders = indices.filter { playoffRuns(forLeading: $0, state: state) == maxScore }
-            return leaders.count == 1 && leaders[0] == playerIndex
+            return MatchTurnSupport.isUniqueLeader(scores: scores, index: position)
         case .innings:
-            let maxRuns = state.players.map(\.cumulativeRuns).max() ?? 0
-            guard maxRuns > 0 else { return false }
-            let leaderCount = state.players.filter { $0.cumulativeRuns == maxRuns }.count
-            return leaderCount == 1 && state.players[playerIndex].cumulativeRuns == maxRuns
+            return MatchTurnSupport.isUniqueLeader(scores: state.players.map(\.cumulativeRuns), index: playerIndex)
         case .completed:
             return state.winnerPlayerId == state.players[playerIndex].playerId
         }
@@ -332,10 +327,6 @@ final class BaseballMatchViewModel: ObservableObject {
         }
     }
 
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-    }
-
     private func reconcileAfterSummaryUndo() async -> Bool {
         guard state == .matchCompleted,
               let stored = store.session(for: matchId),
@@ -394,21 +385,11 @@ final class BaseballMatchViewModel: ObservableObject {
             existingCount: partialVisitCount
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-        for dart in dartsToReveal {
-            do {
-                try await Task.sleep(nanoseconds: dartDelay)
-            } catch {
-                return false
-            }
-            enteredDarts.append(dart)
-        }
-
-        do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        } catch {
-            return false
-        }
+        guard await BotVisitPlayback.revealVisit(
+            dartsToReveal,
+            feedbackPreferences: feedbackPreferences,
+            append: { enteredDarts.append($0) }
+        ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
         return currentBotSkillProfile != nil && state == .readyTurn
@@ -444,7 +425,7 @@ final class BaseballMatchViewModel: ObservableObject {
                 announceTurnIfNeeded(visitRuns: event.runsThisVisit, cumulativeRuns: event.cumulativeRunsAfterTurn)
                 if event.runsThisVisit == 9 {
                     state = .perfectInningFeedback
-                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballPerfectInningTransitionNanoseconds)
                 }
             }
             if updated.runtime.status == .completed {
@@ -455,7 +436,7 @@ final class BaseballMatchViewModel: ObservableObject {
                    playerIndex.flatMap({ updated.runtime.baseballState?.players[$0].stretchGateOpen }) == false,
                    darts.contains(where: { $0.segment == .outerBull || $0.segment == .innerBull }) {
                     state = .stretchGateHint
-                    try? await Task.sleep(nanoseconds: 600_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballStretchGateHintNanoseconds)
                 }
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {
@@ -529,31 +510,21 @@ final class BaseballMatchViewModel: ObservableObject {
 
     func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "baseball.error.sessionMissing"))
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .baseball,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "baseball.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 
@@ -570,8 +541,4 @@ extension BaseballMatchViewModel: MatchPlaySessionHost {
     var hostMatchStore: ActiveMatchStore { store }
     var hostMatchLogger: any AppLogger { logger }
     var hostMatchType: MatchType { .baseball }
-}
-
-private func postAccessibilityAnnouncement(_ text: String) {
-    UIAccessibility.post(notification: .announcement, argument: text)
 }

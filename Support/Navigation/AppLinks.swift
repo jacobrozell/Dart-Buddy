@@ -1,5 +1,7 @@
 import Foundation
 
+// Verified literal URLs — the documented force-unwrap exception in CONTRIBUTING.md.
+// swiftlint:disable force_unwrapping
 enum AppLinks {
     /// App Store Connect app ID — used when iTunes lookup does not return `trackViewUrl`.
     static let appStoreAppID = "6775713346"
@@ -13,3 +15,4 @@ enum AppLinks {
     /// Set when your tip page is live (Buy Me a Coffee, Ko-fi, etc.). Leave nil to hide the Settings link.
     static let buyDeveloperCoffee: URL? = URL(string: "https://buymeacoffee.com/jacobrozelq")
 }
+// swiftlint:enable force_unwrapping

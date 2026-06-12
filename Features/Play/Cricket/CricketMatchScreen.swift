@@ -285,11 +285,6 @@ struct CricketMatchScreen: View {
         actionTask = Task { await viewModel.submitTurn() }
     }
 
-    private func postAccessibilityAnnouncement(_ text: String) {
-        guard !text.isEmpty else { return }
-        AccessibilityNotification.Announcement(text).post()
-    }
-
     @ViewBuilder
     private var stateBanner: some View {
         switch viewModel.state {

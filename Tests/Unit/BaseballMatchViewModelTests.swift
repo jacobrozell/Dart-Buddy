@@ -215,13 +215,6 @@ private actor BaseballFakeMatchRepository: MatchRepository {
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
 
-    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
 }
 
 private actor BaseballFakeStatsRepository: StatsRepository {
@@ -256,13 +249,6 @@ private actor BaseballRehydratingFakeMatchRepository: MatchRepository {
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
 
-    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
 }
 
 private actor BaseballRehydratingFakeStatsRepository: StatsRepository {

@@ -132,7 +132,7 @@ final class KillerMatchViewModel: ObservableObject {
         guard let session, let state = session.runtime.killerState else { return [] }
         let isInProgress = session.runtime.status == .inProgress
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive: Bool
             if state.phase == .numberPick {
                 isActive = state.pickQueue.first == player.playerId && isInProgress
@@ -234,12 +234,8 @@ final class KillerMatchViewModel: ObservableObject {
         }
     }
 
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-    }
-
     private func participantName(for playerId: UUID) -> String {
-        participant(for: playerId)?.displayNameAtMatchStart ?? L10n.string("play.killer.unknownPlayer")
+        session?.runtime.participant(for: playerId)?.displayNameAtMatchStart ?? L10n.string("play.killer.unknownPlayer")
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {
@@ -287,51 +283,35 @@ final class KillerMatchViewModel: ObservableObject {
         enteredDarts.removeAll()
         var rng = SystemRandomNumberGenerator()
 
+        let dartsToReveal: [DartInput]
         if isPick {
             let takenNumbers = Set(killerState.players.compactMap(\.assignedNumber))
-            let dart = DartBotEngine.generateKillerPick(
-                takenNumbers: takenNumbers,
-                profile: profile,
-                rng: &rng
-            )
-            let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-            do {
-                try await Task.sleep(nanoseconds: dartDelay)
-            } catch {
-                return false
-            }
-            enteredDarts.append(dart)
+            dartsToReveal = [
+                DartBotEngine.generateKillerPick(
+                    takenNumbers: takenNumbers,
+                    profile: profile,
+                    rng: &rng
+                )
+            ]
         } else {
             let partialVisitCount = enteredDarts.count
-            if partialVisitCount == 0 {
-                enteredDarts.removeAll()
-            }
             let plannedDarts = DartBotEngine.generateKillerTurn(
                 state: killerState,
                 throwerIndex: killerState.currentPlayerIndex,
                 profile: profile,
                 rng: &rng
             )
-            let dartsToReveal = BotVisitPlayback.remainingPlannedDarts(
+            dartsToReveal = BotVisitPlayback.remainingPlannedDarts(
                 fullPlan: plannedDarts,
                 existingCount: partialVisitCount
             )
-            let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-            for dart in dartsToReveal {
-                do {
-                    try await Task.sleep(nanoseconds: dartDelay)
-                } catch {
-                    return false
-                }
-                enteredDarts.append(dart)
-            }
         }
 
-        do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        } catch {
-            return false
-        }
+        guard await BotVisitPlayback.revealVisit(
+            dartsToReveal,
+            feedbackPreferences: feedbackPreferences,
+            append: { enteredDarts.append($0) }
+        ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
 
@@ -383,7 +363,7 @@ final class KillerMatchViewModel: ObservableObject {
             session = updated
             if !isPick, lastKillerTurn(in: updated)?.darts.contains(where: \.becameKiller) == true {
                 state = .becameKillerFeedback
-                try? await Task.sleep(nanoseconds: 700_000_000)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.killerBecameKillerTransitionNanoseconds)
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted
@@ -460,31 +440,21 @@ final class KillerMatchViewModel: ObservableObject {
 
     func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "killer.error.sessionMissing"))
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .killer,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "killer.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 

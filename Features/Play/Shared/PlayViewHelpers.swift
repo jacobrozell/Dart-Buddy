@@ -4,6 +4,12 @@ func playLocalizedText(_ key: String) -> Text {
     Text(LocalizedStringKey(key))
 }
 
+/// Posts a VoiceOver announcement for gameplay events; no-op for empty strings.
+func postAccessibilityAnnouncement(_ text: String) {
+    guard !text.isEmpty else { return }
+    AccessibilityNotification.Announcement(text).post()
+}
+
 /// Shared top chrome for in-progress match screens (exit, title, optional trailing action).
 struct MatchGameplayHeader<Title: View, Trailing: View>: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass

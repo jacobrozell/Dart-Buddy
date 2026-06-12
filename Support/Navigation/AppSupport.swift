@@ -25,6 +25,8 @@ enum AppSupport {
                 value: L10n.format("settings.support.feedbackEmailBodyFormat", installedVersion)
             )
         ]
+        // Fallback built from a verified literal constant.
+        // swiftlint:disable:next force_unwrapping
         return components.url ?? URL(string: "mailto:\(feedbackEmail)")!
     }
 }

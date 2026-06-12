@@ -64,6 +64,31 @@ enum BotVisitPlayback {
         guard existingCount > 0, existingCount < fullPlan.count else { return fullPlan }
         return Array(fullPlan.dropFirst(existingCount))
     }
+
+    /// Reveals a bot visit dart by dart with the configured stagger delay, then
+    /// pauses before submission. Returns `false` when cancelled mid-playback.
+    @MainActor
+    static func revealVisit(
+        _ darts: [DartInput],
+        feedbackPreferences: FeedbackPreferences,
+        append: (DartInput) -> Void
+    ) async -> Bool {
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        for dart in darts {
+            do {
+                try await Task.sleep(nanoseconds: dartDelay)
+            } catch {
+                return false
+            }
+            append(dart)
+        }
+        do {
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+        } catch {
+            return false
+        }
+        return true
+    }
 }
 
 @MainActor

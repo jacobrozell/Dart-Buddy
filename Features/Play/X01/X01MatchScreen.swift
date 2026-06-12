@@ -20,6 +20,9 @@ struct X01MatchScreen: View {
     @State private var showLegWinBanner = false
     @State private var selectedCheckoutIndex = 0
 
+    /// How long the leg-win banner stays on screen before auto-dismissing.
+    private static let legWinBannerDisplayNanoseconds: UInt64 = 1_200_000_000
+
     private var usesLandscapeMatchLayout: Bool {
         GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
     }
@@ -91,7 +94,7 @@ struct X01MatchScreen: View {
                 postAccessibilityAnnouncement(L10n.string("play.x01.announce.legWon"))
                 showLegWinBanner = true
                 Task {
-                    try? await Task.sleep(nanoseconds: 1_200_000_000)
+                    try? await Task.sleep(nanoseconds: Self.legWinBannerDisplayNanoseconds)
                     await MainActor.run { showLegWinBanner = false }
                 }
             }
@@ -352,10 +355,5 @@ struct X01MatchScreen: View {
     private func playDartFeedback(_ dart: DartInput) {
         if dart.isMiss { audio.playMiss() } else { audio.playHit() }
         haptics.playImpact()
-    }
-
-    private func postAccessibilityAnnouncement(_ text: String) {
-        guard !text.isEmpty else { return }
-        AccessibilityNotification.Announcement(text).post()
     }
 }

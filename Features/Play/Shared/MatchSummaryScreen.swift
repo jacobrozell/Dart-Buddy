@@ -21,6 +21,9 @@ struct MatchSummaryScreen: View {
     @ScaledMetric(relativeTo: .largeTitle) private var trophySize: CGFloat = 56
     @ScaledMetric(relativeTo: .largeTitle) private var landscapeTrophySize: CGFloat = 72
 
+    /// Brief beat before the trophy celebration springs in, so the summary settles first.
+    private static let celebrationDelayNanoseconds: UInt64 = 120_000_000
+
     private var isRegularWidth: Bool { horizontalSizeClass == .regular }
 
     private var usesLandscapeSplit: Bool {
@@ -63,7 +66,7 @@ struct MatchSummaryScreen: View {
             if reduceMotion {
                 celebrate = true
             } else {
-                try? await Task.sleep(nanoseconds: 120_000_000)
+                try? await Task.sleep(nanoseconds: Self.celebrationDelayNanoseconds)
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { celebrate = true }
             }
         }
