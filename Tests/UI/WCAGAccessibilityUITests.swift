@@ -773,11 +773,15 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
 
         tapMatchExit(in: app, timeout: timeout)
-        let saveAndForfeit = app.descendants(matching: .any).matching(identifier: "match_exit_save_and_forfeit").firstMatch
-        let abandon = app.descendants(matching: .any).matching(identifier: "match_exit_abandon").firstMatch
-        XCTAssertTrue(saveAndForfeit.waitForExistence(timeout: timeout), "Missing match_exit_save_and_forfeit")
-        XCTAssertTrue(abandon.waitForExistence(timeout: timeout), "Missing match_exit_abandon")
-        tapExitAlertButton("Stay", in: app, timeout: timeout)
+        assertInteractiveElement(
+            app.descendants(matching: .any).matching(identifier: "match_exit_save_and_forfeit").firstMatch,
+            identifier: "match_exit_save_and_forfeit"
+        )
+        assertInteractiveElement(
+            app.descendants(matching: .any).matching(identifier: "match_exit_abandon").firstMatch,
+            identifier: "match_exit_abandon"
+        )
+        dismissExitConfirmation(in: app)
     }
 
     func testMatchSummaryForfeitBannerContract() {

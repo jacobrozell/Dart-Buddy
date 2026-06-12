@@ -212,24 +212,26 @@ extension XCTestCase {
             }
         }
 
-        let button = app.buttons.matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch
-        if button.waitForExistence(timeout: timeout) {
-            button.tap()
-            return
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            let candidates: [XCUIElement] = [
+                app.buttons.matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch,
+                app.descendants(matching: .any).matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch,
+                app.alerts.buttons.matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch,
+                app.buttons.containing(NSPredicate(format: "label CONTAINS[c] %@", title)).firstMatch
+            ]
+            for candidate in candidates where candidate.waitForExistence(timeout: 1) {
+                if candidate.isHittable {
+                    candidate.tap()
+                } else {
+                    candidate.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                }
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
         }
 
-        let containsButton = app.buttons.containing(NSPredicate(format: "label CONTAINS[c] %@", title)).firstMatch
-        if containsButton.waitForExistence(timeout: 2) {
-            containsButton.tap()
-            return
-        }
-
-        let alertButton = app.alerts.buttons.matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch
-        XCTAssertTrue(
-            alertButton.waitForExistence(timeout: timeout),
-            "Expected exit dialog button '\(title)'"
-        )
-        alertButton.tap()
+        XCTAssertTrue(false, "Expected exit dialog button '\(title)'")
     }
 
     func tapExitSaveAndForfeit(in app: XCUIApplication, timeout: TimeInterval = 10) {

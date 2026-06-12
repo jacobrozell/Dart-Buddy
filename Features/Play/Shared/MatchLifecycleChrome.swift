@@ -42,6 +42,7 @@ struct MatchExitConfirmationModifier: ViewModifier {
             Button("common.stay", role: .cancel) {
                 onStay()
             }
+            .accessibilityIdentifier("match_exit_stay")
         } message: {
             Text("play.match.exit.confirm.message")
         }
