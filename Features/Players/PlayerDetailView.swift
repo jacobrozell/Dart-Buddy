@@ -8,6 +8,7 @@ struct PlayerDetailView: View {
     let onArchiveToggle: () -> Void
     let onSave: (EditablePlayer) -> Void
     let onExportResult: (Result<URL, Error>) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
 
     init(
         player: EditablePlayer?,
@@ -16,7 +17,8 @@ struct PlayerDetailView: View {
         onEdit: @escaping () -> Void,
         onArchiveToggle: @escaping () -> Void,
         onSave: @escaping (EditablePlayer) -> Void,
-        onExportResult: @escaping (Result<URL, Error>) -> Void = { _ in }
+        onExportResult: @escaping (Result<URL, Error>) -> Void = { _ in },
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.existingNames = existingNames
@@ -25,6 +27,7 @@ struct PlayerDetailView: View {
         self.onArchiveToggle = onArchiveToggle
         self.onSave = onSave
         self.onExportResult = onExportResult
+        self.onSelectRecentMatch = onSelectRecentMatch
     }
 
     var body: some View {
@@ -35,7 +38,8 @@ struct PlayerDetailView: View {
                         player: player,
                         existingNames: existingNames,
                         dependencies: dependencies,
-                        onSave: onSave
+                        onSave: onSave,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 } else if player.isBot, player.botDifficulty != nil {
                     BotDetailView(
@@ -43,14 +47,16 @@ struct PlayerDetailView: View {
                         difficulty: player.botDifficulty!,
                         existingNames: existingNames,
                         dependencies: dependencies,
-                        onSave: onSave
+                        onSave: onSave,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 } else if player.isBot {
                     TrainingBotDetailView(
                         player: player,
                         existingNames: existingNames,
                         dependencies: dependencies,
-                        onSave: onSave
+                        onSave: onSave,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 } else {
                     PlayerStatsDetailView(
@@ -58,7 +64,8 @@ struct PlayerDetailView: View {
                         dependencies: dependencies,
                         onEdit: onEdit,
                         onArchiveToggle: onArchiveToggle,
-                        onExportResult: onExportResult
+                        onExportResult: onExportResult,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 }
             } else {
@@ -77,6 +84,7 @@ struct BotDetailView: View {
     let existingNames: [String]
     let dependencies: AppDependencies
     let onSave: (EditablePlayer) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
@@ -87,13 +95,15 @@ struct BotDetailView: View {
         difficulty: BotDifficulty,
         existingNames: [String],
         dependencies: AppDependencies,
-        onSave: @escaping (EditablePlayer) -> Void
+        onSave: @escaping (EditablePlayer) -> Void,
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.difficulty = difficulty
         self.existingNames = existingNames
         self.dependencies = dependencies
         self.onSave = onSave
+        self.onSelectRecentMatch = onSelectRecentMatch
         _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
         _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
@@ -119,7 +129,10 @@ struct BotDetailView: View {
 
                 customizationSection
 
-                PlayerDetailStatsContent(viewModel: statsViewModel)
+                PlayerDetailStatsContent(
+                    viewModel: statsViewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)
@@ -186,6 +199,7 @@ private struct PlayerStatsDetailView: View {
     let onEdit: () -> Void
     let onArchiveToggle: () -> Void
     let onExportResult: (Result<URL, Error>) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var viewModel: PlayerDetailViewModel
 
@@ -194,13 +208,15 @@ private struct PlayerStatsDetailView: View {
         dependencies: AppDependencies,
         onEdit: @escaping () -> Void,
         onArchiveToggle: @escaping () -> Void,
-        onExportResult: @escaping (Result<URL, Error>) -> Void
+        onExportResult: @escaping (Result<URL, Error>) -> Void,
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.dependencies = dependencies
         self.onEdit = onEdit
         self.onArchiveToggle = onArchiveToggle
         self.onExportResult = onExportResult
+        self.onSelectRecentMatch = onSelectRecentMatch
         _viewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
             playerName: player.name,
@@ -228,7 +244,10 @@ private struct PlayerStatsDetailView: View {
                         .foregroundStyle(Brand.textSecondary)
                 }
 
-                PlayerDetailStatsContent(viewModel: viewModel)
+                PlayerDetailStatsContent(
+                    viewModel: viewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DS.Spacing.s3) {
@@ -286,6 +305,7 @@ private struct PlayerStatsDetailView: View {
 
 struct PlayerDetailStatsContent: View {
     @ObservedObject var viewModel: PlayerDetailViewModel
+    var onSelectRecentMatch: (UUID) -> Void = { _ in }
 
     var body: some View {
         Group {
@@ -329,29 +349,40 @@ struct PlayerDetailStatsContent: View {
 
             VStack(spacing: 0) {
                 ForEach(viewModel.recentMatches) { match in
-                    HStack(spacing: DS.Spacing.s3) {
-                        Text(MatchConfigText.modeLabel(for: match.type))
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(Brand.textSecondary)
-                            .frame(width: 56, alignment: .leading)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(match.opponentLabel)
-                                .font(.subheadline)
-                                .foregroundStyle(Brand.textPrimary)
-                                .lineLimit(1)
-                            Text(match.playedAt, style: .date)
-                                .font(.caption)
+                    Button {
+                        onSelectRecentMatch(match.id)
+                    } label: {
+                        HStack(spacing: DS.Spacing.s3) {
+                            Text(MatchConfigText.modeLabel(for: match.type))
+                                .font(.caption.weight(.semibold))
                                 .foregroundStyle(Brand.textSecondary)
+                                .frame(width: 56, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(match.opponentLabel)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Brand.textPrimary)
+                                    .lineLimit(1)
+                                Text(match.playedAt, style: .date)
+                                    .font(.caption)
+                                    .foregroundStyle(Brand.textSecondary)
+                            }
+                            Spacer()
+                            Text(match.didWin ? L10n.playersDetailWin : L10n.playersDetailLoss)
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(match.didWin ? Brand.green : Brand.red)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Brand.textSecondary)
+                                .accessibilityHidden(true)
                         }
-                        Spacer()
-                        Text(match.didWin ? L10n.playersDetailWin : L10n.playersDetailLoss)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(match.didWin ? Brand.green : Brand.red)
+                        .padding(.horizontal, DS.Spacing.s3)
+                        .padding(.vertical, DS.Spacing.s3)
+                        .contentShape(Rectangle())
                     }
-                    .padding(.horizontal, DS.Spacing.s3)
-                    .padding(.vertical, DS.Spacing.s3)
+                    .buttonStyle(.plain)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(recentMatchAccessibilityLabel(match))
+                    .accessibilityIdentifier("playerDetail_recentMatch_\(match.id.uuidString)")
                     if match.id != viewModel.recentMatches.last?.id {
                         Divider().overlay(Brand.cardElevated)
                     }
@@ -538,6 +569,7 @@ struct TrainingBotDetailView: View {
     let existingNames: [String]
     let dependencies: AppDependencies
     let onSave: (EditablePlayer) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
@@ -548,12 +580,14 @@ struct TrainingBotDetailView: View {
         player: EditablePlayer,
         existingNames: [String],
         dependencies: AppDependencies,
-        onSave: @escaping (EditablePlayer) -> Void
+        onSave: @escaping (EditablePlayer) -> Void,
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.existingNames = existingNames
         self.dependencies = dependencies
         self.onSave = onSave
+        self.onSelectRecentMatch = onSelectRecentMatch
         _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
         _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
@@ -583,7 +617,10 @@ struct TrainingBotDetailView: View {
                 }
 
                 customizationSection
-                PlayerDetailStatsContent(viewModel: statsViewModel)
+                PlayerDetailStatsContent(
+                    viewModel: statsViewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)

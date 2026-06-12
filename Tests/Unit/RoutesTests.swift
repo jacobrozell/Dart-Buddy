@@ -42,6 +42,7 @@ struct RoutesTests {
         #expect(HistoryRoute.detail(matchId: matchId) == HistoryRoute.detail(matchId: matchId))
         #expect(PlayersRoute.detail(playerId: playerId) == PlayersRoute.detail(playerId: playerId))
         #expect(PlayersRoute.edit(playerId: nil) == PlayersRoute.edit(playerId: nil))
+        #expect(PlayersRoute.matchDetail(matchId: matchId) == PlayersRoute.matchDetail(matchId: matchId))
         #expect(SettingsRoute.root == SettingsRoute.root)
     }
 }

@@ -32,6 +32,7 @@ enum PlayersRoute: Hashable {
     case list
     case detail(playerId: UUID)
     case edit(playerId: UUID?)
+    case matchDetail(matchId: UUID)
 }
 
 enum SettingsRoute: Hashable {
