@@ -174,9 +174,23 @@ final class HistoryDetailViewModel: ObservableObject {
         participants: [MatchParticipantSummary],
         envelopes: [MatchEventEnvelope]
     ) -> HistoryDetailHeader {
-        let winnerName = participants
-            .first(where: { $0.playerId == match.winnerPlayerId })?
+        let winnerDisplayName = participants
+            .first(where: { ($0.playerId ?? $0.id) == match.winnerPlayerId })?
             .displayNameAtMatchStart ?? NSLocalizedString("common.unknown", comment: "")
+        let winnerText: String = {
+            if match.status == .forfeited {
+                return L10n.format("history.detail.winnerForfeitFormat", winnerDisplayName)
+            }
+            return winnerDisplayName
+        }()
+        let forfeitSubtitle: String? = {
+            guard match.status == .forfeited,
+                  let forfeitedBy = match.forfeitedByPlayerId,
+                  let name = participants.first(where: { ($0.playerId ?? $0.id) == forfeitedBy })?.displayNameAtMatchStart else {
+                return nil
+            }
+            return L10n.format("history.detail.forfeitSubtitleFormat", name)
+        }()
         let modeText = MatchConfigText.modeLabel(for: match.type)
         let dateText = DateFormatter.localizedString(from: match.startedAt, dateStyle: .medium, timeStyle: .short)
         let durationText: String = {
@@ -226,7 +240,7 @@ final class HistoryDetailViewModel: ObservableObject {
         }()
         return HistoryDetailHeader(
             modeText: modeText,
-            winnerText: winnerName,
+            winnerText: forfeitSubtitle.map { "\(winnerText) · \($0)" } ?? winnerText,
             dateText: dateText,
             durationText: durationText,
             participantsText: participantsText,

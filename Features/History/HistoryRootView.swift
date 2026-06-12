@@ -246,7 +246,9 @@ struct MatchHistoryCard: View {
                     .font(.headline)
                     .foregroundStyle(Brand.textPrimary)
                 Spacer()
-                if row.isFinished {
+                if row.isForfeited {
+                    StatusBadge(text: L10n.string("history.status.forfeit"), color: Brand.amber)
+                } else if row.isFinished {
                     StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
                 }
             }

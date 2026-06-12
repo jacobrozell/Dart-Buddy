@@ -1,9 +1,18 @@
 import Foundation
 
 enum MatchHistoryCardBuilder {
-    static func build(from runtime: MatchRuntimeState, nameById: [UUID: String]) -> MatchHistoryCardPayload {
+    static func build(
+        from runtime: MatchRuntimeState,
+        nameById: [UUID: String],
+        forfeitedByPlayerId: UUID? = nil
+    ) -> MatchHistoryCardPayload {
         let (configText, standings) = standingsAndConfig(from: runtime, nameById: nameById)
-        return MatchHistoryCardPayload(configText: configText, standings: standings)
+        return MatchHistoryCardPayload(
+            configText: configText,
+            standings: standings,
+            isForfeited: forfeitedByPlayerId != nil,
+            forfeitedByPlayerId: forfeitedByPlayerId
+        )
     }
 
     private static func standingsAndConfig(

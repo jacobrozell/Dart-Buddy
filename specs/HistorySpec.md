@@ -45,6 +45,7 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 
 ## 4. Data Management
 - History reads from completed `MatchRecord` plus linked events.
+- **History list cards** use denormalized `MatchRecord.historyCardPayload` (`MatchHistoryCardPayload`, version `1`), written at match completion from the latest snapshot via `MatchHistoryCardBuilder`. List UI decodes this blob first; falls back to live computation when missing or corrupt.
 - Participant display should prefer match-start snapshots for historical consistency.
 - In-progress matches are excluded from History list.
 - Deleting/archiving player does not remove historical participation.
@@ -54,7 +55,7 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 ## 5. Performance Requirements
 - Initial list load should feel instant for typical local datasets.
 - Use paged fetch or lazy stacks for large histories.
-- Aggregate key card fields at match-complete time to reduce per-row recompute.
+- Aggregate key card fields at match-complete time (`historyCardPayload`) to reduce per-row recompute.
 
 ---
 
@@ -70,9 +71,11 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 ## Unit
 - Filter predicates for mode/date/player
 - Fallback display resolution logic
+- `MatchHistoryCardBuilder` produces decodable payloads for X01 and Cricket
 
 ## Integration
 - Completed match appears immediately in history
+- `completeMatch` writes non-nil `historyCardPayload` when a snapshot exists
 - Edited player name does not alter historical snapshot identity
 
 ## UI
@@ -87,9 +90,9 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 ## 9. Verification
 | Field | Value |
 |-------|--------|
-| **Last verified** | 2026-06-04 |
-| **Commit** | `0c25396` |
-| **Code** | `ActivityRootView.swift`, `HistoryRootView.swift`, `MatchHistoryDetailScreen.swift` |
+| **Last verified** | 2026-06-11 |
+| **Commit** | `917043e` |
+| **Code** | `ActivityRootView.swift`, `HistoryRootView.swift`, `MatchHistoryDetailScreen.swift`, `MatchHistoryCardBuilder.swift`, `SwiftDataMatchRepository.swift` |
 
 ---
 
