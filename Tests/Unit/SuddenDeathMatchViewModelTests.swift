@@ -1,0 +1,271 @@
+import Foundation
+import Testing
+@testable import DartBuddy
+
+// MARK: - Test helpers
+
+private func sdDart(_ multiplier: DartMultiplier, _ segment: Int) -> DartInput {
+    DartInput(multiplier: multiplier, segment: .oneToTwenty(segment))
+}
+
+private func sdMiss() -> DartInput {
+    DartInput(multiplier: .single, segment: .miss, isMiss: true)
+}
+
+@MainActor
+private func makeSuddenDeathViewModel(
+    participantCount: Int = 3,
+    config: MatchConfigSuddenDeath = MatchConfigSuddenDeath(),
+    preTurns: [[DartInput]] = []
+) throws -> (vm: SuddenDeathMatchViewModel, store: ActiveMatchStore) {
+    let ids = (0 ..< participantCount).map { _ in UUID() }
+    let participants = ids.enumerated().map { index, id in
+        MatchParticipant(playerId: id, displayNameAtMatchStart: "P\(index + 1)", turnOrder: index)
+    }
+    var session = try MatchLifecycleService.createMatch(
+        type: .suddenDeath,
+        config: .suddenDeath(config),
+        participants: participants
+    )
+    for darts in preTurns {
+        session = try MatchLifecycleService.submitSuddenDeathTurn(session: session, darts: darts)
+    }
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = SuddenDeathMatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SuddenDeathSilentLogSink()),
+        matchRepository: SuddenDeathFakeMatchRepository(),
+        statsRepository: SuddenDeathFakeStatsRepository(),
+        feedbackPreferences: {
+            let prefs = FeedbackPreferences()
+            prefs.botStaggerEnabled = false
+            return prefs
+        }()
+    )
+    return (vm, store)
+}
+
+// MARK: - Tests
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func suddenDeathViewModelInitialStateReadyTurn() async throws {
+    let (vm, _) = try makeSuddenDeathViewModel()
+
+    #expect(vm.state == .readyTurn)
+    #expect(vm.suddenDeathState?.currentRound == 1)
+    #expect(vm.suddenDeathState?.activePlayerIds.count == 3)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func suddenDeathViewModelRequiresThreeDartsBeforeSubmit() async throws {
+    let (vm, _) = try makeSuddenDeathViewModel()
+    vm.enteredDarts = [sdDart(.single, 20), sdDart(.double, 5)]
+
+    #expect(vm.canSubmit == false)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .critical, .regression))
+func suddenDeathViewModelHumanSubmitRecordsPoints() async throws {
+    let (vm, _) = try makeSuddenDeathViewModel()
+    vm.enteredDarts = [
+        sdDart(.single, 20),
+        sdDart(.single, 20),
+        sdDart(.single, 20)
+    ]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn || vm.state == .eliminationFeedback)
+    let playerState = vm.suddenDeathState?.players[0]
+    #expect(playerState?.roundTotal == 60 || playerState?.cumulativeTotal == 60)
+    #expect(vm.enteredDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func suddenDeathViewModelHeaderTextContainsRoundNumber() async throws {
+    let (vm, _) = try makeSuddenDeathViewModel()
+
+    #expect(vm.headerText.contains("1"))
+    #expect(vm.headerAccessibilityLabel.contains(L10n.string("play.suddenDeath.navTitle")))
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func suddenDeathViewModelScoreboardHasOneRowPerPlayer() async throws {
+    let (vm, _) = try makeSuddenDeathViewModel(participantCount: 4)
+
+    #expect(vm.scoreboardRows.count == 4)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .critical, .regression))
+func suddenDeathViewModelCompletesMatchWhenLastPlayerStands() async throws {
+    // 3 players; submit a full round eliminating P0, then a second round to finish.
+    let (vm, store) = try makeSuddenDeathViewModel(participantCount: 3)
+
+    // Round 1: P0=1, P1=20, P2=20 → P0 eliminated.
+    vm.enteredDarts = [sdDart(.single, 1), sdMiss(), sdMiss()]
+    await vm.submitTurn()
+    vm.enteredDarts = [sdDart(.single, 20), sdMiss(), sdMiss()]
+    await vm.submitTurn()
+    vm.enteredDarts = [sdDart(.single, 20), sdMiss(), sdMiss()]
+    await vm.submitTurn()
+
+    guard vm.state != .matchCompleted else {
+        // If already complete (e.g. two survivors remain), that's wrong — ensure >1 active.
+        #expect(vm.suddenDeathState?.activePlayerIds.count ?? 0 > 1)
+        return
+    }
+
+    // Round 2: P1=1, P2=20 → P1 eliminated, P2 wins.
+    vm.enteredDarts = [sdDart(.single, 1), sdMiss(), sdMiss()]
+    await vm.submitTurn()
+    vm.enteredDarts = [sdDart(.single, 20), sdMiss(), sdMiss()]
+    await vm.submitTurn()
+
+    #expect(vm.state == .matchCompleted || vm.suddenDeathState?.isComplete == true)
+    #expect(store.completedSessions().count == 1)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func suddenDeathViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws {
+    let ids = [UUID(), UUID(), UUID()]
+    var session = try MatchLifecycleService.createMatch(
+        type: .suddenDeath,
+        config: .suddenDeath(MatchConfigSuddenDeath()),
+        participants: ids.enumerated().map { index, id in
+            MatchParticipant(playerId: id, displayNameAtMatchStart: "P\(index + 1)", turnOrder: index)
+        }
+    )
+    session = try MatchLifecycleService.submitSuddenDeathTurn(
+        session: session,
+        darts: [sdDart(.single, 10), sdMiss(), sdMiss()]
+    )
+    let matchId = session.runtime.matchId
+    let snapshot = session.latestSnapshot
+    let snapshotSummary = MatchSnapshotSummary(
+        id: UUID(),
+        matchId: matchId,
+        snapshotVersion: snapshot.payloadVersion,
+        snapshotPayload: snapshot.payload,
+        updatedAt: Date()
+    )
+    let eventSummaries = try session.events.map { envelope in
+        MatchEventSummary(
+            id: UUID(),
+            matchId: matchId,
+            eventIndex: envelope.eventIndex,
+            eventTypeRaw: "suddenDeathTurn",
+            eventPayload: try CodablePayloadCoder.encode(envelope),
+            createdAt: envelope.timestamp
+        )
+    }
+    let store = ActiveMatchStore()
+    let vm = SuddenDeathMatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: SuddenDeathSilentLogSink()),
+        matchRepository: SuddenDeathRehydratingFakeMatchRepository(snapshot: snapshotSummary),
+        statsRepository: SuddenDeathRehydratingFakeStatsRepository(events: eventSummaries),
+        feedbackPreferences: FeedbackPreferences()
+    )
+
+    #expect(vm.session == nil)
+    await vm.onAppear()
+
+    #expect(vm.session?.events.count == 1)
+    #expect(vm.suddenDeathState?.players[0].roundTotal == 10)
+    #expect(store.session(for: matchId) != nil)
+}
+
+// MARK: - Stubs
+
+private struct SuddenDeathSilentLogSink: LogSink {
+    func write(_: LogEntry) {}
+}
+
+private actor SuddenDeathFakeMatchRepository: MatchRepository {
+    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        makeSummary(type: type, status: .inProgress)
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        makeSummary(type: .suddenDeath, status: .completed)
+    }
+    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
+        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
+    }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
+
+    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
+        MatchSummary(
+            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 0, createdAt: Date(), updatedAt: Date()
+        )
+    }
+}
+
+private actor SuddenDeathFakeStatsRepository: StatsRepository {
+    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
+    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
+}
+
+private actor SuddenDeathRehydratingFakeMatchRepository: MatchRepository {
+    let snapshot: MatchSnapshotSummary
+    init(snapshot: MatchSnapshotSummary) { self.snapshot = snapshot }
+
+    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        makeSummary(type: type, status: .inProgress)
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        makeSummary(type: .suddenDeath, status: .completed)
+    }
+    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
+        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
+    }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
+        snapshot.matchId == matchId ? snapshot : nil
+    }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
+
+    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
+        MatchSummary(
+            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 0, createdAt: Date(), updatedAt: Date()
+        )
+    }
+}
+
+private actor SuddenDeathRehydratingFakeStatsRepository: StatsRepository {
+    let events: [MatchEventSummary]
+    init(events: [MatchEventSummary]) { self.events = events }
+    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { events }
+    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
+}

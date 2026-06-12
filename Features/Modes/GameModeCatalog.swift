@@ -121,8 +121,8 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "standard.americanCricket", name: "American Cricket", blurb: "Cricket on 20→15 + bull",
-            section: .standard, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .markBoard, statKind: .marks,
+            section: .standard, status: .shipped, minimumPlayers: 2,
+            matchType: .americanCricket, uiTemplate: .markBoard, statKind: .marks,
             iconSystemName: "circle.grid.3x3"
         ),
 
@@ -147,142 +147,142 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.mickeyMouse", name: "Mickey Mouse", blurb: "Cricket variant, descending targets",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .markBoard, statKind: .marks,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .mickeyMouse, uiTemplate: .markBoard, statKind: .marks,
             iconSystemName: "circle.grid.2x2.fill"
         ),
         GameModeCatalogEntry(
             id: "party.mulligan", name: "Mulligan", blurb: "Random close targets each game",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .markBoard, statKind: .marks,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .mulligan, uiTemplate: .markBoard, statKind: .marks,
             iconSystemName: "arrow.uturn.backward.circle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.englishCricket", name: "English Cricket", blurb: "Batter vs bowler scoring",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .englishCricket, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "figure.cricket"
         ),
         GameModeCatalogEntry(
             id: "party.blindKiller", name: "Blind Killer", blurb: "Killer with hidden numbers",
-            section: .party, status: .planned, minimumPlayers: 3,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .shipped, minimumPlayers: 3,
+            matchType: .blindKiller, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "eye.slash.fill"
         ),
         GameModeCatalogEntry(
             id: "party.knockout", name: "Knockout", blurb: "Beat the previous score or lose a life",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .knockout, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "bolt.horizontal.fill"
         ),
         GameModeCatalogEntry(
             id: "party.suddenDeath", name: "Sudden Death", blurb: "Lowest score is eliminated",
-            section: .party, status: .planned, minimumPlayers: 3,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 3,
+            matchType: .suddenDeath, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "exclamationmark.triangle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.fiftyOneByFives", name: "51 By 5's", blurb: "Score must be divisible by five",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .fiftyOneByFives, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "5.circle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.golf", name: "Golf", blurb: "Nine or eighteen holes, fewest strokes",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .inningPoints, statKind: .innings,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .golf, uiTemplate: .inningPoints, statKind: .innings,
             iconSystemName: "figure.golf"
         ),
         GameModeCatalogEntry(
             id: "party.football", name: "Football", blurb: "Kickoff on bull, then score goals",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .phaseRace, statKind: .goals,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .football, uiTemplate: .phaseRace, statKind: .goals,
             iconSystemName: "soccerball"
         ),
         GameModeCatalogEntry(
             id: "party.grandNational", name: "Grand National", blurb: "Clear the fences in order",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .grandNational, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "flag.checkered"
         ),
         GameModeCatalogEntry(
             id: "party.hareAndHounds", name: "Hare and Hounds", blurb: "Chase around the board",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .hareAndHounds, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "hare.fill"
         ),
         GameModeCatalogEntry(
             id: "party.followTheLeader", name: "Follow the Leader", blurb: "Match the leader's hit or lose a life",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .followTheLeader, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "arrow.turn.down.right"
         ),
         GameModeCatalogEntry(
             id: "party.loop", name: "Loop", blurb: "Beat the prior dart or drop a life",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .loop, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "arrow.triangle.2.circlepath"
         ),
         GameModeCatalogEntry(
             id: "party.prisoner", name: "Prisoner", blurb: "Trap darts in missed segments",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .prisoner, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "lock.fill"
         ),
         GameModeCatalogEntry(
             id: "party.scam", name: "Scam", blurb: "Stopper blocks, scorer scores",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .scam, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "theatermasks.fill"
         ),
         GameModeCatalogEntry(
             id: "party.snooker", name: "Snooker", blurb: "Reds and colours on the board",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .snooker, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "circle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.ticTacToe", name: "Tic-Tac-Toe", blurb: "Claim three segments in a row",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .ticTacToe, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "number.square.fill"
         ),
 
         // MARK: Practice
         GameModeCatalogEntry(
             id: "practice.aroundTheClock", name: "Around the Clock", blurb: "Hit 1 through 20 in order",
-            section: .practice, status: .planned, minimumPlayers: 1,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .aroundTheClock, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "clock.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.aroundTheClock180", name: "180 Around the Clock", blurb: "Around the clock, scoring points",
-            section: .practice, status: .planned, minimumPlayers: 1,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .aroundTheClock180, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "clock.badge.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.chaseTheDragon", name: "Chase the Dragon", blurb: "Trebles 1→20 then bull",
-            section: .practice, status: .planned, minimumPlayers: 1,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .chaseTheDragon, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "flame.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.nineLives", name: "Nine Lives", blurb: "Three darts, three targets, nine lives",
-            section: .practice, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            section: .practice, status: .shipped, minimumPlayers: 2,
+            matchType: .nineLives, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "heart.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.bobs27", name: "Bob's 27", blurb: "Doubles checkout drill",
-            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
+            section: .practice, status: .shipped, minimumPlayers: 1, maximumPlayers: 1,
+            matchType: .bobs27, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "scope"
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
+            section: .practice, status: .shipped, minimumPlayers: 1, maximumPlayers: 1,
+            matchType: .halveIt, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
     ]

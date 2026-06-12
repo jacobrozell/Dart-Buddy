@@ -16,6 +16,15 @@ enum GameModeAccent {
         case .baseball: Brand.orange
         case .killer: Brand.red
         case .shanghai: Brand.amber
+        case .americanCricket: Brand.proBot
+        case .englishCricket: Brand.proBot
+        case .mickeyMouse, .mulligan: Brand.orange
+        case .blindKiller, .followTheLeader, .loop: Brand.red
+        case .knockout, .suddenDeath, .fiftyOneByFives: Brand.orange
+        case .golf, .football, .grandNational, .hareAndHounds: Brand.amber
+        case .prisoner, .scam, .snooker, .ticTacToe: Brand.redAccent
+        case .aroundTheClock, .aroundTheClock180, .chaseTheDragon: Brand.green
+        case .nineLives, .bobs27, .halveIt: Brand.green
         }
     }
 
@@ -26,6 +35,30 @@ enum GameModeAccent {
         case .baseball: "baseball.fill"
         case .killer: "bolt.fill"
         case .shanghai: "star.fill"
+        case .americanCricket: "circle.grid.3x3"
+        case .mickeyMouse: "circle.grid.2x2.fill"
+        case .mulligan: "arrow.uturn.backward.circle.fill"
+        case .englishCricket: "figure.cricket"
+        case .blindKiller: "eye.slash.fill"
+        case .knockout: "bolt.horizontal.fill"
+        case .suddenDeath: "exclamationmark.triangle.fill"
+        case .fiftyOneByFives: "5.circle.fill"
+        case .golf: "figure.golf"
+        case .football: "soccerball"
+        case .grandNational: "flag.checkered"
+        case .hareAndHounds: "hare.fill"
+        case .followTheLeader: "arrow.turn.down.right"
+        case .loop: "arrow.triangle.2.circlepath"
+        case .prisoner: "lock.fill"
+        case .scam: "theatermasks.fill"
+        case .snooker: "circle.fill"
+        case .ticTacToe: "number.square.fill"
+        case .aroundTheClock: "clock.fill"
+        case .aroundTheClock180: "clock.badge.fill"
+        case .chaseTheDragon: "flame.fill"
+        case .nineLives: "heart.fill"
+        case .bobs27: "scope"
+        case .halveIt: "divide.circle.fill"
         }
     }
 
