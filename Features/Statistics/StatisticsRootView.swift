@@ -47,32 +47,37 @@ struct StatisticsRootView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
                             .accessibilityLabel(L10n.loading)
-                    } else if viewModel.rows.isEmpty {
-                        emptyState
                     } else {
-                        gamesTable
-                        if viewModel.isX01 {
-                            sectionTitle(L10n.string("stats.section.averageHighest"))
-                            averageTable
-                            averageChart
-                            if viewModel.showsTrendChart {
-                                sectionTitle(L10n.string("stats.trend.title"))
-                                AverageTrendChart(points: viewModel.trendPoints)
+                        Group {
+                            if viewModel.rows.isEmpty {
+                                emptyState
+                            } else {
+                                gamesTable
+                                if viewModel.isX01 {
+                                    sectionTitle(L10n.string("stats.section.averageHighest"))
+                                    averageTable
+                                    averageChart
+                                    if viewModel.showsTrendChart {
+                                        sectionTitle(L10n.string("stats.trend.title"))
+                                        AverageTrendChart(points: viewModel.trendPoints)
+                                    }
+                                    sectionTitle(L10n.string("stats.section.legsCheckout"))
+                                    checkoutTable
+                                } else if !viewModel.isAllGames {
+                                    sectionTitle(L10n.string("stats.section.marksPerRound"))
+                                    mprTable
+                                }
+                                sectionTitle(L10n.string("stats.points"))
+                                pointsTable
+                                sectionTitle(L10n.string("stats.throws"))
+                                throwsTable
+                                if !viewModel.isAllGames, let matchType = viewModel.modeFilter.matchType {
+                                    sectionTitle(L10n.string("stats.hitsInSector"))
+                                    sectorChart(mode: matchType)
+                                }
                             }
-                            sectionTitle(L10n.string("stats.section.legsCheckout"))
-                            checkoutTable
-                        } else if !viewModel.isAllGames {
-                            sectionTitle(L10n.string("stats.section.marksPerRound"))
-                            mprTable
                         }
-                        sectionTitle(L10n.string("stats.points"))
-                        pointsTable
-                        sectionTitle(L10n.string("stats.throws"))
-                        throwsTable
-                        if !viewModel.isAllGames, let matchType = viewModel.modeFilter.matchType {
-                            sectionTitle(L10n.string("stats.hitsInSector"))
-                            sectorChart(mode: matchType)
-                        }
+                        .motionTabContentReveal(when: true)
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)

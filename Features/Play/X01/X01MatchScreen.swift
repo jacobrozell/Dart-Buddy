@@ -13,6 +13,7 @@ struct X01MatchScreen: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
     @State private var lastAnnouncedCheckout: String?
@@ -224,6 +225,10 @@ struct X01MatchScreen: View {
             botTurnBanner
             stateBanner
         }
+        .animation(
+            MotionPolicy.fastAnimation(reduceMotion: reduceMotion),
+            value: viewModel.checkoutRoutes.isEmpty
+        )
     }
 
     private func scoringPad(state: X01State, landscape: Bool = false) -> some View {
@@ -256,6 +261,7 @@ struct X01MatchScreen: View {
                 routes: viewModel.checkoutRoutes,
                 selectedIndex: $selectedCheckoutIndex
             )
+            .transition(.opacity)
         }
     }
 

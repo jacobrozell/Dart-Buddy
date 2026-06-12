@@ -14,10 +14,19 @@ struct OnboardingFlowView: View {
     @State private var skipsRosterSetup = false
     @State private var finishTask: Task<Void, Never>?
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
+
     var body: some View {
         NavigationStack {
             stepContent
+                .id(step)
+                .transition(MotionTransition.onboardingStep(
+                    reduceMotion: reduceMotion,
+                    layoutDirection: layoutDirection
+                ))
         }
+        .animation(MotionPolicy.fastAnimation(reduceMotion: reduceMotion), value: step)
         .navigationBarTitleDisplayMode(.inline)
         .legacyHiddenNavigationBarBackground()
         .preferredColorScheme(preferredColorScheme)

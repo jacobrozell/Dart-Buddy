@@ -14,5 +14,6 @@ struct ErrorBanner: View {
             .padding(.vertical, DS.Spacing.s2)
             .background(Brand.redAccent, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             .accessibilityIdentifier("errorBanner")
+            .motionBannerEntrance()
     }
 }

@@ -108,16 +108,18 @@ struct MatchSummaryScreen: View {
     private var landscapePlayerCards: some View {
         if usesSideBySidePlayerGrid {
             HStack(spacing: DS.Spacing.s3) {
-                ForEach(viewModel.playerRows) { row in
+                ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
                     playerCard(row, layout: .horizontal, compactStats: true)
                         .frame(maxWidth: .infinity)
+                        .motionStaggeredReveal(index: index, when: celebrate)
                 }
             }
         } else {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: DS.Spacing.s3) {
-                    ForEach(viewModel.playerRows) { row in
+                    ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
                         playerCard(row, layout: .horizontal, compactStats: true)
+                            .motionStaggeredReveal(index: index, when: celebrate)
                     }
                 }
             }
@@ -218,9 +220,10 @@ struct MatchSummaryScreen: View {
     private func sideBySidePlayerGrid(axis: Axis) -> some View {
         if axis == .horizontal {
             HStack(spacing: DS.Spacing.s3) {
-                ForEach(viewModel.playerRows) { row in
+                ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
                     playerCard(row, layout: .horizontal, compactStats: true)
                         .frame(maxWidth: .infinity)
+                        .motionStaggeredReveal(index: index, when: celebrate)
                 }
             }
         } else {
@@ -231,16 +234,18 @@ struct MatchSummaryScreen: View {
                 ],
                 spacing: DS.Spacing.s3
             ) {
-                ForEach(viewModel.playerRows) { row in
+                ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
                     playerCard(row, layout: .fitsWidth)
+                        .motionStaggeredReveal(index: index, when: celebrate)
                 }
             }
         }
     }
 
     private var stackedPlayerCards: some View {
-        ForEach(viewModel.playerRows) { row in
+        ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
             playerCard(row, layout: .fitsWidth)
+                .motionStaggeredReveal(index: index, when: celebrate)
         }
     }
 
@@ -255,6 +260,19 @@ struct MatchSummaryScreen: View {
     }
 
     private var celebrationHeaderAccessibilityLabel: String {
+        if viewModel.isForfeited {
+            var parts = [L10n.string("play.summary.forfeit.title")]
+            if let forfeiter = viewModel.forfeiterName, let winner = viewModel.winnerName {
+                parts.append(L10n.format("play.summary.forfeit.subtitle", forfeiter, winner))
+            } else if viewModel.forfeiterName != nil {
+                parts.append(L10n.string("play.summary.forfeit.solo.subtitle"))
+            }
+            parts.append(viewModel.typeLabel)
+            if viewModel.hasResult {
+                parts.append(L10n.string("play.summary.forfeit.statsSaved"))
+            }
+            return parts.joined(separator: ". ")
+        }
         guard let winnerName = viewModel.winnerName else { return viewModel.typeLabel }
         let recorded = viewModel.hasResult ? L10n.string("play.summary.gameRecorded") : ""
         return L10n.format("play.summary.header.accessibilityFormat", winnerName, viewModel.typeLabel)
