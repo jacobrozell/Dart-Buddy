@@ -7,6 +7,7 @@ struct X01MatchScreen: View {
     let haptics: any HapticsService
     let turnTotalCaller: any TurnTotalCallerService
     let feedbackPreferences: FeedbackPreferences
+    let lifecycleDependencies: MatchLifecycleChromeDependencies
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -45,6 +46,7 @@ struct X01MatchScreen: View {
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
                 .accessibilityLabel(L10n.scoringUndoLastTurn)
+                .accessibilityIdentifier("match_undo")
             }
 
             if let state = viewModel.x01State {
@@ -75,27 +77,13 @@ struct X01MatchScreen: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {
-                viewModel.recoverBotPlaybackIfNeeded()
-            }
-            Button("play.match.exit.saveAndExit") {
-                showExitConfirmation = false
-                viewModel.onDisappear()
-                dismiss()
-            }
-            Button("play.match.exit.abandon", role: .destructive) {
-                showExitConfirmation = false
-                viewModel.onDisappear()
-                actionTask?.cancel()
-                actionTask = Task {
-                    await viewModel.abandonMatch()
-                    dismiss()
-                }
-            }
-        } message: {
-            Text("play.match.exit.confirm.message")
-        }
+        .matchLifecycleChrome(
+            host: viewModel,
+            showExitConfirmation: $showExitConfirmation,
+            onShowSummary: onShowSummary,
+            onDismiss: { dismiss() },
+            dependencies: lifecycleDependencies
+        )
         .onChange(of: viewModel.legFinishSoundToken) { _, token in
             if token > 0 {
                 audio.playLegFinished()

@@ -58,6 +58,38 @@ enum MatchVisitPreview {
     }
 }
 
+/// Slices a freshly generated bot visit so playback can resume after undo.
+enum BotVisitPlayback {
+    static func remainingPlannedDarts(fullPlan: [DartInput], existingCount: Int) -> [DartInput] {
+        guard existingCount > 0, existingCount < fullPlan.count else { return fullPlan }
+        return Array(fullPlan.dropFirst(existingCount))
+    }
+}
+
+@MainActor
+enum MatchBotUndoSupport {
+    /// Restarts bot playback after undo removed a dart from an in-progress or restored bot visit.
+    static func resumeAfterDartUndo(
+        isBotTurn: Bool,
+        partialVisitCount: Int,
+        isBotPlaying: inout Bool,
+        reconcileSubmittingTurn: () -> Void,
+        botPlayback: MatchBotPlaybackLifecycle,
+        schedule: () -> Void
+    ) {
+        guard isBotTurn, partialVisitCount < 3 else { return }
+        if isBotPlaying {
+            botPlayback.cancel {
+                isBotPlaying = false
+                reconcileSubmittingTurn()
+            }
+        } else {
+            reconcileSubmittingTurn()
+        }
+        schedule()
+    }
+}
+
 @MainActor
 enum MatchGameplaySessionSync {
     static func refreshStoredSession(

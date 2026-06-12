@@ -252,3 +252,61 @@ func lifecycleResumeThreePlayerCricketMidBoard() throws {
     #expect(resumed.runtime.cricketState == expectedState)
     #expect(resumed.runtime.cricketState?.currentPlayerIndex == 0)
 }
+
+@Test(.tags(.unit, .match, .critical, .regression, .offline))
+func lifecycleForfeitMarksInProgressMatchForfeited() throws {
+    let player1 = UUID()
+    let player2 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: player1, displayNameAtMatchStart: "P1", turnOrder: 0),
+            MatchParticipant(playerId: player2, displayNameAtMatchStart: "P2", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    let when = Date(timeIntervalSince1970: 200)
+    let forfeited = try MatchLifecycleService.forfeit(
+        session: session,
+        forfeitingPlayerId: player1,
+        winnerPlayerId: player2,
+        timestamp: when
+    )
+    #expect(forfeited.runtime.status == .forfeited)
+    #expect(forfeited.runtime.endedAt == when)
+    #expect(forfeited.runtime.winnerPlayerId == player2)
+    #expect(forfeited.runtime.forfeitedByPlayerId == player1)
+    #expect(forfeited.runtime.eventCount == 1)
+}
+
+@Test(.tags(.unit, .match, .regression, .offline))
+func lifecycleForfeitRequiresAtLeastOneEvent() throws {
+    let player1 = UUID()
+    let player2 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: player1, displayNameAtMatchStart: "P1", turnOrder: 0),
+            MatchParticipant(playerId: player2, displayNameAtMatchStart: "P2", turnOrder: 1)
+        ]
+    )
+    #expect(throws: (any Error).self) {
+        _ = try MatchLifecycleService.forfeit(session: session, forfeitingPlayerId: player1, winnerPlayerId: player2)
+    }
+}
+
+@Test(.tags(.unit, .match, .regression, .offline))
+func lifecycleForfeitSoloX01AllowsNilWinner() throws {
+    let solo = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [MatchParticipant(playerId: solo, displayNameAtMatchStart: "Solo", turnOrder: 0)]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    let forfeited = try MatchLifecycleService.forfeit(session: session, forfeitingPlayerId: solo, winnerPlayerId: nil)
+    #expect(forfeited.runtime.status == .forfeited)
+    #expect(forfeited.runtime.winnerPlayerId == nil)
+}
