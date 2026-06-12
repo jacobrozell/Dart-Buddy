@@ -19,7 +19,7 @@ Define accessibility requirements for MVP and future releases, with WCAG 2.1 AA 
 - Minimum touch target: 44x44 pt (52x52 preferred in gameplay input).
 - Do not rely on color alone to convey meaning (use text/icons/pattern).
 - Support Dynamic Type up to accessibility sizes without clipping critical score info.
-- Respect Reduce Motion and other system accessibility preferences.
+- Respect Reduce Motion and other system accessibility preferences (implementation catalog and gameplay motion rules: [`AnimationSpec.md`](AnimationSpec.md)).
 - Light mode and dark mode must both pass contrast and legibility checks.
 - Landscape layouts must preserve core task completion without hidden critical controls.
 

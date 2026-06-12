@@ -18,6 +18,7 @@ Catalog of all product and system specifications. For **audit coverage** (spec +
 - `specs/DataSchemaSpec.md`
 - `specs/RepositorySpec.md`
 - `specs/DesignSystemSpec.md`
+- `specs/AnimationSpec.md`
 - `specs/UIBlueprintSpec.md`
 - `specs/UIImplementationSpec.md`
 - `specs/UIReviewChecklist.md`
