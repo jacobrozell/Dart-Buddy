@@ -2,7 +2,7 @@ import SwiftUI
 
 enum OnboardingStep: Equatable {
     case welcome
-    case experienceQuestion
+    case rosterSetup
     case preferences
     case learnToPlay
     case appTour
@@ -14,7 +14,7 @@ enum OnboardingStep: Equatable {
     var progressIndex: Int {
         switch self {
         case .welcome: 1
-        case .experienceQuestion: 2
+        case .rosterSetup: 2
         case .preferences, .learnToPlay: 3
         case .appTour: 4
         case .support: 5
@@ -22,13 +22,13 @@ enum OnboardingStep: Equatable {
         }
     }
 
-    func backStep(experience: OnboardingExperience?) -> OnboardingStep? {
+    func backStep(showsRulesIntro: Bool?, skipsRosterSetup: Bool = false) -> OnboardingStep? {
         switch self {
         case .welcome: nil
-        case .experienceQuestion: .welcome
-        case .preferences, .learnToPlay: .experienceQuestion
+        case .rosterSetup: .welcome
+        case .preferences, .learnToPlay: skipsRosterSetup ? .welcome : .rosterSetup
         case .appTour:
-            experience == .beginner ? .learnToPlay : .preferences
+            showsRulesIntro == true ? .learnToPlay : .preferences
         case .support: .appTour
         case .ready: .support
         }
@@ -80,6 +80,7 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
                             .padding(.top, DS.Spacing.s6)
                             .padding(.bottom, scrollBottomPadding)
                     }
+                    .scrollDismissesKeyboard(.interactively)
                     .scrollIndicators(.hidden)
 
                     footer()
