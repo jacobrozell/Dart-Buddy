@@ -36,6 +36,7 @@ fi
 
 export SIM_NAME
 export OUT_DIR="${OUT_DIR:-$ROOT/marketing-screenshots/ipad/raw}"
+export DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/marketing-screenshots-ipad}"
 export APP_STORE_WIDTH="${APP_STORE_WIDTH:-2064}"
 export APP_STORE_HEIGHT="${APP_STORE_HEIGHT:-2752}"
 export APP_STORE_RESIZE="${APP_STORE_RESIZE:-1}"

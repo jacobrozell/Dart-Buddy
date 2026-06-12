@@ -107,7 +107,7 @@ capture_tab() {
   xcrun simctl terminate "$SIM_UDID" "$BUNDLE_ID" 2>/dev/null || true
   sleep 0.5
   xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" \
-    "${COMMON_ARGS[@]}" "${extra_args[@]}" -appearance_mode "$appearance" -snapshot_tab "$tab" >/dev/null
+    "${COMMON_ARGS[@]}" ${extra_args+"${extra_args[@]}"} -appearance_mode "$appearance" -snapshot_tab "$tab" >/dev/null
   sleep "$LAUNCH_DELAY"
   xcrun simctl io "$SIM_UDID" screenshot "$OUT_DIR/$filename"
 }
