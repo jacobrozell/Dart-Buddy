@@ -15,17 +15,47 @@ extension XCTestCase {
         in app: XCUIApplication,
         timeout: TimeInterval = 10
     ) {
-        if let identifier {
-            let byIdentifier = app.tabBars.buttons.matching(identifier: identifier).firstMatch
-            if byIdentifier.waitForExistence(timeout: 2) {
-                byIdentifier.tap()
-                return
+        let deadline = Date().addingTimeInterval(timeout)
+
+        func tapIfPossible(_ element: XCUIElement) -> Bool {
+            guard element.waitForExistence(timeout: 1) else { return false }
+            if element.isHittable {
+                element.tap()
+                return true
             }
+            // iOS 26 floating tab bar + AXXXL can expose tab items before they pass hit-testing.
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            return true
         }
 
-        let byLabel = app.tabBars.buttons[label].firstMatch
-        XCTAssertTrue(byLabel.waitForExistence(timeout: timeout), "Missing tab bar item '\(label)'")
-        byLabel.tap()
+        while Date() < deadline {
+            if let identifier {
+                let candidates: [XCUIElement] = [
+                    app.descendants(matching: .any).matching(identifier: identifier).firstMatch,
+                    app.tabBars.buttons.matching(identifier: identifier).firstMatch,
+                    app.buttons.matching(identifier: identifier).firstMatch,
+                    app.cells.matching(identifier: identifier).firstMatch
+                ]
+                for candidate in candidates where tapIfPossible(candidate) {
+                    return
+                }
+            }
+
+            let labelCandidates: [XCUIElement] = [
+                app.tabBars.buttons[label].firstMatch,
+                app.buttons[label].firstMatch,
+                app.cells[label].firstMatch,
+                app.cells.containing(NSPredicate(format: "label == %@", label)).firstMatch,
+                app.buttons.containing(NSPredicate(format: "label == %@", label)).firstMatch
+            ]
+            for candidate in labelCandidates where tapIfPossible(candidate) {
+                return
+            }
+
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        }
+
+        XCTFail("Missing tab bar item '\(label)' (identifier: \(identifier ?? "nil"))")
     }
 
     @discardableResult
@@ -141,6 +171,23 @@ extension XCTestCase {
         )
     }
 
+    func ensurePlayersTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        if app.descendants(matching: .any)["players_searchField"].waitForExistence(timeout: 1)
+            || app.buttons.matching(
+                NSPredicate(format: "identifier BEGINSWITH %@", "player_row_")
+            ).firstMatch.waitForExistence(timeout: 1) {
+            return
+        }
+        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
+        XCTAssertTrue(
+            app.descendants(matching: .any)["players_searchField"].waitForExistence(timeout: 2)
+                || app.buttons.matching(
+                    NSPredicate(format: "identifier BEGINSWITH %@", "player_row_")
+                ).firstMatch.waitForExistence(timeout: timeout),
+            "Players tab should be visible"
+        )
+    }
+
     func ensureModesTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         tapTabBarItem(named: "Modes", identifier: "tab_modes", in: app, timeout: timeout)
         XCTAssertTrue(
@@ -150,6 +197,10 @@ extension XCTestCase {
     }
 
     func ensureActivityTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        if app.buttons["activity_segment_history"].waitForExistence(timeout: 1)
+            || app.buttons["activity_segment_statistics"].waitForExistence(timeout: 1) {
+            return
+        }
         tapTabBarItem(named: "Activity", identifier: "tab_activity", in: app, timeout: timeout)
         XCTAssertTrue(
             app.staticTexts["Activity"].waitForExistence(timeout: timeout)
@@ -174,12 +225,25 @@ extension XCTestCase {
     }
 
     func ensureSettingsTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        let form = app.descendants(matching: .any)["settings_form"]
+        let themePicker = app.descendants(matching: .any)["settings_themePicker"]
+        if form.waitForExistence(timeout: 1) || themePicker.waitForExistence(timeout: 1) {
+            return
+        }
         tapTabBarItem(named: "Settings", identifier: "tab_settings", in: app, timeout: timeout)
-        XCTAssertTrue(
-            app.staticTexts["Settings"].waitForExistence(timeout: timeout)
-                || app.descendants(matching: .any)["settings_form"].waitForExistence(timeout: timeout),
-            "Settings tab should be visible"
-        )
+        let loading = app.descendants(matching: .any)["settings_loading"]
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if loading.exists {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+                continue
+            }
+            if form.waitForExistence(timeout: 1) || themePicker.waitForExistence(timeout: 1) {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        XCTFail("Settings tab should be visible")
     }
 
     func scrollToSettingsControl(
@@ -239,7 +303,10 @@ extension XCTestCase {
         for identifier in markers {
             scrollToSettingsControl(identifier, in: app, timeout: 6)
         }
-        for _ in 0 ..< 3 {
+        for _ in 0 ..< 4 {
+            app.swipeUp()
+        }
+        for _ in 0 ..< 4 {
             app.swipeDown()
         }
     }

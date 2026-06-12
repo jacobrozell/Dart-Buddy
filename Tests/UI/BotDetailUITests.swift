@@ -4,7 +4,7 @@ final class BotDetailUITests: DartBuddyUITestCase {
     func testBotDetailShowsDifficultyAndSavesCustomization() {
         let app = launchApp(["-seed_demo"])
 
-        app.tabBars.buttons["Players"].tap()
+        ensurePlayersTab(app, timeout: timeout)
         openBotRow(named: "Easy Bot 1", in: app)
 
         XCTAssertTrue(app.navigationBars["Bot Detail"].waitForExistence(timeout: timeout))

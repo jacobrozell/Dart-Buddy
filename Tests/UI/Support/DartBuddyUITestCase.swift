@@ -14,7 +14,9 @@ class DartBuddyUITestCase: XCTestCase {
 
     override func tearDown() {
         XCUIApplication().terminate()
-        XCUIDevice.shared.orientation = .portrait
+        if XCUIDevice.shared.orientation != .portrait {
+            XCUIDevice.shared.orientation = .portrait
+        }
         super.tearDown()
     }
 

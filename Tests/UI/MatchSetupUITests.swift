@@ -64,6 +64,19 @@ final class MatchSetupUITests: DartBuddyUITestCase {
         XCTAssertFalse(start.isEnabled, "START must stay disabled with an empty roster")
     }
 
+    func testAddPlayerFromSetupAutoSelectsInRoster() {
+        let app = launchApp()
+        let playerName = "Casey"
+
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
+        addPlayerFromSetup(named: playerName, in: app, timeout: timeout)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["setup_selected_\(playerName)"].waitForExistence(timeout: timeout),
+            "New player should auto-select in turn order after saving from setup"
+        )
+    }
+
     func testHumanPlusBotCanStartMatch() {
         let app = launchApp(["-seed_players"])
         configureFastX01MatchForUITest(app, timeout: timeout)
@@ -171,5 +184,51 @@ final class MatchSetupUITests: DartBuddyUITestCase {
             trainingOption.waitForExistence(timeout: timeout + 10),
             "Add Bot menu should list the linked Training Partner after removing it from turn order"
         )
+    }
+
+    // MARK: - Phase 6 setup flows
+
+    func testX01ModeSwitchPreservesRoster() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app, timeout: timeout)
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
+
+        selectModeFromPlaySetupPicker("standard.x01", in: app, expectedModeName: "X01", timeout: timeout)
+
+        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Alice"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["setup_selected_Bob"].waitForExistence(timeout: timeout))
+    }
+
+    func testCricketNormalModeChipEnabledWhenPointsOn() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app, timeout: timeout)
+        tapCricketPointsOn(in: app)
+
+        let modeChip = app.descendants(matching: .any)["setup_cricketModeChip"]
+        XCTAssertTrue(modeChip.waitForExistence(timeout: timeout))
+        XCTAssertTrue(modeChip.isEnabled)
+    }
+
+    func testResumeMatchPreservesX01Board() {
+        let app = launchApp(["-seed_demo"])
+
+        let resume = app.buttons["resumeMatchButton"]
+        XCTAssertTrue(resume.waitForExistence(timeout: timeout))
+        resume.tap()
+
+        waitForX01MatchBoard(in: app, timeout: timeout + 15)
+        assertActiveScoreCardLabel(app, contains: "121", timeout: timeout)
+        XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+    }
+
+    func testSoloCricketPracticeRequiresTwoPlayers() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app, timeout: timeout)
+        selectPlayerFromRoster("Alice", in: app)
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertFalse(start.isEnabled, "Cricket should require at least two participants")
     }
 }

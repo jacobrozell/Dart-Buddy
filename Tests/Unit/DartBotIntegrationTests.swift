@@ -678,6 +678,17 @@ private func waitForX01BotVisitCompletion(on vm: X01MatchViewModel) async throws
 }
 
 @MainActor
+private func waitForX01BotPlaybackToSettle(on vm: X01MatchViewModel) async throws {
+    for _ in 0 ..< 140 {
+        if vm.isBotPlaying == false, vm.enteredDarts.isEmpty {
+            return
+        }
+        try await Task.sleep(nanoseconds: 25_000_000)
+    }
+    Issue.record("Timed out waiting for bot playback to settle.")
+}
+
+@MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
 func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throws {
     let humanId = UUID()
@@ -705,12 +716,15 @@ func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throw
     )
     let store = ActiveMatchStore()
     store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
         logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
         matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
     )
     vm.inputMode = .dartEntry
     vm.enteredDarts = [
@@ -723,12 +737,74 @@ func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throw
 
     await vm.undoLastDart()
     #expect(vm.session?.events.count == 1)
+    try await waitForX01BotPlaybackToSettle(on: vm)
+
+    #expect(vm.session?.events.count == 2)
+    #expect(!vm.isCurrentPlayerBot)
+    #expect(vm.enteredDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01UndoDuringActiveBotPlaybackCompletesVisit() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(playerId: humanId, displayNameAtMatchStart: "Human", turnOrder: 0),
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .single, segment: .oneToTwenty(20))
+    ]
+    let submitTask = Task { await vm.submitTurn() }
+
+    for _ in 0 ..< 40 {
+        if vm.isBotPlaying, vm.enteredDarts.count == 2 { break }
+        try await Task.sleep(nanoseconds: 25_000_000)
+    }
+    #expect(vm.isBotPlaying)
     #expect(vm.enteredDarts.count == 2)
 
     await vm.undoLastDart()
-    #expect(vm.session?.events.count == 1)
-    #expect(vm.enteredDarts.count == 1)
-    #expect(vm.isCurrentPlayerBot)
+    await submitTask.value
+    try await waitForX01BotPlaybackToSettle(on: vm)
+
+    #expect(!vm.isBotPlaying)
+    #expect(vm.session?.events.count == 2)
+    #expect(!vm.isCurrentPlayerBot)
+    #expect(vm.enteredDarts.isEmpty)
 }
 
 @MainActor

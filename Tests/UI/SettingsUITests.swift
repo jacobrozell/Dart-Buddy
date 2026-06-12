@@ -153,6 +153,7 @@ final class SettingsUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.descendants(matching: .any)["settings_supportFAQLink"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.descendants(matching: .any)["settings_sendFeedbackLink"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.descendants(matching: .any)["settings_rateAppLink"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["settings_accessibilityLink"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.descendants(matching: .any)["settings_privacyPolicyLink"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.staticTexts["settings_aboutVersion"].waitForExistence(timeout: timeout))
     }
