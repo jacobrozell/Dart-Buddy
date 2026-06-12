@@ -18,7 +18,27 @@ struct BrandSegmented<T: Hashable>: View {
 
     var body: some View {
         Group {
-            if usesScrollingSegments {
+            if usesAccessibilitySegmentLabels && options.count <= 3 {
+                VStack(spacing: 0) {
+                    ForEach(options.indices, id: \.self) { index in
+                        segmentButton(at: index, expands: true)
+                    }
+                }
+                .padding(4)
+            } else if usesAccessibilitySegmentLabels && options.count == 4 {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 0),
+                        GridItem(.flexible(), spacing: 0)
+                    ],
+                    spacing: 0
+                ) {
+                    ForEach(options.indices, id: \.self) { index in
+                        segmentButton(at: index, expands: true)
+                    }
+                }
+                .padding(4)
+            } else if usesScrollingSegments {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 0) {
                         ForEach(options.indices, id: \.self) { index in
@@ -27,6 +47,7 @@ struct BrandSegmented<T: Hashable>: View {
                     }
                     .padding(4)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 HStack(spacing: 0) {
                     ForEach(options.indices, id: \.self) { index in
@@ -71,11 +92,15 @@ struct StatusBadge: View {
     let color: Color
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Text(text)
             .font(.caption.weight(.bold))
             .foregroundStyle(Brand.textPrimary)
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, DS.Spacing.s2)
             .padding(.vertical, 2)
             .background(

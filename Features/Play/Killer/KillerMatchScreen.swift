@@ -43,7 +43,7 @@ struct KillerMatchScreen: View {
             }
 
             if viewModel.killerState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         KillerScoreboardView(rows: viewModel.scoreboardRows)
                         if viewModel.isPickPhase {

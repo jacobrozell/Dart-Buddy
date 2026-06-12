@@ -155,6 +155,7 @@ struct X01MatchScreen: View {
         let pinsActive = pinsActivePlayerCard
 
         return MatchScoringBody(
+            playerCount: cards.count,
             showsActiveBand: pinsActive && active != nil,
             scoreboardSharesBottomRow: cards.count > 1,
             scoreboardFillsRemainingHeight: inactive.count >= 3,

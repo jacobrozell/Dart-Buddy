@@ -28,6 +28,9 @@ enum GameplayLayout {
             && !usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
+    /// iPad sidebar layout activates at this player count (2-player matches use the stacked iPhone shell).
+    static let sideBySidePlayerCountThreshold = 3
+
     /// Minimum width for the bottom-docked pad column on iPhone portrait.
     static let phonePortraitBottomPadMinWidth: CGFloat = 220
 
@@ -61,9 +64,11 @@ enum GameplayLayout {
 
     /// Bottom inset for tab-root scroll content so rows clear the tab bar at AX sizes.
     static func tabScrollBottomPadding(dynamicTypeSize: DynamicTypeSize) -> CGFloat {
-        usesAccessibilityTabListLayout(dynamicTypeSize: dynamicTypeSize)
-            ? DS.Spacing.s6 + 72
-            : DS.Spacing.s6
+        guard usesAccessibilityTabListLayout(dynamicTypeSize: dynamicTypeSize) else {
+            return DS.Spacing.s6
+        }
+        let tabBarClearance = 72 * DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
+        return DS.Spacing.s6 + tabBarClearance
     }
 
     /// iPhone landscape (compact vertical height): board and pad side-by-side.
@@ -131,76 +136,106 @@ enum GameplayLayout {
         return verticalSizeClass == .compact && isPad
     }
 
-    /// Cricket: targets as columns, active player only — iPhone landscape.
+    /// Cricket: targets as columns, active player only — landscape stacked layout (phone and sparse iPad).
     static func usesTransposedCricketBoardLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
+        dynamicTypeSize: DynamicTypeSize,
         isPad: Bool = defaultIsPad
     ) -> Bool {
-        usesLandscapeIPhoneOnlyMatchScoringLayout(
+        usesStackedLandscapeMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount,
+            dynamicTypeSize: dynamicTypeSize,
             isPad: isPad
         )
     }
 
-    /// Cricket: full multi-player board scales to the scoreboard column (iPad landscape).
+    /// Cricket: full multi-player board scales to the scoreboard column (iPad landscape sidebar only).
     static func usesCricketBoardFillsAvailableHeight(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
         isPad: Bool = defaultIsPad
     ) -> Bool {
         usesLandscapeIPadMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
             isPad: isPad
+        ) && usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount,
+            isPad: isPad
         )
     }
 
-    /// Cricket iPhone landscape: current player board pinned above a full-width pad (X01-style),
-    /// rather than the side-by-side board + sidebar pad used on iPad where there is more room.
-    static func usesCricketLandscapePinnedLayout(
+    /// Landscape stacked shell: active content above a full-width pad (not the iPad sidebar).
+    static func usesStackedLandscapeMatchScoringLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
-        dynamicTypeSize: DynamicTypeSize,
-        isPad: Bool = defaultIsPad
-    ) -> Bool {
-        usesLandscapeIPhoneOnlyMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass,
-            isPad: isPad
-        ) && !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
-    }
-
-    /// Cricket side-by-side board + pad: iPad portrait and iPad landscape only (not iPhone landscape).
-    static func usesCricketSideBySideMatchScoringLayout(
-        horizontalSizeClass: UserInterfaceSizeClass?,
-        verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
         dynamicTypeSize: DynamicTypeSize,
         isPad: Bool = defaultIsPad
     ) -> Bool {
         guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
-        return usesIPadPortraitMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
-        ) || usesLandscapeIPadMatchScoringLayout(
+        guard usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) else { return false }
+        return !usesSideBySideBottomScoringRegion(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount,
             isPad: isPad
         )
     }
 
-    /// Cricket pad spans the full width below the board (iPhone landscape) instead of a
-    /// fixed-width sidebar, so it lays keys out wide and short to leave room for the board.
+    /// Cricket landscape stacked layout: pinned board above a full-width pad.
+    static func usesCricketLandscapePinnedLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        usesStackedLandscapeMatchScoringLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount,
+            dynamicTypeSize: dynamicTypeSize,
+            isPad: isPad
+        )
+    }
+
+    /// Cricket side-by-side board + pad: iPad with enough players for the sidebar shell.
+    static func usesCricketSideBySideMatchScoringLayout(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
+    ) -> Bool {
+        guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
+        return usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount,
+            isPad: isPad
+        )
+    }
+
+    /// Cricket pad spans the full width below the board in landscape stacked layout.
     static func usesCricketFullWidthLandscapePad(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
         dynamicTypeSize: DynamicTypeSize,
         isPad: Bool = defaultIsPad
     ) -> Bool {
         usesCricketLandscapePinnedLayout(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount,
             dynamicTypeSize: dynamicTypeSize,
             isPad: isPad
         )
@@ -249,17 +284,22 @@ enum GameplayLayout {
         !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
-    /// iPad only: inactive scoreboard scrolls beside a fixed-width pad column below the active band.
-    /// iPhone stacks scoreboard, banners, and pad full width (portrait and landscape).
+    /// iPad with 3+ players: inactive scoreboard scrolls beside a fixed-width pad column below the active band.
+    /// iPhone and sparse iPad matches stack scoreboard, banners, and pad full width.
     static func usesSideBySideBottomScoringRegion(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
         isPad: Bool = defaultIsPad
     ) -> Bool {
-        (isPad && usesIPadPortraitMatchScoringLayout(
+        guard playerCount >= sideBySidePlayerCountThreshold else { return false }
+        if isPad && usesIPadPortraitMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass
-        )) || usesLandscapeIPadMatchScoringLayout(
+        ) {
+            return true
+        }
+        return usesLandscapeIPadMatchScoringLayout(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
             isPad: isPad
@@ -312,20 +352,19 @@ enum GameplayLayout {
         )
     }
 
-    /// X01 side-by-side scoreboard + pad: iPad portrait and iPad landscape (not iPhone landscape).
+    /// X01 side-by-side scoreboard + pad: iPad with enough players for the sidebar shell.
     static func usesX01SideBySideMatchScoringLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
+        playerCount: Int,
         dynamicTypeSize: DynamicTypeSize,
         isPad: Bool = defaultIsPad
     ) -> Bool {
         guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
-        return usesIPadPortraitMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
-        ) || usesLandscapeIPadMatchScoringLayout(
+        return usesSideBySideBottomScoringRegion(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount,
             isPad: isPad
         )
     }

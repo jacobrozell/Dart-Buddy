@@ -53,7 +53,7 @@ struct ShanghaiMatchScreen: View {
             }
 
             if let state = viewModel.shanghaiState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         Text(viewModel.goalReminder)
                             .font(.caption.weight(.semibold))

@@ -103,10 +103,15 @@ struct CricketMatchScreen: View {
             && horizontalSizeClass != .regular
     }
 
+    private var cricketPlayerCount: Int {
+        viewModel.boardColumns.count
+    }
+
     private var usesSplitCricketScoreboard: Bool {
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            playerCount: cricketPlayerCount
         )
     }
 
@@ -119,6 +124,7 @@ struct CricketMatchScreen: View {
         let inactiveCount = split ? inactiveColumns.count : max(0, columns.count - 1)
 
         return MatchScoringBody(
+            playerCount: columns.count,
             showsActiveBand: split && !activeColumns.isEmpty,
             scoreboardSharesBottomRow: split ? !inactiveColumns.isEmpty : true,
             scoreboardFillsRemainingHeight: inactiveCount >= 3,
@@ -195,14 +201,17 @@ struct CricketMatchScreen: View {
     private var usesTransposedCricketBoard: Bool {
         GameplayLayout.usesTransposedCricketBoardLayout(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            playerCount: cricketPlayerCount,
+            dynamicTypeSize: dynamicTypeSize
         )
     }
 
     private var usesCricketBoardFillsAvailableHeight: Bool {
         GameplayLayout.usesCricketBoardFillsAvailableHeight(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            playerCount: cricketPlayerCount
         )
     }
 
