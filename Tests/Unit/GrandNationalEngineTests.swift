@@ -105,7 +105,8 @@ func grandNationalMissAllThreeDartsEliminatesPlayer() throws {
     state = outcome.updatedState
     #expect(outcome.event.eliminated == true)
     #expect(state.players[0].isEliminated == true)
-    #expect(state.isComplete == false) // P2 still alive
+    #expect(state.isComplete == true)
+    #expect(state.winnerPlayerId == p2)
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))

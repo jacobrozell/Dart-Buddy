@@ -33,7 +33,7 @@ public struct MatchConfigEnglishCricket: Codable, Equatable, Sendable {
         endWhenTargetPassed: Bool = true
     ) {
         self.payloadVersion = payloadVersion
-        self.wicketsPerInnings = max(1, wicketsPerInnings)
+        self.wicketsPerInnings = wicketsPerInnings
         self.runsThreshold = max(0, runsThreshold)
         self.endWhenTargetPassed = endWhenTargetPassed
     }

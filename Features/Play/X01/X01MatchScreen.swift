@@ -247,19 +247,21 @@ struct X01MatchScreen: View {
 
     @ViewBuilder
     private var visionScoringButton: some View {
-        if visionScoringEnabled {
-            Button {
-                showVisionScoring = true
-            } label: {
-                Label(L10n.string("vision.launchButton"), systemImage: "camera.viewfinder")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Brand.green)
-                    .padding(.vertical, DS.Spacing.s2)
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+        Group {
+            if visionScoringEnabled {
+                Button {
+                    showVisionScoring = true
+                } label: {
+                    Label(L10n.string("vision.launchButton"), systemImage: "camera.viewfinder")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.green)
+                        .padding(.vertical, DS.Spacing.s2)
+                        .padding(.horizontal, DS.Spacing.s4)
+                        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                }
+                .accessibilityLabel(L10n.string("vision.launchButton.accessibility"))
+                .accessibilityIdentifier("vision_scoring_button")
             }
-            .accessibilityLabel(L10n.string("vision.launchButton.accessibility"))
-            .accessibilityIdentifier("vision_scoring_button")
         }
         .animation(
             MotionPolicy.fastAnimation(reduceMotion: reduceMotion),

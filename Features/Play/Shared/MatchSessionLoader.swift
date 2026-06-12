@@ -45,7 +45,11 @@ enum MatchSessionLoader {
                 createdAt: snapshotSummary.updatedAt,
                 payload: snapshotSummary.snapshotPayload
             )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
+            let rehydrated = try MatchLifecycleService.rehydrate(
+                snapshot: snapshot,
+                tailEvents: tailEvents,
+                persistedEvents: envelopes
+            )
             store.save(rehydrated)
             logger.matchInfo(
                 matchId: matchId,

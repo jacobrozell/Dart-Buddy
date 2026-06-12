@@ -101,13 +101,7 @@ final class MatchSummaryViewModel: ObservableObject {
 
     var typeLabel: String {
         guard let type = session?.runtime.type else { return "" }
-        switch type {
-        case .x01: return L10n.string("play.x01.title")
-        case .cricket: return L10n.string("play.cricket.title")
-        case .baseball: return L10n.string("play.baseball.title")
-        case .killer: return L10n.string("play.killer.title")
-        case .shanghai: return L10n.string("play.shanghai.title")
-        }
+        return MatchConfigText.modeLabel(for: type)
     }
 
     var winnerName: String? {
@@ -196,6 +190,10 @@ final class MatchSummaryViewModel: ObservableObject {
             let points = runtime.shanghaiState?.players.first(where: { $0.playerId == breakdown.playerId })?.cumulativePoints ?? breakdown.points
             return [
                 (L10n.string("play.summary.stat.score"), "\(points)"),
+                (L10n.string("play.summary.stat.darts"), "\(breakdown.darts)")
+            ]
+        default:
+            return [
                 (L10n.string("play.summary.stat.darts"), "\(breakdown.darts)")
             ]
         }

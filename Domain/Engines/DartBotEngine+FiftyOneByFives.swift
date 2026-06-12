@@ -24,7 +24,7 @@ extension DartBotEngine {
         case .veryEasy: targetSegment = 5
         case .easy:     targetSegment = 10
         case .medium:   targetSegment = 15
-        case .hard, .veryHard, .expert: targetSegment = 20
+        case .hard, .pro: targetSegment = 20
         }
 
         var darts: [DartInput] = []

@@ -4,10 +4,10 @@ import Foundation
 enum KnockoutSetupPreferences {
     private static let strikesToEliminateKey = "knockoutSetup.strikesToEliminate"
 
-    static func load() -> (strikesToEliminate: Int) {
+    static func load() -> Int {
         let defaults = UserDefaults.standard
         let strikes = defaults.object(forKey: strikesToEliminateKey) as? Int ?? 3
-        return (max(1, min(5, strikes)))
+        return max(1, min(5, strikes))
     }
 
     static func save(strikesToEliminate: Int) {

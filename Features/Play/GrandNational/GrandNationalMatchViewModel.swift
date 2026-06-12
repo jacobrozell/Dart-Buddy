@@ -414,7 +414,3 @@ final class GrandNationalMatchViewModel: ObservableObject {
         return event
     }
 }
-
-private func postAccessibilityAnnouncement(_ text: String) {
-    UIAccessibility.post(notification: .announcement, argument: text)
-}

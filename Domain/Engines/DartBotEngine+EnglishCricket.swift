@@ -37,7 +37,7 @@ extension DartBotEngine {
         var darts: [DartInput] = []
         while darts.count < 3 {
             let intended = englishCricketBatterDart(profile: profile, rng: &rng)
-            let resolved = resolveDart(intended: intended, profile: profile, rng: &rng)
+            let resolved = resolveEnglishCricketBatterDart(intended: intended, profile: profile, rng: &rng)
             darts.append(resolved)
         }
         return darts
@@ -72,6 +72,28 @@ extension DartBotEngine {
             let segment = [20, 19].randomElement(using: &rng) ?? 20
             return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
         }
+    }
+
+    /// Resolves a batter dart using X01 hit probabilities.
+    private static func resolveEnglishCricketBatterDart(
+        intended: DartInput,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        guard !intended.isMiss else { return intended }
+
+        let roll = Double.random(in: 0 ... 1, using: &rng)
+        let hitChance = min(0.90, profile.x01HitChance(intendedMultiplier: intended.multiplier))
+        if roll < hitChance {
+            return intended
+        }
+
+        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.offBoardMissChance {
+            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        }
+
+        let face = Int.random(in: 1 ... 20, using: &rng)
+        return DartInput(multiplier: .single, segment: .oneToTwenty(face))
     }
 
     // MARK: - Bowler

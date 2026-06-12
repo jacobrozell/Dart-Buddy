@@ -42,7 +42,8 @@ func unacceptableCalibrationIsRejected() {
         radius: 0.3,
         quality: CalibrationQuality(fitConfidence: 0.4, brightness: 0.5, sharpness: 0.6)
     )!
-    #expect(!session.applyCalibration(poor))
+    let applied = session.applyCalibration(poor)
+    #expect(!applied)
     #expect(session.phase == .calibrating)
 }
 
@@ -103,7 +104,8 @@ func confirmReturnsDartWithVisionConfirmedMetadata() throws {
         Issue.record("Expected proposal")
         return
     }
-    let confirmed = try #require(session.handle(ConfirmDetectedThrowCommand(detectedThrowId: detection.id)))
+    let confirmOutcome = session.handle(ConfirmDetectedThrowCommand(detectedThrowId: detection.id))
+    let confirmed = try #require(confirmOutcome)
     #expect(confirmed.dart == detection.dart)
     #expect(confirmed.metadata.inputMethod == .visionConfirmed)
     #expect(confirmed.metadata.visionConfidence == 0.8)
@@ -119,9 +121,10 @@ func confirmAppliesUserCorrection() throws {
         return
     }
     let corrected = DartInput(multiplier: .single, segment: .oneToTwenty(5))
-    let confirmed = try #require(
-        session.handle(ConfirmDetectedThrowCommand(detectedThrowId: detection.id, correctedDart: corrected))
+    let confirmOutcome = session.handle(
+        ConfirmDetectedThrowCommand(detectedThrowId: detection.id, correctedDart: corrected)
     )
+    let confirmed = try #require(confirmOutcome)
     #expect(confirmed.dart == corrected)
 }
 
@@ -129,8 +132,10 @@ func confirmAppliesUserCorrection() throws {
 func staleConfirmAndRejectAreNoOps() {
     var session = calibratedSession()
     _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
-    #expect(session.handle(ConfirmDetectedThrowCommand(detectedThrowId: UUID())) == nil)
-    #expect(!session.handle(RejectDetectedThrowCommand(detectedThrowId: UUID())))
+    let staleConfirm = session.handle(ConfirmDetectedThrowCommand(detectedThrowId: UUID()))
+    #expect(staleConfirm == nil)
+    let staleReject = session.handle(RejectDetectedThrowCommand(detectedThrowId: UUID()))
+    #expect(!staleReject)
     #expect(session.pendingProposal != nil)
 }
 
@@ -141,7 +146,8 @@ func rejectClearsProposalAndAllowsNewDetections() {
         Issue.record("Expected proposal")
         return
     }
-    #expect(session.handle(RejectDetectedThrowCommand(detectedThrowId: detection.id)))
+    let rejected = session.handle(RejectDetectedThrowCommand(detectedThrowId: detection.id))
+    #expect(rejected)
     guard case .proposed = session.handle(tripleTwentyCommand(for: session, confidence: 0.8)) else {
         Issue.record("Expected a fresh proposal after reject")
         return
@@ -152,16 +158,19 @@ func rejectClearsProposalAndAllowsNewDetections() {
 func driftPausesSessionAndDropsPendingProposal() {
     var session = calibratedSession()
     _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
-    #expect(session.observeBoard(centerX: 0.6, centerY: 0.5, radius: 0.3))
+    let driftPaused = session.observeBoard(centerX: 0.6, centerY: 0.5, radius: 0.3)
+    #expect(driftPaused)
     #expect(session.phase == .paused(.calibrationDrift))
     #expect(session.pendingProposal == nil)
-    #expect(session.handle(tripleTwentyCommand(for: session, confidence: 0.8)) == .ignored(.sessionNotReady))
+    let afterDrift = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
+    #expect(afterDrift == .ignored(.sessionNotReady))
 }
 
 @Test(.tags(.unit, .vision, .regression))
 func smallBoardMovementDoesNotPause() {
     var session = calibratedSession()
-    #expect(!session.observeBoard(centerX: 0.51, centerY: 0.5, radius: 0.3))
+    let smallMove = session.observeBoard(centerX: 0.51, centerY: 0.5, radius: 0.3)
+    #expect(!smallMove)
     #expect(session.phase == .ready)
 }
 

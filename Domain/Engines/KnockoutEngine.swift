@@ -16,7 +16,7 @@ public struct MatchConfigKnockout: Codable, Equatable, Sendable {
         resetHighEachRound: Bool = true
     ) {
         self.payloadVersion = payloadVersion
-        self.strikesToEliminate = max(1, min(5, strikesToEliminate))
+        self.strikesToEliminate = strikesToEliminate
         self.resetHighEachRound = resetHighEachRound
     }
 }

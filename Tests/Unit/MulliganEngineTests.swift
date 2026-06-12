@@ -191,7 +191,7 @@ func mulliganBullClosureWinsMatch() throws {
         darts: [bullDouble(), bullSingle(), miss()]
     ).updatedState
     #expect(state.isComplete)
-    #expect(state.winnerPlayerId == winner)
+    #expect(state.winnerPlayerId == state.players[1].playerId)
 }
 
 // MARK: - Completed match guard

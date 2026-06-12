@@ -198,6 +198,21 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
     case baseball(MatchConfigBaseball)
     case killer(MatchConfigKiller)
     case shanghai(MatchConfigShanghai)
+    case americanCricket(MatchConfigAmericanCricket)
+    case mickeyMouse(MatchConfigMickeyMouse)
+    case mulligan(MatchConfigMulligan)
+    case englishCricket(MatchConfigEnglishCricket)
+    case knockout(MatchConfigKnockout)
+    case suddenDeath(MatchConfigSuddenDeath)
+    case fiftyOneByFives(MatchConfigFiftyOneByFives)
+    case golf(MatchConfigGolf)
+    case football(MatchConfigFootball)
+    case grandNational(MatchConfigGrandNational)
+    case hareAndHounds(MatchConfigHareAndHounds)
+    case aroundTheClock(MatchConfigAroundTheClock)
+    case aroundTheClock180(MatchConfigAroundTheClock180)
+    case chaseTheDragon(MatchConfigChaseTheDragon)
+    case nineLives(MatchConfigNineLives)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -206,6 +221,21 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case baseball
         case killer
         case shanghai
+        case americanCricket
+        case mickeyMouse
+        case mulligan
+        case englishCricket
+        case knockout
+        case suddenDeath
+        case fiftyOneByFives
+        case golf
+        case football
+        case grandNational
+        case hareAndHounds
+        case aroundTheClock
+        case aroundTheClock180
+        case chaseTheDragon
+        case nineLives
     }
 
     private enum PayloadType: String, Codable {
@@ -214,6 +244,21 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case baseball
         case killer
         case shanghai
+        case americanCricket
+        case mickeyMouse
+        case mulligan
+        case englishCricket
+        case knockout
+        case suddenDeath
+        case fiftyOneByFives
+        case golf
+        case football
+        case grandNational
+        case hareAndHounds
+        case aroundTheClock
+        case aroundTheClock180
+        case chaseTheDragon
+        case nineLives
     }
 
     public init(from decoder: any Decoder) throws {
@@ -230,6 +275,36 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
             self = .killer(try container.decode(MatchConfigKiller.self, forKey: .killer))
         case .shanghai:
             self = .shanghai(try container.decode(MatchConfigShanghai.self, forKey: .shanghai))
+        case .americanCricket:
+            self = .americanCricket(try container.decode(MatchConfigAmericanCricket.self, forKey: .americanCricket))
+        case .mickeyMouse:
+            self = .mickeyMouse(try container.decode(MatchConfigMickeyMouse.self, forKey: .mickeyMouse))
+        case .mulligan:
+            self = .mulligan(try container.decode(MatchConfigMulligan.self, forKey: .mulligan))
+        case .englishCricket:
+            self = .englishCricket(try container.decode(MatchConfigEnglishCricket.self, forKey: .englishCricket))
+        case .knockout:
+            self = .knockout(try container.decode(MatchConfigKnockout.self, forKey: .knockout))
+        case .suddenDeath:
+            self = .suddenDeath(try container.decode(MatchConfigSuddenDeath.self, forKey: .suddenDeath))
+        case .fiftyOneByFives:
+            self = .fiftyOneByFives(try container.decode(MatchConfigFiftyOneByFives.self, forKey: .fiftyOneByFives))
+        case .golf:
+            self = .golf(try container.decode(MatchConfigGolf.self, forKey: .golf))
+        case .football:
+            self = .football(try container.decode(MatchConfigFootball.self, forKey: .football))
+        case .grandNational:
+            self = .grandNational(try container.decode(MatchConfigGrandNational.self, forKey: .grandNational))
+        case .hareAndHounds:
+            self = .hareAndHounds(try container.decode(MatchConfigHareAndHounds.self, forKey: .hareAndHounds))
+        case .aroundTheClock:
+            self = .aroundTheClock(try container.decode(MatchConfigAroundTheClock.self, forKey: .aroundTheClock))
+        case .aroundTheClock180:
+            self = .aroundTheClock180(try container.decode(MatchConfigAroundTheClock180.self, forKey: .aroundTheClock180))
+        case .chaseTheDragon:
+            self = .chaseTheDragon(try container.decode(MatchConfigChaseTheDragon.self, forKey: .chaseTheDragon))
+        case .nineLives:
+            self = .nineLives(try container.decode(MatchConfigNineLives.self, forKey: .nineLives))
         }
     }
 
@@ -251,6 +326,51 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case let .shanghai(config):
             try container.encode(PayloadType.shanghai, forKey: .type)
             try container.encode(config, forKey: .shanghai)
+        case let .americanCricket(config):
+            try container.encode(PayloadType.americanCricket, forKey: .type)
+            try container.encode(config, forKey: .americanCricket)
+        case let .mickeyMouse(config):
+            try container.encode(PayloadType.mickeyMouse, forKey: .type)
+            try container.encode(config, forKey: .mickeyMouse)
+        case let .mulligan(config):
+            try container.encode(PayloadType.mulligan, forKey: .type)
+            try container.encode(config, forKey: .mulligan)
+        case let .englishCricket(config):
+            try container.encode(PayloadType.englishCricket, forKey: .type)
+            try container.encode(config, forKey: .englishCricket)
+        case let .knockout(config):
+            try container.encode(PayloadType.knockout, forKey: .type)
+            try container.encode(config, forKey: .knockout)
+        case let .suddenDeath(config):
+            try container.encode(PayloadType.suddenDeath, forKey: .type)
+            try container.encode(config, forKey: .suddenDeath)
+        case let .fiftyOneByFives(config):
+            try container.encode(PayloadType.fiftyOneByFives, forKey: .type)
+            try container.encode(config, forKey: .fiftyOneByFives)
+        case let .golf(config):
+            try container.encode(PayloadType.golf, forKey: .type)
+            try container.encode(config, forKey: .golf)
+        case let .football(config):
+            try container.encode(PayloadType.football, forKey: .type)
+            try container.encode(config, forKey: .football)
+        case let .grandNational(config):
+            try container.encode(PayloadType.grandNational, forKey: .type)
+            try container.encode(config, forKey: .grandNational)
+        case let .hareAndHounds(config):
+            try container.encode(PayloadType.hareAndHounds, forKey: .type)
+            try container.encode(config, forKey: .hareAndHounds)
+        case let .aroundTheClock(config):
+            try container.encode(PayloadType.aroundTheClock, forKey: .type)
+            try container.encode(config, forKey: .aroundTheClock)
+        case let .aroundTheClock180(config):
+            try container.encode(PayloadType.aroundTheClock180, forKey: .type)
+            try container.encode(config, forKey: .aroundTheClock180)
+        case let .chaseTheDragon(config):
+            try container.encode(PayloadType.chaseTheDragon, forKey: .type)
+            try container.encode(config, forKey: .chaseTheDragon)
+        case let .nineLives(config):
+            try container.encode(PayloadType.nineLives, forKey: .type)
+            try container.encode(config, forKey: .nineLives)
         }
     }
 }

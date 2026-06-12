@@ -37,6 +37,12 @@ enum GameRulesCatalog {
             true
         case .baseball, .killer, .shanghai:
             ProductSurface.showsPartyModes
+        case .americanCricket, .mickeyMouse, .mulligan, .englishCricket, .knockout, .suddenDeath,
+             .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds, .aroundTheClock,
+             .aroundTheClock180, .chaseTheDragon, .nineLives:
+            true
+        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+            false
         }
     }
 

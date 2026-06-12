@@ -262,6 +262,130 @@ public enum StatsService {
                         if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
                     }
                     byPlayer[turn.playerId] = entry
+                case let .americanCricketTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.totalPointsAdded
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .mickeyMouseTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.cricketMarks += turn.marksThisVisit
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .mulliganTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .englishCricketTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.runsAdded
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .knockoutTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.visitTotal
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .suddenDeathTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.pointsThisVisit
+                    entry.darts += 3
+                    byPlayer[turn.playerId] = entry
+                case let .fiftyOneByFivesTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.pointsAwarded
+                    entry.darts += 3
+                    byPlayer[turn.playerId] = entry
+                case let .golfTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.strokesRecorded
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .footballTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.goalsAdded
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        let wasMiss = dart.segmentRaw == "miss"
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: wasMiss), default: 0] += 1
+                        guard !wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .grandNationalTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.darts += 3
+                    byPlayer[turn.playerId] = entry
+                case let .hareAndHoundsTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.darts += 3
+                    byPlayer[turn.playerId] = entry
+                case let .aroundTheClockTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.darts += turn.dartsThrown
+                    byPlayer[turn.playerId] = entry
+                case let .aroundTheClock180Turn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.points += turn.pointsThisVisit
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .chaseTheDragonTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.darts += turn.darts.count
+                    for dart in turn.darts {
+                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+                        guard !dart.wasMiss else { continue }
+                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
+                    }
+                    byPlayer[turn.playerId] = entry
+                case let .nineLivesTurn(turn):
+                    var entry = breakdown(for: turn.playerId)
+                    entry.darts += 3
+                    byPlayer[turn.playerId] = entry
                 }
             }
         }
@@ -326,6 +450,11 @@ public enum StatsService {
                     break
                 case .shanghaiTurn:
                     break
+                case .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
+                     .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
+                     .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
+                     .chaseTheDragonTurn, .nineLivesTurn:
+                    break
                 }
             }
 
@@ -388,6 +517,10 @@ public enum StatsService {
                 return String(turn.round)
             }
             return miss
+        }
+
+        static func key(segmentRaw: String, wasMiss: Bool) -> String {
+            wasMiss ? miss : normalized(segmentRaw)
         }
 
         private static func normalized(_ raw: String) -> String {

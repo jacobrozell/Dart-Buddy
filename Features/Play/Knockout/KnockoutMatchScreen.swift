@@ -41,7 +41,7 @@ struct KnockoutMatchScreen: View {
             }
 
             if let gs = viewModel.knockoutState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: gs.players.count) {
                     KnockoutScoreboardView(
                         rows: viewModel.scoreboardRows,
                         currentHigh: gs.currentHigh

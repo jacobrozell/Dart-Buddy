@@ -39,7 +39,7 @@ struct HareAndHoundsMatchScreen: View {
             }
 
             if viewModel.hareAndHoundsState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.hareAndHoundsState?.players.count ?? 2) {
                     VStack(spacing: DS.Spacing.s3) {
                         HareAndHoundsDualTrackView(rows: viewModel.trackRows)
                             .accessibilityIdentifier("hareAndHounds_dual_track")

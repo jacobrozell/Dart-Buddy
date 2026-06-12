@@ -42,7 +42,7 @@ struct AmericanCricketMatchScreen: View {
             }
 
             if viewModel.americanCricketState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.boardColumns.count) {
                     AmericanCricketBoardView(
                         columns: viewModel.boardColumns,
                         activeColumnScrollID: viewModel.activeBoardColumnID
@@ -136,7 +136,7 @@ struct AmericanCricketMatchScreen: View {
         case .submittingTurn:
             Text(L10n.submittingTurn).foregroundStyle(Brand.textPrimary)
         case .targetAdvanced:
-            MatchFeedbackBanner(text: L10n.string("play.americanCricket.segmentAdvanced"), style: .cricketClosure)
+            MatchFeedbackBanner(text: "play.americanCricket.segmentAdvanced", style: .cricketClosure)
                 .accessibilityHidden(true)
                 .accessibilityIdentifier("americanCricket_target_advanced_banner")
         case let .entryInvalid(key), let .error(key):

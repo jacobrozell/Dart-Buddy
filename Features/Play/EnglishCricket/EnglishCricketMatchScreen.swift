@@ -44,7 +44,7 @@ struct EnglishCricketMatchScreen: View {
             }
 
             if viewModel.englishCricketState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         padHintBanner
                         EnglishCricketScoreboardView(rows: viewModel.scoreboardRows)

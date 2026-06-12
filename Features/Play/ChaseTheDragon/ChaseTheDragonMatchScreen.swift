@@ -49,7 +49,7 @@ struct ChaseTheDragonMatchScreen: View {
             }
 
             if viewModel.chaseTheDragonState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.chaseTheDragonState?.players.count ?? 1) {
                     ChaseTheDragonSequenceStripView(rows: viewModel.sequenceRows)
                 } padChrome: {
                     stateBanner

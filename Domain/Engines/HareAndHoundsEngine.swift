@@ -272,7 +272,7 @@ public enum HareAndHoundsEngine {
 
             // Check Hound-overtake win (only if not already completed by Hare lap).
             if !updated.isComplete {
-                winReason = checkOvertake(updated: &updated)
+                winReason = checkOvertake(&updated)
             }
         }
 
@@ -329,13 +329,14 @@ public enum HareAndHoundsEngine {
     /// Mutates state and returns the win reason if a win occurred.
     @discardableResult
     private static func checkOvertake(_ updated: inout HareAndHoundsState) -> HareAndHoundsWinReason? {
-        guard let hare = updated.harePlayer,
+        guard let hareIndex = updated.harePlayer?.positionIndex,
               let hound = updated.houndPlayer else { return nil }
-        if hound.positionIndex >= hare.positionIndex {
-            completeMatch(&updated, winnerId: hound.playerId, reason: .houndOvertook)
-            return .houndOvertook
-        }
-        return nil
+        let houndIndex = hound.positionIndex
+        let courseLength = HareAndHoundsState.courseLength
+        let chaseDistance = (hareIndex - houndIndex + courseLength) % courseLength
+        guard chaseDistance == 0 else { return nil }
+        completeMatch(&updated, winnerId: hound.playerId, reason: .houndOvertook)
+        return .houndOvertook
     }
 
     private static func advanceTurn(_ state: inout HareAndHoundsState) {

@@ -41,7 +41,7 @@ struct NineLivesMatchScreen: View {
             }
 
             if let gameState = viewModel.nineLivesState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: gameState.players.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         NineLivesScoreboardView(rows: viewModel.scoreboardRows)
                         currentPlayerSequenceStrip(gameState: gameState)

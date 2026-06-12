@@ -352,7 +352,11 @@ final class FiftyOneByFivesMatchViewModel: ObservableObject {
                 createdAt: snapshotSummary.updatedAt,
                 payload: snapshotSummary.snapshotPayload
             )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
+            let rehydrated = try MatchLifecycleService.rehydrate(
+                snapshot: snapshot,
+                tailEvents: tailEvents,
+                persistedEvents: envelopes
+            )
             store.save(rehydrated)
             session = rehydrated
         } catch {

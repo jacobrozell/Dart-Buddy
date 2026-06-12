@@ -43,7 +43,7 @@ struct GolfMatchScreen: View {
             }
 
             if let golfState = viewModel.golfState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scorecardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         GolfScorecardView(
                             rows: viewModel.scorecardRows,
@@ -132,7 +132,7 @@ struct GolfMatchScreen: View {
         case .holeCompleteFeedback:
             if let strokes = viewModel.currentStrokePreview {
                 MatchFeedbackBanner(
-                    text: L10n.format("play.golf.announce.holeComplete", strokes),
+                    text: LocalizedStringKey(L10n.format("play.golf.announce.holeComplete", strokes)),
                     style: .legWin
                 )
                 .accessibilityHidden(true)

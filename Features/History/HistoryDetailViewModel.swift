@@ -101,6 +101,36 @@ final class HistoryDetailViewModel: ObservableObject {
                         name,
                         turn.pointsThisVisit
                     )
+                case let .americanCricketTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .mickeyMouseTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .mulliganTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .englishCricketTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .knockoutTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .suddenDeathTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .fiftyOneByFivesTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .golfTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .footballTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .grandNationalTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .hareAndHoundsTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .aroundTheClockTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .aroundTheClock180Turn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .chaseTheDragonTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .nineLivesTurn(turn):
+                    return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
                 }
             }
             matchType = match.type
@@ -236,6 +266,18 @@ final class HistoryDetailViewModel: ObservableObject {
                 }
                 let points = turns.reduce(0) { $0 + $1.pointsThisVisit }
                 return L10n.format("history.detail.shanghaiSummaryFormat", points, turns.count)
+            default:
+                let turnCount = envelopes.filter { envelope in
+                    switch envelope.payload {
+                    case .x01Turn, .cricketTurn, .baseballTurn, .killerPick, .killerTurn, .shanghaiTurn,
+                         .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
+                         .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
+                         .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
+                         .chaseTheDragonTurn, .nineLivesTurn:
+                        true
+                    }
+                }.count
+                return L10n.format("history.detail.killerSummaryFormat", turnCount)
             }
         }()
         return HistoryDetailHeader(
@@ -322,6 +364,19 @@ final class HistoryDetailViewModel: ObservableObject {
                         score: $0.cumulativePoints
                     )
                 })
+            } else {
+                configText = MatchConfigText.modeLabel(for: match.type)
+                standings = sortStandings(participants.map {
+                    let key = $0.playerId ?? $0.id
+                    return HistoryStanding(
+                        id: key,
+                        name: $0.displayNameAtMatchStart,
+                        isWinner: key == runtime.winnerPlayerId,
+                        sets: 0,
+                        legs: 0,
+                        score: 0
+                    )
+                })
             }
         }
 
@@ -364,6 +419,36 @@ final class HistoryDetailViewModel: ObservableObject {
                     if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[turn.playerId, default: 0] += 1 }
                     if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[turn.playerId, default: 0] += 1 }
                 }
+            case let .americanCricketTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .mickeyMouseTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .mulliganTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .englishCricketTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .knockoutTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .golfTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .footballTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.segmentRaw == "miss") }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .aroundTheClock180Turn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .chaseTheDragonTurn(turn):
+                Self.countDartThrows(turn.darts.map { ($0.segmentRaw, $0.multiplierRaw, $0.wasMiss) }, playerId: turn.playerId, throwsByPlayer: &throwsByPlayer, doublesByPlayer: &doublesByPlayer, triplesByPlayer: &triplesByPlayer)
+            case let .suddenDeathTurn(turn):
+                throwsByPlayer[turn.playerId, default: 0] += 3
+            case let .fiftyOneByFivesTurn(turn):
+                throwsByPlayer[turn.playerId, default: 0] += 3
+            case let .aroundTheClockTurn(turn):
+                throwsByPlayer[turn.playerId, default: 0] += turn.dartsThrown
+            case let .grandNationalTurn(turn):
+                throwsByPlayer[turn.playerId, default: 0] += 3
+            case let .hareAndHoundsTurn(turn):
+                throwsByPlayer[turn.playerId, default: 0] += 3
+            case let .nineLivesTurn(turn):
+                throwsByPlayer[turn.playerId, default: 0] += 3
             }
         }
         throwsRows = standings.map { standing in
@@ -402,5 +487,25 @@ final class HistoryDetailViewModel: ObservableObject {
             return appError.userMessageKey
         }
         return fallback
+    }
+
+    private static func genericTurnTimeline(turnIndex: Int, playerId: UUID, names: [UUID: String]) -> String {
+        let name = names[playerId] ?? String(playerId.uuidString.prefix(6))
+        return L10n.format("history.timeline.killerTurnFormat", turnIndex + 1, name)
+    }
+
+    private static func countDartThrows(
+        _ darts: [(segmentRaw: String, multiplierRaw: String, wasMiss: Bool)],
+        playerId: UUID,
+        throwsByPlayer: inout [UUID: Int],
+        doublesByPlayer: inout [UUID: Int],
+        triplesByPlayer: inout [UUID: Int]
+    ) {
+        for dart in darts {
+            throwsByPlayer[playerId, default: 0] += 1
+            guard !dart.wasMiss else { continue }
+            if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[playerId, default: 0] += 1 }
+            if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[playerId, default: 0] += 1 }
+        }
     }
 }

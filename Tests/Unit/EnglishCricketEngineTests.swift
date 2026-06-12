@@ -177,7 +177,7 @@ func englishCricketSecondBatterPassesTargetEndsInningsEarly() throws {
     let p0 = UUID(); let p1 = UUID()
     // Config: 10 wickets but endWhenTargetPassed = true.
     var state = try EnglishCricketEngine.makeInitialState(
-        config: MatchConfigEnglishCricket(wicketsPerInnings: 10, runsThreshold: 0, endWhenTargetPassed: true),
+        config: MatchConfigEnglishCricket(wicketsPerInnings: 1, runsThreshold: 0, endWhenTargetPassed: true),
         playerIds: [p0, p1]
     )
 

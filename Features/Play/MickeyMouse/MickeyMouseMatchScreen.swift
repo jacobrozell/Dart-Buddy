@@ -39,7 +39,7 @@ struct MickeyMouseMatchScreen: View {
             }
 
             if let gameState = viewModel.mickeyMouseState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: gameState.players.count) {
                     MickeyMouseMarkBoardView(
                         rows: viewModel.markBoardRows,
                         currentTargetIndex: gameState.currentTargetIndex

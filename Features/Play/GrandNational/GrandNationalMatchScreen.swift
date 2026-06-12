@@ -46,7 +46,7 @@ struct GrandNationalMatchScreen: View {
             }
 
             if viewModel.grandNationalState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.grandNationalState?.players.count ?? 2) {
                     VStack(spacing: DS.Spacing.s3) {
                         GrandNationalCourseStripView(rows: viewModel.courseRows)
                             .accessibilityIdentifier("grandNational_course_strip")

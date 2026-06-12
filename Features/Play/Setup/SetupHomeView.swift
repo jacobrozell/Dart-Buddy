@@ -224,6 +224,9 @@ struct SetupHomeView: View {
     }
 
     private var selectedCatalogEntry: GameModeCatalogEntry? {
+        if let matchType = setupViewModel.selectedCatalogMatchType {
+            return GameModeCatalog.entry(for: matchType)
+        }
         if setupViewModel.setupCategory == .party {
             switch setupViewModel.partyGame {
             case .baseball: return GameModeCatalog.entry(for: .baseball)

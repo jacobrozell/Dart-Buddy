@@ -226,6 +226,8 @@ func americanCricketHighestPointsWins() throws {
     // P1 scores heavily on 20 by closing first and then scoring overflow before P2 closes.
     // P1 closes 20.
     state = try AmericanCricketEngine.submitTurn(state: state, darts: [acDart(.triple, 20)]).updatedState
+    // P2 leaves 20 open.
+    state = try AmericanCricketEngine.submitTurn(state: state, darts: [acMiss()]).updatedState
     // P1 scores 60 pts overflow on 20 while P2 is still open.
     state = try AmericanCricketEngine.submitTurn(state: state, darts: [acDart(.triple, 20)]).updatedState
     // P2 closes 20.

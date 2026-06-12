@@ -46,7 +46,7 @@ struct FootballMatchScreen: View {
             }
 
             if viewModel.footballState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         FootballScoreboardView(rows: viewModel.scoreboardRows)
                     }

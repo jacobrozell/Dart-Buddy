@@ -44,7 +44,7 @@ struct FiftyOneByFivesMatchScreen: View {
             }
 
             if viewModel.fiftyOneByFivesState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         FiftyOneByFivesScoreboardView(
                             rows: viewModel.scoreboardRows,

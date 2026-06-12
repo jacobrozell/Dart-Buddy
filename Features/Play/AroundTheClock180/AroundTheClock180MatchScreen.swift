@@ -39,7 +39,7 @@ struct AroundTheClock180MatchScreen: View {
             }
 
             if let gameState = viewModel.aroundTheClock180State {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: gameState.players.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         // Running total — prominent for solo / informational for multiplayer.
                         if let totalText = viewModel.runningTotalText {

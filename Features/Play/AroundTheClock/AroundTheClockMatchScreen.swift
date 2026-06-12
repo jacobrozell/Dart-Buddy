@@ -39,7 +39,7 @@ struct AroundTheClockMatchScreen: View {
             }
 
             if let atcState = viewModel.aroundTheClockState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: atcState.players.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         AroundTheClockSequenceStripView(rows: viewModel.progressRows)
                             .accessibilityIdentifier("aroundTheClock_sequence_strip")

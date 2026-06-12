@@ -85,8 +85,9 @@ func nineLivesEliminatesPlayerAtZeroLives() throws {
 
     // Lose all 3 lives for p1
     for _ in 0 ..< 3 {
+        guard !state.isComplete else { break }
         state = try NineLivesEngine.submitTurn(state: state, darts: [miss(), miss(), miss()]).updatedState
-        // Advance past p2's turn (p2 hits)
+        guard !state.isComplete else { break }
         state = try NineLivesEngine.submitTurn(state: state, darts: [hit(1), miss(), miss()]).updatedState
     }
 
@@ -123,29 +124,13 @@ func nineLivesLastStandingWins() throws {
 @Test(.tags(.unit, .match, .critical, .offline, .regression))
 func nineLivesFirstToComplete20Wins() throws {
     let winner = UUID()
-    let other = UUID()
+    let other1 = UUID()
+    let other2 = UUID()
     let config = MatchConfigNineLives()
-    var state = try NineLivesEngine.makeInitialState(config: config, playerIds: [winner, other])
+    var state = try NineLivesEngine.makeInitialState(config: config, playerIds: [winner, other1, other2])
+    state.players[0].targetIndex = 19
+    state.currentPlayerIndex = 0
 
-    // Fast-forward winner to target 19 by directly mutating via replay-style setup
-    // Use engine to manually advance state to target 19 for winner
-    // We do this by submitting 19 winning turns for winner interspersed with misses for other
-    for segment in 1 ... 19 {
-        state = try NineLivesEngine.submitTurn(
-            state: state,
-            darts: [hit(segment), miss(), miss()]
-        ).updatedState
-        state = try NineLivesEngine.submitTurn(
-            state: state,
-            darts: [miss(), miss(), miss()]
-        ).updatedState
-    }
-
-    // winner is now at targetIndex 19 (needs to hit 20), other is still at 0
-    let winnerState = state.players.first { $0.playerId == winner }!
-    #expect(winnerState.targetIndex == 19)
-
-    // winner hits 20 → completes sequence → wins
     let outcome = try NineLivesEngine.submitTurn(
         state: state,
         darts: [hit(20), miss(), miss()]

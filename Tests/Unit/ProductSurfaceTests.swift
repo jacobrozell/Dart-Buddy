@@ -3,19 +3,18 @@ import Testing
 
 @Suite("Product surface", .tags(.unit, .regression))
 struct ProductSurfaceTests {
-    @Test("Lean 1.0 defaults hide extended surface")
-    func leanDefaultsHideExtendedSurface() {
+    @Test("Dev branch defaults enable full product surface")
+    func devDefaultsEnableFullSurface() {
         guard !ProductSurface.isFullProductSurfaceEnabled else {
-            Issue.record("Run without -enable_full_product_surface to assert lean defaults.")
             return
         }
 
-        #expect(!ProductSurface.showsModesTab)
-        #expect(!ProductSurface.showsPartyModes)
-        #expect(!ProductSurface.showsTrainingBots)
+        #expect(ProductSurface.showsModesTab)
+        #expect(ProductSurface.showsPartyModes)
+        #expect(ProductSurface.showsTrainingBots)
         #expect(ProductSurface.showsCustomBots)
-        #expect(!ProductSurface.showsPlayerExport)
-        #expect(ProductSurface.bundledLocaleCodes == ["en"])
+        #expect(ProductSurface.showsPlayerExport)
+        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl"])
     }
 
     @Test("Full product surface restores hidden areas")
@@ -32,19 +31,10 @@ struct ProductSurfaceTests {
         #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl"])
     }
 
-    @Test("Match type reachability respects party surface flag")
+    @Test("Match type reachability includes all shipped modes on dev")
     func matchTypeReachability() {
-        #expect(ProductSurface.isMatchTypeReachable(.x01))
-        #expect(ProductSurface.isMatchTypeReachable(.cricket))
-
-        if ProductSurface.showsPartyModes {
-            #expect(ProductSurface.isMatchTypeReachable(.baseball))
-            #expect(ProductSurface.isMatchTypeReachable(.killer))
-            #expect(ProductSurface.isMatchTypeReachable(.shanghai))
-        } else {
-            #expect(!ProductSurface.isMatchTypeReachable(.baseball))
-            #expect(!ProductSurface.isMatchTypeReachable(.killer))
-            #expect(!ProductSurface.isMatchTypeReachable(.shanghai))
+        for matchType in [MatchType.x01, .cricket, .baseball, .killer, .shanghai, .golf, .aroundTheClock] {
+            #expect(ProductSurface.isMatchTypeReachable(matchType))
         }
     }
 }

@@ -383,7 +383,11 @@ final class HareAndHoundsMatchViewModel: ObservableObject {
                 createdAt: snapshotSummary.updatedAt,
                 payload: snapshotSummary.snapshotPayload
             )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
+            let rehydrated = try MatchLifecycleService.rehydrate(
+                snapshot: snapshot,
+                tailEvents: tailEvents,
+                persistedEvents: envelopes
+            )
             store.save(rehydrated)
             session = rehydrated
         } catch {
@@ -396,8 +400,4 @@ final class HareAndHoundsMatchViewModel: ObservableObject {
               case let .hareAndHoundsTurn(event) = envelope.payload else { return nil }
         return event
     }
-}
-
-private func postAccessibilityAnnouncement(_ text: String) {
-    UIAccessibility.post(notification: .announcement, argument: text)
 }

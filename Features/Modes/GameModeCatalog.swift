@@ -165,8 +165,8 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.blindKiller", name: "Blind Killer", blurb: "Killer with hidden numbers",
-            section: .party, status: .shipped, minimumPlayers: 3,
-            matchType: .blindKiller, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .planned, minimumPlayers: 3,
+            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "eye.slash.fill"
         ),
         GameModeCatalogEntry(
@@ -213,38 +213,38 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.followTheLeader", name: "Follow the Leader", blurb: "Match the leader's hit or lose a life",
-            section: .party, status: .shipped, minimumPlayers: 2,
-            matchType: .followTheLeader, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .planned, minimumPlayers: 2,
+            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "arrow.turn.down.right"
         ),
         GameModeCatalogEntry(
             id: "party.loop", name: "Loop", blurb: "Beat the prior dart or drop a life",
-            section: .party, status: .shipped, minimumPlayers: 2,
-            matchType: .loop, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .planned, minimumPlayers: 2,
+            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "arrow.triangle.2.circlepath"
         ),
         GameModeCatalogEntry(
             id: "party.prisoner", name: "Prisoner", blurb: "Trap darts in missed segments",
-            section: .party, status: .shipped, minimumPlayers: 2,
-            matchType: .prisoner, uiTemplate: .boardState, statKind: .boardClaim,
+            section: .party, status: .planned, minimumPlayers: 2,
+            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "lock.fill"
         ),
         GameModeCatalogEntry(
             id: "party.scam", name: "Scam", blurb: "Stopper blocks, scorer scores",
-            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: .scam, uiTemplate: .roleSplit, statKind: .roleScore,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "theatermasks.fill"
         ),
         GameModeCatalogEntry(
             id: "party.snooker", name: "Snooker", blurb: "Reds and colours on the board",
-            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: .snooker, uiTemplate: .roleSplit, statKind: .roleScore,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "circle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.ticTacToe", name: "Tic-Tac-Toe", blurb: "Claim three segments in a row",
-            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: .ticTacToe, uiTemplate: .boardState, statKind: .boardClaim,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "number.square.fill"
         ),
 
@@ -275,14 +275,14 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "practice.bobs27", name: "Bob's 27", blurb: "Doubles checkout drill",
-            section: .practice, status: .shipped, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: .bobs27, uiTemplate: .soloChallenge, statKind: .soloScore,
+            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
+            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "scope"
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .shipped, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: .halveIt, uiTemplate: .soloChallenge, statKind: .soloScore,
+            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
+            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
     ]
@@ -407,7 +407,11 @@ extension GameModeCatalogEntry {
         if section == .party, !ProductSurface.showsPartyModes { return nil }
         switch section {
         case .standard:
-            let mode: MatchSetupViewModel.SetupMode = matchType == .cricket ? .cricket : .x01
+            let mode: MatchSetupViewModel.SetupMode? = switch matchType {
+            case .cricket: .cricket
+            case .x01: .x01
+            default: nil
+            }
             return PendingModeSelection(
                 setupCategory: .standard,
                 mode: mode,
@@ -421,7 +425,6 @@ extension GameModeCatalogEntry {
             case .shanghai: .shanghai
             default: nil
             }
-            guard let partyGame else { return nil }
             return PendingModeSelection(
                 setupCategory: .party,
                 mode: nil,
@@ -429,7 +432,12 @@ extension GameModeCatalogEntry {
                 matchType: matchType
             )
         case .practice:
-            return nil
+            return PendingModeSelection(
+                setupCategory: .standard,
+                mode: nil,
+                partyGame: nil,
+                matchType: matchType
+            )
         }
     }
 }

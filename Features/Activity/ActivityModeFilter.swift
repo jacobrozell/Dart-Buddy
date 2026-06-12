@@ -45,7 +45,8 @@ enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
 
     var catalogEntryId: String? {
         guard let matchType else { return nil }
-        return GameModeCatalog.entry(for: matchType)?.id
+        guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else { return nil }
+        return entry.id
     }
 
     var title: String {

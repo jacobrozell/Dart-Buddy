@@ -37,9 +37,30 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var killerStartingLives: Int = 3
     @Published var shanghaiRoundCount: Int = 20
     @Published var shanghaiBonusRule: ShanghaiBonusRule = .bonus150
+    @Published var americanCricketPointsEnabled = true
+    @Published var aroundTheClockIncludeBullFinish = false
+    @Published var aroundTheClockResetPolicy: AroundTheClockResetPolicy = .noReset
+    @Published var aroundTheClock180ParScoreEnabled = false
+    @Published var aroundTheClock180ParScore: Int = 60
+    @Published var chaseTheDragonLaps: ChaseTheDragonLaps = .one
+    @Published var englishCricketWicketsPerInnings: Int = 10
+    @Published var englishCricketEndWhenTargetPassed = true
+    @Published var footballGoalsToWin: Int = 10
+    @Published var footballKickoffMode: FootballKickoffMode = .singleBull
+    @Published var golfCourseLength: Int = GolfCourseLength.nine.rawValue
+    @Published var grandNationalRuleset: GrandNationalRuleset = .novice
+    @Published var grandNationalLaps: Int = 2
+    @Published var hareAndHoundsHoundStart: HoundStartPosition = .segment5
+    @Published var knockoutStrikesToEliminate: Int = 3
+    @Published var suddenDeathEliminateAllTied = true
+    @Published var suddenDeathVisitsPerRound: Int = 1
+    @Published var fiftyOneByFivesTargetPoints: Int = 51
+    @Published var fiftyOneByFivesMustFinishExact = false
+    @Published var nineLivesStartingLives: NineLivesStartingLives = .nine
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
+    @Published private(set) var selectedCatalogMatchType: MatchType?
     /// Drives the "Game in Progress" confirmation when a match is already active.
     @Published var showActiveMatchConflict = false
 
@@ -298,6 +319,45 @@ final class MatchSetupViewModel: ObservableObject {
         case let .shanghai(config):
             shanghaiRoundCount = config.roundCount
             shanghaiBonusRule = config.bonusRule
+        case let .americanCricket(config):
+            americanCricketPointsEnabled = config.pointsEnabled
+        case .mickeyMouse, .mulligan:
+            break
+        case let .englishCricket(config):
+            englishCricketWicketsPerInnings = config.wicketsPerInnings
+            englishCricketEndWhenTargetPassed = config.endWhenTargetPassed
+        case let .knockout(config):
+            knockoutStrikesToEliminate = config.strikesToEliminate
+        case let .suddenDeath(config):
+            suddenDeathVisitsPerRound = config.visitsPerRound
+            suddenDeathEliminateAllTied = config.eliminationRule == .eliminateAllTied
+        case let .fiftyOneByFives(config):
+            fiftyOneByFivesTargetPoints = config.targetPoints
+            fiftyOneByFivesMustFinishExact = config.mustFinishExact
+        case let .golf(config):
+            golfCourseLength = config.courseLength.rawValue
+        case let .football(config):
+            footballGoalsToWin = config.goalsToWin
+            footballKickoffMode = config.kickoffMode
+        case let .grandNational(config):
+            grandNationalRuleset = config.ruleset
+            grandNationalLaps = config.laps
+        case let .hareAndHounds(config):
+            hareAndHoundsHoundStart = config.houndStart
+        case let .aroundTheClock(config):
+            aroundTheClockIncludeBullFinish = config.includeBullFinish
+            aroundTheClockResetPolicy = config.resetPolicy
+        case let .aroundTheClock180(config):
+            if let par = config.parScore {
+                aroundTheClock180ParScoreEnabled = true
+                aroundTheClock180ParScore = par
+            } else {
+                aroundTheClock180ParScoreEnabled = false
+            }
+        case let .chaseTheDragon(config):
+            chaseTheDragonLaps = config.laps
+        case let .nineLives(config):
+            nineLivesStartingLives = config.startingLives
         }
 
         normalizeForProductSurface()
@@ -336,11 +396,13 @@ final class MatchSetupViewModel: ObservableObject {
         if let partyGame = selection.partyGame {
             self.partyGame = partyGame
         }
+        selectedCatalogMatchType = selection.matchType
         normalizeForProductSurface()
         revalidate()
     }
 
     private func applyMatchTypePreferred(_ matchType: MatchType) {
+        selectedCatalogMatchType = matchType
         if let entry = GameModeCatalog.entry(for: matchType),
            let selection = entry.pendingModeSelection {
             applyPendingModeSelection(selection)
@@ -360,7 +422,18 @@ final class MatchSetupViewModel: ObservableObject {
 
     func revalidate() {
         var errors: [String] = []
-        if setupCategory == .party {
+        if let catalogType = selectedCatalogMatchType,
+           let entry = GameModeCatalog.entry(for: catalogType) {
+            if entry.section == .party, !ProductSurface.showsPartyModes {
+                errors.append("setup.validation.partyComingSoon")
+            } else if !entry.isAvailable {
+                errors.append("setup.validation.partyComingSoon")
+            } else if selectedParticipantCount < entry.minimumPlayers {
+                errors.append(catalogType == .killer ? "setup.validation.partyKillerMinimumPlayers" : "setup.validation.minimumPlayers")
+            } else if selectedPlayers.allSatisfy(\.isBot) {
+                errors.append("setup.validation.requiresHuman")
+            }
+        } else if setupCategory == .party {
             if !ProductSurface.showsPartyModes {
                 errors.append("setup.validation.partyComingSoon")
             } else if !partyGame.isAvailable {
@@ -494,6 +567,9 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     private var currentMatchType: MatchType {
+        if let selectedCatalogMatchType {
+            return selectedCatalogMatchType
+        }
         if setupCategory == .party {
             switch partyGame {
             case .baseball: return .baseball
@@ -546,6 +622,76 @@ final class MatchSetupViewModel: ObservableObject {
                     legFormat: cricketLegFormat
                 )
             )
+        case .americanCricket:
+            return .americanCricket(MatchConfigAmericanCricket(pointsEnabled: americanCricketPointsEnabled))
+        case .mickeyMouse:
+            return .mickeyMouse(MatchConfigMickeyMouse())
+        case .mulligan:
+            return MatchConfigDefaults.config(for: .mulligan)
+        case .englishCricket:
+            return .englishCricket(
+                MatchConfigEnglishCricket(
+                    wicketsPerInnings: englishCricketWicketsPerInnings,
+                    endWhenTargetPassed: englishCricketEndWhenTargetPassed
+                )
+            )
+        case .knockout:
+            return .knockout(MatchConfigKnockout(strikesToEliminate: knockoutStrikesToEliminate))
+        case .suddenDeath:
+            return .suddenDeath(
+                MatchConfigSuddenDeath(
+                    visitsPerRound: suddenDeathVisitsPerRound,
+                    eliminationRule: suddenDeathEliminateAllTied ? .eliminateAllTied : .eliminateOne
+                )
+            )
+        case .fiftyOneByFives:
+            return .fiftyOneByFives(
+                MatchConfigFiftyOneByFives(
+                    targetPoints: fiftyOneByFivesTargetPoints,
+                    mustFinishExact: fiftyOneByFivesMustFinishExact
+                )
+            )
+        case .golf:
+            return .golf(
+                MatchConfigGolf(
+                    courseLength: GolfCourseLength(rawValue: golfCourseLength) ?? .nine
+                )
+            )
+        case .football:
+            return .football(
+                MatchConfigFootball(
+                    goalsToWin: footballGoalsToWin,
+                    kickoffMode: footballKickoffMode
+                )
+            )
+        case .grandNational:
+            return .grandNational(
+                MatchConfigGrandNational(
+                    ruleset: grandNationalRuleset,
+                    laps: grandNationalLaps
+                )
+            )
+        case .hareAndHounds:
+            return .hareAndHounds(MatchConfigHareAndHounds(houndStart: hareAndHoundsHoundStart))
+        case .aroundTheClock:
+            return .aroundTheClock(
+                MatchConfigAroundTheClock(
+                    includeBullFinish: aroundTheClockIncludeBullFinish,
+                    resetPolicy: aroundTheClockResetPolicy
+                )
+            )
+        case .aroundTheClock180:
+            return .aroundTheClock180(
+                MatchConfigAroundTheClock180(
+                    parScore: aroundTheClock180ParScoreEnabled ? aroundTheClock180ParScore : nil
+                )
+            )
+        case .chaseTheDragon:
+            return .chaseTheDragon(MatchConfigChaseTheDragon(laps: chaseTheDragonLaps))
+        case .nineLives:
+            return .nineLives(MatchConfigNineLives(startingLives: nineLivesStartingLives))
+        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+            return MatchConfigDefaults.config(for: .x01)
         }
     }
 

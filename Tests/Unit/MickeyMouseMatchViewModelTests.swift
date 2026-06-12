@@ -158,10 +158,14 @@ func mickeyMouseViewModelCannotHumanInputWhenBotTurn() async throws {
             botKindRaw: BotKind.preset.rawValue
         )
     ]
-    let session = try MatchLifecycleService.createMatch(
+    var session = try MatchLifecycleService.createMatch(
         type: .mickeyMouse,
         config: .mickeyMouse(MatchConfigMickeyMouse()),
         participants: participants
+    )
+    session = try MatchLifecycleService.submitMickeyMouseTurn(
+        session: session,
+        darts: [miss(), miss(), miss()]
     )
     let store = ActiveMatchStore()
     store.save(session)
@@ -173,11 +177,6 @@ func mickeyMouseViewModelCannotHumanInputWhenBotTurn() async throws {
         statsRepository: MickeyMouseFakeStatsRepository()
     )
 
-    // Advance to P1 (the bot) by submitting P0's turn.
-    vm.enteredDarts = [miss(), miss(), miss()]
-    await vm.submitTurn()
-
-    // It is now the bot's turn — human input should be locked.
     #expect(vm.isCurrentPlayerBot == true)
     #expect(vm.canHumanInput == false)
 }

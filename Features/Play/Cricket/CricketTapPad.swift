@@ -13,6 +13,7 @@ struct CricketTapPad: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.matchLayoutPlayerCount) private var matchLayoutPlayerCount
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
@@ -26,7 +27,8 @@ struct CricketTapPad: View {
                 GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
                     || GameplayLayout.usesSideBySideBottomScoringRegion(
                         horizontalSizeClass: horizontalSizeClass,
-                        verticalSizeClass: verticalSizeClass
+                        verticalSizeClass: verticalSizeClass,
+                        playerCount: matchLayoutPlayerCount
                     )
             )
     }
@@ -37,6 +39,7 @@ struct CricketTapPad: View {
         GameplayLayout.usesCricketFullWidthLandscapePad(
             horizontalSizeClass: horizontalSizeClass,
             verticalSizeClass: verticalSizeClass,
+            playerCount: matchLayoutPlayerCount,
             dynamicTypeSize: dynamicTypeSize
         )
     }

@@ -84,10 +84,8 @@ struct GameModeCatalogEntryTests {
 
     @Test
     func plannedModesUseSectionAccentFallback() {
-        let plannedStandard = GameModeCatalog.planned.first { $0.section == .standard }
         let plannedParty = GameModeCatalog.planned.first { $0.section == .party }
         let plannedPractice = GameModeCatalog.planned.first { $0.section == .practice }
-        #expect(plannedStandard != nil)
         #expect(plannedParty != nil)
         #expect(plannedPractice != nil)
     }

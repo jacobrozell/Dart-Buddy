@@ -42,7 +42,7 @@ struct MulliganMatchScreen: View {
             }
 
             if let gameState = viewModel.mulliganState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: gameState.players.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         // Drawn target strip
                         VStack(alignment: .leading, spacing: DS.Spacing.s1) {
@@ -138,7 +138,7 @@ struct MulliganMatchScreen: View {
         case .targetAdvanced:
             if let target = viewModel.activeTarget {
                 MatchFeedbackBanner(
-                    text: L10n.format("play.mulligan.targetAdvanced", target.displayLabel),
+                    text: LocalizedStringKey(L10n.format("play.mulligan.targetAdvanced", target.displayLabel)),
                     style: .legWin
                 )
                 .accessibilityHidden(true)

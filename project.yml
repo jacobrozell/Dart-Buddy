@@ -51,6 +51,9 @@ targets:
       - path: Resources/en.lproj/Localizable.strings
         type: file
         buildPhase: resources
+      - path: Resources/en.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
       # Lean 1.0 ships English only. Re-add for 1.2+ (see docs/release/lean-1.0-implementation-plan.md).
       # - path: Resources/de.lproj/Localizable.strings
       # - path: Resources/es.lproj/Localizable.strings

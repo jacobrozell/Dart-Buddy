@@ -44,7 +44,7 @@ struct SuddenDeathMatchScreen: View {
             }
 
             if viewModel.suddenDeathState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         SuddenDeathScoreboardView(rows: viewModel.scoreboardRows)
                         if let eliminationText = viewModel.lastRoundEliminationText {

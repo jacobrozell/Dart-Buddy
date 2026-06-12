@@ -406,7 +406,3 @@ enum FootballPhase: String {
     case kickoff
     case scoring
 }
-
-private func postAccessibilityAnnouncement(_ text: String) {
-    UIAccessibility.post(notification: .announcement, argument: text)
-}
