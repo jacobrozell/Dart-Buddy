@@ -101,7 +101,7 @@ final class X01MatchViewModel: ObservableObject {
             let visitDarts = isActive
                 ? enteredDarts
                 : (completedRoundVisits[player.playerId] ?? [])
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             return PlayerCard(
                 id: player.playerId,
                 name: participant?.displayNameAtMatchStart ?? MatchConfigText.playerName(forIndex: index),
@@ -190,10 +190,6 @@ final class X01MatchViewModel: ObservableObject {
             playerId: player.playerId,
             in: session.runtime.participants
         )
-    }
-
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
     /// Completed visits in the current scoring round (one full rotation through

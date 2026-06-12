@@ -132,7 +132,7 @@ final class KillerMatchViewModel: ObservableObject {
         guard let session, let state = session.runtime.killerState else { return [] }
         let isInProgress = session.runtime.status == .inProgress
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive: Bool
             if state.phase == .numberPick {
                 isActive = state.pickQueue.first == player.playerId && isInProgress
@@ -234,12 +234,8 @@ final class KillerMatchViewModel: ObservableObject {
         }
     }
 
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-    }
-
     private func participantName(for playerId: UUID) -> String {
-        participant(for: playerId)?.displayNameAtMatchStart ?? L10n.string("play.killer.unknownPlayer")
+        session?.runtime.participant(for: playerId)?.displayNameAtMatchStart ?? L10n.string("play.killer.unknownPlayer")
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {
