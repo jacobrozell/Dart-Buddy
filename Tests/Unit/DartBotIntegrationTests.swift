@@ -323,17 +323,21 @@ func x01ViewModelPlaysConsecutiveBotsAfterHumanTurn() async throws {
     )
     let store = ActiveMatchStore()
     store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
         logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
         matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
     )
     vm.inputMode = .totalEntry
     vm.totalEntryText = "60"
 
     await vm.submitTurn()
+    try await waitForX01EventCount(3, on: vm)
 
     #expect(vm.session?.events.count == 3)
     #expect(vm.isCurrentPlayerBot == false)
@@ -549,7 +553,7 @@ func x01OnAppearRestartsBotAfterInterruptedTurn() async throws {
     #expect(!vm.isBotPlaying)
 
     await vm.onAppear()
-    try await waitForX01BotVisitCompletion(on: vm)
+    try await waitForX01EventCount(1, on: vm)
 
     #expect(vm.session?.events.count == 1)
     #expect(!vm.isBotPlaying)
@@ -602,7 +606,7 @@ func x01DisappearAndReappearRestartsBotAfterInterruptedTurn() async throws {
     await vm.onAppear()
     vm.onDisappear()
     await vm.onAppear()
-    try await waitForX01BotVisitCompletion(on: vm)
+    try await waitForX01EventCount(1, on: vm)
 
     #expect(vm.session?.events.count == 1)
     #expect(!vm.isBotPlaying)
@@ -658,7 +662,7 @@ func x01RecoverBotPlaybackRestartsAfterExitAlertDismissedWithStay() async throws
     #expect(!vm.isBotPlaying)
 
     vm.recoverBotPlaybackIfNeeded()
-    try await waitForX01BotVisitCompletion(on: vm)
+    try await waitForX01EventCount(1, on: vm)
 
     #expect(vm.session?.events.count == 1)
     #expect(!vm.isBotPlaying)
@@ -666,15 +670,19 @@ func x01RecoverBotPlaybackRestartsAfterExitAlertDismissedWithStay() async throws
 }
 
 @MainActor
-private func waitForX01BotVisitCompletion(on vm: X01MatchViewModel) async throws {
-    // Staggered bot pacing can take ~2.9s for a three-dart visit; allow 3.5s in CI.
+private func waitForX01EventCount(
+    _ count: Int,
+    on vm: X01MatchViewModel,
+    expectedState: X01MatchViewModel.State? = nil
+) async throws {
     for _ in 0 ..< 140 {
-        if vm.session?.events.count == 1, vm.isBotPlaying == false {
+        let stateMatches = expectedState.map { vm.state == $0 } ?? true
+        if vm.session?.events.count == count, vm.isBotPlaying == false, stateMatches {
             return
         }
         try await Task.sleep(nanoseconds: 25_000_000)
     }
-    Issue.record("Timed out waiting for bot visit to finish after match screen reappeared.")
+    Issue.record("Timed out waiting for \(count) X01 events (got \(vm.session?.events.count ?? -1)).")
 }
 
 @MainActor
@@ -733,11 +741,11 @@ func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throw
         DartInput(multiplier: .triple, segment: .oneToTwenty(20))
     ]
     await vm.submitTurn()
+    try await waitForX01EventCount(2, on: vm)
     #expect(vm.session?.events.count == 2)
 
     await vm.undoLastDart()
-    #expect(vm.session?.events.count == 1)
-    try await waitForX01BotPlaybackToSettle(on: vm)
+    try await waitForX01EventCount(2, on: vm)
 
     #expect(vm.session?.events.count == 2)
     #expect(!vm.isCurrentPlayerBot)
@@ -851,6 +859,7 @@ func x01UndoBackToBotTurnRestartsBot() async throws {
     #expect(vm.session?.events.count == 1)
 
     await vm.undoLastTurn()
+    try await waitForX01EventCount(1, on: vm)
 
     #expect(vm.session?.events.count == 1)
     #expect(!vm.isBotPlaying)
@@ -903,6 +912,7 @@ func x01ViewModelBotContinuesAfterHumanBust() async throws {
     vm.totalEntryText = "50"
 
     await vm.submitTurn()
+    try await waitForX01EventCount(6, on: vm, expectedState: .readyTurn)
 
     #expect(vm.session?.events.count == 6)
     #expect(vm.isCurrentPlayerBot == false)
@@ -950,6 +960,7 @@ func x01ViewModelHumanCanSubmitAfterBotBust() async throws {
     vm.inputMode = .totalEntry
     vm.totalEntryText = "60"
     await vm.submitTurn()
+    try await waitForX01EventCount(7, on: vm, expectedState: .readyTurn)
 
     #expect(vm.state == .readyTurn)
     // Human visit plus auto bot reply when the turn passes back to the bot.
