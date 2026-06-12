@@ -17,57 +17,34 @@ struct BaseballScoreboardView: View {
         let colorToken: PlayerColorToken
     }
 
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-
     let rows: [Row]
     let showsVisitRunsColumn: Bool
 
-    private var usesLandscapeLayout: Bool {
-        GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-    }
-
     var body: some View {
-        VStack(spacing: usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2) {
-            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                HStack(spacing: DS.Spacing.s3) {
-                    Circle()
-                        .fill(PlayerVisualViews.color(for: row.colorToken))
-                        .frame(width: usesLandscapeLayout ? 12 : 10, height: usesLandscapeLayout ? 12 : 10)
-                    Text(row.name)
-                        .font(usesLandscapeLayout ? .body.weight(row.isActive || row.isLeading ? .bold : .regular) : .subheadline.weight(row.isActive || row.isLeading ? .bold : .regular))
-                        .foregroundStyle(Brand.textPrimary)
-                        .lineLimit(1)
-                    if row.isLeading {
-                        Text(L10n.string("play.baseball.leading"))
-                            .font(usesLandscapeLayout ? .caption.weight(.semibold) : .caption2.weight(.semibold))
-                            .foregroundStyle(Brand.green)
-                    }
-                    Spacer()
-                    if showsVisitRunsColumn, let visitRuns = row.visitRuns, let kind = row.visitRunsKind {
-                        Text(visitRunsDisplayText(visitRuns, kind: kind))
-                            .font(usesLandscapeLayout ? .subheadline : .caption)
-                            .foregroundStyle(Brand.textSecondary)
-                    }
-                    Text("\(row.cumulativeRuns)")
-                        .font(usesLandscapeLayout ? .title2.weight(.bold) : .title3.weight(.bold))
-                        .foregroundStyle(row.isActive ? Brand.green : Brand.textPrimary)
-                }
-                .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
-                .padding(.vertical, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
-                .background(row.isActive ? Brand.cardElevated : Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(rowAccessibilityLabel(row))
-                .accessibilityIdentifier("baseball_scoreboard_row_\(index)")
-            }
-        }
+        MatchScoreboardListView(
+            entries: rows.map { row in
+                MatchScoreboardListView.Entry(
+                    id: row.id,
+                    name: row.name,
+                    totalText: "\(row.cumulativeRuns)",
+                    secondaryText: secondaryText(for: row),
+                    leadingText: row.isLeading ? L10n.string("play.baseball.leading") : nil,
+                    isActive: row.isActive,
+                    colorToken: row.colorToken,
+                    accessibilityLabel: rowAccessibilityLabel(row)
+                )
+            },
+            accessibilityIdentifierPrefix: "baseball"
+        )
     }
 
-    private func visitRunsDisplayText(_ runs: Int, kind: VisitRunsKind) -> String {
+    private func secondaryText(for row: Row) -> String? {
+        guard showsVisitRunsColumn, let visitRuns = row.visitRuns, let kind = row.visitRunsKind else { return nil }
         switch kind {
         case .inning:
-            L10n.format("play.baseball.thisInningFormat", runs)
+            return L10n.format("play.baseball.thisInningFormat", visitRuns)
         case .playoffRound:
-            L10n.format("play.baseball.playoffRoundFormat", runs)
+            return L10n.format("play.baseball.playoffRoundFormat", visitRuns)
         }
     }
 
@@ -94,34 +71,15 @@ struct InningProgressStrip: View {
     let isExtraInning: Bool
 
     var body: some View {
-        let totalDots = max(inningCount, currentInning)
-        HStack(spacing: 6) {
-            ForEach(1 ... totalDots, id: \.self) { inning in
-                Circle()
-                    .fill(fillColor(for: inning))
-                    .frame(width: 10, height: 10)
-                    .overlay {
-                        if inning == currentInning {
-                            Circle().stroke(Brand.green, lineWidth: 2)
-                        }
-                    }
-                    .accessibilityHidden(true)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            L10n.format(
+        MatchProgressDotStrip(
+            count: inningCount,
+            current: currentInning,
+            accessibilityLabel: L10n.format(
                 "play.baseball.inningStrip.accessibilityFormat",
                 currentInning,
-                totalDots,
+                max(inningCount, currentInning),
                 currentInning
             )
         )
-    }
-
-    private func fillColor(for inning: Int) -> Color {
-        if inning < currentInning { return Brand.green }
-        if inning == currentInning { return Brand.amber }
-        return Brand.textSecondary.opacity(0.35)
     }
 }
