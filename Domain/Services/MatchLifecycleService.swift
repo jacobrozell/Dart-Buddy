@@ -94,6 +94,7 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var startedAt: Date
     public var endedAt: Date?
     public var winnerPlayerId: UUID?
+    public var forfeitedByPlayerId: UUID?
     public var currentTurnPlayerId: UUID?
     public var currentLegIndex: Int
     public var currentSetIndex: Int
@@ -143,6 +144,7 @@ public enum MatchLifecycleService {
             startedAt: startedAt,
             endedAt: nil,
             winnerPlayerId: nil,
+            forfeitedByPlayerId: nil,
             currentTurnPlayerId: ordered.first?.playerId ?? ordered.first?.id,
             currentLegIndex: 0,
             currentSetIndex: 0,
@@ -183,6 +185,78 @@ public enum MatchLifecycleService {
         var runtime = session.runtime
         runtime.status = .abandoned
         runtime.endedAt = timestamp
+        runtime.currentTurnPlayerId = nil
+        let snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
+        return MatchLifecycleSession(runtime: runtime, events: session.events, latestSnapshot: snapshot)
+    }
+
+    /// Ends an in-progress match early while preserving scored events.
+    public static func forfeit(
+        session: MatchLifecycleSession,
+        forfeitingPlayerId: UUID,
+        winnerPlayerId: UUID?,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        let status = session.runtime.status
+        guard status == .inProgress else { return session }
+        guard session.runtime.eventCount >= 1 else {
+            throw AppError(
+                code: .validationFailed,
+                layer: .domain,
+                severity: .warning,
+                isRecoverable: true,
+                userMessageKey: "error.match.forfeit.invalid"
+            )
+        }
+
+        let participantKeys = session.runtime.participants.map { $0.playerId ?? $0.id }
+        guard participantKeys.contains(forfeitingPlayerId) else {
+            throw AppError(
+                code: .validationFailed,
+                layer: .domain,
+                severity: .warning,
+                isRecoverable: true,
+                userMessageKey: "error.match.forfeit.invalid"
+            )
+        }
+
+        let isSolo = session.runtime.participants.count == 1
+        if isSolo {
+            if let winnerPlayerId, winnerPlayerId != forfeitingPlayerId {
+                throw AppError(
+                    code: .validationFailed,
+                    layer: .domain,
+                    severity: .warning,
+                    isRecoverable: true,
+                    userMessageKey: "error.match.forfeit.invalid"
+                )
+            }
+        } else {
+            guard let winnerPlayerId, winnerPlayerId != forfeitingPlayerId else {
+                throw AppError(
+                    code: .validationFailed,
+                    layer: .domain,
+                    severity: .warning,
+                    isRecoverable: true,
+                    userMessageKey: "error.match.forfeit.invalid"
+                )
+            }
+            guard participantKeys.contains(winnerPlayerId) else {
+                throw AppError(
+                    code: .validationFailed,
+                    layer: .domain,
+                    severity: .warning,
+                    isRecoverable: true,
+                    userMessageKey: "error.match.forfeit.invalid"
+                )
+            }
+        }
+
+        var runtime = session.runtime
+        runtime.status = .forfeited
+        runtime.endedAt = timestamp
+        runtime.forfeitedByPlayerId = forfeitingPlayerId
+        runtime.winnerPlayerId = winnerPlayerId
         runtime.currentTurnPlayerId = nil
         let snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
         return MatchLifecycleSession(runtime: runtime, events: session.events, latestSnapshot: snapshot)

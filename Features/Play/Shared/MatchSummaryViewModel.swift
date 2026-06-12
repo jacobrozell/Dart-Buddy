@@ -63,6 +63,8 @@ final class MatchSummaryViewModel: ObservableObject {
 
     var hasResult: Bool { session != nil }
 
+    var isForfeited: Bool { session?.runtime.status == .forfeited }
+
     var canUndoLastThrow: Bool {
         guard let session, !session.events.isEmpty else { return false }
         return session.runtime.status == .completed
@@ -112,6 +114,13 @@ final class MatchSummaryViewModel: ObservableObject {
         guard let runtime = session?.runtime else { return nil }
         return runtime.participants.first {
             ($0.playerId ?? $0.id) == runtime.winnerPlayerId
+        }?.displayNameAtMatchStart
+    }
+
+    var forfeiterName: String? {
+        guard let runtime = session?.runtime, let forfeitedBy = runtime.forfeitedByPlayerId else { return nil }
+        return runtime.participants.first {
+            ($0.playerId ?? $0.id) == forfeitedBy
         }?.displayNameAtMatchStart
     }
 

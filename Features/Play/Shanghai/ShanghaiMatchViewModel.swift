@@ -14,10 +14,10 @@ final class ShanghaiMatchViewModel: ObservableObject {
     @Published private(set) var state: State = .readyTurn
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
 
-    private let matchId: UUID
+    let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
@@ -187,31 +187,6 @@ final class ShanghaiMatchViewModel: ObservableObject {
         while await playSingleBotTurnIfNeeded() {}
     }
 
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .shanghai,
-                category: .appLifecycle,
-                eventName: "shanghai_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
-    }
-
     func announceTurnIfNeeded(visitPoints: Int, cumulativePoints: Int) {
         let announcement = L10n.format(
             "play.shanghai.announce.turnFormat",
@@ -300,16 +275,24 @@ final class ShanghaiMatchViewModel: ObservableObject {
         isBotPlaying = true
         defer { isBotPlaying = false }
 
-        enteredDarts.removeAll()
+        let partialVisitCount = enteredDarts.count
+        if partialVisitCount == 0 {
+            enteredDarts.removeAll()
+        }
+
         var rng = SystemRandomNumberGenerator()
         let plannedDarts = DartBotEngine.generateShanghaiTurn(
             targetSegment: shanghaiState.currentRound,
             profile: profile,
             rng: &rng
         )
+        let dartsToReveal = BotVisitPlayback.remainingPlannedDarts(
+            fullPlan: plannedDarts,
+            existingCount: partialVisitCount
+        )
 
         let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-        for dart in plannedDarts {
+        for dart in dartsToReveal {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
             } catch {
@@ -366,7 +349,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
             } else {
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {
-                    await playBotTurnIfNeeded()
+                    scheduleBotPlaybackIfNeeded()
                 }
             }
             enteredDarts.removeAll()
@@ -386,7 +369,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
             session = undone
             state = .readyTurn
             enteredDarts.removeAll()
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {
@@ -400,6 +383,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
         if !enteredDarts.isEmpty {
             enteredDarts.removeLast()
             selectedMultiplier = .single
+            resumeBotPlaybackAfterUndoIfNeeded()
             return
         }
         do {
@@ -412,9 +396,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
             session = result.session
             state = .readyTurn
             enteredDarts = result.restoredDarts
-            if result.restoredDarts.isEmpty {
-                await playBotTurnIfNeeded()
-            }
+            resumeBotPlaybackAfterUndoIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {
@@ -422,7 +404,20 @@ final class ShanghaiMatchViewModel: ObservableObject {
         }
     }
 
-    private func loadSessionIfNeeded() async {
+    private func resumeBotPlaybackAfterUndoIfNeeded() {
+        MatchBotUndoSupport.resumeAfterDartUndo(
+            isBotTurn: isCurrentPlayerBot,
+            partialVisitCount: enteredDarts.count,
+            isBotPlaying: &isBotPlaying,
+            reconcileSubmittingTurn: {
+                if case .submittingTurn = state { state = .readyTurn }
+            },
+            botPlayback: botPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
+    func loadSessionIfNeeded() async {
         if session != nil { return }
         if let existing = store.session(for: matchId) {
             session = existing
@@ -457,6 +452,14 @@ final class ShanghaiMatchViewModel: ObservableObject {
               case let .shanghaiTurn(event) = envelope.payload else { return nil }
         return event
     }
+}
+
+extension ShanghaiMatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { isBotPlaying || state == .submittingTurn }
+    var hostMatchRepository: any MatchRepository { matchRepository }
+    var hostMatchStore: ActiveMatchStore { store }
+    var hostMatchLogger: any AppLogger { logger }
+    var hostMatchType: MatchType { .shanghai }
 }
 
 private func postAccessibilityAnnouncement(_ text: String) {

@@ -153,18 +153,43 @@ struct MatchSummaryScreen: View {
 
     private func celebrationHeader(trophyPointSize: CGFloat) -> some View {
         VStack(spacing: DS.Spacing.s2) {
-            Image(systemName: "trophy.fill")
-                .font(.system(size: trophyPointSize))
-                .foregroundStyle(Brand.amber)
-                .scaleEffect(celebrate ? 1 : (reduceMotion ? 1 : 0.4))
-                .opacity(celebrate ? 1 : (reduceMotion ? 1 : 0))
-                .rotationEffect(.degrees(celebrate ? 0 : (reduceMotion ? 0 : -25)))
-                .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: celebrate)
-            if let winnerName = viewModel.winnerName {
-                Text(L10n.format("play.summary.winsFormat", winnerName))
+            if viewModel.isForfeited {
+                Image(systemName: "flag.checkered.2.crossed")
+                    .font(.system(size: trophyPointSize))
+                    .foregroundStyle(Brand.amber)
+                    .accessibilityHidden(true)
+                Text(L10n.string("play.summary.forfeit.title"))
                     .font(usesLandscapeSplit ? .largeTitle.weight(.heavy) : .title.weight(.heavy))
                     .foregroundStyle(Brand.textPrimary)
                     .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("matchSummaryForfeitBanner")
+                if let forfeiter = viewModel.forfeiterName, let winner = viewModel.winnerName {
+                    Text(L10n.format("play.summary.forfeit.subtitle", forfeiter, winner))
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("matchSummaryForfeitSubtitle")
+                } else if viewModel.forfeiterName != nil {
+                    Text(L10n.string("play.summary.forfeit.solo.subtitle"))
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("matchSummaryForfeitSubtitle")
+                }
+            } else {
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: trophyPointSize))
+                    .foregroundStyle(Brand.amber)
+                    .scaleEffect(celebrate ? 1 : (reduceMotion ? 1 : 0.4))
+                    .opacity(celebrate ? 1 : (reduceMotion ? 1 : 0))
+                    .rotationEffect(.degrees(celebrate ? 0 : (reduceMotion ? 0 : -25)))
+                    .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: celebrate)
+                if let winnerName = viewModel.winnerName {
+                    Text(L10n.format("play.summary.winsFormat", winnerName))
+                        .font(usesLandscapeSplit ? .largeTitle.weight(.heavy) : .title.weight(.heavy))
+                        .foregroundStyle(Brand.textPrimary)
+                        .multilineTextAlignment(.center)
+                }
             }
             Text(viewModel.typeLabel)
                 .font(.subheadline.weight(.semibold))
@@ -221,11 +246,11 @@ struct MatchSummaryScreen: View {
 
     private var gameRecordedBadge: some View {
         HStack(spacing: 6) {
-            Image(systemName: "checkmark.circle.fill")
-            Text(L10n.summaryGameRecorded)
+            Image(systemName: viewModel.isForfeited ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+            Text(viewModel.isForfeited ? L10n.string("play.summary.forfeit.statsSaved") : L10n.string("play.summary.gameRecorded"))
         }
         .font(.subheadline.weight(.semibold))
-        .foregroundStyle(Brand.green)
+        .foregroundStyle(viewModel.isForfeited ? Brand.amber : Brand.green)
         .accessibilityIdentifier("matchSummaryGameRecorded")
     }
 

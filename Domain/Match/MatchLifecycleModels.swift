@@ -4,6 +4,7 @@ public enum MatchLifecycleStatus: String, Codable, Sendable {
     case notStarted
     case inProgress
     case completed
+    case forfeited
     case abandoned
 }
 

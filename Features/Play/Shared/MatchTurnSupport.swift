@@ -18,6 +18,7 @@ enum MatchTurnSupport {
             startedAt: runtime.startedAt,
             endedAt: runtime.endedAt,
             winnerPlayerId: runtime.winnerPlayerId,
+            forfeitedByPlayerId: runtime.forfeitedByPlayerId,
             currentTurnPlayerId: runtime.currentTurnPlayerId,
             currentLegIndex: runtime.currentLegIndex,
             currentSetIndex: runtime.currentSetIndex,

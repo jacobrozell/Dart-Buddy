@@ -137,11 +137,13 @@ struct CricketBoardView: View {
         var isClosureHighlight: Bool = false
 
         var accessibilitySummary: String {
-            var label = L10n.format("play.cricket.column.accessibilityFormat", name, score)
+            var parts = [L10n.format("play.cricket.column.accessibilityFormat", name, score)]
+            parts.append(L10n.format("play.cricket.column.footer.darts", dartsThrown))
+            parts.append(L10n.format("play.cricket.column.accessibility.mprFormat", marksPerRound))
             if isActive {
-                label += ". \(L10n.string("play.x01.turn.active"))"
+                parts.append(L10n.string("play.x01.turn.active"))
             }
-            return label
+            return parts.joined(separator: ". ")
         }
     }
 
@@ -289,6 +291,8 @@ struct CricketBoardPlayerColumn: View {
     let allColumns: [CricketBoardView.Column]
     private let targets = CricketTarget.allCases
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: 0) {
             columnHeader
@@ -314,8 +318,11 @@ struct CricketBoardPlayerColumn: View {
                     .stroke(Brand.amber, lineWidth: 2)
             }
         }
-        .scaleEffect(column.isClosureHighlight ? 1.03 : 1)
-        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
+        .scaleEffect(column.isClosureHighlight && !reduceMotion ? 1.03 : 1)
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.6),
+            value: column.isClosureHighlight
+        )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(column.accessibilitySummary)
         .accessibilityIdentifier(column.isActive ? "cricket_column_active" : "cricket_column")
@@ -405,6 +412,7 @@ struct CricketTransposedBoardView: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var sizing: CricketBoardSizing {
         CricketBoardSizing.resolve(
@@ -433,8 +441,11 @@ struct CricketTransposedBoardView: View {
                     .stroke(Brand.amber, lineWidth: 2)
             }
         }
-        .scaleEffect(column.isClosureHighlight ? 1.02 : 1)
-        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: column.isClosureHighlight)
+        .scaleEffect(column.isClosureHighlight && !reduceMotion ? 1.02 : 1)
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.6),
+            value: column.isClosureHighlight
+        )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(column.accessibilitySummary)
         .accessibilityIdentifier("cricket_column_active")

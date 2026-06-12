@@ -21,7 +21,7 @@ final class X01MatchViewModel: ObservableObject {
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
     @Published var totalEntryText = ""
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
     /// Increments on every leg checkout so the UI can play finish audio even when
     /// the match continues (e.g. best-of-3 legs).
@@ -31,7 +31,7 @@ final class X01MatchViewModel: ObservableObject {
 
     private var turnTotalCallerToken = 0
 
-    private let matchId: UUID
+    let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
@@ -372,8 +372,11 @@ final class X01MatchViewModel: ObservableObject {
             message: "Bot visit generation started."
         )
 
-        enteredDarts.removeAll()
-        totalEntryText = ""
+        let partialVisitCount = enteredDarts.count
+        if partialVisitCount == 0 {
+            enteredDarts.removeAll()
+            totalEntryText = ""
+        }
 
         let player = x01State.players[x01State.currentPlayerIndex]
         var rng = SystemRandomNumberGenerator()
@@ -385,9 +388,13 @@ final class X01MatchViewModel: ObservableObject {
             isCheckedIn: player.isCheckedIn,
             rng: &rng
         )
+        let dartsToReveal = BotVisitPlayback.remainingPlannedDarts(
+            fullPlan: plannedDarts,
+            existingCount: partialVisitCount
+        )
 
         let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-        for dart in plannedDarts {
+        for dart in dartsToReveal {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
             } catch {
@@ -408,38 +415,7 @@ final class X01MatchViewModel: ObservableObject {
 
     /// Marks the match abandoned when the player leaves mid-match so it stops
     /// appearing as resumable. Completed matches are left untouched.
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-            logger.matchInfo(
-                matchId: matchId,
-                matchType: .x01,
-                category: .appLifecycle,
-                eventName: "match_abandoned",
-                message: "X01 match abandoned by user.",
-                metadata: ["eventCount": String(abandoned.runtime.eventCount)]
-            )
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .x01,
-                category: .appLifecycle,
-                eventName: "x01_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
-    }
+    // Shared implementation: `MatchPlaySessionHost.abandonMatch()`.
 
     /// Clears the transient bust banner so the next visit can be scored.
     /// `bustFeedback` is shown after a busted turn; without acknowledging it the
@@ -523,7 +499,7 @@ final class X01MatchViewModel: ObservableObject {
             enteredDarts.removeAll()
             totalEntryText = ""
             if updated.runtime.status != .completed, !fromBotPlayback {
-                await playBotTurnIfNeeded()
+                scheduleBotPlaybackIfNeeded()
             }
         }
     }
@@ -549,7 +525,7 @@ final class X01MatchViewModel: ObservableObject {
                 message: "Last turn undone.",
                 metadata: MatchTurnSupport.matchProgressMetadata(for: undone)
             )
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {
@@ -577,6 +553,7 @@ final class X01MatchViewModel: ObservableObject {
                 message: "In-progress throw undone.",
                 metadata: MatchTurnSupport.matchProgressMetadata(for: current)
             )
+            resumeBotPlaybackAfterUndoIfNeeded()
             return
         }
         do {
@@ -597,9 +574,7 @@ final class X01MatchViewModel: ObservableObject {
                 message: "Last throw undone.",
                 metadata: MatchTurnSupport.matchProgressMetadata(for: result.session)
             )
-            if result.restoredDarts.isEmpty {
-                await playBotTurnIfNeeded()
-            }
+            resumeBotPlaybackAfterUndoIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {
@@ -614,7 +589,20 @@ final class X01MatchViewModel: ObservableObject {
         }
     }
 
-    private func loadSessionIfNeeded() async {
+    private func resumeBotPlaybackAfterUndoIfNeeded() {
+        MatchBotUndoSupport.resumeAfterDartUndo(
+            isBotTurn: isCurrentPlayerBot,
+            partialVisitCount: enteredDarts.count,
+            isBotPlaying: &isBotPlaying,
+            reconcileSubmittingTurn: {
+                if case .submittingTurn = state { state = .readyTurn }
+            },
+            botPlayback: botPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
+    func loadSessionIfNeeded() async {
         if session != nil { return }
         if let existing = store.session(for: matchId) {
             session = existing
@@ -668,4 +656,12 @@ final class X01MatchViewModel: ObservableObject {
         }
     }
 
+}
+
+extension X01MatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { isBotPlaying || state == .submittingTurn }
+    var hostMatchRepository: any MatchRepository { matchRepository }
+    var hostMatchStore: ActiveMatchStore { store }
+    var hostMatchLogger: any AppLogger { logger }
+    var hostMatchType: MatchType { .x01 }
 }
