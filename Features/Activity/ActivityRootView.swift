@@ -157,44 +157,49 @@ struct ActivityRootView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, DS.Spacing.s6)
                 .accessibilityLabel(L10n.loading)
-        } else if historyViewModel.state == .error {
-            Text(LocalizedStringKey(historyViewModel.errorMessageKey ?? "error.repository.storage"))
-                .foregroundStyle(Brand.red)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, DS.Spacing.s6)
-        } else if historyViewModel.rows.isEmpty {
-            historyEmptyState
         } else {
-            ForEach(historyViewModel.rows) { row in
-                Button { historyPath.append(.detail(matchId: row.summary.id)) } label: {
-                    MatchHistoryCard(row: row)
-                }
-                .buttonStyle(.plain)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(row.accessibilitySummary)
-            }
-
-            if historyViewModel.hasMorePages {
-                Button {
-                    loadMoreTask?.cancel()
-                    loadMoreTask = Task { await historyViewModel.loadMore() }
-                } label: {
-                    Group {
-                        if historyViewModel.isLoadingMore {
-                            ProgressView().tint(Brand.green)
-                                .accessibilityLabel(L10n.loading)
-                        } else {
-                            Text(L10n.historyLoadMore)
-                                .font(.subheadline.weight(.semibold))
+            Group {
+                if historyViewModel.state == .error {
+                    Text(LocalizedStringKey(historyViewModel.errorMessageKey ?? "error.repository.storage"))
+                        .foregroundStyle(Brand.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Spacing.s6)
+                } else if historyViewModel.rows.isEmpty {
+                    historyEmptyState
+                } else {
+                    ForEach(historyViewModel.rows) { row in
+                        Button { historyPath.append(.detail(matchId: row.summary.id)) } label: {
+                            MatchHistoryCard(row: row)
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(row.accessibilitySummary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, DS.Spacing.s3)
+
+                    if historyViewModel.hasMorePages {
+                        Button {
+                            loadMoreTask?.cancel()
+                            loadMoreTask = Task { await historyViewModel.loadMore() }
+                        } label: {
+                            Group {
+                                if historyViewModel.isLoadingMore {
+                                    ProgressView().tint(Brand.green)
+                                        .accessibilityLabel(L10n.loading)
+                                } else {
+                                    Text(L10n.historyLoadMore)
+                                        .font(.subheadline.weight(.semibold))
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s3)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Brand.green)
+                        .accessibilityIdentifier("historyLoadMoreButton")
+                    }
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(Brand.green)
-                .accessibilityIdentifier("historyLoadMoreButton")
             }
+            .motionTabContentReveal(when: true)
         }
     }
 
@@ -210,10 +215,15 @@ struct ActivityRootView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, DS.Spacing.s6)
                 .accessibilityLabel(L10n.loading)
-        } else if statisticsViewModel.rows.isEmpty {
-            statisticsEmptyState
         } else {
-            StatisticsTablesContent(viewModel: statisticsViewModel)
+            Group {
+                if statisticsViewModel.rows.isEmpty {
+                    statisticsEmptyState
+                } else {
+                    StatisticsTablesContent(viewModel: statisticsViewModel)
+                }
+            }
+            .motionTabContentReveal(when: true)
         }
     }
 

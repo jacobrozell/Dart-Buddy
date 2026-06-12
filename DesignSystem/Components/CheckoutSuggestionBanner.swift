@@ -36,6 +36,7 @@ struct CheckoutSuggestionBanner: View {
             .padding(.horizontal, usesCompactLayout ? DS.Spacing.s3 : DS.Spacing.s4)
             .padding(.vertical, usesCompactLayout ? DS.Spacing.s2 : DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            .motionBannerEntrance()
         }
     }
 

@@ -319,6 +319,7 @@ struct CricketBoardPlayerColumn: View {
             }
         }
         .scaleEffect(column.isClosureHighlight && !reduceMotion ? 1.03 : 1)
+        .animation(MotionPolicy.standardAnimation(reduceMotion: reduceMotion), value: column.isActive)
         .animation(
             reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.6),
             value: column.isClosureHighlight
@@ -528,6 +529,7 @@ struct CricketMarkCell: View {
         }
         .frame(width: 26, height: 26)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .motionMarkIncrementPulse(marks: marks)
         .accessibilityLabel(accessibilityLabel)
     }
 

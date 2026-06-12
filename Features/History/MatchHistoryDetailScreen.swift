@@ -5,6 +5,7 @@ struct MatchHistoryDetailScreen: View {
     let matchId: UUID
     var onDeleted: () -> Void = {}
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var retryTask: Task<Void, Never>?
     @State private var deleteTask: Task<Void, Never>?
     @State private var showTimeline = false
@@ -180,7 +181,9 @@ struct MatchHistoryDetailScreen: View {
     private var timelineSection: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
             Button {
-                withAnimation { showTimeline.toggle() }
+                MotionPolicy.animateIfAllowed(reduceMotion: reduceMotion, Motion.standard) {
+                    showTimeline.toggle()
+                }
             } label: {
                 HStack {
                     Text(L10n.historyTurnByTurn).font(.headline).foregroundStyle(Brand.textPrimary)

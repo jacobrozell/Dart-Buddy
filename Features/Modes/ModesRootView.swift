@@ -3,6 +3,7 @@ import SwiftUI
 struct ModesRootView: View {
     var onSelectMode: (GameModeCatalogEntry) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var searchText = ""
     @State private var showsRulesForEntry: GameModeCatalogEntry?
 
@@ -42,6 +43,7 @@ struct ModesRootView: View {
                             }
                         }
                     }
+                    .animation(MotionPolicy.fastAnimation(reduceMotion: reduceMotion), value: searchText)
                 }
                 .padding(.horizontal, DS.Spacing.s4)
                 .tabRootScrollChrome()

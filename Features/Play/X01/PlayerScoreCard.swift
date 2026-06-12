@@ -15,6 +15,7 @@ struct PlayerScoreCard: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .largeTitle) private var scoreFontSize: CGFloat = 40
     @ScaledMetric(relativeTo: .caption) private var dartBoxSize: CGFloat = 38
     @ScaledMetric(relativeTo: .largeTitle) private var compactScoreFontSize: CGFloat = 34
@@ -52,6 +53,7 @@ struct PlayerScoreCard: View {
             .padding(usesCompactDensity ? DS.Spacing.s2 : DS.Spacing.s3)
         }
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+        .animation(MotionPolicy.standardAnimation(reduceMotion: reduceMotion), value: isActive)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
         .accessibilityIdentifier(isActive ? "scoreCard_active" : "scoreCard")
@@ -103,6 +105,11 @@ struct PlayerScoreCard: View {
         return usesCompactDensity ? compactDartBoxSize : dartBoxSize
     }
 
+    /// Animate committed score changes only — not live preview while entering a visit.
+    private var animatesScoreChanges: Bool {
+        !isActive || visitDarts.isEmpty
+    }
+
     private var scoreLabel: some View {
         Text("\(score)")
             .font(.system(size: displayScoreFontSize, weight: .heavy, design: .rounded))
@@ -111,6 +118,7 @@ struct PlayerScoreCard: View {
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .accessibilityIdentifier(isActive ? "scoreCard_remaining" : "")
+            .motionNumericScore(score, animatesChanges: animatesScoreChanges)
     }
 
     private var scoreNameColumn: some View {

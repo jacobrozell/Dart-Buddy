@@ -23,6 +23,7 @@ struct SetupValidationHint: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(LocalizedStringKey(messageKey)))
         .accessibilityIdentifier("setupValidationHint")
+        .motionBannerEntrance()
     }
 }
 
