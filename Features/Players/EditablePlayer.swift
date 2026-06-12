@@ -15,6 +15,11 @@ struct EditablePlayer: Identifiable, Equatable {
     var botDifficulty: BotDifficulty?
     var avatarStyle: PlayerAvatarStyle
     var colorToken: PlayerColorToken
+    var playerRole: PlayerRole? = nil
+
+    var isPrimaryPlayer: Bool {
+        playerRole == .primary
+    }
 
     static func from(_ summary: PlayerSummary) -> EditablePlayer {
         EditablePlayer(
@@ -31,7 +36,8 @@ struct EditablePlayer: Identifiable, Equatable {
             linkedPlayerId: summary.linkedPlayerId,
             botDifficulty: summary.botDifficulty,
             avatarStyle: summary.avatarStyle,
-            colorToken: summary.colorToken
+            colorToken: summary.colorToken,
+            playerRole: summary.playerRole
         )
     }
 }

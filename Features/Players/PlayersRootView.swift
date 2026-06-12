@@ -187,12 +187,12 @@ struct PlayersRootView: View {
                 PlayerEditSheet(
                     viewModel: PlayerEditViewModel(
                         existingNames: viewModel.players.map(\.name),
-                        editing: presentation.editing
+                        editing: presentation.editing,
+                        defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
                     ),
                     existing: presentation.editing,
                     onSave: { player in
-                        actionTask?.cancel()
-                        actionTask = Task { await viewModel.save(player) }
+                        await viewModel.save(player)
                     }
                 )
             }
@@ -277,9 +277,20 @@ struct PlayersRootView: View {
             HStack(spacing: DS.Spacing.s3) {
                 PlayerAvatarChip(player: player, size: 40)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(player.name)
-                        .font(.headline)
-                        .foregroundStyle(Brand.textPrimary)
+                    HStack(spacing: DS.Spacing.s2) {
+                        Text(player.name)
+                            .font(.headline)
+                            .foregroundStyle(Brand.textPrimary)
+                        if player.isPrimaryPlayer {
+                            Text(L10n.playersPrimaryBadge)
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(Brand.inkOnBright)
+                                .padding(.horizontal, DS.Spacing.s2)
+                                .padding(.vertical, 2)
+                                .background(Brand.green, in: Capsule())
+                                .accessibilityHidden(true)
+                        }
+                    }
                     if let difficulty = player.botDifficulty {
                         BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
                     } else if player.isCustomBot {
@@ -343,6 +354,9 @@ struct PlayersRootView: View {
         } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
             suffix += ", \(L10n.format("players.list.record.accessibility", summary.games, summary.wins))"
         }
+        if player.isPrimaryPlayer {
+            suffix += L10n.string("players.row.primarySuffix")
+        }
         if player.isArchived {
             suffix += L10n.string("players.row.archivedSuffix")
         }
@@ -375,62 +389,3 @@ struct PlayersRootView: View {
     }
 }
 
-private struct PlayerEditSheet: View {
-    @ObservedObject var viewModel: PlayerEditViewModel
-    let existing: EditablePlayer?
-    let onSave: (EditablePlayer) -> Void
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                TextField("players.edit.name", text: $viewModel.name)
-                    .accessibilityLabel(L10n.string("players.edit.name.accessibility"))
-                    .accessibilityIdentifier("playerEdit_name")
-                    .onChange(of: viewModel.name) { _, _ in viewModel.validate() }
-                Section(L10n.playersEditAvatar) {
-                    AvatarStylePicker(selection: $viewModel.avatarStyle)
-                }
-                Section(L10n.playersEditColor) {
-                    PlayerColorTokenPicker(selection: $viewModel.colorToken)
-                }
-                if viewModel.isBot, let difficulty = existing?.botDifficulty {
-                    Section(L10n.botDifficultyLabel) {
-                        BotDifficultyBadge(difficulty: difficulty)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .listRowBackground(Brand.card)
-                    }
-                    Section(L10n.botStatsSection) {
-                        BotDifficultyStatsSection(profile: difficulty.displayProfile, showsHeader: false)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowBackground(Color.clear)
-                    }
-                }
-                TextField("players.edit.notes", text: $viewModel.notes, axis: .vertical)
-                    .accessibilityLabel(L10n.string("players.edit.notes.accessibility"))
-                if let message = viewModel.validationMessage {
-                    Text(message).foregroundStyle(.red).font(.footnote)
-                }
-            }
-            .navigationTitle(
-                existing == nil
-                    ? L10n.addPlayerTitle
-                    : (existing?.isBot == true ? L10n.editBotTitle : L10n.editPlayerTitle)
-            )
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.cancel) { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(L10n.save) {
-                        onSave(viewModel.buildPlayer(from: existing))
-                        dismiss()
-                    }
-                    .disabled(!viewModel.canSave)
-                    .accessibilityLabel(L10n.string("players.edit.save.accessibility"))
-                    .accessibilityIdentifier("playerEdit_save")
-                }
-            }
-        }
-    }
-}

@@ -6,23 +6,27 @@ final class PlayerEditViewModel: ObservableObject {
     @Published var notes = ""
     @Published var avatarStyle: PlayerAvatarStyle = .dart
     @Published var colorToken: PlayerColorToken = .green
+    @Published var isPrimaryPlayer = false
     @Published private(set) var validationMessage: String?
     @Published private(set) var canSave = false
 
     let isBot: Bool
+    let showsPrimaryToggle: Bool
     private let existingNames: [String]
     private let editingId: UUID?
     private let originalNormalizedName: String?
 
-    init(existingNames: [String], editing: EditablePlayer?) {
+    init(existingNames: [String], editing: EditablePlayer?, defaultPrimary: Bool = false) {
         self.existingNames = existingNames
         self.editingId = editing?.id
         self.isBot = editing?.isBot ?? false
+        self.showsPrimaryToggle = editing?.isBot != true
         self.originalNormalizedName = editing.map { Self.normalizedName($0.name) }
         self.name = editing?.name ?? ""
         self.notes = editing?.notes ?? ""
         self.avatarStyle = editing?.avatarStyle ?? .dart
         self.colorToken = editing?.colorToken ?? .green
+        self.isPrimaryPlayer = editing?.isPrimaryPlayer ?? defaultPrimary
         validate()
     }
 
@@ -79,7 +83,8 @@ final class PlayerEditViewModel: ObservableObject {
             linkedPlayerId: existing?.linkedPlayerId,
             botDifficulty: existing?.botDifficulty,
             avatarStyle: avatarStyle,
-            colorToken: colorToken
+            colorToken: colorToken,
+            playerRole: isPrimaryPlayer ? .primary : (existing?.isPrimaryPlayer == true ? .guest : existing?.playerRole)
         )
     }
 
