@@ -203,6 +203,7 @@ final class SettingsViewModel: ObservableObject {
             let updated = try await repository.updateSettings(next)
             settings = updated
             userPreferencesStore.apply(updated)
+            NotificationCenter.default.post(name: .settingsDidUpdate, object: nil)
             state = .ready
         } catch is CancellationError {
             state = .ready

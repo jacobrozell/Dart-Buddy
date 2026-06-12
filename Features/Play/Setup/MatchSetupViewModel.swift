@@ -49,8 +49,6 @@ final class MatchSetupViewModel: ObservableObject {
     private let activeMatchStore: ActiveMatchStore
     private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
     private let logger: any AppLogger
-    private var hasAppliedSettingsDefaultMode = false
-
     init(
         playerRepository: any PlayerRepository,
         settingsRepository: any SettingsRepository,
@@ -103,9 +101,8 @@ final class MatchSetupViewModel: ObservableObject {
             shanghaiBonusRule = shanghaiPrefs.bonusRule
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
                 applyMatchTypePreferred(preferred)
-            } else if !hasAppliedSettingsDefaultMode {
+            } else {
                 mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
-                hasAppliedSettingsDefaultMode = true
             }
         } catch {
             validationErrors = ["setup.error.load"]

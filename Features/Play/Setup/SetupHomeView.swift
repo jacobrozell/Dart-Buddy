@@ -55,6 +55,12 @@ struct SetupHomeView: View {
                         .ignoresSafeArea(edges: .bottom)
                 }
         }
+        .onAppear {
+            Task { await setupViewModel.onAppear() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .settingsDidUpdate)) { _ in
+            Task { await setupViewModel.onAppear() }
+        }
         .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
             if let selection = pendingMatchPlayerSelections.consumeModeSelection() {
                 setupViewModel.applyPendingModeSelection(selection)
@@ -214,6 +220,7 @@ struct SetupHomeView: View {
             )
         )
         .accessibilityIdentifier("resumeMatchButton")
+        .motionBannerEntrance()
     }
 
     private var selectedCatalogEntry: GameModeCatalogEntry? {

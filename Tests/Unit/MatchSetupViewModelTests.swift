@@ -75,6 +75,42 @@ func setupOnAppearFallsBackTo501WhenStartScoreUnsupported() async {
 }
 
 @MainActor
+@Test(.tags(.integration, .setupFlow, .settings, .regression))
+func setupOnAppearResyncsDefaultModeFromSettings() async {
+    let repository = FakeSettingsRepository()
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        settingsRepository: repository,
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+
+    await vm.onAppear()
+    #expect(vm.mode == .x01)
+
+    await repository.replaceSettings(SettingsSummary(
+        id: UUID(),
+        appearanceModeRaw: "system",
+        hapticsEnabled: true,
+        soundEnabled: true,
+        turnTotalCallerEnabled: false,
+        defaultMatchTypeRaw: MatchType.cricket.rawValue,
+        defaultX01StartScore: 501,
+        defaultCheckoutModeRaw: X01CheckoutMode.doubleOut.rawValue,
+        defaultCheckInModeRaw: X01CheckInMode.straightIn.rawValue,
+        defaultLegFormatRaw: X01LegFormat.firstTo.rawValue,
+        defaultLegsToWin: 3,
+        defaultSetsEnabled: false,
+        botStaggerEnabled: true,
+        botDartHapticsEnabled: true,
+        updatedAt: Date()
+    ))
+    await vm.onAppear()
+    #expect(vm.mode == .cricket)
+}
+
+@MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupValidationRequiresMinimumPlayers() async {
     let vm = MatchSetupViewModel(
@@ -1168,7 +1204,7 @@ private actor CustomBotCreatingPlayerRepository: PlayerRepository {
 }
 
 private actor FakeSettingsRepository: SettingsRepository {
-    private let settings: SettingsSummary
+    var settings: SettingsSummary
 
     init(settings: SettingsSummary? = nil) {
         self.settings = settings ?? SettingsSummary(
@@ -1196,6 +1232,10 @@ private actor FakeSettingsRepository: SettingsRepository {
 
     func seedDefaultsIfNeeded() async throws -> SettingsSummary {
         settings
+    }
+
+    func replaceSettings(_ next: SettingsSummary) {
+        settings = next
     }
 
     func updateSettings(_ settings: SettingsSummary) async throws -> SettingsSummary {
