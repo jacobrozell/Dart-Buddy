@@ -12,7 +12,8 @@ Ship blockers before App Store. **Scope:** lean 1.0 — X01 + Cricket only, 4 ta
 
 Remaining work after lean trim lands: **evidence + store ops**.
 
-**Master runbook:** [`release_checklist.md`](release_checklist.md) — device QA, App Store Connect, launch week, Reddit.
+**Master checklist:** [`1.0.0-ship-checklist.md`](1.0.0-ship-checklist.md) — everything before submit (start here).  
+**Expanded runbook:** [`release_checklist.md`](release_checklist.md) — device QA, App Store Connect, launch week, Reddit.
 
 ### QA sign-off (device)
 

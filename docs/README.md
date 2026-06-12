@@ -1,6 +1,6 @@
 # GitHub Pages (legal & support)
 
-Static pages for App Store **Privacy Policy URL** and **Support URL**.
+Static pages for App Store **Privacy Policy URL**, **Support URL**, and **Accessibility URL**.
 
 ## Enable Pages (one-time)
 
@@ -16,8 +16,9 @@ Static pages for App Store **Privacy Policy URL** and **Support URL**.
 | Home | `https://jacobrozell.github.io/Dart-Buddy/` |
 | Privacy Policy | `https://jacobrozell.github.io/Dart-Buddy/privacy.html` |
 | Support | `https://jacobrozell.github.io/Dart-Buddy/support.html` |
+| Accessibility | `https://jacobrozell.github.io/Dart-Buddy/accessibility.html` |
 
-Use the **Privacy Policy** and **Support** URLs in App Store Connect.
+Use the **Privacy Policy** and **Support** URLs in App Store Connect. Add the **Accessibility** URL under App → App Accessibility (optional; also linked in-app from Settings).
 
 ## Local preview
 

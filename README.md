@@ -40,7 +40,7 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 | **Catalog** | 29 modes in `GameModeCatalog` — 5 playable, 24 spec'd stubs | Not exposed |
 | **Gamification (R&D)** | Phase 1 achievement catalog spec'd; `BotAchievementTierResolver` + `botEffectiveTierRaw` on match participants | Flagged off |
 
-**Documentation coverage:** 26/26 feature checklist areas spec'd and verified, 29/29 game modes spec'd, 26/26 system specs present — audited on every CI run (`Scripts/ci/documentation-summary.sh` → artifact). See [`documentation-summary.txt`](documentation-summary.txt) for the latest snapshot.
+**Documentation coverage:** 27/31 feature checklist areas spec'd (gamification rows planned-only), 29/29 game modes spec'd, 26/26 system specs present — audited on every CI run (`Scripts/ci/documentation-summary.sh` → artifact). See [`documentation-summary.txt`](documentation-summary.txt) for the latest snapshot.
 
 ### Testing & CI
 
@@ -178,7 +178,7 @@ Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, T
 | `Scripts/` | CI helpers, locale generator (`generate_localizable.py`) |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
-| `docs/release/` | Active backlog (`todo.md`) and App Store runbook (`release_checklist.md`) |
+| `docs/release/` | **Ship checklist** (`1.0.0-ship-checklist.md`), backlog (`todo.md`), expanded runbook (`release_checklist.md`) |
 | `specs/` | Product and system specifications |
 | `roadmap/` | Phase delivery plan and release artifacts |
 | `accessibility/` | WCAG 2.1 AA tracker and manual verification |
@@ -203,7 +203,8 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 | Active release work | [`docs/release/todo.md`](docs/release/todo.md) |
 | Lean 1.0 scope & tasks | [`docs/release/lean-1.0-implementation-plan.md`](docs/release/lean-1.0-implementation-plan.md) |
 | Release train (1.0 → 2.0) | [`docs/release/ongoing-release-plan.md`](docs/release/ongoing-release-plan.md) |
-| Device + App Store runbook | [`docs/release/release_checklist.md`](docs/release/release_checklist.md) |
+| **1.0.0 ship checklist** | [`docs/release/1.0.0-ship-checklist.md`](docs/release/1.0.0-ship-checklist.md) |
+| Device + App Store runbook (expanded) | [`docs/release/release_checklist.md`](docs/release/release_checklist.md) |
 | Contributing & code style | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | iOS code audit | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) |
 | Design system tokens | [`DesignSystem/README.md`](DesignSystem/README.md) |

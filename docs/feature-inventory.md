@@ -34,7 +34,7 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 
 | Area | Shipped | Partial | Planned / assessed |
 |------|---------|---------|-------------------|
-| Game modes (catalog) | 2 (X01, Cricket) in 1.0 UI | 3 party engines hidden | 25 catalog stubs |
+| Game modes (catalog) | 2 (X01, Cricket) in 1.0 UI | 3 party engines hidden | 26 catalog stubs |
 | App shell & navigation | 4 tabs (lean 1.0) | Activity merge | Modes tab (1.3) |
 | Localization | en bundled | de/es/nl in repo only | in-app picker |
 | Shortcuts & deep links | Deep links | App Intents (flagged off) | Widgets, query intents |
@@ -95,6 +95,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Bob's 27 | Practice | Solo challenge | [`Bobs27GameSpec.md`](../specs/game-modes/planned/Bobs27GameSpec.md) |
 | Halve-It | Practice | Solo challenge | [`HalveItGameSpec.md`](../specs/game-modes/planned/HalveItGameSpec.md) |
 | Call & Hit | Practice | Voice drill (Template J) | [`CallAndHitGameSpec.md`](../specs/game-modes/planned/CallAndHitGameSpec.md) (+ stats, UI template, schema supplements) |
+| Guided Practice | Practice | Voice drill (Guided profile) | **Assessed (R&D)** — [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) · draft [`GuidedPracticeSpec.md`](../specs/game-modes/planned/GuidedPracticeSpec.md) |
 
 ### Game mode infrastructure
 
@@ -106,6 +107,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Per-mode stat kinds (29 declared) | Partial | Data only for 5 shipped modes | `ModeStatKind` in `GameModeCatalog.swift` |
 | Campaign mode (Journey tab) | **Planned** | Spec’d; no implementation; flag `enableCampaign` | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
 | Solo practice platform | **Planned** | Shared spec for Call & Hit, Bob's 27, Halve-It | [`SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md) |
+| Guided Play (blind/low-vision) | **Assessed (R&D)** | WIP — camera + mic + talk-back; see FutureIdeas brief | [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |
 | Vision auto-scoring | Planned | Camera dart detection | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
 

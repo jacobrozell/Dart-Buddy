@@ -1,10 +1,12 @@
 # QA Sign-off (RC1)
 
+**Ship checklist:** [`../../docs/release/1.0.0-ship-checklist.md`](../../docs/release/1.0.0-ship-checklist.md) · **Nutrition labels script:** [`../../accessibility/1.0-nutrition-label-checklist.md`](../../accessibility/1.0-nutrition-label-checklist.md)
+
 ## Candidate
 - Version: `1.0.0-rc1`
 - Build: `TBD`
 - Device(s): `TBD - minimum 1 physical iPhone + 1 simulator`
-- iOS version(s): `18.x minimum` + latest GA (verify migration on 18.x device/simulator)
+- iOS version(s): `18.x minimum` (ship target) + latest GA + **iOS 26 simulator** (Liquid Glass nav spot-check)
 - Execution owner: `TBD`
 - Execution date: `TBD`
 
@@ -32,6 +34,15 @@
 - Statistics tab: status=`Pending`, evidence=`TBD`, notes=`TBD`
 - Players archive/delete guard: status=`Pending`, evidence=`TBD`, notes=`TBD`
 - Settings reset flow: status=`Pending`, evidence=`TBD`, notes=`TBD`
+
+## iOS 26 Liquid Glass (navigation chrome — P1, non-blocking for 18+ ship)
+
+Simulator on **iOS 26+**; policy: `SystemNavigationPolicy`. Evidence: `accessibility/wcag-2.1-aa/evidence/ios26-liquid-glass/`.
+
+- Tab bar renders system glass (not opaque override) on all five tabs: **Partial** — 2026-06-11 iPhone 17 Pro, iOS 26.4: `tab-play`, `tab-players`, `tab-activity`, `tab-settings` (lean surface; Modes tab N/A)
+- Settings pushed flows / sheets: nav chrome acceptable: **Pending execution**
+- Reduce Transparency: tab bar + Settings usable (automated: `testSettingsPassesAuditsWithReduceTransparency`): **Pending execution**
+- Scoreboard tabs remain opaque on `Brand.background` (no `.glassEffect` on content): **Partial** — Play/Players/Activity screenshots show opaque brand layer above translucent tab bar
 
 ## Appearance and Orientation
 - Portrait + Light: **Pending execution**

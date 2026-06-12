@@ -16,7 +16,7 @@
 ## Data Controls
 - [x] Settings reset flow exists with destructive confirmation
 - [x] Full transactional wipe behavior verified on device
-- [ ] Privacy disclosure text validated for store submission
+- [ ] Privacy disclosure text validated for store submission (`docs/privacy.html` updated 2026-06-11 for `client_environment_changed` + reset failure telemetry)
 
 ## Outstanding Actions Before RC
 - Validate release verbosity behavior (debug dropped in Release).

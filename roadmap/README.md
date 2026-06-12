@@ -11,7 +11,7 @@
 | [`roadmap/release/QA-Signoff-RC1.md`](release/QA-Signoff-RC1.md) | RC Go/No-Go matrix and evidence |
 | [`roadmap/release/Launch-Day-Runbook.md`](release/Launch-Day-Runbook.md) | Launch-day ops |
 | [`roadmap/release/Rollback-and-Hotfix-Criteria.md`](release/Rollback-and-Hotfix-Criteria.md) | Hotfix gates |
-| [`roadmap/reports/`](reports/) | Phase 06–07 execution evidence (migration, privacy, performance) |
+| [`roadmap/reports/`](reports/) | Phase 06 execution evidence (migration, privacy, performance, App Store metadata) |
 | [`specs/ReleaseGateChecklist.md`](../specs/ReleaseGateChecklist.md) | ~10 min pre-tag gate |
 | [`specs/SmokeTestChecklist.md`](../specs/SmokeTestChecklist.md) | ~20 min smoke pass |
 
