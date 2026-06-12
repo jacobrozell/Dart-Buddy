@@ -55,6 +55,28 @@ GameModeCatalogEntry(
 
 **Shipped promotion:** `status: .shipped`, `matchType: .callAndHit`.
 
+### Guided Practice (not yet in catalog code)
+
+```swift
+GameModeCatalogEntry(
+    id: "practice.guidedPractice",
+    name: "Guided Practice",
+    blurb: "Called targets with a guide — built for VoiceOver",
+    section: .practice,
+    status: .planned,
+    minimumPlayers: 1,
+    maximumPlayers: 1,
+    matchType: nil,
+    uiTemplate: .voiceDrill,
+    statKind: .practiceAccuracy,
+    iconSystemName: "ear.and.waveform"
+)
+```
+
+**Shipped promotion:** `status: .shipped`, `matchType: .guidedPractice`. Display **before** Call & Hit in Practice section (accessibility-first discovery).
+
+**Naming:** User-facing **Guided Practice** — not "Blind mode" (conflicts with Blind Killer party game).
+
 ### Bob's 27 (exists — reference)
 
 ```swift
@@ -156,9 +178,10 @@ Section header (once): `modes.section.practice`
 
 Insert new Practice modes in `GameModeCatalog.all` **Practice MARK** in product priority order:
 
-1. **Call & Hit** — simplest onboarding (recommended first slot when stub added)
-2. Around the Clock / sequence modes
-3. Bob's 27 / Halve-It
+1. **Guided Practice** — accessibility-first onboarding (recommended first slot when stub added)
+2. **Call & Hit** — sighted voice drill
+3. Around the Clock / sequence modes
+4. Bob's 27 / Halve-It
 
 Rationale: voice drill has lowest rules friction; sequence and scored drills follow.
 

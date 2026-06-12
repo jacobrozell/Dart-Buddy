@@ -400,6 +400,7 @@ No per-target analytics payloads (volume).
 - Vision-suggested Hit/Miss with player confirm ([`AutoScoringVisionSpec.md`](../../AutoScoringVisionSpec.md))
 - Play home / Player detail shortcuts
 - Checkout callouts (`Double 16 to finish 32`) as separate preset
+- **Guided Practice profile** for blind/low-vision players — see [`GuidedPracticeSpec.md`](GuidedPracticeSpec.md) (same engine, guide role + spoken results)
 
 ---
 

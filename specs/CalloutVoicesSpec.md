@@ -3,10 +3,10 @@
 ## 1. Purpose
 Define how Dart Buddy speaks **practice target callouts** and related in-session announcements. Covers voice catalog, user configuration, phrase templates, accessibility, and integration with existing turn-total speech ([`SettingsSpec.md`](SettingsSpec.md) § During Play).
 
-**Status:** Planned — ships with Call & Hit ([`game-modes/planned/CallAndHitGameSpec.md`](game-modes/planned/CallAndHitGameSpec.md)); reusable for future modes (Around the Clock prompts, checkout drills, full "180!" caller).
+**Status:** Planned — ships with Call & Hit ([`game-modes/planned/CallAndHitGameSpec.md`](game-modes/planned/CallAndHitGameSpec.md)); reusable for future modes (Around the Clock prompts, checkout drills, full "180!" caller). **Guided Practice** extends phrases and defaults — see §6 Guided Play.
 
 **Related:**
-- [`CallAndHitGameSpec.md`](game-modes/planned/CallAndHitGameSpec.md) — primary consumer
+- [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md) — Guided Practice consumer
 - [`SettingsSpec.md`](SettingsSpec.md) — global preferences surface
 - [`AccessibilitySpec.md`](AccessibilitySpec.md) — WCAG expectations
 - [`LocalizationSpec.md`](LocalizationSpec.md) — string key policy
@@ -158,6 +158,23 @@ Spoken strings are **localized** — TTS uses the phrase in the active app langu
 | Pre-speak delay after target appears | 400 ms |
 | Speech rate | `AVSpeechUtteranceDefaultSpeechRate` |
 | Post-speak buffer before Hit/Miss enabled | 0 ms (buttons active immediately; speech non-blocking) |
+
+### Guided Play phrases (Guided Practice)
+
+Used when `guidedPlayProfile == true` ([`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md)). Result speech **on by default**.
+
+| Event | Pattern (en) | Key |
+|-------|--------------|-----|
+| Hit result | "Hit, {target phrase}" | `callout.guided.result.hitFormat` |
+| Miss result | "Miss, {target phrase}" | `callout.guided.result.missFormat` |
+| Miss + detail | "Miss, {target}. {detail}." | `callout.guided.result.missDetailFormat` |
+| Detail: adjacent single | "Single ten" | `callout.guided.detail.single.{segment}` |
+| Detail: directional | "Wide left" | `callout.guided.detail.wideLeft` (etc.) |
+| Detail: wire | "Wire" | `callout.guided.detail.wire` |
+
+**Speech rate:** Guided Play preset uses `AVSpeechUtteranceDefaultSpeechRate * 0.85` (configurable). Pauses slightly longer between callout and result.
+
+**VoiceOver coexistence:** Result TTS uses `CalloutVoiceService`; does not cancel VoiceOver focus but may speak over — guide flow assumes thrower is not navigating VO during throw.
 
 ---
 

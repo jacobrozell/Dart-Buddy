@@ -46,12 +46,16 @@ Catalog of all product and system specifications. For **audit coverage** (spec +
 | [`SetupFlowSpec.md`](SetupFlowSpec.md) | New-match setup, roster, mode options, start/conflict |
 | [`QuickAddPlayerSpec.md`](QuickAddPlayerSpec.md) | Fast player create from Play setup |
 | [`MatchSpec.md`](MatchSpec.md) | Lifecycle, resume, abandon, persistence |
+| [`MatchForfeitSpec.md`](MatchForfeitSpec.md) | Save & Forfeit — end early, keep history/stats |
 | [`MatchSummarySpec.md`](MatchSummarySpec.md) | Post-match screen, undo last throw |
 | [`SoloPracticeModesSpec.md`](SoloPracticeModesSpec.md) | Shared solo-only practice platform (catalog, setup, summary, history) |
 | [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplement.md) | Solo summary layout (no winner card) |
+| [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md) | Blind/low-vision Guided Play platform |
+| [`GuidedPlayCompanionSpec.md`](GuidedPlayCompanionSpec.md) | Sighted guide verifier role |
 | [`ScoringInputSpec.md`](ScoringInputSpec.md) | Shared dart-entry pad, undo, submit |
 | [`CalloutVoicesSpec.md`](CalloutVoicesSpec.md) | Practice target TTS, voice catalog, Settings picker |
 | [`ModesTabSpec.md`](ModesTabSpec.md) | Modes catalog tab, search, coming soon |
+| [`TournamentSpec.md`](TournamentSpec.md) | **P1** local tournaments / **P2** online (with OnlinePlay + Firebase) |
 
 ### Game modes — [`game-modes/`](game-modes/)
 
@@ -60,7 +64,7 @@ Split by **implementation status** (not moved to `docs/` — specs remain author
 | Folder | Modes |
 |--------|-------|
 | **[`game-modes/implemented/`](game-modes/implemented/)** | X01, Cricket, Baseball, Killer, Shanghai |
-| **[`game-modes/planned/`](game-modes/planned/)** | 25 catalog stubs |
+| **[`game-modes/planned/`](game-modes/planned/)** | 25 traditional stubs + Call & Hit + Guided Practice + **17 custom** modes (see [`game-modes/README.md`](game-modes/README.md) § Custom) |
 
 | Implemented spec | Covers |
 |------------------|--------|
@@ -96,6 +100,7 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 |------|--------|
 | [`AchievementsSpec.md`](AchievementsSpec.md) | Local profile achievements, evaluator hooks, undo/revoke, future Game Center bridge |
 | [`AchievementCatalogPhase1.md`](AchievementCatalogPhase1.md) | Locked Phase 1 catalog — IDs, predicates, hooks, incremental rules |
+| [`AchievementForfeitSpec.md`](AchievementForfeitSpec.md) | Forfeit & sportsmanship achievements — conceder ladder, win-by-forfeit, brainstorm |
 | [`BadgesSpec.md`](BadgesSpec.md) | Profile medal/gallery UI for achievements |
 | [`CampaignSpec.md`](CampaignSpec.md) | Journey tab, stage JSON, stars, primary player, separate stats |
 | [`DailyChallengeSpec.md`](DailyChallengeSpec.md) | Once-per-day challenge, push integration with play reminders |
@@ -108,12 +113,15 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 | [`AppIntentsSpec.md`](AppIntentsSpec.md) | Siri/Shortcuts/Apple Intelligence — Phase 1 intents, entities roadmap, `IndexedEntity`, on-screen context, testing ladder |
 
 ## Post-1.0 / Assessment / Archive
+- `specs/TournamentSpec.md` — **P1** local tournaments; **P2** online (with OnlinePlay + Firebase)
 - `specs/AppleWatchCompanionSpec.md` + `specs/AppleWatchCompanionAssessment.md`
-- `specs/OnlinePlaySpec.md`, `specs/AutoScoringVisionSpec.md`
+- `specs/OnlinePlaySpec.md` — **P2** online legs + Firebase + online tournaments
+- `specs/AutoScoringVisionSpec.md`
 - `specs/archive/FigmaBuildPlan.md` — historical Figma handoff (UI complete for 1.0)
 - `FutureIdeas/backlog.md` — Post-1.0 product backlog (linked from `docs/release/todo.md`)
 - `FutureIdeas/additional-game-modes.md` — delivery index (rules live in `game-modes/planned/`)
 - `FutureIdeas/party-practice-modes.md` — effort notes (superseded for rules by planned specs)
+- `FutureIdeas/guided-play-blind-darts.md` — Guided Play R&D (blind/low-vision; camera + mic WIP)
 - `FutureIdeas/achievements.md` — Game Center catalog assessment (IDs reused by [`AchievementsSpec.md`](AchievementsSpec.md); GC reporting deferred)
 - `FutureIdeas/campaign-mode.md` — R&D brief (superseded for behavior by [`CampaignSpec.md`](CampaignSpec.md))
 - `FutureIdeas/play-reminders.md` — Play reminder notifications (scheduling patterns shared with [`DailyChallengeSpec.md`](DailyChallengeSpec.md))

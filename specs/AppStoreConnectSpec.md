@@ -105,6 +105,13 @@ Rules:
 - Keep diagnostics disclosures aligned with actual enabled services
 - Re-audit privacy labels before enabling Firebase phases
 
+## 6.1 Accessibility URL (App Store Connect)
+- **URL:** `https://jacobrozell.github.io/Dart-Buddy/accessibility.html`
+- **Source:** `docs/accessibility.html` (GitHub Pages, same host as privacy/support)
+- **In-app:** Settings → Help & Feedback → **Accessibility** (`AppLinks.accessibility`)
+- Enter under App Store Connect → App → **App Accessibility** → **Manage the accessibility URL**
+- Keep page content aligned with declared Accessibility Nutrition Labels
+
 ---
 
 ## 7. Category, Age Rating, and Pricing
