@@ -46,9 +46,9 @@ final class MatchSetupViewModel: ObservableObject {
     private let playerRepository: any PlayerRepository
     private let settingsRepository: any SettingsRepository
     private let matchRepository: any MatchRepository
-    private let activeMatchStore: ActiveMatchStore
     private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
     private let logger: any AppLogger
+    private let startService: MatchStartService
     private var hasAppliedSettingsDefaultMode = false
 
     init(
@@ -62,9 +62,14 @@ final class MatchSetupViewModel: ObservableObject {
         self.playerRepository = playerRepository
         self.settingsRepository = settingsRepository
         self.matchRepository = matchRepository
-        self.activeMatchStore = activeMatchStore
         self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
         self.logger = logger
+        self.startService = MatchStartService(
+            playerRepository: playerRepository,
+            matchRepository: matchRepository,
+            activeMatchStore: activeMatchStore,
+            logger: logger
+        )
     }
 
     var canStart: Bool {
@@ -472,7 +477,7 @@ final class MatchSetupViewModel: ObservableObject {
                         "matchType": active.type.rawValue
                     ]
                 )
-                try await abandonActiveMatch(active)
+                try await startService.abandonActiveMatch(active)
             }
         } catch is CancellationError {
             return nil
@@ -489,322 +494,84 @@ final class MatchSetupViewModel: ObservableObject {
         return await performStart()
     }
 
-    private func abandonActiveMatch(_ active: MatchSummary) async throws {
-        if let session = activeMatchStore.session(for: active.id) {
-            let abandoned = try MatchLifecycleService.abandon(session: session)
-            try await matchRepository.updateMatch(matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: active.id,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            activeMatchStore.remove(matchId: active.id)
-            return
+    private var currentMatchType: MatchType {
+        if setupCategory == .party {
+            switch partyGame {
+            case .baseball: return .baseball
+            case .killer: return .killer
+            case .shanghai: return .shanghai
+            }
         }
-
-        guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: active.id) else {
-            try await matchRepository.updateMatch(
-                MatchSummary(
-                    id: active.id,
-                    type: active.type,
-                    status: .abandoned,
-                    startedAt: active.startedAt,
-                    endedAt: Date(),
-                    winnerPlayerId: nil,
-                    currentTurnPlayerId: nil,
-                    currentLegIndex: active.currentLegIndex,
-                    currentSetIndex: active.currentSetIndex,
-                    eventCount: active.eventCount,
-                    createdAt: active.createdAt,
-                    updatedAt: Date()
-                )
-            )
-            activeMatchStore.remove(matchId: active.id)
-            return
-        }
-
-        let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-        let snapshot = MatchSnapshot(
-            payloadVersion: snapshotSummary.snapshotVersion,
-            eventCount: runtime.eventCount,
-            createdAt: snapshotSummary.updatedAt,
-            payload: snapshotSummary.snapshotPayload
-        )
-        let session = MatchLifecycleSession(runtime: runtime, events: [], latestSnapshot: snapshot)
-        let abandoned = try MatchLifecycleService.abandon(session: session)
-        try await matchRepository.updateMatch(matchSummary(from: abandoned.runtime))
-        _ = try await matchRepository.saveSnapshot(
-            matchId: active.id,
-            snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-            snapshotPayload: abandoned.latestSnapshot.payload
-        )
-        activeMatchStore.remove(matchId: active.id)
+        return mode == .x01 ? .x01 : .cricket
     }
 
-    private func matchSummary(from runtime: MatchRuntimeState) -> MatchSummary {
-        MatchSummary(
-            id: runtime.matchId,
-            type: runtime.type,
-            status: MatchStatus(rawValue: runtime.status.rawValue) ?? .inProgress,
-            startedAt: runtime.startedAt,
-            endedAt: runtime.endedAt,
-            winnerPlayerId: runtime.winnerPlayerId,
-            currentTurnPlayerId: runtime.currentTurnPlayerId,
-            currentLegIndex: runtime.currentLegIndex,
-            currentSetIndex: runtime.currentSetIndex,
-            eventCount: runtime.eventCount,
-            createdAt: runtime.startedAt,
-            updatedAt: Date()
-        )
+    private var currentConfig: MatchConfigPayload {
+        switch currentMatchType {
+        case .baseball:
+            return .baseball(
+                MatchConfigBaseball(
+                    inningCount: baseballInningCount,
+                    tieBreaker: baseballTieBreaker,
+                    seventhInningStretch: baseballSeventhInningStretch
+                )
+            )
+        case .killer:
+            return .killer(MatchConfigKiller(startingLives: killerStartingLives))
+        case .shanghai:
+            return .shanghai(
+                MatchConfigShanghai(
+                    roundCount: shanghaiRoundCount,
+                    bonusRule: shanghaiBonusRule
+                )
+            )
+        case .x01:
+            return .x01(
+                MatchConfigX01(
+                    startScore: x01StartScore,
+                    legsToWin: x01LegsToWin,
+                    setsEnabled: x01SetsEnabled,
+                    setsToWin: x01SetsEnabled ? x01SetsToWin : nil,
+                    checkoutMode: x01CheckoutMode,
+                    checkInMode: x01CheckInMode,
+                    legFormat: x01LegFormat
+                )
+            )
+        case .cricket:
+            return .cricket(
+                MatchConfigCricket(
+                    pointsEnabled: cricketPointsEnabled,
+                    scoringMode: cricketPointsEnabled ? cricketScoringMode : .standard,
+                    legsToWin: cricketLegsToWin,
+                    setsEnabled: cricketSetsEnabled,
+                    setsToWin: cricketSetsEnabled ? cricketSetsToWin : nil,
+                    legFormat: cricketLegFormat
+                )
+            )
+        }
     }
 
     private func performStart() async -> PlayRoute? {
         guard canStart else { return nil }
         isSubmitting = true
         defer { isSubmitting = false }
-        let isBaseballParty = setupCategory == .party && partyGame == .baseball
-        let isKillerParty = setupCategory == .party && partyGame == .killer
-        let isShanghaiParty = setupCategory == .party && partyGame == .shanghai
-        let matchType: MatchType = if isBaseballParty {
-            .baseball
-        } else if isKillerParty {
-            .killer
-        } else if isShanghaiParty {
-            .shanghai
-        } else {
-            mode == .x01 ? .x01 : .cricket
-        }
-        logger.debug(
-            .scoring,
-            eventName: "match_setup_start",
-            message: "Starting match from setup.",
-            metadata: [
-                "matchType": matchType.rawValue,
-                "participantCount": String(selectedParticipantCount)
-            ]
+        let plan = MatchStartPlan(
+            matchType: currentMatchType,
+            config: currentConfig,
+            roster: selectedPlayers.map(MatchStartPlan.RosterEntry.init),
+            randomOrder: randomOrder
         )
-        if isBaseballParty {
-            logger.info(
-                .scoring,
-                eventName: "match_setup_baseball",
-                message: "Starting baseball match from party setup.",
-                metadata: [
-                    "matchType": MatchType.baseball.rawValue,
-                    "participantCount": String(selectedParticipantCount)
-                ]
-            )
-        }
-        let catalogEntry = GameModeCatalog.entry(for: matchType)
-        let uiTemplate = catalogEntry?.uiTemplate ?? (matchType == .cricket ? .markBoard : .checkoutScore)
-        let partyUsesPresetBotsOnly = isBaseballParty || isShanghaiParty || isKillerParty
-
-        struct RosterEntry {
-            let id: UUID
-            let name: String
-            let botDifficulty: BotDifficulty?
-            let isTrainingBot: Bool
-            let isCustomBot: Bool
-            let customConfiguration: CustomBotConfiguration?
-            let linkedPlayerId: UUID?
-            let avatarStyleRaw: String?
-            let colorTokenRaw: String
-        }
-
-        let rosterForMatch = selectedPlayers
-        let rosterEntries: [RosterEntry] = rosterForMatch.map { player in
-            RosterEntry(
-                id: player.id,
-                name: player.name,
-                botDifficulty: player.botDifficulty,
-                isTrainingBot: player.isTrainingBot,
-                isCustomBot: player.isCustomBot,
-                customConfiguration: player.customBotConfiguration,
-                linkedPlayerId: player.linkedPlayerId,
-                avatarStyleRaw: player.isBot ? nil : player.avatarStyle.rawValue,
-                colorTokenRaw: player.colorToken.rawValue
-            )
-        }
-        let orderedRoster = randomOrder ? rosterEntries.shuffled() : rosterEntries
-        do {
-            let selectedPlayers: [MatchParticipant] = try await withThrowingTaskGroup(of: (Int, MatchParticipant).self) { group in
-                for (index, entry) in orderedRoster.enumerated() {
-                    group.addTask {
-                        let participant = try await BotParticipantFactory.makeParticipant(
-                            input: BotParticipantBuildInput(
-                                playerId: entry.id,
-                                displayName: entry.name,
-                                turnOrder: index,
-                                botDifficulty: entry.botDifficulty,
-                                isTrainingBot: entry.isTrainingBot,
-                                isCustomBot: entry.isCustomBot,
-                                customConfiguration: entry.customConfiguration,
-                                linkedPlayerId: entry.linkedPlayerId,
-                                colorTokenRaw: entry.colorTokenRaw,
-                                matchType: matchType,
-                                uiTemplate: uiTemplate,
-                                partyUsesPresetBotsOnly: partyUsesPresetBotsOnly
-                            ),
-                            resolveTrainingSkill: { botId, mode in
-                                try await self.playerRepository.resolveTrainingBotSkill(for: botId, mode: mode)
-                            }
-                        )
-                        return (index, participant)
-                    }
-                }
-                var byIndex: [Int: MatchParticipant] = [:]
-                for try await item in group {
-                    byIndex[item.0] = item.1
-                }
-                return (0 ..< orderedRoster.count).compactMap { byIndex[$0] }
-            }
-            let config: MatchConfigPayload
-            let session: MatchLifecycleSession
-            let route: PlayRoute
-            if isBaseballParty {
-                config = .baseball(
-                    MatchConfigBaseball(
-                        inningCount: baseballInningCount,
-                        tieBreaker: baseballTieBreaker,
-                        seventhInningStretch: baseballSeventhInningStretch
-                    )
-                )
-            } else if isKillerParty {
-                config = .killer(MatchConfigKiller(startingLives: killerStartingLives))
-            } else if isShanghaiParty {
-                config = .shanghai(
-                    MatchConfigShanghai(
-                        roundCount: shanghaiRoundCount,
-                        bonusRule: shanghaiBonusRule
-                    )
-                )
-            } else if mode == .x01 {
-                config = .x01(
-                    MatchConfigX01(
-                        startScore: x01StartScore,
-                        legsToWin: x01LegsToWin,
-                        setsEnabled: x01SetsEnabled,
-                        setsToWin: x01SetsEnabled ? x01SetsToWin : nil,
-                        checkoutMode: x01CheckoutMode,
-                        checkInMode: x01CheckInMode,
-                        legFormat: x01LegFormat
-                    )
-                )
-            } else {
-                let scoringMode = cricketPointsEnabled ? cricketScoringMode : .standard
-                config = .cricket(
-                    MatchConfigCricket(
-                        pointsEnabled: cricketPointsEnabled,
-                        scoringMode: scoringMode,
-                        legsToWin: cricketLegsToWin,
-                        setsEnabled: cricketSetsEnabled,
-                        setsToWin: cricketSetsEnabled ? cricketSetsToWin : nil,
-                        legFormat: cricketLegFormat
-                    )
-                )
-            }
-            let configPayload = try CodablePayloadCoder.encode(config)
-            let avatarByPlayerId = Dictionary(
-                uniqueKeysWithValues: rosterEntries.map { ($0.id, $0.avatarStyleRaw) }
-            )
-            let participantsForRepository = selectedPlayers.enumerated().map { index, participant in
-                MatchParticipantSummary(
-                    id: participant.id,
-                    matchId: UUID(),
-                    playerId: participant.playerId,
-                    turnOrder: index,
-                    displayNameAtMatchStart: participant.displayNameAtMatchStart,
-                    avatarStyleAtMatchStart: participant.playerId.flatMap { avatarByPlayerId[$0] } ?? nil,
-                    botDifficultyRaw: participant.botDifficultyRaw,
-                    botKindRaw: participant.botKindRaw,
-                    botSkillProfilePayload: participant.botSkillProfilePayload,
-                    botEffectiveTierRaw: participant.botEffectiveTierRaw
-                )
-            }
-            let persisted = try await matchRepository.createMatch(
-                type: matchType,
-                configPayload: configPayload,
-                participants: participantsForRepository
-            )
-
-            if isBaseballParty {
-                session = try MatchLifecycleService.createMatch(
-                    matchId: persisted.id,
-                    type: .baseball,
-                    config: config,
-                    participants: selectedPlayers
-                )
-                route = .baseballMatch(matchId: persisted.id)
-            } else if isKillerParty {
-                session = try MatchLifecycleService.createMatch(
-                    matchId: persisted.id,
-                    type: .killer,
-                    config: config,
-                    participants: selectedPlayers
-                )
-                route = .killerMatch(matchId: persisted.id)
-            } else if isShanghaiParty {
-                session = try MatchLifecycleService.createMatch(
-                    matchId: persisted.id,
-                    type: .shanghai,
-                    config: config,
-                    participants: selectedPlayers
-                )
-                route = .shanghaiMatch(matchId: persisted.id)
-            } else if mode == .x01 {
-                session = try MatchLifecycleService.createMatch(
-                    matchId: persisted.id,
-                    type: .x01,
-                    config: config,
-                    participants: selectedPlayers
-                )
-                route = .x01Match(matchId: persisted.id)
-            } else {
-                session = try MatchLifecycleService.createMatch(
-                    matchId: persisted.id,
-                    type: .cricket,
-                    config: config,
-                    participants: selectedPlayers
-                )
-                route = .cricketMatch(matchId: persisted.id)
-            }
-            _ = try await matchRepository.saveSnapshot(
-                matchId: persisted.id,
-                snapshotVersion: session.latestSnapshot.payloadVersion,
-                snapshotPayload: session.latestSnapshot.payload
-            )
-            activeMatchStore.save(session)
+        switch await startService.start(plan) {
+        case let .started(route):
             await persistLastUsedSetup()
-            logger.info(
-                .scoring,
-                eventName: "match_started",
-                message: "Match created and persisted.",
-                metadata: [
-                    "matchId": persisted.id.uuidString,
-                    "matchType": matchType.rawValue,
-                    "participantCount": String(selectedPlayers.count)
-                ],
-                correlationId: persisted.id.uuidString
-            )
             return route
-        } catch is CancellationError {
+        case .conflict:
+            showActiveMatchConflict = true
+            validationErrors = []
             return nil
-        } catch {
-            logger.error(
-                .scoring,
-                eventName: "match_start_failed",
-                message: "Match creation failed.",
-                metadata: appErrorMetadata(for: error)
-            )
-            if let appError = error as? AppError {
-                if appError.code == .conflict {
-                    showActiveMatchConflict = true
-                    validationErrors = []
-                    return nil
-                }
-                validationErrors = [appError.userMessageKey]
-            } else {
-                validationErrors = ["setup.error.start"]
-            }
+        case .cancelled:
+            return nil
+        case let .failed(messageKey):
+            validationErrors = [messageKey]
             return nil
         }
     }
