@@ -97,7 +97,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Dart Buddy
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.sports
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: NO
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UIRequiresFullScreen: NO
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone:
@@ -118,6 +118,10 @@ targets:
           - CFBundleURLName: com.jacobrozell.DartBuddy.deeplink
             CFBundleURLSchemes:
               - dartbuddy
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchMark
+          UIImageRespectsSafeAreaInsets: false
     scheme:
       testTargets:
         - DartBuddyTests
