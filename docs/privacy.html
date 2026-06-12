@@ -14,8 +14,9 @@
       <nav>
         <a href="index.html">Home</a>
         <a href="support.html">Support</a>
+        <a href="accessibility.html">Accessibility</a>
       </nav>
-      <p class="meta">Last updated: June 2, 2026</p>
+      <p class="meta">Last updated: June 11, 2026</p>
     </header>
 
     <p>This Privacy Policy describes how <strong>Dart Buddy</strong> (“the app”) handles information when you use our iOS application. The app is developed by Jacob Rozell.</p>
@@ -49,8 +50,9 @@
       <li><code>match_started</code>, <code>match_completed</code>, <code>match_abandoned</code></li>
       <li><code>turn_submitted</code>, <code>undo_used</code></li>
       <li>Failure signals such as <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>app_bootstrap_migration_failure</code></li>
+      <li><code>client_environment_changed</code> — when display or accessibility context changes (for example orientation, VoiceOver, Reduce Motion, Bold Text, or screen capture). Parameters are boolean flags and device class only — not player names or match content.</li>
     </ul>
-    <p>Event parameters are restricted to non-identifying technical context, such as game mode (X01/Cricket), app version, error codes, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
+    <p>Event parameters are restricted to non-identifying technical context, such as game mode (X01/Cricket), app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
 
     <h3>3.2 Firebase Crashlytics (crashes &amp; errors)</h3>
     <p>If the app crashes or records certain allowlisted error conditions, Crashlytics may receive:</p>
@@ -58,7 +60,7 @@
       <li>Crash stack traces and device state needed to diagnose the problem</li>
       <li>App version and OS version</li>
       <li>Anonymous installation identifiers assigned by Firebase</li>
-      <li>Non-fatal error reports for persistence or match lifecycle failures (same allowlisted metadata as above — no player names)</li>
+      <li>Non-fatal error reports for persistence, match lifecycle, or settings reset failures (same allowlisted metadata as above — no player names)</li>
     </ul>
 
     <h3>3.3 When Firebase is disabled</h3>

@@ -1,5 +1,7 @@
 # Dart Buddy — 1.0 Release Checklist
 
+> **Start here:** [`1.0.0-ship-checklist.md`](1.0.0-ship-checklist.md) — single master list (engineering, App Review hardening, nutrition labels, QA, Connect, submit). This file is the **expanded runbook** with full §-by-§ detail.
+
 **Customer brand:** Dart Buddy (App Store listing, marketing, Reddit)  
 **Technical target:** `DartBuddy` (Xcode scheme, bundle ID `com.jacobrozell.DartBuddy`, module)  
 **Version:** `1.0.0` (lean core scorekeeper)  
@@ -41,6 +43,7 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 - [ ] `GoogleService-Info.plist` present for Release archive (copy from [`Resources/GoogleService-Info.plist.example`](../../Resources/GoogleService-Info.plist.example) + Firebase Console)
 - [ ] Debug/CI/UI tests: analytics + Crashlytics **off** (launch args `-disable_firebase_analytics` / `-ui_test_reset` — not on store build)
 - [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for bundle ID; Release archive log shows dSYM upload script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
+- [ ] **TestFlight telemetry smoke** (internal build, real plist): launch → verify `app_open` in Firebase Analytics Realtime or DebugView; play one X01 leg → `match_started`, `turn_submitted`, `match_completed`; confirm no events from Debug/CI builds
 - [ ] Version + build number set in [`project.yml`](../../project.yml) / Xcode (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`)
 - [ ] **Archive** with **Release** configuration + distribution signing
 
@@ -174,6 +177,19 @@ Spec reference: [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestCheck
 
 **iPad (recommended):** setup + one match — `GameplayLayout` max-width, no broken layout.
 
+### 4.1 iOS 26 Liquid Glass (simulator — P1)
+
+**Ship target remains iOS 18+.** On iOS 26+, system tab bar and nav toolbars use Liquid Glass when app code does not override them (`SystemNavigationPolicy`).
+
+**Save screenshots to:** `../../accessibility/wcag-2.1-aa/evidence/ios26-liquid-glass/` (run `./Scripts/capture-ios26-liquid-glass.sh` on **iPhone 17 Pro, iOS 26.x**)
+
+| Check | Done | Evidence |
+|-------|------|----------|
+| Tab bar glass visible on Play, Modes, Players, Activity, Settings | [x] partial (4 tabs, lean surface) | `ios26-liquid-glass/tab-*.png` (2026-06-11) |
+| No accidental opaque `.toolbarBackground` on iOS 26 (grep policy helpers only) | [x] | `SystemNavigationPolicy.swift` |
+| Settings usable with **Reduce Transparency** on | [ ] | `WCAGAccessibilityUITests` / manual |
+| Scoreboard/match UI stays opaque (brand layer) | [ ] | spot-check Play + one match |
+
 ---
 
 ## 5. Data, privacy & migration (P0)
@@ -214,7 +230,8 @@ Architecture ready; **device proof** still required — [`../../roadmap/reports/
 
 **Roll-up:** [`../../accessibility/wcag-2.1-aa/SUMMARY.md`](../../accessibility/wcag-2.1-aa/SUMMARY.md)  
 **Full manual list:** [`../../accessibility/Manual_todo.md`](../../accessibility/Manual_todo.md)  
-**Evidence folder:** `../../accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`)
+**Timed Nutrition Label script (~30 min):** [`../../accessibility/1.0-nutrition-label-checklist.md`](../../accessibility/1.0-nutrition-label-checklist.md)  
+**Evidence folder:** `../../accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`, `ios26-liquid-glass/`)
 
 ### VoiceOver — end-to-end (required)
 
@@ -282,6 +299,7 @@ Reference: [`../../specs/AppStoreConnectSpec.md`](../../specs/AppStoreConnectSpe
 | **Keywords** | darts, scoreboard, x01, cricket, scorekeeper, … | [ ] |
 | **Support URL** | `https://jacobrozell.github.io/Dart-Buddy/support.html` | [ ] |
 | **Privacy Policy URL** (App Store) | `https://jacobrozell.github.io/Dart-Buddy/privacy.html` | [ ] |
+| **Accessibility URL** (App Store) | `https://jacobrozell.github.io/Dart-Buddy/accessibility.html` | [ ] |
 | **Marketing URL** (optional) | | [ ] |
 | **Copyright** | e.g. `2026 Jacob Rozell` | [ ] |
 
@@ -310,6 +328,7 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 | **Custom EULA** | No (1.0) | Default: [Apple Standard EULA](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/) — only add custom terms if you need special liability/limitation language |
 | **Terms of Service** | No (1.0) | Optional unless you add accounts, IAP, or online play |
 | **In-app privacy link** | Recommended | [`../../specs/SecurityPrivacySpec.md`](../../specs/SecurityPrivacySpec.md) — Settings → Help & Feedback → Privacy Policy |
+| **Accessibility URL** | Optional (recommended) | App Store Connect → App Accessibility; same page linked in Settings → Help & Feedback → Accessibility |
 
 **Privacy policy should cover (plain language, not legal boilerplate dump):**
 
@@ -490,7 +509,8 @@ Do not delay ship for:
 
 | Need | Doc |
 |------|-----|
-| **This runbook** | `release_checklist.md` |
+| **Master ship checklist** | [`1.0.0-ship-checklist.md`](1.0.0-ship-checklist.md) |
+| **This runbook (expanded)** | `release_checklist.md` |
 | 10-min gate (abbrev) | [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateChecklist.md) |
 | 20-min smoke (abbrev) | [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestChecklist.md) |
 | Screenshot template | [`../../specs/SmokeTestEvidenceTemplate.md`](../../specs/SmokeTestEvidenceTemplate.md) |

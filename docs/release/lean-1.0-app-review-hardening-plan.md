@@ -2,7 +2,7 @@
 
 Actionable plan to close **review-facing leaks** and tighten the **1.0 product story** without gutting shipped-but-hidden code.
 
-**Status:** Draft · **Not started**  
+**Status:** Engineering complete · **Manual/metadata pending**  
 **Target version:** `1.0.0`  
 **Companion:** [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) · [`release_checklist.md`](release_checklist.md) · [`ongoing-release-plan.md`](ongoing-release-plan.md)
 
@@ -237,12 +237,12 @@ Add to [`release_checklist.md`](release_checklist.md) §0 or new subsection:
 
 | # | Task | Phase | Done |
 |---|------|-------|------|
-| 1 | Add `ProductSurface.isMatchTypeReachable` | 1 | [ ] |
+| 1 | Add `ProductSurface.isMatchTypeReachable` | 1 | [x] |
 | 2 | Enable custom bots in lean 1.0 (`showsCustomBots`) | 1 | [x] |
-| 3 | Filter party resume in Play home + Activity + History | 1 | [ ] |
-| 4 | Unit tests for reachability + resume filtering | 1 | [ ] |
-| 5 | Lean `playSetupPickerSections()` — standard only | 2 | [ ] |
-| 6 | Update `GameModeCatalogTests` | 2 | [ ] |
+| 3 | Filter party resume in Play home + Activity + History | 1 | [x] |
+| 4 | Unit tests for reachability + resume filtering | 1 | [x] |
+| 5 | Lean `playSetupPickerSections()` — standard only | 2 | [x] |
+| 6 | Update `GameModeCatalogTests` | 2 | [x] |
 | 7 | Screenshots + App Store copy | 3 | [ ] |
 | 8 | App Review notes in Connect | 3 | [ ] |
 | 9 | Update `release_checklist.md` + README links | 3 | [ ] |

@@ -96,7 +96,7 @@ base64 -i Resources/GoogleService-Info.plist | pbcopy
 2. Connect Slack in App Store Connect when configuring the **Notify** post-action
 3. Optional: add `SLACK_WEBHOOK_RELEASE` in GitHub for custom notifications (not required when using ASC Notify)
 
-See also [`.cursor/plans/slack_integration.plan.md`](../../.cursor/plans/slack_integration.plan.md) Phase 3.
+See also [`workers/dart-buddy-slack/README.md`](../../workers/dart-buddy-slack/README.md) for the `/dart-buddy release` worker.
 
 ---
 
