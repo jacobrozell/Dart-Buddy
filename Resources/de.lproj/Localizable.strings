@@ -126,6 +126,8 @@
 "play.setup.chip.mode" = "Modus";
 "play.cricket.points.on" = "An";
 "play.cricket.points.off" = "Aus";
+"common.on" = "An";
+"common.off" = "Aus";
 "play.cricket.mode.normal" = "Normal";
 "play.cricket.mode.cutThroat" = "Cut Throat";
 "play.cricket.subtitle.cutThroatLowest" = "Cut Throat · Niedrigster gewinnt";
