@@ -24,6 +24,9 @@
 "play.aroundTheClock.pad.disabledWhileBot" = "Waiting for bot turn";
 "play.aroundTheClock.pad.lockedSegmentHint" = "Only segment %d advances your target";
 "play.aroundTheClock.progressReset" = "Progress reset";
+"play.aroundTheClock.sequenceProgressFormat" = "%@, %d of %d";
+"play.aroundTheClock.setup.includeBullFinish" = "Bull finish";
+"play.aroundTheClock.setup.resetPolicy" = "Reset policy";
 "play.aroundTheClock.setup.resetPolicy.noReset" = "No reset";
 "play.aroundTheClock.setup.resetPolicy.resetEntireSequence" = "Reset entire sequence";
 "play.aroundTheClock.setup.resetPolicy.resetOnThreeMisses" = "Reset on three misses";
@@ -52,6 +55,7 @@
 "play.chaseTheDragon.navTitle" = "Chase The Dragon";
 "play.chaseTheDragon.pad.disabledWhileBot" = "Waiting for bot turn";
 "play.chaseTheDragon.sequenceProgressFormat" = "Step %d of %d";
+"play.chaseTheDragon.setup.laps" = "Laps";
 "play.chaseTheDragon.setup.laps.one" = "One lap";
 "play.chaseTheDragon.setup.laps.three" = "Three laps";
 "play.chaseTheDragon.step.innerBull" = "Inner bull";
@@ -79,8 +83,10 @@
 "play.fiftyOneByFives.navTitle" = "51 By 5's";
 "play.fiftyOneByFives.noPointsDivisibleHint" = "Only scores divisible by five count";
 "play.fiftyOneByFives.pad.disabledWhileBot" = "Waiting for bot turn";
+"play.fiftyOneByFives.pointsAwardedFormat" = "%d points scored, %d total";
 "play.fiftyOneByFives.runningScoreFormat" = "Target %d";
 "play.fiftyOneByFives.setup.mustFinishExact" = "Must finish exact";
+"play.fiftyOneByFives.setup.targetPoints" = "Target points";
 "play.fiftyOneByFives.setup.targetPointsValueFormat" = "%d points";
 "play.fiftyOneByFives.title" = "51 By 5's";
 
@@ -125,14 +131,18 @@
 "play.golf.title" = "Golf";
 
 "play.grandNational.announce.finished" = "Finished the course";
+"play.grandNational.coursePositionAccessibilityFormat" = "Hurdle %d, lap %d";
 "play.grandNational.fellAtHurdle" = "Fell at hurdle";
+"play.grandNational.hurdleCleared" = "Hurdle cleared";
 "play.grandNational.hurdleFormat" = "Hurdle %d";
 "play.grandNational.lapFormat" = "Lap %d of %d";
 "play.grandNational.navTitle" = "Grand National";
 "play.grandNational.pad.disabledWhileBot" = "Waiting for bot turn";
 "play.grandNational.pad.lockedSegmentHint" = "Only segment %d clears this hurdle";
 "play.grandNational.playerEliminated" = "Player eliminated";
+"play.grandNational.setup.laps" = "Laps";
 "play.grandNational.setup.lapsValueFormat" = "%d laps";
+"play.grandNational.setup.ruleset" = "Ruleset";
 "play.grandNational.setup.ruleset.expert" = "Expert";
 "play.grandNational.setup.ruleset.novice" = "Novice";
 "play.grandNational.title" = "Grand National";
@@ -194,6 +204,7 @@
 "play.nineLives.pad.disabledWhileBot" = "Waiting for bot turn";
 "play.nineLives.pad.lockedSegmentHint" = "Only segment %d advances your target";
 "play.nineLives.playerEliminated" = "Player eliminated";
+"play.nineLives.setup.startingLives" = "Starting lives";
 "play.nineLives.setup.startingLives.nine" = "Nine lives";
 "play.nineLives.setup.startingLives.three" = "Three lives";
 "play.nineLives.targetProgressFormat" = "Target %d of %d";
