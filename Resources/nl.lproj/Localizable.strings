@@ -323,6 +323,8 @@
 "settings.support.feedback.accessibility" = "Feedback sturen per e-mail";
 "settings.support.rate.accessibility" = "Dart Buddy beoordelen in de App Store";
 "settings.support.privacy.accessibility" = "Privacybeleid openen in de browser";
+"settings.support.accessibility" = "Toegankelijkheid";
+"settings.support.accessibility.accessibility" = "Toegankelijkheidsinformatie openen in de browser";
 "settings.support.feedbackEmailSubject" = "Dart Buddy-feedback";
 "settings.support.feedbackEmailBodyFormat" = "App-versie: %@\n\n";
 "settings.support.buyCoffee" = "Koop de ontwikkelaar een koffie";
@@ -732,10 +734,20 @@
 "onboarding.welcome.body" = "Je lokale scorebord voor X01 en Cricket. Beheer spelers en wedstrijdgeschiedenis — geen account nodig en je gegevens blijven op dit apparaat.";
 "onboarding.experience.title" = "Kun je darts spelen?";
 "onboarding.experience.body" = "We passen je eerste stappen aan op basis van je ervaring.";
-"onboarding.experience.yes" = "Ja, ik kan darts spelen";
-"onboarding.experience.no" = "Nee, leer het me";
-"onboarding.experience.yes.accessibility" = "Ja, ik kan darts spelen";
-"onboarding.experience.no.accessibility" = "Nee, leer me hoe ik darts speel";
+
+"onboarding.roster.title" = "Stel je roster in";
+"onboarding.roster.body" = "Voeg jezelf toe en we maken een bot-tegenstander op het door jou gekozen niveau. Beide verschijnen op Spelen als je klaar bent.";
+"onboarding.roster.name" = "Je naam";
+"onboarding.roster.youSection" = "Jij";
+"onboarding.roster.experienceSection" = "Je ervaring";
+"onboarding.roster.experienceHint" = "We matchen je eerste tegenstander op dit niveau.";
+"onboarding.roster.experienceMin" = "Nieuw";
+"onboarding.roster.experienceMax" = "Expert";
+"onboarding.roster.experience.selectedFormat" = "Gekozen niveau: %@";
+"onboarding.roster.opponentSection" = "Je eerste tegenstander";
+"onboarding.roster.opponent.summaryFormat" = "We voegen %@ toe aan je roster voor je eerste wedstrijd.";
+"onboarding.ready.bodyWithRoster" = "Je scorekeeper is ingesteld met jou en je eerste tegenstander klaar op Spelen.";
+"onboarding.ready.rosterTitle" = "Klaar om te spelen";
 "onboarding.preferences.title" = "Stel je voorkeuren in";
 "onboarding.preferences.footer" = "Je kunt dit altijd wijzigen in Instellingen.";
 "onboarding.learn.title" = "Leer spelen";

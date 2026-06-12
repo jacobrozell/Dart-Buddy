@@ -323,6 +323,8 @@
 "settings.support.feedback.accessibility" = "Enviar comentarios por correo electrónico";
 "settings.support.rate.accessibility" = "Valorar Dart Buddy en el App Store";
 "settings.support.privacy.accessibility" = "Abrir la política de privacidad en el navegador";
+"settings.support.accessibility" = "Accesibilidad";
+"settings.support.accessibility.accessibility" = "Abrir información de accesibilidad en el navegador";
 "settings.support.feedbackEmailSubject" = "Comentarios sobre Dart Buddy";
 "settings.support.feedbackEmailBodyFormat" = "Versión de la app: %@\n\n";
 "settings.support.buyCoffee" = "Comprar desarrollador un café";
@@ -732,10 +734,20 @@
 "onboarding.welcome.body" = "Tu marcador local para X01 y Cricket. Gestiona jugadores e historial de partidas: sin cuenta y tus datos permanecen en este dispositivo.";
 "onboarding.experience.title" = "¿Sabes jugar a los dardos?";
 "onboarding.experience.body" = "Adaptaremos tus primeros pasos según tu experiencia.";
-"onboarding.experience.yes" = "Sí, sé jugar";
-"onboarding.experience.no" = "No, enséñame";
-"onboarding.experience.yes.accessibility" = "Sí, sé jugar a los dardos";
-"onboarding.experience.no.accessibility" = "No, enséñame a jugar a los dardos";
+
+"onboarding.roster.title" = "Configura tu plantilla";
+"onboarding.roster.body" = "Añádete y crearemos un oponente bot del nivel que elijas. Ambos aparecerán en Jugar al terminar.";
+"onboarding.roster.name" = "Tu nombre";
+"onboarding.roster.youSection" = "Tú";
+"onboarding.roster.experienceSection" = "Tu experiencia";
+"onboarding.roster.experienceHint" = "Igualaremos tu primer oponente a este nivel.";
+"onboarding.roster.experienceMin" = "Nuevo";
+"onboarding.roster.experienceMax" = "Experto";
+"onboarding.roster.experience.selectedFormat" = "Nivel seleccionado: %@";
+"onboarding.roster.opponentSection" = "Tu primer oponente";
+"onboarding.roster.opponent.summaryFormat" = "Añadiremos %@ a tu plantilla para tu primer partido.";
+"onboarding.ready.bodyWithRoster" = "Tu marcador está listo con tú y tu primer oponente preparados en Jugar.";
+"onboarding.ready.rosterTitle" = "Listo para jugar";
 "onboarding.preferences.title" = "Configura tus preferencias";
 "onboarding.preferences.footer" = "Puedes cambiar esto en cualquier momento en Ajustes.";
 "onboarding.learn.title" = "Aprende a jugar";
