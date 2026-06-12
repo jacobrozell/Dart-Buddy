@@ -3,7 +3,7 @@ import SwiftData
 import Testing
 @testable import DartBuddy
 
-/// Disk-backed V1 stores must migrate cleanly to the 1.0 baseline (`SchemaV2`).
+/// Disk-backed legacy stores must migrate cleanly through the current schema (`SchemaV3`).
 /// Serialized to avoid SwiftData schema-registry pollution with in-memory integration tests.
 @Suite(.serialized)
 struct SchemaV1ToV2MigrationTests {
@@ -50,11 +50,11 @@ struct SchemaV1ToV2MigrationTests {
         let migratedContainer = try ModelContainerFactory.makeContainer(mode: .customURL(url))
         let context = ModelContext(migratedContainer)
 
-        let players = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
+        let players = try context.fetch(FetchDescriptor<SchemaV3.PlayerRecord>())
         let bot = try #require(players.first { $0.id == botId })
         #expect(bot.botKindRaw == BotKind.preset.rawValue)
 
-        let participants = try context.fetch(FetchDescriptor<SchemaV2.MatchParticipantRecord>())
+        let participants = try context.fetch(FetchDescriptor<SchemaV3.MatchParticipantRecord>())
         let participant = try #require(participants.first { $0.matchId == matchId })
         #expect(participant.botKindRaw == BotKind.preset.rawValue)
         #expect(participant.botSkillProfilePayload == nil)
@@ -85,7 +85,7 @@ struct SchemaV1ToV2MigrationTests {
         let migratedContainer = try ModelContainerFactory.makeContainer(mode: .customURL(url))
         let migratedContext = ModelContext(migratedContainer)
         let match = try #require(
-            try migratedContext.fetch(FetchDescriptor<SchemaV2.MatchRecord>()).first { $0.id == matchId }
+            try migratedContext.fetch(FetchDescriptor<SchemaV3.MatchRecord>()).first { $0.id == matchId }
         )
         #expect(match.historyCardPayload == nil)
         #expect(match.isCampaignMatch == nil)
