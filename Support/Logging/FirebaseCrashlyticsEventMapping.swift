@@ -13,7 +13,8 @@ public enum FirebaseCrashlyticsEventMapping {
         "active_match_replace_failed",
         "turn_undo_failed",
         "x01_abandon_failed",
-        "cricket_abandon_failed"
+        "cricket_abandon_failed",
+        "settings_reset_failed"
     ]
 
     /// Stable NSError codes for Crashlytics grouping (documented in unit tests).
@@ -27,7 +28,8 @@ public enum FirebaseCrashlyticsEventMapping {
         "active_match_replace_failed": 1007,
         "turn_undo_failed": 1008,
         "x01_abandon_failed": 1009,
-        "cricket_abandon_failed": 1010
+        "cricket_abandon_failed": 1010,
+        "settings_reset_failed": 1011
     ]
 
     private static let allowlistedParameterKeys: Set<String> = [
