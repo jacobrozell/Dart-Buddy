@@ -594,6 +594,8 @@
 "play.x01.checkout.title" = "Checkout";
 "play.x01.checkout.cycle" = "Otro checkout";
 "play.x01.checkout.cycleHint" = "Muestra la siguiente opción de checkout.";
+"play.x01.checkout.optionIndexFormat" = "%d/%d";
+"play.x01.checkout.optionIndexAccessibilityFormat" = "Opción %d de %d";
 "play.x01.checkout.optionTotalAccessibilityFormat" = "%d opciones de checkout";
 "play.x01.checkout.setupDartFormat" = "Dardo %d, %@";
 "play.x01.checkout.finishDartFormat" = "Cierre en %@";

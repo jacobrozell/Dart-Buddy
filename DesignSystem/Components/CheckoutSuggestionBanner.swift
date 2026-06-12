@@ -42,20 +42,38 @@ struct CheckoutSuggestionBanner: View {
     private func checkoutContent(labels: [String], optionCount: Int) -> some View {
         Group {
             if usesCompactLayout {
-                HStack(alignment: .center, spacing: DS.Spacing.s2) {
-                    titleRow
-                    routeRow(labels: labels)
+                VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                    HStack(alignment: .center, spacing: DS.Spacing.s2) {
+                        titleRow
+                        routeRow(labels: labels)
+                    }
+                    if optionCount > 1 {
+                        optionIndexFootnote
+                    }
                 }
             } else {
                 VStack(alignment: .leading, spacing: DS.Spacing.s3) {
                     titleRow
                     routeRow(labels: labels)
+                    if optionCount > 1 {
+                        optionIndexFootnote
+                    }
                 }
             }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(combinedAccessibilityLabel(labels: labels, optionCount: optionCount))
         .accessibilityIdentifier("checkoutSuggestion")
+    }
+
+    private var optionIndexFootnote: some View {
+        Text(L10n.format("play.x01.checkout.optionIndexFormat", clampedIndex + 1, routes.count))
+            .font(.caption2)
+            .foregroundStyle(Brand.textSecondary)
+            .monospacedDigit()
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .accessibilityHidden(true)
+            .accessibilityIdentifier("checkoutOptionCount")
     }
 
     private var titleRow: some View {
@@ -123,6 +141,6 @@ struct CheckoutSuggestionBanner: View {
         let spokenRoute = labels.joined(separator: ", ")
         let base = L10n.format("play.x01.checkout.accessibilityFormat", spokenRoute)
         guard optionCount > 1 else { return base }
-        return "\(base). \(L10n.format("play.x01.checkout.optionTotalAccessibilityFormat", optionCount))."
+        return "\(base). \(L10n.format("play.x01.checkout.optionIndexAccessibilityFormat", clampedIndex + 1, optionCount))."
     }
 }
