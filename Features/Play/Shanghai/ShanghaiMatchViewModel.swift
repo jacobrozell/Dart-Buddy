@@ -341,7 +341,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
                 if event.achievedShanghai {
                     postAccessibilityAnnouncement(L10n.string("play.shanghai.achieved"))
                     state = .shanghaiFeedback
-                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementTransitionNanoseconds)
                 }
             }
             if updated.runtime.status == .completed {

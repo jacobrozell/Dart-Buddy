@@ -10,6 +10,13 @@ enum BotTurnPacing {
     /// Pause that lets the Cricket closure banner register before returning to the ready state.
     static let cricketClosureTransitionNanoseconds: UInt64 = 550_000_000
 
+    /// Pauses that let per-mode feedback states (banners, announcements) register
+    /// before the match returns to the ready state.
+    static let shanghaiAchievementTransitionNanoseconds: UInt64 = 800_000_000
+    static let baseballPerfectInningTransitionNanoseconds: UInt64 = 800_000_000
+    static let baseballStretchGateHintNanoseconds: UInt64 = 600_000_000
+    static let killerBecameKillerTransitionNanoseconds: UInt64 = 700_000_000
+
     static func dartDelayNanoseconds(staggerEnabled: Bool) -> UInt64 {
         resolvedDartDelayNanoseconds(staggerEnabled: staggerEnabled, instantBots: UITestLaunchArguments.instantBotsActive)
     }

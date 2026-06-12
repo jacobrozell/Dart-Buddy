@@ -32,8 +32,8 @@ public enum BotSkillProfileInterpolator {
         clampToTierRange: Bool
     ) -> BotSkillProfile {
         let value: Double
-        if clampToTierRange {
-            value = min(max(target, anchors.first!.1), anchors.last!.1)
+        if clampToTierRange, let lowest = anchors.first?.1, let highest = anchors.last?.1 {
+            value = min(max(target, lowest), highest)
         } else {
             value = target
         }

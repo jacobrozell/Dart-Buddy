@@ -444,7 +444,7 @@ final class BaseballMatchViewModel: ObservableObject {
                 announceTurnIfNeeded(visitRuns: event.runsThisVisit, cumulativeRuns: event.cumulativeRunsAfterTurn)
                 if event.runsThisVisit == 9 {
                     state = .perfectInningFeedback
-                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballPerfectInningTransitionNanoseconds)
                 }
             }
             if updated.runtime.status == .completed {
@@ -455,7 +455,7 @@ final class BaseballMatchViewModel: ObservableObject {
                    playerIndex.flatMap({ updated.runtime.baseballState?.players[$0].stretchGateOpen }) == false,
                    darts.contains(where: { $0.segment == .outerBull || $0.segment == .innerBull }) {
                     state = .stretchGateHint
-                    try? await Task.sleep(nanoseconds: 600_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballStretchGateHintNanoseconds)
                 }
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {

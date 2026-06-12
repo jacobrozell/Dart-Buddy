@@ -37,10 +37,10 @@ struct PlayerDetailView: View {
                         dependencies: dependencies,
                         onSave: onSave
                     )
-                } else if player.isBot, player.botDifficulty != nil {
+                } else if player.isBot, let botDifficulty = player.botDifficulty {
                     BotDetailView(
                         player: player,
-                        difficulty: player.botDifficulty!,
+                        difficulty: botDifficulty,
                         existingNames: existingNames,
                         dependencies: dependencies,
                         onSave: onSave
