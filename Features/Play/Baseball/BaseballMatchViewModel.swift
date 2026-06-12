@@ -394,21 +394,11 @@ final class BaseballMatchViewModel: ObservableObject {
             existingCount: partialVisitCount
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-        for dart in dartsToReveal {
-            do {
-                try await Task.sleep(nanoseconds: dartDelay)
-            } catch {
-                return false
-            }
-            enteredDarts.append(dart)
-        }
-
-        do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        } catch {
-            return false
-        }
+        guard await BotVisitPlayback.revealVisit(
+            dartsToReveal,
+            feedbackPreferences: feedbackPreferences,
+            append: { enteredDarts.append($0) }
+        ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
         return currentBotSkillProfile != nil && state == .readyTurn
@@ -529,31 +519,21 @@ final class BaseballMatchViewModel: ObservableObject {
 
     func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "baseball.error.sessionMissing"))
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .baseball,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "baseball.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 
