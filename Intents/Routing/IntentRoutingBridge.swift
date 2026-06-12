@@ -35,6 +35,12 @@ enum IntentRoutingBridge {
         return try? await dependencies.matchRepository.fetchActiveMatch()
     }
 
+    static func fetchResumableActiveMatch() async -> MatchSummary? {
+        guard let match = await fetchActiveMatch(),
+              ProductSurface.isMatchTypeReachable(match.type) else { return nil }
+        return match
+    }
+
     static var isRoutingReady: Bool {
         dependencies != nil && routeActions != nil
     }

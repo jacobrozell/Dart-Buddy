@@ -51,21 +51,21 @@ enum LocalDataResetInventory {
 
     /// Must stay aligned with `SchemaLock.release_1_0_0Schema.models`.
     static let swiftDataDeleters: [(ModelContext) throws -> Void] = [
-        { try SwiftDataStoreReset.deleteAll(SchemaV2.PlayerRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchParticipantRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchSnapshotRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchEventRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV2.SettingsRecord.self, in: $0) }
+        { try SwiftDataStoreReset.deleteAll(SchemaV3.PlayerRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV3.MatchRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV3.MatchParticipantRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV3.MatchSnapshotRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV3.MatchEventRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV3.SettingsRecord.self, in: $0) }
     ]
 
     private static let swiftDataCounters: [(ModelContext) throws -> (String, Int)] = [
-        { ctx in (String(describing: SchemaV2.PlayerRecord.self), try SwiftDataStoreReset.count(SchemaV2.PlayerRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV2.MatchRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV2.MatchParticipantRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchParticipantRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV2.MatchSnapshotRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchSnapshotRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV2.MatchEventRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchEventRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV2.SettingsRecord.self), try SwiftDataStoreReset.count(SchemaV2.SettingsRecord.self, in: ctx)) }
+        { ctx in (String(describing: SchemaV3.PlayerRecord.self), try SwiftDataStoreReset.count(SchemaV3.PlayerRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV3.MatchRecord.self), try SwiftDataStoreReset.count(SchemaV3.MatchRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV3.MatchParticipantRecord.self), try SwiftDataStoreReset.count(SchemaV3.MatchParticipantRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV3.MatchSnapshotRecord.self), try SwiftDataStoreReset.count(SchemaV3.MatchSnapshotRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV3.MatchEventRecord.self), try SwiftDataStoreReset.count(SchemaV3.MatchEventRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV3.SettingsRecord.self), try SwiftDataStoreReset.count(SchemaV3.SettingsRecord.self, in: ctx)) }
     ]
 
     static func assertSwiftDataInventoryMatchesReleaseSchema() {

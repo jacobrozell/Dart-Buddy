@@ -46,10 +46,10 @@ struct PlayRootView: View {
                 setupViewModel: setupViewModel,
                 pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
                 onResumeMatch: { match in
+                    guard ProductSurface.isMatchTypeReachable(match.type) else { return }
                     path.append(match.type.playRoute(matchId: match.id))
                 },
                 onStartRoute: { next in path.append(next) },
-                onQuickAddPlayer: { path.append(.quickAddPlayer) },
                 onChangeMode: onChangeMode
             )
             .navigationDestination(for: PlayRoute.self) { route in
@@ -119,11 +119,6 @@ struct PlayRootView: View {
                         statsRepository: dependencies.statsRepository,
                         onDeleted: { path.removeAll() }
                     )
-                case .quickAddPlayer:
-                    QuickAddPlayerScreen(repository: dependencies.playerRepository) { created in
-                        dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
-                        await setupViewModel.onAppear()
-                    }
                 }
             }
             .task {
@@ -132,7 +127,8 @@ struct PlayRootView: View {
                 if hasAppliedSnapshotRoute == false {
                     hasAppliedSnapshotRoute = true
                     if ProcessInfo.processInfo.arguments.contains("-open_active_match"),
-                       case let .readyWithActiveMatch(match) = viewModel.state {
+                       case let .readyWithActiveMatch(match) = viewModel.state,
+                       ProductSurface.isMatchTypeReachable(match.type) {
                         path = [match.type.playRoute(matchId: match.id)]
                     } else if let snapshotRoute = initialSnapshotRoute() {
                         path = [snapshotRoute]
@@ -148,7 +144,10 @@ struct PlayRootView: View {
                 }
             }
             .onChange(of: pendingResumeMatch) { _, match in
-                guard let match else { return }
+                guard let match, ProductSurface.isMatchTypeReachable(match.type) else {
+                    pendingResumeMatch = nil
+                    return
+                }
                 path = [match.type.playRoute(matchId: match.id)]
                 pendingResumeMatch = nil
             }
@@ -201,13 +200,19 @@ private struct X01MatchRouteView: View {
     }
 
     var body: some View {
+        let lifecycleDependencies = MatchLifecycleChromeDependencies(
+            store: dependencies.activeMatchStore,
+            matchRepository: dependencies.matchRepository,
+            logger: dependencies.logger
+        )
         X01MatchScreen(
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
-            feedbackPreferences: dependencies.userPreferencesStore.feedback
+            feedbackPreferences: dependencies.userPreferencesStore.feedback,
+            lifecycleDependencies: lifecycleDependencies
         )
     }
 }
@@ -235,13 +240,19 @@ private struct CricketMatchRouteView: View {
     }
 
     var body: some View {
+        let lifecycleDependencies = MatchLifecycleChromeDependencies(
+            store: dependencies.activeMatchStore,
+            matchRepository: dependencies.matchRepository,
+            logger: dependencies.logger
+        )
         CricketMatchScreen(
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
-            feedbackPreferences: dependencies.userPreferencesStore.feedback
+            feedbackPreferences: dependencies.userPreferencesStore.feedback,
+            lifecycleDependencies: lifecycleDependencies
         )
     }
 }
@@ -269,12 +280,18 @@ private struct KillerMatchRouteView: View {
     }
 
     var body: some View {
+        let lifecycleDependencies = MatchLifecycleChromeDependencies(
+            store: dependencies.activeMatchStore,
+            matchRepository: dependencies.matchRepository,
+            logger: dependencies.logger
+        )
         KillerMatchScreen(
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
-            feedbackPreferences: dependencies.userPreferencesStore.feedback
+            feedbackPreferences: dependencies.userPreferencesStore.feedback,
+            lifecycleDependencies: lifecycleDependencies
         )
     }
 }
@@ -302,12 +319,18 @@ private struct ShanghaiMatchRouteView: View {
     }
 
     var body: some View {
+        let lifecycleDependencies = MatchLifecycleChromeDependencies(
+            store: dependencies.activeMatchStore,
+            matchRepository: dependencies.matchRepository,
+            logger: dependencies.logger
+        )
         ShanghaiMatchScreen(
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
-            feedbackPreferences: dependencies.userPreferencesStore.feedback
+            feedbackPreferences: dependencies.userPreferencesStore.feedback,
+            lifecycleDependencies: lifecycleDependencies
         )
     }
 }
@@ -335,12 +358,18 @@ private struct BaseballMatchRouteView: View {
     }
 
     var body: some View {
+        let lifecycleDependencies = MatchLifecycleChromeDependencies(
+            store: dependencies.activeMatchStore,
+            matchRepository: dependencies.matchRepository,
+            logger: dependencies.logger
+        )
         BaseballMatchScreen(
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
             haptics: dependencies.hapticsService,
-            feedbackPreferences: dependencies.userPreferencesStore.feedback
+            feedbackPreferences: dependencies.userPreferencesStore.feedback,
+            lifecycleDependencies: lifecycleDependencies
         )
     }
 }

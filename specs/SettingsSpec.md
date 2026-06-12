@@ -88,7 +88,7 @@ Summary: **Reset All Local Data** requires destructive confirmation, clears all 
 - Manual: [`settings.md`](../accessibility/wcag-2.1-aa/screens/settings.md)
 
 ## 9. Analytics
-§12 — `settings_seeded` (log-only).
+§12 — `settings_seeded` (log-only). Successful reset logs `settings_reset_all_data` (log-only, not Analytics). Failures log `settings_reset_failed` → Crashlytics allowlist.
 
 ## 10. Verification
 | Field | Value |

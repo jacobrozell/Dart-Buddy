@@ -34,7 +34,7 @@ final class PlayHomeViewModel: ObservableObject {
             }
 
             let active = try await matchRepository.fetchActiveMatch()
-            if let active {
+            if let active, ProductSurface.isMatchTypeReachable(active.type) {
                 logger.info(
                     .ui,
                     eventName: "play_home_active_match",

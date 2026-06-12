@@ -31,4 +31,20 @@ struct ProductSurfaceTests {
         #expect(ProductSurface.showsPlayerExport)
         #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl"])
     }
+
+    @Test("Match type reachability respects party surface flag")
+    func matchTypeReachability() {
+        #expect(ProductSurface.isMatchTypeReachable(.x01))
+        #expect(ProductSurface.isMatchTypeReachable(.cricket))
+
+        if ProductSurface.showsPartyModes {
+            #expect(ProductSurface.isMatchTypeReachable(.baseball))
+            #expect(ProductSurface.isMatchTypeReachable(.killer))
+            #expect(ProductSurface.isMatchTypeReachable(.shanghai))
+        } else {
+            #expect(!ProductSurface.isMatchTypeReachable(.baseball))
+            #expect(!ProductSurface.isMatchTypeReachable(.killer))
+            #expect(!ProductSurface.isMatchTypeReachable(.shanghai))
+        }
+    }
 }

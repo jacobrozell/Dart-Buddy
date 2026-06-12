@@ -299,6 +299,44 @@ func setupOnAppearSelectsPendingPlayersWhenPresent() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
+func setupCreateHumanPlayerAutoSelectsNewPlayer() async {
+    let repository = HumanCreatingPlayerRepository()
+    let pending = PendingMatchPlayerSelections()
+    let vm = MatchSetupViewModel(
+        playerRepository: repository,
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: pending
+    )
+    await vm.onAppear()
+    #expect(vm.availableHumans.isEmpty)
+
+    let draft = EditablePlayer(
+        id: UUID(),
+        name: "Casey",
+        isArchived: false,
+        notes: "",
+        isBot: false,
+        isTrainingBot: false,
+        isCustomBot: false,
+        customX01Average: CustomBotMetrics.defaultX01Average,
+        customCricketMPR: CustomBotMetrics.defaultCricketMPR,
+        customBotConfiguration: nil,
+        linkedPlayerId: nil,
+        botDifficulty: nil,
+        avatarStyle: .dart,
+        colorToken: .blue
+    )
+    await vm.createHumanPlayer(draft)
+
+    #expect(vm.availableHumans.count == 1)
+    #expect(vm.availableHumans[0].name == "Casey")
+    #expect(vm.selectedPlayerIds == [vm.availableHumans[0].id])
+}
+
+@MainActor
+@Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupAddPlayerToSelectionIsIdempotent() async {
     let players = [makePlayer("A"), makePlayer("B")]
     let vm = MatchSetupViewModel(
@@ -1001,6 +1039,56 @@ private func makeCustomBot(_ name: String) -> PlayerSummary {
         createdAt: Date(),
         updatedAt: Date()
     )
+}
+
+private actor HumanCreatingPlayerRepository: PlayerRepository {
+    private var players: [PlayerSummary] = []
+
+    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
+    func createPlayer(name: String) async throws -> PlayerSummary {
+        let created = PlayerSummary(id: UUID(), name: name, isArchived: false, createdAt: Date(), updatedAt: Date())
+        players.append(created)
+        return created
+    }
+    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
+        PlayerSummary(
+            id: UUID(),
+            name: BotNaming.nextDefaultName(difficulty: difficulty, existingNames: players.map(\.name)),
+            isArchived: false,
+            isBot: true,
+            botDifficultyRaw: difficulty.rawValue,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
+    func updatePlayerProfile(
+        playerId: UUID,
+        name: String,
+        avatarStyle: PlayerAvatarStyle,
+        colorToken: PlayerColorToken,
+        notes: String
+    ) async throws -> PlayerSummary {
+        guard let index = players.firstIndex(where: { $0.id == playerId }) else {
+            throw AppError(code: .notFound, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.player.notFound")
+        }
+        let existing = players[index]
+        let updated = PlayerSummary(
+            id: existing.id,
+            name: name,
+            isArchived: existing.isArchived,
+            avatarStyleRaw: avatarStyle.rawValue,
+            preferredColorToken: colorToken.rawValue,
+            notes: notes.isEmpty ? nil : notes,
+            createdAt: existing.createdAt,
+            updatedAt: Date()
+        )
+        players[index] = updated
+        return updated
+    }
+    func archivePlayer(playerId _: UUID) async throws {}
+    func unarchivePlayer(playerId _: UUID) async throws {}
+    func deletePlayer(playerId _: UUID) async throws {}
 }
 
 private actor FakePlayerRepository: PlayerRepository {

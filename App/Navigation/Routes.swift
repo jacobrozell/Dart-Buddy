@@ -9,7 +9,6 @@ enum PlayRoute: Hashable {
     case shanghaiMatch(matchId: UUID)
     case matchSummary(matchId: UUID)
     case historyDetail(matchId: UUID)
-    case quickAddPlayer
 }
 
 extension MatchType {

@@ -311,6 +311,37 @@ func settingsConfirmResetClearsActiveMatchStore() async throws {
     #expect(await repository.resetCallCount == 1)
 }
 
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsConfirmResetFailureSurfacesError() async throws {
+    let resetError = AppError(
+        code: .storageUnavailable,
+        layer: .data,
+        severity: .error,
+        isRecoverable: true,
+        userMessageKey: "settings.error.reset"
+    )
+    let repository = FakeSettingsRepository(settings: makeSettings(), resetError: resetError)
+    let sink = RecordingSettingsLogSink()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: DefaultAppLogger(minimumLevel: .debug, sink: sink),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+    await vm.onAppear()
+
+    await vm.confirmReset()
+
+    if case .error(let key) = vm.state {
+        #expect(key == "settings.error.reset")
+    } else {
+        Issue.record("Expected error state after failed reset")
+    }
+    #expect(sink.entries.contains(where: { $0.eventName == "settings_reset_failed" && $0.level >= .error }))
+}
+
 private func makeSettings(
     id: UUID = UUID(),
     appearanceModeRaw: String = "system",
@@ -342,7 +373,11 @@ private func testLogger() -> DefaultAppLogger {
 }
 
 private final class RecordingSettingsLogSink: LogSink, @unchecked Sendable {
-    func write(_: LogEntry) {}
+    private(set) var entries: [LogEntry] = []
+
+    func write(_ entry: LogEntry) {
+        entries.append(entry)
+    }
 }
 
 private actor FakeSettingsRepository: SettingsRepository {

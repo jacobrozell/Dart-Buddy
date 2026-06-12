@@ -7,6 +7,7 @@ enum AppLinks {
 
     static let support = URL(string: "https://jacobrozell.github.io/Dart-Buddy/support.html")!
     static let privacy = URL(string: "https://jacobrozell.github.io/Dart-Buddy/privacy.html")!
+    static let accessibility = URL(string: "https://jacobrozell.github.io/Dart-Buddy/accessibility.html")!
     static let appStoreReview = URL(string: "https://apps.apple.com/app/id\(appStoreAppID)?action=write-review")!
 
     /// Set when your tip page is live (Buy Me a Coffee, Ko-fi, etc.). Leave nil to hide the Settings link.

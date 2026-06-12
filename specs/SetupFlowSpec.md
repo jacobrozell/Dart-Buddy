@@ -44,7 +44,7 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 ## Roster
 - Toggle player in/out of `selectedPlayerIds` (ordered)
 - Drag reorder on selected list
-- `QuickAddPlayerScreen` returns new id via `PendingMatchPlayerSelections`
+- Full add-player sheet (`PlayerEditSheet`) from setup **Add Players**; returns new id via `PendingMatchPlayerSelections`
 - At least one **human** required (`setup.validation.requiresHuman`)
 - Per-mode **minimum / maximum** participants come from [`GameModeCatalog`](../Features/Modes/GameModeCatalog.swift) (`minimumPlayers`, `maximumPlayers`); each `*GameSpec.md` § Player count documents solo eligibility and rationale. App-wide default max is **8** unless a mode sets lower (e.g. Football, Scam = 2). Solo-only modes (`maximumPlayers: 1`, e.g. Bob's 27) skip roster per `GameModeCatalogEntry.isSolo`.
 
@@ -72,7 +72,7 @@ Minimum-player message hidden while roster completely empty (UX polish).
 
 On `onAppear`:
 - Load active players (non-archived)
-- Dequeue pending selections from quick-add / player detail shortcuts
+- Dequeue pending selections from setup add-player / player detail shortcuts
 - Seed settings defaults: X01 start, legs, sets, checkout, check-in, leg format, default match type
 - Load `CricketSetupPreferences` for points / scoring mode
 - `PendingMatchPlayerSelections.consumePreferredMatchType()` overrides mode when set

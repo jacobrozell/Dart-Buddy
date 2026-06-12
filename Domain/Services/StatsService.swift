@@ -300,7 +300,7 @@ public enum StatsService {
         var x01PointsByPlayer: [UUID: Int] = [:]
         var x01DartsByPlayer: [UUID: Int] = [:]
 
-        for session in completedSessions where session.runtime.status == .completed {
+        for session in completedSessions where session.runtime.status == .completed || session.runtime.status == .forfeited {
             let participants = session.runtime.participants
             for participant in participants {
                 let key = participant.playerId ?? participant.id

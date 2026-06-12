@@ -17,7 +17,7 @@ struct ResumeActiveMatchIntent: AppIntent {
         }
 
         if await IntentRoutingBridge.isRoutingReady {
-            if await IntentRoutingBridge.fetchActiveMatch() != nil {
+            if await IntentRoutingBridge.fetchResumableActiveMatch() != nil {
                 _ = await IntentRoutingBridge.route(.play(.resumeActive), intentName: Self.intentName)
                 return .result(dialog: IntentDialog(LocalizedStringResource("intent.resumeActiveMatch.resuming")))
             }

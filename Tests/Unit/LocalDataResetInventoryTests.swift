@@ -28,7 +28,7 @@ struct LocalDataResetInventoryTests {
         let defaults = makeIsolatedDefaults()
 
         OnboardingStore(userDefaults: defaults, isEnabled: true).markCompleted()
-        defaults.set(OnboardingExperience.beginner.rawValue, forKey: OnboardingStore.experienceKey)
+        defaults.set(BotDifficulty.easy.rawValue, forKey: OnboardingStore.experienceTierKey)
         defaults.set("9.9.9", forKey: "app_store_update_dismissed_version")
 
         BaseballSetupPreferences.save(
@@ -52,7 +52,7 @@ struct LocalDataResetInventoryTests {
         LocalAppStateReset.clearAllPersistedAuxiliaryState(userDefaults: defaults)
 
         #expect(!defaults.bool(forKey: OnboardingStore.completedKey))
-        #expect(defaults.string(forKey: OnboardingStore.experienceKey) == nil)
+        #expect(defaults.string(forKey: OnboardingStore.experienceTierKey) == nil)
         #expect(defaults.string(forKey: "app_store_update_dismissed_version") == nil)
 
         let baseball = BaseballSetupPreferences.load(userDefaults: defaults)

@@ -173,6 +173,12 @@ final class SettingsViewModel: ObservableObject {
         } catch is CancellationError {
             state = .ready
         } catch {
+            logger.error(
+                .settings,
+                eventName: "settings_reset_failed",
+                message: "Reset all local data failed.",
+                metadata: MatchTurnSupport.appErrorMetadata(for: error)
+            )
             state = .error(messageKey(for: error, fallback: "settings.error.reset"))
         }
     }
