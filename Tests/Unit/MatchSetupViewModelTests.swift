@@ -330,9 +330,10 @@ func setupCreateHumanPlayerAutoSelectsNewPlayer() async {
     )
     await vm.createHumanPlayer(draft)
 
-    #expect(vm.availableHumans.count == 1)
-    #expect(vm.availableHumans[0].name == "Casey")
-    #expect(vm.selectedPlayerIds == [vm.availableHumans[0].id])
+    #expect(vm.availableHumans.isEmpty)
+    #expect(vm.selectedPlayers.count == 1)
+    #expect(vm.selectedPlayers[0].name == "Casey")
+    #expect(vm.selectedPlayerIds == [vm.selectedPlayers[0].id])
 }
 
 @MainActor
@@ -1061,7 +1062,15 @@ private actor HumanCreatingPlayerRepository: PlayerRepository {
             updatedAt: Date()
         )
     }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
+    func updatePlayerName(playerId: UUID, name: String) async throws -> PlayerSummary {
+        try await updatePlayerProfile(
+            playerId: playerId,
+            name: name,
+            avatarStyle: .dart,
+            colorToken: .blue,
+            notes: ""
+        )
+    }
     func updatePlayerProfile(
         playerId: UUID,
         name: String,
