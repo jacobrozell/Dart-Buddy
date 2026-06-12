@@ -1,5 +1,10 @@
 import SwiftUI
 
+extension Notification.Name {
+    /// Posted after persisted settings are saved and applied to `UserPreferencesStore`.
+    static let settingsDidUpdate = Notification.Name("dartBuddy.settingsDidUpdate")
+}
+
 /// Thread-safe feedback toggles shared between settings UI and gated feedback services.
 public final class FeedbackPreferences: @unchecked Sendable {
     public var hapticsEnabled = true
