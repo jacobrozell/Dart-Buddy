@@ -50,4 +50,14 @@ enum ProductSurface {
     private static var active: Configuration {
         isFullProductSurfaceEnabled ? .full : .lean1_0
     }
+
+    /// Whether gameplay for this match type is reachable in the current product surface.
+    static func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
+        switch matchType {
+        case .x01, .cricket:
+            return true
+        case .baseball, .killer, .shanghai:
+            return showsPartyModes
+        }
+    }
 }

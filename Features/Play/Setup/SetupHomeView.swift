@@ -11,9 +11,9 @@ struct SetupHomeView: View {
     @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
     let onResumeMatch: (MatchSummary) -> Void
     let onStartRoute: (PlayRoute) -> Void
-    let onQuickAddPlayer: () -> Void
     let onChangeMode: () -> Void
     @State private var startTask: Task<Void, Never>?
+    @State private var showsAddPlayerSheet = false
     @State private var showsGameRules = false
     @State private var showsCustomBotSheet = false
     @State private var showsEditOptions = false
@@ -91,7 +91,21 @@ struct SetupHomeView: View {
                 showsModePicker = false
             }
         }
-        .onDisappear { startTask?.cancel() }
+        .sheet(isPresented: $showsAddPlayerSheet) {
+            PlayerEditSheet(
+                viewModel: PlayerEditViewModel(
+                    existingNames: setupViewModel.availableHumans.map(\.name),
+                    editing: nil
+                ),
+                existing: nil,
+                onSave: { player in
+                    await setupViewModel.createHumanPlayer(player)
+                }
+            )
+        }
+        .onDisappear {
+            startTask?.cancel()
+        }
     }
 
     private var learnToPlayMatchType: MatchType {
@@ -421,8 +435,9 @@ struct SetupHomeView: View {
         ProductSurface.showsCustomBots && allowsAdvancedBotMenuItems
     }
 
+    @ViewBuilder
     private var rosterActionButtons: some View {
-        HStack(spacing: DS.Spacing.s2) {
+        rosterActionButtonStack {
             if showsBotMenu {
             Menu {
                 if showsTrainingBotsInSetup, !setupViewModel.availableTrainingBots.isEmpty {
@@ -468,34 +483,67 @@ struct SetupHomeView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "cpu")
-                        .accessibilityHidden(true)
-                    Text(L10n.addBotTitle).font(.subheadline.weight(.semibold))
-                }
-                .foregroundStyle(Brand.textPrimary)
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s3)
-                .frame(minHeight: 44)
-                .background(Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-                .overlay(RoundedRectangle(cornerRadius: DS.Radius.sm).stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
+                rosterActionButtonLabel(systemImage: "cpu", title: L10n.addBotTitle)
             }
             .accessibilityLabel(L10n.addBotTitle)
+            .rosterActionButtonChrome(
+                background: Brand.cardElevated,
+                border: Brand.textSecondary.opacity(0.35),
+                matchesSiblingHeight: !dynamicTypeSize.isAccessibilitySize
+            )
             }
-            Button { onQuickAddPlayer() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "person.badge.plus")
-                        .accessibilityHidden(true)
-                    Text(L10n.setupAddPlayers).font(.subheadline.weight(.semibold))
-                }
-                .foregroundStyle(Brand.textPrimary)
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s3)
-                .frame(minHeight: 44)
-                .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+            Button { showsAddPlayerSheet = true } label: {
+                rosterActionButtonLabel(systemImage: "person.badge.plus", title: L10n.setupAddPlayers)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(L10n.setupAddPlayers)
+            .accessibilityIdentifier("setup_addPlayer")
+            .rosterActionButtonChrome(
+                background: Brand.green,
+                matchesSiblingHeight: !dynamicTypeSize.isAccessibilitySize
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func rosterActionButtonStack<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(spacing: DS.Spacing.s2, content: content)
+        } else {
+            HStack(alignment: .top, spacing: DS.Spacing.s2, content: content)
+        }
+    }
+
+    private func rosterActionButtonLabel(systemImage: String, title: LocalizedStringKey) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .alignmentGuide(.firstTextBaseline) { dimensions in
+                    dimensions[.bottom] * 0.82
+                }
+                .accessibilityHidden(true)
+            rosterActionButtonTitle(title)
+        }
+        .foregroundStyle(Brand.textPrimary)
+        .padding(.horizontal, DS.Spacing.s3)
+        .padding(.vertical, DS.Spacing.s3)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .frame(minHeight: 44)
+    }
+
+    @ViewBuilder
+    private func rosterActionButtonTitle(_ title: LocalizedStringKey) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -716,5 +764,37 @@ struct SetupHomeView: View {
             return 120
         }
         return setupViewModel.setupCategory == .party ? 96 : DS.Spacing.s4
+    }
+}
+
+private struct RosterActionButtonSiblingHeight: ViewModifier {
+    let isEnabled: Bool
+
+    func body(content: Content) -> some View {
+        if isEnabled {
+            content.frame(maxHeight: .infinity, alignment: .topLeading)
+        } else {
+            content
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func rosterActionButtonChrome(
+        background: Color,
+        border: Color? = nil,
+        matchesSiblingHeight: Bool
+    ) -> some View {
+        let base = self
+            .frame(maxWidth: .infinity)
+            .modifier(RosterActionButtonSiblingHeight(isEnabled: matchesSiblingHeight))
+            .background(background, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+
+        if let border {
+            base.overlay(RoundedRectangle(cornerRadius: DS.Radius.sm).stroke(border, lineWidth: 1))
+        } else {
+            base
+        }
     }
 }

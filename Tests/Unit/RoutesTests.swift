@@ -30,9 +30,8 @@ struct RoutesTests {
 
     @Test
     func staticPlayRoutesAreHashable() {
-        let routes: Set<PlayRoute> = [.setup, .quickAddPlayer]
+        let routes: Set<PlayRoute> = [.setup]
         #expect(routes.contains(.setup))
-        #expect(routes.contains(.quickAddPlayer))
     }
 
     @Test

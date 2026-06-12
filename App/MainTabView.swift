@@ -73,6 +73,7 @@ struct MainTabView: View {
             ActivityRootView(
                 dependencies: dependencies,
                 onResumeActiveMatch: { match in
+                    guard ProductSurface.isMatchTypeReachable(match.type) else { return }
                     pendingPlayResume = match
                     selectedTab = .play
                 },
@@ -181,7 +182,8 @@ struct MainTabView: View {
     }
 
     private func refreshActiveMatchBadge() async {
-        showsActiveMatchBadge = (try? await dependencies.matchRepository.fetchActiveMatch()) != nil
+        let active = try? await dependencies.matchRepository.fetchActiveMatch()
+        showsActiveMatchBadge = active.map { ProductSurface.isMatchTypeReachable($0.type) } ?? false
     }
 
     private func consumePendingDeepLink() async {

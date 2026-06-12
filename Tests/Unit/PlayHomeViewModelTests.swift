@@ -65,6 +65,36 @@ func playHomeShowsNoActiveMatchWhenRosterExistsButNoActiveMatch() async {
 
 @MainActor
 @Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeIgnoresActivePartyMatchWhenPartyHidden() async {
+    guard !ProductSurface.showsPartyModes else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .baseball,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    #expect(vm.state == .readyNoActiveMatch)
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
 func playHomeShowsResumeForCricketMatch() async throws {
     var session = try MatchLifecycleService.createMatch(
         type: .cricket,

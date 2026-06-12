@@ -122,10 +122,32 @@ final class MatchSetupViewModel: ObservableObject {
         revalidate()
     }
 
-    /// Adds a player to the match roster without toggling off if already selected (e.g. after Quick Add).
+    /// Adds a player to the match roster without toggling off if already selected (e.g. after creating from setup).
     func addPlayerToSelection(_ id: UUID) {
         appendToSelection(id)
         revalidate()
+    }
+
+    func createHumanPlayer(_ player: EditablePlayer) async {
+        do {
+            let created = try await playerRepository.createHumanPlayer(from: player)
+            pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
+            await onAppear()
+        } catch let appError as AppError {
+            logger.warning(
+                .ui,
+                eventName: "setup_create_human_player_failed",
+                message: "Failed to create human player from setup.",
+                metadata: ["error": appError.userMessageKey]
+            )
+        } catch {
+            logger.warning(
+                .ui,
+                eventName: "setup_create_human_player_failed",
+                message: "Failed to create human player from setup.",
+                metadata: ["error": "error.player.create"]
+            )
+        }
     }
 
     func removeFromSelection(_ id: UUID) {
@@ -174,7 +196,9 @@ final class MatchSetupViewModel: ObservableObject {
     /// Validation messages shown in the UI; defers minimum-player copy when the roster is still empty.
     var displayValidationErrors: [String] {
         guard isRosterEmpty else { return validationErrors }
-        return validationErrors.filter { $0 != "setup.validation.minimumPlayers" }
+        return validationErrors.filter {
+            $0 != "setup.validation.minimumPlayers" && $0 != "setup.validation.requiresHuman"
+        }
     }
 
     private func appendToSelection(_ id: UUID) {

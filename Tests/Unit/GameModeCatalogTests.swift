@@ -91,22 +91,16 @@ struct GameModeCatalogTests {
     }
 
     @Test
-    func playSetupPickerSurfacesStandardModesAndTeasersWhenPartyHidden() {
+    func playSetupPickerShowsStandardModesOnlyWhenPartyHidden() {
         guard !ProductSurface.showsPartyModes else { return }
 
         let sections = GameModeCatalog.playSetupPickerSections()
-        let standard = sections.first { $0.0 == .standard }?.1 ?? []
-        let party = sections.first { $0.0 == .party }?.1 ?? []
-        let practice = sections.first { $0.0 == .practice }?.1 ?? []
-
-        #expect(standard.map(\.id) == ["standard.x01", "standard.cricket", "standard.americanCricket"])
-        #expect(party.map(\.id) == ["party.baseball", "party.killer", "party.shanghai"])
-        #expect(practice.count == 2)
-        #expect(
-            GameModeCatalog.playSetupPickerMoreComingCount(in: .party, displayedCount: party.count)
-                == GameModeCatalog.entries(in: .party).count - party.count
-        )
-        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: practice.count) == 4)
+        #expect(sections.count == 1)
+        #expect(sections[0].0 == .standard)
+        #expect(sections[0].1.map(\.id) == ["standard.x01", "standard.cricket"])
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .standard, displayedCount: 2) == 0)
+        #expect(!sections.contains { $0.0 == .party })
+        #expect(!sections.contains { $0.0 == .practice })
     }
 
     @Test

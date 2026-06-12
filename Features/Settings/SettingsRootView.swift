@@ -366,6 +366,12 @@ struct SettingsRootView: View {
             .accessibilityLabel(L10n.settingsSupportRateAccessibility)
             .accessibilityIdentifier("settings_rateAppLink")
 
+            Link(destination: AppLinks.accessibility) {
+                Label(L10n.settingsSupportAccessibility, systemImage: "accessibility")
+            }
+            .accessibilityLabel(L10n.settingsSupportAccessibilityLabel)
+            .accessibilityIdentifier("settings_accessibilityLink")
+
             Link(destination: AppLinks.privacy) {
                 Label(L10n.settingsSupportPrivacy, systemImage: "hand.raised")
             }

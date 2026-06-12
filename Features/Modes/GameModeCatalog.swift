@@ -90,6 +90,9 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     /// SF Symbol for the mode badge (id-keyed identity).
     let iconSystemName: String
 
+    /// Competitive matches using shared lifecycle get forfeit via MatchLifecycleChrome.
+    var usesStandardMatchForfeit: Bool { matchType != nil && status == .shipped }
+
     var isAvailable: Bool { status.isAvailable }
 
     /// Whether Play setup can apply this entry on the current product surface.
@@ -308,35 +311,29 @@ enum GameModeCatalog {
         entries(in: section).filter { !$0.isAvailable }.count
     }
 
-    /// Shipped party modes surfaced as teasers when party play is hidden.
-    private static let leanPartyTeaserIds = [
-        "party.baseball",
-        "party.killer",
-        "party.shanghai"
-    ]
-
-    /// Practice modes shown in the lean Play setup picker before the "+N more" row.
+    /// Practice modes shown in the full-surface Play setup picker before the "+N more" row.
     private static let leanPracticeTeaserCount = 2
 
     /// Sections for the in-place mode picker on Play setup (lean 1.0).
     static func playSetupPickerSections() -> [(GameModeSection, [GameModeCatalogEntry])] {
         var sections: [(GameModeSection, [GameModeCatalogEntry])] = []
 
-        let standard = entries(in: .standard)
+        let standard = if ProductSurface.showsPartyModes {
+            entries(in: .standard)
+        } else {
+            entries(in: .standard).filter(\.isAvailable)
+        }
         if !standard.isEmpty {
             sections.append((.standard, standard))
         }
 
-        if ProductSurface.showsPartyModes {
-            let party = entries(in: .party)
-            if !party.isEmpty {
-                sections.append((.party, party))
-            }
-        } else {
-            let teasers = leanPartyTeaserIds.compactMap { entry(for: $0) }
-            if !teasers.isEmpty {
-                sections.append((.party, teasers))
-            }
+        guard ProductSurface.showsPartyModes else {
+            return sections
+        }
+
+        let party = entries(in: .party)
+        if !party.isEmpty {
+            sections.append((.party, party))
         }
 
         let practice = Array(entries(in: .practice).prefix(leanPracticeTeaserCount))
@@ -352,7 +349,8 @@ enum GameModeCatalog {
         in section: GameModeSection,
         displayedCount: Int
     ) -> Int {
-        max(0, entries(in: section).count - displayedCount)
+        guard ProductSurface.showsPartyModes else { return 0 }
+        return max(0, entries(in: section).count - displayedCount)
     }
 
     /// Catalog entry backing a routable match type, if any.
