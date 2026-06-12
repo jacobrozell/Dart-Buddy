@@ -48,18 +48,24 @@ extension SetupHomeView {
 
     private var cricketPointsChip: some View {
         chip(title: L10n.setupChipPoints, color: Brand.key) {
-            Menu {
-                Button(L10n.string("play.cricket.points.on")) {
-                    setupViewModel.cricketPointsEnabled = true
-                    setupViewModel.revalidate()
-                }
-                .accessibilityIdentifier("setup_cricketPointsOption_on")
-                Button(L10n.string("play.cricket.points.off")) {
-                    setupViewModel.cricketPointsEnabled = false
-                    setupViewModel.cricketScoringMode = .standard
-                    setupViewModel.revalidate()
-                }
-                .accessibilityIdentifier("setup_cricketPointsOption_off")
+            Picker(
+                selection: Binding(
+                    get: { setupViewModel.cricketPointsEnabled },
+                    set: { isEnabled in
+                        setupViewModel.cricketPointsEnabled = isEnabled
+                        if !isEnabled {
+                            setupViewModel.cricketScoringMode = .standard
+                        }
+                        setupViewModel.revalidate()
+                    }
+                )
+            ) {
+                Text(L10n.string("play.cricket.points.on"))
+                    .tag(true)
+                    .accessibilityIdentifier("setup_cricketPointsOption_on")
+                Text(L10n.string("play.cricket.points.off"))
+                    .tag(false)
+                    .accessibilityIdentifier("setup_cricketPointsOption_off")
             } label: {
                 chipBox(
                     setupViewModel.cricketPointsEnabled
@@ -69,6 +75,7 @@ extension SetupHomeView {
                     showsMenuIndicator: true
                 )
             }
+            .pickerStyle(.menu)
             .accessibilityLabel(
                 chipAccessibilityLabel(
                     "play.setup.chip.points",
