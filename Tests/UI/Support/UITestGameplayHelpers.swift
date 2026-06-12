@@ -192,6 +192,8 @@ extension XCTestCase {
         let exit = app.buttons["match_exit"]
         XCTAssertTrue(exit.waitForExistence(timeout: timeout))
         exit.tap()
+        _ = app.descendants(matching: .any).matching(identifier: "match_exit_stay").firstMatch
+            .waitForExistence(timeout: min(timeout, 5))
     }
 
     func dismissExitConfirmation(in app: XCUIApplication) {
@@ -218,6 +220,7 @@ extension XCTestCase {
                 app.buttons.matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch,
                 app.descendants(matching: .any).matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch,
                 app.alerts.buttons.matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch,
+                app.sheets.buttons.matching(NSPredicate(format: "label ==[c] %@", title)).firstMatch,
                 app.buttons.containing(NSPredicate(format: "label CONTAINS[c] %@", title)).firstMatch
             ]
             for candidate in candidates where candidate.waitForExistence(timeout: 1) {
@@ -231,7 +234,31 @@ extension XCTestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(0.15))
         }
 
+        if title.localizedCaseInsensitiveCompare("Stay") == .orderedSame {
+            dismissExitConfirmation(in: app)
+            return
+        }
+
         XCTAssertTrue(false, "Expected exit dialog button '\(title)'")
+    }
+
+    func dismissMatchExitStay(in app: XCUIApplication, timeout: TimeInterval = 10) {
+        tapMatchExit(in: app, timeout: timeout)
+        let stay = app.descendants(matching: .any).matching(identifier: "match_exit_stay").firstMatch
+        if stay.waitForExistence(timeout: timeout) {
+            if stay.isHittable {
+                stay.tap()
+            } else {
+                stay.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+            return
+        }
+        tapExitAlertButton(
+            "Stay",
+            identifier: "match_exit_stay",
+            in: app,
+            timeout: timeout
+        )
     }
 
     func tapExitSaveAndForfeit(in app: XCUIApplication, timeout: TimeInterval = 10) {

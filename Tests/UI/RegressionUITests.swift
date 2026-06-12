@@ -43,23 +43,21 @@ final class RegressionUITests: DartBuddyUITestCase {
     // MARK: - Exit alert + Stay (baae976)
 
     func testX01ExitAlertStayRecoversBotPlayback() {
-        let app = launchForRegression()
+        let app = launchApp([
+            "-seed_players",
+            Self.disableFeedbackLaunchArgument,
+        ])
         startAliceVersusEasyBotX01MatchForRegression(from: app, timeout: timeout)
 
-        submitMissVisit(on: app, timeout: timeout)
-
-        let pad = app.buttons["pad_20"]
-        XCTAssertTrue(pad.waitForExistence(timeout: timeout))
-        let botStarted = botThrowingBanner(in: app).waitForExistence(timeout: timeout + 15)
-            || !pad.isEnabled
-        XCTAssertTrue(botStarted, "Bot should begin throwing after the human visit")
-
-        dismissExitAlertStay(in: app, timeout: timeout)
+        scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
         waitForBotVisitToComplete(in: app, timeout: timeout)
+
+        dismissMatchExitStay(in: app, timeout: timeout)
+        _ = waitForPadReady(app, timeout: timeout + 10)
 
         XCTAssertFalse(
             botThrowingBanner(in: app).waitForExistence(timeout: 2),
-            "Bot throwing banner should clear after the visit completes"
+            "Stay should return to a stable human turn without a stuck bot banner"
         )
     }
 

@@ -4,24 +4,23 @@ final class OnboardingUITests: DartBuddyUITestCase {
     func testSkipFromWelcomeLandsOnPlay() {
         let app = launchOnboardingApp()
 
-        let skip = app.buttons["onboarding_skip"]
-        XCTAssertTrue(skip.waitForExistence(timeout: timeout))
-        skip.tap()
-
-        finishOnboarding(in: app)
-        assertBrandAppTitleVisible(in: app, timeout: timeout)
+        skipOnboardingFromWelcomeAndFinish(in: app)
     }
 
     func testSkipFromWelcomeDoesNotStageRosterOnPlay() {
         let app = launchOnboardingApp()
 
-        app.buttons["onboarding_skip"].tap()
-        finishOnboarding(in: app)
+        skipOnboardingFromWelcomeAndFinish(in: app)
 
         XCTAssertTrue(
-            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Add Players")).firstMatch
-                .waitForExistence(timeout: timeout),
+            app.buttons["setup_addPlayer"].waitForExistence(timeout: timeout),
             "Skipping onboarding should leave Play without a staged roster"
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any).matching(
+                NSPredicate(format: "identifier BEGINSWITH 'setup_selected_'")
+            ).firstMatch.waitForExistence(timeout: 2),
+            "Skipping onboarding should not stage players on Play setup"
         )
     }
 

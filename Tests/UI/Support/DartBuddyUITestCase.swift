@@ -14,10 +14,23 @@ class DartBuddyUITestCase: XCTestCase {
 
     override func tearDown() {
         XCUIApplication().terminate()
-        if XCUIDevice.shared.orientation != .portrait {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        resetSimulatorOrientationToPortrait()
         super.tearDown()
+    }
+
+    func setSimulatorOrientation(_ orientation: UIDeviceOrientation) {
+        let apply = { XCUIDevice.shared.orientation = orientation }
+        if Thread.isMainThread {
+            apply()
+        } else {
+            DispatchQueue.main.sync(execute: apply)
+        }
+    }
+
+    func resetSimulatorOrientationToPortrait() {
+        if XCUIDevice.shared.orientation != .portrait {
+            setSimulatorOrientation(.portrait)
+        }
     }
 
     func launchApp(

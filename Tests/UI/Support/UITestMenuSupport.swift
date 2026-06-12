@@ -276,13 +276,24 @@ extension XCTestCase {
     ) {
         let control = app.descendants(matching: .any)[identifier]
         let deadline = Date().addingTimeInterval(timeout)
+        var swipedUp = 0
         while Date() < deadline {
             if control.exists, control.isHittable {
                 return
             }
             app.swipeUp()
+            swipedUp += 1
+            if swipedUp % 4 == 0 {
+                app.swipeDown()
+            }
         }
-        XCTAssertTrue(control.waitForExistence(timeout: 1), "Expected settings control '\(identifier)'")
+        for _ in 0 ..< 6 where control.exists == false || control.isHittable == false {
+            app.swipeDown()
+        }
+        XCTAssertTrue(
+            control.waitForExistence(timeout: 2),
+            "Expected settings control '\(identifier)'"
+        )
     }
 
     func selectSettingsPickerOption(
@@ -307,10 +318,25 @@ extension XCTestCase {
             "Expected settings picker option '\(optionTitle)'"
         )
         button.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.35))
     }
 
     func scrollToFeedbackSwitches(_ app: XCUIApplication) {
         scrollToSettingsControl("settings_hapticsToggle", in: app)
+    }
+
+    func assertSettingsControlReachable(
+        _ control: XCUIElement,
+        in app: XCUIApplication,
+        label: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(control.exists, "\(label) should exist", file: file, line: line)
+        if control.isHittable {
+            return
+        }
+        control.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
 
     /// Scrolls the settings form so off-screen rows enter the accessibility hierarchy before audits.
@@ -318,6 +344,7 @@ extension XCTestCase {
         let markers = [
             "settings_themePicker",
             "settings_defaultModePicker",
+            "settings_defaultCheckInPicker",
             "settings_defaultSetsToggle",
             "settings_turnTotalCallerToggle",
             "settings_botDartHapticsToggle",

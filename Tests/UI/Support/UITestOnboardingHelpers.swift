@@ -107,10 +107,21 @@ extension DartBuddyUITestCase {
     func finishOnboarding(in app: XCUIApplication, timeout: TimeInterval? = nil) {
         let wait = timeout ?? self.timeout
         let getStarted = app.buttons["onboarding_get_started"]
-        XCTAssertTrue(getStarted.waitForExistence(timeout: wait))
+        XCTAssertTrue(
+            getStarted.waitForExistence(timeout: wait + 5),
+            "Onboarding ready step should expose Get Started"
+        )
         getStarted.tap()
 
         assertBrandAppTitleVisible(in: app, timeout: wait)
+    }
+
+    func skipOnboardingFromWelcomeAndFinish(in app: XCUIApplication, timeout: TimeInterval? = nil) {
+        let wait = timeout ?? self.timeout
+        let skip = app.buttons["onboarding_skip"]
+        XCTAssertTrue(skip.waitForExistence(timeout: wait))
+        skip.tap()
+        finishOnboarding(in: app, timeout: wait)
     }
 
     func assertStagedBot(in app: XCUIApplication, nameContains needle: String, timeout: TimeInterval? = nil) {

@@ -350,11 +350,13 @@ extension XCTestCase {
     }
 
     func submitMissVisit(on app: XCUIApplication, timeout: TimeInterval = 10) {
-        let miss = app.buttons["pad_0"]
-        XCTAssertTrue(miss.waitForExistence(timeout: timeout))
-        miss.tap()
-        miss.tap()
-        miss.tap()
+        for _ in 0 ..< 3 {
+            _ = waitForPadReady(app, timeout: timeout)
+            let miss = app.buttons["pad_0"]
+            XCTAssertTrue(miss.waitForExistence(timeout: timeout))
+            _ = miss.wait(for: \.isEnabled, toEqual: true, timeout: timeout)
+            miss.tap()
+        }
     }
 
     func openSeededHistoryDetail(_ app: XCUIApplication, timeout: TimeInterval = 10) {

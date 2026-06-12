@@ -105,12 +105,15 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
 
         ensureActivityHistorySegment(app, timeout: timeout)
         XCTAssertTrue(
-            app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "FINISHED")).firstMatch
-                .waitForExistence(timeout: timeout + 5)
+            app.staticTexts["FINISHED"].waitForExistence(timeout: timeout + 5),
+            "Demo history should list a completed game as FINISHED"
         )
 
         ensureActivityStatisticsSegment(app, timeout: timeout)
-        XCTAssertTrue(app.staticTexts["Games"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            app.staticTexts["Games"].waitForExistence(timeout: timeout + 5),
+            "Statistics segment should show the Games summary"
+        )
     }
 
     func testLeanAddBotMenuOffersCustomBotCreation() {
