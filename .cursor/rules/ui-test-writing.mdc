@@ -1,0 +1,74 @@
+---
+description: How to write and extend Dart Buddy X01/Cricket UI tests without brittle layout assertions
+globs: Tests/UI/**/*.swift
+alwaysApply: false
+---
+
+# UI test writing (X01 & Cricket)
+
+Full phased backlog: [`docs/testing/x01-cricket-ui-test-phased-plan.md`](../../docs/testing/x01-cricket-ui-test-phased-plan.md)
+
+## Test pyramid
+
+| Layer | Owns |
+|-------|------|
+| **Unit** | Scoring math, turn order, bust/checkout, match completion, `GameplayLayout` predicates |
+| **UI** | Pad → board feedback, navigation, layout contracts, a11y identifier presence |
+| **WCAG** | Touch targets, labels, audit filters (`WCAGAccessibilityUITests`) |
+
+Do **not** duplicate game rules in UI tests. Assert **observable UI state** (combined accessibility labels, pad enabled/disabled).
+
+## Base class & launch
+
+- Subclass `DartBuddyUITestCase` (not raw `XCTestCase`) unless writing WCAG audits.
+- Default args: `-ui_test_reset`, `-disable_firebase_analytics`.
+- Roster: `-seed_players` (Alice, Bob, Carol).
+- Bots: add `-ui_test_instant_bots` + `-ui_test_disable_feedback` (see `UITestRegressionHelpers`).
+- X01 speed: `configureFastX01MatchForUITest` (101 / double-out / 1 leg).
+
+## Query order (stable → brittle)
+
+1. `accessibilityIdentifier` — `pad_20`, `cricket_enter`, `scoreCard_active`, `startMatchButton`
+2. Combined element `.label` fragments — `assertActiveScoreCardLabel`, `assertActiveCricketColumnLabel`
+3. Visible text / alerts — last resort; prefer adding an identifier in the view
+
+## Waits (required after turns)
+
+```swift
+_ = waitForPadReady(app, timeout: timeout + 15)           // X01
+waitForCricketScoringPadReady(app, timeout: timeout + 5)  // Cricket
+waitForX01MatchBoard(in: app, timeout: ...)               // board landmark
+```
+
+Use `element.wait(for: \.isEnabled, toEqual: true, ...)` for bot-turn recovery.
+
+## Where logic lives
+
+| Concern | File |
+|---------|------|
+| Tab, setup, pad landmarks | `UITestMenuSupport.swift` |
+| Fast X01 presets, WCAG flows | `WCAGAccessibilitySupport.swift` |
+| Bot regression, landscape helpers | `UITestRegressionHelpers.swift` |
+| 3-player starters, cricket chips | `UITestMatchSetupHelpers.swift` |
+
+**Thin test files:** one behavior per `test*` method; shared sequences go in helpers.
+
+## Naming
+
+- Class: `{Feature}UITests`
+- Method: `test{Behavior}{Condition}` — e.g. `testX01TripleScoringUpdatesRemaining`
+- Reference regressions: commit hash or regression catalog row in `docs/testing/x01-cricket-ui-test-phased-plan.md`
+
+## Avoid
+
+- Frame assertions except **layout regression** (landscape pad below pinned board); run those on **iPhone 17 Pro Max** only.
+- Full multi-player match completion in UI when unit tests already cover it.
+- Duplicating WCAG pad-contract tests in feature suites.
+- `continueAfterFailure = true`.
+
+## CI tiers
+
+| Tier | Suite | Simulator |
+|------|-------|-----------|
+| PR (`DartBuddyCI`) | `Lean1_0SmokeUITests` + WCAG | iPhone 17 |
+| Nightly | `X01MatchUITests`, `CricketMatchUITests`, `RegressionUITests` landscape | iPhone 17 Pro Max for landscape |

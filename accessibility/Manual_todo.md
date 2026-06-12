@@ -2,6 +2,8 @@
 
 Human-only checks that simulator AX-tree tools cannot complete. Tick items when done and link evidence under `accessibility/wcag-2.1-aa/evidence/`.
 
+**App Store Nutrition Labels (timed RC script):** [`1.0-nutrition-label-checklist.md`](1.0-nutrition-label-checklist.md)
+
 **Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02; X01 less-is-more 2026-06-10; Cricket less-is-more 2026-06-11)
 
 **Less-is-more VO (implemented 2026-06-10):** evidence in `evidence/voiceover/x01-less-is-more-ax-spotcheck-2026-06-10.md` and `evidence/voiceover/cricket-less-is-more-ax-spotcheck-2026-06-11.md`
