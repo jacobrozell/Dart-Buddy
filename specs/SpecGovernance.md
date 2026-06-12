@@ -64,6 +64,7 @@ If two specs disagree, the authoritative spec above wins.
 | `FutureIdeas/achievements.md` | Game Center ID catalog (GC reporting deferred) | [`AchievementsSpec.md`](AchievementsSpec.md) |
 | `FutureIdeas/campaign-mode.md` | Campaign R&D brief | [`CampaignSpec.md`](CampaignSpec.md) |
 | `FutureIdeas/play-reminders.md` | Play reminder assessment | [`DailyChallengeSpec.md`](DailyChallengeSpec.md), `SettingsSpec.md` |
+| `FutureIdeas/visual-dartboard-input.md` | Visual board scoring input assessment | [`ScoringInputSpec.md`](ScoringInputSpec.md), `SettingsSpec.md` (when promoted) |
 | `specs/AchievementsSpec.md` | Local achievements + hooks | `FutureIdeas/achievements.md` (GC phase) |
 | `specs/CampaignSpec.md` | Journey / campaign mode | `FutureIdeas/campaign-mode.md` |
 | `specs/DailyChallengeSpec.md` | Daily challenge + push | `FutureIdeas/play-reminders.md` |

@@ -67,9 +67,15 @@ Define per mode at match end:
 
 Only award when the signed-in human is the winner.
 
-### 5. Abandoned / partial matches
+### 5. Abandoned / partial / forfeited matches
 
-Do **not** count toward “games played” or wins. Only `status == .completed`.
+| Status | Games played | Natural wins / streaks | Forfeit achievements |
+|--------|--------------|------------------------|----------------------|
+| `completed` | Yes | Yes | No |
+| `forfeited` | Yes (stats saved) | **No** — use separate `db.win.by_forfeit.*` ladder | Yes — conceder (`db.forfeit.*`) and win-by-forfeit; see [`specs/AchievementForfeitSpec.md`](../specs/AchievementForfeitSpec.md) |
+| `abandoned` | No | No | No |
+
+Only `status == completed` counts toward natural “games played” and win streak achievements. Forfeited matches increment **games played** but not `db.win.*` or streak counters.
 
 ---
 
@@ -228,6 +234,26 @@ Grouped by skill dimension. Items marked *(catalog)* already appear in a tier ta
 | Full ladder | Win vs every `BotDifficulty` at least once | Any | **New** `db.bot.beat_all` |
 | Local legends | Win match with ≥ 3 human roster players | Any | **New** `db.play.3p_local` |
 
+#### Forfeit & sportsmanship (Phase 2b)
+
+**Authoritative rules:** [`specs/AchievementForfeitSpec.md`](../specs/AchievementForfeitSpec.md). Hook: `MatchStatus.forfeited` after Save & Forfeit. Conceder credit goes to `forfeitedByPlayerId` only.
+
+| Achievement | Trigger | Mode | ID / status |
+|-------------|---------|------|-------------|
+| Called It | First Save & Forfeit as conceder | Any | **New** `db.forfeit.first` |
+| Time to Go | 5 lifetime forfeits as conceder | Any | **New** (Inc) `db.forfeit.5` |
+| Last Call | 10 lifetime forfeits | Any | **New** (Inc, Hidden) `db.forfeit.10` |
+| Regular at Closing | 25 lifetime forfeits | Any | **New** (Inc, Hidden) `db.forfeit.25` |
+| Bar Stamp Card | 50 lifetime forfeits | Any | **New** (Inc, Hidden) `db.forfeit.50` |
+| Walkover | First win when opponent conceded | Any | **New** `db.win.by_forfeit.first` |
+| Still Counts | 10 wins by forfeit | Any | **New** (Inc) `db.win.by_forfeit.10` |
+| Uncontested | 25 wins by forfeit | Any | **New** (Inc, Hidden) `db.win.by_forfeit.25` |
+| Third Wheel | Concede in 3+ player match | Any | **New** `db.forfeit.3p_concede` |
+| Tiebreaker | Pick winner in tied forfeit flow | Any | **New** `db.forfeit.judge` |
+| Maximum Then Minimum | Score 180 then forfeit same match | X01 | **New** (Hidden) `db.forfeit.after_180` |
+| Finisher’s Honor | 100 natural wins without ever conceding | Any | **New** (Hidden) `db.forfeit.never_100` |
+| One and Done | Forfeit after exactly one visit | Any | **New** (Hidden) `db.forfeit.one_dart` |
+
 #### App & exploration (low-friction onboarding)
 
 | Achievement | Trigger | Mode | ID / status |
@@ -248,6 +274,8 @@ Grouped by skill dimension. Items marked *(catalog)* already appear in a tier ta
 | Bust-free leg | Complete leg with zero busts, 15+ darts | X01 | **New** (Hidden) `db.x01.no_bust_leg` |
 | Miss every dart | Visit with 3 misses (`wasMiss`) | Any | **New** (Hidden) `db.dart.triple_miss` |
 | Perfect visit | 3× T20 without bust (not necessarily 180 if rules differ) | X01 | **New** (Hidden) `db.visit.perfect_t20` |
+| Bust and Bail | Bust then forfeit same X01 match | X01 | **New** (Hidden) `db.forfeit.after_bust` |
+| Full Circle | Win by forfeit and concede same calendar day | Any | **New** (Hidden) `db.forfeit.same_day_both` |
 
 ---
 

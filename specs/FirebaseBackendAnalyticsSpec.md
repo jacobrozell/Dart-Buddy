@@ -10,7 +10,8 @@ Define how Firebase will be introduced for backend and analytics in a phased way
 - 1.0 ships **Firebase Analytics** and **Firebase Crashlytics** in **Release** only, wired through `AppLogger` sinks (see `specs/LoggingSpec.md`). Debug, CI, UI tests, and placeholder plist stay off.
 - Additional Firebase services are introduced incrementally for:
   - optional sync and online services
-  - future online match infrastructure
+  - future online match infrastructure ([`OnlinePlaySpec.md`](OnlinePlaySpec.md))
+  - future online tournaments ([`TournamentSpec.md`](TournamentSpec.md) P2)
 
 ---
 
@@ -27,6 +28,7 @@ Define how Firebase will be introduced for backend and analytics in a phased way
 ## Phase 3
 - Cloud Functions for trusted server-side validation and online orchestration
 - Optional App Check for abuse protection
+- **Online play + online tournaments** — consumes Auth + Firestore + Functions; see [`OnlinePlaySpec.md`](OnlinePlaySpec.md) and [`TournamentSpec.md`](TournamentSpec.md) (P2)
 
 ---
 
@@ -143,8 +145,12 @@ Source of truth in code:
 | `deep_link_failed` | `deep_link_failed` | Deep links | Parse/route failure |
 | `intent_performed` | `intent_performed` | App Intents | Shortcut/Siri route succeeded |
 | `intent_failed` | `intent_failed` | App Intents | Flag off, no active match, route error |
+| `client_environment_changed` | `client_environment_changed` | App shell | Accessibility/display context change (VoiceOver, Reduce Motion, orientation, etc.) |
+| `guided_practice_started` | `guided_practice_started` | Guided Play | Guided Practice session start |
+| `guided_practice_completed` | `guided_practice_completed` | Guided Play | Guided Practice session complete |
+| `guided_play_settings_enabled` | `guided_play_settings_enabled` | Settings | User enabled Guided Play profile |
 
-Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `participantCount`, `operation`, `schemaVersion`, `fromSchema`, `toSchema`, `legIndex`, `setIndex`, `source`, `isBot`, `path`, `version`, `intentName`, plus `app_version`, `log_category` injected by mapper.
+Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `participantCount`, `operation`, `schemaVersion`, `fromSchema`, `toSchema`, `legIndex`, `setIndex`, `source`, `isBot`, `path`, `version`, `intentName`, plus client-environment keys (`deviceClass`, `isVoiceOverRunning`, `isSwitchControlRunning`, `isBoldTextEnabled`, `isReduceMotionEnabled`, `isScreenCaptured`, `isExternalDisplayConnected`, `interfaceOrientation`, `trigger`, `changedSignals`), Guided Play keys (`sessionRole`, `targetKind`, `dartsPerTarget`, `targetCount`, `hadGuide`, `accuracyBucket`, `guidedPlayEnabled`), and `app_version`, `log_category` injected by mapper.
 
 ### Firebase Crashlytics (non-fatal allowlist)
 
@@ -160,6 +166,7 @@ Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `partici
 | `turn_undo_failed` | Undo |
 | `x01_abandon_failed` | X01 abandon |
 | `cricket_abandon_failed` | Cricket abandon |
+| `settings_reset_failed` | Settings → Reset All Local Data |
 
 ### Log-only (not Analytics allowlist yet)
 
@@ -167,6 +174,7 @@ Use `AppLogger` for debugging; add to Analytics allowlist only with product appr
 
 | `eventName` | Feature spec |
 |-------------|----------------|
+| `settings_reset_all_data` | `SettingsSpec.md` — successful reset; log-only (no Analytics) |
 | `play_home_active_match`, `play_home_ready` | `PlayHomeSpec.md` |
 | `active_match_conflict`, `active_match_replaced` | `SetupFlowSpec.md` |
 | `match_setup_start` | `SetupFlowSpec.md` |

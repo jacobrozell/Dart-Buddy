@@ -31,6 +31,15 @@ Define accessibility requirements for MVP and future releases, with WCAG 2.1 AA 
 - Bust/check-out feedback must include non-visual cues.
 - Cricket board closed/open states require non-color indicators.
 
+### Guided Play (planned)
+Blind and low-vision practice flows require audio-first design beyond baseline WCAG. See [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md):
+- TTS target callouts and spoken Hit/Miss results
+- Optional sighted guide verifier UI
+- VoiceOver-first Template J practice loop
+- Manual release gate: [`guided-practice-match.md`](../accessibility/wcag-2.1-aa/screens/guided-practice-match.md)
+
+Do not confuse **Guided Play** with the party game Blind Killer (`party.blindKiller`).
+
 ---
 
 ## 5. Engineering Rules

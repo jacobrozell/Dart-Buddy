@@ -41,7 +41,7 @@ All rows in §4 inherit these rules (see [`AchievementsSpec.md`](AchievementsSpe
 | Rule | Behavior |
 |------|----------|
 | **Human only** | Evaluate per human participant (`isBot == false`). Bot darts/wins never count. |
-| **Completed matches** | Match-level and streak rules require `MatchRecord.status == completed`. Abandoned matches do not advance volume/streak counters. |
+| **Completed matches** | Match-level and streak rules require `MatchRecord.status == completed`. **Forfeited** matches use the separate forfeit catalog ([`AchievementForfeitSpec.md`](AchievementForfeitSpec.md)). Abandoned matches do not advance volume/streak counters. |
 | **Campaign matches** | **Included** for all generic Phase 1 achievements. Journey wins, 180s, volume, and streaks count. Campaign-specific `db.campaign.*` achievements are additive and evaluated separately. |
 | **Multi-human** | Each human on the roster earns independently. |
 | **Undo (summary)** | Re-evaluate from event history after **Undo last throw** reopens a completed match; revoke unlocks no longer satisfied. |
@@ -445,3 +445,16 @@ Owned by [`CampaignSpec.md`](CampaignSpec.md) Phase 2 — examples:
 - `db.campaign.stars.{n}` — earn N total stars
 
 Generic and campaign achievements may both unlock on the same campaign match summary.
+
+### 12.5 Forfeit & sportsmanship (Phase 2b)
+
+**Authoritative detail:** [`AchievementForfeitSpec.md`](AchievementForfeitSpec.md)
+
+| ID | Inc | Predicate (summary) |
+|----|-----|---------------------|
+| `db.forfeit.first` | — | First Save & Forfeit as `forfeitedByPlayerId` |
+| `db.forfeit.5` … `db.forfeit.50` | ✓ | Lifetime conceder count thresholds |
+| `db.win.by_forfeit.first` | — | First win when `winnerPlayerId` on forfeited match |
+| `db.win.by_forfeit.10` … `25` | ✓ | Lifetime wins-by-forfeit |
+
+Brainstorm (multi-player picker, hidden irony, mode-flavored): see [`AchievementForfeitSpec.md`](AchievementForfeitSpec.md) §7.

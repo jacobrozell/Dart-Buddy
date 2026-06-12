@@ -311,6 +311,7 @@ Hard rule:
 | Cricket config | `2` | `MatchConfigCricket.currentPayloadVersion` |
 | Baseball config | `1` | `MatchConfigBaseball.currentPayloadVersion` |
 | Match snapshot wrapper | `1` | `MatchLifecycleModels` |
+| History list card | `1` | `MatchHistoryCardPayload.currentPayloadVersion` |
 | Event payloads | per `eventTypeRaw` | engines + coders |
 
 Payload bumps do **not** require `SchemaV3` unless new **columns** or **models** are added.

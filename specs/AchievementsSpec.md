@@ -61,7 +61,8 @@ Define **local, profile-attributed achievements** for Dart Buddy: eligibility ru
 ### 4.2 Match context
 - **Free Play** matches: full generic achievement catalog applies.
 - **Campaign** matches: generic dart/mode achievements may apply unless a future campaign rule opts out; campaign-specific achievements are evaluated separately when Campaign ships.
-- Abandoned matches: no match-level achievements; partial visit achievements already granted stand unless undone.
+- **Abandoned** matches: no match-level achievements; partial visit achievements already granted stand unless undone.
+- **Forfeited** matches: count toward **games played** and dart stats; **natural** win/streak/mode-win achievements do **not** apply. Separate **forfeit** catalog (`db.forfeit.*`, `db.win.by_forfeit.*`) — see [`AchievementForfeitSpec.md`](AchievementForfeitSpec.md). No achievement unlocks on forfeit summary until achievements Phase 2b.
 
 ### 4.3 Guest vs primary (future Campaign)
 - No distinction for **local** achievements in Phase 1 — all human players on the roster are eligible.
@@ -153,7 +154,7 @@ Full long-term catalog: [`FutureIdeas/achievements.md`](../FutureIdeas/achieveme
 
 **Campaign:** generic Phase 1 achievements count in Journey matches; `db.campaign.*` progression achievements ship separately ([`CampaignSpec.md`](CampaignSpec.md) Phase 2).
 
-**Phase 2+ (not Phase 1):** mode wins, bot-tier beats, party/Cricket expansions, hidden novelty, meta/tab opens.
+**Phase 2+ (not Phase 1):** mode wins, bot-tier beats, party/Cricket expansions, hidden novelty, meta/tab opens, **forfeit & sportsmanship** ([`AchievementForfeitSpec.md`](AchievementForfeitSpec.md)).
 
 Add 2–4 achievements per newly shipped mode when promoting `game-modes/planned/` → `implemented/`.
 

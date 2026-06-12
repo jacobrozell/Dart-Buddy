@@ -10,6 +10,7 @@ Define **cross-mode contracts** for solo-only practice drills in Dart Buddy: cat
 | Mode | Catalog id | Template | Stat kind | Solo-only |
 |------|------------|----------|-----------|-----------|
 | Call & Hit | `practice.callAndHit` | J — Voice drill | `practiceAccuracy` | Yes |
+| Guided Practice | `practice.guidedPractice` | J — Voice drill (guided) | `practiceAccuracy` | Yes |
 | Bob's 27 | `practice.bobs27` | F — Solo challenge | `soloScore` | Yes |
 | Halve-It | `practice.halveIt` | F — Solo challenge | `soloScore` | Yes |
 

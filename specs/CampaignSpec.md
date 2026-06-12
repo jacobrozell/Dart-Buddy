@@ -4,7 +4,7 @@
 
 Define **Journey** — Dart Buddy’s single-player campaign: progression UI, scripted matches against bots, star ratings, and local content — built on existing match engines without a second play stack.
 
-**Related specs:** Bots — [`BotOpponentSpec.md`](BotOpponentSpec.md), [`CustomBotSpec.md`](CustomBotSpec.md). Match lifecycle — [`MatchSpec.md`](MatchSpec.md). Summary — [`MatchSummarySpec.md`](MatchSummarySpec.md). Stats (separate) — [`StatsSpec.md`](StatsSpec.md). Achievements (addon later) — [`AchievementsSpec.md`](AchievementsSpec.md). Daily engagement — [`DailyChallengeSpec.md`](DailyChallengeSpec.md). Reset — [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md). R&D brainstorm — [`.cursor/plans/campaign_mode_brainstorm_871d477e.plan.md`](../.cursor/plans/campaign_mode_brainstorm_871d477e.plan.md).
+**Related specs:** Bots — [`BotOpponentSpec.md`](BotOpponentSpec.md), [`CustomBotSpec.md`](CustomBotSpec.md). Match lifecycle — [`MatchSpec.md`](MatchSpec.md). Summary — [`MatchSummarySpec.md`](MatchSummarySpec.md). Stats (separate) — [`StatsSpec.md`](StatsSpec.md). Achievements (addon later) — [`AchievementsSpec.md`](AchievementsSpec.md). Daily engagement — [`DailyChallengeSpec.md`](DailyChallengeSpec.md). Reset — [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md). R&D brief — [`FutureIdeas/campaign-mode.md`](../FutureIdeas/campaign-mode.md).
 
 **Status:** Post-1.0 R&D — feature-flagged. Decisions in §16 and star rules (§8) are **directional** until implementation; nothing here blocks experimentation.
 
