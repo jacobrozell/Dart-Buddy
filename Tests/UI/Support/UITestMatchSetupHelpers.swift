@@ -29,11 +29,22 @@ extension DartBuddyUITestCase {
 
     func removePlayerFromTurnOrder(named name: String, in app: XCUIApplication) {
         let removeButton = app.buttons["setup_remove_\(name)"]
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if removeButton.exists, removeButton.isHittable {
+                break
+            }
+            app.swipeUp()
+        }
         XCTAssertTrue(
-            removeButton.waitForExistence(timeout: timeout),
+            removeButton.waitForExistence(timeout: 1),
             "Expected remove control for \(name) in turn order"
         )
-        removeButton.tap()
+        if removeButton.isHittable {
+            removeButton.tap()
+        } else {
+            removeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
     }
 
     func openBotRow(named name: String, in app: XCUIApplication, timeout: TimeInterval? = nil) {

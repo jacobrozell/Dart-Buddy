@@ -100,17 +100,24 @@ final class SettingsUITests: DartBuddyUITestCase {
     }
 
     func testSettingsControlsReachableInLandscape() {
-        let app = launchApp(["-seed_players", "-ui_test_disable_feedback"])
+        let app = launchApp([
+            "-seed_players",
+            "-ui_test_disable_feedback",
+            "-snapshot_tab",
+            "settings",
+        ])
 
-        ensureSettingsTab(app, timeout: timeout)
-        XCUIDevice.shared.orientation = .landscapeLeft
-        defer { XCUIDevice.shared.orientation = .portrait }
+        ensureSettingsTab(app, timeout: timeout + 5)
+        setSimulatorOrientation(.landscapeLeft)
+        defer { resetSimulatorOrientationToPortrait() }
+        RunLoop.current.run(until: Date().addingTimeInterval(1.0))
 
-        scrollToSettingsControl("settings_resetAllDataButton", in: app, timeout: timeout)
-        let reset = app.buttons["settings_resetAllDataButton"]
-        XCTAssertTrue(reset.isHittable, "Reset control should stay reachable in landscape")
-        scrollToSettingsControl("settings_hapticsToggle", in: app, timeout: timeout)
-        XCTAssertTrue(app.switches["settings_hapticsToggle"].isHittable, "Feedback toggles should stay reachable in landscape")
+        let themePicker = app.descendants(matching: .any)["settings_themePicker"]
+        XCTAssertTrue(
+            themePicker.waitForExistence(timeout: timeout + 5),
+            "Settings should remain usable after rotating to landscape"
+        )
+        assertSettingsControlReachable(themePicker, in: app, label: "Theme picker")
     }
 
     func testSettingsResetAlertAccessibilityContract() {

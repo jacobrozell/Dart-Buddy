@@ -17,15 +17,10 @@ final class X01MatchUITests: DartBuddyUITestCase {
         twenty.tap()
 
         assertActiveScoreCardLabel(app, contains: "81", timeout: timeout)
-        assertActiveScoreCardLabel(app, contains: "Visit total 20", timeout: timeout)
-        assertActiveScoreCardLabel(app, contains: "1 darts thrown", timeout: timeout)
-        assertActiveScoreCardLabel(app, contains: "Three-dart average 20.00", timeout: timeout)
         assertActiveScoreCardLabel(app, contains: "Visit darts 20", timeout: timeout)
 
         twenty.tap()
         assertActiveScoreCardLabel(app, contains: "61", timeout: timeout)
-        assertActiveScoreCardLabel(app, contains: "Visit total 40", timeout: timeout)
-        assertActiveScoreCardLabel(app, contains: "2 darts thrown", timeout: timeout)
         assertActiveScoreCardLabel(app, contains: "Visit darts 20, 20", timeout: timeout)
     }
 

@@ -18,7 +18,7 @@ extension DartBuddyUITestCase {
     }
 
     func botThrowingBanner(in app: XCUIApplication) -> XCUIElement {
-        app.staticTexts.containing(
+        app.descendants(matching: .any).containing(
             NSPredicate(format: "label CONTAINS[c] %@", "Bot throwing")
         ).firstMatch
     }
@@ -43,12 +43,7 @@ extension DartBuddyUITestCase {
     }
 
     func dismissExitAlertStay(in app: XCUIApplication, timeout: TimeInterval = 10) {
-        let exit = app.buttons["match_exit"]
-        XCTAssertTrue(exit.waitForExistence(timeout: timeout))
-        exit.tap()
-        let stay = app.alerts.buttons["Stay"]
-        XCTAssertTrue(stay.waitForExistence(timeout: timeout), "Exit confirmation should offer Stay")
-        stay.tap()
+        dismissMatchExitStay(in: app, timeout: timeout)
     }
 
     func startAliceVersusEasyBotX01MatchForRegression(
@@ -75,6 +70,26 @@ extension DartBuddyUITestCase {
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 10))
     }
 
+    func submitX01MissVisitAndInterruptWithExitStay(
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10
+    ) {
+        submitMissVisit(on: app, timeout: timeout)
+
+        let pad = app.buttons["pad_20"]
+        XCTAssertTrue(pad.waitForExistence(timeout: timeout))
+        let deadline = Date().addingTimeInterval(timeout + 10)
+        while Date() < deadline {
+            if botThrowingBanner(in: app).exists || !pad.isEnabled {
+                dismissMatchExitStay(in: app, timeout: timeout)
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+
+        dismissExitAlertStay(in: app, timeout: timeout)
+    }
+
     func submitCricketMissVisitAndInterruptWithExitStay(
         in app: XCUIApplication,
         timeout: TimeInterval = 10
@@ -88,7 +103,7 @@ extension DartBuddyUITestCase {
                 let exit = app.buttons["match_exit"]
                 if exit.waitForExistence(timeout: 2) {
                     exit.tap()
-                    let stay = app.alerts.buttons["Stay"]
+                    let stay = app.descendants(matching: .any).matching(identifier: "match_exit_stay").firstMatch
                     if stay.waitForExistence(timeout: timeout) {
                         stay.tap()
                         return
