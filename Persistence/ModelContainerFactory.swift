@@ -9,7 +9,7 @@ public enum ModelContainerFactory {
     }
 
     public static func makeContainer(mode: StorageMode = .appDefault) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV2.self)
+        let schema = Schema(versionedSchema: SchemaV3.self)
         let configuration: ModelConfiguration
         switch mode {
         case .inMemory:

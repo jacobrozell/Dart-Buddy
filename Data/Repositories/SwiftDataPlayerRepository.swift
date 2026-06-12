@@ -19,11 +19,11 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     public func fetchPlayers(includeArchived: Bool) async throws -> [PlayerSummary] {
         try dataCall {
             let context = ModelContext(container)
-            var descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
+            var descriptor = FetchDescriptor<SchemaV3.PlayerRecord>(
                 sortBy: [SortDescriptor(\.name, order: .forward)]
             )
             if !includeArchived {
-                descriptor.predicate = #Predicate<SchemaV2.PlayerRecord> { !$0.isArchived }
+                descriptor.predicate = #Predicate<SchemaV3.PlayerRecord> { !$0.isArchived }
             }
             return try context.fetch(descriptor).map(mapPlayer)
         }
@@ -35,7 +35,7 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let trimmed = normalizeNameForSave(name)
             try validateName(trimmed, in: context, excludingPlayerId: nil)
             let now = Date()
-            let record = SchemaV2.PlayerRecord(
+            let record = SchemaV3.PlayerRecord(
                 name: trimmed,
                 isArchived: false,
                 isBot: false,
@@ -53,10 +53,10 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     public func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
         try dataCall {
             let context = ModelContext(container)
-            let existing = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
+            let existing = try context.fetch(FetchDescriptor<SchemaV3.PlayerRecord>())
             let name = BotNaming.nextDefaultName(difficulty: difficulty, existingNames: existing.map(\.name))
             let now = Date()
-            let record = SchemaV2.PlayerRecord(
+            let record = SchemaV3.PlayerRecord(
                 name: name,
                 isArchived: false,
                 isBot: true,
@@ -80,14 +80,14 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     public func createCustomBot(name: String, configuration: CustomBotConfiguration) async throws -> PlayerSummary {
         try dataCall {
             let context = ModelContext(container)
-            let existing = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
+            let existing = try context.fetch(FetchDescriptor<SchemaV3.PlayerRecord>())
             let trimmed = normalizeNameForSave(name)
             let resolvedName = trimmed.isEmpty
                 ? BotNaming.nextCustomBotName(existingNames: existing.map(\.name))
                 : trimmed
             try validateName(resolvedName, in: context, excludingPlayerId: nil)
             let now = Date()
-            let record = SchemaV2.PlayerRecord(
+            let record = SchemaV3.PlayerRecord(
                 name: resolvedName,
                 isArchived: false,
                 isBot: true,
@@ -185,8 +185,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         try dataCall {
             let context = ModelContext(container)
             let trainingRaw = BotKind.training.rawValue
-            let descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
-                predicate: #Predicate<SchemaV2.PlayerRecord> {
+            let descriptor = FetchDescriptor<SchemaV3.PlayerRecord>(
+                predicate: #Predicate<SchemaV3.PlayerRecord> {
                     $0.linkedPlayerId == playerId && $0.botKindRaw == trainingRaw
                 }
             )
@@ -207,7 +207,7 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let name = TrainingBotNaming.defaultName(linkedPlayerName: human.name)
             try validateName(name, in: context, excludingPlayerId: nil)
             let now = Date()
-            let record = SchemaV2.PlayerRecord(
+            let record = SchemaV3.PlayerRecord(
                 name: name,
                 isArchived: false,
                 isBot: true,
@@ -263,13 +263,73 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         }
     }
 
+    public func fetchPrimaryPlayer() async throws -> PlayerSummary? {
+        try dataCall {
+            let context = ModelContext(container)
+            let primaryRaw = PlayerRole.primary.rawValue
+            let descriptor = FetchDescriptor<SchemaV3.PlayerRecord>(
+                predicate: #Predicate<SchemaV3.PlayerRecord> {
+                    $0.playerRoleRaw == primaryRaw && $0.isBot != true
+                }
+            )
+            return try context.fetch(descriptor).first.map(mapPlayer)
+        }
+    }
+
+    public func designatePrimaryPlayer(playerId: UUID) async throws -> PlayerSummary {
+        try dataCall {
+            let context = ModelContext(container)
+            let player = try fetchPlayerRecord(id: playerId, in: context)
+            guard player.isBot != true else {
+                throw AppError(
+                    code: .validationFailed,
+                    layer: .data,
+                    severity: .warning,
+                    isRecoverable: true,
+                    userMessageKey: "players.primary.botNotAllowed",
+                    debugContext: ["playerId": playerId.uuidString]
+                )
+            }
+            let primaryRaw = PlayerRole.primary.rawValue
+            let guestRaw = PlayerRole.guest.rawValue
+            let humans = try context.fetch(
+                FetchDescriptor<SchemaV3.PlayerRecord>(
+                    predicate: #Predicate<SchemaV3.PlayerRecord> { $0.isBot != true }
+                )
+            )
+            for human in humans {
+                if human.playerRoleRaw == primaryRaw {
+                    human.playerRoleRaw = guestRaw
+                }
+            }
+            player.playerRoleRaw = primaryRaw
+            player.updatedAt = Date()
+            try context.save()
+            return mapPlayer(player)
+        }
+    }
+
+    public func relinquishPrimaryPlayer(playerId: UUID) async throws -> PlayerSummary {
+        try dataCall {
+            let context = ModelContext(container)
+            let player = try fetchPlayerRecord(id: playerId, in: context)
+            guard player.playerRoleRaw == PlayerRole.primary.rawValue else {
+                return mapPlayer(player)
+            }
+            player.playerRoleRaw = PlayerRole.guest.rawValue
+            player.updatedAt = Date()
+            try context.save()
+            return mapPlayer(player)
+        }
+    }
+
     public func deletePlayer(playerId: UUID) async throws {
         try dataCall {
             let context = ModelContext(container)
             let player = try fetchPlayerRecord(id: playerId, in: context)
             let refs = try context.fetch(
-                FetchDescriptor<SchemaV2.MatchParticipantRecord>(
-                    predicate: #Predicate<SchemaV2.MatchParticipantRecord> { $0.playerId == playerId }
+                FetchDescriptor<SchemaV3.MatchParticipantRecord>(
+                    predicate: #Predicate<SchemaV3.MatchParticipantRecord> { $0.playerId == playerId }
                 )
             )
             guard refs.isEmpty else {
@@ -287,9 +347,9 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         }
     }
 
-    private func fetchPlayerRecord(id: UUID, in context: ModelContext) throws -> SchemaV2.PlayerRecord {
-        let descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
-            predicate: #Predicate<SchemaV2.PlayerRecord> { $0.id == id }
+    private func fetchPlayerRecord(id: UUID, in context: ModelContext) throws -> SchemaV3.PlayerRecord {
+        let descriptor = FetchDescriptor<SchemaV3.PlayerRecord>(
+            predicate: #Predicate<SchemaV3.PlayerRecord> { $0.id == id }
         )
         guard let player = try context.fetch(descriptor).first else {
             throw AppError(
@@ -314,7 +374,7 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
                 userMessageKey: "player.validation.nameRequired"
             )
         }
-        let players = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
+        let players = try context.fetch(FetchDescriptor<SchemaV3.PlayerRecord>())
         let normalized = normalizeForComparison(name)
         let duplicate = players.contains {
             if let excludingPlayerId, $0.id == excludingPlayerId {
@@ -344,10 +404,10 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         normalizeNameForSave(value).lowercased()
     }
 
-    private func fetchTrainingBotRecord(linkedTo playerId: UUID, in context: ModelContext) throws -> SchemaV2.PlayerRecord? {
+    private func fetchTrainingBotRecord(linkedTo playerId: UUID, in context: ModelContext) throws -> SchemaV3.PlayerRecord? {
         let trainingRaw = BotKind.training.rawValue
-        let descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
-            predicate: #Predicate<SchemaV2.PlayerRecord> {
+        let descriptor = FetchDescriptor<SchemaV3.PlayerRecord>(
+            predicate: #Predicate<SchemaV3.PlayerRecord> {
                 $0.linkedPlayerId == playerId && $0.botKindRaw == trainingRaw
             }
         )

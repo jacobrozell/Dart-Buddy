@@ -23,6 +23,9 @@ public protocol PlayerRepository: Sendable {
     func fetchTrainingBot(linkedTo playerId: UUID) async throws -> PlayerSummary?
     func createTrainingBot(for playerId: UUID) async throws -> PlayerSummary
     func resolveTrainingBotSkill(for botId: UUID, mode: MatchType) async throws -> BotSkillProfile
+    func fetchPrimaryPlayer() async throws -> PlayerSummary?
+    func designatePrimaryPlayer(playerId: UUID) async throws -> PlayerSummary
+    func relinquishPrimaryPlayer(playerId: UUID) async throws -> PlayerSummary
 }
 
 public extension PlayerRepository {
@@ -76,6 +79,30 @@ public extension PlayerRepository {
 
     func fetchTrainingBot(linkedTo _: UUID) async throws -> PlayerSummary? { nil }
 
+    func fetchPrimaryPlayer() async throws -> PlayerSummary? { nil }
+
+    func designatePrimaryPlayer(playerId _: UUID) async throws -> PlayerSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "designatePrimaryPlayer"]
+        )
+    }
+
+    func relinquishPrimaryPlayer(playerId _: UUID) async throws -> PlayerSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "PlayerRepository", "method": "relinquishPrimaryPlayer"]
+        )
+    }
+
     func createTrainingBot(for _: UUID) async throws -> PlayerSummary {
         throw AppError(
             code: .unsupportedOperation,
@@ -106,6 +133,12 @@ public protocol MatchRepository: Sendable {
     func fetchHistoryWithParticipants(page: Int, pageSize: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord]
     func updateMatch(_ match: MatchSummary) async throws
     func completeMatch(matchId: UUID, endedAt: Date, winnerPlayerId: UUID?) async throws -> MatchSummary
+    func forfeitMatch(
+        matchId: UUID,
+        endedAt: Date,
+        winnerPlayerId: UUID?,
+        forfeitedByPlayerId: UUID
+    ) async throws -> MatchSummary
     func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary
     func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary
     func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary?
@@ -117,6 +150,22 @@ public protocol MatchRepository: Sendable {
 
 public extension MatchRepository {
     func fetchConfigPayload(matchId _: UUID) async throws -> Data? { nil }
+
+    func forfeitMatch(
+        matchId _: UUID,
+        endedAt _: Date,
+        winnerPlayerId _: UUID?,
+        forfeitedByPlayerId _: UUID
+    ) async throws -> MatchSummary {
+        throw AppError(
+            code: .unsupportedOperation,
+            layer: .data,
+            severity: .warning,
+            isRecoverable: true,
+            userMessageKey: "error.repository.notImplemented",
+            debugContext: ["repository": "MatchRepository", "method": "forfeitMatch"]
+        )
+    }
 }
 
 public protocol StatsRepository: Sendable {

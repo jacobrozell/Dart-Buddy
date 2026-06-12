@@ -6,7 +6,8 @@ public enum DartsMigrationPlan: SchemaMigrationPlan {
             SchemaV1.self,
             SchemaV2_0_0.self,
             SchemaV2_1_0.self,
-            SchemaV2.self
+            SchemaV2.self,
+            SchemaV3.self
         ]
     }
 
@@ -14,7 +15,8 @@ public enum DartsMigrationPlan: SchemaMigrationPlan {
         [
             migrateV1ToV2_0_0,
             migrateV2_0_0ToV2_1_0,
-            migrateV2_1_0ToV2_2_0
+            migrateV2_1_0ToV2_2_0,
+            migrateV2_2_0ToV3_0_0
         ]
     }
 
@@ -44,5 +46,10 @@ public enum DartsMigrationPlan: SchemaMigrationPlan {
     private static let migrateV2_1_0ToV2_2_0 = MigrationStage.lightweight(
         fromVersion: SchemaV2_1_0.self,
         toVersion: SchemaV2.self
+    )
+
+    private static let migrateV2_2_0ToV3_0_0 = MigrationStage.lightweight(
+        fromVersion: SchemaV2.self,
+        toVersion: SchemaV3.self
     )
 }

@@ -12,6 +12,7 @@ public enum MatchStatus: String, Codable, Sendable {
     case notStarted
     case inProgress
     case completed
+    case forfeited
     case abandoned
 }
 
@@ -44,6 +45,10 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
 
     public var playerRole: PlayerRole? {
         playerRoleRaw.flatMap(PlayerRole.init(rawValue:))
+    }
+
+    public var isPrimaryPlayer: Bool {
+        playerRole == .primary
     }
 
     public var botDifficulty: BotDifficulty? {
@@ -163,6 +168,7 @@ public struct MatchSummary: Identifiable, Equatable, Sendable {
     public let startedAt: Date
     public let endedAt: Date?
     public let winnerPlayerId: UUID?
+    public let forfeitedByPlayerId: UUID?
     public let currentTurnPlayerId: UUID?
     public let currentLegIndex: Int
     public let currentSetIndex: Int
@@ -179,6 +185,7 @@ public struct MatchSummary: Identifiable, Equatable, Sendable {
         startedAt: Date,
         endedAt: Date?,
         winnerPlayerId: UUID?,
+        forfeitedByPlayerId: UUID? = nil,
         currentTurnPlayerId: UUID?,
         currentLegIndex: Int,
         currentSetIndex: Int,
@@ -194,6 +201,7 @@ public struct MatchSummary: Identifiable, Equatable, Sendable {
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.winnerPlayerId = winnerPlayerId
+        self.forfeitedByPlayerId = forfeitedByPlayerId
         self.currentTurnPlayerId = currentTurnPlayerId
         self.currentLegIndex = currentLegIndex
         self.currentSetIndex = currentSetIndex
