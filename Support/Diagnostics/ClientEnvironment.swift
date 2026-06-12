@@ -66,16 +66,12 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
 
     public static func current() -> ClientEnvironmentSnapshot {
         #if canImport(UIKit)
-        ClientEnvironmentSnapshot(
-            deviceClass: deviceClass(from: UIDevice.current.userInterfaceIdiom),
-            isVoiceOverRunning: UIAccessibility.isVoiceOverRunning,
-            isSwitchControlRunning: UIAccessibility.isSwitchControlRunning,
-            isBoldTextEnabled: UIAccessibility.isBoldTextEnabled,
-            isReduceMotionEnabled: UIAccessibility.isReduceMotionEnabled,
-            isScreenCaptured: UIScreen.main.isCaptured,
-            isExternalDisplayConnected: hasExternalDisplayConnected(),
-            interfaceOrientation: currentInterfaceOrientation()
-        )
+        if Thread.isMainThread {
+            return makeUIKitSnapshot()
+        }
+        return DispatchQueue.main.sync {
+            makeUIKitSnapshot()
+        }
         #else
         ClientEnvironmentSnapshot(
             deviceClass: "unspecified",
@@ -95,6 +91,19 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
     }
 
     #if canImport(UIKit)
+    private static func makeUIKitSnapshot() -> ClientEnvironmentSnapshot {
+        ClientEnvironmentSnapshot(
+            deviceClass: deviceClass(from: UIDevice.current.userInterfaceIdiom),
+            isVoiceOverRunning: UIAccessibility.isVoiceOverRunning,
+            isSwitchControlRunning: UIAccessibility.isSwitchControlRunning,
+            isBoldTextEnabled: UIAccessibility.isBoldTextEnabled,
+            isReduceMotionEnabled: UIAccessibility.isReduceMotionEnabled,
+            isScreenCaptured: UIScreen.main.isCaptured,
+            isExternalDisplayConnected: hasExternalDisplayConnected(),
+            interfaceOrientation: currentInterfaceOrientation()
+        )
+    }
+
     private static func deviceClass(from idiom: UIUserInterfaceIdiom) -> String {
         switch idiom {
         case .phone: "iphone"
