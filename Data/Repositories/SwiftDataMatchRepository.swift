@@ -363,10 +363,15 @@ public actor SwiftDataMatchRepository: MatchRepository {
         let nameById = Dictionary(
             uniqueKeysWithValues: participants.map { ($0.playerId ?? $0.id, $0.displayNameAtMatchStart) }
         )
+        let matchRecord = try fetchMatchRecord(id: matchId, in: context)
+        var runtimeForCard = runtime
+        if runtimeForCard.winnerPlayerId == nil {
+            runtimeForCard.winnerPlayerId = matchRecord.winnerPlayerId
+        }
         let payload = MatchHistoryCardBuilder.build(
-            from: runtime,
+            from: runtimeForCard,
             nameById: nameById,
-            forfeitedByPlayerId: forfeitedByPlayerId ?? runtime.forfeitedByPlayerId
+            forfeitedByPlayerId: forfeitedByPlayerId ?? runtime.forfeitedByPlayerId ?? matchRecord.forfeitedByPlayerId
         )
         return try CodablePayloadCoder.encode(payload)
     }
