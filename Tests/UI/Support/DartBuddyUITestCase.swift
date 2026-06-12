@@ -10,12 +10,19 @@ class DartBuddyUITestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
+        resetSimulatorOrientationToPortrait()
     }
 
     override func tearDown() {
-        XCUIApplication().terminate()
         resetSimulatorOrientationToPortrait()
+        XCUIApplication().terminate()
         super.tearDown()
+    }
+
+    /// Rotates to landscape and waits for gameplay chrome to settle before assertions.
+    func rotateToLandscapeLeftForTest(app: XCUIApplication, timeout: TimeInterval = 5) {
+        rotateToLandscapeLeft(for: app, timeout: timeout)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.75))
     }
 
     func setSimulatorOrientation(_ orientation: UIDeviceOrientation) {

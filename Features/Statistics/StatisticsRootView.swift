@@ -319,6 +319,7 @@ struct StatTable: View {
                     .font(.title2.weight(.bold))
                     .foregroundStyle(Brand.textPrimary)
                     .frame(maxWidth: .infinity)
+                    .accessibilityAddTraits(.isHeader)
             }
             VStack(spacing: 0) {
                 HStack {

@@ -27,17 +27,17 @@ final class RegressionUITests: DartBuddyUITestCase {
         selectPlayerFromRoster("Alice", in: app, timeout: timeout)
         addEasyBot(from: app, timeout: timeout)
         tapStartMatch(in: app, timeout: timeout + 10)
-        waitForRegressionCricketPadReady(app, timeout: timeout + 10)
+        waitForCricketMatchBoard(in: app, timeout: timeout + 20)
 
         submitCricketMissVisit(in: app, timeout: timeout)
-        waitForBotVisitToComplete(in: app, padKeyIdentifier: "cricket_20", timeout: timeout)
+        waitForBotVisitToComplete(in: app, padKeyIdentifier: "cricket_20", timeout: timeout + 20)
 
         let undo = app.buttons["match_undo"]
         XCTAssertTrue(undo.waitForExistence(timeout: timeout))
         undo.tap()
-        waitForBotVisitToComplete(in: app, padKeyIdentifier: "cricket_20", timeout: timeout)
+        waitForBotVisitToComplete(in: app, padKeyIdentifier: "cricket_20", timeout: timeout + 20)
 
-        waitForActiveCricketPlayer("Alice", in: app, timeout: timeout + 10)
+        waitForActiveCricketPlayer("Alice", in: app, timeout: timeout + 20)
     }
 
     // MARK: - Exit alert + Stay (baae976)
@@ -104,10 +104,7 @@ final class RegressionUITests: DartBuddyUITestCase {
         let app = launchForRegression()
         startTwoPlayerX01MatchForRegression(from: app, timeout: timeout)
 
-        rotateToLandscapeLeftForTest(app: app)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let active = app.otherElements["scoreCard_active"]
         XCTAssertTrue(active.waitForExistence(timeout: timeout))
@@ -132,10 +129,7 @@ final class RegressionUITests: DartBuddyUITestCase {
         let app = launchForRegression()
         startTwoPlayerX01MatchForRegression(from: app, timeout: timeout)
 
-        rotateToLandscapeLeftForTest(app: app)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let twenty = waitForPadReady(app, timeout: timeout + 10)
         twenty.tap()

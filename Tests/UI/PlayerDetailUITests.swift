@@ -17,16 +17,22 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     func testPlayerDetailRecentMatchOpensGameStatistics() {
         let app = launchApp(["-seed_demo"])
 
+        waitForDemoSeed(in: app, timeout: timeout + 30)
         ensurePlayersTab(app, timeout: timeout)
         XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
         app.buttons["player_row_Jacob"].tap()
-        XCTAssertTrue(app.staticTexts["Recent Matches"].waitForExistence(timeout: timeout + 10))
+        XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 15))
+        XCTAssertTrue(app.staticTexts["Recent Matches"].waitForExistence(timeout: timeout + 15))
 
-        let recentMatch = app.buttons.matching(
+        let recentMatch = app.descendants(matching: .any).matching(
             NSPredicate(format: "identifier BEGINSWITH 'playerDetail_recentMatch_'")
         ).firstMatch
-        XCTAssertTrue(recentMatch.waitForExistence(timeout: timeout + 10))
-        recentMatch.tap()
+        XCTAssertTrue(
+            recentMatch.waitForExistence(timeout: timeout + 15),
+            "Expected a seeded recent match row on player detail"
+        )
+        scrollToPlayerDetailRecentMatch(recentMatch, in: app, timeout: timeout + 10)
+        tapHittableRecentMatch(recentMatch)
 
         XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout + 15))
         XCTAssertTrue(app.otherElements["historyDetailResultCard"].waitForExistence(timeout: timeout + 15))

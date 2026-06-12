@@ -155,13 +155,21 @@ final class SettingsUITests: DartBuddyUITestCase {
         let app = launchApp(["-skip_onboarding"])
 
         ensureSettingsTab(app, timeout: timeout)
-        scrollToSettingsControl("settings_supportFAQLink", in: app, timeout: timeout)
-
-        XCTAssertTrue(app.descendants(matching: .any)["settings_supportFAQLink"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.descendants(matching: .any)["settings_sendFeedbackLink"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.descendants(matching: .any)["settings_rateAppLink"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.descendants(matching: .any)["settings_accessibilityLink"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.descendants(matching: .any)["settings_privacyPolicyLink"].waitForExistence(timeout: timeout))
+        let linkIdentifiers = [
+            "settings_supportFAQLink",
+            "settings_sendFeedbackLink",
+            "settings_rateAppLink",
+            "settings_accessibilityLink",
+            "settings_privacyPolicyLink",
+        ]
+        for identifier in linkIdentifiers {
+            scrollToSettingsControl(identifier, in: app, timeout: timeout)
+            XCTAssertTrue(
+                app.descendants(matching: .any)[identifier].waitForExistence(timeout: timeout),
+                "Expected settings link '\(identifier)'"
+            )
+        }
+        scrollToSettingsControl("settings_aboutVersion", in: app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["settings_aboutVersion"].waitForExistence(timeout: timeout))
     }
 }
