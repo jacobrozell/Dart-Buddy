@@ -64,6 +64,7 @@ struct ModesRootView: View {
         HStack(spacing: DS.Spacing.s2) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(Brand.textSecondary)
+                .accessibilityHidden(true)
             TextField(L10n.modesSearchPlaceholder, text: $searchText)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()

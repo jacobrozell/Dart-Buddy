@@ -74,6 +74,7 @@ struct GameModeCatalogCard: View {
                 Button(action: onLearnRules) {
                     HStack(spacing: 4) {
                         Image(systemName: "book.pages")
+                            .accessibilityHidden(true)
                         Text(L10n.gameRulesLearnButton)
                             .font(.caption.weight(.semibold))
                     }
