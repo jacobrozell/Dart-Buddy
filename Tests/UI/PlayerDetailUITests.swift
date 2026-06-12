@@ -14,6 +14,24 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["Hits in Sector"].waitForExistence(timeout: timeout), "Player detail should show hits in sector")
     }
 
+    func testPlayerDetailRecentMatchOpensGameStatistics() {
+        let app = launchApp(["-seed_demo"])
+
+        ensurePlayersTab(app, timeout: timeout)
+        XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
+        app.buttons["player_row_Jacob"].tap()
+        XCTAssertTrue(app.staticTexts["Recent Matches"].waitForExistence(timeout: timeout + 10))
+
+        let recentMatch = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'playerDetail_recentMatch_'")
+        ).firstMatch
+        XCTAssertTrue(recentMatch.waitForExistence(timeout: timeout + 10))
+        recentMatch.tap()
+
+        XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout + 15))
+        XCTAssertTrue(app.otherElements["historyDetailResultCard"].waitForExistence(timeout: timeout + 15))
+    }
+
     func testPlayerDetailShowsExportButton() {
         let app = launchAppWithFullProductSurface(["-seed_demo"])
 

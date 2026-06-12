@@ -127,6 +127,7 @@ struct CustomBotDetailView: View {
     let player: EditablePlayer
     let existingNames: [String]
     let onSave: (EditablePlayer) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
@@ -138,11 +139,13 @@ struct CustomBotDetailView: View {
         player: EditablePlayer,
         existingNames: [String],
         dependencies: AppDependencies,
-        onSave: @escaping (EditablePlayer) -> Void
+        onSave: @escaping (EditablePlayer) -> Void,
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.existingNames = existingNames
         self.onSave = onSave
+        self.onSelectRecentMatch = onSelectRecentMatch
         _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
         let initialConfiguration = player.customBotConfiguration ?? CustomBotConfiguration.from(
             metrics: CustomBotMetrics(
@@ -199,7 +202,10 @@ struct CustomBotDetailView: View {
                 BotDifficultyStatsSection(profile: displayProfile)
 
                 customizationSection
-                PlayerDetailStatsContent(viewModel: statsViewModel)
+                PlayerDetailStatsContent(
+                    viewModel: statsViewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)

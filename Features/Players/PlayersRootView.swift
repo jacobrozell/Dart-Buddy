@@ -63,7 +63,13 @@ struct PlayersRootView: View {
                     .readableRootContentWidth(horizontalSizeClass)
 
                 Group {
-                    if viewModel.state == .error {
+                    if viewModel.state == .loading {
+                        ProgressView()
+                            .tint(Brand.green)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s6)
+                            .accessibilityLabel(L10n.loading)
+                    } else if viewModel.state == .error {
                         ContentUnavailableView(
                             L10n.errorTitle,
                             systemImage: "exclamationmark.triangle",
@@ -114,6 +120,7 @@ struct PlayersRootView: View {
                         .tabRootScrollChrome()
                     }
                 }
+                .motionTabContentReveal(when: viewModel.state != .loading)
                 .readableRootContentWidth(horizontalSizeClass)
             }
             .tabRootScreenBackground()
@@ -158,7 +165,8 @@ struct PlayersRootView: View {
                             actionTask?.cancel()
                             actionTask = Task { await viewModel.save(player) }
                         },
-                        onExportResult: handleExportResult
+                        onExportResult: handleExportResult,
+                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
                     )
                 case let .edit(playerId):
                     PlayerDetailView(
@@ -173,6 +181,16 @@ struct PlayersRootView: View {
                         onSave: { player in
                             actionTask?.cancel()
                             actionTask = Task { await viewModel.save(player) }
+                        },
+                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
+                    )
+                case let .matchDetail(matchId):
+                    MatchHistoryDetailScreen(
+                        matchId: matchId,
+                        matchRepository: dependencies.matchRepository,
+                        statsRepository: dependencies.statsRepository,
+                        onDeleted: {
+                            if !path.isEmpty { path.removeLast() }
                         }
                     )
                 }
