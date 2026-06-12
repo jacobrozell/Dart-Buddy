@@ -60,6 +60,7 @@ public actor StubSettingsRepository: SettingsRepository {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
 
@@ -94,6 +95,7 @@ public actor StubSettingsRepository: SettingsRepository {
             defaultSetsEnabled: false,
             botStaggerEnabled: true,
             botDartHapticsEnabled: true,
+            defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )
     }

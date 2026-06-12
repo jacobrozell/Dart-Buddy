@@ -368,6 +368,14 @@
 "settings.feedback.botStagger" = "Ritmo de lanzamiento de bot";
 "settings.feedback.botDartHaptics" = "Bot Dart Hápticos";
 "settings.feedback.botDartHaptics.hint" = "Sigue el interruptor de hápticos cuando está activado.";
+"settings.dartEntryPresentation.label" = "Entrada de puntuación";
+"settings.dartEntryPresentation.numberPad" = "Teclado numérico";
+"settings.dartEntryPresentation.visualBoard" = "Diana";
+"settings.dartEntryPresentation.hint" = "Estilo de entrada predeterminado para nuevas partidas.";
+"scoring.presentation.switchToBoard" = "Cambiar a la entrada con diana";
+"scoring.presentation.switchToPad" = "Cambiar al teclado numérico";
+"scoring.board.accessibility" = "Diana";
+"scoring.board.accessibilityHint" = "Toca donde cayó tu dardo. Usa el botón de la cabecera para cambiar al teclado numérico.";
 "play.cricket.targetClosed" = "¡Objetivo cerrado!";
 "play.x01.legWon.banner" = "¡Leg ganó!";
 "players.edit.name" = "Nombre";

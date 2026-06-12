@@ -244,7 +244,8 @@ private struct X01MatchRouteView: View {
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
             lifecycleDependencies: lifecycleDependencies,
             visionScoringEnabled: dependencies.featureFlags.isEnabled(.enableVisionAutoScoring),
-            visionLogger: dependencies.logger
+            visionLogger: dependencies.logger,
+            defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
         )
     }
 }
@@ -284,7 +285,8 @@ private struct CricketMatchRouteView: View {
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
-            lifecycleDependencies: lifecycleDependencies
+            lifecycleDependencies: lifecycleDependencies,
+            defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
         )
     }
 }

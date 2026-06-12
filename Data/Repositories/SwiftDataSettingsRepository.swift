@@ -56,6 +56,7 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultSetsEnabled = settings.defaultSetsEnabled
             record.botStaggerEnabled = settings.botStaggerEnabled
             record.botDartHapticsEnabled = settings.botDartHapticsEnabled
+            record.defaultDartEntryPresentationRaw = settings.defaultDartEntryPresentationRaw
             record.updatedAt = settings.updatedAt
             try context.save()
             return mapSettings(record)
@@ -86,6 +87,7 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultSetsEnabled = false
             record.botStaggerEnabled = true
             record.botDartHapticsEnabled = true
+            record.defaultDartEntryPresentationRaw = DartEntryPresentation.default.rawValue
             record.updatedAt = Date()
             try context.save()
         }

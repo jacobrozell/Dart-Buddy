@@ -54,6 +54,7 @@ Catalog of all product and system specifications. For **audit coverage** (spec +
 | [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md) | Blind/low-vision Guided Play platform |
 | [`GuidedPlayCompanionSpec.md`](GuidedPlayCompanionSpec.md) | Sighted guide verifier role |
 | [`ScoringInputSpec.md`](ScoringInputSpec.md) | Shared dart-entry pad, undo, submit |
+| [`VisualDartboardInputSpec.md`](VisualDartboardInputSpec.md) | Tappable dartboard entry presentation, Settings default, in-match toggle |
 | [`CalloutVoicesSpec.md`](CalloutVoicesSpec.md) | Practice target TTS, voice catalog, Settings picker |
 | [`ModesTabSpec.md`](ModesTabSpec.md) | Modes catalog tab, search, coming soon |
 | [`TournamentSpec.md`](TournamentSpec.md) | **P1** local tournaments / **P2** online (with OnlinePlay + Firebase) |

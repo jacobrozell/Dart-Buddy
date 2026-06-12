@@ -368,6 +368,14 @@
 "settings.feedback.botStagger" = "Bot-Wurftempo";
 "settings.feedback.botDartHaptics" = "Bot-Dart-Haptik";
 "settings.feedback.botDartHaptics.hint" = "Folgt der Haptik-Einstellung, wenn aktiviert.";
+"settings.dartEntryPresentation.label" = "Wurfeingabe";
+"settings.dartEntryPresentation.numberPad" = "Zahlenfeld";
+"settings.dartEntryPresentation.visualBoard" = "Dartscheibe";
+"settings.dartEntryPresentation.hint" = "Standard-Eingabe für neue Matches.";
+"scoring.presentation.switchToBoard" = "Zur Dartscheiben-Eingabe wechseln";
+"scoring.presentation.switchToPad" = "Zur Zahlenfeld-Eingabe wechseln";
+"scoring.board.accessibility" = "Dartscheibe";
+"scoring.board.accessibilityHint" = "Tippe dorthin, wo dein Dart gelandet ist. Über die Taste in der Kopfzeile wechselst du zum Zahlenfeld.";
 "play.cricket.targetClosed" = "Ziel geschlossen!";
 "play.x01.legWon.banner" = "Leg gewonnen!";
 "players.edit.name" = "Name";

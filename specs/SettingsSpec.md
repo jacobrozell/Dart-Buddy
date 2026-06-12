@@ -22,7 +22,7 @@ Define configurable app preferences and data management controls for MVP.
   - Starting Mode
   - Match Defaults
   - X01 Defaults
-  - During Play (haptics, sound, turn-total caller)
+  - During Play (scoring input presentation, haptics, sound, turn-total caller)
   - Bot Opponents
   - Data
   - Help & Feedback (support FAQ, send feedback mailto, rate app, privacy policy)
@@ -50,6 +50,7 @@ Recommended keys:
 - `defaultCheckoutMode`
 - `defaultLegsToWin`
 - `defaultSetsEnabled` (persisted from last Play setup on Start; no Settings UI control)
+- `defaultDartEntryPresentationRaw` (number pad vs visual dartboard — [`VisualDartboardInputSpec.md`](VisualDartboardInputSpec.md))
 
 ---
 

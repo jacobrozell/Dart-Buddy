@@ -125,6 +125,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Match lifecycle (start / resume / abandon) | Shipped | SwiftData persistence | [`MatchSpec.md`](../specs/MatchSpec.md) |
 | Match summary screen | Shipped | Post-match stats, undo last throw | [`MatchSummarySpec.md`](../specs/MatchSummarySpec.md) |
 | Shared scoring input pad | Shipped | Undo, submit | [`ScoringInputSpec.md`](../specs/ScoringInputSpec.md) |
+| Visual dartboard input (X01 + Cricket) | Shipped | Settings default + in-match toggle | [`VisualDartboardInputSpec.md`](../specs/VisualDartboardInputSpec.md) |
 | Checkout suggester (X01) | Shipped | | `Domain/Engines/CheckoutSuggester.swift` |
 | Onboarding (first launch + replay) | Shipped | Experience branching | `Features/Onboarding/` |
 | Migration recovery UI | Shipped | Retry, export, reset on schema failure | [`MigrationRecoverySpec.md`](../specs/MigrationRecoverySpec.md) |

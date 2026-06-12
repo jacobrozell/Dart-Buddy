@@ -234,6 +234,7 @@ struct OnboardingFlowView: View {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: current.botStaggerEnabled,
                 botDartHapticsEnabled: current.botDartHapticsEnabled,
+                defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: current.updatedAt
             )
             _ = try await dependencies.settingsRepository.updateSettings(updated)
