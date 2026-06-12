@@ -18,6 +18,7 @@ struct DartNumberPad: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.matchLayoutPlayerCount) private var matchLayoutPlayerCount
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
@@ -31,7 +32,8 @@ struct DartNumberPad: View {
                 GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
                     || GameplayLayout.usesSideBySideBottomScoringRegion(
                         horizontalSizeClass: horizontalSizeClass,
-                        verticalSizeClass: verticalSizeClass
+                        verticalSizeClass: verticalSizeClass,
+                        playerCount: matchLayoutPlayerCount
                     )
             )
     }

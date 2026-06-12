@@ -15,11 +15,13 @@ Larger iPhones (Plus, Pro Max) report **regular** horizontal size class in lands
 Use `MatchScoringBody` (or `SideBySideMatchBody` for table scoreboards):
 
 1. **Active band** — current player/board spans full width at the top
-2. **iPad** (`usesSideBySideBottomScoringRegion`) — inactive scoreboard scrolls on the left; pad column on the right
-3. **iPhone** — inactive scoreboard, pad chrome, and pad stack **full width** below the active band
+2. **iPad with 3+ players** (`usesSideBySideBottomScoringRegion`) — inactive scoreboard scrolls on the left; pad column on the right
+3. **iPhone and sparse iPad (≤2 players)** — inactive scoreboard, pad chrome, and pad stack **full width** below the active band
 4. **Pad chrome** — checkout, bot, and state banners sit **above** the pad (not in the scoreboard column)
 
-Pads use the **compact sidebar grid** only when `usesSideBySideBottomScoringRegion` is true (iPad portrait + iPad landscape).
+Pads use the **compact sidebar grid** only when `usesSideBySideBottomScoringRegion` is true (iPad portrait/landscape with `playerCount >= 3`).
+
+Pass `playerCount` into `MatchScoringBody` / `SideBySideMatchBody`; pads read `\.matchLayoutPlayerCount` from the environment.
 
 ## Rules
 
@@ -37,12 +39,12 @@ GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(...)  // alias
 // ✅ iPad landscape
 GameplayLayout.usesLandscapeIPadMatchScoringLayout(...)
 
-// ✅ Cricket: pinned top board + full-width pad (phone only)
-GameplayLayout.usesCricketLandscapePinnedLayout(...)
+// ✅ Cricket: pinned top board + full-width pad (landscape stacked shell)
+GameplayLayout.usesCricketLandscapePinnedLayout(..., playerCount:)
 
-// ✅ Cricket / X01: side-by-side (iPad portrait + iPad landscape only)
-GameplayLayout.usesCricketSideBySideMatchScoringLayout(...)
-GameplayLayout.usesX01SideBySideMatchScoringLayout(...)
+// ✅ Cricket / X01: side-by-side (iPad with playerCount >= 3)
+GameplayLayout.usesCricketSideBySideMatchScoringLayout(..., playerCount:)
+GameplayLayout.usesX01SideBySideMatchScoringLayout(..., playerCount:)
 
 // ✅ iPad portrait side-by-side only (board/pad top-grouped, not fill-height scroll)
 GameplayLayout.usesIPadPortraitSideBySideMatchScoringLayout(...)

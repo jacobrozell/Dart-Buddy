@@ -41,7 +41,8 @@ flowchart TD
 | `usesLandscapeIPhoneOnlyMatchScoringLayout` | iPhone landscape |
 | `usesLandscapeIPadMatchScoringLayout` | iPad landscape |
 | `usesIPadPortraitMatchScoringLayout` | iPad portrait |
-| `usesSideBySideBottomScoringRegion` | iPad portrait **or** iPad landscape (sidebar pad below active band) |
+| `usesSideBySideBottomScoringRegion` | iPad portrait **or** iPad landscape with **3+ players** (sidebar pad below active band) |
+| `sideBySidePlayerCountThreshold` | `3` — sparse matches use the stacked iPhone shell on iPad |
 | `usesAccessibilityMatchScoringLayout` | Dynamic Type AX1–AX5 |
 
 ---
@@ -99,8 +100,10 @@ Controlled by `usesSideBySideBottomScoringRegion` → `usesFullWidthPadColumn` i
 |----------|-------------|---------------|------------------|-----|----------|
 | iPhone | Portrait | Pinned top (always for 2P: top card is active) | Stacked below in scroll | Full width below | 7-column compact |
 | iPhone | Landscape | Pinned top | Scroll below | Full width below | 7-column, shorter keys |
-| iPad | Portrait | Pinned top | Scroll left column; 2P inactive may be side-by-side (`HStack`) | 420pt sidebar | 7-column compact in sidebar |
-| iPad | Landscape | Pinned top | Scroll left column | 300pt sidebar | 7-column compact in sidebar |
+| iPad | Portrait (≤2P) | Stacked full width | Same as iPhone | Full width below | 7-column compact |
+| iPad | Portrait (3+P) | Pinned top | Scroll left column | 420pt sidebar | 7-column compact in sidebar |
+| iPad | Landscape (≤2P) | Pinned top | Stacked full width | Full width below | 7-column, shorter keys |
+| iPad | Landscape (3+P) | Pinned top | Scroll left column | 300pt sidebar | 7-column compact in sidebar |
 | Any | AX | No pin special-casing | Full vertical scroll | Full width in scroll | 4-column grid |
 
 ### Config summary placement
@@ -169,8 +172,10 @@ Cricket differs from X01: on **iPhone** the board is **not** split into active/i
 |----------|-------------|-------|-----|------------|
 | iPhone | Portrait | Full board (all players), scrolls | Full width | 2×3 segment grid + bull/miss row |
 | iPhone | Landscape | **Transposed** active-only board (targets as columns) | Full width, short | Single-row segments + modifiers |
-| iPad | Portrait | **Split:** active column top; inactive scroll left | 420pt sidebar | 2×3 compact grid in sidebar |
-| iPad | Landscape | **Split:** active top; inactive scroll left; board may fill column height | 300pt sidebar | 2×3 compact grid in sidebar |
+| iPad | Portrait (≤2P) | Full board scrolls | Full width | 2×3 segment grid |
+| iPad | Portrait (3+P) | **Split:** active column top; inactive scroll left | 420pt sidebar | 2×3 compact grid in sidebar |
+| iPad | Landscape (≤2P) | **Transposed** active-only board (same as iPhone) | Full width, short | Single-row segments + modifiers |
+| iPad | Landscape (3+P) | **Split:** active top; inactive scroll left; board fills column height | 300pt sidebar | 2×3 compact grid in sidebar |
 | Any | AX | Full board in scroll | Full width in scroll | Accessibility grid |
 
 ### Round / turn label
@@ -289,7 +294,7 @@ Max content width on iPad: **560pt** (narrower than tab screens).
 
 ## Party modes (Baseball, Killer, Shanghai)
 
-These screens use `usesLandscapeMatchScoringLayout` in their scoreboard views for compact row density in landscape, but do **not** yet use `MatchScoringBody`. They follow the older per-mode layout patterns. When migrating, match the X01/Cricket rules above.
+These screens use `SideBySideMatchBody` (wrapping `MatchScoringBody`) with `playerCount` from `scoreboardRows.count`. Sidebar layout follows the same **3+ player** threshold as X01/Cricket.
 
 ---
 

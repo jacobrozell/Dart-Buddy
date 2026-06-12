@@ -261,13 +261,18 @@ struct ActivityRootView: View {
 
     private func historyResumeBanner(_ match: MatchSummary) -> some View {
         Button { onResumeActiveMatch?(match) } label: {
-            HStack {
+            HStack(alignment: .top) {
                 Image(systemName: "play.circle.fill")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.resumeMatch).font(.headline)
-                    Text(MatchConfigText.modeLabel(for: match.type)).font(.caption).foregroundStyle(Brand.textSecondary)
+                    Text(L10n.resumeMatch)
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(MatchConfigText.modeLabel(for: match.type))
+                        .font(.caption)
+                        .foregroundStyle(Brand.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "chevron.right").foregroundStyle(Brand.textSecondary)
             }
             .foregroundStyle(Brand.textPrimary)
@@ -289,11 +294,13 @@ struct ActivityRootView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var statisticsPartialBanner: some View {
-        HStack(spacing: DS.Spacing.s2) {
+        HStack(alignment: .top, spacing: DS.Spacing.s2) {
             Image(systemName: "clock.arrow.circlepath")
                 .accessibilityHidden(true)
             Text(L10n.statsPartialMatchBanner)
                 .font(.footnote)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
         }
         .foregroundStyle(Brand.textPrimary)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -361,6 +368,7 @@ struct ActivityRootView: View {
 struct StatisticsTablesContent: View {
     @ObservedObject var viewModel: StatisticsViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s4) {
@@ -392,9 +400,10 @@ struct StatisticsTablesContent: View {
 
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
-            .font(.title2.weight(.bold))
+            .font((dynamicTypeSize.isAccessibilitySize ? Font.headline : Font.title2).weight(.bold))
             .foregroundStyle(Brand.textPrimary)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.top, DS.Spacing.s2)
     }
 

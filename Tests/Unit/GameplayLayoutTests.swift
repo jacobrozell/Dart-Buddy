@@ -133,13 +133,17 @@ func gameplayLayoutSplitsLandscapeIPhoneAndIPadFormFactors() {
         GameplayLayout.usesTransposedCricketBoardLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .large,
             isPad: false
         ) == true
     )
     #expect(
-        GameplayLayout.usesCricketBoardFillsAvailableHeight(
+        GameplayLayout.usesTransposedCricketBoardLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .large,
             isPad: true
         ) == true
     )
@@ -147,18 +151,36 @@ func gameplayLayoutSplitsLandscapeIPhoneAndIPadFormFactors() {
         GameplayLayout.usesCricketBoardFillsAvailableHeight(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 3,
+            isPad: true
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesCricketBoardFillsAvailableHeight(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            playerCount: 2,
+            isPad: true
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesCricketBoardFillsAvailableHeight(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            playerCount: 2,
             isPad: false
         ) == false
     )
 }
 
 @Test(.tags(.unit, .cricket, .regression))
-func gameplayLayoutPinsCricketLandscapeOnIPhoneButNotIPad() {
+func gameplayLayoutPinsCricketLandscapeWhenStackedNotSidebar() {
     // iPhone landscape: pinned board + full-width pad (any horizontal size class on phone idiom).
     #expect(
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .compact,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .large,
             isPad: false
         ) == true
@@ -167,24 +189,37 @@ func gameplayLayoutPinsCricketLandscapeOnIPhoneButNotIPad() {
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .large,
             isPad: false
         ) == true
     )
-    // iPad landscape keeps the side-by-side board + sidebar pad.
+    // Sparse iPad landscape matches the stacked iPhone shell.
     #expect(
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == true
+    )
+    // Dense iPad landscape keeps the sidebar shell.
+    #expect(
+        GameplayLayout.usesCricketLandscapePinnedLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
         ) == false
     )
-    // Portrait iPhone keeps the stacked board-over-pad layout.
+    // Portrait keeps the stacked board-over-pad layout.
     #expect(
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .compact,
             verticalSizeClass: .regular,
+            playerCount: 2,
             dynamicTypeSize: .large,
             isPad: false
         ) == false
@@ -198,6 +233,7 @@ func gameplayLayoutDropsCricketLandscapePinnedLayoutAtAXSizes() {
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .compact,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .accessibility3
         ) == false
     )
@@ -205,17 +241,19 @@ func gameplayLayoutDropsCricketLandscapePinnedLayoutAtAXSizes() {
         GameplayLayout.usesCricketFullWidthLandscapePad(
             horizontalSizeClass: .compact,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .accessibility3
         ) == false
     )
 }
 
 @Test(.tags(.unit, .cricket, .regression))
-func gameplayLayoutUsesFullWidthCricketPadOnlyInIPhoneLandscape() {
+func gameplayLayoutUsesFullWidthCricketPadInStackedLandscape() {
     #expect(
         GameplayLayout.usesCricketFullWidthLandscapePad(
             horizontalSizeClass: .compact,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .large,
             isPad: false
         ) == true
@@ -224,6 +262,7 @@ func gameplayLayoutUsesFullWidthCricketPadOnlyInIPhoneLandscape() {
         GameplayLayout.usesCricketFullWidthLandscapePad(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .large,
             isPad: false
         ) == true
@@ -232,22 +271,32 @@ func gameplayLayoutUsesFullWidthCricketPadOnlyInIPhoneLandscape() {
         GameplayLayout.usesCricketFullWidthLandscapePad(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesCricketFullWidthLandscapePad(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
         ) == false
     )
 }
 
-/// Locks the Cricket landscape decision matrix: iPhone pins the board above a
-/// full-width pad, while iPad keeps the side-by-side full board. The two layouts
+/// Locks the Cricket landscape decision matrix: stacked and sidebar branches
 /// must never both claim the same size-class combination.
 @Test(.tags(.unit, .cricket, .regression))
 func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
-    // iPhone landscape: pinned board + full-width pad, NOT the iPad fill-height board.
+    // Stacked landscape: pinned board + full-width pad, NOT the fill-height sidebar board.
     #expect(
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .large,
             isPad: false
         ) == true
@@ -256,15 +305,17 @@ func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
         GameplayLayout.usesCricketBoardFillsAvailableHeight(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
             isPad: false
         ) == false
     )
 
-    // iPad landscape: fill-height full board, NOT the iPhone pinned layout.
+    // Dense iPad landscape: fill-height full board, NOT the stacked pinned layout.
     #expect(
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
         ) == false
@@ -273,16 +324,18 @@ func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
         GameplayLayout.usesCricketBoardFillsAvailableHeight(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 3,
             isPad: true
         ) == true
     )
 
-    // Portrait (iPhone and iPad) uses neither landscape branch.
+    // Portrait uses neither landscape branch.
     for horizontal in [UserInterfaceSizeClass.compact, .regular] {
         #expect(
             GameplayLayout.usesCricketLandscapePinnedLayout(
                 horizontalSizeClass: horizontal,
                 verticalSizeClass: .regular,
+                playerCount: 2,
                 dynamicTypeSize: .large,
                 isPad: false
             ) == false
@@ -293,25 +346,28 @@ func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
 /// The pinned full-width pad layout is keyed off the same predicate, so they stay in lockstep.
 @Test(.tags(.unit, .cricket, .regression))
 func gameplayLayoutCricketPinnedLayoutAndFullWidthPadAgree() {
-    let combos: [(UserInterfaceSizeClass?, UserInterfaceSizeClass?, DynamicTypeSize, Bool)] = [
-        (.compact, .compact, .large, false),
-        (.regular, .compact, .large, false),
-        (.regular, .compact, .large, true),
-        (.compact, .regular, .large, false),
-        (.regular, .regular, .large, true),
-        (.compact, .compact, .accessibility1, false),
-        (.compact, .compact, .accessibility5, false)
+    let combos: [(UserInterfaceSizeClass?, UserInterfaceSizeClass?, DynamicTypeSize, Bool, Int)] = [
+        (.compact, .compact, .large, false, 2),
+        (.regular, .compact, .large, false, 2),
+        (.regular, .compact, .large, true, 2),
+        (.regular, .compact, .large, true, 3),
+        (.compact, .regular, .large, false, 2),
+        (.regular, .regular, .large, true, 3),
+        (.compact, .compact, .accessibility1, false, 2),
+        (.compact, .compact, .accessibility5, false, 2)
     ]
-    for (horizontal, vertical, size, isPad) in combos {
+    for (horizontal, vertical, size, isPad, playerCount) in combos {
         #expect(
             GameplayLayout.usesCricketLandscapePinnedLayout(
                 horizontalSizeClass: horizontal,
                 verticalSizeClass: vertical,
+                playerCount: playerCount,
                 dynamicTypeSize: size,
                 isPad: isPad
             ) == GameplayLayout.usesCricketFullWidthLandscapePad(
                 horizontalSizeClass: horizontal,
                 verticalSizeClass: vertical,
+                playerCount: playerCount,
                 dynamicTypeSize: size,
                 isPad: isPad
             )
@@ -320,11 +376,12 @@ func gameplayLayoutCricketPinnedLayoutAndFullWidthPadAgree() {
 }
 
 @Test(.tags(.unit, .cricket, .regression))
-func gameplayLayoutCricketSideBySideExcludesIPhoneLandscape() {
+func gameplayLayoutCricketSideBySideRequiresPadAndEnoughPlayers() {
     #expect(
         GameplayLayout.usesCricketSideBySideMatchScoringLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
             dynamicTypeSize: .large,
             isPad: false
         ) == false
@@ -333,6 +390,16 @@ func gameplayLayoutCricketSideBySideExcludesIPhoneLandscape() {
         GameplayLayout.usesCricketSideBySideMatchScoringLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesCricketSideBySideMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
         ) == true
@@ -341,6 +408,7 @@ func gameplayLayoutCricketSideBySideExcludesIPhoneLandscape() {
         GameplayLayout.usesCricketSideBySideMatchScoringLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .regular,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
         ) == true
@@ -465,11 +533,12 @@ func gameplayLayoutUsesBottomDockedScoringPadOutsideAccessibilitySizes() {
 }
 
 @Test(.tags(.unit, .regression))
-func gameplayLayoutSideBySideBottomScoringRegionIsIPadOnly() {
+func gameplayLayoutSideBySideBottomScoringRegionRequiresPadAndEnoughPlayers() {
     #expect(
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: .compact,
             verticalSizeClass: .regular,
+            playerCount: 3,
             isPad: false
         ) == false
     )
@@ -477,6 +546,7 @@ func gameplayLayoutSideBySideBottomScoringRegionIsIPadOnly() {
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 3,
             isPad: false
         ) == false
     )
@@ -484,6 +554,7 @@ func gameplayLayoutSideBySideBottomScoringRegionIsIPadOnly() {
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: .regular,
             verticalSizeClass: .regular,
+            playerCount: 3,
             isPad: true
         ) == true
     )
@@ -491,6 +562,15 @@ func gameplayLayoutSideBySideBottomScoringRegionIsIPadOnly() {
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: .regular,
             verticalSizeClass: .regular,
+            playerCount: 2,
+            isPad: true
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular,
+            playerCount: 3,
             isPad: false
         ) == false
     )
@@ -498,8 +578,17 @@ func gameplayLayoutSideBySideBottomScoringRegionIsIPadOnly() {
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 3,
             isPad: true
         ) == true
+    )
+    #expect(
+        GameplayLayout.usesSideBySideBottomScoringRegion(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            playerCount: 2,
+            isPad: true
+        ) == false
     )
 }
 
@@ -623,6 +712,7 @@ func gameplayLayoutPinsActiveX01CardInLandscape() {
         GameplayLayout.usesX01SideBySideMatchScoringLayout(
             horizontalSizeClass: .compact,
             verticalSizeClass: .compact,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: false
         ) == false
@@ -631,6 +721,7 @@ func gameplayLayoutPinsActiveX01CardInLandscape() {
         GameplayLayout.usesX01SideBySideMatchScoringLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .regular,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
         ) == true
@@ -638,11 +729,12 @@ func gameplayLayoutPinsActiveX01CardInLandscape() {
 }
 
 @Test(.tags(.unit, .x01, .regression))
-func gameplayLayoutUsesX01SideBySideOnIPadLandscapeNotIPhoneLandscape() {
+func gameplayLayoutUsesX01SideBySideOnDenseIPadLandscapeNotPhoneLandscape() {
     #expect(
         GameplayLayout.usesX01SideBySideMatchScoringLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
         ) == true
@@ -651,6 +743,16 @@ func gameplayLayoutUsesX01SideBySideOnIPadLandscapeNotIPhoneLandscape() {
         GameplayLayout.usesX01SideBySideMatchScoringLayout(
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
+            playerCount: 2,
+            dynamicTypeSize: .large,
+            isPad: true
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesX01SideBySideMatchScoringLayout(
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .compact,
+            playerCount: 3,
             dynamicTypeSize: .large,
             isPad: false
         ) == false
@@ -668,11 +770,13 @@ func gameplayLayoutX01AndCricketSideBySideMatchOnIPadFormFactors() {
             GameplayLayout.usesX01SideBySideMatchScoringLayout(
                 horizontalSizeClass: horizontal,
                 verticalSizeClass: vertical,
+                playerCount: 3,
                 dynamicTypeSize: .large,
                 isPad: true
             ) == GameplayLayout.usesCricketSideBySideMatchScoringLayout(
                 horizontalSizeClass: horizontal,
                 verticalSizeClass: vertical,
+                playerCount: 3,
                 dynamicTypeSize: .large,
                 isPad: true
             )

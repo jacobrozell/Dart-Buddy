@@ -1,5 +1,18 @@
 import SwiftUI
 
+private struct MatchLayoutPlayerCountKey: EnvironmentKey {
+    /// Assume a sparse match so pads default to stacked layout outside `MatchScoringBody`.
+    static let defaultValue = 2
+}
+
+extension EnvironmentValues {
+    /// Player count for the active match; drives sidebar vs stacked scoring layout.
+    var matchLayoutPlayerCount: Int {
+        get { self[MatchLayoutPlayerCountKey.self] }
+        set { self[MatchLayoutPlayerCountKey.self] = newValue }
+    }
+}
+
 /// Match gameplay layout: active player/board full width, inactive scoreboard scrolls beside a
 /// bottom-docked pad column (checkout and feedback banners sit directly above the pad).
 struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: View>: View {
@@ -7,6 +20,7 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    var playerCount: Int
     var showsActiveBand: Bool = true
     /// When false, the pad and chrome span the full width under the active band (solo matches).
     var scoreboardSharesBottomRow: Bool = true
@@ -18,11 +32,14 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
     @ViewBuilder var pad: () -> Pad
 
     var body: some View {
-        if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-            accessibilityBody
-        } else {
-            standardBody
+        Group {
+            if GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
+                accessibilityBody
+            } else {
+                standardBody
+            }
         }
+        .environment(\.matchLayoutPlayerCount, playerCount)
     }
 
     private var accessibilityBody: some View {
@@ -102,7 +119,8 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
         guard scoreboardSharesBottomRow else { return true }
         return !GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            playerCount: playerCount
         )
     }
 
@@ -131,10 +149,12 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
 
 extension MatchScoringBody where Active == EmptyView {
     init(
+        playerCount: Int,
         scoreboard: @escaping () -> Scoreboard,
         padChrome: @escaping () -> PadChrome,
         pad: @escaping () -> Pad
     ) {
+        self.playerCount = playerCount
         self.showsActiveBand = false
         self.active = { EmptyView() }
         self.scoreboard = scoreboard

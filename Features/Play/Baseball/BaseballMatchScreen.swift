@@ -48,7 +48,7 @@ struct BaseballMatchScreen: View {
             }
 
             if let state = viewModel.baseballState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     scoreboardSection(state: state, includesBanner: false)
                 } padChrome: {
                     stateBanner

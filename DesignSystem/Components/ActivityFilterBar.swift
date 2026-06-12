@@ -7,6 +7,7 @@ struct ActivityFilterBar: View {
     @Binding var playerFilter: UUID?
     let playerOptions: [PlayerSummary]
     let selectedPlayerName: String?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(spacing: DS.Spacing.s2) {
@@ -117,8 +118,11 @@ struct ActivityFilterBar: View {
             Image(systemName: leadingSymbol)
                 .accessibilityHidden(true)
             Text(title)
-                .lineLimit(1)
-            Spacer()
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer(minLength: DS.Spacing.s2)
             Image(systemName: "chevron.down")
                 .font(.caption.weight(.semibold))
                 .accessibilityHidden(true)
