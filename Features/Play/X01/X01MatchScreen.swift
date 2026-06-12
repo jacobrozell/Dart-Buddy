@@ -349,9 +349,4 @@ struct X01MatchScreen: View {
         if dart.isMiss { audio.playMiss() } else { audio.playHit() }
         haptics.playImpact()
     }
-
-    private func postAccessibilityAnnouncement(_ text: String) {
-        guard !text.isEmpty else { return }
-        AccessibilityNotification.Announcement(text).post()
-    }
 }

@@ -551,7 +551,3 @@ extension BaseballMatchViewModel: MatchPlaySessionHost {
     var hostMatchLogger: any AppLogger { logger }
     var hostMatchType: MatchType { .baseball }
 }
-
-private func postAccessibilityAnnouncement(_ text: String) {
-    UIAccessibility.post(notification: .announcement, argument: text)
-}
