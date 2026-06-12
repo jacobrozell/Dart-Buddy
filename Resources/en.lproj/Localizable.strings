@@ -366,6 +366,14 @@
 "settings.feedback.botStagger" = "Bot Throw Pace";
 "settings.feedback.botDartHaptics" = "Bot Dart Haptics";
 "settings.feedback.botDartHaptics.hint" = "Follows the Haptics toggle when enabled.";
+"settings.dartEntryPresentation.label" = "Scoring Input";
+"settings.dartEntryPresentation.numberPad" = "Number Pad";
+"settings.dartEntryPresentation.visualBoard" = "Dartboard";
+"settings.dartEntryPresentation.hint" = "Default input style for new matches.";
+"scoring.presentation.switchToBoard" = "Switch to dartboard input";
+"scoring.presentation.switchToPad" = "Switch to number pad input";
+"scoring.board.accessibility" = "Dartboard";
+"scoring.board.accessibilityHint" = "Tap where your dart landed. Use the header button to switch to the number pad.";
 "play.cricket.targetClosed" = "Target closed!";
 "play.x01.legWon.banner" = "Leg won!";
 "players.edit.name" = "Name";

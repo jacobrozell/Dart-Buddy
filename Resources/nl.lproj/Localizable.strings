@@ -366,6 +366,14 @@
 "settings.feedback.botStagger" = "Bot-worptempo";
 "settings.feedback.botDartHaptics" = "Bot-dart-haptiek";
 "settings.feedback.botDartHaptics.hint" = "Volgt de Haptiek-schakelaar wanneer ingeschakeld.";
+"settings.dartEntryPresentation.label" = "Score-invoer";
+"settings.dartEntryPresentation.numberPad" = "Cijferblok";
+"settings.dartEntryPresentation.visualBoard" = "Dartbord";
+"settings.dartEntryPresentation.hint" = "Standaardinvoer voor nieuwe wedstrijden.";
+"scoring.presentation.switchToBoard" = "Wissel naar dartbord-invoer";
+"scoring.presentation.switchToPad" = "Wissel naar cijferblok-invoer";
+"scoring.board.accessibility" = "Dartbord";
+"scoring.board.accessibilityHint" = "Tik waar je pijl is geland. Gebruik de knop in de koptekst om naar het cijferblok te wisselen.";
 "play.cricket.targetClosed" = "Doel gesloten!";
 "play.x01.legWon.banner" = "Leg gewonnen!";
 "players.edit.name" = "Naam";

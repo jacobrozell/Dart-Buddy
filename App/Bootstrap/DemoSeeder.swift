@@ -427,6 +427,7 @@ enum DemoSeeder {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: current.botStaggerEnabled,
                 botDartHapticsEnabled: current.botDartHapticsEnabled,
+                defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )
             _ = try await dependencies.settingsRepository.updateSettings(updated)
@@ -458,6 +459,7 @@ enum DemoSeeder {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: false,
                 botDartHapticsEnabled: false,
+                defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )
             _ = try await dependencies.settingsRepository.updateSettings(disabled)

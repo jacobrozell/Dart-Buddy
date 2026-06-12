@@ -848,6 +848,7 @@ final class MatchSetupViewModel: ObservableObject {
             defaultSetsEnabled: setsEnabled,
             botStaggerEnabled: settings.botStaggerEnabled,
             botDartHapticsEnabled: settings.botDartHapticsEnabled,
+            defaultDartEntryPresentationRaw: settings.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
         _ = try? await settingsRepository.updateSettings(next)

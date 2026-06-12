@@ -1,6 +1,6 @@
 # Visual Dartboard Input — Assessment
 
-**Status:** R&D / post-1.0 (not a completed spec)  
+**Status:** Promoted — implemented for X01 + Cricket; authoritative spec is [`specs/VisualDartboardInputSpec.md`](../specs/VisualDartboardInputSpec.md)  
 **Product name:** Visual board (working title)  
 **Not the same as:**
 - **Cricket scoreboard** — [`CricketBoardView`](Features/Play/Cricket/CricketBoardView.swift) is the marks grid (20–15 + bull), not a throw-entry surface.

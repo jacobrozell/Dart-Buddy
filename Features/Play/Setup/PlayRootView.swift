@@ -212,7 +212,8 @@ private struct X01MatchRouteView: View {
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
-            lifecycleDependencies: lifecycleDependencies
+            lifecycleDependencies: lifecycleDependencies,
+            defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
         )
     }
 }
@@ -252,7 +253,8 @@ private struct CricketMatchRouteView: View {
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
-            lifecycleDependencies: lifecycleDependencies
+            lifecycleDependencies: lifecycleDependencies,
+            defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
         )
     }
 }

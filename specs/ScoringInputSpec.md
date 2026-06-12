@@ -5,6 +5,13 @@ Define a reusable custom scoring input system for X01 and Cricket, including `Si
 
 ---
 
+## 1a. Entry Presentation
+The pad is the default **dart entry presentation**. An optional tappable visual
+dartboard presentation shares the same bindings and visit rules — see
+[`VisualDartboardInputSpec.md`](VisualDartboardInputSpec.md).
+
+---
+
 ## 2. MVP Goals
 - Fast one-hand input
 - Large touch targets for standing play

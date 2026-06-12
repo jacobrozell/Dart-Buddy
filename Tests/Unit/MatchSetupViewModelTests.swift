@@ -20,6 +20,7 @@ func setupOnAppearAppliesSettingsDefaults() async {
         defaultSetsEnabled: true,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
     let vm = MatchSetupViewModel(
@@ -59,6 +60,7 @@ func setupOnAppearFallsBackTo501WhenStartScoreUnsupported() async {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
     let vm = MatchSetupViewModel(
@@ -104,6 +106,7 @@ func setupOnAppearResyncsDefaultModeFromSettings() async {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     ))
     await vm.onAppear()
@@ -1222,6 +1225,7 @@ private actor FakeSettingsRepository: SettingsRepository {
             defaultSetsEnabled: false,
             botStaggerEnabled: true,
             botDartHapticsEnabled: true,
+            defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )
     }

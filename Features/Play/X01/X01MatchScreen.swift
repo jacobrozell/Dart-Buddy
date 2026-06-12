@@ -8,13 +8,16 @@ struct X01MatchScreen: View {
     let turnTotalCaller: any TurnTotalCallerService
     let feedbackPreferences: FeedbackPreferences
     let lifecycleDependencies: MatchLifecycleChromeDependencies
+    var defaultDartEntryPresentation: DartEntryPresentation = .default
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @State private var showExitConfirmation = false
+    @State private var dartEntryPresentationOverride: DartEntryPresentation?
     @State private var actionTask: Task<Void, Never>?
     @State private var lastAnnouncedCheckout: String?
     @State private var showLegWinBanner = false
@@ -22,6 +25,17 @@ struct X01MatchScreen: View {
 
     private var usesLandscapeMatchLayout: Bool {
         GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+    }
+
+    private var dartEntryPresentation: DartEntryPresentation {
+        dartEntryPresentationOverride ?? defaultDartEntryPresentation
+    }
+
+    /// The number pad stays first-class: AX text sizes and VoiceOver always use it.
+    private var usesVisualBoardEntry: Bool {
+        dartEntryPresentation == .visualBoard
+            && !voiceOverEnabled
+            && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
     var body: some View {
@@ -39,15 +53,20 @@ struct X01MatchScreen: View {
                     }
                 }
             } trailing: {
-                Button { runUndo() } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                HStack(spacing: DS.Spacing.s2) {
+                    DartEntryPresentationToggle(presentation: dartEntryPresentation) {
+                        dartEntryPresentationOverride = dartEntryPresentation.toggled
+                    }
+                    Button { runUndo() } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(Brand.green)
+                            .frame(width: 44, height: 44)
+                            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                    }
+                    .accessibilityLabel(L10n.scoringUndoLastTurn)
+                    .accessibilityIdentifier("match_undo")
                 }
-                .accessibilityLabel(L10n.scoringUndoLastTurn)
-                .accessibilityIdentifier("match_undo")
             }
 
             if let state = viewModel.x01State {
@@ -233,12 +252,23 @@ struct X01MatchScreen: View {
     }
 
     private func scoringPad(state: X01State, landscape: Bool = false) -> some View {
-        DartNumberPad(
-            enteredDarts: $viewModel.enteredDarts,
-            selectedMultiplier: $viewModel.selectedMultiplier,
-            showsVisitPreview: !landscape,
-            onUndoTurn: { runUndo() }
-        )
+        Group {
+            if usesVisualBoardEntry {
+                VisualDartboardInput(
+                    enteredDarts: $viewModel.enteredDarts,
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    showsVisitPreview: !landscape,
+                    onUndoTurn: { runUndo() }
+                )
+            } else {
+                DartNumberPad(
+                    enteredDarts: $viewModel.enteredDarts,
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    showsVisitPreview: !landscape,
+                    onUndoTurn: { runUndo() }
+                )
+            }
+        }
         .disabled(viewModel.canHumanInput == false)
         .opacity(viewModel.canHumanInput ? 1 : 0.45)
         .accessibilityElement(children: .contain)

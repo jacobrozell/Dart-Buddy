@@ -18,11 +18,15 @@ public final class FeedbackPreferences: @unchecked Sendable {
 public final class UserPreferencesStore: ObservableObject {
     @Published private(set) var appearanceModeRaw = "system"
     @Published private(set) var preferredColorScheme: ColorScheme?
+    @Published private(set) var defaultDartEntryPresentation: DartEntryPresentation = .default
     let feedback = FeedbackPreferences()
 
     func apply(_ settings: SettingsSummary) {
         appearanceModeRaw = settings.appearanceModeRaw
         preferredColorScheme = AppAppearancePolicy.colorScheme(for: settings.appearanceModeRaw)
+        defaultDartEntryPresentation = DartEntryPresentation(
+            rawValueOrDefault: settings.defaultDartEntryPresentationRaw
+        )
         feedback.hapticsEnabled = settings.hapticsEnabled
         feedback.soundEnabled = settings.soundEnabled
         feedback.turnTotalCallerEnabled = settings.turnTotalCallerEnabled

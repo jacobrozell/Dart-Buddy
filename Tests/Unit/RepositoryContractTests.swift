@@ -291,6 +291,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
         defaultSetsEnabled: baseline.defaultSetsEnabled,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: baseline.updatedAt
     )
     _ = try await repos.settings.updateSettings(updated)
@@ -377,9 +378,12 @@ func settingsRepositoryResetsPreferencesToDefaults() async throws {
         defaultSetsEnabled: true,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        defaultDartEntryPresentationRaw: "visualBoard",
         updatedAt: Date()
     )
     _ = try await repos.settings.updateSettings(customized)
+    let persisted = try await repos.settings.fetchSettings()
+    #expect(persisted.defaultDartEntryPresentationRaw == "visualBoard")
 
     try await repos.settings.resetPreferencesToDefaults()
 
@@ -391,6 +395,7 @@ func settingsRepositoryResetsPreferencesToDefaults() async throws {
     #expect(reloaded.soundEnabled)
     #expect(reloaded.botStaggerEnabled)
     #expect(reloaded.botDartHapticsEnabled)
+    #expect(reloaded.defaultDartEntryPresentationRaw == "numberPad")
 }
 
 @Test(.tags(.integration, .settings, .swiftdata, .regression))
