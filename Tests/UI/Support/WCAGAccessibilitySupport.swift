@@ -291,9 +291,11 @@ extension XCTestCase {
     }
 
     func scoreSingleVisit(_ app: XCUIApplication, segments: [Int], timeout: TimeInterval = 10) {
+        _ = waitForPadReady(app, timeout: timeout)
         for segment in segments {
             let key = app.buttons["pad_\(segment)"]
             XCTAssertTrue(key.waitForExistence(timeout: timeout))
+            _ = key.wait(for: \.isEnabled, toEqual: true, timeout: timeout)
             key.tap()
         }
     }
@@ -334,8 +336,10 @@ extension XCTestCase {
         _ = waitForPadReady(app, timeout: timeout + 15)
 
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
+        waitForActiveX01Player("Bob", in: app, timeout: timeout + 10)
         submitMissVisit(on: app, timeout: timeout)
         _ = waitForPadReady(app, timeout: timeout + 5)
+        waitForActiveX01Player("Alice", in: app, timeout: timeout + 10)
 
         scoreSingleVisit(app, segments: [20, 20, 1], timeout: timeout)
 

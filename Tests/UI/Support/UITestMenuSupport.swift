@@ -62,15 +62,19 @@ extension XCTestCase {
     func assertBrandAppTitleVisible(in app: XCUIApplication, timeout: TimeInterval? = nil) -> Bool {
         let wait = timeout ?? 10
         let title = app.descendants(matching: .any)["brand_app_title"]
-        guard title.waitForExistence(timeout: wait) else {
+        let deadline = Date().addingTimeInterval(wait)
+        while Date() < deadline {
+            if title.exists, title.label == DartBuddyUITestCase.brandTitle {
+                return true
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        if !title.exists {
             XCTFail("Play tab should show the Dart Buddy brand title")
             return false
         }
-        guard title.label == DartBuddyUITestCase.brandTitle else {
-            XCTFail("Expected brand title '\(DartBuddyUITestCase.brandTitle)', got '\(title.label)'")
-            return false
-        }
-        return true
+        XCTFail("Expected brand title '\(DartBuddyUITestCase.brandTitle)', got '\(title.label)'")
+        return false
     }
 
     func ensurePlayTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -78,7 +82,24 @@ extension XCTestCase {
             return
         }
         tapTabBarItem(named: "Play", identifier: "tab_play", in: app, timeout: timeout)
+        for _ in 0 ..< 3 where !app.descendants(matching: .any)["brand_app_title"].exists {
+            app.swipeDown()
+        }
         _ = assertBrandAppTitleVisible(in: app, timeout: timeout)
+    }
+
+    func waitForLocalDataResetToFinish(in app: XCUIApplication, timeout: TimeInterval = 15) {
+        let alert = app.alerts["Reset all local data?"]
+        if alert.exists {
+            _ = alert.waitForNonExistence(timeout: timeout)
+        }
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if app.alerts.count == 0 {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
     }
 
     func activeX01ScoreCard(in app: XCUIApplication) -> XCUIElement {
@@ -172,20 +193,22 @@ extension XCTestCase {
     }
 
     func ensurePlayersTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        if app.descendants(matching: .any)["players_searchField"].waitForExistence(timeout: 1)
-            || app.buttons.matching(
-                NSPredicate(format: "identifier BEGINSWITH %@", "player_row_")
-            ).firstMatch.waitForExistence(timeout: 1) {
+        let search = app.descendants(matching: .any)["players_searchField"]
+        let playerRow = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "player_row_")
+        ).firstMatch
+        if search.waitForExistence(timeout: 1) || playerRow.waitForExistence(timeout: 1) {
             return
         }
         tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
-        XCTAssertTrue(
-            app.descendants(matching: .any)["players_searchField"].waitForExistence(timeout: 2)
-                || app.buttons.matching(
-                    NSPredicate(format: "identifier BEGINSWITH %@", "player_row_")
-                ).firstMatch.waitForExistence(timeout: timeout),
-            "Players tab should be visible"
-        )
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if search.exists || playerRow.exists {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        XCTAssertTrue(search.exists || playerRow.exists, "Players tab should be visible")
     }
 
     func ensureModesTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -334,9 +357,14 @@ extension XCTestCase {
         let changeButton = app.buttons["setup_changeModeButton"]
         XCTAssertTrue(changeButton.waitForExistence(timeout: timeout), "Expected Change mode button")
         changeButton.tap()
-        let card = app.buttons["modes_card_\(catalogId)"]
+        let card = app.descendants(matching: .any)["modes_card_\(catalogId)"]
+        if !card.waitForExistence(timeout: 3) {
+            for _ in 0 ..< 4 where card.exists == false {
+                app.swipeUp()
+            }
+        }
         XCTAssertTrue(card.waitForExistence(timeout: timeout), "Expected picker card \(catalogId)")
-        card.tap()
+        tapHittableElement(card)
         assertSelectedModeName(expectedModeName, in: app, timeout: timeout)
     }
 
@@ -435,20 +463,88 @@ extension XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        let element = app.descendants(matching: .any)[identifier]
-        for _ in 0 ..< 8 where element.exists == false || element.isHittable == false {
-            app.swipeUp()
-        }
+        scrollToSetupControl(identifier, in: app, timeout: timeout)
+        let element = setupControl(identifier, in: app)
         XCTAssertTrue(
-            element.waitForExistence(timeout: timeout),
+            element.waitForExistence(timeout: 1),
             "Expected setup chip '\(identifier)'",
             file: file,
             line: line
         )
     }
 
+    func scrollToSetupControl(
+        _ identifier: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10
+    ) {
+        let control = setupControl(identifier, in: app)
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if control.exists, control.isHittable {
+                return
+            }
+            app.swipeUp()
+        }
+        for _ in 0 ..< 4 where control.exists == false || control.isHittable == false {
+            app.swipeDown()
+        }
+        XCTAssertTrue(control.waitForExistence(timeout: 1), "Expected setup control '\(identifier)'")
+    }
+
     func expandSetupOptions(in app: XCUIApplication, timeout: TimeInterval = 10) {
-        let optionChipIdentifiers = [
+        ensurePlayTab(app, timeout: timeout)
+        let optionChipIdentifiers = setupOptionChipIdentifiers()
+        if setupOptionChipsExpanded(in: app, identifiers: optionChipIdentifiers) {
+            return
+        }
+        scrollToSetupControl("setup_editOptionsButton", in: app, timeout: timeout)
+        let edit = setupControl("setup_editOptionsButton", in: app)
+        XCTAssertTrue(edit.waitForExistence(timeout: 1), "Expected Edit options control on Play setup")
+
+        if edit.label.localizedCaseInsensitiveContains("Hide") {
+            revealSetupOptionChips(in: app, identifiers: optionChipIdentifiers, timeout: timeout)
+            if setupOptionChipsExpanded(in: app, identifiers: optionChipIdentifiers) {
+                return
+            }
+        }
+
+        tapHittableElement(edit)
+        if revealSetupOptionChips(in: app, identifiers: optionChipIdentifiers, timeout: timeout) {
+            return
+        }
+
+        tapHittableElement(edit)
+        XCTAssertTrue(
+            revealSetupOptionChips(in: app, identifiers: optionChipIdentifiers, timeout: timeout / 2),
+            "Expected setup option chips after expanding Edit options"
+        )
+    }
+
+    @discardableResult
+    private func revealSetupOptionChips(
+        in app: XCUIApplication,
+        identifiers: [String],
+        timeout: TimeInterval
+    ) -> Bool {
+        for _ in 0 ..< 4 {
+            app.swipeDown()
+        }
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if setupOptionChipsExpanded(in: app, identifiers: identifiers) {
+                return true
+            }
+            app.swipeUp()
+        }
+        for _ in 0 ..< 4 where !setupOptionChipsExpanded(in: app, identifiers: identifiers) {
+            app.swipeDown()
+        }
+        return setupOptionChipsExpanded(in: app, identifiers: identifiers)
+    }
+
+    private func setupOptionChipIdentifiers() -> [String] {
+        [
             "setup_startScoreChip",
             "setup_checkoutChip",
             "setup_checkInChip",
@@ -461,36 +557,29 @@ extension XCTestCase {
             "setup_killerLivesChip",
             "setup_shanghaiRoundsChip"
         ]
-        if optionChipIdentifiers.contains(where: { setupChip($0, in: app).exists }) {
-            return
+    }
+
+    private func setupControl(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        let button = app.buttons[identifier]
+        if button.exists {
+            return button
         }
-        let edit = app.buttons["setup_editOptionsButton"]
-        XCTAssertTrue(edit.waitForExistence(timeout: timeout), "Expected Edit options control on Play setup")
-        for _ in 0 ..< 8 where edit.exists == false || edit.isHittable == false {
-            app.swipeUp()
+        return app.descendants(matching: .any)[identifier]
+    }
+
+    private func tapHittableElement(_ element: XCUIElement) {
+        if element.isHittable {
+            element.tap()
+        } else {
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
-        for _ in 0 ..< 4 where edit.exists == false || edit.isHittable == false {
-            app.swipeDown()
+    }
+
+    private func setupOptionChipsExpanded(in app: XCUIApplication, identifiers: [String]) -> Bool {
+        if identifiers.contains(where: { setupChip($0, in: app).exists }) {
+            return true
         }
-        edit.tap()
-        for _ in 0 ..< 4 {
-            app.swipeDown()
-        }
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline {
-            if optionChipIdentifiers.contains(where: { setupChip($0, in: app).waitForExistence(timeout: 1) }) {
-                return
-            }
-            if setupChipByLabel(in: app).waitForExistence(timeout: 0.5) {
-                return
-            }
-            app.swipeUp()
-        }
-        XCTAssertTrue(
-            optionChipIdentifiers.contains(where: { setupChip($0, in: app).exists })
-                || setupChipByLabel(in: app).exists,
-            "Expected setup option chips after expanding Edit options"
-        )
+        return setupChipByLabel(in: app).exists
     }
 
     func setupChipByLabel(in app: XCUIApplication) -> XCUIElement {
@@ -522,30 +611,63 @@ extension XCTestCase {
     }
 
     func tapMenuChip(_ identifier: String, in app: XCUIApplication, timeout: TimeInterval = 10) {
+        scrollToSetupControl(identifier, in: app, timeout: timeout)
         let chip = setupChip(identifier, in: app)
-        for _ in 0 ..< 8 where chip.exists == false || chip.isHittable == false {
-            app.swipeUp()
-        }
         XCTAssertTrue(
-            chip.waitForExistence(timeout: timeout),
+            chip.waitForExistence(timeout: 1),
             "Missing menu chip '\(identifier)'"
         )
-        for _ in 0 ..< 4 where chip.isHittable == false {
-            app.swipeUp()
+        openSetupChipMenu(chip, in: app, timeout: timeout)
+    }
+
+    private func openSetupChipMenu(
+        _ chip: XCUIElement,
+        in app: XCUIApplication,
+        timeout: TimeInterval
+    ) {
+        let openers: [() -> Void] = [
+            { self.tapHittableElement(chip) },
+            { chip.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.85)).tap() },
+            { chip.press(forDuration: 0.75) }
+        ]
+        for opener in openers {
+            opener()
+            if waitForSetupMenu(in: app, timeout: 2) {
+                return
+            }
         }
-        chip.tap()
-        waitForSetupMenu(in: app, timeout: 2)
+        XCTAssertTrue(
+            waitForSetupMenu(in: app, timeout: timeout),
+            "Setup chip menu should present options"
+        )
     }
 
     /// Waits for a setup chip menu to finish presenting after `tapMenuChip`.
-    func waitForSetupMenu(in app: XCUIApplication, timeout: TimeInterval = 2) {
+    @discardableResult
+    func waitForSetupMenu(in app: XCUIApplication, timeout: TimeInterval = 2) -> Bool {
         if app.menuItems.firstMatch.waitForExistence(timeout: timeout) {
-            return
+            return true
         }
         let setupOption = app.descendants(matching: .any).matching(
             NSPredicate(format: "identifier BEGINSWITH 'setup_' AND identifier CONTAINS 'Option'")
         ).firstMatch
-        _ = setupOption.waitForExistence(timeout: 1)
+        return setupOption.waitForExistence(timeout: min(timeout, 1))
+    }
+
+    func waitForDemoSeed(in app: XCUIApplication, timeout: TimeInterval = 30) {
+        ensurePlayersTab(app, timeout: timeout)
+        let jacob = app.buttons["player_row_Jacob"]
+        let botRow = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'player_row_bot_'")
+        ).firstMatch
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if jacob.exists || botRow.exists {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        XCTAssertTrue(jacob.exists || botRow.exists, "Demo seed should populate the Players roster")
     }
 
     /// Waits until the cricket pad accepts input after auto-submit, bot visits, or closure transitions.
@@ -677,6 +799,21 @@ extension XCUIElement {
         tap()
         if let stringValue = value as? String, !stringValue.isEmpty {
             let delete = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
+            typeText(delete)
+        }
+        typeText(text)
+    }
+
+    /// Select-all style replacement for fields where delete-backspace entry is flaky on large phones.
+    func replaceText(_ text: String) {
+        tap()
+        let existing = (value as? String) ?? ""
+        if !existing.isEmpty {
+            tap(withNumberOfTaps: 3, numberOfTouches: 1)
+            typeText(text)
+            if (value as? String) == text { return }
+            tap()
+            let delete = String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count + 4)
             typeText(delete)
         }
         typeText(text)

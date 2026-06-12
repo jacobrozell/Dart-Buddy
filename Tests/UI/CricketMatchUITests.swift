@@ -73,9 +73,18 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         selectCricketMode(in: app, timeout: timeout)
         tapCricketPointsOff(in: app)
+        let pointsChip = app.descendants(matching: .any)["setup_cricketPointsChip"]
+        XCTAssertTrue(pointsChip.waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            pointsChip.label.localizedCaseInsensitiveContains("Off"),
+            "Points chip should show Off before asserting mode chip state (got '\(pointsChip.label)')"
+        )
         let modeChip = app.descendants(matching: .any)["setup_cricketModeChip"]
         XCTAssertTrue(modeChip.waitForExistence(timeout: timeout))
-        XCTAssertFalse(modeChip.isEnabled)
+        XCTAssertTrue(
+            modeChip.wait(for: \.isEnabled, toEqual: false, timeout: timeout + 5),
+            "Mode chip should be disabled when cricket points are off"
+        )
     }
 
     func testCricketCutThroatSubtitleOnMatchStart() {
