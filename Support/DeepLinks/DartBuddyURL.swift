@@ -23,6 +23,10 @@ enum DartBuddyURL {
         components.host = pathVersion
         components.path = "/" + pathComponents.joined(separator: "/")
         components.queryItems = queryItems.isEmpty ? nil : queryItems
-        return components.url!
+        guard let url = components.url else {
+            // Reaching here means a malformed deep-link constant — programmer error.
+            preconditionFailure("DartBuddyURL produced invalid components for path \(pathComponents)")
+        }
+        return url
     }
 }

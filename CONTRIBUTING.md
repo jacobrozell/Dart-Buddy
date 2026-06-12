@@ -42,6 +42,23 @@ Layering is one-directional: `App` → `Features` → `Domain` / `Data`. See
 - **Comments explain *why*, not *what*.** Skip doc comments that restate the
   declaration. Reserve `// MARK:` for files with genuinely distinct sections.
 
+## Linting
+
+SwiftLint enforces the rules above (`.swiftlint.yml` at the repo root); the
+`lint` job in CI fails the build on violations. Run it locally with:
+
+```bash
+brew install swiftlint
+swiftlint
+```
+
+Force unwraps are an error — when you hit the documented `URL(string:)!`
+literal exception, mark it with `// swiftlint:disable:next force_unwrapping`
+and a one-line justification comment. Inline `Task.sleep` literals are also an
+error: name the duration in `Support/Gameplay/BotTurnPacing.swift` (gameplay
+pacing) or as a `private static let …Nanoseconds` on the view (animation
+timing).
+
 ## SwiftUI
 
 - Decompose large `body` blocks into `private var section: some View` computed

@@ -832,7 +832,18 @@ final class MatchSetupViewModel: ObservableObject {
                 scoringMode: cricketPointsEnabled ? cricketScoringMode : .standard
             )
         }
-        guard let settings = try? await settingsRepository.fetchSettings() else { return }
+        let settings: SettingsSummary
+        do {
+            settings = try await settingsRepository.fetchSettings()
+        } catch {
+            logger.warning(
+                .ui,
+                eventName: "setup_defaults_fetch_failed",
+                message: "Could not load settings to persist last-used setup.",
+                metadata: appErrorMetadata(for: error)
+            )
+            return
+        }
         let legsToWin = mode == .x01 ? x01LegsToWin : cricketLegsToWin
         let setsEnabled = mode == .x01 ? x01SetsEnabled : cricketSetsEnabled
         let legFormat = mode == .x01 ? x01LegFormat : cricketLegFormat
@@ -853,7 +864,16 @@ final class MatchSetupViewModel: ObservableObject {
             botDartHapticsEnabled: settings.botDartHapticsEnabled,
             updatedAt: Date()
         )
-        _ = try? await settingsRepository.updateSettings(next)
+        do {
+            _ = try await settingsRepository.updateSettings(next)
+        } catch {
+            logger.warning(
+                .ui,
+                eventName: "setup_defaults_update_failed",
+                message: "Could not persist last-used setup defaults.",
+                metadata: appErrorMetadata(for: error)
+            )
+        }
     }
 
     private func appErrorMetadata(for error: Error) -> [String: String] {

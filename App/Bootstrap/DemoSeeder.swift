@@ -15,8 +15,12 @@ enum DemoSeeder {
     static func seedIfRequested(_ dependencies: AppDependencies, arguments: [String]) async {
         if arguments.contains("-ui_test_reset") {
             LocalAppStateReset.clearAllPersistedAuxiliaryState()
-            try? await dependencies.settingsRepository.resetAllLocalData()
-            try? await dependencies.settingsRepository.resetPreferencesToDefaults()
+            do {
+                try await dependencies.settingsRepository.resetAllLocalData()
+                try await dependencies.settingsRepository.resetPreferencesToDefaults()
+            } catch {
+                dependencies.logger.error(.appLifecycle, eventName: "ui_test_reset_failed", message: "UI test reset failed: \(error)")
+            }
             await MainActor.run {
                 dependencies.activeMatchStore.clearAll()
                 dependencies.pendingMatchPlayerSelections.clearAll()

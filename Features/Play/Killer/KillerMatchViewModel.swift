@@ -383,7 +383,7 @@ final class KillerMatchViewModel: ObservableObject {
             session = updated
             if !isPick, lastKillerTurn(in: updated)?.darts.contains(where: \.becameKiller) == true {
                 state = .becameKillerFeedback
-                try? await Task.sleep(nanoseconds: 700_000_000)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.killerBecameKillerTransitionNanoseconds)
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted
