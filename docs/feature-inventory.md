@@ -109,7 +109,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Solo practice platform | **Planned** | Shared spec for Call & Hit, Bob's 27, Halve-It | [`SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md) |
 | Guided Play (blind/low-vision) | **Assessed (R&D)** | WIP — camera + mic + talk-back; see FutureIdeas brief | [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |
-| Vision auto-scoring | Planned | Camera dart detection | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
+| Vision auto-scoring | Partial | Phase A (guided calibration + assistive detection) behind flag; X01 only | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
 
 ---
 
@@ -301,7 +301,7 @@ All flags: `Support/FeatureFlags/FeatureFlag.swift` · config: [`FeatureFlagConf
 | `enableFirebaseCrashlytics` | On (Release + real plist) | Crashlytics |
 | `enableAppIntents` | **Off** | Siri / Shortcuts |
 | `enableAppleWatchCompanion` | Off | Watch companion (not built) |
-| `enableVisionAutoScoring` | Off | Camera auto-scoring (not built) |
+| `enableVisionAutoScoring` | Off | Camera auto-scoring Phase A (enable locally with `-enable_vision_scoring`) |
 | `enableOnlinePlay` | Off | Online multiplayer (not built) |
 | `enableAdvancedDiagnostics` | Off | Extra diagnostics |
 | `enableAchievements` | **Off** | Local profile achievements (**not built**) | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) |

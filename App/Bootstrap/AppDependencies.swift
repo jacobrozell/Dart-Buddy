@@ -14,6 +14,7 @@ public struct AppDependencies {
     public let userPreferencesStore: UserPreferencesStore
     public let activeMatchStore: ActiveMatchStore
     public let pendingMatchPlayerSelections: PendingMatchPlayerSelections
+    public let featureFlags: any FeatureFlagsProvider
 
     public init(
         modelContainer: ModelContainer,
@@ -27,7 +28,8 @@ public struct AppDependencies {
         turnTotalCallerService: any TurnTotalCallerService,
         userPreferencesStore: UserPreferencesStore,
         activeMatchStore: ActiveMatchStore,
-        pendingMatchPlayerSelections: PendingMatchPlayerSelections
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections,
+        featureFlags: any FeatureFlagsProvider = LocalFeatureFlagsProvider()
     ) {
         self.modelContainer = modelContainer
         self.logger = logger
@@ -41,5 +43,6 @@ public struct AppDependencies {
         self.userPreferencesStore = userPreferencesStore
         self.activeMatchStore = activeMatchStore
         self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
+        self.featureFlags = featureFlags
     }
 }

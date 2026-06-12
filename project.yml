@@ -99,6 +99,8 @@ targets:
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_UILaunchScreen_Generation: NO
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        # Camera auto-scoring (flag `enableVisionAutoScoring`, specs/AutoScoringVisionSpec.md).
+        INFOPLIST_KEY_NSCameraUsageDescription: Dart Buddy uses the camera to detect darts on the board and score throws automatically.
         INFOPLIST_KEY_UIRequiresFullScreen: NO
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone:
           - UIInterfaceOrientationPortrait

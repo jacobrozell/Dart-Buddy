@@ -212,7 +212,9 @@ private struct X01MatchRouteView: View {
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
-            lifecycleDependencies: lifecycleDependencies
+            lifecycleDependencies: lifecycleDependencies,
+            visionScoringEnabled: dependencies.featureFlags.isEnabled(.enableVisionAutoScoring),
+            visionLogger: dependencies.logger
         )
     }
 }
