@@ -94,7 +94,7 @@ final class CricketMatchViewModel: ObservableObject {
         let highlightClosure = self.state == .closureTransition
         let config = state.config
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
             return CricketBoardView.Column(
                 id: player.playerId,
@@ -184,10 +184,6 @@ final class CricketMatchViewModel: ObservableObject {
         let rounds = events.count + (includesPreviewRound ? 1 : 0)
         guard rounds > 0 else { return 0 }
         return Double(marks) / Double(rounds)
-    }
-
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
     func submitTurn() async {

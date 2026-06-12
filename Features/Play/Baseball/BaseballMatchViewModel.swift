@@ -139,7 +139,7 @@ final class BaseballMatchViewModel: ObservableObject {
         let isInProgress = session.runtime.status == .inProgress
         let showsVisitColumn = state.players.count < 6 && state.phase != .completed
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
             let visitPreview = showsVisitColumn
                 ? previewVisitRuns(for: player, playerIndex: index, isActive: isActive, state: state)
@@ -228,16 +228,11 @@ final class BaseballMatchViewModel: ObservableObject {
         switch state.phase {
         case .bullPlayoff:
             let indices = state.playoffPlayerIndices
-            guard indices.contains(playerIndex) else { return false }
+            guard let position = indices.firstIndex(of: playerIndex) else { return false }
             let scores = indices.map { playoffRuns(forLeading: $0, state: state) }
-            guard let maxScore = scores.max(), maxScore > 0 else { return false }
-            let leaders = indices.filter { playoffRuns(forLeading: $0, state: state) == maxScore }
-            return leaders.count == 1 && leaders[0] == playerIndex
+            return MatchTurnSupport.isUniqueLeader(scores: scores, index: position)
         case .innings:
-            let maxRuns = state.players.map(\.cumulativeRuns).max() ?? 0
-            guard maxRuns > 0 else { return false }
-            let leaderCount = state.players.filter { $0.cumulativeRuns == maxRuns }.count
-            return leaderCount == 1 && state.players[playerIndex].cumulativeRuns == maxRuns
+            return MatchTurnSupport.isUniqueLeader(scores: state.players.map(\.cumulativeRuns), index: playerIndex)
         case .completed:
             return state.winnerPlayerId == state.players[playerIndex].playerId
         }
@@ -330,10 +325,6 @@ final class BaseballMatchViewModel: ObservableObject {
         case .completed:
             return 0
         }
-    }
-
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {

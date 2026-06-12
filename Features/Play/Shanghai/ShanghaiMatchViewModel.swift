@@ -117,7 +117,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
         let isInProgress = session.runtime.status == .inProgress
         let showsRoundColumn = state.players.count < 6 && !state.isComplete
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
             let roundPreview = showsRoundColumn
                 ? previewRoundPoints(for: player, playerIndex: index, isActive: isActive, state: state)
@@ -197,10 +197,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
     }
 
     private func isPlayerLeading(playerIndex: Int, state: ShanghaiState) -> Bool {
-        let maxPoints = state.players.map(\.cumulativePoints).max() ?? 0
-        guard maxPoints > 0 else { return false }
-        let leaderCount = state.players.filter { $0.cumulativePoints == maxPoints }.count
-        return leaderCount == 1 && state.players[playerIndex].cumulativePoints == maxPoints
+        MatchTurnSupport.isUniqueLeader(scores: state.players.map(\.cumulativePoints), index: playerIndex)
     }
 
     private func previewRoundPoints(
@@ -230,10 +227,6 @@ final class ShanghaiMatchViewModel: ObservableObject {
         case .double: return target * 2
         case .triple: return target * 3
         }
-    }
-
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {
