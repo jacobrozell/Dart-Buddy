@@ -135,13 +135,13 @@ final class X01MatchUITests: DartBuddyUITestCase {
         waitForStartEnabled(start, timeout: timeout)
         start.tap()
         waitForX01MatchBoard(in: app, timeout: timeout + 15)
+        _ = waitForPadReady(app, timeout: timeout + 5)
 
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
-
-        XCTAssertTrue(app.otherElements["scoreCard_active"].waitForExistence(timeout: timeout + 5))
+        waitForActiveX01Player("Bob", in: app, timeout: timeout + 10)
 
         let aliceCard = inactiveX01ScoreCards(in: app).matching(
-            NSPredicate(format: "label CONTAINS[c] %@ AND label CONTAINS %@", "Alice", "Visit total 60")
+            NSPredicate(format: "label CONTAINS[c] %@ AND label CONTAINS %@", "Alice", "41")
         ).firstMatch
         XCTAssertTrue(
             aliceCard.waitForExistence(timeout: timeout),

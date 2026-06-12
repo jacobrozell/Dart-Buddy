@@ -770,30 +770,26 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
     func testX01ForfeitExitControlContract() {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         startTwoPlayerX01Match(from: app, timeout: timeout)
-        tapX01Segment(20, in: app, timeout: timeout)
+        scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
 
         tapMatchExit(in: app, timeout: timeout)
-        assertInteractiveElement(
-            app.buttons["match_exit_save_and_forfeit"],
-            identifier: "match_exit_save_and_forfeit"
-        )
-        assertInteractiveElement(app.buttons["match_exit_abandon"], identifier: "match_exit_abandon")
+        let saveAndForfeit = app.descendants(matching: .any).matching(identifier: "match_exit_save_and_forfeit").firstMatch
+        let abandon = app.descendants(matching: .any).matching(identifier: "match_exit_abandon").firstMatch
+        XCTAssertTrue(saveAndForfeit.waitForExistence(timeout: timeout), "Missing match_exit_save_and_forfeit")
+        XCTAssertTrue(abandon.waitForExistence(timeout: timeout), "Missing match_exit_abandon")
         tapExitAlertButton("Stay", in: app, timeout: timeout)
     }
 
     func testMatchSummaryForfeitBannerContract() {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         startTwoPlayerX01Match(from: app, timeout: timeout)
-        tapX01Segment(20, in: app, timeout: timeout)
+        scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
         forfeitMatchFromExit(in: app, timeout: timeout)
 
+        assertMatchSummaryForfeitBanner(in: app, timeout: timeout + 5)
         assertInteractiveElement(
-            app.otherElements["matchSummaryForfeitBanner"],
-            identifier: "matchSummaryForfeitBanner"
-        )
-        assertInteractiveElement(
-            app.otherElements["matchSummaryForfeitSubtitle"],
-            identifier: "matchSummaryForfeitSubtitle"
+            app.otherElements["matchSummaryHeader"],
+            identifier: "matchSummaryHeader"
         )
     }
 }

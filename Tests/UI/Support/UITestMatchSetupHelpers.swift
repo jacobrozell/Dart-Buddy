@@ -36,9 +36,10 @@ extension DartBuddyUITestCase {
         removeButton.tap()
     }
 
-    func openBotRow(named name: String, in app: XCUIApplication) {
+    func openBotRow(named name: String, in app: XCUIApplication, timeout: TimeInterval? = nil) {
+        let wait = timeout ?? self.timeout
         let botRow = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", name)).firstMatch
-        if botRow.waitForExistence(timeout: timeout) {
+        if botRow.waitForExistence(timeout: wait) {
             botRow.tap()
             return
         }
@@ -51,7 +52,7 @@ extension DartBuddyUITestCase {
             }
         }
 
-        XCTFail("Expected bot row containing '\(name)' on the Players list")
+        XCTFail("Expected bot row containing '\(name)' on the Players list within \(wait)s")
     }
 
     func scrollToHistoryStats(_ app: XCUIApplication) {
@@ -129,34 +130,13 @@ extension DartBuddyUITestCase {
     func tapCricketPointsOn(in app: XCUIApplication) {
         expandSetupOptions(in: app, timeout: timeout)
         tapMenuChip("setup_cricketPointsChip", in: app, timeout: timeout)
-        for candidate in [
-            app.menuItems["On"],
-            app.descendants(matching: .any)["setup_cricketPointsOption_on"],
-            app.buttons["On"]
-        ] {
-            if candidate.waitForExistence(timeout: 2) {
-                candidate.tap()
-                return
-            }
-        }
-        XCTFail("Expected cricket points On menu option")
+        selectMenuOption(identifier: "setup_cricketPointsOption_on", title: "On", in: app, timeout: timeout)
     }
 
     func tapCricketPointsOff(in app: XCUIApplication) {
         expandSetupOptions(in: app, timeout: timeout)
         tapMenuChip("setup_cricketPointsChip", in: app, timeout: timeout)
-        for candidate in [
-            app.menuItems.element(boundBy: 1),
-            app.menuItems["Off"],
-            app.buttons["Off"],
-            app.descendants(matching: .any)["setup_cricketPointsOption_off"]
-        ] {
-            if candidate.waitForExistence(timeout: 2) {
-                candidate.tap()
-                return
-            }
-        }
-        XCTFail("Expected cricket points Off menu option")
+        selectMenuOption(identifier: "setup_cricketPointsOption_off", title: "Off", in: app, timeout: timeout)
     }
 
     func tapCricketCutThroatMode(in app: XCUIApplication) {

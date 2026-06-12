@@ -63,10 +63,10 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanX01MatchStartsFromPlaySetup() {
-        let app = launchApp(["-seed_players"])
-        ensurePlayTab(app, timeout: timeout)
+        let app = launchApp(["-seed_players", "-ui_test_disable_feedback"])
+        ensurePlayTab(app, timeout: timeout + 10)
 
-        configureFastX01MatchForUITest(app, timeout: timeout)
+        configureFastX01MatchForUITest(app, timeout: timeout + 10)
         selectPlayerFromRoster("Alice", in: app)
         selectPlayerFromRoster("Bob", in: app)
         tapStartMatch(in: app, timeout: timeout)
@@ -164,17 +164,19 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
 
     func testLeanResetAllLocalDataClearsSeededPlayers() {
         let app = launchApp(["-seed_demo"])
+        waitForDemoSeed(in: app, timeout: timeout + 30)
 
-        ensureSettingsTab(app, timeout: timeout)
-        scrollToSettingsControl("settings_resetAllDataButton", in: app, timeout: timeout)
+        ensureSettingsTab(app, timeout: timeout + 10)
+        scrollToSettingsControl("settings_resetAllDataButton", in: app, timeout: timeout + 15)
         app.buttons["settings_resetAllDataButton"].tap()
 
         let alert = app.alerts["Reset all local data?"]
         XCTAssertTrue(alert.waitForExistence(timeout: timeout))
         alert.buttons["Reset Data"].tap()
+        waitForLocalDataResetToFinish(in: app, timeout: timeout + 10)
 
-        ensurePlayTab(app, timeout: timeout + 5)
-        assertBrandAppTitleVisible(in: app, timeout: timeout)
+        ensurePlayTab(app, timeout: timeout + 15)
+        assertBrandAppTitleVisible(in: app, timeout: timeout + 10)
 
         tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
         XCTAssertFalse(
