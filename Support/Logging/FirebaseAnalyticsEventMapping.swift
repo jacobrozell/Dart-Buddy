@@ -20,6 +20,8 @@ public enum FirebaseAnalyticsEventMapping {
         "turn_undone",
         "dart_undone",
         "match_abandoned",
+        "match_forfeited",
+        "match_forfeit_failed",
         "match_start_failed",
         "turn_persist_failed",
         "app_bootstrap_migration_failure",

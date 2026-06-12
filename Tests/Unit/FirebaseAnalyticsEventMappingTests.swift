@@ -226,6 +226,41 @@ func mapsMatchAbandonedAndDartUndoneEvents() {
 }
 
 @Test(.tags(.unit, .logging, .regression))
+func mapsMatchForfeitedAndForfeitFailedEvents() {
+    let forfeited = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .appLifecycle,
+        eventName: "match_forfeited",
+        message: "Match forfeited by user.",
+        metadata: [
+            "event_count": "2",
+            "participant_count": "2",
+            "resolution": "automatic"
+        ],
+        correlationId: nil
+    )
+    let failed = LogEntry(
+        timestamp: Date(),
+        level: .error,
+        category: .appLifecycle,
+        eventName: "match_forfeit_failed",
+        message: "Forfeit persist failed.",
+        metadata: ["matchType": "x01"],
+        correlationId: nil
+    )
+
+    let forfeitedEvent = FirebaseAnalyticsEventMapping.map(forfeited, appVersion: "1.0.0")
+    #expect(forfeitedEvent?.name == "match_forfeited")
+    #expect(forfeitedEvent?.parameters["event_count"] == "2")
+    #expect(forfeitedEvent?.parameters["resolution"] == "automatic")
+
+    let failedEvent = FirebaseAnalyticsEventMapping.map(failed, appVersion: nil)
+    #expect(failedEvent?.name == "match_forfeit_failed")
+    #expect(failedEvent?.parameters["matchType"] == "x01")
+}
+
+@Test(.tags(.unit, .logging, .regression))
 func mapsDeepLinkReceivedEvent() {
     let entry = LogEntry(
         timestamp: Date(),
