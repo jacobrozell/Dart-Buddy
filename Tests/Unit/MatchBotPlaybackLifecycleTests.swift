@@ -55,6 +55,18 @@ struct MatchBotPlaybackLifecycleTests {
     }
 
     @Test
+    func remainingPlannedDartsResumesPartialVisit() {
+        let fullPlan = [
+            DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(19)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(18))
+        ]
+        #expect(BotVisitPlayback.remainingPlannedDarts(fullPlan: fullPlan, existingCount: 0) == fullPlan)
+        #expect(BotVisitPlayback.remainingPlannedDarts(fullPlan: fullPlan, existingCount: 2).count == 1)
+        #expect(BotVisitPlayback.remainingPlannedDarts(fullPlan: fullPlan, existingCount: 2).first?.segment == .oneToTwenty(18))
+    }
+
+    @Test
     func sessionSyncRefreshesStoredSessionIntoViewModel() throws {
         let store = ActiveMatchStore()
         let session = try MatchLifecycleService.createMatch(

@@ -82,6 +82,21 @@ extension XCTestCase {
         }
     }
 
+    /// Tab items use system metrics; exclude them from screen-scoped Dynamic Type audits.
+    func ignoringMainTabBarAuditIssues(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
+        guard let element = issue.element else { return false }
+        let identifier = element.identifier
+        if identifier.hasPrefix("tab_") {
+            return true
+        }
+        let tabLabels = ["Play", "Players", "Activity", "Settings", "Modes"]
+        if tabLabels.contains(element.label), identifier.isEmpty {
+            return true
+        }
+        return false
+    }
+
+
     func assertInteractiveElement(
         _ element: XCUIElement,
         identifier: String,
@@ -209,15 +224,6 @@ extension XCTestCase {
         waitForStartEnabled(start, timeout: timeout)
         start.tap()
         waitForX01MatchBoard(in: app, timeout: timeout)
-    }
-
-    func startTwoPlayerCricketMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
-        selectCricketMode(in: app, timeout: timeout)
-        selectAliceAndBob(from: app, timeout: timeout)
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 15))
     }
 
     func startTwoPlayerBaseballMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -371,7 +377,7 @@ extension XCTestCase {
         playerName: String,
         timeout: TimeInterval = 10
     ) {
-        app.tabBars.buttons["Players"].tap()
+        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
         let row = app.buttons["player_row_\(playerName)"]
         XCTAssertTrue(row.waitForExistence(timeout: timeout + 5), "Expected player row for \(playerName)")
         row.tap()

@@ -1,7 +1,7 @@
 import XCTest
 
 /// UI regression tests for bugs that have recurred in git history.
-/// See `docs/release/regression-ui-test-plan.md`.
+/// See `docs/testing/x01-cricket-ui-test-phased-plan.md` (Regression catalog + Phase 5).
 final class RegressionUITests: DartBuddyUITestCase {
     // MARK: - Bot + undo (b53eaeb)
 
@@ -12,17 +12,12 @@ final class RegressionUITests: DartBuddyUITestCase {
         submitMissVisit(on: app, timeout: timeout)
         waitForBotVisitToComplete(in: app, timeout: timeout)
 
-        let undo = app.buttons["pad_undo"]
+        let undo = app.buttons["match_undo"]
         XCTAssertTrue(undo.waitForExistence(timeout: timeout))
         undo.tap()
-        assertActiveScoreCardNamesBot(in: app, timeout: timeout)
+        waitForBotVisitToComplete(in: app, timeout: timeout)
 
-        undo.tap()
-        assertActiveScoreCardNamesBot(in: app, timeout: timeout)
-        XCTAssertFalse(
-            activeX01ScoreCard(in: app).label.localizedCaseInsensitiveContains("Alice"),
-            "Undo should step through bot darts before returning to Alice's prior turn"
-        )
+        assertActiveScoreCardNamesAlice(in: app, timeout: timeout)
     }
 
     func testCricketBotVisitUndoStepsThroughRestoredDarts() {
@@ -37,30 +32,12 @@ final class RegressionUITests: DartBuddyUITestCase {
         submitCricketMissVisit(in: app, timeout: timeout)
         waitForBotVisitToComplete(in: app, padKeyIdentifier: "cricket_20", timeout: timeout)
 
-        let undo = app.buttons["cricket_undo"]
+        let undo = app.buttons["match_undo"]
         XCTAssertTrue(undo.waitForExistence(timeout: timeout))
         undo.tap()
+        waitForBotVisitToComplete(in: app, padKeyIdentifier: "cricket_20", timeout: timeout)
 
-        let column = activeCricketColumn(in: app)
-        XCTAssertTrue(column.waitForExistence(timeout: timeout))
-        let label = column.label
-        XCTAssertTrue(
-            label.localizedCaseInsensitiveContains("DartBot")
-                || label.localizedCaseInsensitiveContains("Easy")
-                || label.localizedCaseInsensitiveContains("Bot"),
-            "Undo should restore the bot visit instead of jumping to the prior player (got '\(label)')"
-        )
-
-        undo.tap()
-        let columnAfterSecondUndo = activeCricketColumn(in: app)
-        XCTAssertTrue(columnAfterSecondUndo.waitForExistence(timeout: timeout))
-        let secondLabel = columnAfterSecondUndo.label
-        XCTAssertTrue(
-            secondLabel.localizedCaseInsensitiveContains("DartBot")
-                || secondLabel.localizedCaseInsensitiveContains("Easy")
-                || secondLabel.localizedCaseInsensitiveContains("Bot"),
-            "Second undo should still be on the restored bot visit (got '\(secondLabel)')"
-        )
+        waitForActiveCricketPlayer("Alice", in: app, timeout: timeout + 10)
     }
 
     // MARK: - Exit alert + Stay (baae976)
@@ -166,5 +143,72 @@ final class RegressionUITests: DartBuddyUITestCase {
         twenty.tap()
 
         assertActiveScoreCardLabel(app, contains: "81", timeout: timeout)
+    }
+
+    // MARK: - Phase 5 regression extension
+
+    func testX01UndoFromSummaryResumesPlay() {
+        let app = launchForRegression()
+        finishQuickX01Checkout(for: app, timeout: timeout)
+
+        undoFromMatchSummary(in: app, timeout: timeout)
+        _ = waitForPadReady(app, timeout: timeout + 15)
+        XCTAssertFalse(
+            app.otherElements["matchSummaryHeader"].waitForExistence(timeout: 2),
+            "Undo from summary should return to the live match board"
+        )
+    }
+
+    func testCricketCutThroatBotFullVisit() {
+        let app = launchForRegression()
+        ensurePlayTab(app, timeout: timeout)
+        selectCricketMode(in: app, timeout: timeout)
+        tapCricketCutThroatMode(in: app)
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+        addEasyBot(from: app, timeout: timeout)
+        tapStartMatch(in: app, timeout: timeout + 10)
+        waitForRegressionCricketPadReady(app, timeout: timeout + 10)
+
+        submitCricketMissVisit(in: app, timeout: timeout)
+        waitForBotVisitToComplete(in: app, padKeyIdentifier: "cricket_20", timeout: timeout + 20)
+        XCTAssertTrue(app.buttons["cricket_20"].isEnabled)
+    }
+
+    func testX01BotVisitCompletesWithoutFreezingPad() {
+        let app = launchForRegression()
+        startAliceVersusEasyBotX01MatchForRegression(from: app, timeout: timeout)
+
+        submitMissVisit(on: app, timeout: timeout)
+        waitForBotVisitToComplete(in: app, timeout: timeout)
+
+        XCTAssertFalse(
+            botThrowingBanner(in: app).waitForExistence(timeout: 2),
+            "Bot banner should clear after the visit"
+        )
+        XCTAssertTrue(app.buttons["pad_20"].isEnabled, "Human pad should re-enable after bot visit")
+    }
+
+    func testX01TwoBotsPlayConsecutivelyAfterHumanTurn() {
+        let app = launchAppWithFullProductSurface([
+            "-seed_players",
+            Self.disableFeedbackLaunchArgument,
+            Self.instantBotsLaunchArgument
+        ])
+        ensurePlayTab(app, timeout: timeout)
+        configureFastX01MatchForUITest(app, timeout: timeout)
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout)
+        addEasyBot(from: app, timeout: timeout)
+        addEasyBot(from: app, timeout: timeout)
+        tapStartMatch(in: app, timeout: timeout)
+        waitForX01MatchBoard(in: app, timeout: timeout + 15)
+
+        submitMissVisit(on: app, timeout: timeout)
+        waitForBotVisitToComplete(in: app, timeout: timeout + 20)
+        waitForBotVisitToComplete(in: app, timeout: timeout + 20)
+
+        XCTAssertTrue(
+            app.buttons["pad_20"].isEnabled,
+            "Pad should re-enable after consecutive bot visits"
+        )
     }
 }

@@ -44,9 +44,21 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
             app.buttons["modes_card_standard.cricket"].waitForExistence(timeout: timeout),
             "Mode picker should list Cricket"
         )
-        XCTAssertTrue(
-            app.buttons["modes_card_party.baseball"].waitForExistence(timeout: timeout),
-            "Mode picker should tease party modes as coming soon"
+        XCTAssertFalse(
+            app.buttons["modes_card_standard.americanCricket"].exists,
+            "Lean 1.0 mode picker should not tease American Cricket"
+        )
+        XCTAssertFalse(
+            app.buttons["modes_card_party.baseball"].exists,
+            "Lean 1.0 mode picker should not tease party modes"
+        )
+        XCTAssertFalse(
+            app.buttons["modePicker_moreComing_standard"].exists,
+            "Lean 1.0 mode picker should not show coming-soon standard rows"
+        )
+        XCTAssertFalse(
+            app.buttons["modePicker_moreComing_party"].exists,
+            "Lean 1.0 mode picker should not show coming-soon party rows"
         )
     }
 
@@ -79,6 +91,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
+        selectCricketMode(in: app)
         tapCricketCutThroatMode(in: app)
         selectPlayerFromRoster("Alice", in: app)
         selectPlayerFromRoster("Bob", in: app)
@@ -147,5 +160,51 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["Starting Mode"].waitForExistence(timeout: timeout))
         scrollToFeedbackSwitches(app)
         XCTAssertTrue(app.switches["settings_soundToggle"].waitForExistence(timeout: timeout))
+    }
+
+    func testLeanResetAllLocalDataClearsSeededPlayers() {
+        let app = launchApp(["-seed_demo"])
+
+        ensureSettingsTab(app, timeout: timeout)
+        scrollToSettingsControl("settings_resetAllDataButton", in: app, timeout: timeout)
+        app.buttons["settings_resetAllDataButton"].tap()
+
+        let alert = app.alerts["Reset all local data?"]
+        XCTAssertTrue(alert.waitForExistence(timeout: timeout))
+        alert.buttons["Reset Data"].tap()
+
+        ensurePlayTab(app, timeout: timeout + 5)
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
+
+        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
+        XCTAssertFalse(
+            app.buttons["player_row_Jacob"].waitForExistence(timeout: 2),
+            "Reset should remove demo players from the roster"
+        )
+    }
+
+    func testLeanResumeActiveMatchFromPlayHome() {
+        let app = launchApp(["-seed_demo"])
+
+        let resume = app.buttons["resumeMatchButton"]
+        XCTAssertTrue(resume.waitForExistence(timeout: timeout), "Demo seed should expose a resumable match")
+        resume.tap()
+
+        assertActiveScoreCardLabel(
+            app,
+            contains: "121",
+            timeout: timeout + 5
+        )
+    }
+
+    func testLeanX01ForfeitAfterOneTurn() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+        scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
+        forfeitMatchFromExit(in: app, timeout: timeout)
+        assertMatchSummaryForfeitBanner(in: app, timeout: timeout + 5)
+        tapSummaryDone(in: app, timeout: timeout)
+        ensureActivityHistorySegment(app, timeout: timeout)
+        XCTAssertTrue(app.staticTexts["FORFEIT"].waitForExistence(timeout: timeout))
     }
 }

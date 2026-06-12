@@ -4,7 +4,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     func testPlayerDetailShowsStats() {
         let app = launchApp(["-seed_demo"])
 
-        app.tabBars.buttons["Players"].tap()
+        ensurePlayersTab(app, timeout: timeout)
         let jacobRow = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Jacob")).firstMatch
         XCTAssertTrue(jacobRow.waitForExistence(timeout: timeout))
         jacobRow.tap()
@@ -17,7 +17,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     func testPlayerDetailShowsExportButton() {
         let app = launchAppWithFullProductSurface(["-seed_demo"])
 
-        app.tabBars.buttons["Players"].tap()
+        ensurePlayersTab(app, timeout: timeout)
         XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
         app.buttons["player_row_Jacob"].tap()
         XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 10))
@@ -30,7 +30,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     func testEditPlayerUpdatesProfile() {
         let app = launchApp(["-seed_demo"])
 
-        app.tabBars.buttons["Players"].tap()
+        ensurePlayersTab(app, timeout: timeout)
         XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
         app.buttons["player_row_Jacob"].tap()
         XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 10))
@@ -58,7 +58,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     func testPlayerDetailShowsTrainingPartnerEligibilityProgress() {
         let app = launchAppWithFullProductSurface(["-seed_training_locked"])
 
-        app.tabBars.buttons["Players"].tap()
+        ensurePlayersTab(app, timeout: timeout)
         XCTAssertTrue(app.buttons["player_row_Alice"].waitForExistence(timeout: timeout))
         app.buttons["player_row_Alice"].tap()
 
@@ -74,7 +74,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     func testPlayerDetailEnablesCreateWhenEligible() {
         let app = launchAppWithFullProductSurface(["-seed_training_eligible"])
 
-        app.tabBars.buttons["Players"].tap()
+        ensurePlayersTab(app, timeout: timeout)
         app.buttons["player_row_Alice"].tap()
 
         XCTAssertTrue(app.staticTexts["Training Partner"].waitForExistence(timeout: timeout + 30))
@@ -90,7 +90,7 @@ final class PlayerDetailUITests: DartBuddyUITestCase {
     func testPlayersListShowsSeededTrainingPartner() {
         let app = launchApp(["-seed_training_partner"])
 
-        app.tabBars.buttons["Players"].tap()
+        ensurePlayersTab(app, timeout: timeout)
         let partnerRow = app.buttons.matching(
             NSPredicate(format: "identifier BEGINSWITH 'player_row_' AND label CONTAINS %@", "Training Partner")
         ).firstMatch

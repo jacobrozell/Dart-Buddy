@@ -508,6 +508,73 @@ private struct StatsFixture {
     let snapshot: MatchSnapshotSummary
 }
 
+private func makeForfeitedX01Fixture() throws -> StatsFixture {
+    let matchId = UUID()
+    let jacob = UUID()
+    let sam = UUID()
+    func d(_ multiplier: DartMultiplier, _ value: Int) -> DartInput {
+        DartInput(multiplier: multiplier, segment: .oneToTwenty(value))
+    }
+    var session = try MatchLifecycleService.createMatch(
+        matchId: matchId,
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: jacob, displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: sam, displayNameAtMatchStart: "Sam", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(
+        session: session,
+        enteredTotal: nil,
+        darts: [d(.triple, 20), d(.triple, 20), d(.triple, 20)]
+    )
+    session = try MatchLifecycleService.forfeit(
+        session: session,
+        forfeitingPlayerId: jacob,
+        winnerPlayerId: sam
+    )
+
+    let now = Date()
+    let summary = MatchSummary(
+        id: matchId,
+        type: .x01,
+        status: .forfeited,
+        startedAt: now,
+        endedAt: now,
+        winnerPlayerId: sam,
+        forfeitedByPlayerId: jacob,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: session.events.count,
+        createdAt: now,
+        updatedAt: now
+    )
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: jacob, turnOrder: 0, displayNameAtMatchStart: "Jacob", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: sam, turnOrder: 1, displayNameAtMatchStart: "Sam", avatarStyleAtMatchStart: nil)
+    ]
+    let events = try session.events.map { envelope in
+        MatchEventSummary(
+            id: UUID(),
+            matchId: matchId,
+            eventIndex: envelope.eventIndex,
+            eventTypeRaw: "x01Turn",
+            eventPayload: try CodablePayloadCoder.encode(envelope),
+            createdAt: now
+        )
+    }
+    let snapshot = MatchSnapshotSummary(
+        id: UUID(),
+        matchId: matchId,
+        snapshotVersion: session.latestSnapshot.payloadVersion,
+        snapshotPayload: session.latestSnapshot.payload,
+        updatedAt: now
+    )
+    return StatsFixture(matchId: matchId, jacob: jacob, sam: sam, summary: summary, participants: participants, events: events, snapshot: snapshot)
+}
+
 private func makeCompletedX01Fixture() throws -> StatsFixture {
     let matchId = UUID()
     let jacob = UUID()
@@ -858,6 +925,41 @@ func historyListViewModelBuildsStandingsFromSnapshot() async throws {
     #expect(vm.rows.first?.standings.count == 2)
     #expect(vm.rows.first?.standings.first(where: { $0.name == "Jacob" })?.isWinner == true)
     #expect(vm.rows.first?.standings.first(where: { $0.name == "Sam" })?.score == 201)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyListRowMarksForfeitedBadge() async throws {
+    let fixture = try makeForfeitedX01Fixture()
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(
+            rows: [fixture.summary],
+            participantsByMatchId: [fixture.matchId: fixture.participants],
+            snapshotsByMatchId: [fixture.matchId: fixture.snapshot]
+        ),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+    await vm.applyFilters()
+
+    #expect(vm.rows.count == 1)
+    #expect(vm.rows.first?.isForfeited == true)
+    #expect(vm.rows.first?.isFinished == true)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyDetailFormatsForfeitWinner() async throws {
+    let fixture = try makeForfeitedX01Fixture()
+    let vm = HistoryDetailViewModel(
+        matchId: fixture.matchId,
+        matchRepository: StatsFakeMatchRepository(fixture: fixture),
+        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+    )
+    await vm.onAppear()
+
+    let header = try #require(vm.header)
+    #expect(header.winnerText.localizedCaseInsensitiveContains("Sam"))
+    #expect(header.winnerText.localizedCaseInsensitiveContains("Jacob"))
 }
 
 @MainActor

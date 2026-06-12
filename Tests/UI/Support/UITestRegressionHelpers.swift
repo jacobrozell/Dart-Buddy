@@ -161,13 +161,13 @@ extension DartBuddyUITestCase {
         )
     }
 
-    func submitCricketMissVisit(in app: XCUIApplication, timeout: TimeInterval = 10) {
-        waitForRegressionCricketPadReady(app, timeout: timeout)
-        let miss = app.buttons["cricket_miss"]
-        XCTAssertTrue(miss.waitForExistence(timeout: timeout))
-        for _ in 0 ..< 3 {
-            miss.tap()
-        }
-        waitForRegressionCricketPadReady(app, timeout: timeout + 5)
+    func assertActiveScoreCardNamesAlice(in app: XCUIApplication, timeout: TimeInterval = 10) {
+        let card = activeX01ScoreCard(in: app)
+        XCTAssertTrue(card.waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            card.label.localizedCaseInsensitiveContains("Alice"),
+            "Alice should be active after the bot visit resumes and completes (got '\(card.label)')"
+        )
     }
+
 }

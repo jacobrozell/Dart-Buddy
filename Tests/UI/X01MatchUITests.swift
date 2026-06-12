@@ -1,23 +1,6 @@
 import XCTest
 
 final class X01MatchUITests: DartBuddyUITestCase {
-    func testStartMatchAndScoreTurn() {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
-
-        configureFastX01MatchForUITest(app, timeout: timeout)
-        ensurePlayTab(app, timeout: timeout)
-        selectAliceAndBob(from: app, timeout: timeout)
-
-        let start = app.buttons["startMatchButton"]
-        waitForStartEnabled(start, timeout: timeout)
-        start.tap()
-        _ = waitForPadReady(app, timeout: timeout + 15)
-
-        app.buttons["pad_20"].tap()
-
-        assertActiveScoreCardLabel(app, contains: "81", timeout: timeout)
-    }
-
     func testX01LiveDartsAndAverageUpdatePerDart() {
         let app = launchApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
@@ -105,7 +88,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         startThreePlayerX01Match(from: app)
 
-        XCUIDevice.shared.orientation = .landscapeLeft
+        rotateToLandscapeLeft(for: app, timeout: timeout)
         addTeardownBlock {
             XCUIDevice.shared.orientation = .portrait
         }
@@ -131,7 +114,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         start.tap()
         waitForX01MatchBoard(in: app, timeout: timeout + 15)
 
-        XCUIDevice.shared.orientation = .landscapeLeft
+        rotateToLandscapeLeft(for: app, timeout: timeout)
         addTeardownBlock {
             XCUIDevice.shared.orientation = .portrait
         }
@@ -164,5 +147,129 @@ final class X01MatchUITests: DartBuddyUITestCase {
             aliceCard.waitForExistence(timeout: timeout),
             "Alice's completed visit should remain visible on the inactive score card after Bob's turn begins"
         )
+    }
+
+    // MARK: - Phase 1 core gameplay
+
+    func testX01TripleScoringUpdatesRemaining() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+
+        tapX01Segment(20, multiplier: .triple, in: app, timeout: timeout)
+        assertActiveScoreCardLabel(app, contains: "41", timeout: timeout)
+    }
+
+    func testX01DoubleScoringUpdatesRemaining() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+
+        tapX01Segment(20, multiplier: .double, in: app, timeout: timeout)
+        assertActiveScoreCardLabel(app, contains: "61", timeout: timeout)
+    }
+
+    func testX01MissRecordsInVisit() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+
+        app.buttons["pad_0"].tap()
+        assertActiveScoreCardLabel(app, contains: "Visit darts Miss", timeout: timeout)
+    }
+
+    func testX01ThreeDartVisitAutoSubmits() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+
+        scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
+        waitForActiveX01Player("Bob", in: app, timeout: timeout + 10)
+    }
+
+    func testX01RematchFromSummary() {
+        let app = launchApp(["-seed_players"])
+        configureQuickX01Match(app, timeout: timeout)
+        ensurePlayTab(app, timeout: timeout)
+        selectAliceAndBob(from: app, timeout: timeout)
+        tapStartMatch(in: app, timeout: timeout)
+        waitForX01MatchBoard(in: app, timeout: timeout + 15)
+
+        scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
+        submitMissVisit(on: app, timeout: timeout)
+        _ = waitForPadReady(app, timeout: timeout + 5)
+        scoreSingleVisit(app, segments: [20, 20, 1], timeout: timeout)
+
+        XCTAssertTrue(
+            app.otherElements["matchSummaryHeader"].waitForExistence(timeout: timeout + 10),
+            "Match summary should appear after checkout"
+        )
+        tapRematch(in: app, timeout: timeout)
+        XCTAssertTrue(app.buttons["match_exit"].waitForExistence(timeout: timeout + 15))
+        XCTAssertTrue(
+            app.buttons["pad_20"].waitForExistence(timeout: timeout + 15),
+            "Rematch should return to the X01 scoring pad"
+        )
+    }
+
+    func testX01SetupChipGridVisible() {
+        let app = launchApp(["-seed_players"])
+        ensurePlayTab(app, timeout: timeout)
+        expandSetupOptions(in: app, timeout: timeout)
+        assertSetupChip("setup_startScoreChip", in: app, timeout: timeout)
+        assertSetupChip("setup_checkoutChip", in: app, timeout: timeout)
+        assertSetupChip("setup_legsChip", in: app, timeout: timeout)
+    }
+
+    func testX01HeaderUndoRemovesDart() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerX01Match(from: app, timeout: timeout)
+
+        app.buttons["pad_19"].tap()
+        app.buttons["match_undo"].tap()
+        assertActiveScoreCardLabel(app, contains: "101", timeout: timeout)
+    }
+
+    // MARK: - Phase 4 multi-player
+
+    func testThreePlayerX01AllPadKeysReachableInLandscape() {
+        let app = launchApp(["-seed_players"])
+        startThreePlayerX01Match(from: app)
+
+        rotateToLandscapeLeft(for: app, timeout: timeout)
+        addTeardownBlock {
+            XCUIDevice.shared.orientation = .portrait
+        }
+
+        let active = app.otherElements["scoreCard_active"]
+        XCTAssertTrue(active.waitForExistence(timeout: timeout))
+        let keyIdentifiers = [
+            "pad_20", "pad_19", "pad_18", "pad_17", "pad_16", "pad_15",
+            "pad_25", "pad_0", "pad_double", "pad_triple", "pad_undo"
+        ]
+        assertScoringKeysBelowPinnedArea(active, in: app, keyIdentifiers: keyIdentifiers, timeout: timeout)
+    }
+
+    func testThreePlayerX01TurnRotation() {
+        let app = launchApp(["-seed_players"])
+        startThreePlayerX01Match(from: app)
+
+        submitMissVisit(on: app, timeout: timeout)
+        waitForActiveX01Player("Bob", in: app, timeout: timeout + 10)
+        submitMissVisit(on: app, timeout: timeout)
+        waitForActiveX01Player("Carol", in: app, timeout: timeout + 10)
+    }
+
+    func testThreePlayerX01InactiveCardsVisible() {
+        let app = launchApp(["-seed_players"])
+        startThreePlayerX01Match(from: app)
+
+        XCTAssertTrue(app.otherElements["scoreCard_active"].waitForExistence(timeout: timeout))
+        let inactiveNames = ["Bob", "Carol"]
+        for name in inactiveNames {
+            let card = inactiveX01ScoreCards(in: app).matching(
+                NSPredicate(format: "label CONTAINS[c] %@", name)
+            ).firstMatch
+            XCTAssertTrue(
+                card.waitForExistence(timeout: timeout),
+                "Inactive score card for \(name) should remain in the scoreboard"
+            )
+        }
     }
 }
