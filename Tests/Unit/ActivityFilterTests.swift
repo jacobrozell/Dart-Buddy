@@ -31,6 +31,35 @@ struct ActivityFilterTests {
     }
 
     @Test
+    func modeFilterVisibleCasesRespectProductSurface() {
+        let visible = Set(ActivityModeFilter.visibleCases)
+        #expect(visible.contains(.all))
+        #expect(visible.contains(.x01))
+        #expect(visible.contains(.cricket))
+
+        if ProductSurface.showsPartyModes {
+            #expect(visible.contains(.baseball))
+            #expect(visible.contains(.killer))
+            #expect(visible.contains(.shanghai))
+        } else {
+            #expect(!visible.contains(.baseball))
+            #expect(!visible.contains(.killer))
+            #expect(!visible.contains(.shanghai))
+        }
+    }
+
+    @Test
+    func availableCatalogModesMatchVisibleActivityFilters() {
+        let availableFilterIds = Set(
+            GameModeCatalog.available.compactMap { ActivityModeFilter.from(catalogEntryId: $0.id)?.rawValue }
+        )
+        let visibleFilterIds = Set(
+            ActivityModeFilter.visibleCases.map(\.rawValue).filter { $0 != ActivityModeFilter.all.rawValue }
+        )
+        #expect(availableFilterIds == visibleFilterIds)
+    }
+
+    @Test
     func periodAllHasNoCutoff() {
         #expect(ActivityPeriod.all.startedAfter == nil)
     }
@@ -79,7 +108,8 @@ struct ActivityFilterTests {
                 HistoryStanding(id: UUID(), name: "Alice", isWinner: true, sets: 0, legs: 1, score: 0),
                 HistoryStanding(id: UUID(), name: "Bob", isWinner: false, sets: 0, legs: 0, score: 121)
             ],
-            isFinished: true
+            isFinished: true,
+            isForfeited: false
         )
 
         let accessibility = row.accessibilitySummary

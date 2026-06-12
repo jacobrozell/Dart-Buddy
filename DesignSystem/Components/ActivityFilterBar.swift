@@ -21,18 +21,14 @@ struct ActivityFilterBar: View {
 
     private var modeFilterMenu: some View {
         Menu {
-            Button { modeFilter = .all } label: {
-                modeMenuLabel(for: .all)
-            }
+            modeFilterButton(.all)
             ForEach(GameModeSection.allCases) { section in
-                let entries = GameModeCatalog.entries(in: section).filter(\.isAvailable)
+                let entries = GameModeCatalog.available.filter { $0.section == section }
                 if !entries.isEmpty {
                     Section(L10n.string(section.titleKey)) {
                         ForEach(entries) { entry in
                             if let filter = ActivityModeFilter.from(catalogEntryId: entry.id) {
-                                Button { modeFilter = filter } label: {
-                                    modeMenuLabel(for: filter)
-                                }
+                                modeFilterButton(filter)
                             }
                         }
                     }
@@ -48,6 +44,13 @@ struct ActivityFilterBar: View {
         .accessibilityLabel(
             L10n.format("activity.filter.mode.accessibilityFormat", modeFilter.title)
         )
+    }
+
+    private func modeFilterButton(_ filter: ActivityModeFilter) -> some View {
+        Button { modeFilter = filter } label: {
+            modeMenuLabel(for: filter)
+        }
+        .accessibilityIdentifier("activityModeFilter_\(filter.rawValue)")
     }
 
     @ViewBuilder

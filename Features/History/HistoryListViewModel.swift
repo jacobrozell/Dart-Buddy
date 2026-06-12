@@ -81,7 +81,10 @@ final class HistoryListViewModel: ObservableObject {
                !playerOptions.contains(where: { $0.id == playerFilter }) {
                 self.playerFilter = nil
             }
-            activeMatch = try await matchRepository.fetchActiveMatch()
+            let fetchedActive = try await matchRepository.fetchActiveMatch()
+            activeMatch = fetchedActive.flatMap {
+                ProductSurface.isMatchTypeReachable($0.type) ? $0 : nil
+            }
             let batch = try await PerformanceMonitor.measure(.historyLoad, logger: logger) {
                 try await fetchHistoryPage(0)
             }
@@ -123,7 +126,8 @@ final class HistoryListViewModel: ObservableObject {
                     dateText: Self.dateFormatter.string(from: record.summary.startedAt),
                     configText: configText,
                     standings: standings,
-                    isFinished: record.summary.status == .completed
+                    isFinished: record.summary.status == .completed || record.summary.status == .forfeited,
+                    isForfeited: record.summary.status == .forfeited
                 )
             )
         }
