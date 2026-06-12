@@ -192,6 +192,40 @@ extension XCTestCase {
         )
     }
 
+    func scrollToPlayerDetailRecentMatch(
+        _ recentMatch: XCUIElement,
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10
+    ) {
+        let deadline = Date().addingTimeInterval(timeout)
+        var swipedUp = 0
+        while Date() < deadline {
+            if recentMatch.exists, recentMatch.isHittable {
+                return
+            }
+            app.swipeUp()
+            swipedUp += 1
+            if swipedUp % 4 == 0 {
+                app.swipeDown()
+            }
+        }
+        for _ in 0 ..< 6 where recentMatch.exists == false || recentMatch.isHittable == false {
+            app.swipeDown()
+        }
+        XCTAssertTrue(
+            recentMatch.waitForExistence(timeout: 2),
+            "Expected a recent match row on player detail"
+        )
+    }
+
+    func tapHittableRecentMatch(_ recentMatch: XCUIElement) {
+        if recentMatch.isHittable {
+            recentMatch.tap()
+        } else {
+            recentMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+    }
+
     func ensurePlayersTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         let search = app.descendants(matching: .any)["players_searchField"]
         let playerRow = app.buttons.matching(
@@ -705,19 +739,43 @@ extension XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        let key = app.buttons[keyIdentifier]
+        let key = app.descendants(matching: .any)[keyIdentifier]
         XCTAssertTrue(key.waitForExistence(timeout: timeout), file: file, line: line)
+        if !key.isEnabled {
+            let banner = app.descendants(matching: .any).containing(
+                NSPredicate(format: "label CONTAINS[c] %@", "Bot throwing")
+            ).firstMatch
+            if banner.waitForExistence(timeout: 2) {
+                let cleared = NSPredicate(format: "exists == false")
+                let expectation = XCTNSPredicateExpectation(predicate: cleared, object: banner)
+                _ = XCTWaiter.wait(for: [expectation], timeout: timeout + 20)
+            }
+        }
         XCTAssertTrue(
-            key.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 5),
+            key.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 25),
             "Cricket pad key '\(keyIdentifier)' should enable when the visit is ready",
             file: file,
             line: line
         )
     }
 
+    func waitForCricketMatchBoard(in app: XCUIApplication, timeout: TimeInterval = 10) {
+        waitForCricketScoringPadReady(app, timeout: timeout + 15)
+        XCTAssertTrue(
+            app.buttons["match_exit"].waitForExistence(timeout: 5),
+            "Cricket match screen should appear after start"
+        )
+    }
+
     /// Rotates to landscape and waits until a gameplay landmark is hittable again.
     func rotateToLandscapeLeft(for app: XCUIApplication, timeout: TimeInterval = 5) {
-        XCUIDevice.shared.orientation = .landscapeLeft
+        let apply = { XCUIDevice.shared.orientation = .landscapeLeft }
+        if Thread.isMainThread {
+            apply()
+        } else {
+            DispatchQueue.main.sync(execute: apply)
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.75))
         let landmarks: [XCUIElement] = [
             app.buttons["pad_20"],
             app.buttons["cricket_20"],

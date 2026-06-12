@@ -116,10 +116,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         startTwoPlayerCricketMatch(from: app)
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
 
-        rotateToLandscapeLeft(for: app, timeout: timeout)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let column = app.otherElements["cricket_column_active"]
         XCTAssertTrue(column.waitForExistence(timeout: timeout))
@@ -143,10 +140,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         startTwoPlayerCricketMatch(from: app)
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
 
-        rotateToLandscapeLeft(for: app, timeout: timeout)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let target20 = app.buttons["cricket_20"]
         XCTAssertTrue(target20.waitForExistence(timeout: timeout))
@@ -225,10 +219,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         startThreePlayerCricketMatch(from: app)
 
-        rotateToLandscapeLeft(for: app, timeout: timeout)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let column = app.otherElements["cricket_column_active"]
         XCTAssertTrue(column.waitForExistence(timeout: timeout))

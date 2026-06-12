@@ -24,7 +24,7 @@ extension DartBuddyUITestCase {
     }
 
     func waitForBotVisitToComplete(in app: XCUIApplication, padKeyIdentifier: String = "pad_20", timeout: TimeInterval = 10) {
-        let pad = app.buttons[padKeyIdentifier]
+        let pad = app.descendants(matching: .any)[padKeyIdentifier]
         XCTAssertTrue(pad.waitForExistence(timeout: timeout), "Expected scoring pad key '\(padKeyIdentifier)'")
         let banner = botThrowingBanner(in: app)
         if banner.waitForExistence(timeout: 2) {
@@ -67,7 +67,7 @@ extension DartBuddyUITestCase {
         selectPlayerFromRoster("Alice", in: app, timeout: timeout)
         addEasyBot(from: app, timeout: timeout)
         tapStartMatch(in: app, timeout: timeout + 10)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 10))
+        waitForCricketMatchBoard(in: app, timeout: timeout + 15)
     }
 
     func submitX01MissVisitAndInterruptWithExitStay(
@@ -158,10 +158,6 @@ extension DartBuddyUITestCase {
                 line: line
             )
         }
-    }
-
-    func rotateToLandscapeLeftForTest(app: XCUIApplication, timeout: TimeInterval = 5) {
-        rotateToLandscapeLeft(for: app, timeout: timeout)
     }
 
     func assertActiveScoreCardNamesBot(in app: XCUIApplication, timeout: TimeInterval = 10) {

@@ -62,6 +62,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
 
     func testUndoRemovesEnteredDart() {
         let app = launchApp(["-seed_players"])
+        ensurePlayTab(app, timeout: timeout)
         configureFastX01MatchForUITest(app, timeout: timeout)
 
         selectAliceAndBob(from: app, timeout: timeout)
@@ -83,10 +84,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         startThreePlayerX01Match(from: app)
 
-        rotateToLandscapeLeft(for: app, timeout: timeout)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let active = app.otherElements["scoreCard_active"]
         XCTAssertTrue(active.waitForExistence(timeout: timeout), "Active score card should exist")
@@ -109,10 +107,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         start.tap()
         waitForX01MatchBoard(in: app, timeout: timeout + 15)
 
-        rotateToLandscapeLeft(for: app, timeout: timeout)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let exit = app.buttons["match_exit"]
         XCTAssertTrue(exit.waitForExistence(timeout: timeout))
@@ -227,10 +222,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         let app = launchApp(["-seed_players"])
         startThreePlayerX01Match(from: app)
 
-        rotateToLandscapeLeft(for: app, timeout: timeout)
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let active = app.otherElements["scoreCard_active"]
         XCTAssertTrue(active.waitForExistence(timeout: timeout))

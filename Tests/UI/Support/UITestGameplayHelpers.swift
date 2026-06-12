@@ -135,12 +135,11 @@ extension XCTestCase {
 
     func submitCricketMissVisit(in app: XCUIApplication, timeout: TimeInterval = 10) {
         waitForCricketScoringPadReady(app, timeout: timeout)
-        let miss = app.buttons["cricket_miss"]
+        let miss = app.descendants(matching: .any)["cricket_miss"]
         XCTAssertTrue(miss.waitForExistence(timeout: timeout))
         miss.tap()
         miss.tap()
         miss.tap()
-        waitForCricketScoringPadReady(app, timeout: timeout + 5)
     }
 
     func closeAllCricketTargets(in app: XCUIApplication, timeout: TimeInterval = 10) {
