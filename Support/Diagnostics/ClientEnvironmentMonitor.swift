@@ -10,6 +10,7 @@ enum ClientEnvironmentMonitor {
     private static var observers: [NSObjectProtocol] = []
 
     static func startReportingChanges(using logger: any AppLogger) {
+        guard !ProcessInfo.processInfo.arguments.contains("-ui_test_reset") else { return }
         guard observers.isEmpty else { return }
 
         lastSnapshot = ClientEnvironment.snapshot
