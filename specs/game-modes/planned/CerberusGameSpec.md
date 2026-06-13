@@ -4,10 +4,11 @@
 
 Define **Cerberus** — cooperative PvE where **2–3 humans** each damage an assigned **boss head** (segments 20, 16, 12) per round. When any head is destroyed, Cerberus **bites** the shared team life pool.
 
-**Status:** Planned (`party.cerberus`).  
+**Status:** Planned (`coop.cerberus`).  
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §36.
 
 **Related specs:**
+- [`CoopPvEModesSpec.md`](../../CoopPvEModesSpec.md) — shared co-op platform
 - [`RaidGameSpec.md`](RaidGameSpec.md) — co-op boss UI, team summary, enrage patterns
 - [`BotOpponentSpec.md`](../../BotOpponentSpec.md) — Cerberus as non-throwing boss entity
 - [`MatchSpec.md`](../../MatchSpec.md) — lifecycle, resume, abandon
@@ -19,11 +20,11 @@ Define **Cerberus** — cooperative PvE where **2–3 humans** each damage an as
 
 | Field | Value |
 |-------|-------|
-| **Section** | Party |
+| **Section** | Co-op |
 | **UI template** | G + `roleSplit` — tri-head boss + role assignment |
 | **Stat kind** | `bossRaid` (extends; heads cleared, bites survived) |
 | **Ruleset (v1)** | `cerberus_standard` |
-| **Catalog id** | `party.cerberus` |
+| **Catalog id** | `coop.cerberus` |
 | **MatchType** | `cerberus` (when implemented) |
 
 **Display name:** Cerberus  

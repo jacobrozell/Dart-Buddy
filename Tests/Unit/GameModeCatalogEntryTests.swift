@@ -84,10 +84,8 @@ struct GameModeCatalogEntryTests {
 
     @Test
     func plannedModesUseSectionAccentFallback() {
-        let plannedStandard = GameModeCatalog.planned.first { $0.section == .standard }
         let plannedParty = GameModeCatalog.planned.first { $0.section == .party }
         let plannedPractice = GameModeCatalog.planned.first { $0.section == .practice }
-        #expect(plannedStandard != nil)
         #expect(plannedParty != nil)
         #expect(plannedPractice != nil)
     }
@@ -129,6 +127,43 @@ struct GameModeCatalogEntryTests {
         // The roster-skip fork is reserved for true solo drills (max one player).
         for entry in GameModeCatalog.all where entry.isSolo {
             #expect(entry.uiTemplate == .soloChallenge)
+        }
+    }
+
+    @Test
+    func rulesGuideAvailabilityMatchesCatalog() throws {
+        let x01 = try #require(GameModeCatalog.entry(for: .x01))
+        let americanCricket = try #require(GameModeCatalog.entry(for: .americanCricket))
+        let golf = try #require(GameModeCatalog.entry(for: .golf))
+
+        #expect(x01.hasRulesGuide)
+        #expect(americanCricket.hasRulesGuide)
+        #expect(golf.hasRulesGuide)
+    }
+
+    @Test
+    func plannedCoopRaidIsShippedWithRulesGuide() throws {
+        let raid = try #require(GameModeCatalog.entry(for: "coop.raid"))
+        #expect(raid.matchType == .raid)
+        #expect(raid.isAvailable)
+        #expect(raid.hasRulesGuide)
+        #expect(GameRulesCatalog.hasGuide(for: .raid))
+    }
+
+    @Test
+    func otherPlannedCoopModesLackPreviewRulesGuides() throws {
+        for id in ["coop.cerberus", "coop.theVault", "coop.clearTheBoard"] {
+            let entry = try #require(GameModeCatalog.entry(for: id))
+            #expect(!entry.hasRulesGuide)
+        }
+    }
+
+    @Test
+    func coopPlannedModesUseAmberSectionAccent() throws {
+        for id in ["coop.raid", "coop.cerberus", "coop.theVault", "coop.clearTheBoard"] {
+            let entry = try #require(GameModeCatalog.entry(for: id))
+            #expect(entry.section == .coop)
+            #expect(entry.accentColor == Brand.amber)
         }
     }
 }

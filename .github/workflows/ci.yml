@@ -22,6 +22,28 @@ env:
   SIM_DESTINATION: platform=iOS Simulator,name=iPhone 17
 
 jobs:
+  lint:
+    name: SwiftLint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      image: ghcr.io/realm/swiftlint:0.57.1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Lint
+        run: swiftlint lint --reporter github-actions-logging
+
+      - name: Block Firebase plist secrets
+        run: |
+          tracked=$(git ls-files '**/GoogleService-Info.plist' | grep -v '\.example$' || true)
+          if [ -n "$tracked" ]; then
+            echo "::error::Tracked GoogleService-Info.plist must stay gitignored: $tracked"
+            exit 1
+          fi
+
   build:
     name: Build for Testing
     runs-on: macos-26

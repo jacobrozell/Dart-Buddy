@@ -117,7 +117,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
         let isInProgress = session.runtime.status == .inProgress
         let showsRoundColumn = state.players.count < 6 && !state.isComplete
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
             let roundPreview = showsRoundColumn
                 ? previewRoundPoints(for: player, playerIndex: index, isActive: isActive, state: state)
@@ -197,10 +197,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
     }
 
     private func isPlayerLeading(playerIndex: Int, state: ShanghaiState) -> Bool {
-        let maxPoints = state.players.map(\.cumulativePoints).max() ?? 0
-        guard maxPoints > 0 else { return false }
-        let leaderCount = state.players.filter { $0.cumulativePoints == maxPoints }.count
-        return leaderCount == 1 && state.players[playerIndex].cumulativePoints == maxPoints
+        MatchTurnSupport.isUniqueLeader(scores: state.players.map(\.cumulativePoints), index: playerIndex)
     }
 
     private func previewRoundPoints(
@@ -230,10 +227,6 @@ final class ShanghaiMatchViewModel: ObservableObject {
         case .double: return target * 2
         case .triple: return target * 3
         }
-    }
-
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {
@@ -291,21 +284,11 @@ final class ShanghaiMatchViewModel: ObservableObject {
             existingCount: partialVisitCount
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-        for dart in dartsToReveal {
-            do {
-                try await Task.sleep(nanoseconds: dartDelay)
-            } catch {
-                return false
-            }
-            enteredDarts.append(dart)
-        }
-
-        do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        } catch {
-            return false
-        }
+        guard await BotVisitPlayback.revealVisit(
+            dartsToReveal,
+            feedbackPreferences: feedbackPreferences,
+            append: { enteredDarts.append($0) }
+        ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
         return currentBotSkillProfile != nil && state == .readyTurn
@@ -341,7 +324,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
                 if event.achievedShanghai {
                     postAccessibilityAnnouncement(L10n.string("play.shanghai.achieved"))
                     state = .shanghaiFeedback
-                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementTransitionNanoseconds)
                 }
             }
             if updated.runtime.status == .completed {
@@ -419,31 +402,21 @@ final class ShanghaiMatchViewModel: ObservableObject {
 
     func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "shanghai.error.sessionMissing"))
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .shanghai,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "shanghai.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 
@@ -460,8 +433,4 @@ extension ShanghaiMatchViewModel: MatchPlaySessionHost {
     var hostMatchStore: ActiveMatchStore { store }
     var hostMatchLogger: any AppLogger { logger }
     var hostMatchType: MatchType { .shanghai }
-}
-
-private func postAccessibilityAnnouncement(_ text: String) {
-    UIAccessibility.post(notification: .announcement, argument: text)
 }

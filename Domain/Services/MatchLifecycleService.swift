@@ -7,6 +7,26 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case killerPick(KillerPickEvent)
     case killerTurn(KillerTurnEvent)
     case shanghaiTurn(ShanghaiTurnEvent)
+    case americanCricketTurn(AmericanCricketTurnEvent)
+    case mickeyMouseTurn(MickeyMouseTurnEvent)
+    case mulliganTurn(MulliganTurnEvent)
+    case englishCricketTurn(EnglishCricketTurnEvent)
+    case knockoutTurn(KnockoutTurnEvent)
+    case suddenDeathTurn(SuddenDeathTurnEvent)
+    case fiftyOneByFivesTurn(FiftyOneByFivesTurnEvent)
+    case golfTurn(GolfTurnEvent)
+    case footballTurn(FootballTurnEvent)
+    case grandNationalTurn(GrandNationalTurnEvent)
+    case hareAndHoundsTurn(HareAndHoundsTurnEvent)
+    case aroundTheClockTurn(AroundTheClockTurnEvent)
+    case aroundTheClock180Turn(AroundTheClock180TurnEvent)
+    case chaseTheDragonTurn(ChaseTheDragonTurnEvent)
+    case nineLivesTurn(NineLivesTurnEvent)
+    case fleetPlacement(FleetPlacementEvent)
+    case fleetPlacementUI(FleetPlacementUIEvent)
+    case fleetSonar(FleetSonarEvent)
+    case fleetDart(FleetDartEvent)
+    case raidVisit(RaidVisitEvent)
 
     private enum CodingKeys: String, CodingKey {
         case kind
@@ -16,6 +36,26 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case killerPick
         case killerTurn
         case shanghai
+        case americanCricket
+        case mickeyMouse
+        case mulligan
+        case englishCricket
+        case knockout
+        case suddenDeath
+        case fiftyOneByFives
+        case golf
+        case football
+        case grandNational
+        case hareAndHounds
+        case aroundTheClock
+        case aroundTheClock180
+        case chaseTheDragon
+        case nineLives
+        case fleetPlacement
+        case fleetPlacementUI
+        case fleetSonar
+        case fleetDart
+        case raidVisit
     }
 
     private enum Kind: String, Codable {
@@ -25,6 +65,26 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case killerPick
         case killerTurn
         case shanghaiTurn
+        case americanCricketTurn
+        case mickeyMouseTurn
+        case mulliganTurn
+        case englishCricketTurn
+        case knockoutTurn
+        case suddenDeathTurn
+        case fiftyOneByFivesTurn
+        case golfTurn
+        case footballTurn
+        case grandNationalTurn
+        case hareAndHoundsTurn
+        case aroundTheClockTurn
+        case aroundTheClock180Turn
+        case chaseTheDragonTurn
+        case nineLivesTurn
+        case fleetPlacement
+        case fleetPlacementUI
+        case fleetSonar
+        case fleetDart
+        case raidVisit
     }
 
     public init(from decoder: any Decoder) throws {
@@ -43,6 +103,46 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .killerTurn(try container.decode(KillerTurnEvent.self, forKey: .killerTurn))
         case .shanghaiTurn:
             self = .shanghaiTurn(try container.decode(ShanghaiTurnEvent.self, forKey: .shanghai))
+        case .americanCricketTurn:
+            self = .americanCricketTurn(try container.decode(AmericanCricketTurnEvent.self, forKey: .americanCricket))
+        case .mickeyMouseTurn:
+            self = .mickeyMouseTurn(try container.decode(MickeyMouseTurnEvent.self, forKey: .mickeyMouse))
+        case .mulliganTurn:
+            self = .mulliganTurn(try container.decode(MulliganTurnEvent.self, forKey: .mulligan))
+        case .englishCricketTurn:
+            self = .englishCricketTurn(try container.decode(EnglishCricketTurnEvent.self, forKey: .englishCricket))
+        case .knockoutTurn:
+            self = .knockoutTurn(try container.decode(KnockoutTurnEvent.self, forKey: .knockout))
+        case .suddenDeathTurn:
+            self = .suddenDeathTurn(try container.decode(SuddenDeathTurnEvent.self, forKey: .suddenDeath))
+        case .fiftyOneByFivesTurn:
+            self = .fiftyOneByFivesTurn(try container.decode(FiftyOneByFivesTurnEvent.self, forKey: .fiftyOneByFives))
+        case .golfTurn:
+            self = .golfTurn(try container.decode(GolfTurnEvent.self, forKey: .golf))
+        case .footballTurn:
+            self = .footballTurn(try container.decode(FootballTurnEvent.self, forKey: .football))
+        case .grandNationalTurn:
+            self = .grandNationalTurn(try container.decode(GrandNationalTurnEvent.self, forKey: .grandNational))
+        case .hareAndHoundsTurn:
+            self = .hareAndHoundsTurn(try container.decode(HareAndHoundsTurnEvent.self, forKey: .hareAndHounds))
+        case .aroundTheClockTurn:
+            self = .aroundTheClockTurn(try container.decode(AroundTheClockTurnEvent.self, forKey: .aroundTheClock))
+        case .aroundTheClock180Turn:
+            self = .aroundTheClock180Turn(try container.decode(AroundTheClock180TurnEvent.self, forKey: .aroundTheClock180))
+        case .chaseTheDragonTurn:
+            self = .chaseTheDragonTurn(try container.decode(ChaseTheDragonTurnEvent.self, forKey: .chaseTheDragon))
+        case .nineLivesTurn:
+            self = .nineLivesTurn(try container.decode(NineLivesTurnEvent.self, forKey: .nineLives))
+        case .fleetPlacement:
+            self = .fleetPlacement(try container.decode(FleetPlacementEvent.self, forKey: .fleetPlacement))
+        case .fleetPlacementUI:
+            self = .fleetPlacementUI(try container.decode(FleetPlacementUIEvent.self, forKey: .fleetPlacementUI))
+        case .fleetSonar:
+            self = .fleetSonar(try container.decode(FleetSonarEvent.self, forKey: .fleetSonar))
+        case .fleetDart:
+            self = .fleetDart(try container.decode(FleetDartEvent.self, forKey: .fleetDart))
+        case .raidVisit:
+            self = .raidVisit(try container.decode(RaidVisitEvent.self, forKey: .raidVisit))
         }
     }
 
@@ -67,6 +167,66 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .shanghaiTurn(event):
             try container.encode(Kind.shanghaiTurn, forKey: .kind)
             try container.encode(event, forKey: .shanghai)
+        case let .americanCricketTurn(event):
+            try container.encode(Kind.americanCricketTurn, forKey: .kind)
+            try container.encode(event, forKey: .americanCricket)
+        case let .mickeyMouseTurn(event):
+            try container.encode(Kind.mickeyMouseTurn, forKey: .kind)
+            try container.encode(event, forKey: .mickeyMouse)
+        case let .mulliganTurn(event):
+            try container.encode(Kind.mulliganTurn, forKey: .kind)
+            try container.encode(event, forKey: .mulligan)
+        case let .englishCricketTurn(event):
+            try container.encode(Kind.englishCricketTurn, forKey: .kind)
+            try container.encode(event, forKey: .englishCricket)
+        case let .knockoutTurn(event):
+            try container.encode(Kind.knockoutTurn, forKey: .kind)
+            try container.encode(event, forKey: .knockout)
+        case let .suddenDeathTurn(event):
+            try container.encode(Kind.suddenDeathTurn, forKey: .kind)
+            try container.encode(event, forKey: .suddenDeath)
+        case let .fiftyOneByFivesTurn(event):
+            try container.encode(Kind.fiftyOneByFivesTurn, forKey: .kind)
+            try container.encode(event, forKey: .fiftyOneByFives)
+        case let .golfTurn(event):
+            try container.encode(Kind.golfTurn, forKey: .kind)
+            try container.encode(event, forKey: .golf)
+        case let .footballTurn(event):
+            try container.encode(Kind.footballTurn, forKey: .kind)
+            try container.encode(event, forKey: .football)
+        case let .grandNationalTurn(event):
+            try container.encode(Kind.grandNationalTurn, forKey: .kind)
+            try container.encode(event, forKey: .grandNational)
+        case let .hareAndHoundsTurn(event):
+            try container.encode(Kind.hareAndHoundsTurn, forKey: .kind)
+            try container.encode(event, forKey: .hareAndHounds)
+        case let .aroundTheClockTurn(event):
+            try container.encode(Kind.aroundTheClockTurn, forKey: .kind)
+            try container.encode(event, forKey: .aroundTheClock)
+        case let .aroundTheClock180Turn(event):
+            try container.encode(Kind.aroundTheClock180Turn, forKey: .kind)
+            try container.encode(event, forKey: .aroundTheClock180)
+        case let .chaseTheDragonTurn(event):
+            try container.encode(Kind.chaseTheDragonTurn, forKey: .kind)
+            try container.encode(event, forKey: .chaseTheDragon)
+        case let .nineLivesTurn(event):
+            try container.encode(Kind.nineLivesTurn, forKey: .kind)
+            try container.encode(event, forKey: .nineLives)
+        case let .fleetPlacement(event):
+            try container.encode(Kind.fleetPlacement, forKey: .kind)
+            try container.encode(event, forKey: .fleetPlacement)
+        case let .fleetPlacementUI(event):
+            try container.encode(Kind.fleetPlacementUI, forKey: .kind)
+            try container.encode(event, forKey: .fleetPlacementUI)
+        case let .fleetSonar(event):
+            try container.encode(Kind.fleetSonar, forKey: .kind)
+            try container.encode(event, forKey: .fleetSonar)
+        case let .fleetDart(event):
+            try container.encode(Kind.fleetDart, forKey: .kind)
+            try container.encode(event, forKey: .fleetDart)
+        case let .raidVisit(event):
+            try container.encode(Kind.raidVisit, forKey: .kind)
+            try container.encode(event, forKey: .raidVisit)
         }
     }
 }
@@ -104,6 +264,23 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var baseballState: BaseballState?
     public var killerState: KillerState?
     public var shanghaiState: ShanghaiState?
+    public var americanCricketState: AmericanCricketState?
+    public var mickeyMouseState: MickeyMouseState?
+    public var mulliganState: MulliganState?
+    public var englishCricketState: EnglishCricketState?
+    public var knockoutState: KnockoutState?
+    public var suddenDeathState: SuddenDeathState?
+    public var fiftyOneByFivesState: FiftyOneByFivesState?
+    public var golfState: GolfState?
+    public var footballState: FootballState?
+    public var grandNationalState: GrandNationalState?
+    public var hareAndHoundsState: HareAndHoundsState?
+    public var aroundTheClockState: AroundTheClockState?
+    public var aroundTheClock180State: AroundTheClock180State?
+    public var chaseTheDragonState: ChaseTheDragonState?
+    public var nineLivesState: NineLivesState?
+    public var fleetState: FleetState?
+    public var raidState: RaidState?
 }
 
 public struct MatchLifecycleSession: Sendable {
@@ -121,6 +298,10 @@ public struct UndoLastDartResult: Sendable {
 public enum MatchLifecycleService {
     public static let snapshotInterval = 3
 
+    private static let soloPracticeMatchTypes: Set<MatchType> = [
+        .x01, .aroundTheClock, .aroundTheClock180, .chaseTheDragon
+    ]
+
     public static func createMatch(
         matchId: UUID = UUID(),
         type: MatchType,
@@ -128,8 +309,7 @@ public enum MatchLifecycleService {
         participants: [MatchParticipant],
         startedAt: Date = Date()
     ) throws -> MatchLifecycleSession {
-        // X01 supports solo practice (one player); every other mode needs at least two.
-        let minimumParticipants = type == .x01 ? 1 : 2
+        let minimumParticipants = soloPracticeMatchTypes.contains(type) ? 1 : 2
         guard participants.count >= minimumParticipants else {
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.players.minimum")
         }
@@ -153,7 +333,24 @@ public enum MatchLifecycleService {
             cricketState: nil,
             baseballState: nil,
             killerState: nil,
-            shanghaiState: nil
+            shanghaiState: nil,
+            americanCricketState: nil,
+            mickeyMouseState: nil,
+            mulliganState: nil,
+            englishCricketState: nil,
+            knockoutState: nil,
+            suddenDeathState: nil,
+            fiftyOneByFivesState: nil,
+            golfState: nil,
+            footballState: nil,
+            grandNationalState: nil,
+            hareAndHoundsState: nil,
+            aroundTheClockState: nil,
+            aroundTheClock180State: nil,
+            chaseTheDragonState: nil,
+            nineLivesState: nil,
+            fleetState: nil,
+            raidState: nil
         )
 
         switch (type, config) {
@@ -167,10 +364,45 @@ public enum MatchLifecycleService {
             runtime.killerState = try KillerEngine.makeInitialState(config: cfg, playerIds: playerIds)
         case let (.shanghai, .shanghai(cfg)):
             runtime.shanghaiState = try ShanghaiEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.americanCricket, .americanCricket(cfg)):
+            runtime.americanCricketState = try AmericanCricketEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.mickeyMouse, .mickeyMouse(cfg)):
+            runtime.mickeyMouseState = try MickeyMouseEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.mulligan, .mulligan(cfg)):
+            runtime.mulliganState = try MulliganEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.englishCricket, .englishCricket(cfg)):
+            runtime.englishCricketState = try EnglishCricketEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.knockout, .knockout(cfg)):
+            runtime.knockoutState = try KnockoutEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.suddenDeath, .suddenDeath(cfg)):
+            runtime.suddenDeathState = try SuddenDeathEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.fiftyOneByFives, .fiftyOneByFives(cfg)):
+            runtime.fiftyOneByFivesState = try FiftyOneByFivesEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.golf, .golf(cfg)):
+            runtime.golfState = try GolfEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.football, .football(cfg)):
+            runtime.footballState = try FootballEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.grandNational, .grandNational(cfg)):
+            runtime.grandNationalState = try GrandNationalEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.hareAndHounds, .hareAndHounds(cfg)):
+            runtime.hareAndHoundsState = try HareAndHoundsEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.aroundTheClock, .aroundTheClock(cfg)):
+            runtime.aroundTheClockState = try AroundTheClockEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.aroundTheClock180, .aroundTheClock180(cfg)):
+            runtime.aroundTheClock180State = try AroundTheClock180Engine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.chaseTheDragon, .chaseTheDragon(cfg)):
+            runtime.chaseTheDragonState = try ChaseTheDragonEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.nineLives, .nineLives(cfg)):
+            runtime.nineLivesState = try NineLivesEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.fleet, .fleet(cfg)):
+            runtime.fleetState = try FleetEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.raid, .raid(cfg)):
+            runtime.raidState = try RaidEngine.makeInitialState(config: cfg, playerIds: playerIds)
         default:
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
 
+        projectRuntime(&runtime, timestamp: startedAt)
         let initialSnapshot = try makeSnapshot(from: runtime, eventCount: 0, timestamp: startedAt)
         return MatchLifecycleSession(runtime: runtime, events: [], latestSnapshot: initialSnapshot)
     }
@@ -278,7 +510,9 @@ public enum MatchLifecycleService {
             payload: .x01Turn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: x01State, cricketState: nil, baseballState: nil, killerState: nil, shanghaiState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.x01State = x01State
+        }
     }
 
     public static func submitCricketTurn(
@@ -296,7 +530,9 @@ public enum MatchLifecycleService {
             payload: .cricketTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: cricketState, baseballState: nil, killerState: nil, shanghaiState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.cricketState = cricketState
+        }
     }
 
     public static func submitBaseballTurn(
@@ -314,7 +550,9 @@ public enum MatchLifecycleService {
             payload: .baseballTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: baseballState, killerState: nil, shanghaiState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.baseballState = baseballState
+        }
     }
 
     public static func submitKillerPick(
@@ -332,7 +570,9 @@ public enum MatchLifecycleService {
             payload: .killerPick(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, shanghaiState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.killerState = killerState
+        }
     }
 
     public static func submitKillerTurn(
@@ -350,7 +590,9 @@ public enum MatchLifecycleService {
             payload: .killerTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: killerState, shanghaiState: nil, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.killerState = killerState
+        }
     }
 
     public static func submitShanghaiTurn(
@@ -368,7 +610,471 @@ public enum MatchLifecycleService {
             payload: .shanghaiTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, x01State: nil, cricketState: nil, baseballState: nil, killerState: nil, shanghaiState: shanghaiState, timestamp: timestamp)
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.shanghaiState = shanghaiState
+        }
+    }
+
+    public static func submitAmericanCricketTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.americanCricketState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.americanCricketUnavailable")
+        }
+        let outcome = try AmericanCricketEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .americanCricketTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.americanCricketState = state
+        }
+    }
+
+    public static func submitMickeyMouseTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.mickeyMouseState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.mickeyMouseUnavailable")
+        }
+        let outcome = try MickeyMouseEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .mickeyMouseTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.mickeyMouseState = state
+        }
+    }
+
+    public static func submitMulliganTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.mulliganState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.mulliganUnavailable")
+        }
+        let outcome = try MulliganEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .mulliganTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.mulliganState = state
+        }
+    }
+
+    public static func submitEnglishCricketTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.englishCricketState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.englishCricketUnavailable")
+        }
+        let outcome = try EnglishCricketEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .englishCricketTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.englishCricketState = state
+        }
+    }
+
+    public static func submitKnockoutTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.knockoutState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.knockoutUnavailable")
+        }
+        let outcome = try KnockoutEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .knockoutTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.knockoutState = state
+        }
+    }
+
+    public static func submitSuddenDeathTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.suddenDeathState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.suddenDeathUnavailable")
+        }
+        let outcome = try SuddenDeathEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .suddenDeathTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.suddenDeathState = state
+        }
+    }
+
+    public static func submitFiftyOneByFivesTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fiftyOneByFivesState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.fiftyOneByFivesUnavailable")
+        }
+        let outcome = try FiftyOneByFivesEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fiftyOneByFivesTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.fiftyOneByFivesState = state
+        }
+    }
+
+    public static func submitGolfTurn(
+        session: MatchLifecycleSession,
+        input: GolfTurnInput,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.golfState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.golfUnavailable")
+        }
+        let outcome = try GolfEngine.submitTurn(state: state, input: input, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .golfTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.golfState = state
+        }
+    }
+
+    public static func submitFootballTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.footballState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.footballUnavailable")
+        }
+        let outcome = try FootballEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .footballTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.footballState = state
+        }
+    }
+
+    public static func submitGrandNationalTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.grandNationalState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.grandNationalUnavailable")
+        }
+        let outcome = try GrandNationalEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .grandNationalTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.grandNationalState = state
+        }
+    }
+
+    public static func submitHareAndHoundsTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.hareAndHoundsState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.hareAndHoundsUnavailable")
+        }
+        let outcome = try HareAndHoundsEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .hareAndHoundsTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.hareAndHoundsState = state
+        }
+    }
+
+    public static func submitAroundTheClockTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.aroundTheClockState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.aroundTheClockUnavailable")
+        }
+        let outcome = try AroundTheClockEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .aroundTheClockTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.aroundTheClockState = state
+        }
+    }
+
+    public static func submitAroundTheClock180Turn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.aroundTheClock180State else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.aroundTheClock180Unavailable")
+        }
+        let outcome = try AroundTheClock180Engine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .aroundTheClock180Turn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.aroundTheClock180State = state
+        }
+    }
+
+    public static func submitChaseTheDragonTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.chaseTheDragonState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.chaseTheDragonUnavailable")
+        }
+        let outcome = try ChaseTheDragonEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .chaseTheDragonTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.chaseTheDragonState = state
+        }
+    }
+
+    public static func submitNineLivesTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.nineLivesState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.nineLivesUnavailable")
+        }
+        let outcome = try NineLivesEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .nineLivesTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.nineLivesState = state
+        }
+    }
+
+    public static func submitRaidVisit(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.raidState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.raidUnavailable")
+        }
+        let outcome = try RaidEngine.submitVisit(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .raidVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.raidState = state
+        }
+    }
+
+    public static func confirmFleetHandoff(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        let (updatedState, uiEvent) = try FleetEngine.confirmHandoff(state: state, playerId: playerId, timestamp: timestamp)
+        state = updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacementUI(uiEvent),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    public static func confirmFleetPassDevice(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        let (updatedState, uiEvent) = try FleetEngine.confirmPassDevice(state: state, playerId: playerId, timestamp: timestamp)
+        state = updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacementUI(uiEvent),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    public static func toggleFleetPlacementCell(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        cell: FleetBoardCell
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.togglePlacementCell(state: state, playerId: playerId, cell: cell)
+        var updated = session
+        updated.runtime.fleetState = state
+        return updated
+    }
+
+    public static func clearFleetPlacement(
+        session: MatchLifecycleSession,
+        playerId: UUID
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.clearPlacement(state: state, playerId: playerId)
+        var updated = session
+        updated.runtime.fleetState = state
+        return updated
+    }
+
+    public static func submitFleetPlacementLock(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        let outcome = try FleetEngine.lockPlacement(state: state, playerId: playerId, timestamp: timestamp)
+        state = outcome.updatedState
+        let placementEnvelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacement(outcome.event),
+            timestamp: timestamp
+        )
+        var updated = try appendAndProject(session: session, newEvent: placementEnvelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+        if let uiEvent = outcome.uiEvent {
+            let uiEnvelope = MatchEventEnvelope(
+                eventIndex: updated.runtime.eventCount,
+                payload: .fleetPlacementUI(uiEvent),
+                timestamp: timestamp
+            )
+            updated = try appendAndProject(session: updated, newEvent: uiEnvelope, timestamp: timestamp) { runtime in
+                runtime.fleetState = state
+            }
+        }
+        return updated
+    }
+
+    public static func submitFleetSonar(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        cell: FleetBoardCell,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        let outcome = try FleetEngine.useSonar(state: state, playerId: playerId, cell: cell, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetSonar(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    public static func submitFleetDart(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        callCell: FleetBoardCell,
+        dart: DartInput,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.setCall(state: state, playerId: playerId, cell: callCell)
+        let outcome = try FleetEngine.submitDart(state: state, playerId: playerId, dart: dart, timestamp: timestamp)
+        state = outcome.updatedState
+        let dartEnvelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetDart(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: dartEnvelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
     }
 
     public static func undoLastTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
@@ -424,39 +1130,54 @@ public enum MatchLifecycleService {
         case let .shanghaiTurn(turn):
             guard !turn.darts.isEmpty else { return nil }
             return turn.darts.map(ShanghaiEngine.dartInput(from:))
+        case let .americanCricketTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(AmericanCricketEngine.dartInput(from:))
+        case let .mickeyMouseTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(MickeyMouseEngine.dartInput(from:))
+        case let .mulliganTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(MulliganEngine.dartInput(from:))
+        case let .englishCricketTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(EnglishCricketEngine.dartInput(from:))
+        case let .knockoutTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(KnockoutEngine.dartInput(from:))
+        case let .golfTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(GolfEngine.dartInput(from:))
+        case let .footballTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(FootballEngine.dartInput(from:))
+        case let .aroundTheClock180Turn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(AroundTheClock180Engine.dartInput(from:))
+        case let .chaseTheDragonTurn(turn):
+            guard !turn.darts.isEmpty else { return nil }
+            return turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
+        case .suddenDeathTurn, .fiftyOneByFivesTurn, .grandNationalTurn, .hareAndHoundsTurn,
+             .aroundTheClockTurn, .nineLivesTurn, .raidVisit, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
+             .fleetDart:
+            return nil
         }
     }
 
-    public static func rehydrate(snapshot: MatchSnapshot, tailEvents: [MatchEventEnvelope]) throws -> MatchLifecycleSession {
+    public static func rehydrate(
+        snapshot: MatchSnapshot,
+        tailEvents: [MatchEventEnvelope],
+        persistedEvents: [MatchEventEnvelope] = []
+    ) throws -> MatchLifecycleSession {
         let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.payload)
-        var session = MatchLifecycleSession(runtime: runtime, events: [], latestSnapshot: snapshot)
-        for event in tailEvents {
-            switch event.payload {
-            case let .x01Turn(turn):
-                let darts = turn.darts.map {
-                    DartInput(
-                        multiplier: DartMultiplier(rawValue: $0.multiplierRaw) ?? .single,
-                        segment: mapX01SegmentRaw($0.segmentRaw),
-                        isMiss: $0.wasMiss
-                    )
-                }
-                session = try submitX01Turn(session: session, enteredTotal: turn.enteredTotal, darts: darts, timestamp: event.timestamp)
-            case let .cricketTurn(turn):
-                let darts = turn.targetsTouched.map(CricketEngine.dartInput(from:))
-                session = try submitCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
-            case let .baseballTurn(turn):
-                let darts = turn.darts.map(BaseballEngine.dartInput(from:))
-                session = try submitBaseballTurn(session: session, darts: darts, timestamp: event.timestamp)
-            case let .killerPick(pick):
-                let dart = KillerEngine.dartInput(from: pick)
-                session = try submitKillerPick(session: session, dart: dart, timestamp: event.timestamp)
-            case let .killerTurn(turn):
-                let darts = turn.darts.map(KillerEngine.dartInput(from:))
-                session = try submitKillerTurn(session: session, darts: darts, timestamp: event.timestamp)
-            case let .shanghaiTurn(turn):
-                let darts = turn.darts.map(ShanghaiEngine.dartInput(from:))
-                session = try submitShanghaiTurn(session: session, darts: darts, timestamp: event.timestamp)
-            }
+        let baselineEvents = persistedEvents.filter { $0.eventIndex < snapshot.eventCount }
+        var session = MatchLifecycleSession(
+            runtime: runtime,
+            events: baselineEvents.sorted { $0.eventIndex < $1.eventIndex },
+            latestSnapshot: snapshot
+        )
+        for event in tailEvents.sorted(by: { $0.eventIndex < $1.eventIndex }) {
+            session = try applyEvent(event, to: session)
         }
         return session
     }
@@ -477,55 +1198,139 @@ public enum MatchLifecycleService {
             startedAt: startedAt
         )
         for event in events {
-            switch event.payload {
-            case let .x01Turn(turn):
-                let darts = turn.darts.map {
-                    DartInput(
-                        multiplier: DartMultiplier(rawValue: $0.multiplierRaw) ?? .single,
-                        segment: mapX01SegmentRaw($0.segmentRaw),
-                        isMiss: $0.wasMiss
-                    )
-                }
-                rebuilt = try submitX01Turn(session: rebuilt, enteredTotal: turn.enteredTotal, darts: darts, timestamp: event.timestamp)
-            case let .cricketTurn(turn):
-                let darts = turn.targetsTouched.map(CricketEngine.dartInput(from:))
-                rebuilt = try submitCricketTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
-            case let .baseballTurn(turn):
-                let darts = turn.darts.map(BaseballEngine.dartInput(from:))
-                rebuilt = try submitBaseballTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
-            case let .killerPick(pick):
-                let dart = KillerEngine.dartInput(from: pick)
-                rebuilt = try submitKillerPick(session: rebuilt, dart: dart, timestamp: event.timestamp)
-            case let .killerTurn(turn):
-                let darts = turn.darts.map(KillerEngine.dartInput(from:))
-                rebuilt = try submitKillerTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
-            case let .shanghaiTurn(turn):
-                let darts = turn.darts.map(ShanghaiEngine.dartInput(from:))
-                rebuilt = try submitShanghaiTurn(session: rebuilt, darts: darts, timestamp: event.timestamp)
-            }
+            rebuilt = try applyEvent(event, to: rebuilt)
         }
         return rebuilt
+    }
+
+    private static func applyEvent(_ event: MatchEventEnvelope, to session: MatchLifecycleSession) throws -> MatchLifecycleSession {
+        switch event.payload {
+        case let .x01Turn(turn):
+            let darts = turn.darts.map {
+                DartInput(
+                    multiplier: DartMultiplier(rawValue: $0.multiplierRaw) ?? .single,
+                    segment: mapX01SegmentRaw($0.segmentRaw),
+                    isMiss: $0.wasMiss
+                )
+            }
+            return try submitX01Turn(session: session, enteredTotal: turn.enteredTotal, darts: darts, timestamp: event.timestamp)
+        case let .cricketTurn(turn):
+            let darts = turn.targetsTouched.map(CricketEngine.dartInput(from:))
+            return try submitCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .baseballTurn(turn):
+            let darts = turn.darts.map(BaseballEngine.dartInput(from:))
+            return try submitBaseballTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .killerPick(pick):
+            let dart = KillerEngine.dartInput(from: pick)
+            return try submitKillerPick(session: session, dart: dart, timestamp: event.timestamp)
+        case let .killerTurn(turn):
+            let darts = turn.darts.map(KillerEngine.dartInput(from:))
+            return try submitKillerTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .shanghaiTurn(turn):
+            let darts = turn.darts.map(ShanghaiEngine.dartInput(from:))
+            return try submitShanghaiTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .americanCricketTurn(turn):
+            let darts = turn.darts.map(AmericanCricketEngine.dartInput(from:))
+            return try submitAmericanCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .mickeyMouseTurn(turn):
+            let darts = turn.darts.map(MickeyMouseEngine.dartInput(from:))
+            return try submitMickeyMouseTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .mulliganTurn(turn):
+            let darts = turn.darts.map(MulliganEngine.dartInput(from:))
+            return try submitMulliganTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .englishCricketTurn(turn):
+            let darts = turn.darts.map(EnglishCricketEngine.dartInput(from:))
+            return try submitEnglishCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .knockoutTurn(turn):
+            let darts = turn.darts.map(KnockoutEngine.dartInput(from:))
+            return try submitKnockoutTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .suddenDeathTurn(turn):
+            return try submitSuddenDeathTurn(session: session, darts: suddenDeathReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .fiftyOneByFivesTurn(turn):
+            return try submitFiftyOneByFivesTurn(session: session, darts: fiftyOneByFivesReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .golfTurn(turn):
+            let darts = turn.darts.map(GolfEngine.dartInput(from:))
+            let input = GolfTurnInput(darts: darts, endedEarly: turn.endedEarly)
+            return try submitGolfTurn(session: session, input: input, timestamp: event.timestamp)
+        case let .footballTurn(turn):
+            let darts = turn.darts.map(FootballEngine.dartInput(from:))
+            return try submitFootballTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .grandNationalTurn(turn):
+            return try submitGrandNationalTurn(session: session, darts: grandNationalReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .hareAndHoundsTurn(turn):
+            return try submitHareAndHoundsTurn(session: session, darts: hareAndHoundsReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .aroundTheClockTurn(turn):
+            return try submitAroundTheClockTurn(session: session, darts: aroundTheClockReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .aroundTheClock180Turn(turn):
+            let darts = turn.darts.map(AroundTheClock180Engine.dartInput(from:))
+            return try submitAroundTheClock180Turn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .chaseTheDragonTurn(turn):
+            let darts = turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
+            return try submitChaseTheDragonTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .nineLivesTurn(turn):
+            return try submitNineLivesTurn(session: session, darts: nineLivesReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .raidVisit(visit):
+            let darts = visit.darts.map(RaidEngine.dartInput(from:))
+            return try submitRaidVisit(session: session, darts: darts, timestamp: event.timestamp)
+        case let .fleetPlacement(placement):
+            var updated = session
+            for cell in placement.ships {
+                updated = try toggleFleetPlacementCell(session: updated, playerId: placement.playerId, cell: cell)
+            }
+            return try submitFleetPlacementLock(
+                session: updated,
+                playerId: placement.playerId,
+                timestamp: placement.lockedAt
+            )
+        case let .fleetPlacementUI(ui):
+            switch ui.step {
+            case let .placing(playerId):
+                return try confirmFleetHandoff(session: session, playerId: playerId, timestamp: ui.timestamp)
+            case let .handoff(playerId):
+                return try confirmFleetPassDevice(session: session, playerId: playerId, timestamp: ui.timestamp)
+            case .passDevice, .placementComplete:
+                return try projectFleetUIStep(session: session, ui: ui)
+            }
+        case let .fleetSonar(sonar):
+            return try submitFleetSonar(
+                session: session,
+                playerId: sonar.playerId,
+                cell: sonar.cell,
+                timestamp: sonar.timestamp
+            )
+        case let .fleetDart(dart):
+            return try submitFleetDart(
+                session: session,
+                playerId: dart.playerId,
+                callCell: dart.callCell,
+                dart: fleetReplayDart(for: dart),
+                timestamp: dart.timestamp
+            )
+        }
     }
 
     private static func appendAndProject(
         session: MatchLifecycleSession,
         newEvent: MatchEventEnvelope,
-        x01State: X01State?,
-        cricketState: CricketState?,
-        baseballState: BaseballState?,
-        killerState: KillerState?,
-        shanghaiState: ShanghaiState?,
-        timestamp: Date
+        timestamp: Date,
+        update: (inout MatchRuntimeState) -> Void
     ) throws -> MatchLifecycleSession {
         var runtime = session.runtime
         runtime.eventCount += 1
-        runtime.x01State = x01State ?? runtime.x01State
-        runtime.cricketState = cricketState ?? runtime.cricketState
-        runtime.baseballState = baseballState ?? runtime.baseballState
-        runtime.killerState = killerState ?? runtime.killerState
-        runtime.shanghaiState = shanghaiState ?? runtime.shanghaiState
+        update(&runtime)
+        projectRuntime(&runtime, timestamp: timestamp)
 
-        if let x01State {
+        var events = session.events
+        events.append(newEvent)
+        var snapshot = session.latestSnapshot
+        if runtime.eventCount % snapshotInterval == 0 || runtime.status == .completed {
+            snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
+        }
+        return MatchLifecycleSession(runtime: runtime, events: events, latestSnapshot: snapshot)
+    }
+
+    private static func projectRuntime(_ runtime: inout MatchRuntimeState, timestamp: Date) {
+        if let x01State = runtime.x01State {
             runtime.currentTurnPlayerId = x01State.players[x01State.currentPlayerIndex].playerId
             runtime.currentLegIndex = x01State.legIndex
             runtime.currentSetIndex = x01State.setIndex
@@ -535,8 +1340,9 @@ public enum MatchLifecycleService {
                 runtime.winnerPlayerId = x01State.winnerPlayerId
                 runtime.currentTurnPlayerId = nil
             }
+            return
         }
-        if let cricketState {
+        if let cricketState = runtime.cricketState {
             runtime.currentTurnPlayerId = cricketState.players[cricketState.currentPlayerIndex].playerId
             runtime.currentLegIndex = cricketState.legIndex
             runtime.currentSetIndex = cricketState.setIndex
@@ -546,8 +1352,9 @@ public enum MatchLifecycleService {
                 runtime.winnerPlayerId = cricketState.winnerPlayerId
                 runtime.currentTurnPlayerId = nil
             }
+            return
         }
-        if let baseballState {
+        if let baseballState = runtime.baseballState {
             runtime.currentTurnPlayerId = baseballState.players[baseballState.currentPlayerIndex].playerId
             runtime.currentLegIndex = max(0, baseballState.currentInning - 1)
             runtime.currentSetIndex = 0
@@ -557,8 +1364,9 @@ public enum MatchLifecycleService {
                 runtime.winnerPlayerId = baseballState.winnerPlayerId
                 runtime.currentTurnPlayerId = nil
             }
+            return
         }
-        if let killerState {
+        if let killerState = runtime.killerState {
             if killerState.phase == .numberPick, let pickerId = killerState.pickQueue.first {
                 runtime.currentTurnPlayerId = pickerId
             } else if !killerState.isComplete {
@@ -572,8 +1380,9 @@ public enum MatchLifecycleService {
                 runtime.winnerPlayerId = killerState.winnerPlayerId
                 runtime.currentTurnPlayerId = nil
             }
+            return
         }
-        if let shanghaiState {
+        if let shanghaiState = runtime.shanghaiState {
             runtime.currentTurnPlayerId = shanghaiState.players[shanghaiState.currentPlayerIndex].playerId
             runtime.currentLegIndex = max(0, shanghaiState.currentRound - 1)
             runtime.currentSetIndex = 0
@@ -583,15 +1392,319 @@ public enum MatchLifecycleService {
                 runtime.winnerPlayerId = shanghaiState.winnerPlayerId
                 runtime.currentTurnPlayerId = nil
             }
+            return
         }
+        if let state = runtime.americanCricketState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.mickeyMouseState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.mulliganState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.englishCricketState {
+            runtime.currentTurnPlayerId = state.currentTurnPlayerId
+            runtime.currentLegIndex = state.inningsIndex
+            runtime.currentSetIndex = 0
+            if state.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = state.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
+            return
+        }
+        if let state = runtime.knockoutState {
+            runtime.currentTurnPlayerId = state.players[state.currentPlayerIndex].playerId
+            runtime.currentLegIndex = max(0, state.currentRound - 1)
+            runtime.currentSetIndex = 0
+            if state.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = state.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
+            return
+        }
+        if let state = runtime.suddenDeathState {
+            runtime.currentTurnPlayerId = state.players[state.currentPlayerIndex].playerId
+            runtime.currentLegIndex = max(0, state.currentRound - 1)
+            runtime.currentSetIndex = 0
+            if state.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = state.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
+            return
+        }
+        if let state = runtime.fiftyOneByFivesState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.golfState {
+            runtime.currentTurnPlayerId = state.players[state.currentPlayerIndex].playerId
+            runtime.currentLegIndex = max(0, state.currentHole - 1)
+            runtime.currentSetIndex = 0
+            if state.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = state.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
+            return
+        }
+        if let state = runtime.footballState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.grandNationalState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.hareAndHoundsState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.aroundTheClockState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.aroundTheClock180State {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.chaseTheDragonState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.nineLivesState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.raidState {
+            let currentHero = state.heroes.indices.contains(state.currentHeroIndex)
+                ? state.heroes[state.currentHeroIndex].playerId
+                : nil
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : currentHero,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.fleetState {
+            runtime.currentTurnPlayerId = state.phase == .hunt ? state.currentPlayerId : nil
+            runtime.currentLegIndex = 0
+            runtime.currentSetIndex = 0
+            if state.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = state.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
+        }
+    }
 
-        var events = session.events
-        events.append(newEvent)
-        var snapshot = session.latestSnapshot
-        if runtime.eventCount % snapshotInterval == 0 || runtime.status == .completed {
-            snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
+    private static func projectStandardTurnState(
+        _ runtime: inout MatchRuntimeState,
+        currentTurnPlayerId: UUID?,
+        legIndex: Int = 0,
+        setIndex: Int = 0,
+        isComplete: Bool,
+        winnerPlayerId: UUID?,
+        timestamp: Date
+    ) {
+        runtime.currentTurnPlayerId = currentTurnPlayerId
+        runtime.currentLegIndex = legIndex
+        runtime.currentSetIndex = setIndex
+        if isComplete {
+            runtime.status = .completed
+            runtime.endedAt = timestamp
+            runtime.winnerPlayerId = winnerPlayerId
+            runtime.currentTurnPlayerId = nil
         }
-        return MatchLifecycleSession(runtime: runtime, events: events, latestSnapshot: snapshot)
+    }
+
+    private static func suddenDeathReplayDarts(for turn: SuddenDeathTurnEvent) -> [DartInput] {
+        guard turn.pointsThisVisit > 0 else { return [DartInput(multiplier: .single, segment: .miss, isMiss: true)] }
+        let perDart = turn.pointsThisVisit / 3
+        let remainder = turn.pointsThisVisit % 3
+        return (0 ..< 3).map { index in
+            let points = perDart + (index < remainder ? 1 : 0)
+            guard points > 0 else {
+                return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+            }
+            return DartInput(multiplier: .single, segment: .oneToTwenty(min(20, max(1, points))), isMiss: false)
+        }
+    }
+
+    private static func fiftyOneByFivesReplayDarts(for turn: FiftyOneByFivesTurnEvent) -> [DartInput] {
+        guard turn.rawTotal > 0 else {
+            return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
+        }
+        return synthesizeReplayDarts(forRawTotal: turn.rawTotal)
+    }
+
+    private static func synthesizeReplayDarts(forRawTotal rawTotal: Int) -> [DartInput] {
+        if rawTotal <= 20 {
+            return [DartInput(multiplier: .single, segment: .oneToTwenty(rawTotal), isMiss: false)]
+        }
+        if rawTotal <= 40, rawTotal % 2 == 0 {
+            let segment = rawTotal / 2
+            return [DartInput(multiplier: .double, segment: .oneToTwenty(segment), isMiss: false)]
+        }
+        if rawTotal <= 60, rawTotal % 3 == 0 {
+            let segment = rawTotal / 3
+            return [DartInput(multiplier: .triple, segment: .oneToTwenty(segment), isMiss: false)]
+        }
+        return [DartInput(multiplier: .single, segment: .oneToTwenty(min(20, rawTotal)), isMiss: false)]
+    }
+
+    private static func grandNationalReplayDarts(for turn: GrandNationalTurnEvent) -> [DartInput] {
+        if turn.segmentIndexAfter > turn.segmentIndexBefore {
+            let segment = grandNationalCourseOrder[turn.segmentIndexBefore]
+            return [DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false)]
+        }
+        return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
+    }
+
+    private static func hareAndHoundsReplayDarts(for turn: HareAndHoundsTurnEvent) -> [DartInput] {
+        if turn.positionAfter > turn.positionBefore {
+            let segment = MatchConfigHareAndHounds.clockwiseCourse[turn.positionBefore]
+            return [DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false)]
+        }
+        return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
+    }
+
+    private static func aroundTheClockReplayDarts(for turn: AroundTheClockTurnEvent) -> [DartInput] {
+        if turn.targetAfter > turn.targetBefore {
+            let segment: DartSegment
+            if turn.targetBefore < 20 {
+                segment = .oneToTwenty(turn.targetBefore + 1)
+            } else {
+                segment = .outerBull
+            }
+            return [DartInput(multiplier: .single, segment: segment, isMiss: false)]
+        }
+        return Array(
+            repeating: DartInput(multiplier: .single, segment: .miss, isMiss: true),
+            count: max(1, turn.dartsThrown)
+        )
+    }
+
+    private static func nineLivesReplayDarts(for turn: NineLivesTurnEvent) -> [DartInput] {
+        if turn.advanced {
+            let target = turn.targetIndexBefore + 1
+            return [DartInput(multiplier: .single, segment: .oneToTwenty(min(20, max(1, target))), isMiss: false)]
+        }
+        return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
+    }
+
+    private static func fleetReplayDart(for event: FleetDartEvent) -> DartInput {
+        FleetEngine.dartInput(from: event)
+    }
+
+    private static func projectFleetUIStep(
+        session: MatchLifecycleSession,
+        ui: FleetPlacementUIEvent
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else { throw fleetUnavailable() }
+        state.placementUIStep = ui.step
+        state.placementAudience = nil
+        if case let .placing(playerId) = ui.step {
+            state.placementAudience = playerId
+        }
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacementUI(ui),
+            timestamp: ui.timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: ui.timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    private static func fleetUnavailable() -> AppError {
+        AppError(
+            code: .invalidGameState,
+            layer: .domain,
+            severity: .error,
+            isRecoverable: true,
+            userMessageKey: "error.match.mode.fleetUnavailable"
+        )
     }
 
     private static func makeSnapshot(from runtime: MatchRuntimeState, eventCount: Int, timestamp: Date) throws -> MatchSnapshot {

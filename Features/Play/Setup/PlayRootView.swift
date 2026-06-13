@@ -86,6 +86,38 @@ struct PlayRootView: View {
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                case let .americanCricketMatch(matchId),
+                     let .mickeyMouseMatch(matchId),
+                     let .mulliganMatch(matchId),
+                     let .englishCricketMatch(matchId),
+                     let .knockoutMatch(matchId),
+                     let .suddenDeathMatch(matchId),
+                     let .fiftyOneByFivesMatch(matchId),
+                     let .golfMatch(matchId),
+                     let .footballMatch(matchId),
+                     let .grandNationalMatch(matchId),
+                     let .hareAndHoundsMatch(matchId),
+                     let .aroundTheClockMatch(matchId),
+                     let .aroundTheClock180Match(matchId),
+                     let .chaseTheDragonMatch(matchId),
+                     let .nineLivesMatch(matchId),
+                     let .fleetMatch(matchId),
+                     let .raidMatch(matchId):
+                    PlayMatchRouteView(
+                        route: route,
+                        dependencies: dependencies,
+                        onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
+                    )
+                case .blindKillerMatch,
+                     .followTheLeaderMatch,
+                     .loopMatch,
+                     .prisonerMatch,
+                     .scamMatch,
+                     .snookerMatch,
+                     .ticTacToeMatch,
+                     .bobs27Match,
+                     .halveItMatch:
+                    EmptyView()
                 case let .matchSummary(matchId):
                     MatchSummaryScreen(
                         viewModel: MatchSummaryViewModel(
@@ -212,7 +244,10 @@ private struct X01MatchRouteView: View {
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
-            lifecycleDependencies: lifecycleDependencies
+            lifecycleDependencies: lifecycleDependencies,
+            visionScoringEnabled: dependencies.featureFlags.isEnabled(.enableVisionAutoScoring),
+            visionLogger: dependencies.logger,
+            defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
         )
     }
 }
@@ -252,7 +287,8 @@ private struct CricketMatchRouteView: View {
             haptics: dependencies.hapticsService,
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
-            lifecycleDependencies: lifecycleDependencies
+            lifecycleDependencies: lifecycleDependencies,
+            defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
         )
     }
 }

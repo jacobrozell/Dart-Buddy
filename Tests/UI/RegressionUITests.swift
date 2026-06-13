@@ -100,7 +100,7 @@ final class RegressionUITests: DartBuddyUITestCase {
 
     // MARK: - Landscape pad layout (77a3d1b, a777654, 120f0b2)
 
-    func testX01FullWidthPadKeysReachableInLandscape() {
+    func testX01LandscapePadReachableAndScores() {
         let app = launchForRegression()
         startTwoPlayerX01MatchForRegression(from: app, timeout: timeout)
 
@@ -117,23 +117,14 @@ final class RegressionUITests: DartBuddyUITestCase {
 
         let keyIdentifiers = [
             "pad_20", "pad_19", "pad_18", "pad_17", "pad_16", "pad_15",
-            "pad_25", "pad_0", "pad_double", "pad_triple", "pad_undo"
+            "pad_bull", "pad_0", "pad_double", "pad_triple", "pad_undo"
         ]
         assertScoringKeysBelowPinnedArea(active, in: app, keyIdentifiers: keyIdentifiers, timeout: timeout)
 
         let undo = app.buttons["pad_undo"]
         XCTAssertGreaterThan(undo.frame.height, 28, "Undo should not collapse to a thin bar in landscape")
-    }
 
-    func testX01LandscapeScoringRecordsDartFromWidePad() {
-        let app = launchForRegression()
-        startTwoPlayerX01MatchForRegression(from: app, timeout: timeout)
-
-        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
-
-        let twenty = waitForPadReady(app, timeout: timeout + 10)
-        twenty.tap()
-
+        pad.tap()
         assertActiveScoreCardLabel(app, contains: "81", timeout: timeout)
     }
 

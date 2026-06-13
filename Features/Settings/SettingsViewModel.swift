@@ -71,6 +71,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
         settings = current
@@ -102,6 +103,16 @@ final class SettingsViewModel: ObservableObject {
         queueMutation { await self.persist(current) }
     }
 
+    func updateDartEntryPresentation(_ value: String) async {
+        guard let current = applyDartEntryPresentationDraft(value) else { return }
+        await persist(current)
+    }
+
+    func queueDartEntryPresentationUpdate(_ value: String) {
+        guard let current = applyDartEntryPresentationDraft(value) else { return }
+        queueMutation { await self.persist(current) }
+    }
+
     func updateDefaults(
         matchType: String,
         startScore: Int,
@@ -127,6 +138,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: setsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
         await persist(current)
@@ -233,6 +245,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
         settings = current
@@ -257,6 +270,32 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: stagger ?? current.botStaggerEnabled,
             botDartHapticsEnabled: dartHaptics ?? current.botDartHapticsEnabled,
+            defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
+            updatedAt: Date()
+        )
+        settings = current
+        userPreferencesStore.apply(current)
+        return current
+    }
+
+    private func applyDartEntryPresentationDraft(_ value: String) -> SettingsSummary? {
+        guard var current = settings else { return nil }
+        current = SettingsSummary(
+            id: current.id,
+            appearanceModeRaw: current.appearanceModeRaw,
+            hapticsEnabled: current.hapticsEnabled,
+            soundEnabled: current.soundEnabled,
+            turnTotalCallerEnabled: current.turnTotalCallerEnabled,
+            defaultMatchTypeRaw: current.defaultMatchTypeRaw,
+            defaultX01StartScore: current.defaultX01StartScore,
+            defaultCheckoutModeRaw: current.defaultCheckoutModeRaw,
+            defaultCheckInModeRaw: current.defaultCheckInModeRaw,
+            defaultLegFormatRaw: current.defaultLegFormatRaw,
+            defaultLegsToWin: current.defaultLegsToWin,
+            defaultSetsEnabled: current.defaultSetsEnabled,
+            botStaggerEnabled: current.botStaggerEnabled,
+            botDartHapticsEnabled: current.botDartHapticsEnabled,
+            defaultDartEntryPresentationRaw: DartEntryPresentation(rawValueOrDefault: value).rawValue,
             updatedAt: Date()
         )
         settings = current

@@ -44,13 +44,53 @@ func crashlyticsHonorsDisableFirebaseAnalyticsArgument() {
 }
 
 @Test(.tags(.unit, .regression))
-func appIntentsDisabledByDefault() {
-    let provider = LocalFeatureFlagsProvider(arguments: [])
+func appIntentsEnabledOnDevDebugBuilds() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
     #expect(!provider.isEnabled(.enableAppIntents))
+
+    #if DEBUG
+    let devProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(devProvider.isEnabled(.enableAppIntents))
+    #else
+    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!releaseProvider.isEnabled(.enableAppIntents))
+    #endif
 }
 
 @Test(.tags(.unit, .regression))
 func appIntentsEnabledWithLaunchArgument() {
     let provider = LocalFeatureFlagsProvider(arguments: ["-enable_app_intents"])
     #expect(provider.isEnabled(.enableAppIntents))
+}
+
+@Test(.tags(.unit, .regression))
+func visionAutoScoringEnabledOnDevDebugBuilds() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
+    #expect(!provider.isEnabled(.enableVisionAutoScoring))
+
+    #if DEBUG
+    let devProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(devProvider.isEnabled(.enableVisionAutoScoring))
+    #else
+    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!releaseProvider.isEnabled(.enableVisionAutoScoring))
+    #endif
+}
+
+@Test(.tags(.unit, .regression))
+func visionAutoScoringEnabledWithLaunchArgument() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-enable_vision_scoring"])
+    #expect(provider.isEnabled(.enableVisionAutoScoring))
+}
+
+@Test(.tags(.unit, .regression))
+func achievementsDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!provider.isEnabled(.enableAchievements))
+}
+
+@Test(.tags(.unit, .regression))
+func achievementsEnabledWithLaunchArgument() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-enable_achievements"])
+    #expect(provider.isEnabled(.enableAchievements))
 }

@@ -6,24 +6,33 @@ import XCTest
 /// Manual VoiceOver, contrast, and 4-way appearance evidence remain required for release sign-off.
 final class WCAGAccessibilityUITests: DartBuddyUITestCase {
 
-    // MARK: - R-4.1.2 / P-1.1.1 automated audits (Name, Role, Value)
+    // MARK: - R-4.1.2 / P-1.1.1 + DBX-TARGET-44 combined screen audits
 
-    func testMatchSetupPassesNameRoleValueAudit() throws {
+    func testMatchSetupPassesAccessibilityAudits() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         assertBrandAppTitleVisible(in: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets) { issue in
+            guard issue.auditType == .hitRegion, let element = issue.element else { return false }
+            if element.label.localizedCaseInsensitiveContains("Reorder") {
+                return true
+            }
+            return false
+        }
     }
 
-    func testX01MatchPassesNameRoleValueAudit() throws {
+    func testX01MatchPassesAccessibilityAudits() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         startTwoPlayerX01Match(from: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
-    func testCricketMatchPassesNameRoleValueAudit() throws {
+    func testCricketMatchPassesAccessibilityAudits() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_players"])
         startTwoPlayerCricketMatch(from: app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
     func testBaseballMatchPassesNameRoleValueAudit() throws {
@@ -32,11 +41,12 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
-    func testSettingsPassesNameRoleValueAudit() throws {
+    func testSettingsPassesAccessibilityAudits() throws {
         let app = launchForAccessibility(extraArguments: ["-seed_players", "-ui_test_disable_feedback"])
         ensureSettingsTab(app, timeout: timeout)
         scrollSettingsFormForAudit(app)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
     func testHistoryListPassesNameRoleValueAudit() throws {
@@ -49,33 +59,6 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         let app = launchForAccessibility(extraArguments: ["-seed_demo"])
         ensureActivityStatisticsSegment(app, timeout: timeout)
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
-    }
-
-    // MARK: - DBX-TARGET-44 touch target audits
-
-    func testMatchSetupPassesTouchTargetAudit() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        assertBrandAppTitleVisible(in: app, timeout: timeout)
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets) { issue in
-            guard issue.auditType == .hitRegion, let element = issue.element else { return false }
-            // SwiftUI list reorder grips are system chrome below the 44pt guideline.
-            if element.label.localizedCaseInsensitiveContains("Reorder") {
-                return true
-            }
-            return false
-        }
-    }
-
-    func testX01MatchPassesTouchTargetAudit() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        startTwoPlayerX01Match(from: app, timeout: timeout)
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
-    }
-
-    func testCricketMatchPassesTouchTargetAudit() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        startTwoPlayerCricketMatch(from: app, timeout: timeout)
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
     func testBaseballMatchAccessibilityContract() throws {
@@ -122,6 +105,7 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         assertInteractiveElement(app.buttons["Done"], identifier: "matchSummaryDone")
         assertInteractiveElement(app.buttons["View Game Statistics"], identifier: "View Game Statistics")
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
     func testCheckoutSuggestionAccessibilityAtFinish() {
@@ -237,6 +221,7 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         startTwoPlayerX01Match(from: app, timeout: timeout)
 
         assertInteractiveElement(app.buttons["pad_20"], identifier: "pad_20")
+        assertInteractiveElement(app.buttons["pad_bull"], identifier: "pad_bull")
         assertInteractiveElement(app.buttons["pad_0"], identifier: "pad_0")
         assertInteractiveElement(app.buttons["pad_double"], identifier: "pad_double")
         assertInteractiveElement(app.buttons["pad_triple"], identifier: "pad_triple")
@@ -371,17 +356,11 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
     }
 
-    func testPlayersListPassesNameRoleValueAudit() {
+    func testPlayersListPassesAccessibilityAudits() {
         let app = launchForAccessibility(extraArguments: ["-seed_demo"])
         ensurePlayersTab(app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["Jacob"].waitForExistence(timeout: timeout))
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
-    }
-
-    func testPlayersListPassesTouchTargetAudit() {
-        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        ensurePlayersTab(app, timeout: timeout)
-        XCTAssertTrue(app.staticTexts["Jacob"].waitForExistence(timeout: timeout))
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
@@ -421,19 +400,6 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         ensureActivityStatisticsSegment(app, timeout: timeout)
         assertInteractiveElement(app.buttons["activityPlayerFilterMenu"], identifier: "activityPlayerFilterMenu")
         assertInteractiveElement(app.buttons["activityModeFilterMenu"], identifier: "activityModeFilterMenu")
-    }
-
-    func testSettingsPassesTouchTargetAudit() {
-        let app = launchForAccessibility(extraArguments: ["-seed_players", "-ui_test_disable_feedback"])
-        ensureSettingsTab(app, timeout: timeout)
-        scrollSettingsFormForAudit(app)
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
-    }
-
-    func testMatchSummaryPassesTouchTargetAudit() {
-        let app = launchForAccessibility(extraArguments: ["-seed_players"])
-        finishQuickX01Checkout(for: app, timeout: timeout)
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.touchTargets)
     }
 
     // MARK: - Gameplay semantics (spoken context, selected state, bot pad)

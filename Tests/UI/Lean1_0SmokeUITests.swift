@@ -208,6 +208,16 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
         forfeitMatchFromExit(in: app, timeout: timeout)
         assertMatchSummaryForfeitBanner(in: app, timeout: timeout + 5)
+        XCTAssertFalse(
+            app.buttons["matchSummaryUndoLastThrow"].waitForExistence(timeout: 2),
+            "Forfeit summary should not offer undo"
+        )
+        app.buttons["View Game Statistics"].tap()
+        XCTAssertTrue(app.staticTexts["Game Statistics"].waitForExistence(timeout: timeout))
+        let back = app.navigationBars.buttons.element(boundBy: 0)
+        if back.waitForExistence(timeout: timeout) {
+            back.tap()
+        }
         tapSummaryDone(in: app, timeout: timeout)
         ensureActivityHistorySegment(app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["FORFEIT"].waitForExistence(timeout: timeout))

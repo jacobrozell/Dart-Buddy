@@ -138,6 +138,31 @@ func settingsUpdateBotPacingCanToggleIndependently() async {
 }
 
 @MainActor
+@Test(.tags(.unit, .settings, .scoringInput, .regression))
+func settingsUpdateDartEntryPresentationPersistsAndSyncsPreferences() async {
+    let repository = FakeSettingsRepository(settings: makeSettings())
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        userPreferencesStore: preferences
+    )
+    await vm.onAppear()
+
+    await vm.updateDartEntryPresentation(DartEntryPresentation.visualBoard.rawValue)
+
+    #expect(vm.settings?.defaultDartEntryPresentationRaw == DartEntryPresentation.visualBoard.rawValue)
+    #expect(preferences.defaultDartEntryPresentation == .visualBoard)
+    #expect(await repository.updateCallCount == 1)
+
+    // Unknown raw values fall back to the number pad instead of persisting garbage.
+    await vm.updateDartEntryPresentation("garbage")
+    #expect(vm.settings?.defaultDartEntryPresentationRaw == DartEntryPresentation.numberPad.rawValue)
+}
+
+@MainActor
 @Test(.tags(.unit, .settings, .regression))
 func settingsUpdateDefaultsChangesMatchType() async {
     let repository = FakeSettingsRepository(settings: makeSettings(defaultMatchTypeRaw: "x01"))
@@ -364,6 +389,7 @@ private func makeSettings(
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
 }

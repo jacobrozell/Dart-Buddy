@@ -4,7 +4,14 @@ import Testing
 @Suite("Match config text", .tags(.unit, .history, .setupFlow, .regression))
 struct MatchConfigTextTests {
     @Test
-    func modeLabelsCoverEveryMatchType() {
+    func modeLabelsCoverEveryShippedMatchType() {
+        for type in GameModeCatalog.all.filter({ $0.status == .shipped }).compactMap(\.matchType) {
+            #expect(!MatchConfigText.modeLabel(for: type).isEmpty)
+        }
+    }
+
+    @Test
+    func modeLabelsCoverLegacyLeanSurfaceModes() {
         for type in [MatchType.x01, .cricket, .baseball, .killer, .shanghai] {
             #expect(!MatchConfigText.modeLabel(for: type).isEmpty)
         }

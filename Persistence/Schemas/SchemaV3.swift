@@ -238,6 +238,8 @@ public enum SchemaV3: VersionedSchema {
         public var defaultSetsEnabled: Bool
         public var botStaggerEnabled: Bool?
         public var botDartHapticsEnabled: Bool?
+        /// `DartEntryPresentation` raw value; `nil` (pre-existing stores) means number pad.
+        public var defaultDartEntryPresentationRaw: String?
         public var updatedAt: Date
 
         public init(
@@ -255,6 +257,7 @@ public enum SchemaV3: VersionedSchema {
             defaultSetsEnabled: Bool = false,
             botStaggerEnabled: Bool? = true,
             botDartHapticsEnabled: Bool? = true,
+            defaultDartEntryPresentationRaw: String? = "numberPad",
             updatedAt: Date = Date()
         ) {
             self.id = id
@@ -271,6 +274,7 @@ public enum SchemaV3: VersionedSchema {
             self.defaultSetsEnabled = defaultSetsEnabled
             self.botStaggerEnabled = botStaggerEnabled
             self.botDartHapticsEnabled = botDartHapticsEnabled
+            self.defaultDartEntryPresentationRaw = defaultDartEntryPresentationRaw
             self.updatedAt = updatedAt
         }
     }

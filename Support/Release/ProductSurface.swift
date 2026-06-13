@@ -2,7 +2,7 @@ import Foundation
 
 /// Controls which product areas are reachable in this build.
 ///
-/// Lean 1.0 defaults hide Modes, party modes, Training Partner bots, and export.
+/// Lean 1.0 defaults hide Modes, party modes, co-op modes, Training Partner bots, and export.
 /// Custom bots (user-tuned metrics) ship in 1.0.
 /// UI tests and dogfood builds pass `-enable_full_product_surface` to restore the full app.
 /// See `docs/release/lean-1.0-implementation-plan.md`.
@@ -10,26 +10,32 @@ enum ProductSurface {
     struct Configuration: Sendable, Equatable {
         var showsModesTab: Bool
         var showsPartyModes: Bool
+        var showsCoopModes: Bool
         var showsTrainingBots: Bool
         var showsCustomBots: Bool
         var showsPlayerExport: Bool
+        var showsAccessibilityMarketing: Bool
         var bundledLocaleCodes: [String]
 
         static let full = Configuration(
             showsModesTab: true,
             showsPartyModes: true,
+            showsCoopModes: true,
             showsTrainingBots: true,
             showsCustomBots: true,
             showsPlayerExport: true,
+            showsAccessibilityMarketing: true,
             bundledLocaleCodes: ["en", "de", "es", "nl"]
         )
 
         static let lean1_0 = Configuration(
             showsModesTab: false,
             showsPartyModes: false,
+            showsCoopModes: false,
             showsTrainingBots: false,
             showsCustomBots: true,
             showsPlayerExport: false,
+            showsAccessibilityMarketing: false,
             bundledLocaleCodes: ["en"]
         )
     }
@@ -38,9 +44,11 @@ enum ProductSurface {
 
     static var showsModesTab: Bool { active.showsModesTab }
     static var showsPartyModes: Bool { active.showsPartyModes }
+    static var showsCoopModes: Bool { active.showsCoopModes }
     static var showsTrainingBots: Bool { active.showsTrainingBots }
     static var showsCustomBots: Bool { active.showsCustomBots }
     static var showsPlayerExport: Bool { active.showsPlayerExport }
+    static var showsAccessibilityMarketing: Bool { active.showsAccessibilityMarketing }
     static var bundledLocaleCodes: [String] { active.bundledLocaleCodes }
 
     static var isFullProductSurfaceEnabled: Bool {
@@ -56,8 +64,18 @@ enum ProductSurface {
         switch matchType {
         case .x01, .cricket:
             return true
-        case .baseball, .killer, .shanghai:
-            return showsPartyModes
+        default:
+            guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
+                return false
+            }
+            switch entry.section {
+            case .party:
+                return showsPartyModes
+            case .coop:
+                return showsCoopModes
+            case .standard, .practice:
+                return showsModesTab
+            }
         }
     }
 }

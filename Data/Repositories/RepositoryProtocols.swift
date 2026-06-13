@@ -173,6 +173,12 @@ public protocol StatsRepository: Sendable {
     func fetchEvents(matchIds: [UUID]) async throws -> [MatchEventSummary]
 }
 
+public protocol AchievementRepository: Sendable {
+    func fetchProgress(playerId: UUID) async throws -> [PlayerAchievementProgress]
+    func fetchProgress(playerIds: [UUID]) async throws -> [UUID: [String: PlayerAchievementProgress]]
+    func apply(deltas: [AchievementDelta], matchId: UUID) async throws -> [AchievementUnlockPresentation]
+}
+
 public protocol SettingsRepository: Sendable {
     func fetchSettings() async throws -> SettingsSummary
     func seedDefaultsIfNeeded() async throws -> SettingsSummary

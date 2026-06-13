@@ -202,20 +202,7 @@ func matchRepositoryHistoryFilterMapsToDatabase() async throws {
     let now = Date()
 
     func seedCompleted(type: MatchType, winner: UUID, startedAt: Date) async throws {
-        let payload: Data = switch type {
-        case .x01:
-            try CodablePayloadCoder.encode(MatchConfigPayload.x01(MatchConfigX01(
-                startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut
-            )))
-        case .cricket:
-            try CodablePayloadCoder.encode(MatchConfigPayload.cricket(MatchConfigCricket()))
-        case .baseball:
-            try CodablePayloadCoder.encode(MatchConfigPayload.baseball(MatchConfigBaseball()))
-        case .killer:
-            try CodablePayloadCoder.encode(MatchConfigPayload.killer(MatchConfigKiller()))
-        case .shanghai:
-            try CodablePayloadCoder.encode(MatchConfigPayload.shanghai(MatchConfigShanghai()))
-        }
+        let payload: Data = try CodablePayloadCoder.encode(MatchConfigDefaults.config(for: type))
         let matchId = UUID()
         let participants = [
             MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
@@ -291,6 +278,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
         defaultSetsEnabled: baseline.defaultSetsEnabled,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: baseline.updatedAt
     )
     _ = try await repos.settings.updateSettings(updated)
@@ -377,9 +365,12 @@ func settingsRepositoryResetsPreferencesToDefaults() async throws {
         defaultSetsEnabled: true,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        defaultDartEntryPresentationRaw: "visualBoard",
         updatedAt: Date()
     )
     _ = try await repos.settings.updateSettings(customized)
+    let persisted = try await repos.settings.fetchSettings()
+    #expect(persisted.defaultDartEntryPresentationRaw == "visualBoard")
 
     try await repos.settings.resetPreferencesToDefaults()
 
@@ -391,6 +382,7 @@ func settingsRepositoryResetsPreferencesToDefaults() async throws {
     #expect(reloaded.soundEnabled)
     #expect(reloaded.botStaggerEnabled)
     #expect(reloaded.botDartHapticsEnabled)
+    #expect(reloaded.defaultDartEntryPresentationRaw == "numberPad")
 }
 
 @Test(.tags(.integration, .settings, .swiftdata, .regression))

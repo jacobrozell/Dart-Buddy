@@ -3,7 +3,9 @@
 ## 1. Purpose
 Define Grand National — a sequence race around the board with hurdle elimination — for future implementation.
 
-**Status:** Planned (`party.grandNational`).
+**Status:** Shipped (`party.grandNational`).
+
+**In-visit progression:** **Excluded** — one course position per visit regardless of hit count ([`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) §2).
 
 References: [darts501.com — Grand National](https://darts501.com/Games.html).
 
@@ -60,8 +62,8 @@ References: [darts501.com — Grand National](https://darts501.com/Games.html).
 - `eliminated`, `lapsCompleted`
 
 ### Turn flow
-1. Player has 3 darts to hit **current hurdle segment**.
-2. Any hit advances one segment; after full course, increment lap.
+1. Player has 3 darts to hit **current hurdle segment** at least once.
+2. **Any** qualifying hit advances **one** position (additional hits on the same hurdle do not advance further).
 3. No hit in visit → elimination (novice).
 
 ### Undo
@@ -72,6 +74,7 @@ Replay restores positions and elimination.
 ## 5. UI Specification
 - Template E: **course map** with player tokens
 - Elimination state announced accessibly
+- Scoring pad: `lockedSegment` stays on the **visit hurdle** for all three darts (supplement §2 exclusion)
 
 ---
 
@@ -80,7 +83,7 @@ Replay restores positions and elimination.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.grandNational.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
 
 ### Overview
 | **Title key** | `play.rules.grandNational.overview.title` |
@@ -92,7 +95,7 @@ Based on the horse race: travel anticlockwise around the board, jumping each hur
 | **Title key** | `play.rules.grandNational.course.title` |
 | **Body key** | `play.rules.grandNational.course.body` |
 
-Start at 20 and follow the board anticlockwise (20 → 5 → 12 → …). Each turn you have three darts to hit the current hurdle at least once. Hit it and advance; miss entirely and you're eliminated.
+Start at 20 and follow the board anticlockwise (20 → 5 → 12 → …). Each turn you have three darts to hit the current hurdle at least once. One successful hit moves you forward one hurdle for the turn; extra hits on the same hurdle do not skip ahead. Miss entirely and you're eliminated.
 
 ### Two laps
 | **Title key** | `play.rules.grandNational.laps.title` |
@@ -140,4 +143,4 @@ Complete the full circuit twice and return to 20 to win. If several players rema
 ## 8. Verification
 | Field | Value |
 |-------|-------|
-| **Status** | Planned |
+| **Status** | Shipped |

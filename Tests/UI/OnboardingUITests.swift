@@ -1,13 +1,7 @@
 import XCTest
 
 final class OnboardingUITests: DartBuddyUITestCase {
-    func testSkipFromWelcomeLandsOnPlay() {
-        let app = launchOnboardingApp()
-
-        skipOnboardingFromWelcomeAndFinish(in: app)
-    }
-
-    func testSkipFromWelcomeDoesNotStageRosterOnPlay() {
+    func testSkipFromWelcomeLandsOnPlayWithoutStagedRoster() {
         let app = launchOnboardingApp()
 
         skipOnboardingFromWelcomeAndFinish(in: app)

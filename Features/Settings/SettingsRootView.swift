@@ -290,6 +290,21 @@ struct SettingsRootView: View {
 
     private func duringPlaySection(usesBrand: Bool) -> some View {
         Section {
+            Picker("settings.dartEntryPresentation.label", selection: Binding(
+                get: {
+                    DartEntryPresentation(
+                        rawValueOrDefault: viewModel.settings?.defaultDartEntryPresentationRaw
+                    ).rawValue
+                },
+                set: { viewModel.queueDartEntryPresentationUpdate($0) }
+            )) {
+                Text("settings.dartEntryPresentation.numberPad")
+                    .tag(DartEntryPresentation.numberPad.rawValue)
+                Text("settings.dartEntryPresentation.visualBoard")
+                    .tag(DartEntryPresentation.visualBoard.rawValue)
+            }
+            .accessibilityIdentifier("settings_dartEntryPresentationPicker")
+            .accessibilityHint(L10n.string("settings.dartEntryPresentation.hint"))
             Toggle("settings.feedback.haptics", isOn: Binding(
                 get: { viewModel.settings?.hapticsEnabled ?? true },
                 set: { viewModel.queueFeedbackUpdate(haptics: $0) }

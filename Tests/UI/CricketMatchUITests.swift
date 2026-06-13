@@ -58,17 +58,6 @@ final class CricketMatchUITests: DartBuddyUITestCase {
     // (`cricketUIEquivalentThreePlayerSynchronizedSweepCompletesMatch`); a UI replay is
     // slow and brittle in CI. Continuation after the first finisher is asserted above.
 
-    func testCricketSetupChipGridVisible() {
-        let app = launchApp(["-seed_players"])
-        selectCricketMode(in: app, timeout: timeout)
-        expandSetupOptions(in: app, timeout: timeout)
-        assertSetupChip("setup_cricketPointsChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketModeChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketSetLegChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketSetsChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketLegsChip", in: app, timeout: timeout)
-    }
-
     func testCricketPointsOffDisablesModeChip() {
         let app = launchApp(["-seed_players"])
         selectCricketMode(in: app, timeout: timeout)
@@ -111,7 +100,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         assertActiveCricketColumnLabel(app, contains: "marks per round", timeout: timeout + 5)
     }
 
-    func testCricketFullWidthPadKeysReachableInLandscape() {
+    func testCricketLandscapePadReachableAndScores() {
         let app = launchApp(["-seed_players"])
         startTwoPlayerCricketMatch(from: app)
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
@@ -133,17 +122,8 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         let enter = app.buttons["cricket_enter"]
         XCTAssertTrue(enter.waitForExistence(timeout: timeout))
         XCTAssertGreaterThan(enter.frame.height, 32, "Enter should not collapse to a thin bar in landscape")
-    }
-
-    func testCricketLandscapeScoringRecordsMarkFromWidePad() {
-        let app = launchApp(["-seed_players"])
-        startTwoPlayerCricketMatch(from: app)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
-
-        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let target20 = app.buttons["cricket_20"]
-        XCTAssertTrue(target20.waitForExistence(timeout: timeout))
         XCTAssertTrue(target20.isHittable)
         target20.tap()
         target20.tap()

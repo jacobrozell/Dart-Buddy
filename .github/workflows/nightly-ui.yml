@@ -12,7 +12,7 @@ concurrency:
 
 env:
   CI_XCODE_PROJECT: DartBuddy.xcodeproj
-  CI_XCODE_SCHEME: DartBuddy
+  CI_XCODE_SCHEME: DartBuddyUI
   CI_PARALLEL_TESTING: NO
   CI_PACKAGES_ROOT: .packages
   # Pro Max reports regular horizontal size class in landscape (Plus/Max class iPhones).

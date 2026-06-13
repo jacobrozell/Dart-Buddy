@@ -288,6 +288,7 @@ private actor FakeSettingsRepository: SettingsRepository {
             defaultSetsEnabled: false,
             botStaggerEnabled: true,
             botDartHapticsEnabled: true,
+            defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )
     }

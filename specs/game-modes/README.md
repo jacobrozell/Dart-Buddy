@@ -22,6 +22,13 @@ When a planned mode ships:
 
 Catalog source: [`Features/Modes/GameModeCatalog.swift`](../../Features/Modes/GameModeCatalog.swift).
 
+### Cross-mode supplements
+
+| Doc | Covers |
+|-----|--------|
+| [`CoopPvEModesSpec.md`](../CoopPvEModesSpec.md) | Cross-mode contract + **§13 progress**; UI §7, Learn §8, a11y §9, light/dark §7.5 |
+| [`InVisitSequenceProgressionSupplement.md`](InVisitSequenceProgressionSupplement.md) | Multi-target visits (Around the Clock, Nine Lives, Hare and Hounds, Chase the Dragon) — engine + `DartNumberPad` projection |
+
 ## Implemented (5)
 
 - [`X01GameSpec.md`](implemented/X01GameSpec.md)

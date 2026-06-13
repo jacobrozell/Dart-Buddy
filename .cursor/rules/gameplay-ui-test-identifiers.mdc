@@ -15,6 +15,7 @@ Identifiers are the **public contract** between SwiftUI and `Tests/UI`. Prefer i
 | Mode | Pattern | Examples |
 |------|---------|----------|
 | X01 | `pad_{segment}` | `pad_20`, `pad_0` (miss), `pad_25`, `pad_double`, `pad_triple`, `pad_undo` |
+| Visual board | `board_*` | `board_input_root`, `board_miss`, `board_undo`, `board_enter`, `board_visit_preview`, header toggle `match_dartEntryPresentationToggle` |
 | Cricket | `cricket_{segment}` | `cricket_20`…`cricket_15`, `cricket_bull`, `cricket_miss`, `cricket_double`, `cricket_triple`, `cricket_undo`, `cricket_enter` |
 
 Every pad variant (compact, landscape wide, accessibility) must expose the **same** identifiers.

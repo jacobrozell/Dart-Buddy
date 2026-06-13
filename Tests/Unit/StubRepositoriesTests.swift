@@ -91,6 +91,7 @@ struct StubRepositoriesTests {
             defaultSetsEnabled: true,
             botStaggerEnabled: false,
             botDartHapticsEnabled: false,
+            defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )
         let saved = try await repository.updateSettings(updated)
@@ -124,6 +125,7 @@ struct StubRepositoriesTests {
             defaultSetsEnabled: true,
             botStaggerEnabled: false,
             botDartHapticsEnabled: false,
+            defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )
         _ = try await repository.updateSettings(updated)

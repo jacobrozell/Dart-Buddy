@@ -4,6 +4,24 @@ func playLocalizedText(_ key: String) -> Text {
     Text(LocalizedStringKey(key))
 }
 
+/// Posts a VoiceOver announcement for gameplay events; no-op for empty strings.
+func postAccessibilityAnnouncement(_ text: String) {
+    guard !text.isEmpty else { return }
+    AccessibilityNotification.Announcement(text).post()
+}
+
+private struct MatchHeaderChromeButtonSizeKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 44
+}
+
+extension EnvironmentValues {
+    /// Square size for buttons docked in the match header trailing slot (40pt in compact height).
+    var matchHeaderChromeButtonSize: CGFloat {
+        get { self[MatchHeaderChromeButtonSizeKey.self] }
+        set { self[MatchHeaderChromeButtonSizeKey.self] = newValue }
+    }
+}
+
 /// Shared top chrome for in-progress match screens (exit, title, optional trailing action).
 struct MatchGameplayHeader<Title: View, Trailing: View>: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -43,7 +61,9 @@ struct MatchGameplayHeader<Title: View, Trailing: View>: View {
             title()
             Spacer(minLength: DS.Spacing.s2)
             trailing()
-                .frame(width: chromeButtonSize, height: chromeButtonSize)
+                // Min bounds (not fixed) so screens can dock more than one chrome button.
+                .frame(minWidth: chromeButtonSize, minHeight: chromeButtonSize)
+                .environment(\.matchHeaderChromeButtonSize, chromeButtonSize)
         }
         .padding(.horizontal, usesCompactHeight ? DS.Spacing.s3 : DS.Spacing.s4)
         .padding(.top, usesCompactHeight ? 0 : DS.Spacing.s2)

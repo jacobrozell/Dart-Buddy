@@ -47,7 +47,7 @@ extension SetupHomeView {
     }
 
     private var cricketPointsChip: some View {
-        chip(title: L10n.setupChipPoints, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.points", color: Brand.key) {
             Picker(
                 selection: Binding(
                     get: { setupViewModel.cricketPointsEnabled },
@@ -89,7 +89,7 @@ extension SetupHomeView {
     }
 
     private var cricketModeChip: some View {
-        chip(title: L10n.setupChipMode, color: Brand.red) {
+        chip(titleKey: "play.setup.chip.mode", color: Brand.red) {
             Menu {
                 ForEach(CricketScoringMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -115,7 +115,7 @@ extension SetupHomeView {
     }
 
     private var cricketLegFormatChip: some View {
-        chip(title: L10n.setupChipSetLeg, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.setLeg", color: Brand.key) {
             Menu {
                 ForEach(X01LegFormat.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -134,7 +134,7 @@ extension SetupHomeView {
     }
 
     private var cricketSetsChip: some View {
-        chip(title: L10n.setupChipSets, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.sets", color: Brand.key) {
             Menu {
                 ForEach(1 ... 5, id: \.self) { value in
                     Button("\(value)") {
@@ -161,7 +161,7 @@ extension SetupHomeView {
     }
 
     private var cricketLegsChip: some View {
-        chip(title: L10n.setupChipLegs, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.legs", color: Brand.key) {
             Menu {
                 ForEach(1 ... 9, id: \.self) { value in
                     Button("\(value)") {

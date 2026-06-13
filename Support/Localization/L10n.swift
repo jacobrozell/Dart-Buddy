@@ -260,11 +260,36 @@ enum L10n {
     static let settingsViewOnboardingAccessibility: LocalizedStringKey = "settings.onboarding.viewTour.accessibility"
 
     static func format(_ key: String, _ args: CVarArg...) -> String {
-        let format = NSLocalizedString(key, comment: "")
+        let format = localizedFormat(for: key)
         return String(format: format, locale: Locale.current, arguments: args)
     }
 
+    static func achievementName(_ achievementId: String) -> String {
+        string(achievementLocalizationKey(for: achievementId, suffix: "name"))
+    }
+
+    static func achievementDescription(_ achievementId: String) -> String {
+        string(achievementLocalizationKey(for: achievementId, suffix: "description"))
+    }
+
+    private static func achievementLocalizationKey(for achievementId: String, suffix: String) -> String {
+        let slug = achievementId.replacingOccurrences(of: ".", with: "_")
+        return "achievement.\(slug).\(suffix)"
+    }
+
     static func string(_ key: String) -> String {
-        NSLocalizedString(key, comment: "")
+        localizedString(for: key)
+    }
+
+    private static func localizedString(for key: String) -> String {
+        let primary = NSLocalizedString(key, comment: "")
+        if primary != key { return primary }
+        return NSLocalizedString(key, tableName: "GameplayModes", comment: "")
+    }
+
+    private static func localizedFormat(for key: String) -> String {
+        let primary = NSLocalizedString(key, comment: "")
+        if primary != key { return primary }
+        return NSLocalizedString(key, tableName: "GameplayModes", comment: "")
     }
 }

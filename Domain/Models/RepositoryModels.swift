@@ -6,6 +6,32 @@ public enum MatchType: String, Codable, Sendable {
     case baseball
     case killer
     case shanghai
+    case americanCricket
+    case mickeyMouse
+    case mulligan
+    case englishCricket
+    case blindKiller
+    case knockout
+    case suddenDeath
+    case fiftyOneByFives
+    case golf
+    case football
+    case grandNational
+    case hareAndHounds
+    case followTheLeader
+    case loop
+    case prisoner
+    case scam
+    case snooker
+    case ticTacToe
+    case aroundTheClock
+    case aroundTheClock180
+    case chaseTheDragon
+    case nineLives
+    case fleet
+    case raid
+    case bobs27
+    case halveIt
 }
 
 public enum MatchStatus: String, Codable, Sendable {
@@ -245,5 +271,7 @@ public struct SettingsSummary: Identifiable, Equatable, Sendable {
     public let defaultSetsEnabled: Bool
     public let botStaggerEnabled: Bool
     public let botDartHapticsEnabled: Bool
+    /// `DartEntryPresentation` raw value applied to new matches (in-match switch is per-session).
+    public let defaultDartEntryPresentationRaw: String
     public let updatedAt: Date
 }

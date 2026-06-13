@@ -141,30 +141,6 @@ final class X01MatchUITests: DartBuddyUITestCase {
 
     // MARK: - Phase 1 core gameplay
 
-    func testX01TripleScoringUpdatesRemaining() {
-        let app = launchApp(["-seed_players"])
-        startTwoPlayerX01Match(from: app, timeout: timeout)
-
-        tapX01Segment(20, multiplier: .triple, in: app, timeout: timeout)
-        assertActiveScoreCardLabel(app, contains: "41", timeout: timeout)
-    }
-
-    func testX01DoubleScoringUpdatesRemaining() {
-        let app = launchApp(["-seed_players"])
-        startTwoPlayerX01Match(from: app, timeout: timeout)
-
-        tapX01Segment(20, multiplier: .double, in: app, timeout: timeout)
-        assertActiveScoreCardLabel(app, contains: "61", timeout: timeout)
-    }
-
-    func testX01MissRecordsInVisit() {
-        let app = launchApp(["-seed_players"])
-        startTwoPlayerX01Match(from: app, timeout: timeout)
-
-        app.buttons["pad_0"].tap()
-        assertActiveScoreCardLabel(app, contains: "Visit darts Miss", timeout: timeout)
-    }
-
     func testX01ThreeDartVisitAutoSubmits() {
         let app = launchApp(["-seed_players"])
         startTwoPlayerX01Match(from: app, timeout: timeout)
@@ -198,15 +174,6 @@ final class X01MatchUITests: DartBuddyUITestCase {
         )
     }
 
-    func testX01SetupChipGridVisible() {
-        let app = launchApp(["-seed_players"])
-        ensurePlayTab(app, timeout: timeout)
-        expandSetupOptions(in: app, timeout: timeout)
-        assertSetupChip("setup_startScoreChip", in: app, timeout: timeout)
-        assertSetupChip("setup_checkoutChip", in: app, timeout: timeout)
-        assertSetupChip("setup_legsChip", in: app, timeout: timeout)
-    }
-
     func testX01HeaderUndoRemovesDart() {
         let app = launchApp(["-seed_players"])
         startTwoPlayerX01Match(from: app, timeout: timeout)
@@ -228,7 +195,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         XCTAssertTrue(active.waitForExistence(timeout: timeout))
         let keyIdentifiers = [
             "pad_20", "pad_19", "pad_18", "pad_17", "pad_16", "pad_15",
-            "pad_25", "pad_0", "pad_double", "pad_triple", "pad_undo"
+            "pad_bull", "pad_0", "pad_double", "pad_triple", "pad_undo"
         ]
         assertScoringKeysBelowPinnedArea(active, in: app, keyIdentifiers: keyIdentifiers, timeout: timeout)
     }

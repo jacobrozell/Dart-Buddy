@@ -1,0 +1,15 @@
+#!/bin/sh
+# Block real GoogleService-Info.plist (any path, including *.lproj/). Example file is OK.
+
+staged=$(
+  git diff --cached --name-only --diff-filter=ACMR |
+    grep -E '(^|/)GoogleService-Info\.plist$' |
+    grep -v '\.example$' ||
+    true
+)
+
+if [ -n "$staged" ]; then
+  echo "error: Refusing to commit GoogleService-Info.plist (use Resources/GoogleService-Info.plist locally; gitignored)." >&2
+  echo "$staged" | sed 's/^/  /' >&2
+  exit 1
+fi

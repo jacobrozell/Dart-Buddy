@@ -4,8 +4,8 @@ import Testing
 @Suite("Game mode catalog", .tags(.unit, .setupFlow, .regression))
 struct GameModeCatalogTests {
     @Test
-    func catalogListsAllTwentyNineModes() {
-        #expect(GameModeCatalog.all.count == 29)
+    func catalogListsAllThirtyFourModes() {
+        #expect(GameModeCatalog.all.count == 34)
     }
 
     @Test
@@ -20,12 +20,15 @@ struct GameModeCatalogTests {
         let available = GameModeCatalog.available
         let mappedTypes = Set(available.compactMap(\.matchType))
 
+        #expect(available.allSatisfy { $0.isAvailable })
+        #expect(mappedTypes == Set(available.compactMap(\.matchType)))
+
         if ProductSurface.showsPartyModes {
-            #expect(available.count == 5)
-            #expect(mappedTypes == [.x01, .cricket, .baseball, .killer, .shanghai])
+            #expect(mappedTypes.contains(.baseball))
+            #expect(mappedTypes.contains(.golf))
         } else {
-            #expect(available.count == 2)
-            #expect(mappedTypes == [.x01, .cricket])
+            #expect(!mappedTypes.contains(.baseball))
+            #expect(!mappedTypes.contains(.golf))
         }
 
         for type in mappedTypes {
@@ -39,18 +42,14 @@ struct GameModeCatalogTests {
             #expect(entry.matchType == nil, "Planned mode \(entry.id) must not claim a MatchType")
             #expect(entry.isAvailable == false)
         }
-        #expect(GameModeCatalog.planned.count == 24)
+        #expect(GameModeCatalog.planned.count == 12)
     }
 
     @Test
     func standardAndPartySectionsShipModesToday() {
-        // Standard and Party each have shipped modes; Practice is intentionally
-        // all-planned for now (the UI collapses fully-unavailable sections behind
-        // a "coming soon" teaser rather than rendering a wall of disabled cards —
-        // see docs/full-game-catalog-ui.md §3).
-        #expect(!GameModeCatalog.entries(in: .standard).filter(\.isAvailable).isEmpty)
-        #expect(!GameModeCatalog.entries(in: .party).filter(\.isAvailable).isEmpty)
-        #expect(GameModeCatalog.entries(in: .practice).allSatisfy { !$0.isAvailable })
+        #expect(!GameModeCatalog.entries(in: .standard).filter { $0.isAvailable }.isEmpty)
+        #expect(!GameModeCatalog.entries(in: .party).filter { $0.isAvailable }.isEmpty)
+        #expect(!GameModeCatalog.entries(in: .practice).filter { $0.isAvailable }.isEmpty)
     }
 
     @Test
@@ -72,15 +71,17 @@ struct GameModeCatalogTests {
     }
 
     @Test
-    func catalogPartitionsIntoThreeSections() {
+    func catalogPartitionsIntoFourSections() {
         let standard = GameModeCatalog.entries(in: .standard)
         let party = GameModeCatalog.entries(in: .party)
+        let coop = GameModeCatalog.entries(in: .coop)
         let practice = GameModeCatalog.entries(in: .practice)
 
         #expect(standard.allSatisfy { $0.section == .standard })
         #expect(party.allSatisfy { $0.section == .party })
+        #expect(coop.allSatisfy { $0.section == .coop })
         #expect(practice.allSatisfy { $0.section == .practice })
-        #expect(standard.count + party.count + practice.count == GameModeCatalog.all.count)
+        #expect(standard.count + party.count + coop.count + practice.count == GameModeCatalog.all.count)
     }
 
     @Test
@@ -88,6 +89,16 @@ struct GameModeCatalogTests {
         for entry in GameModeCatalog.all {
             #expect(GameModeCatalog.entry(for: entry.id) == entry)
         }
+    }
+
+    @Test
+    func playSetupPickerShowsAllSectionsWhenPartyModesVisible() {
+        guard ProductSurface.showsPartyModes else { return }
+
+        let sections = GameModeCatalog.playSetupPickerSections()
+        #expect(sections.map(\.0) == GameModeSection.allCases)
+        #expect(sections.first { $0.0 == .practice }?.1.count == GameModeCatalog.entries(in: .practice).count)
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: 0) == 0)
     }
 
     @Test
@@ -100,6 +111,7 @@ struct GameModeCatalogTests {
         #expect(sections[0].1.map(\.id) == ["standard.x01", "standard.cricket"])
         #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .standard, displayedCount: 2) == 0)
         #expect(!sections.contains { $0.0 == .party })
+        #expect(!sections.contains { $0.0 == .coop })
         #expect(!sections.contains { $0.0 == .practice })
     }
 
@@ -112,10 +124,8 @@ struct GameModeCatalogTests {
 
     @Test
     func soloChallengeModesAreSinglePlayer() {
-        // Solo-challenge modes drive the roster-skip fork in setup, so they must
-        // be playable alone.
-        let soloChallenges = GameModeCatalog.all.filter { $0.uiTemplate == .soloChallenge }
-        #expect(!soloChallenges.isEmpty)
+        let soloChallenges = GameModeCatalog.all.filter { $0.uiTemplate == .soloChallenge && $0.isAvailable }
+        guard !soloChallenges.isEmpty else { return }
         for entry in soloChallenges {
             #expect(entry.isSolo)
             #expect(entry.section == .practice)

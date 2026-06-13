@@ -11,10 +11,24 @@ struct CricketMatchScreen: View {
     let turnTotalCaller: any TurnTotalCallerService
     let feedbackPreferences: FeedbackPreferences
     let lifecycleDependencies: MatchLifecycleChromeDependencies
+    var defaultDartEntryPresentation: DartEntryPresentation = .default
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
+    @State private var dartEntryPresentationOverride: DartEntryPresentation?
+
+    private var dartEntryPresentation: DartEntryPresentation {
+        dartEntryPresentationOverride ?? defaultDartEntryPresentation
+    }
+
+    /// The tap pad stays first-class: AX text sizes and VoiceOver always use it.
+    private var usesVisualBoardEntry: Bool {
+        dartEntryPresentation == .visualBoard
+            && !voiceOverEnabled
+            && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,18 +43,23 @@ struct CricketMatchScreen: View {
                     }
                 }
             } trailing: {
-                Button {
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.undoLastDart() }
-                } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
-                        .frame(width: 44, height: 44)
-                        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                HStack(spacing: DS.Spacing.s2) {
+                    DartEntryPresentationToggle(presentation: dartEntryPresentation) {
+                        dartEntryPresentationOverride = dartEntryPresentation.toggled
+                    }
+                    Button {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.undoLastDart() }
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(Brand.green)
+                            .frame(width: 44, height: 44)
+                            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                    }
+                    .accessibilityLabel(L10n.scoringUndoLastTurn)
+                    .accessibilityIdentifier("match_undo")
                 }
-                .accessibilityLabel(L10n.scoringUndoLastTurn)
-                .accessibilityIdentifier("match_undo")
             }
 
             if let state = viewModel.cricketState {
@@ -250,16 +269,32 @@ struct CricketMatchScreen: View {
     }
 
     private var cricketTapPad: some View {
-        CricketTapPad(
-            enteredDarts: $viewModel.enteredDarts,
-            selectedMultiplier: $viewModel.selectedMultiplier,
-            canSubmit: viewModel.canSubmit,
-            onSubmit: { submit() },
-            onUndoTurn: {
-                actionTask?.cancel()
-                actionTask = Task { await viewModel.undoLastDart() }
+        Group {
+            if usesVisualBoardEntry {
+                VisualDartboardInput(
+                    enteredDarts: $viewModel.enteredDarts,
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    scoringSegments: CricketMatchScreen.cricketScoringSegments,
+                    canSubmit: viewModel.canSubmit,
+                    onSubmit: { submit() },
+                    onUndoTurn: {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.undoLastDart() }
+                    }
+                )
+            } else {
+                CricketTapPad(
+                    enteredDarts: $viewModel.enteredDarts,
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    canSubmit: viewModel.canSubmit,
+                    onSubmit: { submit() },
+                    onUndoTurn: {
+                        actionTask?.cancel()
+                        actionTask = Task { await viewModel.undoLastDart() }
+                    }
+                )
             }
-        )
+        }
         .disabled(viewModel.canHumanInput == false)
         .opacity(viewModel.canHumanInput ? 1 : 0.45)
         .accessibilityElement(children: .contain)
@@ -275,6 +310,10 @@ struct CricketMatchScreen: View {
         }
     }
 
+    /// 15–20 and bull score in Cricket; other wedges render dimmed on the visual board
+    /// (a tap there still counts as a thrown dart with no marks, like a real miss).
+    private static let cricketScoringSegments: Set<Int> = [15, 16, 17, 18, 19, 20, 25]
+
     private func playDartFeedback(_ dart: DartInput) {
         if dart.isMiss { audio.playMiss() } else { audio.playHit() }
         haptics.playImpact()
@@ -283,11 +322,6 @@ struct CricketMatchScreen: View {
     private func submit() {
         actionTask?.cancel()
         actionTask = Task { await viewModel.submitTurn() }
-    }
-
-    private func postAccessibilityAnnouncement(_ text: String) {
-        guard !text.isEmpty else { return }
-        AccessibilityNotification.Announcement(text).post()
     }
 
     @ViewBuilder

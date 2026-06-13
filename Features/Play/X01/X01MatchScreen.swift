@@ -8,20 +8,40 @@ struct X01MatchScreen: View {
     let turnTotalCaller: any TurnTotalCallerService
     let feedbackPreferences: FeedbackPreferences
     let lifecycleDependencies: MatchLifecycleChromeDependencies
+    var visionScoringEnabled: Bool = false
+    var visionLogger: (any AppLogger)? = nil
+    var defaultDartEntryPresentation: DartEntryPresentation = .default
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @State private var showExitConfirmation = false
+    @State private var dartEntryPresentationOverride: DartEntryPresentation?
     @State private var actionTask: Task<Void, Never>?
     @State private var lastAnnouncedCheckout: String?
     @State private var showLegWinBanner = false
     @State private var selectedCheckoutIndex = 0
+    @State private var showVisionScoring = false
+
+    /// How long the leg-win banner stays on screen before auto-dismissing.
+    private static let legWinBannerDisplayNanoseconds: UInt64 = 1_200_000_000
 
     private var usesLandscapeMatchLayout: Bool {
         GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
+    }
+
+    private var dartEntryPresentation: DartEntryPresentation {
+        dartEntryPresentationOverride ?? defaultDartEntryPresentation
+    }
+
+    /// The number pad stays first-class: AX text sizes and VoiceOver always use it.
+    private var usesVisualBoardEntry: Bool {
+        dartEntryPresentation == .visualBoard
+            && !voiceOverEnabled
+            && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
     var body: some View {
@@ -39,15 +59,20 @@ struct X01MatchScreen: View {
                     }
                 }
             } trailing: {
-                Button { runUndo() } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                HStack(spacing: DS.Spacing.s2) {
+                    DartEntryPresentationToggle(presentation: dartEntryPresentation) {
+                        dartEntryPresentationOverride = dartEntryPresentation.toggled
+                    }
+                    Button { runUndo() } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(Brand.green)
+                            .frame(width: 44, height: 44)
+                            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                    }
+                    .accessibilityLabel(L10n.scoringUndoLastTurn)
+                    .accessibilityIdentifier("match_undo")
                 }
-                .accessibilityLabel(L10n.scoringUndoLastTurn)
-                .accessibilityIdentifier("match_undo")
             }
 
             if let state = viewModel.x01State {
@@ -85,13 +110,23 @@ struct X01MatchScreen: View {
             onDismiss: { dismiss() },
             dependencies: lifecycleDependencies
         )
+        .sheet(isPresented: $showVisionScoring) {
+            VisionScoringSheet(
+                logger: visionLogger,
+                isInputAllowed: viewModel.canHumanInput && viewModel.enteredDarts.count < 3,
+                onDartConfirmed: { dart, _ in
+                    guard viewModel.canHumanInput, viewModel.enteredDarts.count < 3 else { return }
+                    viewModel.enteredDarts.append(dart)
+                }
+            )
+        }
         .onChange(of: viewModel.legFinishSoundToken) { _, token in
             if token > 0 {
                 audio.playLegFinished()
                 postAccessibilityAnnouncement(L10n.string("play.x01.announce.legWon"))
                 showLegWinBanner = true
                 Task {
-                    try? await Task.sleep(nanoseconds: 1_200_000_000)
+                    try? await Task.sleep(nanoseconds: Self.legWinBannerDisplayNanoseconds)
                     await MainActor.run { showLegWinBanner = false }
                 }
             }
@@ -225,6 +260,27 @@ struct X01MatchScreen: View {
             checkoutBanner
             botTurnBanner
             stateBanner
+            visionScoringButton
+        }
+    }
+
+    @ViewBuilder
+    private var visionScoringButton: some View {
+        Group {
+            if visionScoringEnabled {
+                Button {
+                    showVisionScoring = true
+                } label: {
+                    Label(L10n.string("vision.launchButton"), systemImage: "camera.viewfinder")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.green)
+                        .padding(.vertical, DS.Spacing.s2)
+                        .padding(.horizontal, DS.Spacing.s4)
+                        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                }
+                .accessibilityLabel(L10n.string("vision.launchButton.accessibility"))
+                .accessibilityIdentifier("vision_scoring_button")
+            }
         }
         .animation(
             MotionPolicy.fastAnimation(reduceMotion: reduceMotion),
@@ -233,12 +289,23 @@ struct X01MatchScreen: View {
     }
 
     private func scoringPad(state: X01State, landscape: Bool = false) -> some View {
-        DartNumberPad(
-            enteredDarts: $viewModel.enteredDarts,
-            selectedMultiplier: $viewModel.selectedMultiplier,
-            showsVisitPreview: !landscape,
-            onUndoTurn: { runUndo() }
-        )
+        Group {
+            if usesVisualBoardEntry {
+                VisualDartboardInput(
+                    enteredDarts: $viewModel.enteredDarts,
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    showsVisitPreview: !landscape,
+                    onUndoTurn: { runUndo() }
+                )
+            } else {
+                DartNumberPad(
+                    enteredDarts: $viewModel.enteredDarts,
+                    selectedMultiplier: $viewModel.selectedMultiplier,
+                    showsVisitPreview: !landscape,
+                    onUndoTurn: { runUndo() }
+                )
+            }
+        }
         .disabled(viewModel.canHumanInput == false)
         .opacity(viewModel.canHumanInput ? 1 : 0.45)
         .accessibilityElement(children: .contain)
@@ -352,10 +419,5 @@ struct X01MatchScreen: View {
     private func playDartFeedback(_ dart: DartInput) {
         if dart.isMiss { audio.playMiss() } else { audio.playHit() }
         haptics.playImpact()
-    }
-
-    private func postAccessibilityAnnouncement(_ text: String) {
-        guard !text.isEmpty else { return }
-        AccessibilityNotification.Announcement(text).post()
     }
 }

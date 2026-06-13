@@ -242,6 +242,7 @@ Primary discovery surface. Reuses card row pattern from [`PartyGamePickerView.sw
 |---------|-------|---------------------|
 | Standard | X01, Cricket, American Cricket | Pub league / serious scoring |
 | Party | 16 social/elimination/race games | Group night, 3+ players common |
+| Co-op | Raid, Cerberus, The Vault, Clear the Board (+ planned) | Friends vs boss, shared meters, team victory |
 | Practice | 6 solo/training | 1 player, personal bests |
 | Cricket variants | English Cricket (collapsible) | Avoids duplicating American Cricket; signals “same family, different rules” |
 

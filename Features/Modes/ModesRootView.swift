@@ -55,6 +55,8 @@ struct ModesRootView: View {
             .sheet(item: $showsRulesForEntry) { entry in
                 if let matchType = entry.matchType {
                     GameRulesGuideView(initialMode: matchType)
+                } else {
+                    GameRulesGuideView(catalogPreviewId: entry.id)
                 }
             }
         }
@@ -64,6 +66,7 @@ struct ModesRootView: View {
         HStack(spacing: DS.Spacing.s2) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(Brand.textSecondary)
+                .accessibilityHidden(true)
             TextField(L10n.modesSearchPlaceholder, text: $searchText)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -91,8 +94,9 @@ struct ModesRootView: View {
     private func catalogCard(_ entry: GameModeCatalogEntry) -> some View {
         GameModeCatalogCard(
             entry: entry,
-            onSelect: entry.isAvailable ? { onSelectMode(entry) } : nil,
-            onLearnRules: entry.matchType != nil ? { showsRulesForEntry = entry } : nil
+            isSelectable: entry.isSelectableInPlaySetup,
+            onSelect: entry.isSelectableInPlaySetup ? { onSelectMode(entry) } : nil,
+            onLearnRules: entry.hasRulesGuide ? { showsRulesForEntry = entry } : nil
         )
     }
 }

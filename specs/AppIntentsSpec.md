@@ -93,7 +93,7 @@ flowchart LR
 | Path | Responsibility |
 |---|---|
 | `Intents/Entities/` | `PlayerEntity`, `MatchEntity`, `GameModeEntity` |
-| `Intents/Enums/` | `GameModeIntentEnum`, `X01StartScoreIntentEnum` (shipped modes only) |
+| `Intents/Enums/` | `GameModeIntentEnum`, `X01StartScoreIntentEnum` — generated from `GameModeCatalog.available` (shipped + reachable only) |
 | `Intents/Queries/` | Read-only query intents (`GetActiveMatchStatusIntent`, …) |
 | `Intents/Actions/` | Additional action intents (start mode, submit turn, …) |
 
@@ -121,19 +121,59 @@ flowchart LR
 
 **Resume behavior matrix:**
 
-| Bootstrap state | Active match? | Action | User feedback |
+| Bootstrap state | Active match? | Reachable on surface? | Action | User feedback |
+|---|---|---|---|---|
+| Routing ready | Yes | Yes | Route `.play(.resumeActive)` | Dialog: “Resuming your game.” |
+| Routing ready | Yes | No | Route `.play(.home)`, log `intent_failed` | Dialog: “No active match” (`play.home.noActiveMatch`) |
+| Routing ready | No | — | Route `.play(.home)`, log `intent_failed` | Dialog: “No active match” (`play.home.noActiveMatch`) |
+| Cold launch (routing not ready) | Unknown | — | Enqueue `.play(.resumeActive)` via `PendingAppDestination` | Dialog: “Resuming your game.” (router resolves after onboarding) |
+| Feature flag off | — | — | Throw `IntentRoutingError.disabled` | System shows localized error |
+
+**Reachability:** `IntentRoutingBridge.fetchResumableActiveMatch()` and `AppRouteRouter` both gate on `ProductSurface.isMatchTypeReachable(_:)`. On lean 1.0, an in-progress party-mode match is treated as **no active match** for resume even though SwiftData still holds it.
+
+#### 4.1.1 Shipped mode coverage (Phase 1)
+
+Phase 1 intents are **mode-agnostic** — no per-mode intent code exists. **Resume Active Match** works for every shipped `MatchType` because routing is generic:
+
+1. `ResumeActiveMatchIntent` → `IntentRoutingBridge.fetchResumableActiveMatch()`
+2. `AppRouteRouter` → `.play(.resumeActive)` → `setPendingPlayResume(match)`
+3. `PlayRootView` → `match.type.playRoute(matchId:)` → gameplay screen
+
+**Start-by-mode** (e.g. “Start Around the Clock in Dart Buddy”) is **not** Phase 1 — see [§4.2](#42-planned-phase-1b--blocked-on-deep-link-phase-2).
+
+**Shipped catalog (20 modes)** — authoritative list: `GameModeCatalog.all` where `status == .shipped`. Snapshot:
+
+| Section | Catalog id | `MatchType` | UI template |
 |---|---|---|---|
-| Routing ready | Yes | Route `.play(.resumeActive)` | Dialog: “Resuming your game.” |
-| Routing ready | No | Route `.play(.home)`, log `intent_failed` | Dialog: “No active match” (`play.home.noActiveMatch`) |
-| Cold launch (routing not ready) | Unknown | Enqueue `.play(.resumeActive)` via `PendingAppDestination` | Dialog: “Resuming your game.” (router resolves after onboarding) |
-| Feature flag off | — | Throw `IntentRoutingError.disabled` | System shows localized error |
+| Standard | `standard.x01` | `x01` | checkoutScore |
+| Standard | `standard.cricket` | `cricket` | markBoard |
+| Standard | `standard.americanCricket` | `americanCricket` | markBoard |
+| Party | `party.baseball` | `baseball` | inningPoints |
+| Party | `party.killer` | `killer` | livesElimination |
+| Party | `party.shanghai` | `shanghai` | inningPoints |
+| Party | `party.mickeyMouse` | `mickeyMouse` | markBoard |
+| Party | `party.mulligan` | `mulligan` | markBoard |
+| Party | `party.englishCricket` | `englishCricket` | checkoutScore |
+| Party | `party.knockout` | `knockout` | checkoutScore |
+| Party | `party.suddenDeath` | `suddenDeath` | checkoutScore |
+| Party | `party.fiftyOneByFives` | `fiftyOneByFives` | checkoutScore |
+| Party | `party.golf` | `golf` | inningPoints |
+| Party | `party.football` | `football` | phaseRace |
+| Party | `party.grandNational` | `grandNational` | sequenceProgress |
+| Party | `party.hareAndHounds` | `hareAndHounds` | sequenceProgress |
+| Practice | `practice.aroundTheClock` | `aroundTheClock` | sequenceProgress |
+| Practice | `practice.aroundTheClock180` | `aroundTheClock180` | sequenceProgress |
+| Practice | `practice.chaseTheDragon` | `chaseTheDragon` | sequenceProgress |
+| Practice | `practice.nineLives` | `nineLives` | livesElimination |
+
+When the catalog grows, **Phase 1 resume requires no new intent code** — only verify `MatchType.playRoute` and `PlayRootView` destination wiring for the new case. Phase 1b `GameModeEntity` / `GameModeIntentEnum` must **derive from** `GameModeCatalog.available` (respecting `ProductSurface`), not a hardcoded mode list.
 
 ### 4.2 Planned (Phase 1b — blocked on Deep Link Phase 2)
 
 | Intent | Depends on | Notes |
 |---|---|---|
 | **Start Quick Match** | `/play/setup` or direct prefills | Settings defaults + last roster; prefill only, no headless start |
-| **Start Mode Match** | `/play/setup?mode=…` | Enqueues `PendingModeSelection` |
+| **Start Mode Match** | `/play/setup?mode={catalogId}` | Enqueues `PendingModeSelection`; `catalogId` matches `GameModeCatalogEntry.id` (e.g. `practice.aroundTheClock`) |
 | **Practice With Training Partner** | Router prefills | Reuses `PendingMatchPlayerSelections.enqueuePractice` |
 | **Open Activity / Open History** | `/activity?segment=…` | Activity tab segment switch |
 
@@ -165,9 +205,11 @@ See [`AppleWatchCompanionAssessment.md`](AppleWatchCompanionAssessment.md) and [
 |---|---|---|---|
 | **`PlayerEntity`** | `PlayerSummary` | `id` (UUID) | `displayName` |
 | **`MatchEntity`** | `MatchSummary` | `id` (UUID) | `type` (`MatchType`), `status`, `startedAt`, participant names (resolved at query time) |
-| **`GameModeEntity`** | `GameModeCatalog` / `MatchType` | catalog id | localized mode name (shipped modes only: `x01`, `cricket`, `baseball`, `killer`, `shanghai`) |
+| **`GameModeEntity`** | `GameModeCatalogEntry` / `MatchType` | catalog id (e.g. `practice.chaseTheDragon`) | localized mode name (`GameModeCatalogEntry.localizedName`), section, player-count label |
 
-**Entity queries:** each entity gets an `EntityQuery` (or string-query fallback) so Siri can resolve “Alice”, “501”, or “my last Cricket game” into concrete entities. `ResumeActiveMatchIntent` already calls `fetchActiveMatch()`; parameterized resume/start intents will accept `MatchEntity` / `GameModeEntity` / `[PlayerEntity]` parameters.
+**Shipped mode set for entities:** all entries in `GameModeCatalog.available` on the current `ProductSurface` — today 20 shipped modes (see [§4.1.1](#411-shipped-mode-coverage-phase-1)). **Do not** hardcode a subset. Planned catalog entries (`status == .planned`) stay out of `GameModeIntentEnum` until promoted to `.shipped` (see [§12](#12-out-of-scope)).
+
+**Entity queries:** each entity gets an `EntityQuery` (or string-query fallback) so Siri can resolve “Alice”, “501”, “Around the Clock”, or “my last Cricket game” into concrete entities. `ResumeActiveMatchIntent` already calls `fetchResumableActiveMatch()`; parameterized resume/start intents will accept `MatchEntity` / `GameModeEntity` / `[PlayerEntity]` parameters.
 
 **Privacy:** entity display strings may include player names in Siri dialogs and Spotlight snippets. Do not log names or UUIDs in analytics (see §8). Respect `includeArchived: false` when resolving players.
 
@@ -232,6 +274,7 @@ static func clearRouteActions()
 static var isEnabled: Bool                    // reads enableAppIntents flag
 static var isRoutingReady: Bool               // dependencies + actions wired
 static func fetchActiveMatch() async -> MatchSummary?
+static func fetchResumableActiveMatch() async -> MatchSummary?   // active + ProductSurface.isMatchTypeReachable
 static func route(_ destination: AppDestination, intentName: String, succeeded: Bool = true) async -> RouteOutcome
 ```
 
@@ -325,23 +368,42 @@ Reference: WWDC session *Validate your App Intents adoption with AppIntentsTesti
 | File | Coverage |
 |---|---|
 | `Tests/Unit/IntentRoutingBridgeTests.swift` | Direct route, enqueue fallback, flag off, `fetchActiveMatch` |
+| `Tests/Unit/AppIntentsCoverageTests.swift` | Intent stable names, shortcuts provider flag gating |
 | `Tests/Unit/FeatureFlagsTests.swift` | `enableAppIntents` default + launch argument |
 | `Tests/Unit/FirebaseAnalyticsEventMappingTests.swift` | `intent_performed` allowlist |
 | `Tests/Unit/AppRouteRouterTests.swift` | Underlying navigation (shared with deep links) |
+| `Tests/Unit/RoutesTests.swift` | `MatchType.playRoute` mapping (extend to all shipped types) |
 | `Tests/Unit/*Entity*Tests.swift` (planned) | Entity query resolution, indexing keys |
 | `Tests/Unit/*QueryIntent*Tests.swift` (planned) | `AppIntentsTesting` or direct `perform()` with fakes |
 
 ### Manual QA checklist
 
+**Core (every release with intent changes):**
+
 1. Add `-enable_app_intents` to Run scheme arguments.
 2. Build and run on device or simulator.
 3. Open **Shortcuts** → verify Dart Buddy shortcuts appear (“Open Play”, “Resume Active Match”).
 4. Run **Open Play** → app opens to Play setup home.
-5. Start a match, background app, run **Resume Active Match** → returns to active gameplay.
-6. With no active match, run **Resume Active Match** → Siri dialog “No active match”; Play tab shown.
-7. Cold launch via Resume shortcut while onboarding not completed → link applies after onboarding dismiss.
-8. Remove launch argument → shortcuts disappear from provider; running saved shortcut shows disabled error.
-9. Spot-check intent titles in **Settings → Siri & Search → Dart Buddy** with device language `de` / `es` / `nl`.
+5. With no active match, run **Resume Active Match** → Siri dialog “No active match”; Play tab shown.
+6. Cold launch via Resume shortcut while onboarding not completed → link applies after onboarding dismiss.
+7. Remove launch argument → shortcuts disappear from provider; running saved shortcut shows disabled error.
+8. Spot-check intent titles in **Settings → Siri & Search → Dart Buddy** with device language `de` / `es` / `nl`.
+
+**Resume spot-check (when new modes ship or before enabling flag in production):**
+
+Run **Resume Active Match** after starting and backgrounding an in-progress match. Spot-check **at least one mode per UI template** on the current product surface (full surface: pass `-enable_full_product_surface` if needed):
+
+| UI template | Representative mode(s) to resume |
+|---|---|
+| `checkoutScore` | X01 or Knockout |
+| `markBoard` | Cricket or Mickey Mouse |
+| `inningPoints` | Baseball or Golf |
+| `livesElimination` | Killer or Nine Lives |
+| `sequenceProgress` | Around the Clock, Chase the Dragon, Grand National, or Hare and Hounds |
+| `phaseRace` | Football |
+| `soloChallenge` | *(none shipped yet — skip until Bob's 27 / Halve-It ship)* |
+
+For each spot-check: confirm the shortcut returns to the **correct gameplay screen** (not setup home), turn state is preserved, and the active-match badge still appears on Activity.
 
 ### UI test (optional)
 
@@ -416,7 +478,7 @@ Dart Buddy Phase 1 covers only a thin slice of (2): two navigation intents with 
 | Maturity | Example | Mechanism |
 |---|---|---|
 | **Phase 1 (shipped)** | “Resume my dart game in Dart Buddy” | Fixed phrase → `ResumeActiveMatchIntent` → router |
-| **Phase 1b** | “Start Cricket in Dart Buddy” | `StartModeMatchIntent` + `GameModeEntity` parameter |
+| **Phase 1b** | “Start Cricket in Dart Buddy”, “Start Around the Clock in Dart Buddy” | `StartModeMatchIntent` + `GameModeEntity` parameter (catalog-derived) |
 | **Phase 2** | “What’s my dart score?” | `GetActiveMatchStatusIntent` — no `openAppWhenRun` |
 | **Phase 2** | “Show my last Cricket game with Alice” | `IndexedEntity` + `MatchEntity` query |
 | **Phase 2b** | “What do I need to finish?” (while playing) | View annotation + read-only checkout query |
@@ -485,12 +547,13 @@ flowchart TB
 - [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAnalyticsSpec.md) — event catalog
 - [`AppleWatchCompanionAssessment.md`](AppleWatchCompanionAssessment.md) — shared in-game command boundary
 - [`docs/feature-inventory.md`](../docs/feature-inventory.md) — shipped vs planned intent features
+- [`Features/Modes/GameModeCatalog.swift`](../Features/Modes/GameModeCatalog.swift) — authoritative shipped-mode list for entity/enum derivation
 
 ---
 
 ## 15. Verification
 | Field | Value |
 |-------|--------|
-| **Last verified** | 2026-06-11 |
-| **Commit** | `340f788` |
-| **Code** | `IntentRoutingBridge.swift`, `Intents/Actions/` |
+| **Last verified** | 2026-06-12 |
+| **Commit** | *(pending — spec-only update)* |
+| **Code** | `IntentRoutingBridge.swift`, `Intents/Actions/`, `App/Navigation/Routes.swift` (`MatchType.playRoute`), `GameModeCatalog.swift` |
