@@ -28,7 +28,7 @@ struct ProductSurfaceTests {
         #expect(ProductSurface.showsTrainingBots)
         #expect(ProductSurface.showsCustomBots)
         #expect(ProductSurface.showsPlayerExport)
-        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl"])
+        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl", "fr"])
     }
 
     @Test("Match type reachability includes all shipped modes on dev")

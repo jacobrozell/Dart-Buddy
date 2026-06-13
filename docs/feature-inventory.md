@@ -36,7 +36,7 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 |------|---------|---------|-------------------|
 | Game modes (catalog) | 2 (X01, Cricket) in 1.0 UI | 3 party engines hidden | 26 catalog stubs |
 | App shell & navigation | 4 tabs (lean 1.0) | Activity merge | Modes tab (1.3) |
-| Localization | en bundled | de/es/nl in repo only | in-app picker |
+| Localization | en bundled | de/es/nl/fr in repo only | in-app picker |
 | Shortcuts & deep links | Deep links | App Intents (flagged off) | Widgets, query intents |
 | CI / release | GitHub Actions, Xcode Cloud | Slack notify, perf tests | — |
 | Players & bots | CRUD + preset + custom bots | Training hidden | Local achievements, Journey |
@@ -144,11 +144,12 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | German (`de`) | Shipped | Wave 1 | `Resources/de.lproj/Localizable.strings` |
 | Spanish (`es`) | Shipped | Wave 2 | `Resources/es.lproj/Localizable.strings` |
 | Dutch (`nl`) | Shipped | Wave 3 | `Resources/nl.lproj/Localizable.strings` |
+| French (`fr`) | Shipped | Wave 4 | `Resources/fr.lproj/Localizable.strings` |
 | `L10n` helper + namespaced keys | Shipped | No hardcoded UI strings policy | `Support/Localization/L10n.swift` |
 | Mode catalog strings (all 29 modes) | Shipped | `modes.catalog.*` keys | [`LocalizationSpec.md`](../specs/LocalizationSpec.md) |
 | Locale generator script | Shipped | Key parity helper | `Scripts/generate_localizable.py` |
-| Localization parity unit tests | Shipped | en/de/es/nl | `Tests/Unit/LocalizationParityTests.swift` |
-| Localized smoke UI tests | Shipped | de / es / nl tab smoke | `Tests/UI/*LocalizationSmokeUITests.swift` |
+| Localization parity unit tests | Shipped | en/de/es/nl/fr | `Tests/Unit/LocalizationParityTests.swift` |
+| Localized smoke UI tests | Shipped | de / es / nl / fr tab smoke | `Tests/UI/*LocalizationSmokeUITests.swift` |
 | In-app language picker | Planned | Settings locale override | [`LocalizationSpec.md`](../specs/LocalizationSpec.md) §6 |
 | Pseudo-localization / RTL CI | Planned | Truncation stress, RTL readiness | [`LocalizationSpec.md`](../specs/LocalizationSpec.md) |
 | App Store localized listings | Partial | Captures planned for de/es/nl | [`release/todo.md`](release/todo.md) |
