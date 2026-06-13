@@ -84,6 +84,12 @@ targets:
       - path: Resources/zh-Hans.lproj/GameplayModes.strings
         type: file
         buildPhase: resources
+      - path: Resources/it.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/it.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources
@@ -251,6 +257,8 @@ targets:
       - path: Tests/UI/DutchLocalizationSmokeUITests.swift
         type: file
       - path: Tests/UI/ChineseLocalizationSmokeUITests.swift
+        type: file
+      - path: Tests/UI/ItalianLocalizationSmokeUITests.swift
         type: file
     dependencies:
       - target: DartBuddy

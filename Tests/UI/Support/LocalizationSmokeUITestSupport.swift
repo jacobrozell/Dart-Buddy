@@ -1,6 +1,6 @@
 import XCTest
 
-/// Shared helpers for locale smoke UI tests (`de`, `es`, `fr`, `nl`, `zh-Hans`).
+/// Shared helpers for locale smoke UI tests (`de`, `es`, `fr`, `it`, `nl`, `zh-Hans`).
 enum LocalizationSmokeUITestSupport {
     struct LocaleConfig {
         let languageCode: String

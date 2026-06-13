@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCALES = ("de", "es", "nl", "fr", "zh-Hans")
+LOCALES = ("de", "es", "nl", "fr", "zh-Hans", "it")
 SPECIFIER = re.compile(r"%%|%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?(?:l{0,2}[diouxX]|[@fFgGeEcsp])")
 ENTRY = re.compile(r'^"([^"]+)"\s*=\s*"(.*)";\s*$')
 EMBEDDED_EN = re.compile(

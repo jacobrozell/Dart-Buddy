@@ -28,7 +28,7 @@ struct ProductSurfaceTests {
         #expect(ProductSurface.showsTrainingBots)
         #expect(ProductSurface.showsCustomBots)
         #expect(ProductSurface.showsPlayerExport)
-        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl", "fr", "zh-Hans"])
+        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl", "fr", "zh-Hans", "it"])
     }
 
     @Test("Lean 1.0 reachability keeps core and co-op modes, hides party")

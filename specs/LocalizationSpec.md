@@ -16,6 +16,7 @@ Define internationalization and localization strategy from day one so future lan
 - **Wave 3 (shipped):** Dutch (`nl`) — system locale only; no in-app language picker.
 - **Wave 4 (shipped):** French (`fr`) — system locale only; no in-app language picker.
 - **Wave 5 (shipped):** Simplified Chinese (`zh-Hans`) — system locale only; no in-app language picker.
+- **Wave 6 (shipped):** Italian (`it`) — system locale only; no in-app language picker.
 
 ---
 
@@ -26,6 +27,7 @@ Define internationalization and localization strategy from day one so future lan
 - `Resources/nl.lproj/Localizable.strings` (Dutch wave 3)
 - `Resources/fr.lproj/Localizable.strings` (French wave 4)
 - `Resources/zh-Hans.lproj/Localizable.strings` (Simplified Chinese wave 5)
+- `Resources/it.lproj/Localizable.strings` (Italian wave 6)
 - Optional structured tables by domain (recommended as app grows):
   - `Resources/en.lproj/Gameplay.strings`
   - `Resources/en.lproj/Settings.strings`
@@ -54,7 +56,7 @@ Key rule:
 ---
 
 ## 6. Language Expansion Plan (Future)
-- Waves 1–5 (`de`, `es`, `nl`, `fr`, `zh-Hans`) — shipped; see §2.
+- Waves 1–6 (`de`, `es`, `nl`, `fr`, `zh-Hans`, `it`) — shipped; see §2.
 - **In-app language picker (post-1.0):** Settings override of `Locale`; feature specs remain locale-agnostic (describe behavior, not language). Picker must not break `LocalizationParityTests` key coverage.
 - Future waves: additional locales per backlog; same key-parity gate.
 - Prioritize strings used in core gameplay first when adding locales.
@@ -67,7 +69,7 @@ Key rule:
 
 ## 7. Engineering Rules
 - PRs adding user-facing text must include localization keys and English value.
-- PRs adding keys must update **all** shipped locale files (`en` + `de` + `es` + `nl` + `fr` + `zh-Hans`) and regenerate via `Scripts/generate_localizable.py all` + `Scripts/generate_gameplay_modes_l10n.py`.
+- PRs adding keys must update **all** shipped locale files (`en` + `de` + `es` + `nl` + `fr` + `zh-Hans` + `it`) and regenerate via `Scripts/generate_localizable.py all` + `Scripts/generate_gameplay_modes_l10n.py`.
 - `Scripts/locale_data/*.json` is the source of truth per locale; backfill shards (`*_backfill.json`) merge via `Scripts/merge_locale_backfill.py`.
 - `Scripts/locale_neutral_keys.json` documents keys intentionally identical to English (brand, X01, dart notation).
 - `Scripts/audit_locale_completeness.py` reports key parity, rules coverage, and English leakage across shipped locales.
@@ -77,18 +79,19 @@ Key rule:
 ---
 
 ## 8. Testing
-- `LocalizationParityTests` (`.localization`): en/de/es/nl/fr/zh-Hans key set and `%@`/`%d`/etc. parity.
+- `LocalizationParityTests` (`.localization`): en/de/es/nl/fr/zh-Hans/it key set and `%@`/`%d`/etc. parity.
 - `GermanLocalizationSmokeUITests`: launch with `-AppleLanguages (de)`; tab bar + Play setup smoke.
 - `SpanishLocalizationSmokeUITests`: launch with `-AppleLanguages (es)`; tab bar + Play setup smoke.
 - `DutchLocalizationSmokeUITests`: launch with `-AppleLanguages (nl)`; tab bar + Play setup smoke.
 - `FrenchLocalizationSmokeUITests`: launch with `-AppleLanguages (fr)`; tab bar + Play setup smoke.
 - `ChineseLocalizationSmokeUITests`: launch with `-AppleLanguages (zh-Hans)`; tab bar + Play setup smoke.
+- `ItalianLocalizationSmokeUITests`: launch with `-AppleLanguages (it)`; tab bar + Play setup smoke.
 - Functional UI tests use default English launch; do not assert English copy in localized smoke suites.
 - Pseudo-localization pass for truncation and layout stress (future).
 - Right-to-left readiness review (future if RTL languages are added).
-- Manual language switch smoke tests across tabs and gameplay flows (Simulator → Deutsch / Español / Nederlands / Français / 简体中文).
+- Manual language switch smoke tests across tabs and gameplay flows (Simulator → Deutsch / Español / Nederlands / Français / 简体中文 / Italiano).
 
 ### App Store Connect (localized listings, manual)
 - Localized subtitle, description, and keywords per shipped locale.
-- Screenshots captured with device language set to Deutsch, Español, Nederlands, or Français as appropriate.
+- Screenshots captured with device language set to Deutsch, Español, Nederlands, Français, 简体中文, or Italiano as appropriate.
 - Privacy nutrition labels unchanged; review localized keyword fields before submit.

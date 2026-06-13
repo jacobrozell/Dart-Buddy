@@ -37,7 +37,7 @@ UI tests are split into **seven Xcode targets** (shared helpers in `Tests/UI/Sup
 | `DartBuddyUISmoke` | `DartBuddyUISmokeUITests` | `MatchSetupUITests`, `ModesAndActivityUITests`, `MatchChromeUITests` | UI Smoke |
 | `DartBuddyUIGameplay` | `DartBuddyUIGameplayUITests` | `X01MatchUITests`, `CricketMatchUITests` | UI Gameplay |
 | `DartBuddyUIAccessibility` | `DartBuddyUIAccessibilityUITests` | `WCAGAccessibilityUITests` (~48 tests) | UI Accessibility |
-| `DartBuddyUILocalization` | `DartBuddyUILocalizationUITests` | `FrenchLocalizationSmokeUITests`, `GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`, `ChineseLocalizationSmokeUITests` | UI Localization |
+| `DartBuddyUILocalization` | `DartBuddyUILocalizationUITests` | `FrenchLocalizationSmokeUITests`, `GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`, `ChineseLocalizationSmokeUITests`, `ItalianLocalizationSmokeUITests` | UI Localization |
 | `DartBuddyUILandscape` | `DartBuddyUILandscapeUITests` | `RegressionUITests` (landscape + bot regressions; **iPhone 17 Pro Max**) | UI Landscape |
 | `DartBuddyUIChrome` | `DartBuddyUIChromeUITests` | `SettingsUITests`, `OnboardingUITests`, `PlayerDetailUITests`, `BotDetailUITests`, `HistoryDetailUITests` | UI Chrome |
 | `DartBuddyUILean` | `DartBuddyUILeanUITests` | `Lean1_0SmokeUITests` | **Release branches only** (`release/*`) |
@@ -79,7 +79,7 @@ UI test execution policy:
 - Quick add player from empty roster → auto-selected in setup
 - Statistics partial-match banner when active match matches filters
 - Migration recovery: retry / export / reset (manual RC — [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md))
-- Localization: `LocalizationParityTests` + `de`/`es`/`nl`/`fr`/`zh-Hans` smoke UI tests (`DartBuddyUILocalization` scheme)
+- Localization: `LocalizationParityTests` + `de`/`es`/`nl`/`fr`/`zh-Hans`/`it` smoke UI tests (`DartBuddyUILocalization` scheme)
 
 ---
 
@@ -121,7 +121,7 @@ Use canonical tags from `specs/SwiftTestingTagsSpec.md`.
   - `ui`, `accessibility`, `smoke`
 - `LocalizationParityTests` (`Tests/Unit/`):
   - `unit`, `localization`, `critical`
-- `GermanLocalizationSmokeUITests` / `SpanishLocalizationSmokeUITests` / `DutchLocalizationSmokeUITests` / `FrenchLocalizationSmokeUITests` / `ChineseLocalizationSmokeUITests`:
+- `GermanLocalizationSmokeUITests` / `SpanishLocalizationSmokeUITests` / `DutchLocalizationSmokeUITests` / `FrenchLocalizationSmokeUITests` / `ChineseLocalizationSmokeUITests` / `ItalianLocalizationSmokeUITests`:
   - `ui`, `localization`, `smoke`
 - `Lean1_0SmokeUITests`:
   - `ui`, `smoke`, `releaseGate`

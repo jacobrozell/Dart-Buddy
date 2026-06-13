@@ -9,7 +9,7 @@ from localizable_strings import parse_entry_map
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "Scripts/locale_data"
-LOCALES = ("de", "es", "nl", "fr", "zh-Hans")
+LOCALES = ("de", "es", "nl", "fr", "zh-Hans", "it")
 
 
 def main() -> None:

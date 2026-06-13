@@ -20,7 +20,7 @@ enum ProductSurface {
             showsTrainingBots: true,
             showsCustomBots: true,
             showsPlayerExport: true,
-            bundledLocaleCodes: ["en", "de", "es", "nl", "fr", "zh-Hans"]
+            bundledLocaleCodes: ["en", "de", "es", "nl", "fr", "zh-Hans", "it"]
         )
 
         static let lean1_0 = Configuration(
