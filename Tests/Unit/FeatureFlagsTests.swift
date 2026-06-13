@@ -82,3 +82,15 @@ func visionAutoScoringEnabledWithLaunchArgument() {
     let provider = LocalFeatureFlagsProvider(arguments: ["-enable_vision_scoring"])
     #expect(provider.isEnabled(.enableVisionAutoScoring))
 }
+
+@Test(.tags(.unit, .regression))
+func achievementsDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!provider.isEnabled(.enableAchievements))
+}
+
+@Test(.tags(.unit, .regression))
+func achievementsEnabledWithLaunchArgument() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-enable_achievements"])
+    #expect(provider.isEnabled(.enableAchievements))
+}

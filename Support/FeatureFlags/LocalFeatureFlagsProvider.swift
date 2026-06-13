@@ -74,6 +74,11 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             #else
             return false
             #endif
+        case .enableAchievements:
+            if arguments.contains("-enable_achievements") {
+                return true
+            }
+            return false
         }
     }
 }
