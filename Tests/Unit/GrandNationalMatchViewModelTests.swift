@@ -106,6 +106,16 @@ func grandNationalViewModelCourseRowsMatchPlayerCount() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .match, .regression))
+func grandNationalViewModelCourseRowsMarkActivePlayer() async throws {
+    let (vm, _) = try makeGrandNationalViewModel()
+
+    #expect(vm.courseRows.count == 2)
+    #expect(vm.courseRows.filter { $0.isActive }.count == 1)
+    #expect(vm.courseRows.allSatisfy { !$0.isEliminated })
+}
+
+@MainActor
 @Test(.tags(.integration, .match, .critical, .regression))
 func grandNationalViewModelLastSurvivorCompletesMatch() async throws {
     let (vm, store) = try makeGrandNationalViewModel(participantCount: 2)

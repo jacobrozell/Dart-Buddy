@@ -205,10 +205,93 @@ struct MatchForfeitCoordinatorTests {
         #expect(message.contains("Alice"))
         #expect(message.contains("Bob"))
     }
+
+    @Test
+    @MainActor
+    func confirmForfeitPersistsAndResetsFlow() async throws {
+        let p1 = UUID()
+        let p2 = UUID()
+        let repository = ForfeitCoordinatorPersistingMatchRepository()
+        let store = ActiveMatchStore()
+        var session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+            participants: [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "P1", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "P2", turnOrder: 1)
+            ]
+        )
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+        store.save(session)
+        let host = ForfeitCoordinatorTestHost(
+            session: session,
+            matchRepository: repository,
+            store: store,
+            logger: DefaultAppLogger(minimumLevel: .fault, sink: ForfeitCoordinatorSilentLogSink())
+        )
+        let coordinator = MatchForfeitCoordinator(
+            store: store,
+            matchRepository: repository,
+            logger: host.hostMatchLogger
+        )
+        var completed = false
+        coordinator.configure(host: host, onComplete: { completed = true })
+        coordinator.beginForfeitFlow()
+
+        await coordinator.confirmForfeit()
+
+        #expect(coordinator.flowState == .idle)
+        #expect(completed)
+        #expect(store.session(for: session.runtime.matchId) == nil)
+        #expect(await repository.forfeitCallCount == 1)
+    }
 }
 
 private struct ForfeitCoordinatorSilentLogSink: LogSink {
     func write(_: LogEntry) {}
+}
+
+private actor ForfeitCoordinatorPersistingMatchRepository: MatchRepository {
+    private(set) var forfeitCallCount = 0
+
+    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {}
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
+    }
+    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
+        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
+    }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
+    func forfeitMatch(matchId: UUID, endedAt _: Date, winnerPlayerId: UUID?, forfeitedByPlayerId: UUID) async throws -> MatchSummary {
+        forfeitCallCount += 1
+        return MatchSummary(
+            id: matchId,
+            type: .x01,
+            status: .forfeited,
+            startedAt: Date(),
+            endedAt: Date(),
+            winnerPlayerId: winnerPlayerId,
+            forfeitedByPlayerId: forfeitedByPlayerId,
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: 1,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
 }
 
 private actor ForfeitCoordinatorFakeMatchRepository: MatchRepository {

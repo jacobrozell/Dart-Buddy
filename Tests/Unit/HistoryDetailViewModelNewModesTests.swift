@@ -109,14 +109,32 @@ private func appendSampleTurns(
         updated = try MatchLifecycleService.submitEnglishCricketTurn(session: updated, darts: [miss()])
         updated = try MatchLifecycleService.submitEnglishCricketTurn(session: updated, darts: [DartInput(multiplier: .single, segment: .innerBull)])
         return updated
+    case .americanCricket:
+        var updated = session
+        updated = try MatchLifecycleService.submitAmericanCricketTurn(session: updated, darts: [segment(.double, 20)])
+        updated = try MatchLifecycleService.submitAmericanCricketTurn(session: updated, darts: [miss()])
+        return updated
+    case .mulligan:
+        var updated = session
+        updated = try MatchLifecycleService.submitMulliganTurn(session: updated, darts: [miss(), miss(), miss()])
+        updated = try MatchLifecycleService.submitMulliganTurn(session: updated, darts: [miss(), miss(), miss()])
+        return updated
+    case .knockout:
+        var updated = session
+        updated = try MatchLifecycleService.submitKnockoutTurn(session: updated, darts: [miss(), miss(), miss()])
+        updated = try MatchLifecycleService.submitKnockoutTurn(session: updated, darts: [miss(), miss(), miss()])
+        return updated
+    case .nineLives:
+        var updated = session
+        updated = try MatchLifecycleService.submitNineLivesTurn(session: updated, darts: [miss()])
+        updated = try MatchLifecycleService.submitNineLivesTurn(session: updated, darts: [miss()])
+        return updated
+    case .grandNational:
+        return try MatchLifecycleService.submitGrandNationalTurn(session: session, darts: [miss()])
     default:
         return try MatchLifecycleService.submitKnockoutTurn(
             session: session,
-            darts: [
-                segment(.single, 20),
-                segment(.single, 20),
-                segment(.single, 5)
-            ]
+            darts: [miss(), miss(), miss()]
         )
     }
 }
@@ -208,6 +226,87 @@ struct HistoryDetailViewModelNewModesTests {
         #expect(vm.matchType == .englishCricket)
         #expect(vm.timeline.count == 2)
         #expect(vm.header?.modeText == MatchConfigText.modeLabel(for: .englishCricket))
+        #expect(vm.throwsRows.count == 2)
+    }
+
+    @Test
+    @MainActor
+    func americanCricketHistoryBuildsBreakdowns() async throws {
+        let fixture = try makeCompletedModeFixture(type: .americanCricket)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .americanCricket)
+        #expect(vm.breakdowns.count == 2)
+        #expect(vm.timeline.count == 2)
+    }
+
+    @Test
+    @MainActor
+    func knockoutHistoryBuildsStandingsAndThrows() async throws {
+        let fixture = try makeCompletedModeFixture(type: .knockout)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .knockout)
+        #expect(vm.standings.count == 2)
+        #expect(vm.throwsRows.allSatisfy { $0.throwCount > 0 })
+    }
+
+    @Test
+    @MainActor
+    func mulliganHistoryLoadsCompletedMatch() async throws {
+        let fixture = try makeCompletedModeFixture(type: .mulligan)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.state == "ready")
+        #expect(vm.matchType == .mulligan)
+        #expect(vm.breakdowns.count == 2)
+    }
+
+    @Test
+    @MainActor
+    func nineLivesHistoryBuildsTimeline() async throws {
+        let fixture = try makeCompletedModeFixture(type: .nineLives)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .nineLives)
+        #expect(vm.timeline.count == 2)
+        #expect(vm.header?.winnerText == "Winner")
+    }
+
+    @Test
+    @MainActor
+    func grandNationalHistoryBuildsGenericSummary() async throws {
+        let fixture = try makeCompletedModeFixture(type: .grandNational)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .grandNational)
+        #expect(!vm.configText.isEmpty)
+        #expect(vm.timeline.count == 1)
         #expect(vm.throwsRows.count == 2)
     }
 }

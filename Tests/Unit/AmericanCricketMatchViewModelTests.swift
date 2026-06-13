@@ -92,6 +92,17 @@ func americanCricketViewModelActiveBoardColumnIsCurrentPlayer() async throws {
 
 @MainActor
 @Test(.tags(.integration, .match, .regression))
+func americanCricketViewModelBoardColumnsExposeMarks() async throws {
+    let (vm, _) = try makeAmericanCricketViewModel()
+    vm.enteredDarts = [acVMDart(.double, 20)]
+    await vm.submitTurn()
+
+    let column = try #require(vm.boardColumns.first)
+    #expect(column.marks["20"] == 2)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
 func americanCricketViewModelUndoRestoresPreviousState() async throws {
     let (vm, _) = try makeAmericanCricketViewModel()
     vm.enteredDarts = [acVMDart(.double, 20)]

@@ -8,6 +8,10 @@ private func footballDart(_ multiplier: DartMultiplier, _ segment: DartSegment) 
     DartInput(multiplier: multiplier, segment: segment)
 }
 
+private func footballMiss() -> DartInput {
+    DartInput(multiplier: .single, segment: .miss, isMiss: true)
+}
+
 @MainActor
 private func makeFootballViewModel(
     goalsToWin: Int = 10,
@@ -176,7 +180,20 @@ func footballViewModelScoreboardFirstRowIsActive() async throws {
 
     let activeRow = vm.scoreboardRows.first(where: \.isActive)
     #expect(activeRow != nil)
-    #expect(vm.scoreboardRows.filter(\.isActive).count == 1)
+    #expect(vm.scoreboardRows.filter { $0.isActive }.count == 1)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func footballViewModelScoreboardRowsExposeGoals() async throws {
+    let (vm, _) = try makeFootballViewModel()
+    let outerBull = DartInput(multiplier: .single, segment: .outerBull)
+    vm.enteredDarts = [outerBull, footballMiss(), footballMiss()]
+    await vm.submitTurn()
+
+    let row = try #require(vm.scoreboardRows.first)
+    #expect(row.goals >= 0)
+    #expect(vm.scoreboardRows.count == 2)
 }
 
 // MARK: - Bot gating
