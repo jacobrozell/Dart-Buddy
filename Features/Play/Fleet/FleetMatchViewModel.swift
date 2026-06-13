@@ -239,13 +239,14 @@ final class FleetMatchViewModel: ObservableObject {
     func submitDart() async {
         guard let fleetState, let call = selectedCall ?? fleetState.pendingCall else { return }
         guard enteredDarts.count == 1, let dart = enteredDarts.first else { return }
+        guard let currentSession = session else { return }
         state = .submitting
         let outcome = await turnSubmitter.submitTurn(
-            from: session!,
+            from: currentSession,
             invalidTurnFallbackKey: "error.match.fleet.invalidCall"
         ) {
             try MatchLifecycleService.submitFleetDart(
-                session: session!,
+                session: currentSession,
                 playerId: fleetState.currentPlayerId,
                 callCell: call,
                 dart: dart
@@ -355,8 +356,9 @@ final class FleetMatchViewModel: ObservableObject {
         guard let profile = currentBotSkillProfile,
               let fleetState = session?.runtime.fleetState,
               fleetState.phase == .placement else { return false }
-        guard let botId = placementAudiencePlayerId,
-              DartBotEngine.botSkillProfile(playerId: botId, in: session!.runtime.participants) != nil else {
+        guard let currentSession = session,
+              let botId = placementAudiencePlayerId,
+              DartBotEngine.botSkillProfile(playerId: botId, in: currentSession.runtime.participants) != nil else {
             return false
         }
 

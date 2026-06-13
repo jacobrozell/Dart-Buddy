@@ -35,6 +35,8 @@
 "setup.validation.invalidSets.short" = "El recuento de Set debe ser al menos 1.";
 "setup.validation.partyComingSoon" = "Este juego de fiesta aún no está disponible.";
 "setup.validation.partyComingSoon.short" = "Próximamente.";
+"setup.validation.coopComingSoon" = "Este modo cooperativo aún no está disponible.";
+"setup.validation.coopComingSoon.short" = "Próximamente.";
 "setup.validation.partyMinimumPlayers" = "Selecciona al menos dos jugadores para este juego.";
 "setup.validation.partyMinimumPlayers.short" = "Se necesitan al menos dos jugadores.";
 "setup.validation.partyKillerMinimumPlayers" = "Killer necesita al menos tres jugadores.";
@@ -1272,7 +1274,7 @@
 "achievement.db_checkout_150_plus.name" = "Cierre enorme";
 "achievement.db_checkout_150_plus.description" = "Cierra con 150 o más restantes.";
 "achievement.db_checkout_rate_50.name" = "Cerrador";
-"achievement.db_checkout_rate_50.description" = "Cierra al menos la mitad de 3+ intentos de cierre y gana.";
+"achievement.db_checkout_rate_50.description" = "Cierra al menos la mitad de los intentos con 3+ dardos y gana.";
 "achievement.db_checkout_rate_100.name" = "Cierre perfecto";
 "achievement.db_checkout_rate_100.description" = "Todos los intentos de cierre en 3+ intentos y victoria.";
 "achievement.db_streak_win_3.name" = "Racha caliente";

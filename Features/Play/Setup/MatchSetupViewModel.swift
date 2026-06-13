@@ -421,6 +421,12 @@ final class MatchSetupViewModel: ObservableObject {
 
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
         if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
+        if let matchType = selection.matchType,
+           let entry = GameModeCatalog.entry(for: matchType),
+           entry.section == .coop,
+           !ProductSurface.showsCoopModes {
+            return
+        }
         setupCategory = selection.setupCategory
         if let mode = selection.mode {
             self.mode = mode
@@ -450,92 +456,145 @@ final class MatchSetupViewModel: ObservableObject {
             setupCategory = .standard
             mode = .x01
         }
+        if let catalogType = selectedCatalogMatchType,
+           let entry = GameModeCatalog.entry(for: catalogType),
+           entry.section == .coop,
+           !ProductSurface.showsCoopModes {
+            setupCategory = .standard
+            mode = .x01
+            selectedCatalogMatchType = nil
+        }
     }
 
     func revalidate() {
         var errors: [String] = []
         if let catalogType = selectedCatalogMatchType,
            let entry = GameModeCatalog.entry(for: catalogType) {
-            if entry.section == .party, !ProductSurface.showsPartyModes {
-                errors.append("setup.validation.partyComingSoon")
-            } else if !entry.isAvailable {
-                errors.append("setup.validation.partyComingSoon")
-            } else if selectedParticipantCount < entry.minimumPlayers {
-                errors.append(catalogType == .killer ? "setup.validation.partyKillerMinimumPlayers" : "setup.validation.minimumPlayers")
-            } else if selectedPlayers.allSatisfy(\.isBot) {
-                errors.append("setup.validation.requiresHuman")
-            } else if catalogType == .fleet, selectedParticipantCount != 2 {
-                errors.append("setup.validation.fleetExactTwoPlayers")
-            } else if entry.section == .coop {
-                if selectedParticipantCount > 3 {
-                    errors.append("setup.validation.raidHeroCount")
-                } else if selectedPlayers.contains(where: \.isBot) {
-                    errors.append("setup.validation.coopHumansOnly")
-                }
-            }
+            errors.append(contentsOf: catalogSelectionValidationErrors(catalogType: catalogType, entry: entry))
         } else if setupCategory == .party {
-            if !ProductSurface.showsPartyModes {
-                errors.append("setup.validation.partyComingSoon")
-            } else if !partyGame.isAvailable {
-                errors.append("setup.validation.partyComingSoon")
-            } else if selectedParticipantCount < partyGame.minimumPlayers {
-                errors.append(partyMinimumPlayersValidationKey)
-            } else {
-                let selected = selectedPlayers
-                if selected.allSatisfy(\.isBot) {
-                    errors.append("setup.validation.requiresHuman")
-                }
-                if partyGame == .baseball {
-                    if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
-                        errors.append("setup.validation.baseballBotsPresetOnly")
-                    }
-                }
-                if partyGame == .shanghai {
-                    if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
-                        errors.append("setup.validation.shanghaiBotsPresetOnly")
-                    }
-                }
-                if partyGame == .killer {
-                    if selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
-                        errors.append("setup.validation.killerBotsPresetOnly")
-                    }
-                }
+            errors.append(contentsOf: partySelectionValidationErrors())
+        } else {
+            errors.append(contentsOf: defaultRosterValidationErrors())
+        }
+        errors.append(contentsOf: standardModeConfigValidationErrors())
+        validationErrors = errors
+    }
+
+    private func catalogSelectionValidationErrors(
+        catalogType: MatchType,
+        entry: GameModeCatalogEntry
+    ) -> [String] {
+        if entry.section == .party, !ProductSurface.showsPartyModes {
+            return ["setup.validation.partyComingSoon"]
+        }
+        if entry.section == .coop, !ProductSurface.showsCoopModes {
+            return ["setup.validation.coopComingSoon"]
+        }
+        if !entry.isAvailable {
+            return ["setup.validation.partyComingSoon"]
+        }
+        if selectedParticipantCount < entry.minimumPlayers {
+            let key = catalogType == .killer
+                ? "setup.validation.partyKillerMinimumPlayers"
+                : "setup.validation.minimumPlayers"
+            return [key]
+        }
+        if selectedPlayers.allSatisfy(\.isBot) {
+            return ["setup.validation.requiresHuman"]
+        }
+        if catalogType == .fleet, selectedParticipantCount != 2 {
+            return ["setup.validation.fleetExactTwoPlayers"]
+        }
+        if entry.section == .coop {
+            if selectedParticipantCount > 3 {
+                return ["setup.validation.raidHeroCount"]
             }
-        } else if mode == .x01 {
+            if selectedPlayers.contains(where: \.isBot) {
+                return ["setup.validation.coopHumansOnly"]
+            }
+        }
+        return []
+    }
+
+    private func partySelectionValidationErrors() -> [String] {
+        if !ProductSurface.showsPartyModes {
+            return ["setup.validation.partyComingSoon"]
+        }
+        if !partyGame.isAvailable {
+            return ["setup.validation.partyComingSoon"]
+        }
+        if selectedParticipantCount < partyGame.minimumPlayers {
+            return [partyMinimumPlayersValidationKey]
+        }
+
+        var errors: [String] = []
+        let selected = selectedPlayers
+        if selected.allSatisfy(\.isBot) {
+            errors.append("setup.validation.requiresHuman")
+        }
+        if partyGame == .baseball,
+           selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
+            errors.append("setup.validation.baseballBotsPresetOnly")
+        }
+        if partyGame == .shanghai,
+           selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
+            errors.append("setup.validation.shanghaiBotsPresetOnly")
+        }
+        if partyGame == .killer,
+           selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
+            errors.append("setup.validation.killerBotsPresetOnly")
+        }
+        return errors
+    }
+
+    private func defaultRosterValidationErrors() -> [String] {
+        if mode == .x01 {
             // Solo X01 is allowed (single-player practice); only require a human.
             // `allSatisfy` is vacuously true for an empty roster, so this also
             // covers the "no players selected" case.
             if selectedPlayers.allSatisfy(\.isBot) {
-                errors.append("setup.validation.requiresHuman")
+                return ["setup.validation.requiresHuman"]
             }
-        } else if selectedParticipantCount < 2 {
-            errors.append("setup.validation.minimumPlayers")
-        } else if selectedPlayers.allSatisfy(\.isBot) {
-            errors.append("setup.validation.requiresHuman")
+            return []
         }
+        if selectedParticipantCount < 2 {
+            return ["setup.validation.minimumPlayers"]
+        }
+        if selectedPlayers.allSatisfy(\.isBot) {
+            return ["setup.validation.requiresHuman"]
+        }
+        return []
+    }
+
+    private func standardModeConfigValidationErrors() -> [String] {
         if setupCategory == .standard, mode == .x01 {
+            var errors: [String] = []
             if !X01StartScores.all.contains(x01StartScore) {
                 errors.append("setup.validation.invalidStartScore")
             }
             if x01LegsToWin <= 0 {
                 errors.append("setup.validation.invalidLegs")
             }
-            if x01SetsEnabled && x01SetsToWin <= 0 {
+            if x01SetsEnabled, x01SetsToWin <= 0 {
                 errors.append("setup.validation.invalidSets")
             }
-        } else if setupCategory == .standard {
+            return errors
+        }
+        if setupCategory == .standard {
+            var errors: [String] = []
             if cricketLegsToWin <= 0 {
                 errors.append("setup.validation.invalidLegs")
             }
-            if cricketSetsEnabled && cricketSetsToWin <= 0 {
+            if cricketSetsEnabled, cricketSetsToWin <= 0 {
                 errors.append("setup.validation.invalidSets")
             }
             let hasBot = selectedPlayers.contains(where: \.isBot)
             if hasBot, !cricketPointsEnabled {
                 errors.append("setup.validation.cricketBotUnsupported")
             }
+            return errors
         }
-        validationErrors = errors
+        return []
     }
 
     private var partyMinimumPlayersValidationKey: String {

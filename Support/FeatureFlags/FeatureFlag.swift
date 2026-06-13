@@ -19,4 +19,6 @@ public enum FeatureFlag: String, CaseIterable, Sendable {
     case enableLocalTournaments
     /// Online bracket tournaments. Requires `enableOnlinePlay`. See `specs/TournamentSpec.md`.
     case enableOnlineTournaments
+    /// Tappable visual dartboard scoring input. Default off; enable with `-enable_visual_dartboard`.
+    case enableVisualDartboardInput
 }

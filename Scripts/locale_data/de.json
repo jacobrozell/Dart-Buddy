@@ -1183,6 +1183,8 @@
   "setup.validation.minimumPlayers.short": "Mindestens zwei Spieler wählen.",
   "setup.validation.partyComingSoon": "Dieses Party-Spiel ist noch nicht verfügbar.",
   "setup.validation.partyComingSoon.short": "Demnächst.",
+  "setup.validation.coopComingSoon": "Dieser Koop-Modus ist noch nicht verfügbar.",
+  "setup.validation.coopComingSoon.short": "Demnächst.",
   "setup.validation.partyKillerMinimumPlayers": "Killer braucht mindestens drei Spieler.",
   "setup.validation.partyKillerMinimumPlayers.short": "Killer braucht drei Spieler.",
   "setup.validation.partyMinimumPlayers": "Wähle mindestens zwei Spieler für dieses Spiel.",

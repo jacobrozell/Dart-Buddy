@@ -310,11 +310,11 @@ final class GrandNationalMatchViewModel: ObservableObject {
                 announceResultIfNeeded(event: event)
                 if event.eliminated {
                     state = .eliminatedFeedback
-                    try? await Task.sleep(nanoseconds: 600_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteTransitionNanoseconds)
                 } else if event.segmentIndexAfter != event.segmentIndexBefore
                     || event.lapsCompletedAfter > event.lapsCompletedBefore {
                     state = .hurdleClearedFeedback
-                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.briefModeFeedbackTransitionNanoseconds)
                 }
             }
             if updated.runtime.status == .completed {

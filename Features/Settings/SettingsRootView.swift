@@ -290,21 +290,23 @@ struct SettingsRootView: View {
 
     private func duringPlaySection(usesBrand: Bool) -> some View {
         Section {
-            Picker("settings.dartEntryPresentation.label", selection: Binding(
-                get: {
-                    DartEntryPresentation(
-                        rawValueOrDefault: viewModel.settings?.defaultDartEntryPresentationRaw
-                    ).rawValue
-                },
-                set: { viewModel.queueDartEntryPresentationUpdate($0) }
-            )) {
-                Text("settings.dartEntryPresentation.numberPad")
-                    .tag(DartEntryPresentation.numberPad.rawValue)
-                Text("settings.dartEntryPresentation.visualBoard")
-                    .tag(DartEntryPresentation.visualBoard.rawValue)
+            if dependencies.featureFlags.isEnabled(.enableVisualDartboardInput) {
+                Picker("settings.dartEntryPresentation.label", selection: Binding(
+                    get: {
+                        DartEntryPresentation(
+                            rawValueOrDefault: viewModel.settings?.defaultDartEntryPresentationRaw
+                        ).rawValue
+                    },
+                    set: { viewModel.queueDartEntryPresentationUpdate($0) }
+                )) {
+                    Text("settings.dartEntryPresentation.numberPad")
+                        .tag(DartEntryPresentation.numberPad.rawValue)
+                    Text("settings.dartEntryPresentation.visualBoard")
+                        .tag(DartEntryPresentation.visualBoard.rawValue)
+                }
+                .accessibilityIdentifier("settings_dartEntryPresentationPicker")
+                .accessibilityHint(L10n.string("settings.dartEntryPresentation.hint"))
             }
-            .accessibilityIdentifier("settings_dartEntryPresentationPicker")
-            .accessibilityHint(L10n.string("settings.dartEntryPresentation.hint"))
             Toggle("settings.feedback.haptics", isOn: Binding(
                 get: { viewModel.settings?.hapticsEnabled ?? true },
                 set: { viewModel.queueFeedbackUpdate(haptics: $0) }
@@ -381,11 +383,13 @@ struct SettingsRootView: View {
             .accessibilityLabel(L10n.settingsSupportRateAccessibility)
             .accessibilityIdentifier("settings_rateAppLink")
 
-            Link(destination: AppLinks.accessibility) {
-                Label(L10n.settingsSupportAccessibility, systemImage: "accessibility")
+            if ProductSurface.showsAccessibilityMarketing {
+                Link(destination: AppLinks.accessibility) {
+                    Label(L10n.settingsSupportAccessibility, systemImage: "accessibility")
+                }
+                .accessibilityLabel(L10n.settingsSupportAccessibilityLabel)
+                .accessibilityIdentifier("settings_accessibilityLink")
             }
-            .accessibilityLabel(L10n.settingsSupportAccessibilityLabel)
-            .accessibilityIdentifier("settings_accessibilityLink")
 
             Link(destination: AppLinks.privacy) {
                 Label(L10n.settingsSupportPrivacy, systemImage: "hand.raised")

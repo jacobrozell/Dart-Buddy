@@ -26,7 +26,7 @@ struct GameModeSectionTests {
     }
 
     @Test
-    func coopSectionContainsShippedRaidAndPlannedModes() {
+    func coopSectionListsRaidAndPlannedModes() {
         let coop = GameModeCatalog.entries(in: .coop)
         #expect(coop.count == 4)
         #expect(coop.map(\.id) == [
@@ -35,8 +35,7 @@ struct GameModeSectionTests {
             "coop.theVault",
             "coop.clearTheBoard"
         ])
-        let raid = coop.first { $0.id == "coop.raid" }
-        #expect(raid?.isAvailable == true)
-        #expect(coop.filter { $0.id != "coop.raid" }.allSatisfy { !$0.isAvailable })
+        #expect(coop.filter(\.isAvailable).map(\.id) == ["coop.raid"])
+        #expect(coop.filter { !$0.isAvailable }.count == 3)
     }
 }

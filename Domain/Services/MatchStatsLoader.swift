@@ -2,11 +2,18 @@ import Foundation
 
 public struct MatchStatsLoadRequest: Sendable {
     public var matchType: MatchType?
+    public var includedMatchTypes: [MatchType]?
     public var startedAfter: Date?
     public var participantPlayerId: UUID?
 
-    public init(matchType: MatchType? = nil, startedAfter: Date? = nil, participantPlayerId: UUID? = nil) {
+    public init(
+        matchType: MatchType? = nil,
+        includedMatchTypes: [MatchType]? = nil,
+        startedAfter: Date? = nil,
+        participantPlayerId: UUID? = nil
+    ) {
         self.matchType = matchType
+        self.includedMatchTypes = includedMatchTypes
         self.startedAfter = startedAfter
         self.participantPlayerId = participantPlayerId
     }
@@ -60,7 +67,11 @@ public enum MatchStatsLoader {
         pageSize: Int = defaultPageSize
     ) async throws -> MatchStatsLoadResult {
         let safePageSize = max(1, pageSize)
-        let filter = MatchHistoryFilter(matchType: request.matchType, startedAfter: request.startedAfter)
+        let filter = MatchHistoryFilter(
+            matchType: request.matchType,
+            includedMatchTypes: request.includedMatchTypes,
+            startedAfter: request.startedAfter
+        )
         var page = 0
         var inputs: [MatchStatsInput] = []
         var namesById: [UUID: String] = [:]

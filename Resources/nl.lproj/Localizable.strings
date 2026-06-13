@@ -35,6 +35,8 @@
 "setup.validation.invalidSets.short" = "Aantal sets minstens 1.";
 "setup.validation.partyComingSoon" = "Dit partyspel is nog niet beschikbaar.";
 "setup.validation.partyComingSoon.short" = "Binnenkort.";
+"setup.validation.coopComingSoon" = "Deze co-opmodus is nog niet beschikbaar.";
+"setup.validation.coopComingSoon.short" = "Binnenkort.";
 "setup.validation.partyMinimumPlayers" = "Selecteer minstens twee spelers voor dit spel.";
 "setup.validation.partyMinimumPlayers.short" = "Minstens twee spelers nodig.";
 "setup.validation.partyKillerMinimumPlayers" = "Killer heeft minstens drie spelers nodig.";

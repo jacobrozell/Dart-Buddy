@@ -15,4 +15,9 @@ public enum DartEntryPresentation: String, CaseIterable, Codable, Sendable {
     public var toggled: DartEntryPresentation {
         self == .numberPad ? .visualBoard : .numberPad
     }
+
+    /// Returns the number pad when visual dartboard entry is disabled for this build.
+    public func resolved(allowsVisualBoard: Bool) -> DartEntryPresentation {
+        allowsVisualBoard ? self : .numberPad
+    }
 }

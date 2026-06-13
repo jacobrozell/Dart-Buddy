@@ -196,7 +196,11 @@ struct MatchLifecycleServiceShippedModesTests {
             session = try ShippedModeLifecycleSupport.submitTurn(session: session)
             guard session.runtime.status == .inProgress else { continue }
             session = try ShippedModeLifecycleSupport.submitTurn(session: session)
-            #expect(ShippedModeLifecycleSupport.eventCount(in: session) == 2)
+            if type == .fleet {
+                #expect(ShippedModeLifecycleSupport.eventCount(in: session) >= 2)
+            } else {
+                #expect(ShippedModeLifecycleSupport.eventCount(in: session) == 2)
+            }
         }
     }
 

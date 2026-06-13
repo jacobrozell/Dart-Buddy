@@ -35,6 +35,8 @@
 "setup.validation.invalidSets.short" = "Set-Anzahl mindestens 1.";
 "setup.validation.partyComingSoon" = "Dieses Party-Spiel ist noch nicht verfügbar.";
 "setup.validation.partyComingSoon.short" = "Demnächst.";
+"setup.validation.coopComingSoon" = "Dieser Koop-Modus ist noch nicht verfügbar.";
+"setup.validation.coopComingSoon.short" = "Demnächst.";
 "setup.validation.partyMinimumPlayers" = "Wähle mindestens zwei Spieler für dieses Spiel.";
 "setup.validation.partyMinimumPlayers.short" = "Mindestens zwei Spieler.";
 "setup.validation.partyKillerMinimumPlayers" = "Killer braucht mindestens drei Spieler.";

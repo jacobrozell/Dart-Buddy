@@ -1183,6 +1183,8 @@
   "setup.validation.minimumPlayers.short": "Selecteer minstens twee spelers.",
   "setup.validation.partyComingSoon": "Dit partyspel is nog niet beschikbaar.",
   "setup.validation.partyComingSoon.short": "Binnenkort.",
+  "setup.validation.coopComingSoon": "Deze co-opmodus is nog niet beschikbaar.",
+  "setup.validation.coopComingSoon.short": "Binnenkort.",
   "setup.validation.partyKillerMinimumPlayers": "Killer heeft minstens drie spelers nodig.",
   "setup.validation.partyKillerMinimumPlayers.short": "Killer heeft drie spelers nodig.",
   "setup.validation.partyMinimumPlayers": "Selecteer minstens twee spelers voor dit spel.",

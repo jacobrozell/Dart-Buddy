@@ -360,7 +360,7 @@ final class SuddenDeathMatchViewModel: ObservableObject {
                 }
                 announceRoundResultsIfNeeded(eliminatedNames: names)
                 state = .eliminationFeedback
-                try? await Task.sleep(nanoseconds: 800_000_000)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementTransitionNanoseconds)
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted

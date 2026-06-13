@@ -64,10 +64,22 @@ enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
     static var visibleCases: [ActivityModeFilter] {
         allCases.filter { filter in
             guard let matchType = filter.matchType else { return true }
-            guard let entry = GameModeCatalog.entry(for: matchType) else { return false }
-            if entry.section == .party { return ProductSurface.showsPartyModes }
-            return true
+            return ProductSurface.isMatchTypeReachable(matchType)
         }
+    }
+
+    /// Match types included when this filter is "All games" on the current product surface.
+    /// `nil` means no extra restriction (full product surface).
+    static var includedMatchTypesForAllFilter: [MatchType]? {
+        guard !ProductSurface.isFullProductSurfaceEnabled else { return nil }
+        let reachable = allCases.compactMap(\.matchType).filter { ProductSurface.isMatchTypeReachable($0) }
+        return reachable.isEmpty ? nil : reachable
+    }
+
+    /// History/stats query constraint for the current filter selection.
+    var historyQueryTypes: (matchType: MatchType?, includedMatchTypes: [MatchType]?) {
+        if let matchType { return (matchType, nil) }
+        return (nil, Self.includedMatchTypesForAllFilter)
     }
 }
 

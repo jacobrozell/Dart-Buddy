@@ -22,18 +22,8 @@ struct ActivityFilterBar: View {
 
     private var modeFilterMenu: some View {
         Menu {
-            modeFilterButton(.all)
-            ForEach(GameModeSection.allCases) { section in
-                let entries = GameModeCatalog.available.filter { $0.section == section }
-                if !entries.isEmpty {
-                    Section(L10n.string(section.titleKey)) {
-                        ForEach(entries) { entry in
-                            if let filter = ActivityModeFilter.from(catalogEntryId: entry.id) {
-                                modeFilterButton(filter)
-                            }
-                        }
-                    }
-                }
+            ForEach(ActivityModeFilter.visibleCases) { filter in
+                modeFilterButton(filter)
             }
         } label: {
             filterMenuLabel(

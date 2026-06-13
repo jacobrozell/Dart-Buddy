@@ -254,16 +254,92 @@ extension XCTestCase {
     }
 
     func ensureActivityTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        if app.buttons["activity_segment_history"].waitForExistence(timeout: 1)
-            || app.buttons["activity_segment_statistics"].waitForExistence(timeout: 1) {
+        if activityTabContentIsVisible(in: app) {
             return
         }
         tapTabBarItem(named: "Activity", identifier: "tab_activity", in: app, timeout: timeout)
+
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if activityTabContentIsVisible(in: app) {
+                return
+            }
+            // Retry tab selection when launch/bootstrap left us on Play.
+            if app.descendants(matching: .any)["brand_app_title"].exists {
+                tapTabBarItem(named: "Activity", identifier: "tab_activity", in: app, timeout: 1)
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        }
+
         XCTAssertTrue(
-            app.staticTexts["Activity"].waitForExistence(timeout: timeout)
-                || app.buttons["activity_segment_history"].waitForExistence(timeout: timeout),
+            activityTabContentIsVisible(in: app),
             "Activity tab should be visible"
         )
+    }
+
+    private func activityTabContentIsVisible(in app: XCUIApplication) -> Bool {
+        if app.buttons["activity_segment_history"].exists
+            || app.buttons["activity_segment_statistics"].exists {
+            return true
+        }
+        if app.buttons["activityModeFilterMenu"].exists
+            || app.buttons["activityPlayerFilterMenu"].exists {
+            return true
+        }
+        return app.staticTexts["Activity"].exists
+            || app.staticTexts.matching(NSPredicate(format: "label == %@", "Activity")).firstMatch.exists
+    }
+
+    func waitForSeededActivityHistoryContent(_ app: XCUIApplication, timeout: TimeInterval = 20) {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if app.buttons["historyResumeMatchButton"].exists { return }
+            if app.buttons["historyLoadMoreButton"].exists { return }
+            if app.staticTexts["FINISHED"].exists || app.staticTexts["FORFEIT"].exists { return }
+            if app.buttons.containing(NSPredicate(format: "label CONTAINS[c] %@", "301")).firstMatch.exists {
+                return
+            }
+            if app.buttons.containing(NSPredicate(format: "label CONTAINS[c] %@", "Jacob")).firstMatch.exists {
+                return
+            }
+            if app.buttons.containing(NSPredicate(format: "label CONTAINS[c] %@", "Alice")).firstMatch.exists {
+                return
+            }
+            if app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] %@", "matches yet")).firstMatch.exists {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        XCTFail("Expected activity history content to finish loading")
+    }
+
+    func waitForActivityStatisticsAuditReady(_ app: XCUIApplication, timeout: TimeInterval = 20) {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if app.descendants(matching: .any)["statsPartialMatchBanner"].exists { return }
+            if app.staticTexts["Games"].exists { return }
+            if app.descendants(matching: .any).containing(
+                NSPredicate(format: "label CONTAINS[c] %@", "Games")
+            ).firstMatch.exists {
+                return
+            }
+            if app.descendants(matching: .any).containing(
+                NSPredicate(format: "label CONTAINS[c] %@", "Jacob")
+            ).firstMatch.exists {
+                return
+            }
+            if app.descendants(matching: .any).containing(
+                NSPredicate(format: "label CONTAINS[c] %@", "in progress")
+            ).firstMatch.exists {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        XCTFail("Expected statistics content to finish loading")
+    }
+
+    func waitForActivityHistoryAuditReady(_ app: XCUIApplication, timeout: TimeInterval = 20) {
+        waitForSeededActivityHistoryContent(app, timeout: timeout)
     }
 
     func ensureActivityHistorySegment(_ app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -278,7 +354,9 @@ extension XCTestCase {
         ensureActivityTab(app, timeout: timeout)
         let statsSegment = app.buttons["activity_segment_statistics"]
         XCTAssertTrue(statsSegment.waitForExistence(timeout: timeout))
-        statsSegment.tap()
+        if !statsSegment.isSelected {
+            statsSegment.tap()
+        }
     }
 
     func ensureSettingsTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {

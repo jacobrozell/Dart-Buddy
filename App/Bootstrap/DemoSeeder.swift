@@ -615,7 +615,7 @@ enum DemoSeeder {
             players: players
         )
         for inning in 1 ... config.inningCount {
-            for (playerIndex, _) in players.enumerated() {
+            for playerIndex in players.indices {
                 let multiplier: DartMultiplier = playerIndex == 0 ? .triple : .single
                 session = try MatchLifecycleService.submitBaseballTurn(
                     session: session,

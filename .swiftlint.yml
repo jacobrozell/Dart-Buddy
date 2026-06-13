@@ -22,14 +22,17 @@ force_unwrapping:
   severity: error
 
 # Single-character names are established local idiom (lerp's a/b/t, DemoSeeder's d).
+# Underscores are allowed for schema versions (SchemaV2_0_0), release locks, and lean1_0.
 identifier_name:
   min_length:
     warning: 1
     error: 1
+  allowed_symbols: ["_"]
 
 type_name:
   excluded:
     - DS # DesignSystem token namespace
+  allowed_symbols: ["_"]
 
 # Stub repositories keep one-line protocol stubs; reset inventory has long literals.
 line_length:

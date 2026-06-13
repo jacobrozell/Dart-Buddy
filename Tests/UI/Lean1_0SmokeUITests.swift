@@ -115,8 +115,12 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         )
 
         ensureActivityStatisticsSegment(app, timeout: timeout)
+        waitForActivityStatisticsAuditReady(app, timeout: timeout + 10)
+        let gamesLabel = app.descendants(matching: .any).containing(
+            NSPredicate(format: "label CONTAINS[c] %@", "Games")
+        ).firstMatch
         XCTAssertTrue(
-            app.staticTexts["Games"].waitForExistence(timeout: timeout + 5),
+            gamesLabel.waitForExistence(timeout: timeout + 5),
             "Statistics segment should show the Games summary"
         )
     }

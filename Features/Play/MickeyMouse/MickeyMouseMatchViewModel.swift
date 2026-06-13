@@ -300,7 +300,7 @@ final class MickeyMouseMatchViewModel: ObservableObject {
             } else if didAdvance {
                 state = .targetAdvanced
                 postAccessibilityAnnouncement(L10n.string("play.mickeyMouse.announce.targetAdvanced"))
-                try? await Task.sleep(nanoseconds: 600_000_000)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.mickeyMouseTargetAdvancedTransitionNanoseconds)
                 state = .readyTurn
                 if !fromBotPlayback {
                     await playBotTurnIfNeeded()

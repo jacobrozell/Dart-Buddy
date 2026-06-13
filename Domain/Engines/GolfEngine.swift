@@ -277,8 +277,8 @@ public enum GolfEngine {
             )
         }
 
-        // GLD: only the last dart thrown counts
-        let lastDart = input.darts.last!
+        // GLD: only the last dart thrown counts (non-empty guarded above)
+        let lastDart = input.darts[input.darts.count - 1]
         let strokes = strokesForLastDart(lastDart, holeSegment: hole)
 
         updated.players[playerIndex].strokesByHole[hole] = strokes

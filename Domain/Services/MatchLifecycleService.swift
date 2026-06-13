@@ -298,6 +298,10 @@ public struct UndoLastDartResult: Sendable {
 public enum MatchLifecycleService {
     public static let snapshotInterval = 3
 
+    private static let soloPracticeMatchTypes: Set<MatchType> = [
+        .x01, .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .raid
+    ]
+
     public static func createMatch(
         matchId: UUID = UUID(),
         type: MatchType,
@@ -398,7 +402,7 @@ public enum MatchLifecycleService {
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
 
-        projectRuntime(&runtime, timestamp: startedAt)
+        MatchRuntimeProjection.project(&runtime, timestamp: startedAt)
         let initialSnapshot = try makeSnapshot(from: runtime, eventCount: 0, timestamp: startedAt)
         return MatchLifecycleSession(runtime: runtime, events: [], latestSnapshot: initialSnapshot)
     }
@@ -1314,7 +1318,7 @@ public enum MatchLifecycleService {
         var runtime = session.runtime
         runtime.eventCount += 1
         update(&runtime)
-        projectRuntime(&runtime, timestamp: timestamp)
+        MatchRuntimeProjection.project(&runtime, timestamp: timestamp)
 
         var events = session.events
         events.append(newEvent)
@@ -1323,275 +1327,6 @@ public enum MatchLifecycleService {
             snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
         }
         return MatchLifecycleSession(runtime: runtime, events: events, latestSnapshot: snapshot)
-    }
-
-    private static func projectRuntime(_ runtime: inout MatchRuntimeState, timestamp: Date) {
-        if let x01State = runtime.x01State {
-            runtime.currentTurnPlayerId = x01State.players[x01State.currentPlayerIndex].playerId
-            runtime.currentLegIndex = x01State.legIndex
-            runtime.currentSetIndex = x01State.setIndex
-            if x01State.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = x01State.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let cricketState = runtime.cricketState {
-            runtime.currentTurnPlayerId = cricketState.players[cricketState.currentPlayerIndex].playerId
-            runtime.currentLegIndex = cricketState.legIndex
-            runtime.currentSetIndex = cricketState.setIndex
-            if cricketState.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = cricketState.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let baseballState = runtime.baseballState {
-            runtime.currentTurnPlayerId = baseballState.players[baseballState.currentPlayerIndex].playerId
-            runtime.currentLegIndex = max(0, baseballState.currentInning - 1)
-            runtime.currentSetIndex = 0
-            if baseballState.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = baseballState.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let killerState = runtime.killerState {
-            if killerState.phase == .numberPick, let pickerId = killerState.pickQueue.first {
-                runtime.currentTurnPlayerId = pickerId
-            } else if !killerState.isComplete {
-                runtime.currentTurnPlayerId = killerState.players[killerState.currentPlayerIndex].playerId
-            }
-            runtime.currentLegIndex = 0
-            runtime.currentSetIndex = 0
-            if killerState.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = killerState.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let shanghaiState = runtime.shanghaiState {
-            runtime.currentTurnPlayerId = shanghaiState.players[shanghaiState.currentPlayerIndex].playerId
-            runtime.currentLegIndex = max(0, shanghaiState.currentRound - 1)
-            runtime.currentSetIndex = 0
-            if shanghaiState.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = shanghaiState.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let state = runtime.americanCricketState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.mickeyMouseState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.mulliganState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.englishCricketState {
-            runtime.currentTurnPlayerId = state.currentTurnPlayerId
-            runtime.currentLegIndex = state.inningsIndex
-            runtime.currentSetIndex = 0
-            if state.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = state.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let state = runtime.knockoutState {
-            runtime.currentTurnPlayerId = state.players[state.currentPlayerIndex].playerId
-            runtime.currentLegIndex = max(0, state.currentRound - 1)
-            runtime.currentSetIndex = 0
-            if state.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = state.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let state = runtime.suddenDeathState {
-            runtime.currentTurnPlayerId = state.players[state.currentPlayerIndex].playerId
-            runtime.currentLegIndex = max(0, state.currentRound - 1)
-            runtime.currentSetIndex = 0
-            if state.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = state.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let state = runtime.fiftyOneByFivesState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.golfState {
-            runtime.currentTurnPlayerId = state.players[state.currentPlayerIndex].playerId
-            runtime.currentLegIndex = max(0, state.currentHole - 1)
-            runtime.currentSetIndex = 0
-            if state.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = state.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-            return
-        }
-        if let state = runtime.footballState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.grandNationalState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.hareAndHoundsState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.aroundTheClockState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.aroundTheClock180State {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.chaseTheDragonState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.nineLivesState {
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.raidState {
-            let currentHero = state.heroes.indices.contains(state.currentHeroIndex)
-                ? state.heroes[state.currentHeroIndex].playerId
-                : nil
-            projectStandardTurnState(
-                &runtime,
-                currentTurnPlayerId: state.isComplete ? nil : currentHero,
-                isComplete: state.isComplete,
-                winnerPlayerId: state.winnerPlayerId,
-                timestamp: timestamp
-            )
-            return
-        }
-        if let state = runtime.fleetState {
-            runtime.currentTurnPlayerId = state.phase == .hunt ? state.currentPlayerId : nil
-            runtime.currentLegIndex = 0
-            runtime.currentSetIndex = 0
-            if state.isComplete {
-                runtime.status = .completed
-                runtime.endedAt = timestamp
-                runtime.winnerPlayerId = state.winnerPlayerId
-                runtime.currentTurnPlayerId = nil
-            }
-        }
-    }
-
-    private static func projectStandardTurnState(
-        _ runtime: inout MatchRuntimeState,
-        currentTurnPlayerId: UUID?,
-        legIndex: Int = 0,
-        setIndex: Int = 0,
-        isComplete: Bool,
-        winnerPlayerId: UUID?,
-        timestamp: Date
-    ) {
-        runtime.currentTurnPlayerId = currentTurnPlayerId
-        runtime.currentLegIndex = legIndex
-        runtime.currentSetIndex = setIndex
-        if isComplete {
-            runtime.status = .completed
-            runtime.endedAt = timestamp
-            runtime.winnerPlayerId = winnerPlayerId
-            runtime.currentTurnPlayerId = nil
-        }
     }
 
     private static func suddenDeathReplayDarts(for turn: SuddenDeathTurnEvent) -> [DartInput] {

@@ -14,23 +14,31 @@ import Testing
 
     @Test func placementLockStartsHunt() throws {
         var state = try FleetEngine.makeInitialState(config: MatchConfigFleet(shipCount: .quick), playerIds: [p1, p2])
-        (state, _) = try FleetEngine.confirmHandoff(state: state, playerId: p1)
-        for segment in 1 ... 3 {
-            state = try FleetEngine.togglePlacementCell(state: state, playerId: p1, cell: .segment(segment))
+        guard case let .handoff(firstPlayer) = state.placementUIStep else {
+            Issue.record("Expected handoff step at placement start")
+            return
         }
-        let first = try FleetEngine.lockPlacement(state: state, playerId: p1)
-        #expect(first.updatedState.placementLocks[p1] == true)
+        state = try FleetEngine.confirmHandoff(state: state, playerId: firstPlayer).0
+        for segment in 1 ... 3 {
+            state = try FleetEngine.togglePlacementCell(state: state, playerId: firstPlayer, cell: .segment(segment))
+        }
+        let first = try FleetEngine.lockPlacement(state: state, playerId: firstPlayer)
+        #expect(first.updatedState.placementLocks[firstPlayer] == true)
         #expect(first.updatedState.phase == .placement)
 
         var secondState = first.updatedState
-        (secondState, _) = try FleetEngine.confirmPassDevice(state: secondState, playerId: p2)
-        (secondState, _) = try FleetEngine.confirmHandoff(state: secondState, playerId: p2)
-        for segment in 10 ... 12 {
-            secondState = try FleetEngine.togglePlacementCell(state: secondState, playerId: p2, cell: .segment(segment))
+        guard let secondPlayer = secondState.opponentId(for: firstPlayer) else {
+            Issue.record("Expected two-player fleet match")
+            return
         }
-        let second = try FleetEngine.lockPlacement(state: secondState, playerId: p2)
+        secondState = try FleetEngine.confirmPassDevice(state: secondState, playerId: secondPlayer).0
+        secondState = try FleetEngine.confirmHandoff(state: secondState, playerId: secondPlayer).0
+        for segment in 10 ... 12 {
+            secondState = try FleetEngine.togglePlacementCell(state: secondState, playerId: secondPlayer, cell: .segment(segment))
+        }
+        let second = try FleetEngine.lockPlacement(state: secondState, playerId: secondPlayer)
         #expect(second.updatedState.phase == .hunt)
-        #expect(second.updatedState.currentPlayerId == p1)
+        #expect(second.updatedState.currentPlayerId == firstPlayer)
     }
 
     @Test func tripleAutoSinksArmoredShip() throws {

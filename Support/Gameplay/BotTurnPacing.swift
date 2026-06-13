@@ -15,7 +15,10 @@ enum BotTurnPacing {
     static let shanghaiAchievementTransitionNanoseconds: UInt64 = 800_000_000
     static let baseballPerfectInningTransitionNanoseconds: UInt64 = 800_000_000
     static let baseballStretchGateHintNanoseconds: UInt64 = 600_000_000
+    static let golfHoleCompleteTransitionNanoseconds: UInt64 = 600_000_000
+    static let mickeyMouseTargetAdvancedTransitionNanoseconds: UInt64 = 600_000_000
     static let killerBecameKillerTransitionNanoseconds: UInt64 = 700_000_000
+    static let briefModeFeedbackTransitionNanoseconds: UInt64 = 400_000_000
 
     static func dartDelayNanoseconds(staggerEnabled: Bool) -> UInt64 {
         resolvedDartDelayNanoseconds(staggerEnabled: staggerEnabled, instantBots: UITestLaunchArguments.instantBotsActive)
