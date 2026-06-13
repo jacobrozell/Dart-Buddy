@@ -157,7 +157,7 @@ xcodebuild test -scheme DartBuddy \
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). UI runs nightly via parallel matrix in `.github/workflows/nightly-ui.yml` (six suites on iPhone 17; landscape on iPhone 17 Pro Max). Locally: `xcodebuild test -scheme DartBuddyUIGameplay` for one UI suite, or `DartBuddyUI` / `DartBuddy` for broader runs.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `dev`, `master`, or `main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). UI runs nightly via parallel matrix in `.github/workflows/nightly-ui.yml` (six suites on iPhone 17; landscape on iPhone 17 Pro Max). Locally: `xcodebuild test -scheme DartBuddyUIGameplay` for one UI suite, or `DartBuddyUI` / `DartBuddy` for broader runs.
 
 **Branch model:** `dev` = full catalog; `release/*` = `ProductSurface` gating — [`docs/release/branch-strategy.md`](docs/release/branch-strategy.md).
 
