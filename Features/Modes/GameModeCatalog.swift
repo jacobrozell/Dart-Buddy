@@ -339,8 +339,8 @@ enum GameModeCatalog {
     static var available: [GameModeCatalogEntry] {
         all.filter { entry in
             guard entry.isAvailable else { return false }
-            if entry.section == .party, !ProductSurface.showsPartyModes { return false }
-            return true
+            guard let matchType = entry.matchType else { return false }
+            return ProductSurface.isMatchTypeReachable(matchType)
         }
     }
 
@@ -366,6 +366,7 @@ enum GameModeCatalog {
         }
 
         return GameModeSection.allCases.compactMap { section in
+            if section == .coop, !ProductSurface.showsCoopModes { return nil }
             let sectionEntries = entries(in: section)
             guard !sectionEntries.isEmpty else { return nil }
             return (section, sectionEntries)
@@ -434,6 +435,7 @@ extension GameModeCatalogEntry {
     var pendingModeSelection: PendingModeSelection? {
         guard isAvailable, let matchType else { return nil }
         if section == .party, !ProductSurface.showsPartyModes { return nil }
+        if section == .coop, !ProductSurface.showsCoopModes { return nil }
         switch section {
         case .standard:
             let mode: MatchSetupViewModel.SetupMode? = switch matchType {

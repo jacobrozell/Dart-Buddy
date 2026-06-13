@@ -421,6 +421,12 @@ final class MatchSetupViewModel: ObservableObject {
 
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
         if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
+        if let matchType = selection.matchType,
+           let entry = GameModeCatalog.entry(for: matchType),
+           entry.section == .coop,
+           !ProductSurface.showsCoopModes {
+            return
+        }
         setupCategory = selection.setupCategory
         if let mode = selection.mode {
             self.mode = mode
@@ -450,6 +456,14 @@ final class MatchSetupViewModel: ObservableObject {
             setupCategory = .standard
             mode = .x01
         }
+        if let catalogType = selectedCatalogMatchType,
+           let entry = GameModeCatalog.entry(for: catalogType),
+           entry.section == .coop,
+           !ProductSurface.showsCoopModes {
+            setupCategory = .standard
+            mode = .x01
+            selectedCatalogMatchType = nil
+        }
     }
 
     func revalidate() {
@@ -458,6 +472,8 @@ final class MatchSetupViewModel: ObservableObject {
            let entry = GameModeCatalog.entry(for: catalogType) {
             if entry.section == .party, !ProductSurface.showsPartyModes {
                 errors.append("setup.validation.partyComingSoon")
+            } else if entry.section == .coop, !ProductSurface.showsCoopModes {
+                errors.append("setup.validation.coopComingSoon")
             } else if !entry.isAvailable {
                 errors.append("setup.validation.partyComingSoon")
             } else if selectedParticipantCount < entry.minimumPlayers {

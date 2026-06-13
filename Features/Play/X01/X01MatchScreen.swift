@@ -9,6 +9,7 @@ struct X01MatchScreen: View {
     let feedbackPreferences: FeedbackPreferences
     let lifecycleDependencies: MatchLifecycleChromeDependencies
     var visionScoringEnabled: Bool = false
+    var visualDartboardInputEnabled: Bool = false
     var visionLogger: (any AppLogger)? = nil
     var defaultDartEntryPresentation: DartEntryPresentation = .default
     @Environment(\.dismiss) private var dismiss
@@ -34,12 +35,14 @@ struct X01MatchScreen: View {
     }
 
     private var dartEntryPresentation: DartEntryPresentation {
-        dartEntryPresentationOverride ?? defaultDartEntryPresentation
+        (dartEntryPresentationOverride ?? defaultDartEntryPresentation)
+            .resolved(allowsVisualBoard: visualDartboardInputEnabled)
     }
 
     /// The number pad stays first-class: AX text sizes and VoiceOver always use it.
     private var usesVisualBoardEntry: Bool {
-        dartEntryPresentation == .visualBoard
+        visualDartboardInputEnabled
+            && dartEntryPresentation == .visualBoard
             && !voiceOverEnabled
             && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
@@ -60,8 +63,10 @@ struct X01MatchScreen: View {
                 }
             } trailing: {
                 HStack(spacing: DS.Spacing.s2) {
-                    DartEntryPresentationToggle(presentation: dartEntryPresentation) {
-                        dartEntryPresentationOverride = dartEntryPresentation.toggled
+                    if visualDartboardInputEnabled {
+                        DartEntryPresentationToggle(presentation: dartEntryPresentation) {
+                            dartEntryPresentationOverride = dartEntryPresentation.toggled
+                        }
                     }
                     Button { runUndo() } label: {
                         Image(systemName: "arrow.uturn.backward")

@@ -11,6 +11,7 @@ struct CricketMatchScreen: View {
     let turnTotalCaller: any TurnTotalCallerService
     let feedbackPreferences: FeedbackPreferences
     let lifecycleDependencies: MatchLifecycleChromeDependencies
+    var visualDartboardInputEnabled: Bool = false
     var defaultDartEntryPresentation: DartEntryPresentation = .default
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -20,12 +21,14 @@ struct CricketMatchScreen: View {
     @State private var dartEntryPresentationOverride: DartEntryPresentation?
 
     private var dartEntryPresentation: DartEntryPresentation {
-        dartEntryPresentationOverride ?? defaultDartEntryPresentation
+        (dartEntryPresentationOverride ?? defaultDartEntryPresentation)
+            .resolved(allowsVisualBoard: visualDartboardInputEnabled)
     }
 
     /// The tap pad stays first-class: AX text sizes and VoiceOver always use it.
     private var usesVisualBoardEntry: Bool {
-        dartEntryPresentation == .visualBoard
+        visualDartboardInputEnabled
+            && dartEntryPresentation == .visualBoard
             && !voiceOverEnabled
             && !GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
@@ -44,8 +47,10 @@ struct CricketMatchScreen: View {
                 }
             } trailing: {
                 HStack(spacing: DS.Spacing.s2) {
-                    DartEntryPresentationToggle(presentation: dartEntryPresentation) {
-                        dartEntryPresentationOverride = dartEntryPresentation.toggled
+                    if visualDartboardInputEnabled {
+                        DartEntryPresentationToggle(presentation: dartEntryPresentation) {
+                            dartEntryPresentationOverride = dartEntryPresentation.toggled
+                        }
                     }
                     Button {
                         actionTask?.cancel()

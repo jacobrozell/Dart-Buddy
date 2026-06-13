@@ -246,8 +246,10 @@ private struct X01MatchRouteView: View {
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
             lifecycleDependencies: lifecycleDependencies,
             visionScoringEnabled: dependencies.featureFlags.isEnabled(.enableVisionAutoScoring),
+            visualDartboardInputEnabled: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput),
             visionLogger: dependencies.logger,
             defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
+                .resolved(allowsVisualBoard: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput))
         )
     }
 }
@@ -288,7 +290,9 @@ private struct CricketMatchRouteView: View {
             turnTotalCaller: dependencies.turnTotalCallerService,
             feedbackPreferences: dependencies.userPreferencesStore.feedback,
             lifecycleDependencies: lifecycleDependencies,
+            visualDartboardInputEnabled: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput),
             defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
+                .resolved(allowsVisualBoard: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput))
         )
     }
 }
