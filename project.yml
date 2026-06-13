@@ -78,6 +78,12 @@ targets:
       - path: Resources/fr.lproj/GameplayModes.strings
         type: file
         buildPhase: resources
+      - path: Resources/zh-Hans.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/zh-Hans.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources
@@ -148,8 +154,13 @@ targets:
     scheme:
       testTargets:
         - DartBuddyTests
-        - name: DartBuddyUITests
-          parallelizable: true
+        - DartBuddyUISmokeUITests
+        - DartBuddyUIGameplayUITests
+        - DartBuddyUIAccessibilityUITests
+        - DartBuddyUILocalizationUITests
+        - DartBuddyUILandscapeUITests
+        - DartBuddyUIChromeUITests
+        - DartBuddyUILeanUITests
       commandLineArguments:
         "-enable_achievements": true
   DartBuddyTests:
@@ -176,17 +187,128 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardPerformanceTests
-  DartBuddyUITests:
+  DartBuddyUISmokeUITests:
     type: bundle.ui-testing
     platform: iOS
     sources:
-      - path: Tests/UI
+      - path: Tests/UI/Support
+      - path: Tests/UI/MatchSetupUITests.swift
+        type: file
+      - path: Tests/UI/ModesAndActivityUITests.swift
+        type: file
+      - path: Tests/UI/MatchChromeUITests.swift
+        type: file
     dependencies:
       - target: DartBuddy
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: DartBuddy
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardUISmokeTests
+  DartBuddyUIGameplayUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UI/Support
+      - path: Tests/UI/X01MatchUITests.swift
+        type: file
+      - path: Tests/UI/CricketMatchUITests.swift
+        type: file
+      - path: Tests/UI/GameModeScreenshotUITests.swift
+        type: file
+    dependencies:
+      - target: DartBuddy
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DartBuddy
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardUIGameplayTests
+  DartBuddyUIAccessibilityUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UI/Support
+      - path: Tests/UI/WCAGAccessibilityUITests.swift
+        type: file
+    dependencies:
+      - target: DartBuddy
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DartBuddy
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardUIAccessibilityTests
+  DartBuddyUILocalizationUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UI/Support
+      - path: Tests/UI/FrenchLocalizationSmokeUITests.swift
+        type: file
+      - path: Tests/UI/GermanLocalizationSmokeUITests.swift
+        type: file
+      - path: Tests/UI/SpanishLocalizationSmokeUITests.swift
+        type: file
+      - path: Tests/UI/DutchLocalizationSmokeUITests.swift
+        type: file
+      - path: Tests/UI/ChineseLocalizationSmokeUITests.swift
+        type: file
+    dependencies:
+      - target: DartBuddy
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DartBuddy
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardUILocalizationTests
+  DartBuddyUILandscapeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UI/Support
+      - path: Tests/UI/RegressionUITests.swift
+        type: file
+    dependencies:
+      - target: DartBuddy
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DartBuddy
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardUILandscapeTests
+  DartBuddyUIChromeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UI/Support
+      - path: Tests/UI/SettingsUITests.swift
+        type: file
+      - path: Tests/UI/OnboardingUITests.swift
+        type: file
+      - path: Tests/UI/PlayerDetailUITests.swift
+        type: file
+      - path: Tests/UI/BotDetailUITests.swift
+        type: file
+      - path: Tests/UI/HistoryDetailUITests.swift
+        type: file
+    dependencies:
+      - target: DartBuddy
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DartBuddy
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardUIChromeTests
+  DartBuddyUILeanUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UI/Support
+      - path: Tests/UI/Lean1_0SmokeUITests.swift
+        type: file
+    dependencies:
+      - target: DartBuddy
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DartBuddy
+        PRODUCT_BUNDLE_IDENTIFIER: com.jacobrozell.DartsScoreboardUILeanTests
 schemes:
   DartBuddyCI:
     build:
@@ -200,6 +322,76 @@ schemes:
         - DartBuddyTests
     run:
       config: Debug
+  DartBuddyUISmoke:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      targets:
+        - name: DartBuddyUISmokeUITests
+          parallelizable: true
+    run:
+      config: Debug
+  DartBuddyUIGameplay:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      targets:
+        - name: DartBuddyUIGameplayUITests
+          parallelizable: true
+    run:
+      config: Debug
+  DartBuddyUIAccessibility:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      targets:
+        - name: DartBuddyUIAccessibilityUITests
+          parallelizable: true
+    run:
+      config: Debug
+  DartBuddyUILocalization:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      targets:
+        - name: DartBuddyUILocalizationUITests
+          parallelizable: true
+    run:
+      config: Debug
+  DartBuddyUILandscape:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      targets:
+        - name: DartBuddyUILandscapeUITests
+          parallelizable: true
+    run:
+      config: Debug
+  DartBuddyUIChrome:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      targets:
+        - name: DartBuddyUIChromeUITests
+          parallelizable: true
+    run:
+      config: Debug
+  DartBuddyUILean:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      targets:
+        - name: DartBuddyUILeanUITests
+          parallelizable: true
+    run:
+      config: Debug
   DartBuddyUI:
     build:
       targets:
@@ -209,7 +401,17 @@ schemes:
       coverageTargets:
         - DartBuddy
       targets:
-        - name: DartBuddyUITests
+        - name: DartBuddyUISmokeUITests
+          parallelizable: true
+        - name: DartBuddyUIGameplayUITests
+          parallelizable: true
+        - name: DartBuddyUIAccessibilityUITests
+          parallelizable: true
+        - name: DartBuddyUILocalizationUITests
+          parallelizable: true
+        - name: DartBuddyUILandscapeUITests
+          parallelizable: true
+        - name: DartBuddyUIChromeUITests
           parallelizable: true
     run:
       config: Debug

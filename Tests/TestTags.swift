@@ -21,6 +21,7 @@ extension Tag {
     @Tag static var stats: Self
     @Tag static var scoringInput: Self
     @Tag static var vision: Self
+    @Tag static var achievements: Self
     @Tag static var navigation: Self
     @Tag static var setupFlow: Self
 
@@ -31,4 +32,5 @@ extension Tag {
     @Tag static var smoke: Self
     @Tag static var regression: Self
     @Tag static var critical: Self
+    @Tag static var releaseGate: Self
 }

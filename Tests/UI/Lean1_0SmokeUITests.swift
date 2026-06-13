@@ -2,6 +2,7 @@ import XCTest
 
 /// Lean 1.0 smoke — matches the device QA matrix in `docs/release/release_checklist.md` §1.
 /// Runs against default product surface (no `-enable_full_product_surface`).
+/// **CI:** `DartBuddyUILean` scheme runs on `release/*` branches only (see `docs/release/branch-strategy.md`).
 final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     func testLeanShellShowsFourTabsWithoutModes() {
         let app = launchApp(["-seed_players"])

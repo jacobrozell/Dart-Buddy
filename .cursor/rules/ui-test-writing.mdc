@@ -71,5 +71,6 @@ Use `element.wait(for: \.isEnabled, toEqual: true, ...)` for bot-turn recovery.
 | Tier | Scheme | Simulator |
 |------|--------|-----------|
 | PR (`DartBuddyCI`) | Unit + accessibility only | iPhone 17 |
-| Nightly (`DartBuddyUI`) | Full `DartBuddyUITests` (class-parallel) | iPhone 17 Pro Max |
-| Local smoke | `-only-testing:DartBuddyUITests/Lean1_0SmokeUITests` | iPhone 17 |
+| Nightly matrix | `DartBuddyUISmoke`, `UIGameplay`, `UIAccessibility`, `UILocalization`, `UILandscape`, `UIChrome` | iPhone 17 (Pro Max for landscape) |
+| Release branch | `DartBuddyUILean` | iPhone 17 |
+| Local full UI | `DartBuddyUI` | iPhone 17 Pro Max |
