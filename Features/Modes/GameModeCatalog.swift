@@ -101,6 +101,12 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     /// Solo modes skip the roster step in setup — they cap at a single player.
     /// X01 has a minimum of one but is multiplayer-capable, so it is *not* solo.
     var isSolo: Bool { maximumPlayers <= 1 }
+
+    /// Whether the shipped rules sheet covers this mode (`GameRulesCatalog`).
+    var hasRulesGuide: Bool {
+        guard let matchType else { return false }
+        return GameRulesCatalog.hasGuide(for: matchType)
+    }
 }
 
 /// The full mode catalog. Order within a section is the display order.
@@ -311,37 +317,19 @@ enum GameModeCatalog {
         entries(in: section).filter { !$0.isAvailable }.count
     }
 
-    /// Practice modes shown in the full-surface Play setup picker before the "+N more" row.
-    private static let leanPracticeTeaserCount = 2
-
-    /// Sections for the in-place mode picker on Play setup (lean 1.0).
+    /// Sections for the in-place mode picker on Play setup (lean 1.0 shows X01 + Cricket only).
     static func playSetupPickerSections() -> [(GameModeSection, [GameModeCatalogEntry])] {
-        var sections: [(GameModeSection, [GameModeCatalogEntry])] = []
-
-        let standard = if ProductSurface.showsPartyModes {
-            entries(in: .standard)
-        } else {
-            entries(in: .standard).filter(\.isAvailable)
-        }
-        if !standard.isEmpty {
-            sections.append((.standard, standard))
-        }
-
         guard ProductSurface.showsPartyModes else {
-            return sections
+            let standard = entries(in: .standard).filter(\.isAvailable)
+            guard !standard.isEmpty else { return [] }
+            return [(.standard, standard)]
         }
 
-        let party = entries(in: .party)
-        if !party.isEmpty {
-            sections.append((.party, party))
+        return GameModeSection.allCases.compactMap { section in
+            let sectionEntries = entries(in: section)
+            guard !sectionEntries.isEmpty else { return nil }
+            return (section, sectionEntries)
         }
-
-        let practice = Array(entries(in: .practice).prefix(leanPracticeTeaserCount))
-        if !practice.isEmpty {
-            sections.append((.practice, practice))
-        }
-
-        return sections
     }
 
     /// Collapsed coming-soon count below the teaser rows in the Play setup picker.
@@ -349,7 +337,7 @@ enum GameModeCatalog {
         in section: GameModeSection,
         displayedCount: Int
     ) -> Int {
-        guard ProductSurface.showsPartyModes else { return 0 }
+        guard !ProductSurface.showsPartyModes else { return 0 }
         return max(0, entries(in: section).count - displayedCount)
     }
 

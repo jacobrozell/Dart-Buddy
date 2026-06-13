@@ -81,7 +81,9 @@ struct SetupHomeView: View {
             Text("play.setup.activeConflict.message")
         }
         .sheet(isPresented: $showsGameRules) {
-            GameRulesGuideView(initialMode: learnToPlayMatchType)
+            if let matchType = learnToPlayMatchType {
+                GameRulesGuideView(initialMode: matchType)
+            }
         }
         .sheet(isPresented: $showsCustomBotSheet) {
             CustomBotCreationSheet { name, metrics in
@@ -114,15 +116,21 @@ struct SetupHomeView: View {
         }
     }
 
-    private var learnToPlayMatchType: MatchType {
-        if setupViewModel.setupCategory == .party {
-            switch setupViewModel.partyGame {
-            case .baseball: return .baseball
-            case .killer: return .killer
-            case .shanghai: return .shanghai
+    private var learnToPlayMatchType: MatchType? {
+        let candidate: MatchType = {
+            if let selected = setupViewModel.selectedCatalogMatchType {
+                return selected
             }
-        }
-        return setupViewModel.mode.matchType
+            if setupViewModel.setupCategory == .party {
+                switch setupViewModel.partyGame {
+                case .baseball: return .baseball
+                case .killer: return .killer
+                case .shanghai: return .shanghai
+                }
+            }
+            return setupViewModel.mode.matchType
+        }()
+        return GameRulesCatalog.hasGuide(for: candidate) ? candidate : nil
     }
 
     private var compactSetupContent: some View {
@@ -280,45 +288,102 @@ struct SetupHomeView: View {
             .padding(DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
 
-            learnToPlayButton
-
-            HStack {
-                Spacer(minLength: 0)
-                Button {
-                    showsEditOptions.toggle()
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(L10n.string(showsEditOptions ? "play.setup.hideOptions" : "play.setup.editOptions"))
-                            .font(.subheadline.weight(.semibold))
-                        Image(systemName: showsEditOptions ? "chevron.up" : "chevron.down")
-                            .font(.caption.weight(.semibold))
-                            .accessibilityHidden(true)
-                    }
-                    .foregroundStyle(Brand.green)
-                    .padding(.horizontal, DS.Spacing.s2)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("setup_editOptionsButton")
+            if learnToPlayMatchType != nil {
+                learnToPlayButton
             }
+
+            if hasModeOptionChips {
+                HStack {
+                    Spacer(minLength: 0)
+                    Button {
+                        showsEditOptions.toggle()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(L10n.string(showsEditOptions ? "play.setup.hideOptions" : "play.setup.editOptions"))
+                                .font(.subheadline.weight(.semibold))
+                            Image(systemName: showsEditOptions ? "chevron.up" : "chevron.down")
+                                .font(.caption.weight(.semibold))
+                                .accessibilityHidden(true)
+                        }
+                        .foregroundStyle(Brand.green)
+                        .padding(.horizontal, DS.Spacing.s2)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("setup_editOptionsButton")
+                }
+            }
+        }
+    }
+
+    private var activeMatchTypeForSetupOptions: MatchType? {
+        if let selected = setupViewModel.selectedCatalogMatchType {
+            return selected
+        }
+        if setupViewModel.setupCategory == .party {
+            switch setupViewModel.partyGame {
+            case .baseball: return .baseball
+            case .killer: return .killer
+            case .shanghai: return .shanghai
+            }
+        }
+        return setupViewModel.mode.matchType
+    }
+
+    private var hasModeOptionChips: Bool {
+        guard let matchType = activeMatchTypeForSetupOptions else { return false }
+        switch matchType {
+        case .mickeyMouse, .mulligan,
+             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+            return false
+        default:
+            return true
         }
     }
 
     @ViewBuilder
     private var modeOptionChips: some View {
-        if setupViewModel.setupCategory == .standard {
-            if setupViewModel.mode == .x01 {
-                chipsGrid
-            } else {
-                cricketChipsGrid
-            }
-        } else if setupViewModel.partyGame == .baseball {
+        switch activeMatchTypeForSetupOptions {
+        case .x01:
+            chipsGrid
+        case .cricket:
+            cricketChipsGrid
+        case .americanCricket:
+            americanCricketChipsGrid
+        case .baseball:
             baseballChipsGrid
-        } else if setupViewModel.partyGame == .killer {
+        case .killer:
             killerChipsGrid
-        } else if setupViewModel.partyGame == .shanghai {
+        case .shanghai:
             shanghaiChipsGrid
+        case .englishCricket:
+            englishCricketChipsGrid
+        case .knockout:
+            knockoutChipsGrid
+        case .suddenDeath:
+            suddenDeathChipsGrid
+        case .fiftyOneByFives:
+            fiftyOneByFivesChipsGrid
+        case .golf:
+            golfChipsGrid
+        case .football:
+            footballChipsGrid
+        case .grandNational:
+            grandNationalChipsGrid
+        case .hareAndHounds:
+            hareAndHoundsChipsGrid
+        case .aroundTheClock:
+            aroundTheClockChipsGrid
+        case .aroundTheClock180:
+            aroundTheClock180ChipsGrid
+        case .chaseTheDragon:
+            chaseTheDragonChipsGrid
+        case .nineLives:
+            nineLivesChipsGrid
+        case .mickeyMouse, .mulligan,
+             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt, .none:
+            EmptyView()
         }
     }
 

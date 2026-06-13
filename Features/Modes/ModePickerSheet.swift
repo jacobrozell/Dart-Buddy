@@ -88,7 +88,7 @@ struct ModePickerSheet: View {
             isSelectable: entry.isSelectableInPlaySetup,
             isSelected: entry.id == selectedEntryId,
             onSelect: entry.isSelectableInPlaySetup ? { onSelect(entry) } : nil,
-            onLearnRules: entry.matchType != nil ? { showsRulesForEntry = entry } : nil
+            onLearnRules: entry.hasRulesGuide ? { showsRulesForEntry = entry } : nil
         )
     }
 }

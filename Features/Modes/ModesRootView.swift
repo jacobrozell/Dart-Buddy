@@ -92,8 +92,9 @@ struct ModesRootView: View {
     private func catalogCard(_ entry: GameModeCatalogEntry) -> some View {
         GameModeCatalogCard(
             entry: entry,
-            onSelect: entry.isAvailable ? { onSelectMode(entry) } : nil,
-            onLearnRules: entry.matchType != nil ? { showsRulesForEntry = entry } : nil
+            isSelectable: entry.isSelectableInPlaySetup,
+            onSelect: entry.isSelectableInPlaySetup ? { onSelectMode(entry) } : nil,
+            onLearnRules: entry.hasRulesGuide ? { showsRulesForEntry = entry } : nil
         )
     }
 }

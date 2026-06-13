@@ -90,6 +90,16 @@ struct GameModeCatalogTests {
     }
 
     @Test
+    func playSetupPickerShowsAllSectionsWhenPartyModesVisible() {
+        guard ProductSurface.showsPartyModes else { return }
+
+        let sections = GameModeCatalog.playSetupPickerSections()
+        #expect(sections.map(\.0) == GameModeSection.allCases)
+        #expect(sections.first { $0.0 == .practice }?.1.count == GameModeCatalog.entries(in: .practice).count)
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: 0) == 0)
+    }
+
+    @Test
     func playSetupPickerShowsStandardModesOnlyWhenPartyHidden() {
         guard !ProductSurface.showsPartyModes else { return }
 
