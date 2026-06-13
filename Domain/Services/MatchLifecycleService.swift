@@ -26,7 +26,6 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case fleetPlacementUI(FleetPlacementUIEvent)
     case fleetSonar(FleetSonarEvent)
     case fleetDart(FleetDartEvent)
-    case fleetSink(FleetSinkEvent)
     case raidVisit(RaidVisitEvent)
 
     private enum CodingKeys: String, CodingKey {
@@ -56,7 +55,6 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetPlacementUI
         case fleetSonar
         case fleetDart
-        case fleetSink
         case raidVisit
     }
 
@@ -86,7 +84,6 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetPlacementUI
         case fleetSonar
         case fleetDart
-        case fleetSink
         case raidVisit
     }
 
@@ -144,8 +141,6 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .fleetSonar(try container.decode(FleetSonarEvent.self, forKey: .fleetSonar))
         case .fleetDart:
             self = .fleetDart(try container.decode(FleetDartEvent.self, forKey: .fleetDart))
-        case .fleetSink:
-            self = .fleetSink(try container.decode(FleetSinkEvent.self, forKey: .fleetSink))
         case .raidVisit:
             self = .raidVisit(try container.decode(RaidVisitEvent.self, forKey: .raidVisit))
         }
@@ -229,9 +224,6 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .fleetDart(event):
             try container.encode(Kind.fleetDart, forKey: .kind)
             try container.encode(event, forKey: .fleetDart)
-        case let .fleetSink(event):
-            try container.encode(Kind.fleetSink, forKey: .kind)
-            try container.encode(event, forKey: .fleetSink)
         case let .raidVisit(event):
             try container.encode(Kind.raidVisit, forKey: .kind)
             try container.encode(event, forKey: .raidVisit)
@@ -951,10 +943,11 @@ public enum MatchLifecycleService {
         guard var state = session.runtime.fleetState else {
             throw fleetUnavailable()
         }
-        state = try FleetEngine.confirmHandoff(state: state, playerId: playerId)
+        let (updatedState, uiEvent) = try FleetEngine.confirmHandoff(state: state, playerId: playerId, timestamp: timestamp)
+        state = updatedState
         let envelope = MatchEventEnvelope(
             eventIndex: session.runtime.eventCount,
-            payload: .fleetPlacementUI(FleetPlacementUIEvent(step: .placing(playerId), timestamp: timestamp)),
+            payload: .fleetPlacementUI(uiEvent),
             timestamp: timestamp
         )
         return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
@@ -970,10 +963,11 @@ public enum MatchLifecycleService {
         guard var state = session.runtime.fleetState else {
             throw fleetUnavailable()
         }
-        state = try FleetEngine.confirmPassDevice(state: state, playerId: playerId)
+        let (updatedState, uiEvent) = try FleetEngine.confirmPassDevice(state: state, playerId: playerId, timestamp: timestamp)
+        state = updatedState
         let envelope = MatchEventEnvelope(
             eventIndex: session.runtime.eventCount,
-            payload: .fleetPlacementUI(FleetPlacementUIEvent(step: .handoff(playerId), timestamp: timestamp)),
+            payload: .fleetPlacementUI(uiEvent),
             timestamp: timestamp
         )
         return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
@@ -1020,7 +1014,7 @@ public enum MatchLifecycleService {
         state = outcome.updatedState
         let placementEnvelope = MatchEventEnvelope(
             eventIndex: session.runtime.eventCount,
-            payload: .fleetPlacement(outcome.placementEvent),
+            payload: .fleetPlacement(outcome.event),
             timestamp: timestamp
         )
         var updated = try appendAndProject(session: session, newEvent: placementEnvelope, timestamp: timestamp) { runtime in
@@ -1078,20 +1072,9 @@ public enum MatchLifecycleService {
             payload: .fleetDart(outcome.event),
             timestamp: timestamp
         )
-        var updated = try appendAndProject(session: session, newEvent: dartEnvelope, timestamp: timestamp) { runtime in
+        return try appendAndProject(session: session, newEvent: dartEnvelope, timestamp: timestamp) { runtime in
             runtime.fleetState = state
         }
-        if let sinkEvent = outcome.sinkEvent {
-            let sinkEnvelope = MatchEventEnvelope(
-                eventIndex: updated.runtime.eventCount,
-                payload: .fleetSink(sinkEvent),
-                timestamp: timestamp
-            )
-            updated = try appendAndProject(session: updated, newEvent: sinkEnvelope, timestamp: timestamp) { runtime in
-                runtime.fleetState = state
-            }
-        }
-        return updated
     }
 
     public static func undoLastTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
@@ -1176,7 +1159,7 @@ public enum MatchLifecycleService {
             return turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
         case .suddenDeathTurn, .fiftyOneByFivesTurn, .grandNationalTurn, .hareAndHoundsTurn,
              .aroundTheClockTurn, .nineLivesTurn, .raidVisit, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
-             .fleetDart, .fleetSink:
+             .fleetDart:
             return nil
         }
     }
@@ -1323,8 +1306,6 @@ public enum MatchLifecycleService {
                 dart: fleetReplayDart(for: dart),
                 timestamp: dart.timestamp
             )
-        case .fleetSink:
-            return session
         }
     }
 

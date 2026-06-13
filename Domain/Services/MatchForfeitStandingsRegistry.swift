@@ -250,7 +250,13 @@ enum MatchForfeitStandingsRegistry {
             guard let state = session.runtime.fleetState else {
                 throw invalidForfeitState()
             }
-            let shipsSunk = FleetEngine.shipsSunk(by: playerId, in: state)
+            let shipsSunk = session.events.reduce(into: 0) { count, envelope in
+                if case let .fleetDart(event) = envelope.payload,
+                   event.playerId == playerId,
+                   event.outcome == .sink {
+                    count += 1
+                }
+            }
             let dartsThrown = session.events.reduce(into: 0) { count, envelope in
                 if case let .fleetDart(event) = envelope.payload, event.playerId == playerId {
                     count += 1

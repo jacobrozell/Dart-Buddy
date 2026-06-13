@@ -139,7 +139,7 @@ final class HistoryDetailViewModel: ObservableObject {
                 case let .fleetSonar(sonar):
                     let name = participantNames[sonar.playerId] ?? String(sonar.playerId.uuidString.prefix(6))
                     return L10n.format("history.timeline.fleetSonarFormat", name, sonar.inFleet ? "yes" : "no")
-                case .fleetPlacement, .fleetPlacementUI, .fleetSink:
+                case .fleetPlacement, .fleetPlacementUI:
                     return L10n.string("history.timeline.fleetPlacement")
                 }
             }
@@ -285,7 +285,7 @@ final class HistoryDetailViewModel: ObservableObject {
                          .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
                          .chaseTheDragonTurn, .nineLivesTurn, .raidVisit, .fleetDart:
                         true
-                    case .fleetPlacement, .fleetPlacementUI, .fleetSonar, .fleetSink:
+                    case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
                         false
                     }
                 }.count
@@ -467,7 +467,7 @@ final class HistoryDetailViewModel: ObservableObject {
                 throwsByPlayer[dart.playerId, default: 0] += 1
                 if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[dart.playerId, default: 0] += 1 }
                 if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[dart.playerId, default: 0] += 1 }
-            case .fleetPlacement, .fleetPlacementUI, .fleetSonar, .fleetSink:
+            case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
                 break
             }
         }

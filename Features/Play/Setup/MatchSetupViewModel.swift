@@ -57,7 +57,7 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var fiftyOneByFivesTargetPoints: Int = 51
     @Published var fiftyOneByFivesMustFinishExact = false
     @Published var nineLivesStartingLives: NineLivesStartingLives = .nine
-    @Published var fleetPreset: FleetPreset = .standard
+    @Published var fleetPreset: FleetSetupPreferences.Preset = .standard
     @Published var fleetShipCount: FleetShipCount = .standard
     @Published var fleetShipHealth: FleetShipHealth = .armored
     @Published var fleetBullAllowed = false
@@ -137,14 +137,13 @@ final class MatchSetupViewModel: ObservableObject {
             let shanghaiPrefs = ShanghaiSetupPreferences.load()
             shanghaiRoundCount = shanghaiPrefs.roundCount
             shanghaiBonusRule = shanghaiPrefs.bonusRule
-            let fleetPrefs = FleetSetupPreferences.load()
-            fleetPreset = fleetPrefs.preset
-            fleetShipCount = fleetPrefs.shipCount
-            fleetShipHealth = fleetPrefs.shipHealth
-            fleetBullAllowed = fleetPrefs.bullAllowed
-            fleetCallMode = fleetPrefs.callMode
-            fleetSonarEnabled = fleetPrefs.sonarEnabled
-            fleetHandoffEachTurn = fleetPrefs.handoffEachTurn
+            fleetPreset = FleetSetupPreferences.loadPreset()
+            fleetShipCount = FleetSetupPreferences.loadShipCount()
+            fleetShipHealth = FleetSetupPreferences.loadShipHealth()
+            fleetBullAllowed = FleetSetupPreferences.loadBullAllowed()
+            fleetCallMode = FleetSetupPreferences.loadCallMode()
+            fleetSonarEnabled = FleetSetupPreferences.loadSonarEnabled()
+            fleetHandoffEachTurn = FleetSetupPreferences.loadHandoffEachTurn()
             let raidPrefs = RaidSetupPreferences.makeConfig()
             raidBossTier = raidPrefs.bossTier
             raidHeroHearts = raidPrefs.heroHearts
@@ -387,6 +386,10 @@ final class MatchSetupViewModel: ObservableObject {
             fleetCallMode = config.callMode
             fleetSonarEnabled = config.sonarEnabled
             fleetHandoffEachTurn = config.handoffEachTurn
+        case let .raid(config):
+            raidBossTier = config.bossTier
+            raidHeroHearts = config.heroHearts
+            raidEnrageEnabled = config.enrageEnabled
         }
 
         normalizeForProductSurface()
@@ -777,11 +780,12 @@ final class MatchSetupViewModel: ObservableObject {
         }
     }
 
-    func applyFleetPreset(_ preset: FleetPreset) {
+    func applyFleetPreset(_ preset: FleetSetupPreferences.Preset) {
         fleetPreset = preset
-        fleetShipCount = preset.shipCount
-        fleetShipHealth = preset.shipHealth
-        fleetBullAllowed = preset.bullAllowed
+        let config = preset.config
+        fleetShipCount = config.shipCount
+        fleetShipHealth = config.shipHealth
+        fleetBullAllowed = config.bullAllowed
     }
 
     private func persistLastUsedSetup() async {
@@ -802,17 +806,13 @@ final class MatchSetupViewModel: ObservableObject {
             return
         }
         if selectedCatalogMatchType == .fleet || currentMatchType == .fleet {
-            FleetSetupPreferences.save(
-                FleetSetupPreferences.Snapshot(
-                    preset: fleetPreset,
-                    shipCount: fleetShipCount,
-                    shipHealth: fleetShipHealth,
-                    bullAllowed: fleetBullAllowed,
-                    callMode: fleetCallMode,
-                    sonarEnabled: fleetSonarEnabled,
-                    handoffEachTurn: fleetHandoffEachTurn
-                )
-            )
+            FleetSetupPreferences.save(preset: fleetPreset)
+            FleetSetupPreferences.save(shipCount: fleetShipCount)
+            FleetSetupPreferences.save(shipHealth: fleetShipHealth)
+            FleetSetupPreferences.save(bullAllowed: fleetBullAllowed)
+            FleetSetupPreferences.save(callMode: fleetCallMode)
+            FleetSetupPreferences.save(sonarEnabled: fleetSonarEnabled)
+            FleetSetupPreferences.save(handoffEachTurn: fleetHandoffEachTurn)
             return
         }
         if mode == .cricket {

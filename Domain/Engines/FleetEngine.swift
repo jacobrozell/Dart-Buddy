@@ -728,6 +728,21 @@ public enum FleetEngine {
 
     // MARK: - Dart geometry
 
+    public static func dartInput(from event: FleetDartEvent) -> DartInput {
+        if event.outcome == .wildMiss {
+            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        }
+        guard let actual = event.actualCell else {
+            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        }
+        let multiplier = DartMultiplier(rawValue: event.multiplierRaw) ?? .single
+        let segment: DartSegment = switch actual {
+        case let .segment(value): .oneToTwenty(value)
+        case .bull: .innerBull
+        }
+        return DartInput(multiplier: multiplier, segment: segment, isMiss: false)
+    }
+
     public static func boardCell(for dart: DartInput, bullAllowed: Bool) -> FleetBoardCell? {
         guard !dart.isMiss else { return nil }
         switch dart.segment {

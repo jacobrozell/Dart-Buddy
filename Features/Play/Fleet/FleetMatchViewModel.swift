@@ -87,7 +87,7 @@ final class FleetMatchViewModel: ObservableObject {
 
     var dartsRemaining: Int {
         guard let fleetState else { return 3 }
-        return max(0, 3 - fleetState.dartsThrownThisVisit)
+        return max(0, 3 - fleetState.visitDartIndex)
     }
 
     var shipsPlacedCount: Int {
@@ -142,7 +142,7 @@ final class FleetMatchViewModel: ObservableObject {
         let fleet = fleetState.fleets[audiencePlayerId] ?? FleetPlayerFleet()
         return .ownFleet(
             fleet: fleet,
-            shipHealth: fleetState.config.shipHealth.hitsRequired,
+            shipHealth: fleetState.config.shipHealth.rawValue,
             color: PlayerVisualViews.color(for: playerColor(for: audiencePlayerId))
         )
     }
@@ -369,9 +369,9 @@ final class FleetMatchViewModel: ObservableObject {
             await confirmPassDevice(for: botId)
         } else if canViewPlacement {
             var rng = SystemRandomNumberGenerator()
-            let ships = DartBotEngine.generateFleetPlacement(
-                config: fleetState.config,
-                difficulty: currentBotDifficulty,
+            let ships = FleetBotPolicy.pickPlacementCells(
+                count: fleetState.config.shipCount.count,
+                bullAllowed: fleetState.config.bullAllowed,
                 profile: profile,
                 rng: &rng
             )
@@ -404,27 +404,32 @@ final class FleetMatchViewModel: ObservableObject {
 
         if FleetBotPolicy.shouldUseSonar(
             state: fleetState,
-            playerId: playerId,
-            difficulty: currentBotDifficulty,
+            botId: playerId,
+            profile: profile,
             rng: &rng
         ),
-           let pool = FleetBotPolicy.sonarCell(
-               from: FleetEngine.placementPool(bullAllowed: fleetState.config.bullAllowed)
-                   .filter { fleetState.probeMaps[playerId]?[$0] == nil },
+           let pool = FleetBotPolicy.pickSonarCell(
+               state: fleetState,
+               botId: playerId,
                rng: &rng
            ) {
             await useSonar(on: pool)
         }
 
-        guard let call = FleetBotPolicy.chooseCall(
+        guard let call = FleetBotPolicy.pickCallCell(
             state: fleetState,
-            playerId: playerId,
-            difficulty: currentBotDifficulty,
+            botId: playerId,
+            profile: profile,
             rng: &rng
         ) else { return false }
 
         selectedCall = call
-        let dart = DartBotEngine.generateFleetDart(callCell: call, profile: profile, rng: &rng)
+        let dart = DartBotEngine.generateFleetHuntDart(
+            callCell: call,
+            profile: profile,
+            callMode: fleetState.config.callMode,
+            rng: &rng
+        )
         enteredDarts = [dart]
         try? await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
         await submitDart()
