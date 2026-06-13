@@ -1,7 +1,7 @@
 # Bot Opponent Specification
 
 ## 1. Purpose
-Define preset computer opponents, shared bot turn generation (`DartBotEngine`), pacing, and mode support. Training Partner bots are specified in [`TrainingBotSpec.md`](TrainingBotSpec.md).
+Define preset computer opponents, shared bot turn generation (`DartBotEngine`), pacing, and mode support. Training Partner bots are specified in [`TrainingBotSpec.md`](TrainingBotSpec.md). User-defined custom bots are specified in [`CustomBotSpec.md`](CustomBotSpec.md).
 
 ---
 
@@ -28,6 +28,7 @@ Define preset computer opponents, shared bot turn generation (`DartBotEngine`), 
 |------|--------------|--------------|------|
 | Preset | `preset` | `BotDifficulty` tier → `BotSkillProfile` | This spec |
 | Training | `training` | Calibrated from linked human stats | `TrainingBotSpec.md` |
+| Custom | `custom` | `CustomBotConfiguration` → `BotSkillProfile` | `CustomBotSpec.md` |
 
 At match start, preset participants store `botDifficultyRaw`; training participants store `botSkillProfilePayload` snapshot and `botDifficultyRaw = nil`.
 

@@ -40,9 +40,22 @@ Define how runtime feature flags and environment configuration are modeled so ph
 - `enableFirebaseCrashlytics` (same matrix as analytics; shares debug launch arg `-firebase_analytics_debug`)
 - `enableAppleWatchCompanion` (default `false`)
 - `enableVisionAutoScoring` (default `false`)
-- `enableOnlinePlay` (default `false`)
+- `enableOnlinePlay` (default `false`; **P2** — see [`OnlinePlaySpec.md`](OnlinePlaySpec.md))
+- `enableLocalTournaments` (default `false`; **P1** post-1.0 — see [`TournamentSpec.md`](TournamentSpec.md))
+- `enableOnlineTournaments` (default `false`; **P2** — requires `enableOnlinePlay`; see [`OnlinePlaySpec.md`](OnlinePlaySpec.md) §6)
 - `enableAdvancedDiagnostics` (default `false`)
 - `enableAppIntents` (default `false`; enable locally with `-enable_app_intents` — see [`AppIntentsSpec.md`](AppIntentsSpec.md))
+- `enableAchievements` (default `false`; `-enable_achievements` — see [`AchievementsSpec.md`](AchievementsSpec.md))
+- `enableCampaign` (default `false`; `-enable_campaign` — see [`CampaignSpec.md`](CampaignSpec.md))
+- `enableDailyChallenge` (default `false`; `-enable_daily_challenge` — see [`DailyChallengeSpec.md`](DailyChallengeSpec.md))
+
+### Product surface (lean 1.0)
+
+Separate from feature flags — see `Support/Release/ProductSurface.swift` and [`docs/release/lean-1.0-implementation-plan.md`](../docs/release/lean-1.0-implementation-plan.md).
+
+- **Default (Release):** lean 1.0 — 4 tabs, X01 + Cricket only, preset + custom bots, English bundle, no export / Training Partner UI
+- **Launch argument:** `-enable_full_product_surface` — restores Modes tab, party modes, Training Partner bots, export, and documents full locale list (UI tests / dogfood)
+- **Do not** ship App Store builds with `-enable_full_product_surface`
 
 ---
 

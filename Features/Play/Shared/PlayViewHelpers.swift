@@ -4,6 +4,24 @@ func playLocalizedText(_ key: String) -> Text {
     Text(LocalizedStringKey(key))
 }
 
+/// Posts a VoiceOver announcement for gameplay events; no-op for empty strings.
+func postAccessibilityAnnouncement(_ text: String) {
+    guard !text.isEmpty else { return }
+    AccessibilityNotification.Announcement(text).post()
+}
+
+private struct MatchHeaderChromeButtonSizeKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 44
+}
+
+extension EnvironmentValues {
+    /// Square size for buttons docked in the match header trailing slot (40pt in compact height).
+    var matchHeaderChromeButtonSize: CGFloat {
+        get { self[MatchHeaderChromeButtonSizeKey.self] }
+        set { self[MatchHeaderChromeButtonSizeKey.self] = newValue }
+    }
+}
+
 /// Shared top chrome for in-progress match screens (exit, title, optional trailing action).
 struct MatchGameplayHeader<Title: View, Trailing: View>: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -13,6 +31,8 @@ struct MatchGameplayHeader<Title: View, Trailing: View>: View {
     @ViewBuilder let trailing: () -> Trailing
 
     private var usesCompactHeight: Bool { verticalSizeClass == .compact }
+
+    private var chromeButtonSize: CGFloat { usesCompactHeight ? 40 : 44 }
 
     init(
         onExit: @escaping () -> Void,
@@ -27,25 +47,27 @@ struct MatchGameplayHeader<Title: View, Trailing: View>: View {
     }
 
     var body: some View {
-        HStack {
+        HStack(alignment: .center, spacing: usesCompactHeight ? DS.Spacing.s2 : DS.Spacing.s3) {
             Button(action: onExit) {
                 Image(systemName: "chevron.left")
-                    .font(.headline.weight(.bold))
+                    .font((usesCompactHeight ? Font.subheadline : Font.headline).weight(.bold))
                     .foregroundStyle(Brand.green)
-                    .frame(width: 44, height: 44)
+                    .frame(width: chromeButtonSize, height: chromeButtonSize)
                     .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
             }
             .accessibilityLabel(exitAccessibilityLabel)
             .accessibilityIdentifier("match_exit")
-            Spacer()
+            Spacer(minLength: DS.Spacing.s2)
             title()
-            Spacer()
+            Spacer(minLength: DS.Spacing.s2)
             trailing()
-                .frame(width: 44, height: 44)
+                // Min bounds (not fixed) so screens can dock more than one chrome button.
+                .frame(minWidth: chromeButtonSize, minHeight: chromeButtonSize)
+                .environment(\.matchHeaderChromeButtonSize, chromeButtonSize)
         }
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.top, usesCompactHeight ? DS.Spacing.s1 : DS.Spacing.s2)
+        .padding(.horizontal, usesCompactHeight ? DS.Spacing.s3 : DS.Spacing.s4)
+        .padding(.top, usesCompactHeight ? 0 : DS.Spacing.s2)
         .padding(.bottom, usesCompactHeight ? DS.Spacing.s1 : DS.Spacing.s2)
-        .layoutPriority(1)
+        .layoutPriority(2)
     }
 }

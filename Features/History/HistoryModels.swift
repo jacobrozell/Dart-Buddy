@@ -15,6 +15,7 @@ struct HistoryListRow: Identifiable, Equatable {
     let configText: String
     let standings: [HistoryStanding]
     let isFinished: Bool
+    let isForfeited: Bool
 
     var id: UUID { summary.id }
 
@@ -26,7 +27,11 @@ struct HistoryListRow: Identifiable, Equatable {
                 score: standing.score
             )
         }.joined(separator: ". ")
-        return L10n.format("history.row.accessibilityFormat", dateText, configText, players)
+        var summary = L10n.format("history.row.accessibilityFormat", dateText, configText, players)
+        if isForfeited {
+            summary += " " + L10n.string("history.row.forfeitAccessibilitySuffix")
+        }
+        return summary
     }
 }
 

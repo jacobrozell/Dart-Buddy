@@ -29,6 +29,30 @@ struct SetupValidationMessagesTests {
             SetupValidationMessages.displayKey(for: "setup.validation.partyComingSoon")
                 == "setup.validation.partyComingSoon.short"
         )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.coopComingSoon")
+                == "setup.validation.coopComingSoon.short"
+        )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.partyMinimumPlayers")
+                == "setup.validation.partyMinimumPlayers.short"
+        )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.partyKillerMinimumPlayers")
+                == "setup.validation.partyKillerMinimumPlayers.short"
+        )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.killerBotsPresetOnly")
+                == "setup.validation.killerBotsPresetOnly.short"
+        )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.baseballBotsPresetOnly")
+                == "setup.validation.baseballBotsPresetOnly.short"
+        )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.shanghaiBotsPresetOnly")
+                == "setup.validation.shanghaiBotsPresetOnly.short"
+        )
     }
 
     @Test

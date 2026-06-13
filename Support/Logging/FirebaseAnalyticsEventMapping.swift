@@ -20,6 +20,8 @@ public enum FirebaseAnalyticsEventMapping {
         "turn_undone",
         "dart_undone",
         "match_abandoned",
+        "match_forfeited",
+        "match_forfeit_failed",
         "match_start_failed",
         "turn_persist_failed",
         "app_bootstrap_migration_failure",
@@ -28,27 +30,11 @@ public enum FirebaseAnalyticsEventMapping {
         "deep_link_deferred",
         "deep_link_failed",
         "intent_performed",
-        "intent_failed"
+        "intent_failed",
+        "client_environment_changed"
     ]
 
-    private static let allowlistedParameterKeys: Set<String> = [
-        "matchType",
-        "errorCode",
-        "layer",
-        "status",
-        "participantCount",
-        "operation",
-        "schemaVersion",
-        "fromSchema",
-        "toSchema",
-        "legIndex",
-        "setIndex",
-        "source",
-        "isBot",
-        "path",
-        "version",
-        "intentName"
-    ]
+    private static let allowlistedParameterKeys: Set<String> = AnalyticsMetadataKeys.firebaseParameters
 
     private static let firebaseNameOverrides: [String: String] = [
         "app_bootstrap_ready": "app_open",

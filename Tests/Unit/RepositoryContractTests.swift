@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import DartBuddy
 
@@ -6,7 +7,8 @@ private func makeRepositories() throws -> (
     player: SwiftDataPlayerRepository,
     match: SwiftDataMatchRepository,
     stats: SwiftDataStatsRepository,
-    settings: SwiftDataSettingsRepository
+    settings: SwiftDataSettingsRepository,
+    container: ModelContainer
 ) {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let match = SwiftDataMatchRepository(container: container)
@@ -15,7 +17,8 @@ private func makeRepositories() throws -> (
         SwiftDataPlayerRepository(container: container, matchRepository: match, statsRepository: stats),
         match,
         stats,
-        SwiftDataSettingsRepository(container: container)
+        SwiftDataSettingsRepository(container: container),
+        container
     )
 }
 
@@ -91,6 +94,31 @@ func matchRepositoryHistoryExcludesAbandonedMatches() async throws {
     #expect(try await repos.match.fetchHistoryWithParticipants(page: 0, pageSize: 10, filter: MatchHistoryFilter()).isEmpty)
 }
 
+@Test(.tags(.integration, .match, .swiftdata, .regression))
+func matchRepositoryHistoryIncludesForfeitedMatches() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.x01(MatchConfigX01(
+        startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut
+    )))
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    let created = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+    let forfeited = try await repos.match.forfeitMatch(
+        matchId: created.id,
+        endedAt: Date(),
+        winnerPlayerId: bob.id,
+        forfeitedByPlayerId: alice.id
+    )
+    #expect(forfeited.status == .forfeited)
+    let history = try await repos.match.fetchHistory(page: 0, pageSize: 10)
+    #expect(history.count == 1)
+    #expect(history.first?.status == .forfeited)
+}
+
 @Test(.tags(.integration, .player, .swiftdata, .regression))
 func playerRepositoryHidesArchivedPlayersByDefault() async throws {
     let repos = try makeRepositories()
@@ -130,6 +158,42 @@ func matchRepositoryTracksActiveMatchAndCompletedHistory() async throws {
     #expect(history.first?.winnerPlayerId == alice.id)
 }
 
+@Test(.tags(.integration, .match, .swiftdata, .history, .regression))
+func matchRepositoryWritesHistoryCardPayloadOnCompleteWhenSnapshotExists() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.cricket(MatchConfigCricket()))
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    let created = try await repos.match.createMatch(type: .cricket, configPayload: payload, participants: participants)
+
+    var session = try MatchLifecycleService.createMatch(
+        matchId: created.id,
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(playerId: alice.id, displayNameAtMatchStart: "Alice", turnOrder: 0),
+            MatchParticipant(playerId: bob.id, displayNameAtMatchStart: "Bob", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.triple(20)])
+    let snapshotPayload = try CodablePayloadCoder.encode(session.runtime)
+    _ = try await repos.match.saveSnapshot(matchId: created.id, snapshotVersion: 1, snapshotPayload: snapshotPayload)
+
+    _ = try await repos.match.completeMatch(matchId: created.id, endedAt: Date(), winnerPlayerId: alice.id)
+
+    let records = try await repos.match.fetchHistoryWithParticipants(page: 0, pageSize: 10, filter: MatchHistoryFilter())
+    #expect(records.count == 1)
+    let cardData = try #require(records.first?.historyCardPayload)
+    let card = try CodablePayloadCoder.decode(MatchHistoryCardPayload.self, from: cardData)
+    #expect(card.payloadVersion == MatchHistoryCardPayload.currentPayloadVersion)
+    #expect(card.standings.count == 2)
+    #expect(card.standings.contains(where: { $0.name == "Alice" && $0.isWinner }))
+}
+
 @Test(.tags(.integration, .match, .swiftdata, .regression))
 func matchRepositoryHistoryFilterMapsToDatabase() async throws {
     let repos = try makeRepositories()
@@ -138,20 +202,7 @@ func matchRepositoryHistoryFilterMapsToDatabase() async throws {
     let now = Date()
 
     func seedCompleted(type: MatchType, winner: UUID, startedAt: Date) async throws {
-        let payload: Data = switch type {
-        case .x01:
-            try CodablePayloadCoder.encode(MatchConfigPayload.x01(MatchConfigX01(
-                startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut
-            )))
-        case .cricket:
-            try CodablePayloadCoder.encode(MatchConfigPayload.cricket(MatchConfigCricket()))
-        case .baseball:
-            try CodablePayloadCoder.encode(MatchConfigPayload.baseball(MatchConfigBaseball()))
-        case .killer:
-            try CodablePayloadCoder.encode(MatchConfigPayload.killer(MatchConfigKiller()))
-        case .shanghai:
-            try CodablePayloadCoder.encode(MatchConfigPayload.shanghai(MatchConfigShanghai()))
-        }
+        let payload: Data = try CodablePayloadCoder.encode(MatchConfigDefaults.config(for: type))
         let matchId = UUID()
         let participants = [
             MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
@@ -227,6 +278,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
         defaultSetsEnabled: baseline.defaultSetsEnabled,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: baseline.updatedAt
     )
     _ = try await repos.settings.updateSettings(updated)
@@ -292,4 +344,172 @@ func statsRepositoryStoresAndFetchesEventsByMatchId() async throws {
 
     let batch = try await repos.stats.fetchEvents(matchIds: [match.id])
     #expect(batch.count == 1)
+}
+
+@Test(.tags(.integration, .settings, .swiftdata, .regression))
+func settingsRepositoryResetsPreferencesToDefaults() async throws {
+    let repos = try makeRepositories()
+    let baseline = try await repos.settings.seedDefaultsIfNeeded()
+    let customized = SettingsSummary(
+        id: baseline.id,
+        appearanceModeRaw: "dark",
+        hapticsEnabled: false,
+        soundEnabled: false,
+        turnTotalCallerEnabled: true,
+        defaultMatchTypeRaw: "cricket",
+        defaultX01StartScore: 301,
+        defaultCheckoutModeRaw: "singleOut",
+        defaultCheckInModeRaw: "doubleIn",
+        defaultLegFormatRaw: "bestOf",
+        defaultLegsToWin: 5,
+        defaultSetsEnabled: true,
+        botStaggerEnabled: false,
+        botDartHapticsEnabled: false,
+        defaultDartEntryPresentationRaw: "visualBoard",
+        updatedAt: Date()
+    )
+    _ = try await repos.settings.updateSettings(customized)
+    let persisted = try await repos.settings.fetchSettings()
+    #expect(persisted.defaultDartEntryPresentationRaw == "visualBoard")
+
+    try await repos.settings.resetPreferencesToDefaults()
+
+    let reloaded = try await repos.settings.fetchSettings()
+    #expect(reloaded.appearanceModeRaw == "system")
+    #expect(reloaded.defaultMatchTypeRaw == "x01")
+    #expect(reloaded.defaultX01StartScore == 501)
+    #expect(reloaded.hapticsEnabled)
+    #expect(reloaded.soundEnabled)
+    #expect(reloaded.botStaggerEnabled)
+    #expect(reloaded.botDartHapticsEnabled)
+    #expect(reloaded.defaultDartEntryPresentationRaw == "numberPad")
+}
+
+@Test(.tags(.integration, .settings, .swiftdata, .regression))
+func settingsRepositoryResetAllLocalDataClearsEverySwiftDataTable() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.x01(MatchConfigX01(
+        startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut
+    )))
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: UUID(), playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    let match = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+    _ = try await repos.match.appendEvent(
+        matchId: match.id,
+        eventTypeRaw: "x01Turn",
+        eventPayload: Data([0x01])
+    )
+    _ = try await repos.match.saveSnapshot(
+        matchId: match.id,
+        snapshotVersion: 1,
+        snapshotPayload: Data([0x02])
+    )
+    #expect(try await repos.player.fetchPlayers(includeArchived: false).count == 2)
+    #expect(try await repos.match.fetchActiveMatch() != nil)
+
+    let beforeReset = try LocalDataResetInventory.swiftDataRecordCounts(in: repos.container)
+    #expect(beforeReset[String(describing: SchemaV3.PlayerRecord.self)] == 2)
+    #expect(beforeReset[String(describing: SchemaV3.MatchRecord.self)] == 1)
+    #expect(beforeReset[String(describing: SchemaV3.MatchParticipantRecord.self)] == 2)
+    #expect(beforeReset[String(describing: SchemaV3.MatchEventRecord.self)] == 1)
+    #expect(beforeReset[String(describing: SchemaV3.MatchSnapshotRecord.self)] == 1)
+
+    try await repos.settings.resetAllLocalData()
+
+    #expect(try await repos.player.fetchPlayers(includeArchived: true).isEmpty)
+    #expect(try await repos.match.fetchActiveMatch() == nil)
+    #expect(try await repos.match.fetchHistory(page: 0, pageSize: 10).isEmpty)
+
+    let afterReset = try LocalDataResetInventory.swiftDataRecordCounts(in: repos.container)
+    #expect(afterReset[String(describing: SchemaV3.PlayerRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV3.MatchRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV3.MatchParticipantRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV3.MatchEventRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV3.MatchSnapshotRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV3.SettingsRecord.self)] == 1)
+
+    let settings = try await repos.settings.fetchSettings()
+    #expect(settings.defaultMatchTypeRaw == "x01")
+    #expect(settings.hapticsEnabled)
+}
+
+@Test(.tags(.integration, .match, .swiftdata, .regression))
+func matchRepositoryFetchConfigPayloadReturnsPersistedData() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+    let config = MatchConfigX01(startScore: 501, legsToWin: 3, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let payload = try CodablePayloadCoder.encode(MatchConfigPayload.x01(config))
+    let matchId = UUID()
+    let participants = [
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: alice.id, turnOrder: 0, displayNameAtMatchStart: "Alice", avatarStyleAtMatchStart: nil),
+        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: bob.id, turnOrder: 1, displayNameAtMatchStart: "Bob", avatarStyleAtMatchStart: nil)
+    ]
+    let created = try await repos.match.createMatch(type: .x01, configPayload: payload, participants: participants)
+
+    let fetched = try await repos.match.fetchConfigPayload(matchId: created.id)
+    let decoded = try CodablePayloadCoder.decode(MatchConfigPayload.self, from: try #require(fetched))
+    #expect(decoded == .x01(config))
+}
+
+@Test(.tags(.integration, .player, .swiftdata, .regression))
+func createHumanPlayerDesignatesPrimaryWhenRequested() async throws {
+    let repos = try makeRepositories()
+    let draft = EditablePlayer(
+        id: UUID(),
+        name: "Casey",
+        isArchived: false,
+        notes: "",
+        isBot: false,
+        isTrainingBot: false,
+        isCustomBot: false,
+        customX01Average: CustomBotMetrics.defaultX01Average,
+        customCricketMPR: CustomBotMetrics.defaultCricketMPR,
+        linkedPlayerId: nil,
+        botDifficulty: nil,
+        avatarStyle: .dart,
+        colorToken: .green,
+        playerRole: .primary
+    )
+
+    let created = try await repos.player.createHumanPlayer(from: draft)
+
+    let primary = try await repos.player.fetchPrimaryPlayer()
+    #expect(primary?.id == created.id)
+    #expect(created.isPrimaryPlayer)
+}
+
+@Test(.tags(.integration, .player, .swiftdata, .regression))
+func playerRepositoryDesignatesSinglePrimaryPlayer() async throws {
+    let repos = try makeRepositories()
+    let alice = try await repos.player.createPlayer(name: "Alice")
+    let bob = try await repos.player.createPlayer(name: "Bob")
+
+    let designated = try await repos.player.designatePrimaryPlayer(playerId: bob.id)
+    #expect(designated.isPrimaryPlayer)
+
+    let primary = try await repos.player.fetchPrimaryPlayer()
+    #expect(primary?.id == bob.id)
+
+    let players = try await repos.player.fetchPlayers(includeArchived: true)
+    #expect(players.first(where: { $0.id == alice.id })?.isPrimaryPlayer == false)
+    #expect(players.first(where: { $0.id == bob.id })?.playerRole == .primary)
+}
+
+@Test(.tags(.integration, .player, .swiftdata, .regression))
+func primaryPlayerBootstrapPromotesOldestHuman() async throws {
+    let repos = try makeRepositories()
+    let older = try await repos.player.createPlayer(name: "Jacob")
+    try await Task.sleep(nanoseconds: 5_000_000)
+    _ = try await repos.player.createPlayer(name: "Guest")
+
+    await PrimaryPlayerBootstrap.promoteOldestHumanIfNeeded(using: repos.player)
+
+    let primary = try await repos.player.fetchPrimaryPlayer()
+    #expect(primary?.id == older.id)
+    #expect(primary?.name == "Jacob")
 }

@@ -8,7 +8,7 @@ Define the **Statistics** tab UI: filters, tables, charts, and partial-match han
 ## 2. MVP Scope
 
 ### In Scope (1.0.0)
-- Dedicated tab (third position in `MainTabView`)
+- **Activity tab** — Statistics is a segment inside `ActivityRootView` (sibling to History). See [`HistorySpec.md`](HistorySpec.md) for the shared shell.
 - Mode segment: X01 | Cricket
 - Period segment: Today | 7d | 30d | All
 - Player filter: All players | single player
@@ -149,7 +149,7 @@ No dedicated Analytics events; product health inferred from `match_completed` + 
 |-------|--------|
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
-| **Code** | `StatisticsRootView.swift`, `StatisticsViewModel.swift` |
+| **Code** | `ActivityRootView.swift`, `StatisticsRootView.swift`, `StatisticsViewModel.swift` |
 
 ---
 

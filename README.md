@@ -6,15 +6,116 @@
 
 Product behavior and UX contracts live under [`specs/`](specs/README.md). A cross-cutting **feature inventory** (shipped vs planned) lives at [`docs/feature-inventory.md`](docs/feature-inventory.md). This file is the repo entry point — not a second spec.
 
-## Status (1.0 RC)
+---
 
-- **Product:** MVP scope complete — play, players, history, statistics, settings; X01 and Cricket (Normal + Cut Throat) with bot opponents and Training Partner bots.
-- **Localization:** English plus German, Spanish, and Dutch (`de` / `es` / `nl`) via system locale — see [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md).
-- **Remaining for App Store:** QA sign-off, accessibility evidence, migration recovery smoke, listing assets (including localized metadata where applicable) — tracked in [`docs/release/todo.md`](docs/release/todo.md).
+## Engineering
+
+Dart Buddy is built as a **spec-driven, test-backed** iOS app: product rules live in `specs/`, domain logic stays pure, and CI enforces documentation parity with code.
+
+### Architecture
+
+| Layer | Role |
+|-------|------|
+| `Features/` | SwiftUI + MVVM per screen flow (Play, Activity, Players, Settings, Modes) |
+| `Domain/` | Pure rules engines (`X01Engine`, `CricketEngine`, party engines), lifecycle, stats math, bot skill models |
+| `Data/` | Repository protocols + SwiftData implementations |
+| `Persistence/` | `SchemaV2` baseline, versioned migrations, container factory |
+| `DesignSystem/` | Tokens, scoreboard chrome, shared scoring pad |
+| `Support/` | Localization (`L10n`), logging → Firebase sinks, preferences, haptics/TTS |
+
+Dependency flow is strict: **Features → Domain/Data interfaces → SwiftData**. Domain never imports SwiftUI or persistence frameworks. See [`specs/ArchitectureSpec.md`](specs/ArchitectureSpec.md).
+
+### What we have built
+
+Most of the long-term product surface is **implemented in code**; lean 1.0 intentionally **hides** anything that has not passed the device QA bar.
+
+| Area | Built | In lean 1.0 app |
+|------|-------|-----------------|
+| **Game engines** | X01, Cricket (Normal + Cut Throat), Baseball, Killer, Shanghai | X01 + Cricket only |
+| **App shell** | 5-tab shell (Play · Modes · Players · Activity · Settings) | 4 tabs (Modes hidden) |
+| **Bots** | Preset ladder, Training Partner, custom bots (tunable X01 avg / Cricket MPR) | Preset + custom |
+| **Players & data** | CRUD, archive guards, DBPE export bundle, migration recovery UI | Export hidden |
+| **Activity** | History + Statistics with shared filters, per-mode stat kinds (29 declared) | Shipped |
+| **Platform hooks** | Deep links (`dartbuddy://v1/...`), App Intents (flagged off), Firebase Analytics + Crashlytics | Deep links internal only |
+| **Catalog** | 29 modes in `GameModeCatalog` — 5 playable, 24 spec'd stubs | Not exposed |
+| **Gamification (R&D)** | Phase 1 achievement catalog spec'd; `BotAchievementTierResolver` + `botEffectiveTierRaw` on match participants | Flagged off |
+
+**Documentation coverage:** 27/31 feature checklist areas spec'd (gamification rows planned-only), 29/29 game modes spec'd, 26/26 system specs present — audited on every CI run (`Scripts/ci/documentation-summary.sh` → artifact). See [`documentation-summary.txt`](documentation-summary.txt) for the latest snapshot.
+
+### Testing & CI
+
+| Gate | What runs |
+|------|-----------|
+| **PR / push** | XcodeGen → `DartBuddyCI` scheme — unit + **40 WCAG accessibility UI tests** on iPhone 17 simulator |
+| **Nightly** | Full `DartBuddy` scheme UI smoke (`.github/workflows/nightly-ui.yml`) |
+| **Release** | Xcode Cloud archive → TestFlight (on demand via Slack `/dart-buddy release` or GHA trigger) |
+| **Migrations** | V1→V2.0→V2.1 SwiftData migration tests in CI (`SchemaV2_0_0` → `SchemaV2` lightweight) |
+
+Three Xcode test targets: `Tests/Unit/`, `Tests/Accessibility/`, `Tests/UI/`. Marketing screenshot capture scripts live under `marketing-screenshots/` and `Scripts/`.
+
+### Recent engineering work
+
+Highlights from the current development arc:
+
+- **Custom bots** — domain models, skill facets, `BotParticipantFactory`, match-setup wiring, advanced stat sliders
+- **Lean 1.0 trim** — scope lock, marketing screenshots, gameplay layout polish (iPad landscape, checkout banner)
+- **Gamification prep** — locked Phase 1 achievement catalog ([`AchievementCatalogPhase1.md`](specs/AchievementCatalogPhase1.md)), `BotAchievementTierResolver`, `botEffectiveTierRaw` snapshot on participants (SchemaV2.1)
+- **Spec governance** — feature inventory, delete-all-data policy ([`DeleteAllDataSpec.md`](specs/DeleteAllDataSpec.md)), gamification specs ([`AchievementsSpec.md`](specs/AchievementsSpec.md))
+- **Release train** — phased ship plan with test-confidence matrix ([`docs/release/ongoing-release-plan.md`](docs/release/ongoing-release-plan.md))
+- **CI docs artifact** — automated spec/code gap report on every build
+
+---
+
+## Status — 1.0 RC (lean core)
+
+**Now:** Finishing device QA evidence and App Store ops for a **small, well-tested** first release.
+
+| | Lean 1.0 ships | Built but hidden until later |
+|--|----------------|------------------------------|
+| **Modes** | X01 + Cricket (Normal + Cut Throat) | Baseball, Killer, Shanghai |
+| **Tabs** | Play · Players · Activity · Settings | Modes catalog |
+| **Bots** | Preset + custom | Training Partner |
+| **Locale** | English only (`de`/`es`/`nl` files stay in repo) | In-app language picker |
+| **Other** | Onboarding, rules sheet, migration recovery | Player export, App Intents |
+
+**Telemetry:** Firebase Analytics + Crashlytics in Release builds with a real plist (allowlisted events only; off in Debug/CI unless opted in).
+
+**Remaining for App Store:** Device QA on lean matrix, accessibility evidence, migration recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md) · [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md).
+
+---
+
+## Roadmap
+
+Strategy: **ship a narrow core, then widen in versioned slices** — each release has explicit in/out boundaries and a device QA bar. Full rationale: [`docs/release/ongoing-release-plan.md`](docs/release/ongoing-release-plan.md).
+
+```mermaid
+flowchart LR
+  v10["1.0 Core<br/>X01 + Cricket"]
+  v11["1.1 Party Pack<br/>Baseball · Killer · Shanghai"]
+  v12["1.2 Smart Opponents<br/>Training Partner"]
+  v13["1.3 Modes Catalog<br/>Browse all 29 modes"]
+  v14["1.4 Shortcuts<br/>Siri · widgets"]
+  v20["2.0 Growth<br/>Achievements · online · …"]
+
+  v10 --> v11 --> v12 --> v13 --> v14 --> v20
+```
+
+| Release | Focus |
+|---------|-------|
+| **1.0** *(now)* | Ad-free X01 & Cricket scorekeeper · 4 tabs · preset + custom bots |
+| **1.1** | Party modes (Baseball, Killer, Shanghai) + device QA matrix |
+| **1.2** | Training Partner bots · stats UX polish |
+| **1.3** | Restore Modes tab · honest “coming soon” for 24 catalog stubs |
+| **1.4** | App Intents on · widgets / Control Center · play reminders |
+| **2.0** | Pick one primary growth bet: local achievements + Game Center, online play, next mode batch, talk mode, or Apple Watch |
+
+**Post-1.0 specs (no ship date):** [`CampaignSpec.md`](specs/CampaignSpec.md) (Journey tab), [`OnlinePlaySpec.md`](specs/OnlinePlaySpec.md), [`AutoScoringVisionSpec.md`](specs/AutoScoringVisionSpec.md). Ideas live in [`FutureIdeas/`](FutureIdeas/).
+
+---
 
 ## Getting started
 
-Requirements: Xcode 16+, iOS 17+, [XcodeGen](https://github.com/yonaskolb/XcodeGen) 2.44+.
+Requirements: Xcode 16+, iOS 18+ deployment target, [XcodeGen](https://github.com/yonaskolb/XcodeGen) 2.44+.
 
 ```bash
 brew install xcodegen   # if needed
@@ -22,7 +123,7 @@ xcodegen generate
 open DartBuddy.xcodeproj
 ```
 
-Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS). The example uses bundle ID `com.jacobrozell.DartBuddy` — add or update the iOS app in Firebase to match before shipping.
+Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS). The example uses bundle ID `com.jacobrozell.DartBuddy` — add or update the iOS app in Firebase to match before shipping. Keep the real plist at `Resources/` only (gitignored; run `sh Scripts/install-git-hooks.sh` once to block accidental commits).
 
 > **App Store continuity:** Changing the bundle ID from `com.jacobrozell.DartsScoreboard` means a new App Store listing (not an in-place update). To keep the existing listing, set `PRODUCT_BUNDLE_IDENTIFIER` back to the old value in `project.yml` and regenerate.
 
@@ -33,6 +134,15 @@ Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-In
 Run tests: **Product → Test** (`⌘U`), or:
 
 ```bash
+# Unit + accessibility (matches PR CI)
+xcodebuild test -scheme DartBuddyCI \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+
+# UI only (matches nightly; skips ~1,000 unit tests)
+xcodebuild test -scheme DartBuddyUI \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max'
+
+# Everything (unit + UI)
 xcodebuild test -scheme DartBuddy \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
@@ -41,38 +151,43 @@ xcodebuild test -scheme DartBuddy \
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). Full UI smoke runs nightly via `.github/workflows/nightly-ui.yml` (`DartBuddy` scheme) and locally with `xcodebuild test -scheme DartBuddy`.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). Full UI runs nightly via `.github/workflows/nightly-ui.yml` (`DartBuddyUI` scheme — UI tests only) on iPhone 17 Pro Max. Locally: `xcodebuild test -scheme DartBuddyUI` for UI-only, or `DartBuddy` for unit + UI together.
 
 **Release builds** use Xcode Cloud (archive → TestFlight internal), triggered on demand via Slack `/dart-buddy release` or `.github/workflows/trigger-testflight.yml` — not on every push. Setup: [`docs/release/xcode-cloud.md`](docs/release/xcode-cloud.md).
+
+---
 
 ## What the app does
 
 High-level summary only — authoritative rules are in feature specs:
 
-- X01 and Cricket matches with guided scoring, undo, and bot opponents (including Cut Throat Cricket + Points On)
-- Training Partner bots (progress-gated custom opponents on Player Detail and Play setup)
-- Match setup with roster selection, turn order, and mode-specific options
+- **X01** and **Cricket** (Normal + Cut Throat) with guided scoring, undo, **preset difficulty** bots, and **custom bots** (tunable X01 average / Cricket MPR)
+- Match setup with roster selection, turn order, and mode-specific options (X01/Cricket chips on Play home)
 - Resume in-progress matches; match summary on completion
 - Player management (create, edit, archive, delete)
-- Match history with filtering and detail views; dedicated statistics tab
+- **Activity** tab: match history + statistics with shared filters
 - Settings: appearance, default game options, haptics, sound, bot pacing
-- UI in English, German, Spanish, or Dutch when the device language matches (`en` / `de` / `es` / `nl`)
+- **English UI** in 1.0 (additional locales ship in a later release)
+
+Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, Training Partner bots, player export — see [`docs/feature-inventory.md`](docs/feature-inventory.md).
+
+---
 
 ## Project layout
 
 | Path | Role |
 |------|------|
 | `App/` | Entry point, dependency wiring, tab shell, navigation |
-| `Features/` | Play, History, Players, Statistics, Settings screens |
+| `Features/` | Play, Activity, Players, Settings screens |
 | `Domain/` | Rules engines, entities, business logic |
 | `Data/` | Repository protocols and SwiftData implementations |
 | `Persistence/` | Schema, migrations, container factory |
 | `DesignSystem/` | Tokens, shared components, gameplay layout |
-| `Resources/` | Asset catalog, `en`/`de`/`es`/`nl` `Localizable.strings`, Firebase plist template |
+| `Resources/` | Asset catalog, `en.lproj/Localizable.strings` (1.0 bundle); `de`/`es`/`nl` in repo for future releases, Firebase plist template |
 | `Scripts/` | CI helpers, locale generator (`generate_localizable.py`) |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
-| `docs/release/` | Active backlog (`todo.md`) and App Store runbook (`release_checklist.md`) |
+| `docs/release/` | **Ship checklist** (`1.0.0-ship-checklist.md`), backlog (`todo.md`), expanded runbook (`release_checklist.md`) |
 | `specs/` | Product and system specifications |
 | `roadmap/` | Phase delivery plan and release artifacts |
 | `accessibility/` | WCAG 2.1 AA tracker and manual verification |
@@ -80,12 +195,14 @@ High-level summary only — authoritative rules are in feature specs:
 ## App flow
 
 1. `App/DartBuddyApp.swift` bootstraps dependencies.
-2. `App/MainTabView.swift` presents Play, Players, Statistics, History, and Settings tabs.
+2. `App/MainTabView.swift` presents Play, Players, Activity, and Settings tabs (lean 1.0).
 3. Feature root views own their view models and navigation.
 
 ## Documentation map
 
 Each concern has one authoritative doc. Link to it rather than restating its content elsewhere.
+
+**Layers:** `specs/` defines behavior · [`docs/feature-inventory.md`](docs/feature-inventory.md) tracks what is built · [`docs/release/`](docs/release/) tracks active release work · [`accessibility/`](accessibility/) holds WCAG verification evidence · [`roadmap/`](roadmap/) is historical. Run `Scripts/ci/documentation-summary.sh` to audit spec/code gaps (also uploaded as a CI artifact).
 
 | Concern | Start here |
 |---------|------------|
@@ -93,7 +210,10 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 | Localization | [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md) |
 | Feature specs (full index) | [`specs/README.md`](specs/README.md) § Feature Specs |
 | Active release work | [`docs/release/todo.md`](docs/release/todo.md) |
-| Device + App Store runbook | [`docs/release/release_checklist.md`](docs/release/release_checklist.md) |
+| Lean 1.0 scope & tasks | [`docs/release/lean-1.0-implementation-plan.md`](docs/release/lean-1.0-implementation-plan.md) |
+| Release train (1.0 → 2.0) | [`docs/release/ongoing-release-plan.md`](docs/release/ongoing-release-plan.md) |
+| **1.0.0 ship checklist** | [`docs/release/1.0.0-ship-checklist.md`](docs/release/1.0.0-ship-checklist.md) |
+| Device + App Store runbook (expanded) | [`docs/release/release_checklist.md`](docs/release/release_checklist.md) |
 | Contributing & code style | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | iOS code audit | [`docs/ios-code-audit.md`](docs/ios-code-audit.md) |
 | Design system tokens | [`DesignSystem/README.md`](DesignSystem/README.md) |

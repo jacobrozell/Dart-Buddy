@@ -13,7 +13,7 @@
 | ID | Status | Implementation notes | Evidence |
 |----|--------|----------------------|----------|
 | P-1.1.1 | Pass | Form controls standard | |
-| P-1.3.1 | Pass | `Form` / `Section` (Appearance, Starting Mode, Match Defaults, X01 Defaults, During Play, Bot Opponents, Data, About) | |
+| P-1.3.1 | Pass | `Form` / `Section` (Appearance, Starting Mode, Match Defaults, X01 Defaults, During Play, Bot Opponents, Data, Help & Feedback, About) | |
 | P-1.3.2 | Untested | | |
 | P-1.3.4 | Pass | iPad max width 760; Form scrolls in landscape | `SettingsUITests.testSettingsControlsReachableInLandscape` |
 | P-1.4.1 | Pass | | |

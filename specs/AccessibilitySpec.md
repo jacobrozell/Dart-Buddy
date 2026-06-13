@@ -19,7 +19,7 @@ Define accessibility requirements for MVP and future releases, with WCAG 2.1 AA 
 - Minimum touch target: 44x44 pt (52x52 preferred in gameplay input).
 - Do not rely on color alone to convey meaning (use text/icons/pattern).
 - Support Dynamic Type up to accessibility sizes without clipping critical score info.
-- Respect Reduce Motion and other system accessibility preferences.
+- Respect Reduce Motion and other system accessibility preferences (implementation catalog and gameplay motion rules: [`AnimationSpec.md`](AnimationSpec.md)).
 - Light mode and dark mode must both pass contrast and legibility checks.
 - Landscape layouts must preserve core task completion without hidden critical controls.
 
@@ -30,6 +30,15 @@ Define accessibility requirements for MVP and future releases, with WCAG 2.1 AA 
 - Turn indicator must be announced with clear context.
 - Bust/check-out feedback must include non-visual cues.
 - Cricket board closed/open states require non-color indicators.
+
+### Guided Play (planned)
+Blind and low-vision practice flows require audio-first design beyond baseline WCAG. See [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md):
+- TTS target callouts and spoken Hit/Miss results
+- Optional sighted guide verifier UI
+- VoiceOver-first Template J practice loop
+- Manual release gate: [`guided-practice-match.md`](../accessibility/wcag-2.1-aa/screens/guided-practice-match.md)
+
+Do not confuse **Guided Play** with the party game Blind Killer (`party.blindKiller`).
 
 ---
 

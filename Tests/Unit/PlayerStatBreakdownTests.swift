@@ -43,4 +43,18 @@ struct PlayerStatBreakdownTests {
         row.cricketRounds = 0
         #expect(row.marksPerRound == 0)
     }
+
+    @Test
+    func idMatchesPlayerId() {
+        let playerId = UUID()
+        let row = PlayerStatBreakdown(playerId: playerId, name: "A")
+        #expect(row.id == playerId)
+    }
+
+    @Test
+    func percentsReturnZeroWhenNoDartsRecorded() {
+        let row = PlayerStatBreakdown(playerId: UUID(), name: "A")
+        #expect(row.doublePercent == 0)
+        #expect(row.triplePercent == 0)
+    }
 }

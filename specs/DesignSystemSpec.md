@@ -106,6 +106,7 @@ Rules:
 - Critical state change (turn switch, checkout): medium haptic + concise animation.
 - Error entry (invalid input/bust): warning haptic + non-color cue.
 - Respect Reduce Motion.
+- **Authoritative motion policy, backlog, and a11y/theme rules:** [`AnimationSpec.md`](AnimationSpec.md).
 
 ---
 

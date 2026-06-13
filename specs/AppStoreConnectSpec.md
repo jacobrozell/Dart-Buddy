@@ -105,6 +105,13 @@ Rules:
 - Keep diagnostics disclosures aligned with actual enabled services
 - Re-audit privacy labels before enabling Firebase phases
 
+## 6.1 Accessibility URL (App Store Connect)
+- **URL:** `https://jacobrozell.github.io/Dart-Buddy/accessibility.html`
+- **Source:** `docs/accessibility.html` (GitHub Pages, same host as privacy/support)
+- **In-app:** Settings → Help & Feedback → **Accessibility** (`AppLinks.accessibility`)
+- Enter under App Store Connect → App → **App Accessibility** → **Manage the accessibility URL**
+- Keep page content aligned with declared Accessibility Nutrition Labels
+
 ---
 
 ## 7. Category, Age Rating, and Pricing
@@ -131,9 +138,9 @@ Asset guidance:
 - Include dark/light examples if useful
 
 Portrait upload sizes (App Store Connect):
-- **6.5" Display:** 1284×2778 or 1242×2688 (no device bezels). Capture script resizes from iPhone 17 Pro simulator output; see `marketing-screenshots/README.md`.
+- **6.5" Display:** 1284×2778 or 1242×2688 portrait; 2778×1284 or 2688×1242 landscape (no device bezels). Capture script resizes from iPhone 17 Pro simulator output; landscape files use `-landscape` suffix. See `marketing-screenshots/README.md`.
 - **6.9" Display:** 1320×2868 or 1290×2796 when required — use iPhone 17 Pro Max with `APP_STORE_RESIZE=0`, or upload scaled assets per Connect UI.
-- **iPad 12.9" / 13":** 2064×2752 or 2048×2732 portrait (`./Scripts/capture-ipad-marketing-screenshots.sh` → `marketing-screenshots/ipad/raw/`).
+- **iPad 12.9" / 13":** 2064×2752 or 2048×2732 portrait; 2752×2064 or 2732×2048 landscape (`./Scripts/capture-ipad-marketing-screenshots.sh` → `marketing-screenshots/ipad/raw/`).
 
 ---
 

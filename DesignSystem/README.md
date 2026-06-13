@@ -10,8 +10,9 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 | **`DS`** | `Tokens/DesignTokens.swift` | Spacing (`DS.Spacing`), corner radius (`DS.Radius`), and **semantic** colors for native UI (`DS.ColorRole`) |
 | **`AppAppearancePolicy`** | `Support/State/AppAppearancePolicy.swift` | Maps user theme to `preferredColorScheme` and Settings chrome |
 | **Chrome modifiers** | `Tokens/BrandChrome.swift` | `.brandScoreboardChrome`, `.brandSettingsScreenChrome`, `.brandSettingsFormChrome`, empty-state styling |
-| **`SystemNavigationPolicy`** | `Tokens/SystemNavigationPolicy.swift` | iOS 26+ system Liquid Glass for nav/tab chrome; legacy opaque toolbar helpers for iOS 17–25 |
-| **`GameplayLayout`** | `Components/GameplayLayout.swift` | iPad max width for list/setup screens |
+| **`SystemNavigationPolicy`** | `Tokens/SystemNavigationPolicy.swift` | iOS 26+ system Liquid Glass for nav/tab chrome; legacy opaque toolbar helpers for iOS 18–25 |
+| **`Motion` / `MotionPolicy`** | `Tokens/MotionPolicy.swift` | Durations, curves, reduce-motion gate — see [`specs/AnimationSpec.md`](../specs/AnimationSpec.md) |
+| **`GameplayLayout`** | `Components/GameplayLayout.swift` | Phone vs iPad match/setup/tab layout predicates — see [`docs/gameplay-layout-modes.md`](../docs/gameplay-layout-modes.md) |
 | **`GameModeAccent`** | `Tokens/GameModeAccent.swift` | Per-mode **identity** accent + SF Symbol (catalog, history rows, stats filters) |
 | **`DynamicTypeSize` / `ScoringPadLabels`** | `Tokens/DynamicTypeLayout.swift` | AXXXL pad labels |
 
@@ -41,6 +42,7 @@ Shared visual primitives for **DartBuddy**. Feature code should not hardcode spa
 | `ScoringPadKey` / `ScoringPadStyle` | Shared square scoring-pad keys (X01 + Cricket) |
 | `ErrorBanner` | Inline validation / error strip |
 | `MatchFeedbackBanner` | Leg/bust/checkout feedback |
+| `MotionEntrance` | `motionBannerEntrance()`, `motionTabContentReveal(when:)`, `motionStaggeredReveal`, `motionMarkIncrementPulse`, `motionNumericScore` |
 | `StatChip` | Compact stat label |
 | `GameModeBadge` | Leading mode glyph (tinted square) for rows/cards |
 | `GameplayLayout` | Width helpers |

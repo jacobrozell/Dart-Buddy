@@ -109,6 +109,42 @@ func matchSummaryX01StatParityIncludesBestOutForEveryPlayer() async throws {
 
 @MainActor
 @Test(.tags(.unit, .match, .regression))
+func matchSummaryX01StatsBuilderIncludesSetsWhenEnabled() throws {
+    let p0 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 501, legsToWin: 2, setsEnabled: true, setsToWin: 2, checkoutMode: .doubleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    let breakdown = PlayerStatBreakdown(playerId: p0, name: "A", darts: 3, points: 60)
+    let stats = MatchSummaryViewModel.stats(for: breakdown, runtime: session.runtime)
+    let labels = stats.map(\.label)
+    #expect(labels.contains(L10n.string("play.summary.stat.sets")))
+    #expect(labels.contains(L10n.string("play.summary.stat.legs")))
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .cricket, .regression))
+func matchSummaryCricketStatsBuilderIncludesLegsForMultiLegConfig() throws {
+    let p0 = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket(legsToWin: 3)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    let breakdown = PlayerStatBreakdown(playerId: p0, name: "A", darts: 3, cricketMarks: 3, cricketRounds: 1)
+    let stats = MatchSummaryViewModel.stats(for: breakdown, runtime: session.runtime)
+    #expect(stats.map(\.label).contains(L10n.string("play.summary.stat.legs")))
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
 func matchSummaryX01StatsBuilderAlwaysIncludesBestOutPlaceholder() throws {
     let p0 = UUID()
     let session = try MatchLifecycleService.createMatch(
@@ -133,6 +169,270 @@ func matchSummaryX01StatsBuilderAlwaysIncludesBestOutPlaceholder() throws {
 
     #expect(labels.last == L10n.string("play.summary.stat.bestOut"))
     #expect(values.last == "—")
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .cricket, .regression))
+func matchSummaryViewModelLoadsCricketSession() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "Alice", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "Bob", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.triple(20)])
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+            id: UUID(),
+            matchId: session.runtime.matchId,
+            snapshotVersion: session.latestSnapshot.payloadVersion,
+            snapshotPayload: session.latestSnapshot.payload,
+            updatedAt: Date()
+        )),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    #expect(vm.typeLabel == L10n.string("play.cricket.title"))
+    #expect(vm.playerRows.count == 2)
+    #expect(vm.playerRows[0].stats.contains(where: { $0.label == L10n.string("stats.mpr") }))
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .cricket, .regression))
+func matchSummaryCricketStatsBuilderIncludesScoreAndMPR() throws {
+    let p0 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitCricketTurn(session: session, darts: [CricketTestDarts.triple(20)])
+    let breakdown = PlayerStatBreakdown(
+        playerId: p0,
+        name: "A",
+        darts: 1,
+        cricketMarks: 3,
+        cricketRounds: 1
+    )
+
+    let stats = MatchSummaryViewModel.stats(for: breakdown, runtime: session.runtime)
+    let labels = stats.map(\.label)
+
+    #expect(labels.contains(L10n.string("play.summary.stat.score")))
+    #expect(labels.contains(L10n.string("stats.mpr")))
+    #expect(labels.contains(L10n.string("play.summary.stat.darts")))
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryCanRematchOnlyWhenCompleted() async throws {
+    var inProgress = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    inProgress = try MatchLifecycleService.submitX01Turn(session: inProgress, enteredTotal: 60, darts: nil)
+    let store = ActiveMatchStore()
+    store.save(inProgress)
+    let inProgressVM = MatchSummaryViewModel(
+        matchId: inProgress.runtime.matchId,
+        store: store,
+        matchRepository: SummaryUndoFakeMatchRepository(),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    inProgressVM.refresh()
+    #expect(!inProgressVM.canRematch)
+
+    var completed = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    completed.runtime.status = .completed
+    store.save(completed)
+    let completedVM = MatchSummaryViewModel(
+        matchId: completed.runtime.matchId,
+        store: store,
+        matchRepository: SummaryUndoFakeMatchRepository(),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    completedVM.refresh()
+    #expect(completedVM.canRematch)
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryCannotUndoInProgressMatch() async throws {
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryUndoFakeMatchRepository(),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    #expect(vm.hasResult)
+    #expect(!vm.canUndoLastThrow)
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryLoadIfNeededUsesStoreWithoutRehydrating() async throws {
+    let session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: cricketParticipants(count: 2)
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(
+            snapshot: MatchSnapshotSummary(id: UUID(), matchId: UUID(), snapshotVersion: 1, snapshotPayload: Data(), updatedAt: Date())
+        ),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+
+    #expect(vm.hasResult)
+    await vm.loadIfNeeded()
+    #expect(vm.typeLabel == L10n.string("play.cricket.title"))
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryUndoLastThrowSurfacesErrorWhenPersistenceFails() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "Alice", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "Bob", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 0, darts: nil)
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 41, darts: nil)
+    let matchId = session.runtime.matchId
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: matchId,
+        store: store,
+        matchRepository: SummaryFailingUndoMatchRepository(),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    let restored = await vm.undoLastThrow()
+    #expect(restored == nil)
+    #expect(vm.undoErrorKey != nil)
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryRefreshReloadsSessionFromStore() async throws {
+    let store = ActiveMatchStore()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+            id: UUID(), matchId: session.runtime.matchId, snapshotVersion: 1, snapshotPayload: Data(), updatedAt: Date()
+        )),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    #expect(vm.hasResult)
+
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+    store.save(session)
+    vm.refresh()
+
+    #expect(vm.playerRows.first?.stats.first?.value == "60.0")
+}
+
+@MainActor
+@Test(.tags(.unit, .match, .regression))
+func matchSummaryUndoLastThrowReopensCompletedCricketMatch() async throws {
+    let preTurns: [[DartInput]] = [
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.innerBull, CricketTestDarts.outerBull],
+        [CricketTestDarts.triple(20), CricketTestDarts.triple(19), CricketTestDarts.triple(18)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.triple(17), CricketTestDarts.triple(16), CricketTestDarts.triple(15)],
+        [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()],
+        [CricketTestDarts.innerBull, CricketTestDarts.outerBull]
+    ]
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket()),
+        participants: cricketParticipants(count: 2)
+    )
+    for darts in preTurns {
+        session = try MatchLifecycleService.submitCricketTurn(session: session, darts: darts)
+    }
+    let matchId = session.runtime.matchId
+    #expect(session.runtime.status == .completed)
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let matchRepo = SummaryUndoFakeMatchRepository()
+    let vm = MatchSummaryViewModel(
+        matchId: matchId,
+        store: store,
+        matchRepository: matchRepo,
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+    #expect(vm.canUndoLastThrow)
+
+    let restored = await vm.undoLastThrow()
+    #expect(restored != nil)
+    #expect(store.session(for: matchId)?.runtime.status == .inProgress)
+    #expect(await matchRepo.updatedSummaries.last?.status == .inProgress)
 }
 
 @MainActor
@@ -173,6 +473,116 @@ func matchSummaryUndoLastThrowReopensCompletedMatch() async throws {
     #expect(store.session(for: matchId)?.runtime.status == .inProgress)
     #expect(store.session(for: matchId)?.runtime.winnerPlayerId == nil)
     #expect(await matchRepo.updatedSummaries.last?.status == .inProgress)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func matchSummaryViewModelExposesForfeitNames() async throws {
+    let forfeiter = UUID()
+    let winner = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .knockout,
+        config: MatchConfigDefaults.config(for: .knockout),
+        participants: [
+            MatchParticipant(playerId: forfeiter, displayNameAtMatchStart: "Alice", turnOrder: 0),
+            MatchParticipant(playerId: winner, displayNameAtMatchStart: "Bob", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitKnockoutTurn(
+        session: session,
+        darts: [
+            DartInput(multiplier: .single, segment: .miss, isMiss: true),
+            DartInput(multiplier: .single, segment: .miss, isMiss: true),
+            DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        ]
+    )
+    session = try MatchLifecycleService.forfeit(
+        session: session,
+        forfeitingPlayerId: forfeiter,
+        winnerPlayerId: winner
+    )
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+            id: UUID(),
+            matchId: session.runtime.matchId,
+            snapshotVersion: session.latestSnapshot.payloadVersion,
+            snapshotPayload: session.latestSnapshot.payload,
+            updatedAt: Date()
+        )),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    #expect(vm.isForfeited)
+    #expect(vm.forfeiterName == "Alice")
+    #expect(vm.winnerName == "Bob")
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func matchSummaryViewModelBuildsGolfPlayerRows() async throws {
+    let p0 = UUID()
+    let p1 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .golf,
+        config: MatchConfigDefaults.config(for: .golf),
+        participants: [
+            MatchParticipant(playerId: p0, displayNameAtMatchStart: "A", turnOrder: 0),
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "B", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitGolfTurn(
+        session: session,
+        input: GolfTurnInput(darts: [DartInput(multiplier: .double, segment: .oneToTwenty(1))])
+    )
+    session = try MatchLifecycleService.submitGolfTurn(
+        session: session,
+        input: GolfTurnInput(darts: [DartInput(multiplier: .double, segment: .oneToTwenty(1))])
+    )
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+            id: UUID(),
+            matchId: session.runtime.matchId,
+            snapshotVersion: session.latestSnapshot.payloadVersion,
+            snapshotPayload: session.latestSnapshot.payload,
+            updatedAt: Date()
+        )),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    #expect(vm.playerRows.count == 2)
+    let dartsLabel = L10n.string("play.summary.stat.darts")
+    #expect(vm.playerRows.allSatisfy { $0.stats.contains { $0.label == dartsLabel } })
+}
+
+private actor SummaryFailingUndoMatchRepository: MatchRepository {
+    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
+        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
+    }
+    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
+    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
+    func updateMatch(_: MatchSummary) async throws {
+        throw AppError(code: .storageUnavailable, layer: .data, severity: .error, isRecoverable: true, userMessageKey: "play.summary.undoFailed")
+    }
+    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fatalError() }
+    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { fatalError() }
+    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { fatalError() }
+    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
+    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
+    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
+    func deleteMatch(matchId _: UUID) async throws {}
 }
 
 private actor SummaryUndoFakeMatchRepository: MatchRepository {
@@ -245,4 +655,53 @@ private actor SummaryFakeStatsRepository: StatsRepository {
     }
 
     func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func matchSummaryRaidUsesCoopTeamOutcome() throws {
+    let hero = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .raid,
+        config: .raid(MatchConfigRaid(bossTier: .challenger, heroHearts: 3, enrageEnabled: false)),
+        participants: [
+            MatchParticipant(playerId: hero, displayNameAtMatchStart: "Alice", turnOrder: 0)
+        ]
+    )
+    session.runtime.raidState?.bossHP = 2
+    session.runtime.raidState?.phase = .expose
+    session = try MatchLifecycleService.submitRaidVisit(
+        session: session,
+        darts: [
+            DartInput(multiplier: .double, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(20))
+        ]
+    )
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(
+            snapshot: MatchSnapshotSummary(
+                id: UUID(),
+                matchId: session.runtime.matchId,
+                snapshotVersion: session.latestSnapshot.payloadVersion,
+                snapshotPayload: session.latestSnapshot.payload,
+                updatedAt: Date()
+            )
+        ),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    #expect(vm.isCoopMatch)
+    #expect(vm.coopTeamVictory == true)
+    #expect(vm.winnerName == nil)
+    #expect(vm.playerRows.count == 1)
+    #expect(vm.playerRows.allSatisfy { !$0.isWinner })
+    #expect(vm.canRematch)
+    #expect(vm.rematchTitleKey == "play.summary.raidRematch")
 }

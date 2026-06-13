@@ -5,6 +5,7 @@ struct MatchHistoryDetailScreen: View {
     let matchId: UUID
     var onDeleted: () -> Void = {}
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var retryTask: Task<Void, Never>?
     @State private var deleteTask: Task<Void, Never>?
     @State private var showTimeline = false
@@ -85,41 +86,34 @@ struct MatchHistoryDetailScreen: View {
         }
     }
 
-    private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(.title2.weight(.bold))
-            .foregroundStyle(Brand.textPrimary)
-            .frame(maxWidth: .infinity)
-    }
-
     @ViewBuilder
     private var statTables: some View {
         if !viewModel.breakdowns.isEmpty {
             if viewModel.isX01 {
-                sectionTitle(L10n.string("stats.section.averageHighest"))
                 StatTable(
+                    title: L10n.string("stats.section.averageHighest"),
                     columns: [(L10n.string("stats.threeDartAverage"), 90), (L10n.string("stats.column.highest"), 80)],
                     rows: viewModel.breakdowns
                 ) { row in
                     [String(format: "%.1f", row.average3Dart), "\(row.highestScore)"]
                 }
-                sectionTitle(L10n.string("stats.section.legsCheckout"))
                 StatTable(
+                    title: L10n.string("stats.section.legsCheckout"),
                     columns: [(L10n.string("stats.column.legs"), 60), (L10n.string("stats.checkouts"), 90), (L10n.string("stats.column.bestCO"), 80)],
                     rows: viewModel.breakdowns
                 ) { row in
                     ["\(row.legs)", "\(row.checkouts)", row.highestCheckout > 0 ? "\(row.highestCheckout)" : "-"]
                 }
             }
-            sectionTitle(L10n.string("stats.points"))
             StatTable(
+                title: L10n.string("stats.points"),
                 columns: [(L10n.string("stats.points"), 90)],
                 rows: viewModel.breakdowns
             ) { row in
                 ["\(row.points)"]
             }
-            sectionTitle(L10n.string("stats.throws"))
             StatTable(
+                title: L10n.string("stats.throws"),
                 columns: [(L10n.string("stats.throws"), 70), (L10n.string("stats.doublePercent"), 80), (L10n.string("stats.triplePercent"), 80)],
                 rows: viewModel.breakdowns
             ) { row in
@@ -131,7 +125,6 @@ struct MatchHistoryDetailScreen: View {
     @ViewBuilder
     private var sectorSection: some View {
         if viewModel.breakdowns.contains(where: { !$0.hitsBySector.isEmpty }) {
-            sectionTitle(L10n.string("stats.hitsInSector"))
             PerPlayerSectorHitsSection(breakdowns: viewModel.breakdowns, mode: viewModel.matchType)
         }
     }
@@ -142,29 +135,35 @@ struct MatchHistoryDetailScreen: View {
                 Text(viewModel.dateText)
                     .font(.headline)
                     .foregroundStyle(Brand.textPrimary)
+                    .accessibilityHidden(true)
                 Spacer()
                 StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
+                    .accessibilityHidden(true)
             }
             if !viewModel.configText.isEmpty {
                 Text(viewModel.configText)
                     .font(.subheadline)
                     .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
             }
             ForEach(Array(viewModel.standings.enumerated()), id: \.element.id) { index, standing in
                 HStack {
                     Text("\(index + 1). \(standing.name)")
                         .font(.body.weight(standing.isWinner ? .semibold : .regular))
                         .foregroundStyle(standing.isWinner ? Brand.textPrimary : Brand.textSecondary)
+                        .accessibilityHidden(true)
                     Spacer()
                     VStack(alignment: .trailing, spacing: 0) {
                         if viewModel.isX01 {
                             Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
                                 .font(.caption)
                                 .foregroundStyle(Brand.textSecondary)
+                                .accessibilityHidden(true)
                         }
                         Text("\(standing.score)")
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Brand.textPrimary)
+                            .accessibilityHidden(true)
                     }
                 }
             }
@@ -180,17 +179,20 @@ struct MatchHistoryDetailScreen: View {
     private var timelineSection: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
             Button {
-                withAnimation { showTimeline.toggle() }
+                MotionPolicy.animateIfAllowed(reduceMotion: reduceMotion, Motion.standard) {
+                    showTimeline.toggle()
+                }
             } label: {
                 HStack {
                     Text(L10n.historyTurnByTurn).font(.headline).foregroundStyle(Brand.textPrimary)
                     Spacer()
                     Image(systemName: showTimeline ? "chevron.up" : "chevron.down")
                         .foregroundStyle(Brand.textSecondary)
+                        .accessibilityHidden(true)
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(L10n.string("history.detail.timeline.accessibility"))
+            .accessibilityElement(children: .combine)
             .accessibilityValue(
                 L10n.string(showTimeline ? "history.detail.timeline.expanded" : "history.detail.timeline.collapsed")
             )
@@ -201,6 +203,7 @@ struct MatchHistoryDetailScreen: View {
                         .font(.subheadline)
                         .foregroundStyle(Brand.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityLabel(line)
                 }
             }
         }

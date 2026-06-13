@@ -75,11 +75,13 @@ final class StatisticsViewModel: ObservableObject {
             }
             let activePlayerFilter = self.playerFilter
             let cutoff = periodCutoff()
+            let types = modeFilter.historyQueryTypes
             let result = try await MatchStatsLoader.load(
                 matchRepository: matchRepository,
                 statsRepository: statsRepository,
                 request: MatchStatsLoadRequest(
-                    matchType: modeFilter.matchType,
+                    matchType: types.matchType,
+                    includedMatchTypes: types.includedMatchTypes,
                     startedAfter: cutoff,
                     participantPlayerId: activePlayerFilter
                 )
@@ -124,8 +126,10 @@ final class StatisticsViewModel: ObservableObject {
     }
 
     private func matchesModeFilter(_ active: MatchSummary) -> Bool {
-        guard let matchType = modeFilter.matchType else { return true }
-        return active.type == matchType
+        if let matchType = modeFilter.matchType {
+            return active.type == matchType
+        }
+        return ProductSurface.isMatchTypeReachable(active.type)
     }
 
     private func matchesPeriodFilter(_ active: MatchSummary, cutoff: Date?) -> Bool {

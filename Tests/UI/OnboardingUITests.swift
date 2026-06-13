@@ -1,47 +1,65 @@
 import XCTest
 
 final class OnboardingUITests: DartBuddyUITestCase {
-    func testSkipFromWelcomeLandsOnPlay() {
+    func testSkipFromWelcomeLandsOnPlayWithoutStagedRoster() {
         let app = launchOnboardingApp()
 
-        let skip = app.buttons["onboarding_skip"]
-        XCTAssertTrue(skip.waitForExistence(timeout: timeout))
-        skip.tap()
+        skipOnboardingFromWelcomeAndFinish(in: app)
 
-        assertBrandAppTitleVisible(in: app, timeout: timeout)
+        XCTAssertTrue(
+            app.buttons["setup_addPlayer"].waitForExistence(timeout: timeout),
+            "Skipping onboarding should leave Play without a staged roster"
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any).matching(
+                NSPredicate(format: "identifier BEGINSWITH 'setup_selected_'")
+            ).firstMatch.waitForExistence(timeout: 2),
+            "Skipping onboarding should not stage players on Play setup"
+        )
     }
 
-    func testBeginnerPathShowsRulesContent() {
-        let app = launchOnboardingApp()
+    func testRosterSetupPreviewUpdatesWithExperienceSlider() {
+        let app = launchOnboardingApp(experienceTierIndex: 4)
 
         advancePastWelcome(in: app)
-        app.buttons["onboarding_experience_no"].tap()
+        assertOnboardingExperienceTier(4, in: app)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["onboarding_bot_preview"].waitForExistence(timeout: timeout),
+            "Roster setup should show the live opponent preview card"
+        )
+    }
+
+    func testVeryEasyPathShowsRulesContent() {
+        let app = launchOnboardingApp(experienceTierIndex: 0)
+
+        advancePastWelcome(in: app)
+        assertOnboardingExperienceTier(0, in: app)
+        fillOnboardingRoster(named: "Casey", in: app)
 
         XCTAssertTrue(
             app.buttons["rules_mode_x01"].waitForExistence(timeout: timeout),
-            "Beginner path should show the rules mode picker"
+            "Very Easy experience should show the rules mode picker"
         )
         XCTAssertTrue(
             app.staticTexts["The game"].waitForExistence(timeout: timeout),
-            "Beginner path should show X01 rule content"
+            "Beginner experience should show X01 rule content"
         )
 
         app.buttons["onboarding_learn_continue"].tap()
-        XCTAssertTrue(
-            app.buttons["onboarding_get_started"].waitForExistence(timeout: timeout),
-            "Beginner path should reach the shared ready step"
-        )
+        advanceThroughSharedFinale(in: app)
     }
 
-    func testExperiencedPathShowsPreferences() {
-        let app = launchOnboardingApp()
+    func testMediumExperiencePathShowsPreferences() {
+        let app = launchOnboardingApp(experienceTierIndex: 2)
 
         advancePastWelcome(in: app)
-        app.buttons["onboarding_experience_yes"].tap()
+        assertOnboardingExperienceTier(2, in: app)
+        fillOnboardingRoster(named: "Casey", in: app)
 
         XCTAssertTrue(
             app.buttons["onboarding_preferences_continue"].waitForExistence(timeout: timeout + 5),
-            "Experienced path should show the continue action"
+            "Medium experience should continue to preferences"
         )
         XCTAssertTrue(
             app.staticTexts["Appearance"].waitForExistence(timeout: timeout + 5),
@@ -49,6 +67,70 @@ final class OnboardingUITests: DartBuddyUITestCase {
         )
 
         app.buttons["onboarding_preferences_continue"].tap()
+        advanceThroughSharedFinale(in: app)
+    }
+
+    func testFinishOnboardingStagesPlayerAndBotOnPlay() {
+        let app = launchOnboardingApp(experienceTierIndex: 2)
+        let playerName = "Casey"
+
+        advancePastWelcome(in: app)
+        fillOnboardingRoster(named: playerName, in: app)
+
+        app.buttons["onboarding_preferences_continue"].tap()
+        advanceThroughSharedFinale(in: app)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["setup_selected_\(playerName)"].waitForExistence(timeout: timeout + 10),
+            "Onboarding should stage the new human on Play setup"
+        )
+        assertStagedBot(in: app, nameContains: "Medium Bot")
+    }
+
+    func testFinishOnboardingEasyPathStagesEasyBotOnPlay() {
+        let app = launchOnboardingApp(experienceTierIndex: 0)
+        let playerName = "Casey"
+
+        advancePastWelcome(in: app)
+        fillOnboardingRoster(named: playerName, in: app)
+        app.buttons["onboarding_learn_continue"].tap()
+        advanceThroughSharedFinale(in: app)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["setup_selected_\(playerName)"].waitForExistence(timeout: timeout + 10)
+        )
+        assertStagedBot(in: app, nameContains: "Very Easy Bot")
+    }
+
+    func testReadyStepShowsRosterSummary() {
+        let app = launchOnboardingApp(experienceTierIndex: 2)
+
+        advancePastWelcome(in: app)
+        fillOnboardingRoster(named: "Jordan", in: app)
+        app.buttons["onboarding_preferences_continue"].tap()
+        app.buttons["onboarding_tour_continue"].tap()
+        app.buttons["onboarding_support_continue"].tap()
+
+        let rosterSummary = app.descendants(matching: .any)["onboarding_ready_roster_summary"]
+        if !rosterSummary.waitForExistence(timeout: timeout) {
+            app.swipeUp()
+        }
+
+        XCTAssertTrue(
+            rosterSummary.waitForExistence(timeout: timeout),
+            "Ready step should summarize the staged roster"
+        )
+        XCTAssertTrue(
+            app.staticTexts.containing(NSPredicate(format: "label == %@", "Jordan")).firstMatch
+                .waitForExistence(timeout: timeout),
+            "Ready step should show the new human player"
+        )
+        XCTAssertTrue(
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "DartBot")).firstMatch
+                .waitForExistence(timeout: timeout),
+            "Ready step should show the matched bot opponent"
+        )
+
         finishOnboarding(in: app)
     }
 
@@ -57,45 +139,13 @@ final class OnboardingUITests: DartBuddyUITestCase {
 
         assertBrandAppTitleVisible(in: app, timeout: timeout)
 
-        app.tabBars.buttons["Settings"].tap()
-        scrollToViewOnboarding(in: app)
+        ensureSettingsTab(app, timeout: timeout)
+        scrollToSettingsControl("settings_viewOnboardingButton", in: app, timeout: timeout)
         app.buttons["settings_viewOnboardingButton"].tap()
 
         XCTAssertTrue(
             app.buttons["onboarding_next"].waitForExistence(timeout: timeout),
             "Settings replay should present the onboarding welcome step"
-        )
-    }
-
-    private func launchOnboardingApp(extraArguments: [String] = []) -> XCUIApplication {
-        launchApp(["-ui_test_onboarding"] + extraArguments)
-    }
-
-    private func advancePastWelcome(in app: XCUIApplication) {
-        let next = app.buttons["onboarding_next"]
-        XCTAssertTrue(next.waitForExistence(timeout: timeout))
-        next.tap()
-
-        let experienced = app.buttons["onboarding_experience_yes"]
-        XCTAssertTrue(experienced.waitForExistence(timeout: timeout))
-    }
-
-    private func finishOnboarding(in app: XCUIApplication) {
-        let getStarted = app.buttons["onboarding_get_started"]
-        XCTAssertTrue(getStarted.waitForExistence(timeout: timeout))
-        getStarted.tap()
-
-        assertBrandAppTitleVisible(in: app, timeout: timeout)
-    }
-
-    private func scrollToViewOnboarding(in app: XCUIApplication) {
-        let button = app.buttons["settings_viewOnboardingButton"]
-        for _ in 0 ..< 6 where button.exists == false || button.isHittable == false {
-            app.swipeUp()
-        }
-        XCTAssertTrue(
-            button.waitForExistence(timeout: timeout),
-            "View onboarding control should be reachable after scrolling Settings"
         )
     }
 }

@@ -128,4 +128,4 @@ Cricket pad uses segment + multiplier marks; parser extends to `twenty` (one mar
 4. Localized phrase packs (`de`/`es`/`nl`)  
 5. Campaign / practice hooks if those modes exist  
 
-**Related:** [`AutoScoringVisionSpec.md`](specs/AutoScoringVisionSpec.md) (camera), [`accessibility/accessibility_todo.md`](../accessibility/accessibility_todo.md), [`X01GameSpec.md`](specs/X01GameSpec.md) §11 voice scoring.
+**Related:** [`AutoScoringVisionSpec.md`](specs/AutoScoringVisionSpec.md) (camera), [`accessibility/accessibility_todo.md`](../accessibility/accessibility_todo.md), [`game-modes/implemented/X01GameSpec.md`](specs/game-modes/implemented/X01GameSpec.md) §11 voice scoring.

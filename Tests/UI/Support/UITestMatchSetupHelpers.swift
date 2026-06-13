@@ -1,18 +1,56 @@
 import XCTest
 
 extension DartBuddyUITestCase {
-    func removePlayerFromTurnOrder(named name: String, in app: XCUIApplication) {
-        let removeButton = app.buttons["setup_remove_\(name)"]
+    func addPlayerFromSetup(
+        named name: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval? = nil
+    ) {
+        let wait = timeout ?? self.timeout
+        let addPlayer = app.buttons["setup_addPlayer"]
+        XCTAssertTrue(addPlayer.waitForExistence(timeout: wait), "Setup should expose Add Players")
+        addPlayer.tap()
+
+        let nameField = app.textFields["playerEdit_name"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: wait), "Add player sheet should expose the name field")
+        nameField.tap()
+        nameField.clearAndEnterText(name)
+
+        let save = app.buttons["playerEdit_save"]
+        XCTAssertTrue(save.waitForExistence(timeout: wait))
+        XCTAssertTrue(save.isEnabled, "Save should enable once a name is entered")
+        save.tap()
+
         XCTAssertTrue(
-            removeButton.waitForExistence(timeout: timeout),
-            "Expected remove control for \(name) in turn order"
+            app.descendants(matching: .any)["setup_selected_\(name)"].waitForExistence(timeout: wait + 10),
+            "Created player should auto-select in turn order"
         )
-        removeButton.tap()
     }
 
-    func openBotRow(named name: String, in app: XCUIApplication) {
+    func removePlayerFromTurnOrder(named name: String, in app: XCUIApplication) {
+        let removeButton = app.buttons["setup_remove_\(name)"]
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if removeButton.exists, removeButton.isHittable {
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(
+            removeButton.waitForExistence(timeout: 1),
+            "Expected remove control for \(name) in turn order"
+        )
+        if removeButton.isHittable {
+            removeButton.tap()
+        } else {
+            removeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+    }
+
+    func openBotRow(named name: String, in app: XCUIApplication, timeout: TimeInterval? = nil) {
+        let wait = timeout ?? self.timeout
         let botRow = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", name)).firstMatch
-        if botRow.waitForExistence(timeout: timeout) {
+        if botRow.waitForExistence(timeout: wait) {
             botRow.tap()
             return
         }
@@ -25,7 +63,7 @@ extension DartBuddyUITestCase {
             }
         }
 
-        XCTFail("Expected bot row containing '\(name)' on the Players list")
+        XCTFail("Expected bot row containing '\(name)' on the Players list within \(wait)s")
     }
 
     func scrollToHistoryStats(_ app: XCUIApplication) {
@@ -83,39 +121,65 @@ extension DartBuddyUITestCase {
 
     func startThreePlayerX01Match(from app: XCUIApplication) {
         ensurePlayTab(app, timeout: timeout)
+        configureFastX01MatchForUITest(app, timeout: timeout)
         selectAliceBobAndCarol(from: app)
-        tapStartMatch(in: app, timeout: timeout)
-        waitForX01MatchBoard(in: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        waitForX01MatchBoard(in: app, timeout: timeout + 15)
     }
 
     func startThreePlayerCricketMatch(from app: XCUIApplication) {
-        selectModeFromCatalog("standard.cricket", in: app, timeout: timeout)
+        selectCricketMode(in: app, timeout: timeout)
         selectAliceBobAndCarol(from: app)
-        tapStartMatch(in: app, timeout: timeout)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 15))
+    }
+
+    func tapCricketPointsOn(in app: XCUIApplication) {
+        expandSetupOptions(in: app, timeout: timeout)
+        tapMenuChip("setup_cricketPointsChip", in: app, timeout: timeout)
+        selectMenuOption(identifier: "setup_cricketPointsOption_on", title: "On", in: app, timeout: timeout)
     }
 
     func tapCricketPointsOff(in app: XCUIApplication) {
         expandSetupOptions(in: app, timeout: timeout)
-        let chip = app.buttons["setup_cricketPointsChip"]
-        XCTAssertTrue(chip.waitForExistence(timeout: timeout))
-        chip.tap()
-        app.buttons["Off"].tap()
+        tapMenuChip("setup_cricketPointsChip", in: app, timeout: timeout)
+        selectMenuOption(identifier: "setup_cricketPointsOption_off", title: "Off", in: app, timeout: timeout)
     }
 
     func tapCricketCutThroatMode(in app: XCUIApplication) {
         expandSetupOptions(in: app, timeout: timeout)
-        let chip = app.buttons["setup_cricketModeChip"]
-        XCTAssertTrue(chip.waitForExistence(timeout: timeout))
-        chip.tap()
-        app.buttons["Cut Throat"].tap()
+        tapMenuChip("setup_cricketModeChip", in: app, timeout: timeout)
+        for candidate in [
+            app.menuItems["Cut Throat"],
+            app.menuItems.element(boundBy: 1),
+            app.buttons["Cut Throat"],
+            app.descendants(matching: .any)["setup_cricketModeOption_cutThroat"]
+        ] {
+            if candidate.waitForExistence(timeout: 2) {
+                candidate.tap()
+                return
+            }
+        }
+        XCTFail("Expected cricket Cut Throat menu option")
     }
 
-    func startTwoPlayerCricketMatch(from app: XCUIApplication, playerA: String = "Alice", playerB: String = "Bob") {
-        selectCricketMode(in: app)
+    func startTwoPlayerCricketMatch(
+        from app: XCUIApplication,
+        playerA: String = "Alice",
+        playerB: String = "Bob",
+        timeout: TimeInterval? = nil
+    ) {
+        let wait = timeout ?? self.timeout
+        selectCricketMode(in: app, timeout: wait)
         selectPlayerFromRoster(playerA, in: app)
         selectPlayerFromRoster(playerB, in: app)
-        tapStartMatch(in: app, timeout: timeout)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: wait)
+        start.tap()
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: wait + 15))
     }
 }

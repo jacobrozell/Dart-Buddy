@@ -2,15 +2,46 @@ import SwiftUI
 
 enum OnboardingStep: Equatable {
     case welcome
-    case experienceQuestion
+    case rosterSetup
     case preferences
     case learnToPlay
+    case appTour
+    case support
     case ready
+
+    static let progressTotal = 6
+
+    var progressIndex: Int {
+        switch self {
+        case .welcome: 1
+        case .rosterSetup: 2
+        case .preferences, .learnToPlay: 3
+        case .appTour: 4
+        case .support: 5
+        case .ready: 6
+        }
+    }
+
+    func backStep(showsRulesIntro: Bool?, skipsRosterSetup: Bool = false) -> OnboardingStep? {
+        switch self {
+        case .welcome: nil
+        case .rosterSetup: .welcome
+        case .preferences, .learnToPlay: skipsRosterSetup ? .welcome : .rosterSetup
+        case .appTour:
+            showsRulesIntro == true ? .learnToPlay : .preferences
+        case .support: .appTour
+        case .ready: .support
+        }
+    }
 }
 
 struct OnboardingStepChrome<Content: View, Footer: View>: View {
     let showsSkip: Bool
     let onSkip: () -> Void
+    var progressIndex: Int? = nil
+    var progressTotal: Int = OnboardingStep.progressTotal
+    var showsBack: Bool = false
+    var onBack: () -> Void = {}
     @ViewBuilder let content: () -> Content
     @ViewBuilder let footer: () -> Footer
 
@@ -25,30 +56,68 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
         dynamicTypeSize.isAccessibilitySize ? 120 : DS.Spacing.s4
     }
 
+    private var footerReservedHeight: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? 148 : 120
+    }
+
     var body: some View {
         ZStack {
             Brand.background.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                ScrollView {
-                    content()
+            GeometryReader { geometry in
+                VStack(spacing: 0) {
+                    ScrollView {
+                        content()
+                            .frame(maxWidth: contentMaxWidth)
+                            .frame(maxWidth: .infinity)
+                            .frame(
+                                minHeight: horizontalSizeClass == .regular
+                                    ? max(0, geometry.size.height - footerReservedHeight)
+                                    : nil,
+                                alignment: .center
+                            )
+                            .padding(.horizontal, DS.Spacing.s4)
+                            .padding(.top, DS.Spacing.s6)
+                            .padding(.bottom, scrollBottomPadding)
+                    }
+                    .scrollDismissesKeyboard(.interactively)
+                    .scrollIndicators(.hidden)
+
+                    footer()
                         .frame(maxWidth: contentMaxWidth)
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, DS.Spacing.s4)
-                        .padding(.top, DS.Spacing.s6)
-                        .padding(.bottom, scrollBottomPadding)
+                        .padding(.top, DS.Spacing.s4)
+                        .padding(.bottom, DS.Spacing.s6)
                 }
-                .scrollIndicators(.hidden)
-
-                footer()
-                    .frame(maxWidth: contentMaxWidth)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.top, DS.Spacing.s4)
-                    .padding(.bottom, DS.Spacing.s6)
             }
         }
         .toolbar {
+            if let progressIndex {
+                ToolbarItem(placement: .principal) {
+                    Text(L10n.format("onboarding.stepProgress", progressIndex, progressTotal))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                        .accessibilityLabel(
+                            L10n.format("onboarding.stepProgress", progressIndex, progressTotal)
+                        )
+                        .accessibilityIdentifier("onboarding_step_progress")
+                }
+            }
+
+            if showsBack {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Brand.textPrimary)
+                    }
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityLabel(L10n.string("common.back"))
+                    .accessibilityIdentifier("onboarding_back")
+                }
+            }
+
             if showsSkip {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(L10n.onboardingSkip) {

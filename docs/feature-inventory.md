@@ -2,19 +2,20 @@
 
 Living register of every product feature: shipped, partial, and planned. Use this to answer “what exists?” and “what’s next?” without hunting through specs, code, and `FutureIdeas/`.
 
-**Last reviewed:** 2026-06-06  
-**App status:** 1.0 RC — MVP scope complete; App Store evidence + ops remain ([`release/todo.md`](release/todo.md))
+**Last reviewed:** 2026-06-11 (gamification specs added — all **Planned**, not shipped)  
+**App status:** 1.0 RC (lean core) — see [`release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md)
 
 ---
 
 ## How to maintain
 
-1. **When shipping a feature** — change its status here, update the linked spec, and (for game modes) promote the row in `Features/Modes/GameModeCatalog.swift`.
-2. **When adding a planned feature** — add a row with status **Planned** and link the spec or `FutureIdeas/` brief.
+1. **When shipping a feature** — change its status here, update the linked spec, and (for game modes) promote `specs/game-modes/planned/` → `implemented/` plus `GameModeCatalog.swift`.
+2. **When adding a planned feature** — add a spec under `specs/game-modes/planned/` and a row here (use `FutureIdeas/` only for pre-spec R&D).
 3. **When something is behind a flag** — mark **Partial** and note the flag in the Notes column.
 4. **Source of truth for mode list** — `GameModeCatalog.swift` (29 modes). This doc mirrors it.
 5. Do **not** duplicate release QA checklists here; track blockers in [`release/todo.md`](release/todo.md).
 6. **Release sequencing** — what ships in 1.0 vs 1.1+ lives in [`release/ongoing-release-plan.md`](release/ongoing-release-plan.md). **Lean 1.0 execution:** [`release/lean-1.0-implementation-plan.md`](release/lean-1.0-implementation-plan.md).
+7. **PR rule** — when ship status changes, update this doc in the same PR as the feature spec (`SpecGovernance.md` §4.1 rule 6).
 
 ---
 
@@ -33,17 +34,17 @@ Living register of every product feature: shipped, partial, and planned. Use thi
 
 | Area | Shipped | Partial | Planned / assessed |
 |------|---------|---------|-------------------|
-| Game modes (catalog) | 5 | 0 | 24 |
-| App shell & navigation | 5 tabs | iPad two-pane IA | — |
-| Localization | 4 locales | — | 3 items |
+| Game modes (catalog) | 2 (X01, Cricket) in 1.0 UI | 3 party engines hidden | 26 catalog stubs |
+| App shell & navigation | 4 tabs (lean 1.0) | Activity merge | Modes tab (1.3) |
+| Localization | en bundled | de/es/nl in repo only | in-app picker |
 | Shortcuts & deep links | Deep links | App Intents (flagged off) | Widgets, query intents |
 | CI / release | GitHub Actions, Xcode Cloud | Slack notify, perf tests | — |
-| Players & bots | Full CRUD + 3 bot types | — | — |
-| Stats & activity | History + statistics | Per-mode stats (5 of 29) | — |
+| Players & bots | CRUD + preset + custom bots | Training hidden | Local achievements, Journey |
+| Stats & activity | History + statistics | — | — |
 | Settings & a11y | Core prefs + TTS caller | WCAG evidence, AXXXL layout | Talk mode |
 | Firebase | Analytics + Crashlytics | — | Auth, Firestore, FCM |
 | Platforms | iPhone, iPad universal | iPad layout polish | watchOS, macOS, visionOS |
-| Post-1.0 product | — | — | Achievements, campaign, online, vision scoring, reminders |
+| Post-1.0 product | — | Party modes, Modes tab (code, hidden) | Gamification (spec’d), online |
 
 **Targets today:** `DartBuddy` (iOS, iPhone + iPad), `DartBuddyTests`, `DartBuddyPerformanceTests`, `DartBuddyUITests` — no Widget, Watch, or macOS extensions (`project.yml`).
 
@@ -57,54 +58,59 @@ Catalog source: [`Features/Modes/GameModeCatalog.swift`](../Features/Modes/GameM
 
 | Mode | Section | Engine / UI | Spec |
 |------|---------|-------------|------|
-| X01 (301 / 501) | Standard | `X01Engine`, `Features/Play/X01/` | [`X01GameSpec.md`](../specs/X01GameSpec.md) |
-| Cricket (Normal + Cut Throat) | Standard | `CricketEngine`, `Features/Play/Cricket/` | [`CricketSpec.md`](../specs/CricketSpec.md) |
-| Baseball | Party | `BaseballEngine`, `Features/Play/Baseball/` | [`BaseballGameSpec.md`](../specs/BaseballGameSpec.md) |
-| Killer | Party | `KillerEngine`, `Features/Play/Killer/` | [`KillerGameSpec.md`](../specs/KillerGameSpec.md) |
-| Shanghai | Party | `ShanghaiEngine`, `Features/Play/Shanghai/` | — |
+| X01 (301 / 501) | Standard | `X01Engine`, `Features/Play/X01/` | [`game-modes/implemented/X01GameSpec.md`](../specs/game-modes/implemented/X01GameSpec.md) |
+| Cricket (Normal + Cut Throat) | Standard | `CricketEngine`, `Features/Play/Cricket/` | [`game-modes/implemented/CricketSpec.md`](../specs/game-modes/implemented/CricketSpec.md) |
+| Baseball | Party | `BaseballEngine`, `Features/Play/Baseball/` | [`BaseballGameSpec.md`](../specs/game-modes/implemented/BaseballGameSpec.md) |
+| Killer | Party | `KillerEngine`, `Features/Play/Killer/` | [`KillerGameSpec.md`](../specs/game-modes/implemented/KillerGameSpec.md) |
+| Shanghai | Party | `ShanghaiEngine`, `Features/Play/Shanghai/` | [`game-modes/implemented/ShanghaiGameSpec.md`](../specs/game-modes/implemented/ShanghaiGameSpec.md) |
 
 ### Planned — catalog stubs (24)
 
 Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 
-| Mode | Section | UI template | R&D |
-|------|---------|-------------|-----|
-| American Cricket | Standard | Mark board | [`additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) |
-| Mickey Mouse | Party | Mark board | same |
-| Mulligan | Party | Mark board | same |
-| English Cricket | Party | Checkout score | same |
-| Blind Killer | Party | Lives elimination | same |
-| Knockout | Party | Checkout score | same |
-| Sudden Death | Party | Checkout score | same |
-| 51 By 5's | Party | Checkout score | same |
-| Golf | Party | Inning points | [`party-practice-modes.md`](../FutureIdeas/party-practice-modes.md) |
-| Football | Party | Phase race | same |
-| Grand National | Party | Sequence progress | same |
-| Hare and Hounds | Party | Sequence progress | same |
-| Follow the Leader | Party | Lives elimination | same |
-| Loop | Party | Lives elimination | same |
-| Prisoner | Party | Board state | same |
-| Scam | Party | Role split | same |
-| Snooker | Party | Role split | same |
-| Tic-Tac-Toe | Party | Board state | same |
-| Around the Clock | Practice | Sequence progress | [`party-practice-modes.md`](../FutureIdeas/party-practice-modes.md) |
-| 180 Around the Clock | Practice | Sequence progress | same |
-| Chase the Dragon | Practice | Sequence progress | same |
-| Nine Lives | Practice | Lives elimination | same |
-| Bob's 27 | Practice | Solo challenge | same |
-| Halve-It | Practice | Solo challenge | same |
+| Mode | Section | UI template | Spec |
+|------|---------|-------------|------|
+| American Cricket | Standard | Mark board | [`AmericanCricketGameSpec.md`](../specs/game-modes/planned/AmericanCricketGameSpec.md) |
+| Mickey Mouse | Party | Mark board | [`MickeyMouseGameSpec.md`](../specs/game-modes/planned/MickeyMouseGameSpec.md) |
+| Mulligan | Party | Mark board | [`MulliganGameSpec.md`](../specs/game-modes/planned/MulliganGameSpec.md) |
+| English Cricket | Party | Checkout score | [`EnglishCricketGameSpec.md`](../specs/game-modes/planned/EnglishCricketGameSpec.md) |
+| Blind Killer | Party | Lives elimination | [`BlindKillerGameSpec.md`](../specs/game-modes/planned/BlindKillerGameSpec.md) |
+| Knockout | Party | Checkout score | [`KnockoutGameSpec.md`](../specs/game-modes/planned/KnockoutGameSpec.md) |
+| Sudden Death | Party | Checkout score | [`SuddenDeathGameSpec.md`](../specs/game-modes/planned/SuddenDeathGameSpec.md) |
+| 51 By 5's | Party | Checkout score | [`FiftyOneByFivesGameSpec.md`](../specs/game-modes/planned/FiftyOneByFivesGameSpec.md) |
+| Golf | Party | Inning points | [`GolfGameSpec.md`](../specs/game-modes/planned/GolfGameSpec.md) |
+| Football | Party | Phase race | [`FootballGameSpec.md`](../specs/game-modes/planned/FootballGameSpec.md) |
+| Grand National | Party | Sequence progress | [`GrandNationalGameSpec.md`](../specs/game-modes/planned/GrandNationalGameSpec.md) |
+| Hare and Hounds | Party | Sequence progress | [`HareAndHoundsGameSpec.md`](../specs/game-modes/planned/HareAndHoundsGameSpec.md) |
+| Follow the Leader | Party | Lives elimination | [`FollowTheLeaderGameSpec.md`](../specs/game-modes/planned/FollowTheLeaderGameSpec.md) |
+| Loop | Party | Lives elimination | [`LoopGameSpec.md`](../specs/game-modes/planned/LoopGameSpec.md) |
+| Prisoner | Party | Board state | [`PrisonerGameSpec.md`](../specs/game-modes/planned/PrisonerGameSpec.md) |
+| Scam | Party | Role split | [`ScamGameSpec.md`](../specs/game-modes/planned/ScamGameSpec.md) |
+| Snooker | Party | Role split | [`SnookerGameSpec.md`](../specs/game-modes/planned/SnookerGameSpec.md) |
+| Tic-Tac-Toe | Party | Board state | [`TicTacToeGameSpec.md`](../specs/game-modes/planned/TicTacToeGameSpec.md) |
+| Around the Clock | Practice | Sequence progress | [`AroundTheClockGameSpec.md`](../specs/game-modes/planned/AroundTheClockGameSpec.md) |
+| 180 Around the Clock | Practice | Sequence progress | [`AroundTheClock180GameSpec.md`](../specs/game-modes/planned/AroundTheClock180GameSpec.md) |
+| Chase the Dragon | Practice | Sequence progress | [`ChaseTheDragonGameSpec.md`](../specs/game-modes/planned/ChaseTheDragonGameSpec.md) |
+| Nine Lives | Practice | Lives elimination | [`NineLivesGameSpec.md`](../specs/game-modes/planned/NineLivesGameSpec.md) |
+| Bob's 27 | Practice | Solo challenge | [`Bobs27GameSpec.md`](../specs/game-modes/planned/Bobs27GameSpec.md) |
+| Halve-It | Practice | Solo challenge | [`HalveItGameSpec.md`](../specs/game-modes/planned/HalveItGameSpec.md) |
+| Call & Hit | Practice | Voice drill (Template J) | [`CallAndHitGameSpec.md`](../specs/game-modes/planned/CallAndHitGameSpec.md) (+ stats, UI template, schema supplements) |
+| Guided Practice | Practice | Voice drill (Guided profile) | **Assessed (R&D)** — [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) · draft [`GuidedPracticeSpec.md`](../specs/game-modes/planned/GuidedPracticeSpec.md) |
 
 ### Game mode infrastructure
 
 | Feature | Status | Notes | Reference |
 |---------|--------|-------|-----------|
-| Modes tab (browse, search, quick-start) | Shipped | Standard / Party / Practice sections; iPad 2-col grid | [`ModesTabSpec.md`](../specs/ModesTabSpec.md) |
+| Modes tab (browse, search, quick-start) | Shipped | Standard / Party / **Co-op** / Practice sections; iPad 2-col grid | [`ModesTabSpec.md`](../specs/ModesTabSpec.md) |
 | Game rules guide (in-app) | Shipped | Shipped modes only | `Features/Play/Rules/GameRulesGuideView.swift` |
-| 8 gameplay UI templates | Partial | Enum defined; 5 modes mapped | [`full-game-catalog-ui.md`](full-game-catalog-ui.md) |
+| 8 gameplay UI templates | Partial | Enum A–I defined; **J (voice drill)** spec'd for Call & Hit | [`VoiceDrillUITemplateSpec.md`](../specs/game-modes/planned/VoiceDrillUITemplateSpec.md) |
 | Per-mode stat kinds (29 declared) | Partial | Data only for 5 shipped modes | `ModeStatKind` in `GameModeCatalog.swift` |
-| Campaign mode | Assessed | Single-player ladder / bosses | [`campaign-mode.md`](../FutureIdeas/campaign-mode.md) |
+| Campaign mode (Journey tab) | **Planned** | Spec’d; no implementation; flag `enableCampaign` | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
+| Solo practice platform | **Planned** | Shared spec for Call & Hit, Bob's 27, Halve-It | [`SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md) |
+| Co-op platform | **In progress** | Phase 0 done; UI/a11y/learn contracts in `CoopPvEModesSpec` §7–9 | [`CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) §13 |
+| Guided Play (blind/low-vision) | **Assessed (R&D)** | WIP — camera + mic + talk-back; see FutureIdeas brief | [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |
-| Vision auto-scoring | Planned | Camera dart detection | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
+| Vision auto-scoring | Partial | Phase A (guided calibration + assistive detection) behind flag; X01 only | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
 
 ---
 
@@ -120,6 +126,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Match lifecycle (start / resume / abandon) | Shipped | SwiftData persistence | [`MatchSpec.md`](../specs/MatchSpec.md) |
 | Match summary screen | Shipped | Post-match stats, undo last throw | [`MatchSummarySpec.md`](../specs/MatchSummarySpec.md) |
 | Shared scoring input pad | Shipped | Undo, submit | [`ScoringInputSpec.md`](../specs/ScoringInputSpec.md) |
+| Visual dartboard input (X01 + Cricket) | Shipped | Settings default + in-match toggle | [`VisualDartboardInputSpec.md`](../specs/VisualDartboardInputSpec.md) |
 | Checkout suggester (X01) | Shipped | | `Domain/Engines/CheckoutSuggester.swift` |
 | Onboarding (first launch + replay) | Shipped | Experience branching | `Features/Onboarding/` |
 | Migration recovery UI | Shipped | Retry, export, reset on schema failure | [`MigrationRecoverySpec.md`](../specs/MigrationRecoverySpec.md) |
@@ -158,11 +165,16 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Resume Active Match intent | Partial | Resume or “no active match” dialog | `ResumeActiveMatchIntent.swift` |
 | Shortcuts provider | Partial | Returns `[]` when flag off | `DartBuddyShortcutsProvider.swift` |
 | **`enableAppIntents` flag** | Shipped | **Default off**; `-enable_app_intents` to enable | [`FeatureFlagConfigSpec.md`](../specs/FeatureFlagConfigSpec.md) |
-| Query intents (stats, player, match status) | Planned | Phase 2 | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §11 |
-| Start Quick / Start Mode intents | Planned | Blocked on Deep Link Phase 2 | same |
-| Home Screen widgets | Planned | Resume / status tap targets | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) |
-| Control Center control (iOS 18+) | Planned | One-tap Resume | `.cursor/plans/app_intents_brainstorm_174c8c15.plan.md` |
-| Spotlight indexing | Planned | Tied to resume/status intents | same |
+| App entities (`Player`, `Match`, `GameMode`) | Planned | Phase 1b–2; wraps existing domain models | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.5 |
+| `IndexedEntity` / semantic history search | Planned | Phase 2 | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.6 |
+| Query intents (stats, player, match status) | Planned | Phase 2; Siri answers without opening app | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.3, §13 |
+| On-screen entity annotations | Planned | Phase 2b; “this game” on gameplay / history | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.7 |
+| `AppIntentsTesting` in CI | Planned | Phase 2 query/entity tests | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §10 |
+| Start Quick / Start Mode intents | Planned | Blocked on Deep Link Phase 2 | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.2 |
+| Home Screen widgets | Planned | Resume / status tap targets | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §11 |
+| Control Center control (iOS 18+) | Planned | One-tap Resume | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §11 |
+| Cross-app `Transferable` export | Planned | Low priority | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.8 |
+| Custom intents (no App Schema domains) | Policy | Sports scoring has no Apple schema domain | [`AppIntentsSpec.md`](../specs/AppIntentsSpec.md) §4.9, §13 |
 
 ---
 
@@ -198,9 +210,11 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Player export (DBPE bundle) | Shipped | Human player match history | `PlayerExportBundle.swift` |
 | Preset difficulty bots | Shipped | Very Easy → Pro via `DartBotEngine` | [`BotOpponentSpec.md`](../specs/BotOpponentSpec.md) |
 | Training Partner bots | Shipped | Progress-gated custom opponents | [`TrainingBotSpec.md`](../specs/TrainingBotSpec.md) |
-| Custom bots (user metrics) | Shipped | Skill profile interpolation | `CustomBotMetrics.swift` |
-| Game Center achievements (~62 catalog) | Assessed | No GameKit code | [`achievements.md`](../FutureIdeas/achievements.md) |
-| Leaderboards | Assessed | Separate from achievements MVP | same |
+| Custom bots (user metrics) | Shipped (simple UI); Advanced phased | Template-aware resolution; facet editors planned | [`CustomBotSpec.md`](../specs/CustomBotSpec.md) · [`plans/custom-bot-architecture-ui-plan.md`](plans/custom-bot-architecture-ui-plan.md) |
+| Local achievements (profile) | **Planned** | Spec’d; no code; flag `enableAchievements` | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) |
+| Achievement badges UI (profile gallery) | **Planned** | Spec’d with achievements | [`BadgesSpec.md`](../specs/BadgesSpec.md) |
+| Game Center sync | **Planned** | Add-on on local achievements; sync reads local stats → updates GC | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) §10 |
+| Leaderboards | **Planned** | Not in achievements v1 | [`achievements.md`](../FutureIdeas/achievements.md) |
 
 ---
 
@@ -270,7 +284,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 
 | Feature | Status | Notes | Reference |
 |---------|--------|-------|-----------|
-| iPhone (iOS 17+) | Shipped | Primary target | `project.yml` |
+| iPhone (iOS 18+) | Shipped | Primary target | `project.yml` |
 | iPad universal (`TARGETED_DEVICE_FAMILY: 1,2`) | Partial | Supported; full two-pane IA not done | `project.yml`, `GameplayLayout.swift` |
 | Apple Watch companion | Planned | Active-match scoring via WatchConnectivity | [`AppleWatchCompanionSpec.md`](../specs/AppleWatchCompanionSpec.md) · flag `enableAppleWatchCompanion` |
 | macOS target | Planned | Not in project | — |
@@ -289,9 +303,31 @@ All flags: `Support/FeatureFlags/FeatureFlag.swift` · config: [`FeatureFlagConf
 | `enableFirebaseCrashlytics` | On (Release + real plist) | Crashlytics |
 | `enableAppIntents` | **Off** | Siri / Shortcuts |
 | `enableAppleWatchCompanion` | Off | Watch companion (not built) |
-| `enableVisionAutoScoring` | Off | Camera auto-scoring (not built) |
+| `enableVisionAutoScoring` | Off | Camera auto-scoring Phase A (enable locally with `-enable_vision_scoring`) |
 | `enableOnlinePlay` | Off | Online multiplayer (not built) |
 | `enableAdvancedDiagnostics` | Off | Extra diagnostics |
+| `enableAchievements` | **Off** | Local profile achievements (**not built**) | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) |
+| `enableCampaign` | **Off** | Journey / campaign tab (**not built**) | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
+| `enableDailyChallenge` | **Off** | Daily challenge card + push (**not built**) | [`DailyChallengeSpec.md`](../specs/DailyChallengeSpec.md) |
+
+---
+
+## Gamification (post-1.0 — planned, not shipped)
+
+Authoritative specs exist; **no playable implementation** in the app today. All rows are **Planned** until code ships behind feature flags.
+
+| Feature | Status | Brief | Reference |
+|---------|--------|-------|-----------|
+| Local achievements | **Planned** | Per-player unlocks; X01/Cricket + modes as they ship; summary-only reveal | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) |
+| Profile badge gallery | **Planned** | `BadgeMedal` on Player detail | [`BadgesSpec.md`](../specs/BadgesSpec.md) |
+| Campaign / Journey tab | **Planned** | Scripted stages, bundled JSON, primary player, separate stats | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
+| Daily challenge | **Planned** | Once-per-day goal; ties to local push work | [`DailyChallengeSpec.md`](../specs/DailyChallengeSpec.md) |
+| Game Center reporting | **Planned** | Layer on local achievements; local is source of truth, GC mirrors on sign-in + unlock | [`AchievementsSpec.md`](../specs/AchievementsSpec.md) §10 |
+| Gamification reset on delete-all | **Planned** | Inventory when models ship | [`DeleteAllDataSpec.md`](../specs/DeleteAllDataSpec.md) §6.6 |
+
+**Ship order (product):** local achievements → Journey shell → daily challenge → Game Center bridge → campaign-specific achievements.
+
+R&D catalog (IDs, GC estimates): [`FutureIdeas/achievements.md`](../FutureIdeas/achievements.md) · campaign brainstorm: [`FutureIdeas/campaign-mode.md`](../FutureIdeas/campaign-mode.md).
 
 ---
 
@@ -299,9 +335,7 @@ All flags: `Support/FeatureFlags/FeatureFlag.swift` · config: [`FeatureFlagConf
 
 | Feature | Status | Brief | Reference |
 |---------|--------|-------|-----------|
-| Game Center achievements | Assessed | ~62-achievement catalog, MVP estimate | [`achievements.md`](../FutureIdeas/achievements.md) |
 | Play reminders (local notifications) | Assessed | MVP local; FCM optional Phase 2 | [`play-reminders.md`](../FutureIdeas/play-reminders.md) |
-| Campaign mode | Assessed | Progression ladder | [`campaign-mode.md`](../FutureIdeas/campaign-mode.md) |
 | Talk mode | Assessed | Voice scoring input | [`talk-mode.md`](../FutureIdeas/talk-mode.md) |
 | Additional game modes R&D | Assessed | Target Darts–style index | [`additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) |
 | General post-1.0 backlog | Planned | CSV export, bot names, a11y layout, etc. | [`backlog.md`](../FutureIdeas/backlog.md) |

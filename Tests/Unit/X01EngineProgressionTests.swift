@@ -7,6 +7,40 @@ import Testing
 
 private func twoPlayers() -> [UUID] { [UUID(), UUID()] }
 
+private func single(_ value: Int) -> DartInput {
+    DartInput(multiplier: .single, segment: .oneToTwenty(value))
+}
+
+private func miss() -> DartInput {
+    DartInput(multiplier: .single, segment: .miss, isMiss: true)
+}
+
+/// Alternating visits until player 0 reaches `remaining` with player 0 to throw.
+/// Uses multiple visits capped at 180 because a single turn cannot exceed 180.
+private func stateWithPlayer0Remaining(
+    _ remaining: Int,
+    config: MatchConfigX01,
+    startScore: Int = 301
+) throws -> X01State {
+    let players = twoPlayers()
+    var state = try X01Engine.makeInitialState(config: config, playerIds: players)
+    var toScore = startScore - remaining
+    while toScore > 0 {
+        let visit = min(toScore, 180)
+        state = try X01Engine.submitTurn(state: state, enteredTotal: visit, darts: nil).updatedState
+        toScore -= visit
+        if toScore > 0 {
+            state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+        }
+    }
+    if state.currentPlayerIndex != 0 {
+        state = try X01Engine.submitTurn(state: state, enteredTotal: 0, darts: nil).updatedState
+    }
+    #expect(state.players[0].remainingScore == remaining)
+    #expect(state.currentPlayerIndex == 0)
+    return state
+}
+
 private func advance(_ state: X01State, totals: [Int]) throws -> X01State {
     var current = state
     for total in totals {
@@ -119,6 +153,112 @@ func x01SingleOutLeavingOneIsAllowed() throws {
 
     #expect(!outcome.event.isBust)
     #expect(outcome.updatedState.players[0].remainingScore == 1)
+}
+
+// MARK: - Low remaining (dart-by-dart)
+
+@Test(.tags(.unit, .x01, .critical, .offline, .regression))
+func x01DoubleOutThreeLeftSingleTwoThenMissesIsBust() throws {
+    // Regression: 3 left, visit 2-0-0 leaves 1 — impossible in double-out, so bust.
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let state = try stateWithPlayer0Remaining(3, config: config)
+
+    let outcome = try X01Engine.submitTurn(
+        state: state,
+        enteredTotal: nil,
+        darts: [single(2), miss(), miss()]
+    )
+
+    #expect(outcome.event.isBust)
+    #expect(outcome.event.appliedTotal == 0)
+    #expect(outcome.event.enteredTotal == 2)
+    #expect(outcome.updatedState.players[0].remainingScore == 3)
+}
+
+@Test(.tags(.unit, .x01, .critical, .offline, .regression))
+func x01SingleOutThreeLeftSingleTwoThenMissesLeavesOne() throws {
+    // Regression: same visit in single-out must apply the scored points and leave 1.
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)
+    let state = try stateWithPlayer0Remaining(3, config: config)
+
+    let outcome = try X01Engine.submitTurn(
+        state: state,
+        enteredTotal: nil,
+        darts: [single(2), miss(), miss()]
+    )
+
+    #expect(!outcome.event.isBust)
+    #expect(outcome.event.appliedTotal == 2)
+    #expect(outcome.updatedState.players[0].remainingScore == 1)
+}
+
+@Test(.tags(.unit, .x01, .offline, .regression))
+func x01DoubleOutThreeLeftTotalEntryTwoIsBust() throws {
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let state = try stateWithPlayer0Remaining(3, config: config)
+
+    let outcome = try X01Engine.submitTurn(state: state, enteredTotal: 2, darts: nil)
+
+    #expect(outcome.event.isBust)
+    #expect(outcome.updatedState.players[0].remainingScore == 3)
+}
+
+@Test(.tags(.unit, .x01, .offline, .regression))
+func x01SingleOutThreeLeftTotalEntryTwoLeavesOne() throws {
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)
+    let state = try stateWithPlayer0Remaining(3, config: config)
+
+    let outcome = try X01Engine.submitTurn(state: state, enteredTotal: 2, darts: nil)
+
+    #expect(!outcome.event.isBust)
+    #expect(outcome.updatedState.players[0].remainingScore == 1)
+}
+
+@Test(.tags(.unit, .x01, .offline, .regression))
+func x01DoubleOutThreeLeftAccidentalDoubleTwoOverflows() throws {
+    // Regression: with DOUBLE armed, pad "2" scores 4 and overflows from 3.
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let state = try stateWithPlayer0Remaining(3, config: config)
+
+    let outcome = try X01Engine.submitTurn(
+        state: state,
+        enteredTotal: nil,
+        darts: [DartInput(multiplier: .double, segment: .oneToTwenty(2))]
+    )
+
+    #expect(outcome.event.isBust)
+    #expect(outcome.updatedState.players[0].remainingScore == 3)
+}
+
+@Test(.tags(.unit, .x01, .offline, .regression))
+func x01DoubleOutTwoLeftSingleTwoIsBust() throws {
+    // Regression: exact remaining on a single (not double) is an illegal finish.
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let state = try stateWithPlayer0Remaining(2, config: config)
+
+    let outcome = try X01Engine.submitTurn(
+        state: state,
+        enteredTotal: nil,
+        darts: [single(2)]
+    )
+
+    #expect(outcome.event.isBust)
+    #expect(outcome.updatedState.players[0].remainingScore == 2)
+}
+
+@Test(.tags(.unit, .x01, .offline, .regression))
+func x01DoubleOutTwoLeftDoubleOneChecksOut() throws {
+    let config = MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+    let state = try stateWithPlayer0Remaining(2, config: config)
+
+    let outcome = try X01Engine.submitTurn(
+        state: state,
+        enteredTotal: nil,
+        darts: [DartInput(multiplier: .double, segment: .oneToTwenty(1))]
+    )
+
+    #expect(outcome.event.didCheckout)
+    #expect(outcome.updatedState.isComplete)
 }
 
 @Test(.tags(.unit, .x01, .critical, .offline, .regression))

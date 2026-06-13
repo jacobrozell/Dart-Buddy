@@ -1,0 +1,63 @@
+---
+description: Phone vs iPad layout — use idiom in landscape, not horizontal size class alone
+globs: DesignSystem/Components/GameplayLayout.swift,Features/Play/**/*.swift,DesignSystem/Components/SideBySideMatchBody.swift
+alwaysApply: false
+---
+
+# Gameplay layout: phone vs iPad in landscape
+
+Full mode matrix with UI examples: [`docs/gameplay-layout-modes.md`](../../docs/gameplay-layout-modes.md)
+
+Larger iPhones (Plus, Pro Max) report **regular** horizontal size class in landscape — the same as iPad. `horizontalSizeClass == .compact` is **not** a reliable "iPhone" signal.
+
+## Match scoring layout (all modes)
+
+Use `MatchScoringBody` (or `SideBySideMatchBody` for table scoreboards):
+
+1. **Active band** — current player/board spans full width at the top
+2. **iPad with 3+ players** (`usesSideBySideBottomScoringRegion`) — inactive scoreboard scrolls on the left; pad column on the right
+3. **iPhone and sparse iPad (≤2 players)** — inactive scoreboard, pad chrome, and pad stack **full width** below the active band
+4. **Pad chrome** — checkout, bot, and state banners sit **above** the pad (not in the scoreboard column)
+
+Pads use the **compact sidebar grid** only when `usesSideBySideBottomScoringRegion` is true (iPad portrait/landscape with `playerCount >= 3`).
+
+Pass `playerCount` into `MatchScoringBody` / `SideBySideMatchBody`; pads read `\.matchLayoutPlayerCount` from the environment.
+
+## Rules
+
+1. **Landscape detection** — `verticalSizeClass == .compact`
+2. **Phone vs pad in landscape** — `UIDevice.current.userInterfaceIdiom` via `GameplayLayout` helpers with `isPad` (unit tests pass `isPad:` explicitly)
+3. **Never** branch phone vs pad on `horizontalSizeClass` alone in match/gameplay screens
+
+## Use these helpers
+
+```swift
+// ✅ Phone landscape (any horizontal size class on phone idiom)
+GameplayLayout.usesLandscapeIPhoneOnlyMatchScoringLayout(...)
+GameplayLayout.usesLandscapeIPhoneMatchScoringLayout(...)  // alias
+
+// ✅ iPad landscape
+GameplayLayout.usesLandscapeIPadMatchScoringLayout(...)
+
+// ✅ Cricket: pinned top board + full-width pad (landscape stacked shell)
+GameplayLayout.usesCricketLandscapePinnedLayout(..., playerCount:)
+
+// ✅ Cricket / X01: side-by-side (iPad with playerCount >= 3)
+GameplayLayout.usesCricketSideBySideMatchScoringLayout(..., playerCount:)
+GameplayLayout.usesX01SideBySideMatchScoringLayout(..., playerCount:)
+
+// ✅ iPad portrait side-by-side only (board/pad top-grouped, not fill-height scroll)
+GameplayLayout.usesIPadPortraitSideBySideMatchScoringLayout(...)
+
+// ❌ BAD — treats Pro Max landscape as iPad
+verticalSizeClass == .compact && horizontalSizeClass == .compact
+
+// ❌ BAD — treats Pro Max landscape as iPad
+verticalSizeClass == .compact && horizontalSizeClass == .regular
+```
+
+## Tests
+
+For every new layout predicate, unit-test `(regular, compact, isPad: false)` and `(regular, compact, isPad: true)`.
+
+Landscape UI tests should run on **iPhone Pro Max** (nightly UI workflow) so regular-width phone landscape is exercised.

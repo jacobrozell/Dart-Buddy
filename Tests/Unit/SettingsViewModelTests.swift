@@ -138,6 +138,31 @@ func settingsUpdateBotPacingCanToggleIndependently() async {
 }
 
 @MainActor
+@Test(.tags(.unit, .settings, .scoringInput, .regression))
+func settingsUpdateDartEntryPresentationPersistsAndSyncsPreferences() async {
+    let repository = FakeSettingsRepository(settings: makeSettings())
+    let preferences = UserPreferencesStore()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: testLogger(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        userPreferencesStore: preferences
+    )
+    await vm.onAppear()
+
+    await vm.updateDartEntryPresentation(DartEntryPresentation.visualBoard.rawValue)
+
+    #expect(vm.settings?.defaultDartEntryPresentationRaw == DartEntryPresentation.visualBoard.rawValue)
+    #expect(preferences.defaultDartEntryPresentation == .visualBoard)
+    #expect(await repository.updateCallCount == 1)
+
+    // Unknown raw values fall back to the number pad instead of persisting garbage.
+    await vm.updateDartEntryPresentation("garbage")
+    #expect(vm.settings?.defaultDartEntryPresentationRaw == DartEntryPresentation.numberPad.rawValue)
+}
+
+@MainActor
 @Test(.tags(.unit, .settings, .regression))
 func settingsUpdateDefaultsChangesMatchType() async {
     let repository = FakeSettingsRepository(settings: makeSettings(defaultMatchTypeRaw: "x01"))
@@ -311,6 +336,37 @@ func settingsConfirmResetClearsActiveMatchStore() async throws {
     #expect(await repository.resetCallCount == 1)
 }
 
+@MainActor
+@Test(.tags(.unit, .settings, .regression))
+func settingsConfirmResetFailureSurfacesError() async throws {
+    let resetError = AppError(
+        code: .storageUnavailable,
+        layer: .data,
+        severity: .error,
+        isRecoverable: true,
+        userMessageKey: "settings.error.reset"
+    )
+    let repository = FakeSettingsRepository(settings: makeSettings(), resetError: resetError)
+    let sink = RecordingSettingsLogSink()
+    let vm = SettingsViewModel(
+        repository: repository,
+        logger: DefaultAppLogger(minimumLevel: .debug, sink: sink),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        userPreferencesStore: UserPreferencesStore()
+    )
+    await vm.onAppear()
+
+    await vm.confirmReset()
+
+    if case .error(let key) = vm.state {
+        #expect(key == "settings.error.reset")
+    } else {
+        Issue.record("Expected error state after failed reset")
+    }
+    #expect(sink.entries.contains(where: { $0.eventName == "settings_reset_failed" && $0.level >= .error }))
+}
+
 private func makeSettings(
     id: UUID = UUID(),
     appearanceModeRaw: String = "system",
@@ -333,6 +389,7 @@ private func makeSettings(
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
 }
@@ -342,7 +399,11 @@ private func testLogger() -> DefaultAppLogger {
 }
 
 private final class RecordingSettingsLogSink: LogSink, @unchecked Sendable {
-    func write(_: LogEntry) {}
+    private(set) var entries: [LogEntry] = []
+
+    func write(_ entry: LogEntry) {
+        entries.append(entry)
+    }
 }
 
 private actor FakeSettingsRepository: SettingsRepository {

@@ -54,3 +54,24 @@ func dartSegmentBaseValueTreatsBothBullsAsTwentyFive() {
     #expect(DartSegment.innerBull.baseValue == 25)
     #expect(DartSegment.miss.baseValue == 0)
 }
+
+@Test(.tags(.unit, .scoringInput, .offline, .regression))
+func dartSpokenAccessibilityNameCoversSegments() {
+    #expect(!DartInput(multiplier: .triple, segment: .oneToTwenty(20)).spokenAccessibilityName.isEmpty)
+    #expect(!DartInput(multiplier: .single, segment: .outerBull).spokenAccessibilityName.isEmpty)
+    #expect(!DartInput(multiplier: .single, segment: .innerBull).spokenAccessibilityName.isEmpty)
+    #expect(!DartInput(multiplier: .single, segment: .miss, isMiss: true).spokenAccessibilityName.isEmpty)
+}
+
+@Test(.tags(.unit, .scoringInput, .offline, .regression))
+func dartPadKeyAccessibilityLabelHandlesMissBullAndMultipliers() {
+    #expect(!DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single).isEmpty)
+    #expect(!DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: .single).isEmpty)
+    #expect(!DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: .double).isEmpty)
+    #expect(!DartInput.padKeyAccessibilityLabel(segmentValue: 20, armedMultiplier: .triple).isEmpty)
+}
+
+@Test(.tags(.unit, .scoringInput, .offline, .regression))
+func dartSegmentOneToTwentyStoresFaceValue() {
+    #expect(DartSegment.oneToTwenty(17).baseValue == 17)
+}

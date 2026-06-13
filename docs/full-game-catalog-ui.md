@@ -28,7 +28,7 @@ isProject: false
 
 # Full Game Catalog UI Draft
 
-Design target: every mode from [`FutureIdeas/additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) plus what ships today (X01, Cricket, Baseball, Killer, Shanghai). This extends the IA in [`docs/ux-scale-tab-restructure-plan.md`](ux-scale-tab-restructure-plan.md) with concrete wireframes and gameplay templates at full catalog scale.
+Design target: every mode from [`FutureIdeas/additional-game-modes.md`](../FutureIdeas/additional-game-modes.md) plus what ships today (X01, Cricket, Baseball, Killer, Shanghai). Builds on the shipped tab IA (`Play · Modes · Players · Activity · Settings` in [`App/MainTabView.swift`](../App/MainTabView.swift)) with concrete wireframes and gameplay templates at full catalog scale.
 
 ---
 
@@ -242,6 +242,7 @@ Primary discovery surface. Reuses card row pattern from [`PartyGamePickerView.sw
 |---------|-------|---------------------|
 | Standard | X01, Cricket, American Cricket | Pub league / serious scoring |
 | Party | 16 social/elimination/race games | Group night, 3+ players common |
+| Co-op | Raid, Cerberus, The Vault, Clear the Board (+ planned) | Friends vs boss, shared meters, team victory |
 | Practice | 6 solo/training | 1 player, personal bests |
 | Cricket variants | English Cricket (collapsible) | Avoids duplicating American Cricket; signals “same family, different rules” |
 
@@ -398,6 +399,23 @@ New component: **`SequenceProgressStrip`** — horizontal scroll of segment chip
 ### Template I — Role split
 
 **Modes:** Scam, Snooker. Role badge + phase-filtered pad. Snooker needs a phase indicator stack; start with a simplified-rules toggle.
+
+### Template J — Voice drill
+
+**Modes:** Call & Hit (first); future checkout-callout drills.
+
+```text
+| Hero: large target label + segment diagram           |
+| Progress: 12 / 50 · streak · "Up to 3 darts"         |
+| [ HIT ]  [ MISS ]   (no dart pad)                    |
+```
+
+Spec: [`specs/game-modes/planned/VoiceDrillUITemplateSpec.md`](../specs/game-modes/planned/VoiceDrillUITemplateSpec.md).
+
+> **UX review:** Honor-scored — app never validates darts. Voice + visual callout
+> are mandatory a11y pair. Hit/Miss must not rely on color alone. Stats use
+> `practiceAccuracy` stat kind with config fingerprint — do not compare 1-dart
+> and 3-dart presets on one chart.
 
 ---
 

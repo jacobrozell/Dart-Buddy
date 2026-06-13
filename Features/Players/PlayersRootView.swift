@@ -27,10 +27,7 @@ struct PlayersRootView: View {
     @State private var exportErrorKey: String?
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
-
-    private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 760 : .infinity
-    }
+    @State private var didApplyCustomBotSnapshotNavigation = false
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -59,16 +56,20 @@ struct PlayersRootView: View {
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
-                .frame(maxWidth: contentMaxWidth, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .center)
+                .readableRootContentWidth(horizontalSizeClass)
 
                 searchField
                     .padding(.horizontal, DS.Spacing.s4)
-                    .frame(maxWidth: contentMaxWidth, alignment: .leading)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .readableRootContentWidth(horizontalSizeClass)
 
                 Group {
-                    if viewModel.state == .error {
+                    if viewModel.state == .loading {
+                        ProgressView()
+                            .tint(Brand.green)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s6)
+                            .accessibilityLabel(L10n.loading)
+                    } else if viewModel.state == .error {
                         ContentUnavailableView(
                             L10n.errorTitle,
                             systemImage: "exclamationmark.triangle",
@@ -119,11 +120,11 @@ struct PlayersRootView: View {
                         .tabRootScrollChrome()
                     }
                 }
+                .motionTabContentReveal(when: viewModel.state != .loading)
+                .readableRootContentWidth(horizontalSizeClass)
             }
-            .background(Brand.background.ignoresSafeArea())
+            .tabRootScreenBackground()
             .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
-            .frame(maxWidth: contentMaxWidth, alignment: .center)
-            .frame(maxWidth: .infinity, alignment: .center)
             .navigationBarHidden(true)
             .safeAreaInset(edge: .bottom) {
                 if viewModel.state != .error && viewModel.players.isEmpty {
@@ -141,6 +142,7 @@ struct PlayersRootView: View {
             }
             .task {
                 await viewModel.onAppear()
+                applyCustomBotSnapshotNavigationIfNeeded()
             }
             .navigationDestination(for: PlayersRoute.self) { route in
                 switch route {
@@ -180,6 +182,15 @@ struct PlayersRootView: View {
                             actionTask = Task { await viewModel.save(player) }
                         }
                     )
+                case let .matchDetail(matchId):
+                    MatchHistoryDetailScreen(
+                        matchId: matchId,
+                        matchRepository: dependencies.matchRepository,
+                        statsRepository: dependencies.statsRepository,
+                        onDeleted: {
+                            if !path.isEmpty { path.removeLast() }
+                        }
+                    )
                 }
             }
             .sheet(isPresented: $showsCustomBotSheet) {
@@ -192,12 +203,12 @@ struct PlayersRootView: View {
                 PlayerEditSheet(
                     viewModel: PlayerEditViewModel(
                         existingNames: viewModel.players.map(\.name),
-                        editing: presentation.editing
+                        editing: presentation.editing,
+                        defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
                     ),
                     existing: presentation.editing,
                     onSave: { player in
-                        actionTask?.cancel()
-                        actionTask = Task { await viewModel.save(player) }
+                        await viewModel.save(player)
                     }
                 )
             }
@@ -230,6 +241,16 @@ struct PlayersRootView: View {
         }
     }
 
+    private func applyCustomBotSnapshotNavigationIfNeeded() {
+        guard !didApplyCustomBotSnapshotNavigation else { return }
+        guard ProcessInfo.processInfo.arguments.contains("-snapshot_custom_bot") else { return }
+        let bot = viewModel.players.first(where: { $0.isCustomBot && $0.name == DemoSeeder.customBotSnapshotName })
+            ?? viewModel.players.first(where: \.isCustomBot)
+        guard let bot else { return }
+        didApplyCustomBotSnapshotNavigation = true
+        path = [.detail(playerId: bot.id)]
+    }
+
     private var playersToolbarMenu: some View {
         Menu {
             Button {
@@ -238,10 +259,13 @@ struct PlayersRootView: View {
                 Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
             }
             Menu {
-                Button {
-                    showsCustomBotSheet = true
-                } label: {
-                    Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                if ProductSurface.showsCustomBots {
+                    Button {
+                        showsCustomBotSheet = true
+                    } label: {
+                        Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
+                    }
+                    .accessibilityIdentifier("players_addCustomBot")
                 }
                 ForEach(BotDifficulty.allCases, id: \.rawValue) { difficulty in
                     Button(difficulty.displayName) {
@@ -269,9 +293,20 @@ struct PlayersRootView: View {
             HStack(spacing: DS.Spacing.s3) {
                 PlayerAvatarChip(player: player, size: 40)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(player.name)
-                        .font(.headline)
-                        .foregroundStyle(Brand.textPrimary)
+                    HStack(spacing: DS.Spacing.s2) {
+                        Text(player.name)
+                            .font(.headline)
+                            .foregroundStyle(Brand.textPrimary)
+                        if player.isPrimaryPlayer {
+                            Text(L10n.playersPrimaryBadge)
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(Brand.inkOnBright)
+                                .padding(.horizontal, DS.Spacing.s2)
+                                .padding(.vertical, 2)
+                                .background(Brand.green, in: Capsule())
+                                .accessibilityHidden(true)
+                        }
+                    }
                     if let difficulty = player.botDifficulty {
                         BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
                     } else if player.isCustomBot {
@@ -302,7 +337,6 @@ struct PlayersRootView: View {
         .listRowBackground(Brand.background)
         .listRowSeparatorTint(Brand.cardElevated)
         .accessibilityLabel(playerRowAccessibilityLabel(player))
-        .accessibilityHint(L10n.string("players.row.accessibilityHint"))
         .accessibilityIdentifier(player.botDifficulty == nil ? "player_row_\(player.name)" : "player_row_bot_\(player.id.uuidString)")
         .swipeActions {
             Button(player.isArchived ? "players.unarchive" : "players.archive") {
@@ -336,6 +370,9 @@ struct PlayersRootView: View {
         } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
             suffix += ", \(L10n.format("players.list.record.accessibility", summary.games, summary.wins))"
         }
+        if player.isPrimaryPlayer {
+            suffix += L10n.string("players.row.primarySuffix")
+        }
         if player.isArchived {
             suffix += L10n.string("players.row.archivedSuffix")
         }
@@ -368,62 +405,3 @@ struct PlayersRootView: View {
     }
 }
 
-private struct PlayerEditSheet: View {
-    @ObservedObject var viewModel: PlayerEditViewModel
-    let existing: EditablePlayer?
-    let onSave: (EditablePlayer) -> Void
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                TextField("players.edit.name", text: $viewModel.name)
-                    .accessibilityLabel(L10n.string("players.edit.name.accessibility"))
-                    .accessibilityIdentifier("playerEdit_name")
-                    .onChange(of: viewModel.name) { _, _ in viewModel.validate() }
-                Section(L10n.playersEditAvatar) {
-                    AvatarStylePicker(selection: $viewModel.avatarStyle)
-                }
-                Section(L10n.playersEditColor) {
-                    PlayerColorTokenPicker(selection: $viewModel.colorToken)
-                }
-                if viewModel.isBot, let difficulty = existing?.botDifficulty {
-                    Section(L10n.botDifficultyLabel) {
-                        BotDifficultyBadge(difficulty: difficulty)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .listRowBackground(Brand.card)
-                    }
-                    Section(L10n.botStatsSection) {
-                        BotDifficultyStatsSection(profile: difficulty.displayProfile, showsHeader: false)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowBackground(Color.clear)
-                    }
-                }
-                TextField("players.edit.notes", text: $viewModel.notes, axis: .vertical)
-                    .accessibilityLabel(L10n.string("players.edit.notes.accessibility"))
-                if let message = viewModel.validationMessage {
-                    Text(message).foregroundStyle(.red).font(.footnote)
-                }
-            }
-            .navigationTitle(
-                existing == nil
-                    ? L10n.addPlayerTitle
-                    : (existing?.isBot == true ? L10n.editBotTitle : L10n.editPlayerTitle)
-            )
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.cancel) { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(L10n.save) {
-                        onSave(viewModel.buildPlayer(from: existing))
-                        dismiss()
-                    }
-                    .disabled(!viewModel.canSave)
-                    .accessibilityLabel(L10n.string("players.edit.save.accessibility"))
-                    .accessibilityIdentifier("playerEdit_save")
-                }
-            }
-        }
-    }
-}

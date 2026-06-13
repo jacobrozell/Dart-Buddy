@@ -23,6 +23,32 @@ private func isDoubleFinish(_ label: String) -> Bool {
 }
 
 @Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutAllSuggestionsIncludesEveryFewestDartRoute() {
+    let routes = CheckoutSuggester.allSuggestions(remaining: 60, mode: .doubleOut)
+    #expect(routes.count >= 2)
+    #expect(routes.first == ["20", "D20"])
+    for route in routes {
+        #expect(route.count == 2)
+        #expect(route.reduce(0) { $0 + value(of: $1) } == 60)
+        #expect(isDoubleFinish(route.last ?? ""))
+    }
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutAllSuggestionsMatchesPrimarySuggestion() {
+    for remaining in 2 ... 170 {
+        let primary = CheckoutSuggester.suggestion(remaining: remaining, mode: .doubleOut)
+        let all = CheckoutSuggester.allSuggestions(remaining: remaining, mode: .doubleOut)
+        if let primary {
+            #expect(all.first == primary)
+            #expect(all.isEmpty == false)
+        } else {
+            #expect(all.isEmpty)
+        }
+    }
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
 func checkoutSuggestsStandardMarqueeFinishes() {
     #expect(CheckoutSuggester.suggestion(remaining: 170, mode: .doubleOut) == ["T20", "T20", "Bull"])
     #expect(CheckoutSuggester.suggestion(remaining: 167, mode: .doubleOut) == ["T20", "T19", "Bull"])
@@ -68,4 +94,69 @@ func checkoutSingleOutAllowsAnyFinishingDart() {
     let route = CheckoutSuggester.suggestion(remaining: 170, mode: .singleOut)
     #expect(route != nil)
     #expect((route ?? []).reduce(0) { $0 + value(of: $1) } == 170)
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutMasterOutAllowsTripleFinishes() {
+    #expect(CheckoutSuggester.suggestion(remaining: 60, mode: .masterOut) == ["T20"])
+    #expect(CheckoutSuggester.suggestion(remaining: 40, mode: .masterOut) == ["D20"])
+    #expect(CheckoutSuggester.suggestion(remaining: 50, mode: .masterOut) == ["Bull"])
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutMasterOutResultsAreAlwaysValid() {
+    for remaining in 2 ... 170 {
+        guard let route = CheckoutSuggester.suggestion(remaining: remaining, mode: .masterOut) else { continue }
+        #expect(route.count <= 3)
+        #expect(route.reduce(0) { $0 + value(of: $1) } == remaining)
+        let last = route.last ?? ""
+        let validFinish = last == "Bull" || last.hasPrefix("D") || last.hasPrefix("T") || Int(last) != nil
+        #expect(validFinish)
+    }
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutLocalizedDisplayLabelsFormatTokens() {
+    let labels = CheckoutSuggester.localizedDisplayLabels(for: ["T20", "D16", "Bull", "20"])
+    #expect(labels.count == 4)
+    #expect(labels[2] == L10n.string("scoring.checkout.bull"))
+    #expect(labels[3] == "20")
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutAllSuggestionsRespectsZeroDartsAvailable() {
+    #expect(CheckoutSuggester.allSuggestions(remaining: 40, mode: .doubleOut, dartsAvailable: 0).isEmpty)
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutAllSuggestionsFindsOneDartRouteWhenNeeded() {
+    let routes = CheckoutSuggester.allSuggestions(remaining: 32, mode: .doubleOut, dartsAvailable: 1)
+    #expect(routes == [["D16"]])
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutDoubleOutEveryValidScoreHasPrimarySuggestion() {
+    for remaining in 2 ... 170 {
+        let suggestion = CheckoutSuggester.suggestion(remaining: remaining, mode: .doubleOut)
+        if [169, 168, 166, 165, 163, 162, 159].contains(remaining) {
+            #expect(suggestion == nil, "Score \(remaining) should be impossible")
+        } else if remaining <= 170 {
+            #expect(suggestion != nil, "Score \(remaining) should have a route")
+        }
+    }
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutMasterOutEveryValidScoreHasPrimarySuggestion() {
+    for remaining in 2 ... 170 {
+        let suggestion = CheckoutSuggester.suggestion(remaining: remaining, mode: .masterOut)
+        if suggestion != nil {
+            #expect(suggestion!.reduce(0) { $0 + value(of: $1) } == remaining)
+        }
+    }
+}
+
+@Test(.tags(.unit, .x01, .regression, .offline))
+func checkoutLocalizedDisplayLabelPassesThroughUnknownToken() {
+    #expect(CheckoutSuggester.localizedDisplayLabel(for: "unknown") == "unknown")
 }

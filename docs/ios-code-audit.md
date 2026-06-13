@@ -1,9 +1,9 @@
 # iOS code audit (senior review)
 
-**Last reviewed:** 2026-06-04  
-**Scope:** SwiftUI app shell, features, design system, localization (`en`/`de`/`es`/`nl`), accessibility test harness, documentation hygiene.
+**Last reviewed:** 2026-06-11  
+**Scope:** SwiftUI app shell, features, design system, localization (`en`/`de`/`es`/`nl`), accessibility test harness, documentation hygiene, lean 1.0 release surface.
 
-This is the engineering audit companion to the UX audit in [`todo.md`](release/todo.md) § UI/UX audit. It does not duplicate release QA checklists — use [`release_checklist.md`](release/release_checklist.md) for ship evidence.
+This is the engineering audit companion to the UX audit in [`todo.md`](release/todo.md) § UI/UX audit. It does not duplicate release QA checklists — use [`release/1.0.0-ship-checklist.md`](release/1.0.0-ship-checklist.md) for ship evidence.
 
 ---
 
@@ -11,21 +11,26 @@ This is the engineering audit companion to the UX audit in [`todo.md`](release/t
 
 The codebase is production-shaped: clear one-directional layer boundaries
 (`App` → `Features` → `Domain` / `Data`), MVVM in features, pure domain engines,
-repository isolation behind protocols, and an automated WCAG UI test suite.
-There are no dead-code, force-try, force-cast, or stray-`print` problems. The
-remaining engineering work is **consistency and decomposition**, not
-architectural rewrites:
+repository isolation behind protocols, and a layered automated test suite (unit,
+accessibility, UI smoke, WCAG). There are no dead-code, force-try, force-cast,
+or stray-`print` problems in app code.
 
-- A few files carry too much: the monolithic `SwiftDataRepositories` and the
-  near-duplicate turn-submit flows in the X01 / Cricket view models are the main
-  structural smells (see P2 below).
-- A handful of feature views are long; they are already decomposed into focused
-  subviews, so the win is file-splitting for readability, not restructuring.
-- Manual accessibility evidence (VoiceOver, AXXXL, device matrix) is still open
-  and tracked under `accessibility/`.
+Major structural refactors from the June 2026 pass are **done**: SwiftData
+repositories split per model, shared turn-submit scaffolding in
+`MatchTurnSupport`, and large SwiftUI files decomposed into extensions /
+subviews.
 
-Conventions are now written down in [`CONTRIBUTING.md`](../CONTRIBUTING.md) so
-new code has a standard to match.
+Remaining engineering work before 1.0 ship is **evidence and review-facing
+polish**, not architecture:
+
+- Manual accessibility evidence (VoiceOver, AXXXL, nutrition labels) — tracked
+  under `accessibility/`.
+- App Review hardening — party-mode teasers in Play setup picker, active-match
+  resume without `ProductSurface` gating (`docs/release/lean-1.0-app-review-hardening-plan.md`).
+- Owner UX decisions (stats bot edge case, AXXXL trophy sizes) — optional for
+  1.0.
+
+Conventions are written down in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ---
 
@@ -34,9 +39,11 @@ new code has a standard to match.
 1. **Bootstrap & recovery** — `DartBuddyApp` gates on `AppBootstrapper`; migration failure routes to `MigrationRecoveryView` without silent data loss.
 2. **Dependency injection** — `AppDependencies` wired once; features receive protocols, not concrete SwiftData types in views.
 3. **Domain purity** — `X01Engine`, `CricketEngine`, `MatchLifecycleService` stay framework-agnostic; ViewModels orchestrate IO.
-4. **Appearance policy** — `AppAppearancePolicy` centralizes light/dark/system vs Settings chrome; `BrandChrome` modifiers avoid copy-paste.
-5. **Accessibility IDs** — Gameplay and settings flows expose stable `accessibilityIdentifier`s consumed by `WCAGAccessibilityUITests`.
-6. **Test layering** — Phase-tagged unit tests, long-term bot simulations, UI smoke + WCAG suites map to release gates.
+4. **Product surface gating** — `ProductSurface` centralizes lean 1.0 vs full catalog; `ProductSurfaceTests` + `Lean1_0SmokeUITests` guard the default build.
+5. **Appearance policy** — `AppAppearancePolicy` + `SystemNavigationPolicy` (iOS 26 Liquid Glass nav); `BrandChrome` modifiers avoid copy-paste.
+6. **Telemetry** — `AppLogger` → allowlisted Firebase Analytics + Crashlytics sinks; feature flags disable telemetry in Debug/CI/UI tests.
+7. **Accessibility IDs** — Gameplay and settings flows expose stable identifiers consumed by `WCAGAccessibilityUITests` and the X01/Cricket UI test plan.
+8. **Test layering** — Phase-tagged unit tests, bot simulations, lean smoke, regression UI, WCAG audits map to release gates.
 
 ---
 
@@ -46,28 +53,28 @@ new code has a standard to match.
 
 | ID | Finding | Recommendation |
 |----|---------|----------------|
-| A1 | Manual a11y evidence still open | Complete `accessibility/Manual_todo.md` + link in `QA-Signoff-RC1.md` |
+| A1 | Manual a11y evidence still open | Complete `accessibility/Manual_todo.md` + `accessibility/1.0-nutrition-label-checklist.md`; link in `QA-Signoff-RC1.md` |
 | A2 | Hardcoded display sizes at AXXXL | `MatchSummaryScreen`, `X01MatchScreen` use `.font(.system(size:))`; prefer `relativeTo:` or cap scale with `@Environment(\.dynamicTypeSize)` |
 | A3 | Statistics bot edge case | Product decision in `docs/release/todo.md` § Owner decisions |
+| A4 | App Review surface leaks | Done — `isMatchTypeReachable`, lean mode picker, resume gating; metadata/screenshots still owner QA |
+| A5 | TestFlight telemetry smoke | Verify `app_open` + match events in Firebase Console on internal Release build |
 
-### P2 — Consistency (code health)
+### P2 — Consistency (code health — mostly done)
 
-| ID | Finding | Recommendation |
-|----|---------|----------------|
-| B1 | **Dual token systems** | **`Brand`** = scoreboard palette (light/dark). **`DS`** = spacing/radius + semantic colors for native surfaces. Do not mix `DS.ColorRole` on brand screens — use `Brand.textSecondary` (see `DesignSystem/README.md`). |
-| B2 | **`ThemeTokens` unused** | Removed; was dead code. |
-| B3 | **`ScoringPadLabels` in DesignSystem** | Acceptable for now; if Play grows, move to `Features/Play/`. |
-| B4 | **Large SwiftUI files** | Done. Split via extension / dedicated files: `SetupHomeView` → `SetupHomeView+OptionChips.swift` (614→445); `PlayersRootView` → `PlayerDetailView.swift` (558→331); `X01MatchScreen` → `PlayerScoreCard.swift` (443→282). |
-| B7 | **Duplicate turn-submit flows** | Done (branch `claude/b7-turn-submit-helper`). Shared scaffolding extracted to `Features/Play/Shared/MatchTurnSupport.swift`: `MatchTurnSubmitter` runs engine-submit → persist → save → log and returns an `Outcome`; each view model maps the outcome to its own state (bust vs. closure, caller tokens, completion). Pure helpers (`matchSummary`, `matchProgressMetadata`, `appErrorMetadata`, `errorMessageKey`) moved to the `MatchTurnSupport` namespace. Removed ~180 lines of duplication (X01 VM 599→509, Cricket VM 476→386). Behavior-preserving; verify with the unit suite. |
-| B8 | **Monolithic repository** | Done. `SwiftDataRepositories.swift` (~798 lines) split into `SwiftDataPlayerRepository`, `SwiftDataMatchRepository`, `SwiftDataStatsRepository`, `SwiftDataSettingsRepository`, and a shared `SwiftDataRepositorySupport.swift` (mappers + `dataCall`). |
-| B5 | **Settings tab bar bleed** | Verify on device; `SettingsRootView` already uses `.safeAreaPadding(.bottom)`. If bleed persists, add tab-bar-aware inset via `safeAreaInset(edge: .bottom)` on the `Form`. |
-| B6 | **Migration recovery styling** | Migrated to `Brand` + `DS.Spacing` for consistency with recovery UX on brand shell. |
+| ID | Finding | Status |
+|----|---------|--------|
+| B1 | Dual token systems (`Brand` vs `DS`) | Documented in `DesignSystem/README.md`; enforce on new screens |
+| B4 | Large SwiftUI files | Done — `SetupHomeView`, `PlayersRootView`, `X01MatchScreen` split |
+| B7 | Duplicate turn-submit flows | Done — `MatchTurnSupport` + `MatchTurnSubmitter` |
+| B8 | Monolithic repository | Done — `SwiftData*Repository` + `SwiftDataRepositorySupport` |
+| B5 | Settings tab bar bleed | Verify on physical device; `.safeAreaPadding(.bottom)` already applied |
+| B6 | Migration recovery styling | Done — `Brand` + `DS.Spacing` |
 
 ### P3 — Housekeeping (post-1.0)
 
 | ID | Finding | Recommendation |
 |----|---------|----------------|
-| C1 | `inputMode: .totalEntry` in X01 VM but 1.0 is per-dart only | Keep enum for future toggle; document in `MatchSpec` |
+| C1 | `inputMode: .totalEntry` in X01 VM but 1.0 is per-dart only | Keep enum for future toggle; documented in `MatchSpec` |
 | C2 | Per-call `ModelContext` profiling | Only if RC performance report fails |
 | C3 | Snapshot tests | After UI lock |
 
@@ -78,30 +85,31 @@ new code has a standard to match.
 | Spec name | Repo path | Notes |
 |-----------|-----------|-------|
 | PlayFeature | `Features/Play/{Setup,X01,Cricket,Shared}/` | Setup, X01, Cricket, summary, play home |
-| HistoryFeature | `Features/History/` | List + detail |
+| ActivityFeature | `Features/Activity/` | History + Statistics segments |
+| HistoryFeature | `Features/History/` | List + detail (embedded in Activity) |
 | PlayersFeature | `Features/Players/` | List, detail, edit, visuals |
 | SettingsFeature | `Features/Settings/` | Form + `SettingsViewModel` |
-| Statistics | `Features/Statistics/` | Tab (not renamed in spec) |
+| Statistics | `Features/Statistics/` | Segment inside Activity |
 | DesignSystem | `DesignSystem/` | Tokens, components, `GameplayLayout` |
-| Support | `Support/` | L10n, logging, preferences, flags |
+| Support | `Support/` | L10n, logging, preferences, flags, `ProductSurface` |
 
-Tab order in `MainTabView` matches [`specs/AppShellSpec.md`](../specs/AppShellSpec.md): Play → Players → Statistics → History → Settings.
+Lean 1.0 tab order in `MainTabView`: **Play → Players → Activity → Settings** (Modes hidden). Full product surface adds Modes between Play and Players. See [`specs/AppShellSpec.md`](../specs/AppShellSpec.md).
 
 ---
 
 ## Design system rules (enforced by convention)
 
 ```
-Scoreboard tabs (Play, Players, Stats, History)
+Scoreboard tabs (Play, Players, Activity)
   → Brand.* colors
   → DS.Spacing / DS.Radius
   → .brandScoreboardChrome(appearanceModeRaw:)
 
-Settings (theme = Light)
-  → Native Form, DS.ColorRole for secondary text
+Settings
+  → .brandSettings* modifiers (native Form in Light; brand chrome in Dark)
 
-Settings (theme = Dark / System)
-  → Brand dark chrome via .brandSettings* modifiers
+System navigation (iOS 26+)
+  → SystemNavigationPolicy — do not override tab/nav materials
 
 Recovery / rare native-only surfaces
   → Brand background + DS spacing (MigrationRecoveryView)
@@ -115,10 +123,15 @@ Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibili
 
 | Layer | Location | Role |
 |-------|----------|------|
-| Unit | `Tests/Unit/` | Engines, VMs, repos, policy, simulations |
+| Unit | `Tests/Unit/` | Engines, VMs, repos, policy, simulations, identifier contracts |
 | Accessibility | `Tests/Accessibility/` | WCAG contrast + label contracts |
-| UI smoke | `Tests/UI/DartBuddyUITests.swift` | Core journeys |
+| Lean smoke | `Tests/UI/Lean1_0SmokeUITests.swift` | 4-tab shell, X01/Cricket start, reset, resume |
+| Mode UI | `Tests/UI/X01MatchUITests.swift`, `CricketMatchUITests.swift` | Gameplay pad flows |
+| Regression UI | `Tests/UI/RegressionUITests.swift` | Bot undo, exit Stay, bust, landscape |
 | WCAG UI | `Tests/UI/WCAGAccessibilityUITests.swift` | Automated audits + ID contracts |
+| Backlog | [`docs/testing/x01-cricket-ui-test-phased-plan.md`](testing/x01-cricket-ui-test-phased-plan.md) | Phased X01/Cricket + regression catalog |
+
+**CI:** `DartBuddyCI` (unit + WCAG on PR); full `DartBuddy` scheme + nightly Pro Max landscape.
 
 ---
 
@@ -127,7 +140,8 @@ Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibili
 | Date | Change |
 |------|--------|
 | 2026-06-02 | Initial audit; consolidated dark/light tracker; DesignSystem README; removed `ThemeTokens`; aligned `MigrationRecoveryView` styling |
-| 2026-06-03 | Refinement pass: added `CONTRIBUTING.md` (codified house style); removed a force-unwrap in `SettingsViewModel`; named the Cricket closure-transition delay in `BotTurnPacing`; split `SetupHomeView` option chips into an extension file; slimmed the README documentation map and fixed its broken banner image; removed the `darkmodelightmode.md` redirect stub. |
-| 2026-06-03 | Decomposition pass: split `PlayersRootView` (→ `PlayerDetailView.swift`) and `X01MatchScreen` (→ `PlayerScoreCard.swift`); split the monolithic `SwiftDataRepositories.swift` into per-model repository files plus `SwiftDataRepositorySupport.swift` (B4, B8 done). B7 (shared turn-submit helper) left open pending a green test run. |
-| 2026-06-03 | B7 done on `claude/b7-turn-submit-helper`: extracted `MatchTurnSubmitter` + `MatchTurnSupport` and de-duplicated the X01 / Cricket turn-submit flows (~180 lines removed). Behavior-preserving refactor; pending verification against the unit suite. |
-| 2026-06-06 | One-type-per-file pass on bundled view-model files. `HistoryViewModels.swift` → `HistoryModels.swift` (DTOs), `HistoryListViewModel.swift`, `HistoryDetailViewModel.swift`. `PlayersViewModels.swift` → `EditablePlayer.swift`, `PlayersListViewModel.swift`, `PlayerDetailViewModel.swift`, `PlayerEditViewModel.swift`. Pure code moves (no behavior change); brings History/Players in line with the single-VM-per-file convention already used by `SettingsViewModel`, `MatchSetupViewModel`, `X01MatchViewModel`, etc. |
+| 2026-06-03 | Refinement pass: `CONTRIBUTING.md`; removed force-unwrap in `SettingsViewModel`; split `SetupHomeView`, `PlayersRootView`, `X01MatchScreen` |
+| 2026-06-03 | B7/B8 done: `MatchTurnSupport` + per-model SwiftData repositories |
+| 2026-06-06 | One-type-per-file pass on History/Players view models |
+| 2026-06-11 | App Review hardening: `isMatchTypeReachable`, lean mode picker, resume/deep-link gating |
+| 2026-06-11 | Refresh for lean 1.0 RC: updated executive summary (B7/B8 closed), Activity tab map, testing posture, App Review hardening (A4), telemetry smoke (A5); merged UI test docs into phased plan |

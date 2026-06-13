@@ -32,9 +32,19 @@ struct BrandRootScreenTitle: View {
 struct BrandMatchScreenTitle: View {
     let title: LocalizedStringKey
 
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    private var titleFont: Font {
+        verticalSizeClass == .compact
+            ? .headline.weight(.bold)
+            : .title2.weight(.bold)
+    }
+
     var body: some View {
         Text(title)
-            .font(.title2.weight(.bold))
+            .font(titleFont)
             .foregroundStyle(Brand.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
     }
 }

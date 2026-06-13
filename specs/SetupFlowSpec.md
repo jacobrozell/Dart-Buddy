@@ -44,8 +44,9 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 ## Roster
 - Toggle player in/out of `selectedPlayerIds` (ordered)
 - Drag reorder on selected list
-- `QuickAddPlayerScreen` returns new id via `PendingMatchPlayerSelections`
+- Full add-player sheet (`PlayerEditSheet`) from setup **Add Players**; returns new id via `PendingMatchPlayerSelections`
 - At least one **human** required (`setup.validation.requiresHuman`)
+- Per-mode **minimum / maximum** participants come from [`GameModeCatalog`](../Features/Modes/GameModeCatalog.swift) (`minimumPlayers`, `maximumPlayers`); each `*GameSpec.md` § Player count documents solo eligibility and rationale. App-wide default max is **8** unless a mode sets lower (e.g. Football, Scam = 2). Solo-only modes (`maximumPlayers: 1`, e.g. Bob's 27) skip roster per `GameModeCatalogEntry.isSolo`.
 
 ## Random order
 - When enabled at start, shuffles participant order once before persisting match
@@ -71,7 +72,7 @@ Minimum-player message hidden while roster completely empty (UX polish).
 
 On `onAppear`:
 - Load active players (non-archived)
-- Dequeue pending selections from quick-add / player detail shortcuts
+- Dequeue pending selections from setup add-player / player detail shortcuts
 - Seed settings defaults: X01 start, legs, sets, checkout, check-in, leg format, default match type
 - Load `CricketSetupPreferences` for points / scoring mode
 - `PendingMatchPlayerSelections.consumePreferredMatchType()` overrides mode when set
@@ -148,3 +149,40 @@ Authoritative schema: [`SwiftData.md`](SwiftData.md), [`DataSchemaSpec.md`](Data
 ## 12. Future Improvements
 - Collapse advanced X01 chips (check-in, set/leg) behind “Advanced”
 - Named setup presets
+
+---
+
+## 13. Solo practice setup (planned)
+
+Shared platform for all `isSolo` modes: [`SoloPracticeModesSpec.md`](SoloPracticeModesSpec.md) §5.
+
+### Call & Hit
+
+When Modes tab routes `practice.callAndHit` → Play setup ([`CallAndHitGameSpec.md`](game-modes/planned/CallAndHitGameSpec.md)):
+
+### Layout additions
+- **Session preset** horizontal chips (Standard, Sharp, Blitz, …) above advanced chips
+- **Custom** expands: target count, darts per target, target kind, include bull, callout voice
+- **No roster section** (`isSolo` — single human from active profile or picker sheet)
+- **No bot menu**
+
+### Validation
+| Rule | Key |
+|------|-----|
+| Exactly one human participant | reuse `setup.validation.requiresHuman` |
+| Config | `targetCount` ∈ {25, 50, 100} | `setup.validation.callAndHit.invalidTargetCount` |
+| Config | `dartsPerTarget` ∈ {1, 2, 3} | `setup.validation.callAndHit.invalidDartsPerTarget` |
+| Config | Triples + include bull | disallowed — bull chip hidden |
+
+### Start flow
+- `MatchConfigCallAndHit` payload → `MatchType.callAndHit`
+- Route: `.callAndHitMatch` → `VoiceDrillMatchScreen`
+- Persist last preset + custom chips to `SettingsRecord` or `CallAndHitSetupPreferences`
+
+### Prefill
+- Dequeue `PendingModeSelection` from Modes tab with catalog id `practice.callAndHit`
+- **Practice again** from summary preloads prior session config
+
+### Bob's 27 / Halve-It (future)
+
+Same solo platform: skip roster, mode-specific chips (round/score rules per game spec), `MatchType` route to Template F screen, **Practice again** CTA on summary.

@@ -4,9 +4,9 @@
 **Source:** [Target Darts — dart games](https://www.target-darts.co.uk/dart-games)  
 **Index:** [`additional-game-modes.md`](additional-game-modes.md)
 
-**Already shipped (see specs / code, not this file):** Baseball ([`specs/BaseballGameSpec.md`](../specs/BaseballGameSpec.md)), Killer ([`specs/KillerGameSpec.md`](../specs/KillerGameSpec.md)), Shanghai (`Domain/Engines/ShanghaiEngine.swift`).
+**Already shipped (see specs / code, not this file):** Baseball ([`specs/game-modes/implemented/BaseballGameSpec.md`](../specs/game-modes/implemented/BaseballGameSpec.md)), Killer ([`specs/game-modes/implemented/KillerGameSpec.md`](../specs/game-modes/implemented/KillerGameSpec.md)), Shanghai (`Domain/Engines/ShanghaiEngine.swift`).
 
-Lightweight assessments for modes not yet specced in depth. Promote to `specs/*GameSpec.md` when scheduled.
+**Superseded for rules** by `specs/*GameSpec.md` (see [`specs/README.md`](../specs/README.md)). This brief retains effort estimates and product-shape notes.
 
 ---
 
@@ -89,6 +89,23 @@ Lightweight assessments for modes not yet specced in depth. Promote to `specs/*G
 
 ---
 
+## Call & Hit (50-target voice drill)
+
+**Type:** Solo practice — honor-scored accuracy drill.
+
+| Item | Detail |
+|------|--------|
+| Objective | App calls random targets; player throws (default 3 darts each); self-reports Hit/Miss |
+| Config | Target kind: singles · doubles · triples; session length 25/50/100 |
+| Dart Buddy fit | Practice section; Modes catalog card entry; full `MatchRecord` history |
+| Voice | Configurable callout voices — [`specs/CalloutVoicesSpec.md`](../specs/CalloutVoicesSpec.md) |
+| Effort | ~5–8 d including voice platform + history integration |
+
+**Authoritative spec:** [`specs/game-modes/planned/CallAndHitGameSpec.md`](../specs/game-modes/planned/CallAndHitGameSpec.md)  
+**Shared solo platform:** [`specs/SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md)
+
+---
+
 ## Suggested "Practice" hub (optional product shape)
 
 Instead of five new top-level Play tiles:
@@ -97,6 +114,7 @@ Instead of five new top-level Play tiles:
 Play
   ├── X01 / Cricket (existing)
   └── Practice ▾
+        ├── Call & Hit
         ├── Bob's 27
         ├── Around the Clock
         └── (future) Halve-It

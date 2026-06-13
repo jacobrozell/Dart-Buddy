@@ -1,7 +1,7 @@
 # Apple Watch Companion — Assessment
 
 > Assessment date: June 2026  
-> Related: `specs/AppleWatchCompanionSpec.md`, `docs/release/todo.md` (user feedback), `roadmap/archive/phases/07-rc-launch-and-post-launch.md`
+> Related: `specs/AppleWatchCompanionSpec.md`, `docs/release/todo.md` (user feedback)
 
 ## Executive Summary
 
@@ -181,7 +181,7 @@ Low risk, improves iPhone code too:
 
 - Separate watch screenshots, privacy questionnaire unchanged (no cloud)
 - Test on physical watch + phone (simulator pairing is limited)
-- watchOS deployment target: **watchOS 10+** (pairs with iOS 17)
+- watchOS deployment target: **watchOS 10+** (pairs with iOS 18 app minimum)
 
 ---
 

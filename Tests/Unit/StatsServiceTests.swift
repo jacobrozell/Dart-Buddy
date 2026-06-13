@@ -54,6 +54,42 @@ func statsAverageUsesThreeDartFormula() {
     #expect(StatsService.x01Average3Dart(totalPointsScored: 45, totalDartsThrown: 3) == 45)
 }
 
+@Test(.tags(.unit, .stats, .offline, .regression))
+func statsLiveScorecardAverageUsesPerDartForOpeningVisit() {
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 0,
+            committedDarts: 0,
+            previewPoints: 11,
+            previewDarts: 1
+        ) == 11
+    )
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 0,
+            committedDarts: 0,
+            previewPoints: 40,
+            previewDarts: 2
+        ) == 20
+    )
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 0,
+            committedDarts: 0,
+            previewPoints: 60,
+            previewDarts: 3
+        ) == 60
+    )
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 180,
+            committedDarts: 3,
+            previewPoints: 20,
+            previewDarts: 1
+        ) == 150
+    )
+}
+
 private func d(_ multiplier: DartMultiplier, _ value: Int) -> DartInput {
     DartInput(multiplier: multiplier, segment: .oneToTwenty(value))
 }
@@ -106,6 +142,45 @@ func breakdownsComputeX01PerPlayerStats() throws {
     #expect(s.legs == 0)
     #expect(s.points == 100)
     #expect(s.highestScore == 100)
+}
+
+@Test(.tags(.unit, .stats, .cricket, .regression))
+func cricketDartsThrownCountsEveryTouchIncludingMisses() throws {
+    let event = CricketTurnEvent(
+        payloadVersion: 1,
+        id: UUID(),
+        playerId: UUID(),
+        turnIndex: 0,
+        roundIndex: 0,
+        legIndex: 0,
+        setIndex: 0,
+        totalPointsAdded: 0,
+        targetsTouched: [
+            CricketDartTouch(
+                dartOrder: 1,
+                targetRaw: "20",
+                multiplierRaw: DartMultiplier.triple.rawValue,
+                marksAdded: 3,
+                overflowMarks: 0,
+                pointsAdded: 0,
+                wasMiss: false,
+                segmentRaw: "20"
+            ),
+            CricketDartTouch(
+                dartOrder: 2,
+                targetRaw: "miss",
+                multiplierRaw: DartMultiplier.single.rawValue,
+                marksAdded: 0,
+                overflowMarks: 0,
+                pointsAdded: 0,
+                wasMiss: true,
+                segmentRaw: "miss"
+            )
+        ],
+        timestamp: Date()
+    )
+
+    #expect(StatsService.cricketDartsThrown(from: [event]) == 2)
 }
 
 @Test(.tags(.unit, .stats, .cricket, .regression))
@@ -332,4 +407,243 @@ func x01TrendPointsOrdersMatchesChronologically() throws {
     #expect(trend[0].date == early)
     #expect(trend[1].date == late)
     #expect(trend[0].average3Dart > 0)
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func breakdownsSortByWinsThenGamesThenName() {
+    let winner = UUID()
+    let runnerUp = UUID()
+    let input = MatchStatsInput(
+        type: .x01,
+        participantKeys: [winner, runnerUp],
+        winnerKey: winner,
+        events: []
+    )
+    let rows = StatsService.breakdowns(
+        from: [input],
+        nameById: [winner: "Zara", runnerUp: "Alice"]
+    )
+    #expect(rows.first?.playerId == winner)
+    #expect(rows.map(\.name) == ["Zara", "Alice"])
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func breakdownsUseFallbackNameWhenMissingFromMap() {
+    let unknown = UUID()
+    let input = MatchStatsInput(type: .x01, participantKeys: [unknown], winnerKey: nil, events: [])
+    let rows = StatsService.breakdowns(from: [input], nameById: [:])
+    #expect(rows.first?.name == "Player")
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func x01TrendPointsSkipsPartialAndNonX01Matches() throws {
+    let player = UUID()
+    let other = UUID()
+    let date = Date(timeIntervalSince1970: 1_000_000)
+
+    func makeSession() throws -> [MatchEventEnvelope] {
+        var session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+            participants: [
+                MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 0),
+                MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 1)
+            ]
+        )
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+        return session.events
+    }
+
+    let matches = [
+        MatchStatsInput(matchId: UUID(), playedAt: date, type: .cricket, participantKeys: [player, other], winnerKey: player, events: []),
+        MatchStatsInput(matchId: UUID(), playedAt: date, type: .x01, participantKeys: [player, other], winnerKey: player, events: try makeSession(), isPartial: true),
+        MatchStatsInput(matchId: UUID(), playedAt: date, type: .x01, participantKeys: [player, other], winnerKey: player, events: try makeSession())
+    ]
+    let trend = StatsService.x01TrendPoints(from: matches, playerId: player)
+    #expect(trend.count == 1)
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func recomputePlayerAggregatesTracksCricketWins() throws {
+    let winner = UUID()
+    let loser = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .cricket,
+        config: .cricket(MatchConfigCricket(legsToWin: 1)),
+        participants: [
+            MatchParticipant(playerId: winner, displayNameAtMatchStart: "Winner", turnOrder: 0),
+            MatchParticipant(playerId: loser, displayNameAtMatchStart: "Loser", turnOrder: 1)
+        ]
+    )
+
+    let closeNumbers = [d(.triple, 20), d(.triple, 19), d(.triple, 18)]
+    let closeLow = [d(.triple, 17), d(.triple, 16), d(.triple, 15)]
+    let closeBull = [
+        DartInput(multiplier: .single, segment: .innerBull),
+        DartInput(multiplier: .single, segment: .innerBull)
+    ]
+
+    for _ in 0 ..< 2 {
+        session = try MatchLifecycleService.submitCricketTurn(session: session, darts: closeNumbers)
+        session = try MatchLifecycleService.submitCricketTurn(session: session, darts: closeLow)
+        session = try MatchLifecycleService.submitCricketTurn(session: session, darts: closeBull)
+    }
+
+    #expect(session.runtime.status == .completed)
+    let aggregates = StatsService.recomputePlayerAggregates(from: [session])
+    #expect(aggregates[winner]?.matchesWon == 1)
+    #expect(aggregates[winner]?.cricketWins == 1)
+    #expect(aggregates[loser]?.cricketWins == 0)
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func recomputePlayerAggregatesIgnoresInProgressMatches() throws {
+    let player = UUID()
+    let other = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 0),
+            MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+
+    let aggregates = StatsService.recomputePlayerAggregates(from: [session])
+    #expect(aggregates[player] == nil)
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func breakdownsAggregateKillerPickAndTurnStats() throws {
+    let p1 = UUID()
+    let p2 = UUID()
+    let p3 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .killer,
+        config: .killer(MatchConfigKiller()),
+        participants: [
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "P1", turnOrder: 0),
+            MatchParticipant(playerId: p2, displayNameAtMatchStart: "P2", turnOrder: 1),
+            MatchParticipant(playerId: p3, displayNameAtMatchStart: "P3", turnOrder: 2)
+        ]
+    )
+    session = try MatchLifecycleService.submitKillerPick(session: session, dart: DartInput(multiplier: .single, segment: .oneToTwenty(5)))
+    session = try MatchLifecycleService.submitKillerPick(session: session, dart: DartInput(multiplier: .single, segment: .oneToTwenty(12)))
+    session = try MatchLifecycleService.submitKillerPick(session: session, dart: DartInput(multiplier: .single, segment: .oneToTwenty(20)))
+    session = try MatchLifecycleService.submitKillerTurn(
+        session: session,
+        darts: [
+            DartInput(multiplier: .double, segment: .oneToTwenty(5)),
+            DartInput(multiplier: .single, segment: .miss, isMiss: true),
+            DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        ]
+    )
+
+    let input = MatchStatsInput(type: .killer, participantKeys: [p1, p2, p3], winnerKey: nil, events: session.events)
+    let rows = StatsService.breakdowns(from: [input], nameById: [p1: "P1", p2: "P2", p3: "P3"])
+    let thrower = try #require(rows.first { $0.playerId == p1 })
+    #expect(thrower.darts == 4)
+    #expect(thrower.doubles == 1)
+    #expect(thrower.hitsBySector["5"] == 2)
+    #expect(thrower.hitsBySector["0"] == 2)
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func breakdownsAggregateShanghaiTurnStats() throws {
+    let p1 = UUID()
+    let p2 = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .shanghai,
+        config: .shanghai(MatchConfigShanghai(roundCount: 3)),
+        participants: [
+            MatchParticipant(playerId: p1, displayNameAtMatchStart: "P1", turnOrder: 0),
+            MatchParticipant(playerId: p2, displayNameAtMatchStart: "P2", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitShanghaiTurn(
+        session: session,
+        darts: [
+            DartInput(multiplier: .single, segment: .oneToTwenty(1)),
+            DartInput(multiplier: .double, segment: .oneToTwenty(1)),
+            DartInput(multiplier: .triple, segment: .oneToTwenty(1))
+        ]
+    )
+
+    let input = MatchStatsInput(type: .shanghai, participantKeys: [p1, p2], winnerKey: nil, events: session.events)
+    let rows = StatsService.breakdowns(from: [input], nameById: [p1: "P1", p2: "P2"])
+    let thrower = try #require(rows.first { $0.playerId == p1 })
+    #expect(thrower.darts == 3)
+    #expect(thrower.points == 156)
+    #expect(thrower.doubles == 1)
+    #expect(thrower.triples == 1)
+    #expect(thrower.hitsBySector["1"] == 3)
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func recomputePlayerAggregatesAveragesX01AcrossMultipleMatches() throws {
+    let player = UUID()
+    let other = UUID()
+    func makeCompletedSession(totals: [Int]) throws -> MatchLifecycleSession {
+        var session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+            participants: [
+                MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 0),
+                MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 1)
+            ]
+        )
+        for total in totals {
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+        }
+        return session
+    }
+
+    let first = try makeCompletedSession(totals: [180, 0, 121])
+    let second = try makeCompletedSession(totals: [180, 0, 121])
+    let aggregates = StatsService.recomputePlayerAggregates(from: [first, second])
+
+    #expect(aggregates[player]?.matchesPlayed == 2)
+    #expect(aggregates[player]?.matchesWon == 2)
+    #expect(abs((aggregates[player]?.x01Average3Dart ?? 0) - 150.5) < 0.0001)
+}
+
+@Test(.tags(.unit, .stats, .regression))
+func x01TrendPointsOmitsMatchesWherePlayerNeverThrew() throws {
+    let player = UUID()
+    let other = UUID()
+    let date = Date(timeIntervalSince1970: 1_000_000)
+
+    var session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: [
+            MatchParticipant(playerId: other, displayNameAtMatchStart: "Other", turnOrder: 0),
+            MatchParticipant(playerId: player, displayNameAtMatchStart: "Player", turnOrder: 1)
+        ]
+    )
+    session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+
+    let input = MatchStatsInput(
+        matchId: UUID(),
+        playedAt: date,
+        type: .x01,
+        participantKeys: [other, player],
+        winnerKey: other,
+        events: session.events
+    )
+    let trend = StatsService.x01TrendPoints(from: [input], playerId: player)
+    #expect(trend.isEmpty)
+}
+
+@Test(.tags(.unit, .stats, .offline, .regression))
+func statsLiveScorecardAverageReturnsZeroWithNoDarts() {
+    #expect(
+        StatsService.x01LiveScorecardAverage(
+            committedPoints: 0,
+            committedDarts: 0,
+            previewPoints: 0,
+            previewDarts: 0
+        ) == 0
+    )
 }

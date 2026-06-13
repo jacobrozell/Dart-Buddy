@@ -11,7 +11,7 @@
 | [`roadmap/release/QA-Signoff-RC1.md`](release/QA-Signoff-RC1.md) | RC Go/No-Go matrix and evidence |
 | [`roadmap/release/Launch-Day-Runbook.md`](release/Launch-Day-Runbook.md) | Launch-day ops |
 | [`roadmap/release/Rollback-and-Hotfix-Criteria.md`](release/Rollback-and-Hotfix-Criteria.md) | Hotfix gates |
-| [`roadmap/reports/`](reports/) | Phase 06–07 execution evidence (migration, privacy, performance) |
+| [`roadmap/reports/`](reports/) | Phase 06 execution evidence (migration, privacy, performance, App Store metadata) |
 | [`specs/ReleaseGateChecklist.md`](../specs/ReleaseGateChecklist.md) | ~10 min pre-tag gate |
 | [`specs/SmokeTestChecklist.md`](../specs/SmokeTestChecklist.md) | ~20 min smoke pass |
 
@@ -21,8 +21,4 @@ Local-first iOS app: X01 + Cricket (Normal and Cut Throat, including bot matches
 
 **Deferred post-1.0:** online play, Apple Watch companion, vision auto-scoring, Firebase Auth/Firestore, full UI automation matrix.
 
-## Historical planning
-
-Phase plans, agent kickoff brief, and one-time audits live in [`roadmap/archive/`](archive/README.md).
-
-Spec-to-phase mapping (historical): [`roadmap/SPEC-TO-PHASE-MAPPING.md`](SPEC-TO-PHASE-MAPPING.md).
+Historical phase plans were removed after MVP completion; active scope lives in [`specs/README.md`](../specs/README.md) and [`docs/release/`](../docs/release/).

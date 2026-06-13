@@ -4,41 +4,36 @@ struct SetupHomeView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
-    @ScaledMetric(relativeTo: .body) private var rosterRowHeight: CGFloat = 52
-    @ScaledMetric(relativeTo: .body) private var turnOrderRowVerticalInset: CGFloat = 8
+    @ScaledMetric(relativeTo: .body) var rosterRowHeight: CGFloat = 52
+    @ScaledMetric(relativeTo: .body) var turnOrderRowVerticalInset: CGFloat = 8
     @ObservedObject var homeViewModel: PlayHomeViewModel
     @ObservedObject var setupViewModel: MatchSetupViewModel
     @ObservedObject var pendingMatchPlayerSelections: PendingMatchPlayerSelections
     let onResumeMatch: (MatchSummary) -> Void
     let onStartRoute: (PlayRoute) -> Void
-    let onQuickAddPlayer: () -> Void
     let onChangeMode: () -> Void
-    @State private var startTask: Task<Void, Never>?
+    @State var startTask: Task<Void, Never>?
+    @State var showsAddPlayerSheet = false
     @State private var showsGameRules = false
-    @State private var showsCustomBotSheet = false
+    @State var showsCustomBotSheet = false
     @State private var showsEditOptions = false
+    @State private var showsModePicker = false
+
+    private var usesWideSetupLayout: Bool {
+        GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                BrandAppTitle()
-                    .padding(.top, DS.Spacing.s2)
-
-                if case let .readyWithActiveMatch(match) = homeViewModel.state {
-                    resumeBanner(match)
+            Group {
+                if usesWideSetupLayout {
+                    wideSetupContent
+                } else {
+                    compactSetupContent
                 }
-
-                selectedModeHeader
-                if showsEditOptions {
-                    modeOptionChips
-                }
-                if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
-                   !setupViewModel.displayValidationErrors.isEmpty {
-                    setupInlineValidationHints
-                }
-                rosterControls
-                selectedRosterSection
-                availablePlayerList
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, setupScrollBottomPadding)
@@ -60,6 +55,12 @@ struct SetupHomeView: View {
                         .ignoresSafeArea(edges: .bottom)
                 }
         }
+        .onAppear {
+            Task { await setupViewModel.onAppear() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .settingsDidUpdate)) { _ in
+            Task { await setupViewModel.onAppear() }
+        }
         .onChange(of: pendingMatchPlayerSelections.changeCount) { _, _ in
             if let selection = pendingMatchPlayerSelections.consumeModeSelection() {
                 setupViewModel.applyPendingModeSelection(selection)
@@ -80,7 +81,9 @@ struct SetupHomeView: View {
             Text("play.setup.activeConflict.message")
         }
         .sheet(isPresented: $showsGameRules) {
-            GameRulesGuideView(initialMode: learnToPlayMatchType)
+            if let matchType = learnToPlayMatchType {
+                GameRulesGuideView(initialMode: matchType)
+            }
         }
         .sheet(isPresented: $showsCustomBotSheet) {
             CustomBotCreationSheet { name, metrics in
@@ -88,31 +91,115 @@ struct SetupHomeView: View {
                 startTask = Task { await setupViewModel.addCustomBot(name: name, metrics: metrics) }
             }
         }
-        .onDisappear { startTask?.cancel() }
-    }
-
-    private var learnToPlayMatchType: MatchType {
-        if setupViewModel.setupCategory == .party {
-            switch setupViewModel.partyGame {
-            case .baseball: return .baseball
-            case .killer: return .killer
-            case .shanghai: return .shanghai
+        .sheet(isPresented: $showsModePicker) {
+            ModePickerSheet(selectedEntryId: selectedCatalogEntry?.id) { entry in
+                if let selection = entry.pendingModeSelection {
+                    setupViewModel.applyPendingModeSelection(selection)
+                }
+                showsModePicker = false
             }
         }
-        return setupViewModel.mode.matchType
+        .sheet(isPresented: $showsAddPlayerSheet) {
+            PlayerEditSheet(
+                viewModel: PlayerEditViewModel(
+                    existingNames: setupViewModel.availableHumans.map(\.name),
+                    editing: nil
+                ),
+                existing: nil,
+                onSave: { player in
+                    await setupViewModel.createHumanPlayer(player)
+                }
+            )
+        }
+        .onDisappear {
+            startTask?.cancel()
+        }
+    }
+
+    private var learnToPlayMatchType: MatchType? {
+        let candidate: MatchType = {
+            if let selected = setupViewModel.selectedCatalogMatchType {
+                return selected
+            }
+            if setupViewModel.setupCategory == .party {
+                switch setupViewModel.partyGame {
+                case .baseball: return .baseball
+                case .killer: return .killer
+                case .shanghai: return .shanghai
+                }
+            }
+            return setupViewModel.mode.matchType
+        }()
+        return GameRulesCatalog.hasGuide(for: candidate) ? candidate : nil
+    }
+
+    private var compactSetupContent: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            setupHeader
+            selectedModeHeader
+            if showsEditOptions {
+                modeOptionChips
+            }
+            setupValidationSection
+            rosterControls
+            selectedRosterSection
+            availablePlayerList
+        }
+    }
+
+    private var wideSetupContent: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            setupHeader
+            HStack(alignment: .top, spacing: DS.Spacing.s4) {
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    selectedModeHeader
+                    if showsEditOptions {
+                        modeOptionChips
+                    }
+                    setupValidationSection
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    rosterControls
+                    selectedRosterSection
+                    availablePlayerList
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var setupHeader: some View {
+        BrandAppTitle()
+            .padding(.top, DS.Spacing.s2)
+        if case let .readyWithActiveMatch(match) = homeViewModel.state {
+            resumeBanner(match)
+        }
+    }
+
+    @ViewBuilder
+    private var setupValidationSection: some View {
+        if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize),
+           !setupViewModel.displayValidationErrors.isEmpty {
+            setupInlineValidationHints
+        }
     }
 
     private var learnToPlayButton: some View {
         Button { showsGameRules = true } label: {
-            Image(systemName: "book.pages")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(Brand.green)
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
+            HStack(spacing: 6) {
+                Image(systemName: "book.pages")
+                Text(L10n.gameRulesLearnButton)
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(Brand.green)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(L10n.gameRulesLearnButton)
-        .accessibilityHint(L10n.string("play.rules.learnButton.hint"))
         .accessibilityIdentifier("setup_learnToPlayButton")
     }
 
@@ -141,9 +228,13 @@ struct SetupHomeView: View {
             )
         )
         .accessibilityIdentifier("resumeMatchButton")
+        .motionBannerEntrance()
     }
 
     private var selectedCatalogEntry: GameModeCatalogEntry? {
+        if let matchType = setupViewModel.selectedCatalogMatchType {
+            return GameModeCatalog.entry(for: matchType)
+        }
         if setupViewModel.setupCategory == .party {
             switch setupViewModel.partyGame {
             case .baseball: return GameModeCatalog.entry(for: .baseball)
@@ -161,25 +252,29 @@ struct SetupHomeView: View {
             Text(L10n.string("play.setup.selectedMode"))
                 .font(.headline)
                 .foregroundStyle(Brand.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+                .accessibilityHidden(true)
 
             HStack(alignment: .top, spacing: DS.Spacing.s3) {
-                learnToPlayButton
-                if let entry = selectedCatalogEntry, let matchType = entry.matchType {
-                    GameModeBadge(type: matchType, size: 36)
+                HStack(alignment: .top, spacing: DS.Spacing.s3) {
+                    if let entry = selectedCatalogEntry, let matchType = entry.matchType {
+                        GameModeBadge(type: matchType, size: 36)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title"))
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(Brand.textPrimary)
+                        Text(modeConfigSummary)
+                            .font(.subheadline)
+                            .foregroundStyle(Brand.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title"))
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(Brand.textPrimary)
-                        .accessibilityIdentifier("setup_selectedModeName")
-                    Text(modeConfigSummary)
-                        .font(.subheadline)
-                        .foregroundStyle(Brand.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(selectedModeAccessibilityLabel)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("setup_selectedModeName")
                 Spacer(minLength: 0)
-                Button(action: onChangeMode) {
+                Button(action: changeModeTapped) {
                     Text(L10n.string("play.setup.changeMode"))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Brand.green)
@@ -193,48 +288,124 @@ struct SetupHomeView: View {
             .padding(DS.Spacing.s3)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
 
-            HStack {
-                Spacer(minLength: 0)
-                Button {
-                    showsEditOptions.toggle()
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(L10n.string(showsEditOptions ? "play.setup.hideOptions" : "play.setup.editOptions"))
-                            .font(.subheadline.weight(.semibold))
-                        Image(systemName: showsEditOptions ? "chevron.up" : "chevron.down")
-                            .font(.caption.weight(.semibold))
-                            .accessibilityHidden(true)
-                    }
-                    .foregroundStyle(Brand.green)
-                    .padding(.horizontal, DS.Spacing.s2)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("setup_editOptionsButton")
+            if learnToPlayMatchType != nil {
+                learnToPlayButton
             }
+
+            if hasModeOptionChips {
+                HStack {
+                    Spacer(minLength: 0)
+                    Button {
+                        showsEditOptions.toggle()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(L10n.string(showsEditOptions ? "play.setup.hideOptions" : "play.setup.editOptions"))
+                                .font(.subheadline.weight(.semibold))
+                            Image(systemName: showsEditOptions ? "chevron.up" : "chevron.down")
+                                .font(.caption.weight(.semibold))
+                                .accessibilityHidden(true)
+                        }
+                        .foregroundStyle(Brand.green)
+                        .padding(.horizontal, DS.Spacing.s2)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("setup_editOptionsButton")
+                }
+            }
+        }
+    }
+
+    private var activeMatchTypeForSetupOptions: MatchType? {
+        if let selected = setupViewModel.selectedCatalogMatchType {
+            return selected
+        }
+        if setupViewModel.setupCategory == .party {
+            switch setupViewModel.partyGame {
+            case .baseball: return .baseball
+            case .killer: return .killer
+            case .shanghai: return .shanghai
+            }
+        }
+        return setupViewModel.mode.matchType
+    }
+
+    private var hasModeOptionChips: Bool {
+        guard let matchType = activeMatchTypeForSetupOptions else { return false }
+        switch matchType {
+        case .mickeyMouse, .mulligan,
+             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+            return false
+        default:
+            return true
         }
     }
 
     @ViewBuilder
     private var modeOptionChips: some View {
-        if setupViewModel.setupCategory == .standard {
-            if setupViewModel.mode == .x01 {
-                chipsGrid
-            } else {
-                cricketChipsGrid
-            }
-        } else if setupViewModel.partyGame == .baseball {
+        switch activeMatchTypeForSetupOptions {
+        case .x01:
+            chipsGrid
+        case .cricket:
+            cricketChipsGrid
+        case .americanCricket:
+            americanCricketChipsGrid
+        case .baseball:
             baseballChipsGrid
-        } else if setupViewModel.partyGame == .killer {
+        case .killer:
             killerChipsGrid
-        } else if setupViewModel.partyGame == .shanghai {
+        case .shanghai:
             shanghaiChipsGrid
+        case .englishCricket:
+            englishCricketChipsGrid
+        case .knockout:
+            knockoutChipsGrid
+        case .suddenDeath:
+            suddenDeathChipsGrid
+        case .fiftyOneByFives:
+            fiftyOneByFivesChipsGrid
+        case .golf:
+            golfChipsGrid
+        case .football:
+            footballChipsGrid
+        case .fleet:
+            fleetChipsGrid
+        case .raid:
+            raidChipsGrid
+        case .grandNational:
+            grandNationalChipsGrid
+        case .hareAndHounds:
+            hareAndHoundsChipsGrid
+        case .aroundTheClock:
+            aroundTheClockChipsGrid
+        case .aroundTheClock180:
+            aroundTheClock180ChipsGrid
+        case .chaseTheDragon:
+            chaseTheDragonChipsGrid
+        case .nineLives:
+            nineLivesChipsGrid
+        case .mickeyMouse, .mulligan,
+             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt, .none:
+            EmptyView()
         }
     }
 
     private var modeConfigSummary: String {
         selectedCatalogEntry?.blurb ?? ""
+    }
+
+    private var selectedModeAccessibilityLabel: String {
+        let name = selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title")
+        return L10n.format("play.setup.selectedMode.accessibilityFormat", name, modeConfigSummary)
+    }
+
+    private func changeModeTapped() {
+        if ProductSurface.showsModesTab {
+            onChangeMode()
+        } else {
+            showsModePicker = true
+        }
     }
 
     private var startButton: some View {
@@ -257,6 +428,7 @@ struct SetupHomeView: View {
             if !GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
                 ForEach(setupViewModel.displayValidationErrors, id: \.self) { key in
                     ErrorBanner(messageKey: key)
+                        .accessibilityHidden(true)
                 }
             }
         }
@@ -284,338 +456,6 @@ struct SetupHomeView: View {
             canStart: setupViewModel.canStart,
             validationErrors: setupViewModel.validationErrors
         )
-    }
-
-    private var rosterControls: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: DS.Spacing.s3) {
-                    randomOrderToggle
-                    rosterActionButtons
-                }
-            } else {
-                HStack {
-                    randomOrderToggle
-                    Spacer()
-                    rosterActionButtons
-                }
-            }
-        }
-        .padding(.top, DS.Spacing.s2)
-    }
-
-    private var randomOrderToggle: some View {
-        Button { setupViewModel.randomOrder.toggle() } label: {
-            HStack(spacing: 8) {
-                Image(systemName: setupViewModel.randomOrder ? "checkmark.square.fill" : "square")
-                    .foregroundStyle(setupViewModel.randomOrder ? Brand.green : Brand.textSecondary)
-                    .accessibilityHidden(true)
-                Text(L10n.setupRandomOrder).foregroundStyle(Brand.textPrimary)
-            }
-            .frame(minHeight: 44, alignment: .leading)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(L10n.setupRandomOrder)
-        .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
-    }
-
-    /// Killer, baseball, and Shanghai allow preset difficulty bots only.
-    private var showsBotMenu: Bool {
-        setupViewModel.setupCategory != .party
-            || setupViewModel.partyGame == .baseball
-            || setupViewModel.partyGame == .shanghai
-            || setupViewModel.partyGame == .killer
-    }
-
-    private var showsTrainingAndCustomBots: Bool {
-        setupViewModel.setupCategory != .party || setupViewModel.partyGame == .baseball || setupViewModel.partyGame == .shanghai
-    }
-
-    private var rosterActionButtons: some View {
-        HStack(spacing: DS.Spacing.s2) {
-            if showsBotMenu {
-            Menu {
-                if showsTrainingAndCustomBots {
-                    if !setupViewModel.availableTrainingBots.isEmpty {
-                        Section(L10n.trainingBotSetupSection) {
-                            ForEach(setupViewModel.availableTrainingBots) { bot in
-                                Button {
-                                    setupViewModel.addTrainingBot(bot.id)
-                                } label: {
-                                    Label {
-                                        Text(bot.name)
-                                    } icon: {
-                                        Circle()
-                                            .fill(PlayerVisualViews.trainingBotColor(linkedToken: bot.colorToken))
-                                            .frame(width: 10, height: 10)
-                                    }
-                                }
-                                .accessibilityIdentifier("training_bot_add_setup")
-                            }
-                        }
-                    }
-                    if !setupViewModel.availableCustomBots.isEmpty {
-                        Section(L10n.customBotSetupSection) {
-                            ForEach(setupViewModel.availableCustomBots) { bot in
-                                Button {
-                                    setupViewModel.addExistingCustomBot(bot.id)
-                                } label: {
-                                    Text(bot.name)
-                                }
-                            }
-                        }
-                    }
-                }
-                Section(L10n.addBotTitle) {
-                    if showsTrainingAndCustomBots {
-                        Button {
-                            showsCustomBotSheet = true
-                        } label: {
-                            Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
-                        }
-                    }
-                    ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
-                        botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
-                    }
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "cpu")
-                        .accessibilityHidden(true)
-                    Text(L10n.addBotTitle).font(.subheadline.weight(.semibold))
-                }
-                .foregroundStyle(Brand.textPrimary)
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s3)
-                .frame(minHeight: 44)
-                .background(Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-                .overlay(RoundedRectangle(cornerRadius: DS.Radius.sm).stroke(Brand.textSecondary.opacity(0.35), lineWidth: 1))
-            }
-            .accessibilityLabel(L10n.addBotTitle)
-            }
-            Button { onQuickAddPlayer() } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "person.badge.plus")
-                        .accessibilityHidden(true)
-                    Text(L10n.setupAddPlayers).font(.subheadline.weight(.semibold))
-                }
-                .foregroundStyle(Brand.textPrimary)
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s3)
-                .frame(minHeight: 44)
-                .background(Brand.green, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(L10n.setupAddPlayers)
-        }
-    }
-
-    private func botMenuButton(_ title: String, difficulty: BotDifficulty, color: Color) -> some View {
-        Button {
-            startTask?.cancel()
-            startTask = Task { await setupViewModel.addBot(difficulty) }
-        } label: {
-            Label {
-                Text(title)
-            } icon: {
-                Circle().fill(color).frame(width: 10, height: 10)
-            }
-        }
-        .accessibilityIdentifier("add_bot_\(difficulty.rawValue)")
-    }
-
-    @ViewBuilder
-    private var selectedRosterSection: some View {
-        if !setupViewModel.selectedPlayers.isEmpty {
-            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                Text(L10n.setupTurnOrder)
-                    .font(.headline)
-                    .foregroundStyle(Brand.textPrimary)
-                if setupViewModel.randomOrder {
-                    Text(L10n.setupTurnOrderRandomHint)
-                        .font(.footnote)
-                        .foregroundStyle(Brand.textSecondary)
-                }
-                List {
-                    ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
-                        selectedRosterRow(player: player, position: index + 1)
-                            .listRowBackground(Brand.card)
-                            .listRowSeparatorTint(Brand.cardElevated)
-                            .listRowInsets(
-                                EdgeInsets(
-                                    top: turnOrderRowVerticalInset,
-                                    leading: DS.Spacing.s1,
-                                    bottom: turnOrderRowVerticalInset,
-                                    trailing: DS.Spacing.s1
-                                )
-                            )
-                    }
-                    .onMove { source, destination in
-                        setupViewModel.moveSelectedPlayers(from: source, to: destination)
-                    }
-                }
-                .listStyle(.plain)
-                .listRowSpacing(0)
-                .scrollContentBackground(.hidden)
-                .scrollDisabled(true)
-                .environment(
-                    \.editMode,
-                    .constant(
-                        GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
-                            ? .inactive
-                            : .active
-                    )
-                )
-                .frame(height: turnOrderListHeight)
-                .accessibilityIdentifier("setup_turnOrderList")
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var availablePlayerList: some View {
-        if setupViewModel.isRosterEmpty {
-            Text(L10n.setupPlayersEmptyHint)
-                .font(.footnote)
-                .foregroundStyle(Brand.textSecondary)
-        } else if !setupViewModel.availableHumans.isEmpty || !setupViewModel.availableBots.isEmpty {
-            VStack(alignment: .leading, spacing: DS.Spacing.s3) {
-                if !setupViewModel.availableBots.isEmpty {
-                    Text(L10n.botsSectionTitle).font(.headline).foregroundStyle(Brand.textPrimary)
-                    botRosterList
-                }
-                if !setupViewModel.availableHumans.isEmpty {
-                    Text(L10n.addToMatchSection)
-                        .font(.headline)
-                        .foregroundStyle(Brand.textPrimary)
-                    humanRosterList
-                }
-            }
-        }
-    }
-
-    private func selectedRosterRow(player: PlayerSummary, position: Int) -> some View {
-        HStack(spacing: DS.Spacing.s3) {
-            HStack(spacing: DS.Spacing.s3) {
-                Text(L10n.format("common.playerOrdinal", position))
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(Brand.textSecondary)
-                    .frame(width: 28, alignment: .leading)
-                PlayerRosterAvatar(
-                    avatarStyle: player.avatarStyle,
-                    colorToken: player.colorToken,
-                    size: 28
-                )
-                Text(player.name)
-                    .font(.headline)
-                    .foregroundStyle(Brand.textPrimary)
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(
-                L10n.format("play.setup.turnOrder.rowAccessibilityFormat", position, player.name)
-            )
-            .accessibilityIdentifier("setup_selected_\(player.name)")
-            Spacer()
-            if let difficulty = player.botDifficulty {
-                BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
-            } else if player.isCustomBot, let metrics = player.customBotMetrics {
-                CustomBotBadge(metrics: metrics, prominence: .compact)
-            }
-            Button {
-                setupViewModel.removeFromSelection(player.id)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(Brand.textSecondary)
-            }
-            .buttonStyle(.plain)
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-            .accessibilityLabel(L10n.setupRemoveFromMatch)
-            .accessibilityIdentifier("setup_remove_\(player.name)")
-        }
-        .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
-            setupViewModel.removeFromSelection(player.id)
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                setupViewModel.removeFromSelection(player.id)
-            } label: {
-                Text(L10n.setupRemoveFromMatch)
-            }
-            .accessibilityLabel(L10n.setupRemoveFromMatch)
-            .accessibilityIdentifier("setup_remove_\(player.name)")
-        }
-    }
-
-    private var botRosterList: some View {
-        VStack(spacing: 0) {
-            ForEach(setupViewModel.availableBots) { bot in
-                rosterRow(
-                    player: bot,
-                    accessibilityId: "select_bot_\(bot.botDifficultyRaw ?? "unknown")"
-                )
-                Divider().overlay(Brand.cardElevated)
-            }
-        }
-    }
-
-    private var humanRosterList: some View {
-        VStack(spacing: 0) {
-            ForEach(setupViewModel.availableHumans) { player in
-                rosterRow(
-                    player: player,
-                    accessibilityId: "select_\(player.name)"
-                )
-                Divider().overlay(Brand.cardElevated)
-            }
-        }
-    }
-
-    private func rosterRow(player: PlayerSummary, accessibilityId: String) -> some View {
-        Button { setupViewModel.togglePlayer(player.id) } label: {
-            HStack(spacing: DS.Spacing.s3) {
-                PlayerRosterAvatar(
-                    avatarStyle: player.avatarStyle,
-                    colorToken: player.colorToken,
-                    size: 28
-                )
-                Text(player.name)
-                    .font(.headline)
-                    .foregroundStyle(Brand.textSecondary)
-                Spacer()
-                if let difficulty = player.botDifficulty {
-                    BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
-                } else if player.isCustomBot, let metrics = player.customBotMetrics {
-                    CustomBotBadge(metrics: metrics, prominence: .compact)
-                }
-                Image(systemName: "plus.circle")
-                    .foregroundStyle(Brand.green)
-                    .accessibilityHidden(true)
-            }
-            .frame(minHeight: 44)
-            .padding(.vertical, DS.Spacing.s3)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(nameAccessibilityLabel(for: player))
-        .accessibilityHint(L10n.string("play.setup.playerRow.accessibilityHint"))
-        .accessibilityIdentifier(accessibilityId)
-    }
-
-    private func nameAccessibilityLabel(for player: PlayerSummary) -> String {
-        if let difficulty = player.botDifficulty {
-            return L10n.format("players.bots.roster.accessibilityFormat", player.name, difficulty.displayName)
-        }
-        return player.name
-    }
-
-    private var turnOrderListHeight: CGFloat {
-        let count = setupViewModel.selectedPlayers.count
-        guard count > 0 else { return 0 }
-        let contentHeight = max(rosterRowHeight, 44)
-        let rowHeight = contentHeight + (turnOrderRowVerticalInset * 2)
-        return CGFloat(count) * rowHeight
     }
 
     private var setupStickyShadowColor: Color {

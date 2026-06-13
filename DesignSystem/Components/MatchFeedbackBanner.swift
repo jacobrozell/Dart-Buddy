@@ -51,6 +51,9 @@ struct MatchFeedbackBanner: View {
         return 1.04
     }
 
+    /// Hold the entrance pulse briefly before easing back to resting scale.
+    private static let pulseSettleDelayNanoseconds: UInt64 = 500_000_000
+
     private func runEntranceAnimation() {
         guard animate, !reduceMotion else { return }
         if style == .bust {
@@ -60,7 +63,7 @@ struct MatchFeedbackBanner: View {
             pulse = false
             withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) { pulse = true }
             Task {
-                try? await Task.sleep(nanoseconds: 500_000_000)
+                try? await Task.sleep(nanoseconds: Self.pulseSettleDelayNanoseconds)
                 await MainActor.run {
                     withAnimation(.easeOut(duration: 0.2)) { pulse = false }
                 }

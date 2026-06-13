@@ -39,7 +39,8 @@ struct AppRouteRouter {
         case .resumeActive:
             actions.setSelectedTab(.play)
             do {
-                if let match = try await dependencies.matchRepository.fetchActiveMatch() {
+                if let match = try await dependencies.matchRepository.fetchActiveMatch(),
+                   ProductSurface.isMatchTypeReachable(match.type) {
                     actions.setPendingPlayResume(match)
                     return .applied
                 }
@@ -70,7 +71,7 @@ private extension TabDestination {
     var rootTab: MainTabView.RootTab {
         switch self {
         case .play: .play
-        case .modes: .modes
+        case .modes: ProductSurface.showsModesTab ? .modes : .play
         case .players: .players
         case .activity: .activity
         case .settings: .settings

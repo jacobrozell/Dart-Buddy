@@ -1,0 +1,86 @@
+# Enforces the conventions documented in CONTRIBUTING.md.
+# Thresholds are calibrated to the current codebase: errors gate CI, warnings
+# flag drift (oversized files/types) without blocking unrelated work.
+
+included:
+  - App
+  - Data
+  - DesignSystem
+  - Domain
+  - Features
+  - Intents
+  - Persistence
+  - Support
+
+opt_in_rules:
+  # CONTRIBUTING.md: "Avoid force operations." force_try/force_cast are on by
+  # default; this covers `!` unwraps. The sanctioned URL(string:)! literals in
+  # Support/Navigation carry inline disables.
+  - force_unwrapping
+
+force_unwrapping:
+  severity: error
+
+# Single-character names are established local idiom (lerp's a/b/t, DemoSeeder's d).
+# Underscores are allowed for schema versions (SchemaV2_0_0), release locks, and lean1_0.
+identifier_name:
+  min_length:
+    warning: 1
+    error: 1
+  allowed_symbols: ["_"]
+
+type_name:
+  excluded:
+    - DS # DesignSystem token namespace
+  allowed_symbols: ["_"]
+
+# Stub repositories keep one-line protocol stubs; reset inventory has long literals.
+line_length:
+  warning: 240
+  error: 400
+  ignores_comments: true
+  ignores_urls: true
+
+# CONTRIBUTING.md suggests splitting view files past ~400 lines; thresholds sit
+# above today's largest files (DartBotEngine 1025) so only further growth flags.
+file_length:
+  warning: 850
+  error: 1500
+
+type_body_length:
+  warning: 800
+  error: 1400
+
+function_body_length:
+  warning: 100
+  error: 300
+
+function_parameter_count:
+  warning: 8
+  error: 13
+
+cyclomatic_complexity:
+  warning: 15
+  error: 30
+  ignores_case_statements: true
+
+# Engines return (lower, upper, fraction) style triples.
+large_tuple:
+  warning: 3
+  error: 4
+
+nesting:
+  type_level: 2
+  function_level: 3
+
+custom_rules:
+  no_print_statements:
+    name: "No print()"
+    regex: '^\s*print\('
+    message: "Use AppLogger instead of print() in production code."
+    severity: error
+  raw_task_sleep_literal:
+    name: "Named sleep durations"
+    regex: 'Task\.sleep\(nanoseconds:\s*\d'
+    message: "Name timing constants (see Support/Gameplay/BotTurnPacing.swift) instead of inline literals."
+    severity: error

@@ -12,16 +12,30 @@ struct GameModeSectionTests {
     }
 
     @Test
-    func shippedModesLiveInStandardOrPartySections() {
+    func shippedModesHaveValidSections() {
         for entry in GameModeCatalog.available {
-            #expect(entry.section == .standard || entry.section == .party)
+            #expect(GameModeSection.allCases.contains(entry.section))
         }
     }
 
     @Test
-    func practiceSectionContainsOnlyPlannedModesToday() {
+    func practiceSectionContainsShippedDrillsOnDev() {
         let practice = GameModeCatalog.entries(in: .practice)
         #expect(!practice.isEmpty)
-        #expect(practice.allSatisfy { !$0.isAvailable })
+        #expect(practice.contains { $0.isAvailable })
+    }
+
+    @Test
+    func coopSectionListsRaidAndPlannedModes() {
+        let coop = GameModeCatalog.entries(in: .coop)
+        #expect(coop.count == 4)
+        #expect(coop.map(\.id) == [
+            "coop.raid",
+            "coop.cerberus",
+            "coop.theVault",
+            "coop.clearTheBoard"
+        ])
+        #expect(coop.filter(\.isAvailable).map(\.id) == ["coop.raid"])
+        #expect(coop.filter { !$0.isAvailable }.count == 3)
     }
 }

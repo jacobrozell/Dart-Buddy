@@ -100,7 +100,8 @@ public enum X01Engine {
         if config.setsEnabled, (config.setsToWin ?? 0) <= 0 {
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.x01.invalidSetCount")
         }
-        guard playerIds.count >= 2 else {
+        // X01 allows a single player (solo practice); multiplayer just adds opponents.
+        guard playerIds.count >= 1 else {
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.players.minimum")
         }
         let opensImmediately = config.checkInMode == .straightIn

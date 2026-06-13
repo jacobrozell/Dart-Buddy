@@ -4,7 +4,14 @@ import Testing
 @Suite("Match config text", .tags(.unit, .history, .setupFlow, .regression))
 struct MatchConfigTextTests {
     @Test
-    func modeLabelsCoverEveryMatchType() {
+    func modeLabelsCoverEveryShippedMatchType() {
+        for type in GameModeCatalog.all.filter({ $0.status == .shipped }).compactMap(\.matchType) {
+            #expect(!MatchConfigText.modeLabel(for: type).isEmpty)
+        }
+    }
+
+    @Test
+    func modeLabelsCoverLegacyLeanSurfaceModes() {
         for type in [MatchType.x01, .cricket, .baseball, .killer, .shanghai] {
             #expect(!MatchConfigText.modeLabel(for: type).isEmpty)
         }
@@ -152,5 +159,26 @@ struct MatchConfigTextTests {
         #expect(winner.contains(L10n.string("history.standing.winnerRole")))
         #expect(!loser.contains(L10n.string("history.standing.winnerRole")))
         #expect(loser.contains("121"))
+    }
+
+    @Test
+    func cricketDetailPartsIncludeSetsWhenEnabled() {
+        let config = MatchConfigCricket(pointsEnabled: true, legsToWin: 2, setsEnabled: true, setsToWin: 3)
+        let parts = MatchConfigText.cricketDetailParts(from: config)
+        #expect(parts.contains { $0.contains("3") })
+        #expect(parts.contains { $0.contains("2") })
+    }
+
+    @Test
+    func x01DetailPartsUseSingularCopyForSingleSetAndLeg() {
+        let config = MatchConfigX01(
+            startScore: 501,
+            legsToWin: 1,
+            setsEnabled: true,
+            setsToWin: 1,
+            checkoutMode: .doubleOut
+        )
+        let parts = MatchConfigText.x01DetailParts(from: config)
+        #expect(parts.filter { $0.contains("1") }.count >= 2)
     }
 }

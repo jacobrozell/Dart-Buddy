@@ -3,12 +3,17 @@ import SwiftUI
 /// Catalog row for one game mode in the Modes tab.
 struct GameModeCatalogCard: View {
     let entry: GameModeCatalogEntry
+    /// When set, overrides `entry.isAvailable` for tap + badge behavior (Play setup picker).
+    var isSelectable: Bool?
+    var isSelected = false
     var onSelect: (() -> Void)?
     var onLearnRules: (() -> Void)?
 
+    private var selectable: Bool { isSelectable ?? entry.isAvailable }
+
     var body: some View {
         Group {
-            if entry.isAvailable {
+            if selectable {
                 Button(action: { onSelect?() }) {
                     cardContent
                 }
@@ -20,7 +25,11 @@ struct GameModeCatalogCard: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(cardAccessibilityLabel)
-        .accessibilityAddTraits(entry.isAvailable ? .isButton : [])
+        // The combined label drops the visible player-count text; surface it as the
+        // element's value so VoiceOver still announces "1+ players" / "1 player".
+        .accessibilityValue(entry.playerCountLabel)
+        .accessibilityAddTraits(selectable ? .isButton : [])
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier("modes_card_\(entry.id)")
     }
 
@@ -39,7 +48,12 @@ struct GameModeCatalogCard: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Brand.textPrimary)
                         Spacer(minLength: 0)
-                        if !entry.isAvailable {
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(Brand.green)
+                                .accessibilityHidden(true)
+                        } else if !selectable {
                             StatusBadge(
                                 text: L10n.string("play.party.comingSoon"),
                                 color: Brand.textSecondary
@@ -60,6 +74,7 @@ struct GameModeCatalogCard: View {
                 Button(action: onLearnRules) {
                     HStack(spacing: 4) {
                         Image(systemName: "book.pages")
+                            .accessibilityHidden(true)
                         Text(L10n.gameRulesLearnButton)
                             .font(.caption.weight(.semibold))
                     }
@@ -79,7 +94,14 @@ struct GameModeCatalogCard: View {
     }
 
     private var cardAccessibilityLabel: String {
-        if entry.isAvailable {
+        if selectable {
+            if isSelected {
+                return L10n.format(
+                    "modes.card.selectedAccessibilityFormat",
+                    entry.localizedName,
+                    entry.localizedBlurb
+                )
+            }
             return L10n.format("modes.card.availableAccessibilityFormat", entry.localizedName, entry.localizedBlurb)
         }
         return L10n.format(

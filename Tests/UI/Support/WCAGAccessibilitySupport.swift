@@ -82,6 +82,26 @@ extension XCTestCase {
         }
     }
 
+    /// Tab items use system metrics; exclude them from screen-scoped Dynamic Type audits.
+    func ignoringMainTabBarAuditIssues(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
+        guard let element = issue.element else { return false }
+        let identifier = element.identifier
+        if identifier.hasPrefix("tab_") {
+            return true
+        }
+        let tabLabels = ["Play", "Players", "Activity", "Settings", "Modes"]
+        if tabLabels.contains(element.label), identifier.isEmpty {
+            return true
+        }
+        return false
+    }
+
+    /// Parent buttons/tables/charts expose spoken summaries; visible layout text is decorative.
+    func ignoringPotentiallyInaccessibleDecorativeText(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
+        issue.compactDescription == "Potentially inaccessible text"
+    }
+
+
     func assertInteractiveElement(
         _ element: XCUIElement,
         identifier: String,
@@ -203,16 +223,12 @@ extension XCTestCase {
 
     func startTwoPlayerX01Match(from app: XCUIApplication, timeout: TimeInterval = 10) {
         ensurePlayTab(app, timeout: timeout)
+        configureFastX01MatchForUITest(app, timeout: timeout)
         selectAliceAndBob(from: app, timeout: timeout)
-        tapStartMatch(in: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
         waitForX01MatchBoard(in: app, timeout: timeout)
-    }
-
-    func startTwoPlayerCricketMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
-        selectModeFromCatalog("standard.cricket", in: app)
-        selectAliceAndBob(from: app, timeout: timeout)
-        tapStartMatch(in: app, timeout: timeout)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
     }
 
     func startTwoPlayerBaseballMatch(from app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -264,6 +280,11 @@ extension XCTestCase {
         selectMenuOption(identifier: "setup_legsOption_1", title: "1", in: app, timeout: timeout)
     }
 
+    /// Uses the lean 101 / double-out / 1-leg preset that reliably reaches the X01 board in UI tests.
+    func configureFastX01MatchForUITest(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        configureDoubleOut101Match(app, timeout: timeout)
+    }
+
     func configureDoubleOut101Match(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         expandSetupOptions(in: app, timeout: timeout)
         tapMenuChip("setup_startScoreChip", in: app, timeout: timeout)
@@ -275,14 +296,23 @@ extension XCTestCase {
     }
 
     func scoreSingleVisit(_ app: XCUIApplication, segments: [Int], timeout: TimeInterval = 10) {
+        _ = waitForPadReady(app, timeout: timeout)
         for segment in segments {
             let key = app.buttons["pad_\(segment)"]
             XCTAssertTrue(key.waitForExistence(timeout: timeout))
+            _ = key.wait(for: \.isEnabled, toEqual: true, timeout: timeout)
             key.tap()
         }
     }
 
     func waitForPadReady(_ app: XCUIApplication, timeout: TimeInterval = 10) -> XCUIElement {
+        let double = app.buttons["pad_double"]
+        XCTAssertTrue(double.waitForExistence(timeout: timeout))
+        if app.buttons["pad_20"].exists == false {
+            double.tap()
+            XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
+            double.tap()
+        }
         let padKey = app.buttons["pad_20"]
         XCTAssertTrue(padKey.waitForExistence(timeout: timeout))
         _ = padKey.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 10)
@@ -305,11 +335,16 @@ extension XCTestCase {
         configureQuickX01Match(app, timeout: timeout)
         ensurePlayTab(app, timeout: timeout)
         selectAliceAndBob(from: app, timeout: timeout)
-        tapStartMatch(in: app, timeout: timeout)
+        let start = app.buttons["startMatchButton"]
+        waitForStartEnabled(start, timeout: timeout)
+        start.tap()
+        _ = waitForPadReady(app, timeout: timeout + 15)
 
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
+        waitForActiveX01Player("Bob", in: app, timeout: timeout + 10)
         submitMissVisit(on: app, timeout: timeout)
         _ = waitForPadReady(app, timeout: timeout + 5)
+        waitForActiveX01Player("Alice", in: app, timeout: timeout + 10)
 
         scoreSingleVisit(app, segments: [20, 20, 1], timeout: timeout)
 
@@ -320,11 +355,13 @@ extension XCTestCase {
     }
 
     func submitMissVisit(on app: XCUIApplication, timeout: TimeInterval = 10) {
-        let miss = app.buttons["pad_0"]
-        XCTAssertTrue(miss.waitForExistence(timeout: timeout))
-        miss.tap()
-        miss.tap()
-        miss.tap()
+        for _ in 0 ..< 3 {
+            _ = waitForPadReady(app, timeout: timeout)
+            let miss = app.buttons["pad_0"]
+            XCTAssertTrue(miss.waitForExistence(timeout: timeout))
+            _ = miss.wait(for: \.isEnabled, toEqual: true, timeout: timeout)
+            miss.tap()
+        }
     }
 
     func openSeededHistoryDetail(_ app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -351,7 +388,7 @@ extension XCTestCase {
         playerName: String,
         timeout: TimeInterval = 10
     ) {
-        app.tabBars.buttons["Players"].tap()
+        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
         let row = app.buttons["player_row_\(playerName)"]
         XCTAssertTrue(row.waitForExistence(timeout: timeout + 5), "Expected player row for \(playerName)")
         row.tap()

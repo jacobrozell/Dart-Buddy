@@ -157,44 +157,49 @@ struct ActivityRootView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, DS.Spacing.s6)
                 .accessibilityLabel(L10n.loading)
-        } else if historyViewModel.state == .error {
-            Text(LocalizedStringKey(historyViewModel.errorMessageKey ?? "error.repository.storage"))
-                .foregroundStyle(Brand.red)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, DS.Spacing.s6)
-        } else if historyViewModel.rows.isEmpty {
-            historyEmptyState
         } else {
-            ForEach(historyViewModel.rows) { row in
-                Button { historyPath.append(.detail(matchId: row.summary.id)) } label: {
-                    MatchHistoryCard(row: row)
-                }
-                .buttonStyle(.plain)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(row.accessibilitySummary)
-            }
-
-            if historyViewModel.hasMorePages {
-                Button {
-                    loadMoreTask?.cancel()
-                    loadMoreTask = Task { await historyViewModel.loadMore() }
-                } label: {
-                    Group {
-                        if historyViewModel.isLoadingMore {
-                            ProgressView().tint(Brand.green)
-                                .accessibilityLabel(L10n.loading)
-                        } else {
-                            Text(L10n.historyLoadMore)
-                                .font(.subheadline.weight(.semibold))
+            Group {
+                if historyViewModel.state == .error {
+                    Text(LocalizedStringKey(historyViewModel.errorMessageKey ?? "error.repository.storage"))
+                        .foregroundStyle(Brand.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Spacing.s6)
+                } else if historyViewModel.rows.isEmpty {
+                    historyEmptyState
+                } else {
+                    ForEach(historyViewModel.rows) { row in
+                        Button { historyPath.append(.detail(matchId: row.summary.id)) } label: {
+                            MatchHistoryCard(row: row)
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(row.accessibilitySummary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, DS.Spacing.s3)
+
+                    if historyViewModel.hasMorePages {
+                        Button {
+                            loadMoreTask?.cancel()
+                            loadMoreTask = Task { await historyViewModel.loadMore() }
+                        } label: {
+                            Group {
+                                if historyViewModel.isLoadingMore {
+                                    ProgressView().tint(Brand.green)
+                                        .accessibilityLabel(L10n.loading)
+                                } else {
+                                    Text(L10n.historyLoadMore)
+                                        .font(.subheadline.weight(.semibold))
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, DS.Spacing.s3)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Brand.green)
+                        .accessibilityIdentifier("historyLoadMoreButton")
+                    }
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(Brand.green)
-                .accessibilityIdentifier("historyLoadMoreButton")
             }
+            .motionTabContentReveal(when: true)
         }
     }
 
@@ -210,10 +215,15 @@ struct ActivityRootView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, DS.Spacing.s6)
                 .accessibilityLabel(L10n.loading)
-        } else if statisticsViewModel.rows.isEmpty {
-            statisticsEmptyState
         } else {
-            StatisticsTablesContent(viewModel: statisticsViewModel)
+            Group {
+                if statisticsViewModel.rows.isEmpty {
+                    statisticsEmptyState
+                } else {
+                    StatisticsTablesContent(viewModel: statisticsViewModel)
+                }
+            }
+            .motionTabContentReveal(when: true)
         }
     }
 
@@ -251,13 +261,18 @@ struct ActivityRootView: View {
 
     private func historyResumeBanner(_ match: MatchSummary) -> some View {
         Button { onResumeActiveMatch?(match) } label: {
-            HStack {
+            HStack(alignment: .top) {
                 Image(systemName: "play.circle.fill")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.resumeMatch).font(.headline)
-                    Text(MatchConfigText.modeLabel(for: match.type)).font(.caption).foregroundStyle(Brand.textSecondary)
+                    Text(L10n.resumeMatch)
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(MatchConfigText.modeLabel(for: match.type))
+                        .font(.caption)
+                        .foregroundStyle(Brand.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "chevron.right").foregroundStyle(Brand.textSecondary)
             }
             .foregroundStyle(Brand.textPrimary)
@@ -279,11 +294,13 @@ struct ActivityRootView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var statisticsPartialBanner: some View {
-        HStack(spacing: DS.Spacing.s2) {
+        HStack(alignment: .top, spacing: DS.Spacing.s2) {
             Image(systemName: "clock.arrow.circlepath")
                 .accessibilityHidden(true)
             Text(L10n.statsPartialMatchBanner)
                 .font(.footnote)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
         }
         .foregroundStyle(Brand.textPrimary)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -292,6 +309,8 @@ struct ActivityRootView: View {
             Brand.amber.opacity(colorScheme == .dark ? 0.32 : 0.22),
             in: RoundedRectangle(cornerRadius: DS.Radius.md)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.string("stats.partialMatchBanner.accessibility"))
         .accessibilityIdentifier("statsPartialMatchBanner")
     }
 
@@ -351,6 +370,7 @@ struct ActivityRootView: View {
 struct StatisticsTablesContent: View {
     @ObservedObject var viewModel: StatisticsViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s4) {
@@ -382,9 +402,10 @@ struct StatisticsTablesContent: View {
 
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
-            .font(.title2.weight(.bold))
+            .font((dynamicTypeSize.isAccessibilitySize ? Font.headline : Font.title2).weight(.bold))
             .foregroundStyle(Brand.textPrimary)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.top, DS.Spacing.s2)
     }
 

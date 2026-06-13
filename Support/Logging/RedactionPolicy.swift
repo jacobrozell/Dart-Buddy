@@ -9,27 +9,7 @@ public struct DefaultRedactionPolicy: RedactionPolicy {
     private let sensitiveKeyFragments: [String]
 
     public init(
-        allowedMetadataKeys: Set<String> = [
-            "errorCode",
-            "layer",
-            "matchId",
-            "matchType",
-            "playerId",
-            "settingsId",
-            "schemaVersion",
-            "fromSchema",
-            "toSchema",
-            "correlationId",
-            "operation",
-            "elapsedMs",
-            "participantCount",
-            "eventCount",
-            "legIndex",
-            "setIndex",
-            "status",
-            "source",
-            "isBot"
-        ],
+        allowedMetadataKeys: Set<String> = AnalyticsMetadataKeys.defaultRedactionAllowed,
         sensitiveKeyFragments: [String] = [
             "token",
             "secret",

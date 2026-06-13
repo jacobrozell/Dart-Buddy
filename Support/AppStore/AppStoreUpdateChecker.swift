@@ -7,6 +7,8 @@ struct AppStoreUpdateOffer: Sendable, Equatable {
 
 struct AppStoreUpdateChecker: Sendable {
     private static let dismissedStoreVersionKey = "app_store_update_dismissed_version"
+    // Verified literal URL.
+    // swiftlint:disable:next force_unwrapping
     private static let lookupURL = URL(string: "https://itunes.apple.com/lookup")!
 
     let bundleIdentifier: String

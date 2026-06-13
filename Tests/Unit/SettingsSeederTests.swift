@@ -15,7 +15,7 @@ func settingsSeederIsIdempotent() throws {
     let second = try seeder.seedDefaultsIfNeeded(in: context)
 
     #expect(first.id == second.id)
-    let allSettings = try context.fetch(FetchDescriptor<SchemaV2.SettingsRecord>())
+    let allSettings = try context.fetch(FetchDescriptor<SchemaV3.SettingsRecord>())
     #expect(allSettings.count == 1)
 }
 

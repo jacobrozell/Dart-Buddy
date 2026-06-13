@@ -5,6 +5,13 @@ Define a reusable custom scoring input system for X01 and Cricket, including `Si
 
 ---
 
+## 1a. Entry Presentation
+The pad is the default **dart entry presentation**. An optional tappable visual
+dartboard presentation shares the same bindings and visit rules — see
+[`VisualDartboardInputSpec.md`](VisualDartboardInputSpec.md).
+
+---
+
 ## 2. MVP Goals
 - Fast one-hand input
 - Large touch targets for standing play
@@ -16,7 +23,7 @@ Define a reusable custom scoring input system for X01 and Cricket, including `Si
 ## 3. Component Model
 
 ## Shared Component
-- `ScoringInputPad` (SwiftUI reusable component)
+- **Scoring input pad** (concept) — implemented as `DartNumberPad` (SwiftUI reusable component)
 
 Modes:
 1. `totalEntry`
@@ -95,10 +102,10 @@ Turn submission:
 - Bulls use Cricket-specific mark and scoring rules.
 
 ## 7a. Baseball-Specific Behavior
-- Dart-by-dart entry only; pad segment locked to `currentInning` (see [`BaseballGameSpec.md`](BaseballGameSpec.md)).
+- Dart-by-dart entry only; pad segment locked to `currentInning` (see [`BaseballGameSpec.md`](game-modes/implemented/BaseballGameSpec.md)).
 - Multiplier maps to runs on active segment (S=1, D=2, T=3); off-segment = 0.
 - Bull appears on pad only during 7th-inning stretch (inning 7) or bull playoff phase.
-- See [`BaseballGameSpec.md`](BaseballGameSpec.md) for stretch gate and tie-breaker input rules.
+- See [`BaseballGameSpec.md`](game-modes/implemented/BaseballGameSpec.md) for stretch gate and tie-breaker input rules.
 
 ---
 
@@ -144,9 +151,9 @@ Turn submission:
 ## 12. Verification
 | Field | Value |
 |-------|--------|
-| **Last verified** | 2026-06-04 |
-| **Commit** | `0c25396` |
-| **Code** | `DesignSystem/Components/ScoringInputPad.swift` (and mode screens) |
+| **Last verified** | 2026-06-11 |
+| **Commit** | `340f788` |
+| **Code** | `DartNumberPad.swift` (X01/Cricket/party match screens) |
 
 ---
 

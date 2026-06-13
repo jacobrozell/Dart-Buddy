@@ -14,20 +14,21 @@ final class CricketMatchViewModel: ObservableObject {
     @Published private(set) var state: State = .readyTurn
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
     /// Fires after a visit is accepted so the UI can announce the visit total.
     @Published private(set) var turnTotalCallerSignal: TurnTotalCallerSignal?
 
     private var turnTotalCallerToken = 0
 
-    private let matchId: UUID
+    let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
     private let statsRepository: any StatsRepository
     private let feedbackPreferences: FeedbackPreferences
     private let turnSubmitter: MatchTurnSubmitter
+    private let botPlayback = MatchBotPlaybackLifecycle()
 
     init(
         matchId: UUID,
@@ -93,7 +94,7 @@ final class CricketMatchViewModel: ObservableObject {
         let highlightClosure = self.state == .closureTransition
         let config = state.config
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive = index == state.currentPlayerIndex && isInProgress
             return CricketBoardView.Column(
                 id: player.playerId,
@@ -122,14 +123,17 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     private func dartsThrown(for playerId: UUID) -> Int {
-        cricketTurnEvents(for: playerId).reduce(0) { sum, event in
-            sum + event.targetsTouched.filter { !$0.wasMiss }.count
-        }
+        StatsService.cricketDartsThrown(from: cricketTurnEvents(for: playerId))
     }
 
     private func previewVisitDarts(isActive: Bool) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return 0 }
-        return enteredDarts.filter { !$0.isMiss }.count
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return 0 }
+        return enteredDarts.count
     }
 
     private func previewDartsThrown(for playerId: UUID, isActive: Bool) -> Int {
@@ -143,7 +147,12 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     private func previewVisitMarks(isActive: Bool) -> Int {
-        guard isActive, canHumanInput || isBotPlaying else { return 0 }
+        guard MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) else { return 0 }
         guard let state = cricketState else { return 0 }
         let playerIndex = state.currentPlayerIndex
         let before = state.players[playerIndex].marks
@@ -166,13 +175,15 @@ final class CricketMatchViewModel: ObservableObject {
     private func previewMarksPerRound(for playerId: UUID, isActive: Bool) -> Double {
         let events = cricketTurnEvents(for: playerId)
         let marks = committedMarks(for: playerId) + previewVisitMarks(isActive: isActive)
-        let rounds = events.count + (isActive && !enteredDarts.isEmpty ? 1 : 0)
+        let includesPreviewRound = MatchVisitPreview.includesActiveVisit(
+            isActive: isActive,
+            canHumanInput: canHumanInput,
+            isBotPlaying: isBotPlaying,
+            isCurrentPlayerBot: isCurrentPlayerBot
+        ) && !enteredDarts.isEmpty
+        let rounds = events.count + (includesPreviewRound ? 1 : 0)
         guard rounds > 0 else { return 0 }
         return Double(marks) / Double(rounds)
-    }
-
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
     func submitTurn() async {
@@ -195,10 +206,28 @@ final class CricketMatchViewModel: ObservableObject {
             eventName: "match_screen_appeared",
             message: "Cricket match screen presented."
         )
+        MatchGameplaySessionSync.refreshStoredSession(matchId: matchId, store: store, into: &session)
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
         reconcileInterruptedBotPlayback()
-        await playBotTurnIfNeeded()
+        scheduleBotPlaybackIfNeeded()
+    }
+
+    func onDisappear() {
+        botPlayback.cancel { reconcileInterruptedBotPlayback() }
+    }
+
+    func recoverBotPlaybackIfNeeded() {
+        MatchBotPlaybackRecovery.recoverIfNeeded(
+            isBotTurn: isCurrentPlayerBot,
+            isBotPlaying: isBotPlaying,
+            reconcile: reconcileInterruptedBotPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
+    private func scheduleBotPlaybackIfNeeded() {
+        botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
 
     /// Restores play after the user undoes the finishing throw from the match summary.
@@ -210,8 +239,11 @@ final class CricketMatchViewModel: ObservableObject {
         state = .readyTurn
         enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
         isBotPlaying = false
+        if currentBotSkillProfile != nil {
+            enteredDarts.removeAll()
+        }
         if enteredDarts.isEmpty {
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         }
         return true
     }
@@ -220,8 +252,12 @@ final class CricketMatchViewModel: ObservableObject {
     private func reconcileInterruptedBotPlayback() {
         isBotPlaying = false
         enteredDarts.removeAll()
-        if state == .submittingTurn {
+        guard session?.runtime.status == .inProgress else { return }
+        switch state {
+        case .submittingTurn, .entryInvalid, .error, .matchCompleted, .closureTransition:
             state = .readyTurn
+        default:
+            break
         }
     }
 
@@ -245,7 +281,11 @@ final class CricketMatchViewModel: ObservableObject {
             message: "Bot visit generation started."
         )
 
-        enteredDarts.removeAll()
+        let partialVisitCount = enteredDarts.count
+        if partialVisitCount == 0 {
+            enteredDarts.removeAll()
+        }
+
         var rng = SystemRandomNumberGenerator()
         let plannedDarts = DartBotEngine.generateCricketTurn(
             state: cricketState,
@@ -253,22 +293,16 @@ final class CricketMatchViewModel: ObservableObject {
             profile: profile,
             rng: &rng
         )
+        let dartsToReveal = BotVisitPlayback.remainingPlannedDarts(
+            fullPlan: plannedDarts,
+            existingCount: partialVisitCount
+        )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-        for dart in plannedDarts {
-            do {
-                try await Task.sleep(nanoseconds: dartDelay)
-            } catch {
-                return false
-            }
-            enteredDarts.append(dart)
-        }
-
-        do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        } catch {
-            return false
-        }
+        guard await BotVisitPlayback.revealVisit(
+            dartsToReveal,
+            feedbackPreferences: feedbackPreferences,
+            append: { enteredDarts.append($0) }
+        ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
         return currentBotSkillProfile != nil && state == .readyTurn
@@ -276,39 +310,6 @@ final class CricketMatchViewModel: ObservableObject {
 
     /// Marks the match abandoned when the player leaves mid-match so it stops
     /// appearing as resumable. Completed matches are left untouched.
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-            logger.matchInfo(
-                matchId: matchId,
-                matchType: .cricket,
-                category: .appLifecycle,
-                eventName: "match_abandoned",
-                message: "Cricket match abandoned by user.",
-                metadata: ["eventCount": String(abandoned.runtime.eventCount)]
-            )
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .cricket,
-                category: .appLifecycle,
-                eventName: "cricket_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
-    }
-
     private func submitTurnAsync(fromBotPlayback: Bool = false) async {
         await loadSessionIfNeeded()
         guard let current = session else {
@@ -373,11 +374,11 @@ final class CricketMatchViewModel: ObservableObject {
                 )
                 if didCloseTarget {
                     state = .closureTransition
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds())
                 }
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {
-                    await playBotTurnIfNeeded()
+                    scheduleBotPlaybackIfNeeded()
                 }
             }
             enteredDarts.removeAll()
@@ -404,7 +405,7 @@ final class CricketMatchViewModel: ObservableObject {
                 message: "Last turn undone.",
                 metadata: MatchTurnSupport.matchProgressMetadata(for: undone)
             )
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {
@@ -432,6 +433,7 @@ final class CricketMatchViewModel: ObservableObject {
                 message: "In-progress throw undone.",
                 metadata: MatchTurnSupport.matchProgressMetadata(for: current)
             )
+            resumeBotPlaybackAfterUndoIfNeeded()
             return
         }
         do {
@@ -451,9 +453,7 @@ final class CricketMatchViewModel: ObservableObject {
                 message: "Last throw undone.",
                 metadata: MatchTurnSupport.matchProgressMetadata(for: result.session)
             )
-            if result.restoredDarts.isEmpty {
-                await playBotTurnIfNeeded()
-            }
+            resumeBotPlaybackAfterUndoIfNeeded()
         } catch is CancellationError {
             state = .readyTurn
         } catch {
@@ -468,57 +468,36 @@ final class CricketMatchViewModel: ObservableObject {
         }
     }
 
-    private func loadSessionIfNeeded() async {
+    private func resumeBotPlaybackAfterUndoIfNeeded() {
+        MatchBotUndoSupport.resumeAfterDartUndo(
+            isBotTurn: isCurrentPlayerBot,
+            partialVisitCount: enteredDarts.count,
+            isBotPlaying: &isBotPlaying,
+            reconcileSubmittingTurn: {
+                if case .submittingTurn = state { state = .readyTurn }
+            },
+            botPlayback: botPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
+    func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            logger.matchDebug(
-                matchId: matchId,
-                matchType: .cricket,
-                eventName: "match_session_resumed_from_memory",
-                message: "Loaded active match session from memory.",
-                metadata: MatchTurnSupport.matchProgressMetadata(for: existing)
-            )
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-            logger.matchInfo(
-                matchId: matchId,
-                matchType: .cricket,
-                eventName: "match_session_rehydrated",
-                message: "Rehydrated match session from snapshot.",
-                metadata: [
-                    "source": "snapshot",
-                    "eventCount": String(rehydrated.runtime.eventCount)
-                ]
-            )
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .cricket,
-                eventName: "match_session_load_failed",
-                message: "Failed to load match session.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "cricket.error.sessionMissing"))
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .cricket,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "cricket.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 
@@ -537,4 +516,12 @@ final class CricketMatchViewModel: ObservableObject {
             return prior < 3 && next >= 3
         }
     }
+}
+
+extension CricketMatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { isBotPlaying || state == .submittingTurn }
+    var hostMatchRepository: any MatchRepository { matchRepository }
+    var hostMatchStore: ActiveMatchStore { store }
+    var hostMatchLogger: any AppLogger { logger }
+    var hostMatchType: MatchType { .cricket }
 }

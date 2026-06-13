@@ -1,5 +1,11 @@
 # Auto-Scoring Vision Specification (Future R&D)
 
+> **Implementation status:** Phase A (guided calibration + assistive detection) is
+> implemented for X01 behind `enableVisionAutoScoring` (local QA: `-enable_vision_scoring`).
+> Domain logic lives in `Domain/Vision/` (geometry mapping, calibration, impact
+> detection, session state machine + commands); capture/UI in `Features/Play/Vision/`.
+> Phases B and C remain future work.
+
 ## 1. Purpose
 Define a future camera-based auto-scoring system where players start a session, point the camera at a dartboard, and scores are detected automatically.
 

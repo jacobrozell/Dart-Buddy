@@ -23,6 +23,7 @@ struct SetupValidationHint: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(LocalizedStringKey(messageKey)))
         .accessibilityIdentifier("setupValidationHint")
+        .motionBannerEntrance()
     }
 }
 
@@ -36,6 +37,7 @@ enum SetupValidationMessages {
         case "setup.validation.invalidLegs": return "setup.validation.invalidLegs.short"
         case "setup.validation.invalidSets": return "setup.validation.invalidSets.short"
         case "setup.validation.partyComingSoon": return "setup.validation.partyComingSoon.short"
+        case "setup.validation.coopComingSoon": return "setup.validation.coopComingSoon.short"
         case "setup.validation.partyMinimumPlayers": return "setup.validation.partyMinimumPlayers.short"
         case "setup.validation.partyKillerMinimumPlayers": return "setup.validation.partyKillerMinimumPlayers.short"
         case "setup.validation.killerBotsPresetOnly": return "setup.validation.killerBotsPresetOnly.short"

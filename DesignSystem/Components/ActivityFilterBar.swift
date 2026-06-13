@@ -7,6 +7,7 @@ struct ActivityFilterBar: View {
     @Binding var playerFilter: UUID?
     let playerOptions: [PlayerSummary]
     let selectedPlayerName: String?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(spacing: DS.Spacing.s2) {
@@ -21,22 +22,8 @@ struct ActivityFilterBar: View {
 
     private var modeFilterMenu: some View {
         Menu {
-            Button { modeFilter = .all } label: {
-                modeMenuLabel(for: .all)
-            }
-            ForEach(GameModeSection.allCases) { section in
-                let entries = GameModeCatalog.entries(in: section).filter(\.isAvailable)
-                if !entries.isEmpty {
-                    Section(L10n.string(section.titleKey)) {
-                        ForEach(entries) { entry in
-                            if let filter = ActivityModeFilter.from(catalogEntryId: entry.id) {
-                                Button { modeFilter = filter } label: {
-                                    modeMenuLabel(for: filter)
-                                }
-                            }
-                        }
-                    }
-                }
+            ForEach(ActivityModeFilter.visibleCases) { filter in
+                modeFilterButton(filter)
             }
         } label: {
             filterMenuLabel(
@@ -48,6 +35,13 @@ struct ActivityFilterBar: View {
         .accessibilityLabel(
             L10n.format("activity.filter.mode.accessibilityFormat", modeFilter.title)
         )
+    }
+
+    private func modeFilterButton(_ filter: ActivityModeFilter) -> some View {
+        Button { modeFilter = filter } label: {
+            modeMenuLabel(for: filter)
+        }
+        .accessibilityIdentifier("activityModeFilter_\(filter.rawValue)")
     }
 
     @ViewBuilder
@@ -114,8 +108,11 @@ struct ActivityFilterBar: View {
             Image(systemName: leadingSymbol)
                 .accessibilityHidden(true)
             Text(title)
-                .lineLimit(1)
-            Spacer()
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer(minLength: DS.Spacing.s2)
             Image(systemName: "chevron.down")
                 .font(.caption.weight(.semibold))
                 .accessibilityHidden(true)

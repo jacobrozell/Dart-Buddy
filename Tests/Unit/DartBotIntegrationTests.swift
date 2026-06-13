@@ -50,8 +50,9 @@ func setupRejectsSingleBot() async {
     await vm.addBot(.easy)
     vm.revalidate()
 
+    // Solo X01 is allowed, but a lone bot still can't start without a human.
     #expect(!vm.canStart)
-    #expect(vm.validationErrors.contains("setup.validation.minimumPlayers"))
+    #expect(vm.validationErrors.contains("setup.validation.requiresHuman"))
 }
 
 @MainActor
@@ -322,17 +323,21 @@ func x01ViewModelPlaysConsecutiveBotsAfterHumanTurn() async throws {
     )
     let store = ActiveMatchStore()
     store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
         logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
         matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
     )
     vm.inputMode = .totalEntry
     vm.totalEntryText = "60"
 
     await vm.submitTurn()
+    try await waitForX01EventCount(3, on: vm)
 
     #expect(vm.session?.events.count == 3)
     #expect(vm.isCurrentPlayerBot == false)
@@ -387,6 +392,64 @@ func x01ViewModelBotTurnSubmitsVisit() async throws {
     #expect(vm.isCurrentPlayerBot == false)
     #expect(vm.canHumanInput)
     #expect(vm.enteredDarts.isEmpty)
+
+    let botCard = try #require(vm.playerCards.first { $0.id == botId })
+    let botEvent = try #require(vm.session?.events.first.flatMap { envelope -> X01TurnEvent? in
+        guard case let .x01Turn(event) = envelope.payload else { return nil }
+        return event
+    })
+    #expect(botCard.dartsThrown == botEvent.effectiveDartsThrown)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelCountsBotVisitDartsWhileBotIsActive() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.medium.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.medium.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository()
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .single, segment: .oneToTwenty(20))
+    ]
+
+    let botCard = try #require(vm.playerCards.first { $0.id == botId })
+    #expect(vm.isCurrentPlayerBot)
+    #expect(!vm.isBotPlaying)
+    #expect(botCard.dartsThrown == 2)
 }
 
 @MainActor
@@ -490,10 +553,147 @@ func x01OnAppearRestartsBotAfterInterruptedTurn() async throws {
     #expect(!vm.isBotPlaying)
 
     await vm.onAppear()
+    try await waitForX01EventCount(1, on: vm)
 
     #expect(vm.session?.events.count == 1)
     #expect(!vm.isBotPlaying)
     #expect(vm.canHumanInput)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01DisappearAndReappearRestartsBotAfterInterruptedTurn() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
+    )
+
+    await vm.onAppear()
+    vm.onDisappear()
+    await vm.onAppear()
+    try await waitForX01EventCount(1, on: vm)
+
+    #expect(vm.session?.events.count == 1)
+    #expect(!vm.isBotPlaying)
+    #expect(vm.canHumanInput)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01RecoverBotPlaybackRestartsAfterExitAlertDismissedWithStay() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 0,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            ),
+            MatchParticipant(
+                playerId: humanId,
+                displayNameAtMatchStart: "Human",
+                turnOrder: 1
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
+    )
+
+    await vm.onAppear()
+    vm.onDisappear()
+    #expect(vm.isCurrentPlayerBot)
+    #expect(!vm.isBotPlaying)
+
+    vm.recoverBotPlaybackIfNeeded()
+    try await waitForX01EventCount(1, on: vm)
+
+    #expect(vm.session?.events.count == 1)
+    #expect(!vm.isBotPlaying)
+    #expect(vm.canHumanInput)
+}
+
+@MainActor
+private func waitForX01EventCount(
+    _ count: Int,
+    on vm: X01MatchViewModel,
+    expectedState: X01MatchViewModel.State? = nil
+) async throws {
+    for _ in 0 ..< 140 {
+        let stateMatches = expectedState.map { vm.state == $0 } ?? true
+        if vm.session?.events.count == count, vm.isBotPlaying == false, stateMatches {
+            return
+        }
+        try await Task.sleep(nanoseconds: 25_000_000)
+    }
+    Issue.record("Timed out waiting for \(count) X01 events (got \(vm.session?.events.count ?? -1)).")
+}
+
+@MainActor
+private func waitForX01BotPlaybackToSettle(on vm: X01MatchViewModel) async throws {
+    for _ in 0 ..< 140 {
+        if vm.isBotPlaying == false, vm.enteredDarts.isEmpty {
+            return
+        }
+        try await Task.sleep(nanoseconds: 25_000_000)
+    }
+    Issue.record("Timed out waiting for bot playback to settle.")
 }
 
 @MainActor
@@ -524,12 +724,15 @@ func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throw
     )
     let store = ActiveMatchStore()
     store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
         logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
         matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
     )
     vm.inputMode = .dartEntry
     vm.enteredDarts = [
@@ -538,16 +741,78 @@ func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throw
         DartInput(multiplier: .triple, segment: .oneToTwenty(20))
     ]
     await vm.submitTurn()
+    try await waitForX01EventCount(2, on: vm)
     #expect(vm.session?.events.count == 2)
 
     await vm.undoLastDart()
-    #expect(vm.session?.events.count == 1)
+    try await waitForX01EventCount(2, on: vm)
+
+    #expect(vm.session?.events.count == 2)
+    #expect(!vm.isCurrentPlayerBot)
+    #expect(vm.enteredDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
+func x01UndoDuringActiveBotPlaybackCompletesVisit() async throws {
+    let humanId = UUID()
+    let botId = UUID()
+    let session = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(
+            MatchConfigX01(
+                startScore: 501,
+                legsToWin: 1,
+                setsEnabled: false,
+                setsToWin: nil,
+                checkoutMode: .doubleOut
+            )
+        ),
+        participants: [
+            MatchParticipant(playerId: humanId, displayNameAtMatchStart: "Human", turnOrder: 0),
+            MatchParticipant(
+                playerId: botId,
+                displayNameAtMatchStart: BotDifficulty.easy.rosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.easy.rawValue
+            )
+        ]
+    )
+    let store = ActiveMatchStore()
+    store.save(session)
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
+    let vm = X01MatchViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
+        matchRepository: BotFakeMatchRepository(),
+        statsRepository: BotFakeStatsRepository(),
+        feedbackPreferences: prefs
+    )
+    vm.inputMode = .dartEntry
+    vm.enteredDarts = [
+        DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+        DartInput(multiplier: .single, segment: .oneToTwenty(20))
+    ]
+    let submitTask = Task { await vm.submitTurn() }
+
+    for _ in 0 ..< 40 {
+        if vm.isBotPlaying, vm.enteredDarts.count == 2 { break }
+        try await Task.sleep(nanoseconds: 25_000_000)
+    }
+    #expect(vm.isBotPlaying)
     #expect(vm.enteredDarts.count == 2)
 
     await vm.undoLastDart()
-    #expect(vm.session?.events.count == 1)
-    #expect(vm.enteredDarts.count == 1)
-    #expect(vm.isCurrentPlayerBot)
+    await submitTask.value
+    try await waitForX01BotPlaybackToSettle(on: vm)
+
+    #expect(!vm.isBotPlaying)
+    #expect(vm.session?.events.count == 2)
+    #expect(!vm.isCurrentPlayerBot)
+    #expect(vm.enteredDarts.isEmpty)
 }
 
 @MainActor
@@ -594,6 +859,7 @@ func x01UndoBackToBotTurnRestartsBot() async throws {
     #expect(vm.session?.events.count == 1)
 
     await vm.undoLastTurn()
+    try await waitForX01EventCount(1, on: vm)
 
     #expect(vm.session?.events.count == 1)
     #expect(!vm.isBotPlaying)
@@ -646,6 +912,7 @@ func x01ViewModelBotContinuesAfterHumanBust() async throws {
     vm.totalEntryText = "50"
 
     await vm.submitTurn()
+    try await waitForX01EventCount(6, on: vm, expectedState: .readyTurn)
 
     #expect(vm.session?.events.count == 6)
     #expect(vm.isCurrentPlayerBot == false)
@@ -693,6 +960,7 @@ func x01ViewModelHumanCanSubmitAfterBotBust() async throws {
     vm.inputMode = .totalEntry
     vm.totalEntryText = "60"
     await vm.submitTurn()
+    try await waitForX01EventCount(7, on: vm, expectedState: .readyTurn)
 
     #expect(vm.state == .readyTurn)
     // Human visit plus auto bot reply when the turn passes back to the bot.
@@ -862,6 +1130,7 @@ private actor BotFakeSettingsRepository: SettingsRepository {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
 }

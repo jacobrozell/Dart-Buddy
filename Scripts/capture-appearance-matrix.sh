@@ -16,6 +16,7 @@ SCHEME="DartBuddy"
 PROJECT="$ROOT/DartBuddy.xcodeproj"
 DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/appearance-matrix}"
 LAUNCH_DELAY="${LAUNCH_DELAY:-2.5}"
+ORIENTATION_SETTLE_SEC="${ORIENTATION_SETTLE_SEC:-1.5}"
 
 COMMON_ARGS=(-ui_test_reset -ui_test_disable_feedback -disable_firebase_analytics)
 
@@ -43,31 +44,11 @@ for runtime, devices in data.get('devices', {}).items():
             sys.exit(0)
 sys.exit(1)
 " "$SIM_NAME")"
+export SIM_UDID
 
-rotate_simulator_left() {
-  osascript <<'APPLESCRIPT' >/dev/null 2>&1 || true
-tell application "Simulator" to activate
-delay 0.2
-tell application "System Events"
-  tell process "Simulator"
-    key code 123 using {command down}
-  end tell
-end tell
-APPLESCRIPT
-  sleep 0.6
-}
-
-ensure_portrait() {
-  rotate_simulator_left
-  rotate_simulator_left
-  rotate_simulator_left
-  rotate_simulator_left
-}
-
-ensure_landscape() {
-  ensure_portrait
-  rotate_simulator_left
-}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=simulator-orientation.sh
+source "$SCRIPT_DIR/simulator-orientation.sh"
 
 echo "→ Booting $SIM_NAME ($SIM_UDID)…"
 xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
@@ -105,19 +86,17 @@ capture() {
   shift 3
   local -a args=("$@")
 
-  if [[ "$orientation" == "landscape" ]]; then
-    ensure_landscape
-  else
-    ensure_portrait
-  fi
-
   xcrun simctl ui "$SIM_UDID" appearance "$appearance"
   echo "→ Capturing ${filename} (${appearance}, ${orientation})…"
   xcrun simctl terminate "$SIM_UDID" "$BUNDLE_ID" 2>/dev/null || true
   sleep 0.5
-  xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" "${args[@]}" >/dev/null
+  xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" \
+    "${args[@]}" -snapshot_orientation "$orientation" >/dev/null
   sleep "$LAUNCH_DELAY"
+  sleep "$ORIENTATION_SETTLE_SEC"
   xcrun simctl io "$SIM_UDID" screenshot "$OUT_DIR/$filename"
+  normalize_screenshot_for_orientation "$OUT_DIR/$filename" "$orientation"
+  verify_screenshot_orientation "$OUT_DIR/$filename" "$orientation"
 }
 
 DEVICE_SLUG="$(echo "$SIM_NAME" | tr ' ' '-' | tr '[:upper:]' '[:lower:]' | tr -d '()')"
@@ -134,7 +113,6 @@ for appearance in light dark; do
   done
 done
 
-ensure_portrait
 echo ""
 echo "Done. Appearance matrix screenshots:"
 ls -1 "$OUT_DIR"/match-setup_*.png "$OUT_DIR"/x01-match_*.png 2>/dev/null || ls -1 "$OUT_DIR"/*.png

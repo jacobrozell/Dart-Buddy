@@ -113,6 +113,97 @@ func setupPlayCompleteHistoryFlowPersistsEndToEnd() async throws {
     #expect(bobRow.wins == 0)
 }
 
+@MainActor
+@Test(.tags(.integration, .setupFlow, .match, .history, .stats, .x01, .regression))
+func partialX01ForfeitPersistsHistoryAndStats() async throws {
+    let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
+    let matchRepo = SwiftDataMatchRepository(container: container)
+    let statsRepo = SwiftDataStatsRepository(container: container)
+    let playerRepo = SwiftDataPlayerRepository(container: container, matchRepository: matchRepo, statsRepository: statsRepo)
+    let settingsRepo = SwiftDataSettingsRepository(container: container)
+    let store = ActiveMatchStore()
+    let logger = DefaultAppLogger(minimumLevel: .fault, sink: IntegrationSilentLogSink())
+
+    let alice = try await playerRepo.createPlayer(name: "Alice")
+    let bob = try await playerRepo.createPlayer(name: "Bob")
+
+    let setupVM = MatchSetupViewModel(
+        playerRepository: playerRepo,
+        settingsRepository: settingsRepo,
+        matchRepository: matchRepo,
+        activeMatchStore: store,
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        logger: logger
+    )
+    await setupVM.onAppear()
+    setupVM.randomOrder = false
+    setupVM.togglePlayer(alice.id)
+    setupVM.togglePlayer(bob.id)
+    setupVM.x01StartScore = 301
+    setupVM.x01CheckoutMode = .singleOut
+    setupVM.x01LegsToWin = 1
+
+    guard case let .x01Match(matchId) = await setupVM.startMatchRoute() else {
+        Issue.record("Expected setup to return an X01 match route")
+        return
+    }
+
+    let liveVM = X01MatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: logger,
+        matchRepository: matchRepo,
+        statsRepository: statsRepo
+    )
+    await liveVM.onAppear()
+    liveVM.inputMode = .dartEntry
+    liveVM.enteredDarts = IntegrationTurns.first301[0]
+    await liveVM.submitTurn()
+    guard let session = liveVM.session else {
+        Issue.record("Expected an active session before forfeit")
+        return
+    }
+
+    _ = try await MatchForfeitSupport.persistForfeit(
+        session: session,
+        forfeitingPlayerId: alice.id,
+        winnerPlayerId: bob.id,
+        matchId: matchId,
+        store: store,
+        matchRepository: matchRepo,
+        logger: logger,
+        matchType: .x01,
+        resolution: "automatic"
+    )
+
+    #expect(try await matchRepo.fetchActiveMatch() == nil)
+    let history = try await matchRepo.fetchHistory(page: 0, pageSize: 10)
+    #expect(history.count == 1)
+    #expect(history.first?.status == .forfeited)
+    #expect(history.first?.forfeitedByPlayerId == alice.id)
+    #expect(history.first?.winnerPlayerId == bob.id)
+
+    let historyVM = HistoryListViewModel(matchRepository: matchRepo, playerRepository: playerRepo)
+    await historyVM.applyFilters()
+    #expect(historyVM.rows.count == 1)
+    #expect(historyVM.rows.first?.isForfeited == true)
+
+    let statsVM = StatisticsViewModel(
+        matchRepository: matchRepo,
+        statsRepository: statsRepo,
+        playerRepository: playerRepo
+    )
+    statsVM.modeFilter = .x01
+    statsVM.period = .all
+    await statsVM.load()
+    let aliceRow = try #require(statsVM.rows.first { $0.playerId == alice.id })
+    let bobRow = try #require(statsVM.rows.first { $0.playerId == bob.id })
+    #expect(aliceRow.games == 1)
+    #expect(bobRow.games == 1)
+    #expect(bobRow.wins == 1)
+    #expect(aliceRow.wins == 0)
+}
+
 private enum IntegrationTurns {
     static func d(_ multiplier: DartMultiplier, _ value: Int) -> DartInput {
         DartInput(multiplier: multiplier, segment: .oneToTwenty(value))

@@ -15,10 +15,10 @@ final class KillerMatchViewModel: ObservableObject {
     @Published private(set) var state: State = .readyPick
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
 
-    private let matchId: UUID
+    let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
@@ -26,6 +26,7 @@ final class KillerMatchViewModel: ObservableObject {
     private let feedbackPreferences: FeedbackPreferences
     private let pickSubmitter: MatchTurnSubmitter
     private let turnSubmitter: MatchTurnSubmitter
+    private let botPlayback = MatchBotPlaybackLifecycle()
 
     init(
         matchId: UUID,
@@ -131,7 +132,7 @@ final class KillerMatchViewModel: ObservableObject {
         guard let session, let state = session.runtime.killerState else { return [] }
         let isInProgress = session.runtime.status == .inProgress
         return state.players.enumerated().map { index, player in
-            let participant = participant(for: player.playerId)
+            let participant = session.runtime.participant(for: player.playerId)
             let isActive: Bool
             if state.phase == .numberPick {
                 isActive = state.pickQueue.first == player.playerId && isInProgress
@@ -181,39 +182,32 @@ final class KillerMatchViewModel: ObservableObject {
             eventName: "match_screen_appeared",
             message: "Killer match screen presented."
         )
+        MatchGameplaySessionSync.refreshStoredSession(matchId: matchId, store: store, into: &session)
         if await reconcileAfterSummaryUndo() { return }
         await loadSessionIfNeeded()
         reconcileInterruptedBotPlayback()
-        await playBotTurnIfNeeded()
+        scheduleBotPlaybackIfNeeded()
+    }
+
+    func onDisappear() {
+        botPlayback.cancel { reconcileInterruptedBotPlayback() }
+    }
+
+    func recoverBotPlaybackIfNeeded() {
+        MatchBotPlaybackRecovery.recoverIfNeeded(
+            isBotTurn: isCurrentActorBot,
+            isBotPlaying: isBotPlaying,
+            reconcile: reconcileInterruptedBotPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
+    private func scheduleBotPlaybackIfNeeded() {
+        botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
 
     func playBotTurnIfNeeded() async {
         while await playSingleBotActionIfNeeded() {}
-    }
-
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .killer,
-                category: .appLifecycle,
-                eventName: "killer_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
     }
 
     private var isReadyForHumanInput: Bool {
@@ -240,12 +234,8 @@ final class KillerMatchViewModel: ObservableObject {
         }
     }
 
-    private func participant(for playerId: UUID) -> MatchParticipant? {
-        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
-    }
-
     private func participantName(for playerId: UUID) -> String {
-        participant(for: playerId)?.displayNameAtMatchStart ?? L10n.string("play.killer.unknownPlayer")
+        session?.runtime.participant(for: playerId)?.displayNameAtMatchStart ?? L10n.string("play.killer.unknownPlayer")
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {
@@ -256,8 +246,11 @@ final class KillerMatchViewModel: ObservableObject {
         enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
         isBotPlaying = false
         syncInteractionState()
+        if currentBotSkillProfile != nil {
+            enteredDarts.removeAll()
+        }
         if enteredDarts.isEmpty {
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         }
         return true
     }
@@ -265,8 +258,12 @@ final class KillerMatchViewModel: ObservableObject {
     private func reconcileInterruptedBotPlayback() {
         isBotPlaying = false
         enteredDarts.removeAll()
-        if state == .submittingTurn {
+        guard session?.runtime.status == .inProgress else { return }
+        switch state {
+        case .submittingTurn, .entryInvalid, .error, .matchCompleted, .becameKillerFeedback:
             syncInteractionState()
+        default:
+            break
         }
     }
 
@@ -286,43 +283,35 @@ final class KillerMatchViewModel: ObservableObject {
         enteredDarts.removeAll()
         var rng = SystemRandomNumberGenerator()
 
+        let dartsToReveal: [DartInput]
         if isPick {
             let takenNumbers = Set(killerState.players.compactMap(\.assignedNumber))
-            let dart = DartBotEngine.generateKillerPick(
-                takenNumbers: takenNumbers,
-                profile: profile,
-                rng: &rng
-            )
-            let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-            do {
-                try await Task.sleep(nanoseconds: dartDelay)
-            } catch {
-                return false
-            }
-            enteredDarts.append(dart)
+            dartsToReveal = [
+                DartBotEngine.generateKillerPick(
+                    takenNumbers: takenNumbers,
+                    profile: profile,
+                    rng: &rng
+                )
+            ]
         } else {
+            let partialVisitCount = enteredDarts.count
             let plannedDarts = DartBotEngine.generateKillerTurn(
                 state: killerState,
                 throwerIndex: killerState.currentPlayerIndex,
                 profile: profile,
                 rng: &rng
             )
-            let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-            for dart in plannedDarts {
-                do {
-                    try await Task.sleep(nanoseconds: dartDelay)
-                } catch {
-                    return false
-                }
-                enteredDarts.append(dart)
-            }
+            dartsToReveal = BotVisitPlayback.remainingPlannedDarts(
+                fullPlan: plannedDarts,
+                existingCount: partialVisitCount
+            )
         }
 
-        do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        } catch {
-            return false
-        }
+        guard await BotVisitPlayback.revealVisit(
+            dartsToReveal,
+            feedbackPreferences: feedbackPreferences,
+            append: { enteredDarts.append($0) }
+        ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
 
@@ -374,7 +363,7 @@ final class KillerMatchViewModel: ObservableObject {
             session = updated
             if !isPick, lastKillerTurn(in: updated)?.darts.contains(where: \.becameKiller) == true {
                 state = .becameKillerFeedback
-                try? await Task.sleep(nanoseconds: 700_000_000)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.killerBecameKillerTransitionNanoseconds)
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted
@@ -383,7 +372,7 @@ final class KillerMatchViewModel: ObservableObject {
             }
             enteredDarts.removeAll()
             if updated.runtime.status != .completed, !fromBotPlayback {
-                await playBotTurnIfNeeded()
+                scheduleBotPlaybackIfNeeded()
             }
         }
     }
@@ -401,7 +390,7 @@ final class KillerMatchViewModel: ObservableObject {
             session = undone
             enteredDarts.removeAll()
             syncInteractionState()
-            await playBotTurnIfNeeded()
+            scheduleBotPlaybackIfNeeded()
         } catch is CancellationError {
             syncInteractionState()
         } catch {
@@ -415,6 +404,7 @@ final class KillerMatchViewModel: ObservableObject {
         if !enteredDarts.isEmpty {
             enteredDarts.removeLast()
             selectedMultiplier = .single
+            resumeBotPlaybackAfterUndoIfNeeded()
             return
         }
         do {
@@ -427,9 +417,7 @@ final class KillerMatchViewModel: ObservableObject {
             session = result.session
             enteredDarts = result.restoredDarts
             syncInteractionState()
-            if result.restoredDarts.isEmpty {
-                await playBotTurnIfNeeded()
-            }
+            resumeBotPlaybackAfterUndoIfNeeded()
         } catch is CancellationError {
             syncInteractionState()
         } catch {
@@ -437,33 +425,36 @@ final class KillerMatchViewModel: ObservableObject {
         }
     }
 
-    private func loadSessionIfNeeded() async {
+    private func resumeBotPlaybackAfterUndoIfNeeded() {
+        MatchBotUndoSupport.resumeAfterDartUndo(
+            isBotTurn: isCurrentActorBot,
+            partialVisitCount: enteredDarts.count,
+            isBotPlaying: &isBotPlaying,
+            reconcileSubmittingTurn: {
+                if case .submittingTurn = state { state = .readyTurn }
+            },
+            botPlayback: botPlayback,
+            schedule: scheduleBotPlaybackIfNeeded
+        )
+    }
+
+    func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "killer.error.sessionMissing"))
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .killer,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "killer.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 
@@ -472,4 +463,12 @@ final class KillerMatchViewModel: ObservableObject {
               case let .killerTurn(event) = envelope.payload else { return nil }
         return event
     }
+}
+
+extension KillerMatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { isBotPlaying || state == .submittingTurn }
+    var hostMatchRepository: any MatchRepository { matchRepository }
+    var hostMatchStore: ActiveMatchStore { store }
+    var hostMatchLogger: any AppLogger { logger }
+    var hostMatchType: MatchType { .killer }
 }

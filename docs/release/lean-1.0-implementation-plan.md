@@ -2,9 +2,9 @@
 
 Actionable plan to ship **Dart Buddy 1.0 Core Scorekeeper** with owner decisions locked.
 
-**Status:** Approved scope · **Not yet implemented**  
+**Status:** Approved scope · **Implemented** (lean 1.0 RC)  
 **Target version:** `1.0.0`  
-**Companion:** [`ongoing-release-plan.md`](ongoing-release-plan.md) · [`feature-inventory.md`](../feature-inventory.md) · [`todo.md`](todo.md)
+**Companion:** [`ongoing-release-plan.md`](ongoing-release-plan.md) · [`lean-1.0-app-review-hardening-plan.md`](lean-1.0-app-review-hardening-plan.md) · [`feature-inventory.md`](../feature-inventory.md) · [`todo.md`](todo.md)
 
 ---
 
@@ -26,7 +26,7 @@ Actionable plan to ship **Dart Buddy 1.0 Core Scorekeeper** with owner decisions
 |------|--------|
 | **Modes** | X01 (301/501) · Cricket Normal · Cricket Cut Throat |
 | **Tabs** | Play · Players · Activity · Settings (**4 tabs**) |
-| **Bots** | Preset difficulty only (Very Easy → Pro) |
+| **Bots** | Preset difficulty (Very Easy → Pro) + **custom bots** (user-tuned X01 avg / Cricket MPR) |
 | **Players** | CRUD, archive, delete, avatars |
 | **Activity** | History + Statistics (merged segment picker) |
 | **Settings** | Appearance, defaults, haptics, sound, bot pacing, reset, replay onboarding |
@@ -41,7 +41,6 @@ Actionable plan to ship **Dart Buddy 1.0 Core Scorekeeper** with owner decisions
 | Modes tab + 29-mode catalog | 1.3 |
 | Party modes (Baseball, Killer, Shanghai) | 1.1 |
 | Training Partner bots | 1.2 |
-| Custom bots | 1.2 |
 | Player export (DBPE) | 1.2 or backlog |
 | App Intents / Siri | 1.4 (flag stays off) |
 | de / es / nl bundled strings | 1.2+ (files stay in repo) |
@@ -80,7 +79,7 @@ enum ProductSurface {
         showsModesTab: false,
         showsPartyModes: false,
         showsTrainingBots: false,
-        showsCustomBots: false,
+        showsCustomBots: true,  // ships in 1.0 — preset + user-tuned metrics
         showsPlayerExport: false,
         bundledLocaleCodes: ["en"]
     )
@@ -134,23 +133,23 @@ Document the arg in `specs/FeatureFlagConfigSpec.md` § Launch arguments.
 
 ---
 
-### Phase 2 — Hide party + advanced bots (1 day)
+### Phase 2 — Hide party + Training Partner bots (1 day)
 
-**Goal:** Only preset bots in setup and player flows.
+**Goal:** Preset + **custom** bots in setup and player flows; hide Training Partner and party modes.
 
 | # | Change | File(s) |
 |---|--------|---------|
 | 2.1 | Force `setupCategory = .standard`; ignore party pending selections | `MatchSetupViewModel.swift` |
-| 2.2 | Hide Training Partner + Custom bot menu items when flags off | `Features/Play/Setup/SetupHomeView.swift` |
+| 2.2 | Hide Training Partner menu items when flag off; custom bots remain on | `Features/Play/Setup/SetupHomeView.swift` |
 | 2.3 | Hide Training Partner section + export on Player Detail | `Features/Players/PlayerDetailView.swift` |
-| 2.4 | Filter preset-only in Add Bot menu | `SetupHomeView.swift` / roster helpers |
+| 2.4 | Add Bot menu: preset tiers + custom bots; hide Training Partner | `SetupHomeView.swift` / roster helpers |
 | 2.5 | Restrict `GameRulesCatalog.supportedMatchTypes` to `.x01`, `.cricket` when party off | `Features/Play/Rules/GameRulesCatalog.swift` |
 | 2.6 | Activity/Statistics mode filters: only show X01 + Cricket (or hide filter chips for unavailable types) | `Features/Activity/`, `Features/Statistics/` |
 
 **Acceptance**
 
 - [ ] Cannot start Baseball/Killer/Shanghai from any UI path
-- [ ] Add Bot lists preset tiers only
+- [ ] Add Bot lists preset tiers + custom bot create/pick; no Training Partner
 - [ ] Player detail: no Export, no Create Training Partner
 - [ ] Rules sheet: X01 + Cricket only
 
@@ -303,17 +302,18 @@ When promoting features, flip `ProductSurface.lean1_0` → add `v1_1`, etc., or 
 
 ```
 Lean 1.0 implementation
-- [ ] ProductSurface.swift + tests
-- [ ] MainTabView: 4 tabs
-- [ ] SetupHomeView: no Change mode / party / training / custom bots
-- [ ] PlayerDetailView: hide export + training partner
-- [ ] GameRulesCatalog: X01 + Cricket only
-- [ ] Activity/Statistics filters scoped
-- [ ] Deep link / intent guards
-- [ ] project.yml: en-only bundle
-- [ ] CI: lean default + nightly full surface
-- [ ] release_checklist.md rewritten
-- [ ] README + inventory + App Store copy
+- [x] ProductSurface.swift + tests
+- [x] MainTabView: 4 tabs
+- [x] SetupHomeView: no Change mode / party / training partner (custom bots ship in 1.0)
+- [x] PlayerDetailView: hide export + training partner
+- [x] GameRulesCatalog: X01 + Cricket only
+- [x] Activity/Statistics filters scoped
+- [x] Deep link / intent guards
+- [x] project.yml: en-only bundle
+- [x] CI: lean default + full-surface UI test launch arg
+- [x] release_checklist.md rewritten
+- [x] README + inventory + App Store copy guidance
+- [x] Lean1_0SmokeUITests
 - [ ] Device QA matrix (lean)
 - [ ] TestFlight → App Store 1.0.0
 ```

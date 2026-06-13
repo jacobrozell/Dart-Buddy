@@ -77,3 +77,78 @@ func trainingBotEligibilityIsPerMode() {
     breakdown.games = 2
     #expect(!TrainingBotEligibilityService.eligibility(breakdown: breakdown, mode: .cricket).isEligible)
 }
+
+@Test(.tags(.unit, .regression))
+func trainingBotSkillResolverUsesEasyFallbackWhenNoX01Average() {
+    let breakdown = PlayerStatBreakdown(playerId: UUID(), name: "New")
+    let profile = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .x01)
+    let easyFallback = BotSkillProfileInterpolator.profile(forX01Average: 24)
+    #expect(profile.x01.scoringVisitMax == easyFallback.x01.scoringVisitMax)
+}
+
+@Test(.tags(.unit, .regression))
+func trainingBotSkillResolverUsesEasyFallbackWhenNoCricketMPR() {
+    let breakdown = PlayerStatBreakdown(playerId: UUID(), name: "New")
+    let profile = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .cricket)
+    let easyFallback = BotSkillProfileInterpolator.profile(forCricketMPR: 1.35)
+    #expect(profile.cricket.hitChances.triple == easyFallback.cricket.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
+func trainingBotSkillResolverClampsHighX01Average() {
+    var breakdown = PlayerStatBreakdown(playerId: UUID(), name: "Pro")
+    breakdown.darts = 300
+    breakdown.points = 27_000
+    let profile = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .x01)
+    let capped = BotSkillProfileInterpolator.profile(forX01Average: TrainingBotSkillTuning.x01MaxAverage)
+    #expect(profile.x01.hitChances.triple <= capped.x01.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
+func trainingBotSkillResolverAppliesX01FormulaForPartyModes() {
+    var breakdown = PlayerStatBreakdown(playerId: UUID(), name: "Test")
+    breakdown.darts = 90
+    breakdown.points = 3600
+    let baseball = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .baseball)
+    let killer = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .killer)
+    let shanghai = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .shanghai)
+    #expect(baseball.x01.hitChances.triple == killer.x01.hitChances.triple)
+    #expect(killer.x01.hitChances.triple == shanghai.x01.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
+func trainingBotEligibilityStructStoresCustomRequiredGames() {
+    let eligibility = TrainingBotEligibility(isEligible: true, gamesPlayed: 7, requiredGames: 7, mode: .cricket)
+    #expect(eligibility.isEligible)
+    #expect(eligibility.gamesPlayed == 7)
+    #expect(eligibility.requiredGames == 7)
+    #expect(eligibility.mode == .cricket)
+}
+
+@Test(.tags(.unit, .regression))
+func trainingBotSkillResolverScalesMonotonicallyWithAverage() {
+    var low = PlayerStatBreakdown(playerId: UUID(), name: "Low")
+    low.darts = 300
+    low.points = 1500
+    var high = PlayerStatBreakdown(playerId: UUID(), name: "High")
+    high.darts = 300
+    high.points = 7500
+    let lowProfile = TrainingBotSkillResolver.resolve(breakdown: low, mode: .x01)
+    let highProfile = TrainingBotSkillResolver.resolve(breakdown: high, mode: .x01)
+    #expect(highProfile.x01.hitChances.triple > lowProfile.x01.hitChances.triple)
+}
+
+@Test(.tags(.unit, .regression))
+func trainingBotSkillResolverAppliesMinimumBumpForModerateAverages() {
+    var breakdown = PlayerStatBreakdown(playerId: UUID(), name: "Mid")
+    breakdown.darts = 300
+    breakdown.points = 4500
+    let playerAvg = breakdown.average3Dart
+    let profile = TrainingBotSkillResolver.resolve(breakdown: breakdown, mode: .x01)
+    let bumpedTarget = min(
+        max(playerAvg * TrainingBotSkillTuning.x01AvgMultiplier + TrainingBotSkillTuning.x01AvgOffset, playerAvg + TrainingBotSkillTuning.x01MinBump),
+        TrainingBotSkillTuning.x01MaxAverage
+    )
+    let expected = BotSkillProfileInterpolator.profile(forX01Average: bumpedTarget)
+    #expect(profile.x01.scoringVisitMax == expected.x01.scoringVisitMax)
+}

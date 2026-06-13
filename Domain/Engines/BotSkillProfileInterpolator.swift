@@ -32,8 +32,8 @@ public enum BotSkillProfileInterpolator {
         clampToTierRange: Bool
     ) -> BotSkillProfile {
         let value: Double
-        if clampToTierRange {
-            value = min(max(target, anchors.first!.1), anchors.last!.1)
+        if clampToTierRange, let lowest = anchors.first?.1, let highest = anchors.last?.1 {
+            value = min(max(target, lowest), highest)
         } else {
             value = target
         }
@@ -139,5 +139,27 @@ public enum BotSkillProfileInterpolator {
             double: lerp(a.double, b.double, t),
             triple: lerp(a.triple, b.triple, t)
         )
+    }
+
+    /// Highest preset tier whose anchor value is ≤ `metric` (achievement ladder floor).
+    public static func achievementTierFloor(forX01Average average: Double) -> BotDifficulty {
+        achievementTierFloor(metric: average, anchors: x01TierAverages)
+    }
+
+    /// Highest preset tier whose anchor value is ≤ `metric` (achievement ladder floor).
+    public static func achievementTierFloor(forCricketMPR mpr: Double) -> BotDifficulty {
+        achievementTierFloor(metric: mpr, anchors: cricketTierMPR)
+    }
+
+    private static func achievementTierFloor(
+        metric: Double,
+        anchors: [(BotDifficulty, Double)]
+    ) -> BotDifficulty {
+        guard let first = anchors.first else { return .veryEasy }
+        var floor = first.0
+        for (tier, anchorValue) in anchors where metric >= anchorValue {
+            floor = tier
+        }
+        return floor
     }
 }

@@ -6,22 +6,57 @@ public enum MatchType: String, Codable, Sendable {
     case baseball
     case killer
     case shanghai
+    case americanCricket
+    case mickeyMouse
+    case mulligan
+    case englishCricket
+    case blindKiller
+    case knockout
+    case suddenDeath
+    case fiftyOneByFives
+    case golf
+    case football
+    case grandNational
+    case hareAndHounds
+    case followTheLeader
+    case loop
+    case prisoner
+    case scam
+    case snooker
+    case ticTacToe
+    case aroundTheClock
+    case aroundTheClock180
+    case chaseTheDragon
+    case nineLives
+    case fleet
+    case raid
+    case bobs27
+    case halveIt
 }
 
 public enum MatchStatus: String, Codable, Sendable {
     case notStarted
     case inProgress
     case completed
+    case forfeited
     case abandoned
 }
 
 public struct MatchHistoryFilter: Equatable, Sendable {
     public var matchType: MatchType?
+    /// When `matchType` is nil, limits results to these types (e.g. lean 1.0 "All games").
+    public var includedMatchTypes: [MatchType]?
     public var startedAfter: Date?
     public var participantPlayerId: UUID?
 
-    public init(matchType: MatchType? = nil, startedAfter: Date? = nil, participantPlayerId: UUID? = nil) {
+    public init(
+        matchType: MatchType? = nil,
+        includedMatchTypes: [MatchType]? = nil,
+        startedAfter: Date? = nil,
+        participantPlayerId: UUID? = nil
+    ) {
         self.matchType = matchType
+        self.includedMatchTypes = includedMatchTypes
         self.startedAfter = startedAfter
         self.participantPlayerId = participantPlayerId
     }
@@ -38,8 +73,17 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
     public let avatarStyleRaw: String?
     public let preferredColorToken: String?
     public let notes: String?
+    public let playerRoleRaw: String?
     public let createdAt: Date
     public let updatedAt: Date
+
+    public var playerRole: PlayerRole? {
+        playerRoleRaw.flatMap(PlayerRole.init(rawValue:))
+    }
+
+    public var isPrimaryPlayer: Bool {
+        playerRole == .primary
+    }
 
     public var botDifficulty: BotDifficulty? {
         botDifficultyRaw.flatMap(BotDifficulty.init(rawValue:))
@@ -57,8 +101,16 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         botKind == .custom
     }
 
+    public var customBotConfiguration: CustomBotConfiguration? {
+        guard isCustomBot else { return nil }
+        return CustomBotConfigurationCodec.decode(botDifficultyRaw: botDifficultyRaw)
+    }
+
     public var customBotMetrics: CustomBotMetrics? {
-        CustomBotMetrics.decode(botDifficultyRaw: botDifficultyRaw)
+        if let configuration = customBotConfiguration {
+            return configuration.metrics
+        }
+        return CustomBotMetrics.decode(botDifficultyRaw: botDifficultyRaw)
     }
 
     public var isPresetBot: Bool {
@@ -86,6 +138,7 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         avatarStyleRaw: String? = nil,
         preferredColorToken: String? = nil,
         notes: String? = nil,
+        playerRoleRaw: String? = nil,
         createdAt: Date,
         updatedAt: Date
     ) {
@@ -99,6 +152,7 @@ public struct PlayerSummary: Identifiable, Equatable, Sendable {
         self.avatarStyleRaw = avatarStyleRaw
         self.preferredColorToken = preferredColorToken
         self.notes = notes
+        self.playerRoleRaw = playerRoleRaw
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -114,6 +168,7 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
     public let botDifficultyRaw: String?
     public let botKindRaw: String?
     public let botSkillProfilePayload: Data?
+    public let botEffectiveTierRaw: String?
 
     public init(
         id: UUID,
@@ -124,7 +179,8 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
         avatarStyleAtMatchStart: String? = nil,
         botDifficultyRaw: String? = nil,
         botKindRaw: String? = nil,
-        botSkillProfilePayload: Data? = nil
+        botSkillProfilePayload: Data? = nil,
+        botEffectiveTierRaw: String? = nil
     ) {
         self.id = id
         self.matchId = matchId
@@ -135,6 +191,7 @@ public struct MatchParticipantSummary: Identifiable, Equatable, Sendable {
         self.botDifficultyRaw = botDifficultyRaw
         self.botKindRaw = botKindRaw
         self.botSkillProfilePayload = botSkillProfilePayload
+        self.botEffectiveTierRaw = botEffectiveTierRaw
     }
 }
 
@@ -145,12 +202,49 @@ public struct MatchSummary: Identifiable, Equatable, Sendable {
     public let startedAt: Date
     public let endedAt: Date?
     public let winnerPlayerId: UUID?
+    public let forfeitedByPlayerId: UUID?
     public let currentTurnPlayerId: UUID?
     public let currentLegIndex: Int
     public let currentSetIndex: Int
     public let eventCount: Int
+    public let isCampaignMatch: Bool
+    public let campaignStageId: String?
     public let createdAt: Date
     public let updatedAt: Date
+
+    public init(
+        id: UUID,
+        type: MatchType,
+        status: MatchStatus,
+        startedAt: Date,
+        endedAt: Date?,
+        winnerPlayerId: UUID?,
+        forfeitedByPlayerId: UUID? = nil,
+        currentTurnPlayerId: UUID?,
+        currentLegIndex: Int,
+        currentSetIndex: Int,
+        eventCount: Int,
+        isCampaignMatch: Bool = false,
+        campaignStageId: String? = nil,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.type = type
+        self.status = status
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.winnerPlayerId = winnerPlayerId
+        self.forfeitedByPlayerId = forfeitedByPlayerId
+        self.currentTurnPlayerId = currentTurnPlayerId
+        self.currentLegIndex = currentLegIndex
+        self.currentSetIndex = currentSetIndex
+        self.eventCount = eventCount
+        self.isCampaignMatch = isCampaignMatch
+        self.campaignStageId = campaignStageId
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
 }
 
 public struct MatchEventSummary: Identifiable, Equatable, Sendable {
@@ -185,5 +279,7 @@ public struct SettingsSummary: Identifiable, Equatable, Sendable {
     public let defaultSetsEnabled: Bool
     public let botStaggerEnabled: Bool
     public let botDartHapticsEnabled: Bool
+    /// `DartEntryPresentation` raw value applied to new matches (in-match switch is per-session).
+    public let defaultDartEntryPresentationRaw: String
     public let updatedAt: Date
 }

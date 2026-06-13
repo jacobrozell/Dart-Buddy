@@ -3,13 +3,24 @@ import Foundation
 /// Seeds a small set of players and matches for screenshots / manual QA.
 /// Only runs when launched with `-seed_demo` and the store has no players yet.
 enum DemoSeeder {
-    static func seedIfRequested(_ dependencies: AppDependencies) async {
-        let arguments = ProcessInfo.processInfo.arguments
+    /// Display name for marketing screenshots (`-snapshot_custom_bot`).
+    static let customBotSnapshotName = "Tuned Ace"
+    static let customBotSnapshotMetrics = CustomBotMetrics(x01Average: 45, cricketMPR: 2.1)
 
+    static func seedIfRequested(_ dependencies: AppDependencies) async {
+        await seedIfRequested(dependencies, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    /// Allows unit tests to exercise launch-argument branches without mutating `ProcessInfo`.
+    static func seedIfRequested(_ dependencies: AppDependencies, arguments: [String]) async {
         if arguments.contains("-ui_test_reset") {
             LocalAppStateReset.clearAllPersistedAuxiliaryState()
-            try? await dependencies.settingsRepository.resetAllLocalData()
-            try? await dependencies.settingsRepository.resetPreferencesToDefaults()
+            do {
+                try await dependencies.settingsRepository.resetAllLocalData()
+                try await dependencies.settingsRepository.resetPreferencesToDefaults()
+            } catch {
+                dependencies.logger.error(.appLifecycle, eventName: "ui_test_reset_failed", message: "UI test reset failed: \(error)")
+            }
             await MainActor.run {
                 dependencies.activeMatchStore.clearAll()
                 dependencies.pendingMatchPlayerSelections.clearAll()
@@ -40,7 +51,9 @@ enum DemoSeeder {
             await disableFeedbackForUITest(dependencies)
         }
 
-        if arguments.contains("-snapshot_match_x01") {
+        if arguments.contains("-snapshot_match_x01_8player") {
+            await seedX01EightPlayerSnapshot(dependencies)
+        } else if arguments.contains("-snapshot_match_x01") {
             await seedX01Snapshot(dependencies)
         }
 
@@ -52,10 +65,19 @@ enum DemoSeeder {
             await seedSummarySnapshot(dependencies)
         }
 
+        if arguments.contains("-snapshot_custom_bot") {
+            await seedCustomBotSnapshot(dependencies)
+        }
+
         guard arguments.contains("-seed_demo") else { return }
         do {
             let existing = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
-            guard existing.isEmpty else { return }
+            guard existing.isEmpty else {
+                if arguments.contains("-snapshot_play_setup") {
+                    await seedPlaySetupSnapshot(dependencies)
+                }
+                return
+            }
 
             let jacob = try await dependencies.playerRepository.createPlayer(name: "Jacob")
             let bot = try await dependencies.playerRepository.createBot(difficulty: .easy)
@@ -86,27 +108,68 @@ enum DemoSeeder {
                 complete: true
             )
 
-            // Completed Baseball game: Jacob beats Sam over 9 innings.
-            try await seedBaseball(
-                dependencies: dependencies,
-                config: MatchConfigBaseball(),
-                players: [(jacob, "Jacob"), (sam, "Sam")],
-                complete: true
-            )
+            if ProductSurface.showsPartyModes {
+                // Completed Baseball game: Jacob beats Sam over 9 innings.
+                try await seedBaseball(
+                    dependencies: dependencies,
+                    config: MatchConfigBaseball(),
+                    players: [(jacob, "Jacob"), (sam, "Sam")],
+                    complete: true
+                )
+            }
 
             // In-progress X01 game: Jacob vs bot (301, double out).
-            try await seedX01(
-                dependencies: dependencies,
-                config: MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut),
-                players: [(jacob, "Jacob"), (bot, bot.name)],
-                turns: [
-                    [d(.triple, 20), d(.triple, 20), d(.triple, 20)],      // Jacob 180 -> 121
-                    [d(.single, 20), d(.single, 20), d(.single, 20)]       // DartBot 60 -> 241
-                ],
-                complete: false
-            )
+            if !arguments.contains("-snapshot_play_setup") {
+                try await seedX01(
+                    dependencies: dependencies,
+                    config: MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut),
+                    players: [(jacob, "Jacob"), (bot, bot.name)],
+                    turns: [
+                        [d(.triple, 20), d(.triple, 20), d(.triple, 20)],      // Jacob 180 -> 121
+                        [d(.single, 20), d(.single, 20), d(.single, 20)]       // DartBot 60 -> 241
+                    ],
+                    complete: false
+                )
+            }
+
+            if arguments.contains("-snapshot_play_setup") {
+                await seedPlaySetupSnapshot(dependencies)
+            }
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "demo_seed_failed", message: "Demo seed failed: \(error)")
+        }
+    }
+
+    /// Populates the fixed eight-player X01 match id used by `-snapshot_match_x01_8player`.
+    private static func seedX01EightPlayerSnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000008") ?? UUID()
+        let config = MatchConfigPayload.x01(
+            MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .doubleOut)
+        )
+        let names = ["Jacob", "Sam", "Alex", "Morgan", "Riley", "Jordan", "Casey", "Drew"]
+        let participants = names.enumerated().map { index, name in
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: name, turnOrder: index)
+        }
+        // One full rotation: Jacob back on 121 (checkout), others spread across 301.
+        let turnTotals = [180, 100, 95, 88, 72, 65, 78, 82]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .x01,
+                config: config,
+                participants: participants
+            )
+            for total in turnTotals {
+                session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: total, darts: nil)
+            }
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "x01_eight_player_snapshot_seed_failed",
+                message: "X01 eight-player snapshot seed failed: \(error)"
+            )
         }
     }
 
@@ -128,7 +191,8 @@ enum DemoSeeder {
                 config: config,
                 participants: participants
             )
-            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 180, darts: nil)
+            // Jacob on 170 (T20 T20 Bull) — iconic checkout for marketing captures.
+            session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 131, darts: nil)
             session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 100, darts: nil)
             let finalSession = session
             await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
@@ -165,6 +229,59 @@ enum DemoSeeder {
             await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "cricket_snapshot_seed_failed", message: "Cricket snapshot seed failed: \(error)")
+        }
+    }
+
+    /// Ensures a custom bot with screenshot-friendly metrics exists for `-snapshot_custom_bot`.
+    private static func seedCustomBotSnapshot(_ dependencies: AppDependencies) async {
+        do {
+            let players = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
+            if let existing = players.first(where: { $0.isCustomBot && $0.name == customBotSnapshotName }) {
+                _ = try await dependencies.playerRepository.updateCustomBotMetrics(
+                    playerId: existing.id,
+                    metrics: customBotSnapshotMetrics
+                )
+                return
+            }
+            if let existing = players.first(where: \.isCustomBot) {
+                _ = try await dependencies.playerRepository.updateCustomBotMetrics(
+                    playerId: existing.id,
+                    metrics: customBotSnapshotMetrics
+                )
+                return
+            }
+            _ = try await dependencies.playerRepository.createCustomBot(
+                name: customBotSnapshotName,
+                metrics: customBotSnapshotMetrics
+            )
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "custom_bot_snapshot_seed_failed",
+                message: "Custom bot snapshot seed failed: \(error)"
+            )
+        }
+    }
+
+    /// Clears the resume banner and pre-selects Jacob + Sam on Play setup for marketing screenshots.
+    private static func seedPlaySetupSnapshot(_ dependencies: AppDependencies) async {
+        do {
+            await MainActor.run { dependencies.activeMatchStore.clearAll() }
+            let players = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
+            guard let jacob = players.first(where: { $0.name == "Jacob" && !$0.isBot }),
+                  let sam = players.first(where: { $0.name == "Sam" && !$0.isBot }) else {
+                return
+            }
+            await MainActor.run {
+                dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(jacob.id)
+                dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(sam.id)
+            }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "play_setup_snapshot_seed_failed",
+                message: "Play setup snapshot seed failed: \(error)"
+            )
         }
     }
 
@@ -314,6 +431,7 @@ enum DemoSeeder {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: current.botStaggerEnabled,
                 botDartHapticsEnabled: current.botDartHapticsEnabled,
+                defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )
             _ = try await dependencies.settingsRepository.updateSettings(updated)
@@ -343,8 +461,9 @@ enum DemoSeeder {
                 defaultLegFormatRaw: current.defaultLegFormatRaw,
                 defaultLegsToWin: current.defaultLegsToWin,
                 defaultSetsEnabled: current.defaultSetsEnabled,
-                botStaggerEnabled: true,
+                botStaggerEnabled: false,
                 botDartHapticsEnabled: false,
+                defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )
             _ = try await dependencies.settingsRepository.updateSettings(disabled)
@@ -363,14 +482,14 @@ enum DemoSeeder {
         DartInput(multiplier: multiplier, segment: .oneToTwenty(value))
     }
 
-    private static func seedX01(
+    /// Creates and persists a match shell (repository row, lifecycle session,
+    /// initial snapshot) shared by the per-mode seeders.
+    private static func createPersistedMatchSession(
         dependencies: AppDependencies,
-        config: MatchConfigX01,
-        players: [(PlayerSummary, String)],
-        turns: [[DartInput]],
-        complete: Bool
-    ) async throws {
-        let payload = MatchConfigPayload.x01(config)
+        type: MatchType,
+        payload: MatchConfigPayload,
+        players: [(PlayerSummary, String)]
+    ) async throws -> MatchLifecycleSession {
         let encoded = try CodablePayloadCoder.encode(payload)
         let participantSummaries = players.enumerated().map { index, entry in
             MatchParticipantSummary(
@@ -383,45 +502,69 @@ enum DemoSeeder {
             )
         }
         let persisted = try await dependencies.matchRepository.createMatch(
-            type: .x01,
+            type: type,
             configPayload: encoded,
             participants: participantSummaries
         )
         let lifecycleParticipants = players.enumerated().map { index, entry in
             MatchParticipant(playerId: entry.0.id, displayNameAtMatchStart: entry.1, turnOrder: index)
         }
-        var session = try MatchLifecycleService.createMatch(
+        let session = try MatchLifecycleService.createMatch(
             matchId: persisted.id,
-            type: .x01,
+            type: type,
             config: payload,
             participants: lifecycleParticipants
         )
+        try await saveSnapshot(of: session, dependencies: dependencies)
+        return session
+    }
+
+    /// Appends the session's latest turn event (when present) and snapshots.
+    private static func persistLastTurnEvent(
+        of session: MatchLifecycleSession,
+        eventTypeRaw: String,
+        dependencies: AppDependencies
+    ) async throws {
+        if let event = session.events.last {
+            let eventPayload = try CodablePayloadCoder.encode(event)
+            _ = try await dependencies.matchRepository.appendEvent(
+                matchId: session.runtime.matchId,
+                eventTypeRaw: eventTypeRaw,
+                eventPayload: eventPayload
+            )
+        }
+        try await saveSnapshot(of: session, dependencies: dependencies)
+    }
+
+    private static func saveSnapshot(of session: MatchLifecycleSession, dependencies: AppDependencies) async throws {
         _ = try await dependencies.matchRepository.saveSnapshot(
-            matchId: persisted.id,
+            matchId: session.runtime.matchId,
             snapshotVersion: session.latestSnapshot.payloadVersion,
             snapshotPayload: session.latestSnapshot.payload
         )
+    }
 
+    private static func seedX01(
+        dependencies: AppDependencies,
+        config: MatchConfigX01,
+        players: [(PlayerSummary, String)],
+        turns: [[DartInput]],
+        complete: Bool
+    ) async throws {
+        let payload = MatchConfigPayload.x01(config)
+        var session = try await createPersistedMatchSession(
+            dependencies: dependencies,
+            type: .x01,
+            payload: payload,
+            players: players
+        )
         for darts in turns {
             session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: nil, darts: darts)
-            if let event = session.events.last {
-                let eventPayload = try CodablePayloadCoder.encode(event)
-                _ = try await dependencies.matchRepository.appendEvent(
-                    matchId: persisted.id,
-                    eventTypeRaw: "x01Turn",
-                    eventPayload: eventPayload
-                )
-            }
-            _ = try await dependencies.matchRepository.saveSnapshot(
-                matchId: persisted.id,
-                snapshotVersion: session.latestSnapshot.payloadVersion,
-                snapshotPayload: session.latestSnapshot.payload
-            )
+            try await persistLastTurnEvent(of: session, eventTypeRaw: "x01Turn", dependencies: dependencies)
         }
-
         if complete, session.runtime.status == .completed {
             _ = try await dependencies.matchRepository.completeMatch(
-                matchId: persisted.id,
+                matchId: session.runtime.matchId,
                 endedAt: Date(),
                 winnerPlayerId: session.runtime.winnerPlayerId
             )
@@ -437,58 +580,19 @@ enum DemoSeeder {
         turns: [[DartInput]],
         complete: Bool
     ) async throws {
-        let payload = MatchConfigPayload.cricket(MatchConfigCricket())
-        let encoded = try CodablePayloadCoder.encode(payload)
-        let participantSummaries = players.enumerated().map { index, entry in
-            MatchParticipantSummary(
-                id: UUID(),
-                matchId: UUID(),
-                playerId: entry.0.id,
-                turnOrder: index,
-                displayNameAtMatchStart: entry.1,
-                avatarStyleAtMatchStart: nil
-            )
-        }
-        let persisted = try await dependencies.matchRepository.createMatch(
+        var session = try await createPersistedMatchSession(
+            dependencies: dependencies,
             type: .cricket,
-            configPayload: encoded,
-            participants: participantSummaries
+            payload: MatchConfigPayload.cricket(MatchConfigCricket()),
+            players: players
         )
-        let lifecycleParticipants = players.enumerated().map { index, entry in
-            MatchParticipant(playerId: entry.0.id, displayNameAtMatchStart: entry.1, turnOrder: index)
-        }
-        var session = try MatchLifecycleService.createMatch(
-            matchId: persisted.id,
-            type: .cricket,
-            config: payload,
-            participants: lifecycleParticipants
-        )
-        _ = try await dependencies.matchRepository.saveSnapshot(
-            matchId: persisted.id,
-            snapshotVersion: session.latestSnapshot.payloadVersion,
-            snapshotPayload: session.latestSnapshot.payload
-        )
-
         for darts in turns {
             session = try MatchLifecycleService.submitCricketTurn(session: session, darts: darts)
-            if let event = session.events.last {
-                let eventPayload = try CodablePayloadCoder.encode(event)
-                _ = try await dependencies.matchRepository.appendEvent(
-                    matchId: persisted.id,
-                    eventTypeRaw: "cricketTurn",
-                    eventPayload: eventPayload
-                )
-            }
-            _ = try await dependencies.matchRepository.saveSnapshot(
-                matchId: persisted.id,
-                snapshotVersion: session.latestSnapshot.payloadVersion,
-                snapshotPayload: session.latestSnapshot.payload
-            )
+            try await persistLastTurnEvent(of: session, eventTypeRaw: "cricketTurn", dependencies: dependencies)
         }
-
         if complete {
             _ = try await dependencies.matchRepository.completeMatch(
-                matchId: persisted.id,
+                matchId: session.runtime.matchId,
                 endedAt: Date(),
                 winnerPlayerId: session.runtime.winnerPlayerId ?? players.first?.0.id
             )
@@ -504,64 +608,25 @@ enum DemoSeeder {
         players: [(PlayerSummary, String)],
         complete: Bool
     ) async throws {
-        let payload = MatchConfigPayload.baseball(config)
-        let encoded = try CodablePayloadCoder.encode(payload)
-        let participantSummaries = players.enumerated().map { index, entry in
-            MatchParticipantSummary(
-                id: UUID(),
-                matchId: UUID(),
-                playerId: entry.0.id,
-                turnOrder: index,
-                displayNameAtMatchStart: entry.1,
-                avatarStyleAtMatchStart: nil
-            )
-        }
-        let persisted = try await dependencies.matchRepository.createMatch(
+        var session = try await createPersistedMatchSession(
+            dependencies: dependencies,
             type: .baseball,
-            configPayload: encoded,
-            participants: participantSummaries
+            payload: MatchConfigPayload.baseball(config),
+            players: players
         )
-        let lifecycleParticipants = players.enumerated().map { index, entry in
-            MatchParticipant(playerId: entry.0.id, displayNameAtMatchStart: entry.1, turnOrder: index)
-        }
-        var session = try MatchLifecycleService.createMatch(
-            matchId: persisted.id,
-            type: .baseball,
-            config: payload,
-            participants: lifecycleParticipants
-        )
-        _ = try await dependencies.matchRepository.saveSnapshot(
-            matchId: persisted.id,
-            snapshotVersion: session.latestSnapshot.payloadVersion,
-            snapshotPayload: session.latestSnapshot.payload
-        )
-
         for inning in 1 ... config.inningCount {
-            for (playerIndex, _) in players.enumerated() {
+            for playerIndex in players.indices {
                 let multiplier: DartMultiplier = playerIndex == 0 ? .triple : .single
                 session = try MatchLifecycleService.submitBaseballTurn(
                     session: session,
                     darts: [d(multiplier, inning)]
                 )
-                if let event = session.events.last {
-                    let eventPayload = try CodablePayloadCoder.encode(event)
-                    _ = try await dependencies.matchRepository.appendEvent(
-                        matchId: persisted.id,
-                        eventTypeRaw: "baseballTurn",
-                        eventPayload: eventPayload
-                    )
-                }
-                _ = try await dependencies.matchRepository.saveSnapshot(
-                    matchId: persisted.id,
-                    snapshotVersion: session.latestSnapshot.payloadVersion,
-                    snapshotPayload: session.latestSnapshot.payload
-                )
+                try await persistLastTurnEvent(of: session, eventTypeRaw: "baseballTurn", dependencies: dependencies)
             }
         }
-
         if complete {
             _ = try await dependencies.matchRepository.completeMatch(
-                matchId: persisted.id,
+                matchId: session.runtime.matchId,
                 endedAt: Date(),
                 winnerPlayerId: session.runtime.winnerPlayerId ?? players.first?.0.id
             )

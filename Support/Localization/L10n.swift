@@ -15,7 +15,6 @@ enum L10n {
     static let errorTitle: LocalizedStringKey = "common.error.title"
     static let retry: LocalizedStringKey = "common.retry"
     static let playTitle: LocalizedStringKey = "play.title"
-    static let quickAddTitle: LocalizedStringKey = "play.quickAdd.title"
     static let loading: LocalizedStringKey = "common.loading"
     static let noActiveMatch: LocalizedStringKey = "play.home.noActiveMatch"
     static let resumeActiveMatch: LocalizedStringKey = "play.home.resumeActiveMatch"
@@ -45,13 +44,13 @@ enum L10n {
     static let playersSection: LocalizedStringKey = "play.setup.players"
     static let setupPlayersEmptyHint: LocalizedStringKey = "play.setup.playersEmptyHint"
     static let setupPlayersSelectionHint: LocalizedStringKey = "play.setup.playersSelectionHint"
-    static let setupPlayerRowAccessibilityHint: LocalizedStringKey = "play.setup.playerRow.accessibilityHint"
-    static let quickAdd: LocalizedStringKey = "play.setup.quickAdd"
     static let x01Options: LocalizedStringKey = "play.setup.x01Options"
     static let singleOut: LocalizedStringKey = "play.setup.checkout.single"
     static let doubleOut: LocalizedStringKey = "play.setup.checkout.double"
     static let startMatch: LocalizedStringKey = "play.setup.startMatch"
     static let x01Title: LocalizedStringKey = "play.x01.title"
+    static let x01CheckoutTitle: LocalizedStringKey = "play.x01.checkout.title"
+    static let x01CheckoutCycle: LocalizedStringKey = "play.x01.checkout.cycle"
     static let cricketTitle: LocalizedStringKey = "play.cricket.title"
     static let gameRulesLearnButton: LocalizedStringKey = "play.rules.learnButton"
     static let gameRulesSheetTitle: LocalizedStringKey = "play.rules.sheet.title"
@@ -63,6 +62,9 @@ enum L10n {
     static let matchCompleteRoute: LocalizedStringKey = "play.match.completeRouting"
     static let summaryTitle: LocalizedStringKey = "play.summary.title"
     static let summaryNewMatch: LocalizedStringKey = "play.summary.newMatch"
+    static let summaryGameRecorded: LocalizedStringKey = "play.summary.gameRecorded"
+    static let summaryDone: LocalizedStringKey = "play.summary.done"
+    static let summaryRematch: LocalizedStringKey = "play.summary.rematch"
     static let summaryHistoryDetail: LocalizedStringKey = "play.summary.viewHistoryDetail"
     static let historyTitle: LocalizedStringKey = "history.title"
     static let historyNoMatches: LocalizedStringKey = "history.empty"
@@ -82,6 +84,7 @@ enum L10n {
     static let summaryViewGameStatistics: LocalizedStringKey = "play.summary.viewGameStatistics"
     static let summaryUndoLastThrow: LocalizedStringKey = "play.summary.undoLastThrow"
     static let summaryUndoLastThrowHint: LocalizedStringKey = "play.summary.undoLastThrow.hint"
+    static let summaryUndoLastThrowWarning: LocalizedStringKey = "play.summary.undoLastThrow.warning"
     static let botThrowing: LocalizedStringKey = "play.match.botThrowing"
     static let scoringPadDouble: LocalizedStringKey = "scoring.pad.double"
     static let scoringPadTriple: LocalizedStringKey = "scoring.pad.triple"
@@ -106,6 +109,15 @@ enum L10n {
     static let customBotCricketMPRLabel: LocalizedStringKey = "customBot.cricketMPR.label"
     static let customBotCricketMPRHint: LocalizedStringKey = "customBot.cricketMPR.hint"
     static let customBotSetupSection: LocalizedStringKey = "customBot.setup.section"
+    static let customBotEditorSimple: LocalizedStringKey = "customBot.editor.simple"
+    static let customBotEditorAdvanced: LocalizedStringKey = "customBot.editor.advanced"
+    static let customBotAdvancedPresetAnchor: LocalizedStringKey = "customBot.advanced.presetAnchor"
+    static let customBotAdvancedResetSimple: LocalizedStringKey = "customBot.advanced.resetSimple"
+    static let customBotAdvancedResetPreset: LocalizedStringKey = "customBot.advanced.resetPreset"
+    static let customBotAdvancedFooter: LocalizedStringKey = "customBot.advanced.footer"
+    static let customBotAdvancedX01Section: LocalizedStringKey = "customBot.advanced.x01Section"
+    static let customBotAdvancedCricketSection: LocalizedStringKey = "customBot.advanced.cricketSection"
+    static let customBotAdvancedAimSection: LocalizedStringKey = "customBot.advanced.aimSection"
     static let playersEmptyTitle: LocalizedStringKey = "players.empty.title"
     static let playersEmptyDescription: LocalizedStringKey = "players.empty.description"
     static let archived: LocalizedStringKey = "players.archived"
@@ -153,6 +165,17 @@ enum L10n {
     static let settingsBotOpponentsFooter: LocalizedStringKey = "settings.botOpponents.footer"
     static let dataSection: LocalizedStringKey = "settings.data"
     static let aboutSection: LocalizedStringKey = "settings.about"
+    static let settingsHelpAndFeedbackSection: LocalizedStringKey = "settings.helpAndFeedback"
+    static let settingsSupportFAQ: LocalizedStringKey = "settings.support.faq"
+    static let settingsSupportFeedback: LocalizedStringKey = "settings.support.feedback"
+    static let settingsSupportRate: LocalizedStringKey = "settings.support.rate"
+    static let settingsSupportPrivacy: LocalizedStringKey = "settings.support.privacy"
+    static let settingsSupportAccessibility: LocalizedStringKey = "settings.support.accessibility"
+    static let settingsSupportFAQAccessibility: LocalizedStringKey = "settings.support.faq.accessibility"
+    static let settingsSupportFeedbackAccessibility: LocalizedStringKey = "settings.support.feedback.accessibility"
+    static let settingsSupportRateAccessibility: LocalizedStringKey = "settings.support.rate.accessibility"
+    static let settingsSupportPrivacyAccessibility: LocalizedStringKey = "settings.support.privacy.accessibility"
+    static let settingsSupportAccessibilityLabel: LocalizedStringKey = "settings.support.accessibility.accessibility"
     static let settingsBuyDeveloperCoffee: LocalizedStringKey = "settings.support.buyCoffee"
     static let settingsBuyDeveloperCoffeeFooter: LocalizedStringKey = "settings.support.buyCoffee.footer"
     static let settingsBuyDeveloperCoffeeAccessibility: LocalizedStringKey = "settings.support.buyCoffee.accessibility"
@@ -201,6 +224,9 @@ enum L10n {
     static let statsFilterAllPlayers: LocalizedStringKey = "stats.filter.allPlayers"
     static let playersEditAvatar: LocalizedStringKey = "players.edit.avatar"
     static let playersEditColor: LocalizedStringKey = "players.edit.color"
+    static let playersPrimaryLabel: LocalizedStringKey = "players.primary.label"
+    static let playersPrimaryHint: LocalizedStringKey = "players.primary.hint"
+    static let playersPrimaryBadge: LocalizedStringKey = "players.primary.badge"
     static let updateAvailableTitle: LocalizedStringKey = "app.update.title"
     static let updateAvailableMessage: LocalizedStringKey = "app.update.message"
     static let updateAvailableUpdate: LocalizedStringKey = "app.update.update"
@@ -209,21 +235,61 @@ enum L10n {
     static let onboardingNext: LocalizedStringKey = "onboarding.next"
     static let onboardingContinue: LocalizedStringKey = "onboarding.continue"
     static let onboardingGetStarted: LocalizedStringKey = "onboarding.getStarted"
-    static let onboardingExperienceYes: LocalizedStringKey = "onboarding.experience.yes"
-    static let onboardingExperienceNo: LocalizedStringKey = "onboarding.experience.no"
+    static let onboardingRosterYouSection: LocalizedStringKey = "onboarding.roster.youSection"
+    static let onboardingRosterExperienceSection: LocalizedStringKey = "onboarding.roster.experienceSection"
+    static let onboardingRosterExperienceHint: LocalizedStringKey = "onboarding.roster.experienceHint"
+    static let onboardingRosterExperienceMin: LocalizedStringKey = "onboarding.roster.experienceMin"
+    static let onboardingRosterExperienceMax: LocalizedStringKey = "onboarding.roster.experienceMax"
+    static let onboardingRosterOpponentSection: LocalizedStringKey = "onboarding.roster.opponentSection"
+    static let onboardingReadyRosterTitle: LocalizedStringKey = "onboarding.ready.rosterTitle"
     static let onboardingPreferencesTitle: LocalizedStringKey = "onboarding.preferences.title"
     static let onboardingPreferencesFooter: LocalizedStringKey = "onboarding.preferences.footer"
     static let onboardingLearnTitle: LocalizedStringKey = "onboarding.learn.title"
     static let onboardingLearnIntro: LocalizedStringKey = "onboarding.learn.intro"
+    static let onboardingTourIntro: LocalizedStringKey = "onboarding.tour.intro"
+    static let onboardingTourRoadmap: LocalizedStringKey = "onboarding.tour.roadmap"
+    static let onboardingSupportHelp: LocalizedStringKey = "onboarding.support.help"
+    static let onboardingSupportFeedback: LocalizedStringKey = "onboarding.support.feedback"
+    static let onboardingSupportPrivacy: LocalizedStringKey = "onboarding.support.privacy"
+    static let onboardingSupportHelpAccessibility: LocalizedStringKey = "onboarding.support.help.accessibility"
+    static let onboardingSupportFeedbackAccessibility: LocalizedStringKey = "onboarding.support.feedback.accessibility"
+    static let onboardingSupportPrivacyAccessibility: LocalizedStringKey = "onboarding.support.privacy.accessibility"
+    static let onboardingStartMatch: LocalizedStringKey = "onboarding.startMatch"
+    static let onboardingReadyReplayHint: LocalizedStringKey = "onboarding.ready.replayHint"
     static let settingsViewOnboarding: LocalizedStringKey = "settings.onboarding.viewTour"
     static let settingsViewOnboardingAccessibility: LocalizedStringKey = "settings.onboarding.viewTour.accessibility"
 
     static func format(_ key: String, _ args: CVarArg...) -> String {
-        let format = NSLocalizedString(key, comment: "")
+        let format = localizedFormat(for: key)
         return String(format: format, locale: Locale.current, arguments: args)
     }
 
+    static func achievementName(_ achievementId: String) -> String {
+        string(achievementLocalizationKey(for: achievementId, suffix: "name"))
+    }
+
+    static func achievementDescription(_ achievementId: String) -> String {
+        string(achievementLocalizationKey(for: achievementId, suffix: "description"))
+    }
+
+    private static func achievementLocalizationKey(for achievementId: String, suffix: String) -> String {
+        let slug = achievementId.replacingOccurrences(of: ".", with: "_")
+        return "achievement.\(slug).\(suffix)"
+    }
+
     static func string(_ key: String) -> String {
-        NSLocalizedString(key, comment: "")
+        localizedString(for: key)
+    }
+
+    private static func localizedString(for key: String) -> String {
+        let primary = NSLocalizedString(key, comment: "")
+        if primary != key { return primary }
+        return NSLocalizedString(key, tableName: "GameplayModes", comment: "")
+    }
+
+    private static func localizedFormat(for key: String) -> String {
+        let primary = NSLocalizedString(key, comment: "")
+        if primary != key { return primary }
+        return NSLocalizedString(key, tableName: "GameplayModes", comment: "")
     }
 }

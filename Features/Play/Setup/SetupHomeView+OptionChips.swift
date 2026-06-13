@@ -50,7 +50,7 @@ extension SetupHomeView {
     }
 
     private var pointsChip: some View {
-        chip(title: L10n.setupChipPoints, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.points", color: Brand.key) {
             Menu {
                 ForEach(X01StartScores.all, id: \.self) { score in
                     Button("\(score)") {
@@ -68,7 +68,7 @@ extension SetupHomeView {
     }
 
     private var checkoutChip: some View {
-        chip(title: L10n.setupChipCheckOut, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.checkOut", color: Brand.key) {
             Menu {
                 ForEach(X01CheckoutMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -86,7 +86,7 @@ extension SetupHomeView {
     }
 
     private var checkInChip: some View {
-        chip(title: L10n.setupChipCheckIn, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.checkIn", color: Brand.key) {
             Menu {
                 ForEach(X01CheckInMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -103,7 +103,7 @@ extension SetupHomeView {
     }
 
     private var legFormatChip: some View {
-        chip(title: L10n.setupChipSetLeg, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.setLeg", color: Brand.key) {
             Menu {
                 ForEach(X01LegFormat.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -120,7 +120,7 @@ extension SetupHomeView {
     }
 
     private var setsChip: some View {
-        chip(title: L10n.setupChipSets, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.sets", color: Brand.key) {
             Menu {
                 ForEach(1 ... 5, id: \.self) { value in
                     Button("\(value)") {
@@ -138,7 +138,7 @@ extension SetupHomeView {
     }
 
     private var legsChip: some View {
-        chip(title: L10n.setupChipLegs, color: Brand.key) {
+        chip(titleKey: "play.setup.chip.legs", color: Brand.key) {
             Menu {
                 ForEach(1 ... 9, id: \.self) { value in
                     Button("\(value)") {
@@ -155,9 +155,9 @@ extension SetupHomeView {
         }
     }
 
-    func chip<Content: View>(title: LocalizedStringKey, color: Color, @ViewBuilder content: () -> Content) -> some View {
+    func chip<Content: View>(titleKey: String, color: Color, @ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 6) {
-            Text(title)
+            Text(L10n.string(titleKey))
                 .font(.caption)
                 .foregroundStyle(Brand.textSecondary)
                 .lineLimit(1)
@@ -182,9 +182,12 @@ extension SetupHomeView {
             .overlay(alignment: .topTrailing) {
                 if showsMenuIndicator {
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 9, weight: .bold))
+                        // Relative font so the menu indicator scales with Dynamic Type
+                        // instead of staying a fixed 9pt at accessibility sizes.
+                        .font(.caption2.weight(.bold))
                         .foregroundStyle(Brand.textSecondary)
                         .padding(5)
+                        .accessibilityHidden(true)
                 }
             }
     }

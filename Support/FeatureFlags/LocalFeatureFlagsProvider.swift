@@ -46,12 +46,26 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             return true
             #endif
         case .enableAppleWatchCompanion,
-             .enableVisionAutoScoring,
              .enableOnlinePlay,
              .enableAdvancedDiagnostics:
             return false
+        case .enableVisionAutoScoring:
+            if arguments.contains("-enable_vision_scoring") {
+                return true
+            }
+            return false
         case .enableAppIntents:
             if arguments.contains("-enable_app_intents") {
+                return true
+            }
+            return false
+        case .enableAchievements:
+            if arguments.contains("-enable_achievements") {
+                return true
+            }
+            return false
+        case .enableVisualDartboardInput:
+            if arguments.contains("-enable_visual_dartboard") {
                 return true
             }
             return false

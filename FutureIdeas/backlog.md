@@ -34,8 +34,11 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 | Idea | Notes |
 |------|--------|
+| **Visual dartboard input** | Touchable circular board as an alternative to the number pad; in-match + Settings presentation toggle. Assessment (not a completed spec): [`visual-dartboard-input.md`](visual-dartboard-input.md). |
 | **More game types** | Baseball, Killer, and Shanghai shipped (see `GameModeCatalog`). Remaining: practice modes (Bob's 27, Around the Clock), Golf, Halve-It, and 23 planned catalog entries — [`additional-game-modes.md`](additional-game-modes.md). |
-| **Online games** | See [`specs/OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md). |
+| **Custom / exclusive games** | Dart Buddy–only formats (voice, hidden state, ghost bots, remix orchestrator) — brainstorm: [`custom-games-brainstorm.md`](custom-games-brainstorm.md). |
+| **Tournaments** | **P1:** local brackets ([`specs/TournamentSpec.md`](../specs/TournamentSpec.md)). **P2:** Firebase + online ([`specs/OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md)). |
+| **Online games** | **P2** — head-to-head sync first, then online tournaments. See [`specs/OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md). |
 
 ---
 
@@ -59,3 +62,5 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 - [`achievements.md`](achievements.md) — Game Center achievements
 - [`play-reminders.md`](play-reminders.md) — Local play reminders / push path
+- [`talk-mode.md`](talk-mode.md) — Voice scoring input
+- [`visual-dartboard-input.md`](visual-dartboard-input.md) — Visual board scoring input

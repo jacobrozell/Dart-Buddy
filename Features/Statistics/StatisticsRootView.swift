@@ -26,7 +26,7 @@ struct StatisticsRootView: View {
                     BrandRootScreenTitle(title: L10n.statsTitle)
 
                     BrandSegmented(
-                        options: ActivityModeFilter.allCases.map { ($0, $0.title) },
+                        options: ActivityModeFilter.visibleCases.map { ($0, $0.title) },
                         selection: $viewModel.modeFilter
                     )
 
@@ -47,32 +47,37 @@ struct StatisticsRootView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
                             .accessibilityLabel(L10n.loading)
-                    } else if viewModel.rows.isEmpty {
-                        emptyState
                     } else {
-                        gamesTable
-                        if viewModel.isX01 {
-                            sectionTitle(L10n.string("stats.section.averageHighest"))
-                            averageTable
-                            averageChart
-                            if viewModel.showsTrendChart {
-                                sectionTitle(L10n.string("stats.trend.title"))
-                                AverageTrendChart(points: viewModel.trendPoints)
+                        Group {
+                            if viewModel.rows.isEmpty {
+                                emptyState
+                            } else {
+                                gamesTable
+                                if viewModel.isX01 {
+                                    sectionTitle(L10n.string("stats.section.averageHighest"))
+                                    averageTable
+                                    averageChart
+                                    if viewModel.showsTrendChart {
+                                        sectionTitle(L10n.string("stats.trend.title"))
+                                        AverageTrendChart(points: viewModel.trendPoints)
+                                    }
+                                    sectionTitle(L10n.string("stats.section.legsCheckout"))
+                                    checkoutTable
+                                } else if !viewModel.isAllGames {
+                                    sectionTitle(L10n.string("stats.section.marksPerRound"))
+                                    mprTable
+                                }
+                                sectionTitle(L10n.string("stats.points"))
+                                pointsTable
+                                sectionTitle(L10n.string("stats.throws"))
+                                throwsTable
+                                if !viewModel.isAllGames, let matchType = viewModel.modeFilter.matchType {
+                                    sectionTitle(L10n.string("stats.hitsInSector"))
+                                    sectorChart(mode: matchType)
+                                }
                             }
-                            sectionTitle(L10n.string("stats.section.legsCheckout"))
-                            checkoutTable
-                        } else if !viewModel.isAllGames {
-                            sectionTitle(L10n.string("stats.section.marksPerRound"))
-                            mprTable
                         }
-                        sectionTitle(L10n.string("stats.points"))
-                        pointsTable
-                        sectionTitle(L10n.string("stats.throws"))
-                        throwsTable
-                        if !viewModel.isAllGames, let matchType = viewModel.modeFilter.matchType {
-                            sectionTitle(L10n.string("stats.hitsInSector"))
-                            sectorChart(mode: matchType)
-                        }
+                        .motionTabContentReveal(when: true)
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
@@ -294,6 +299,7 @@ struct StatTable: View {
     let rows: [PlayerStatBreakdown]
     let values: (PlayerStatBreakdown) -> [String]
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         title: String? = nil,
@@ -311,51 +317,101 @@ struct StatTable: View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
             if let title {
                 Text(title)
-                    .font(.title2.weight(.bold))
+                    .font(tableTitleFont.weight(.bold))
                     .foregroundStyle(Brand.textPrimary)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityAddTraits(.isHeader)
             }
-            VStack(spacing: 0) {
+            if dynamicTypeSize.isAccessibilitySize {
+                accessibilityTableBody
+            } else {
+                compactTableBody
+            }
+        }
+    }
+
+    private var tableTitleFont: Font {
+        dynamicTypeSize.isAccessibilitySize ? .headline : .title2
+    }
+
+    private var accessibilityTableBody: some View {
+        VStack(spacing: DS.Spacing.s2) {
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                accessibilityRow(index: index, row: row)
+            }
+        }
+    }
+
+    private func accessibilityRow(index: Int, row: PlayerStatBreakdown) -> some View {
+        let cells = values(row)
+        return VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            Text("\(index + 1). \(row.name)")
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            ForEach(Array(columns.enumerated()), id: \.offset) { columnIndex, column in
+                HStack(alignment: .firstTextBaseline) {
+                    Text(column.label)
+                        .foregroundStyle(Brand.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(columnIndex < cells.count ? cells[columnIndex] : "-")
+                        .foregroundStyle(Brand.textPrimary)
+                        .multilineTextAlignment(.trailing)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .font(.subheadline)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, DS.Spacing.s3)
+        .padding(.vertical, DS.Spacing.s3)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(rowAccessibilityLabel(index: index, row: row, cells: cells))
+    }
+
+    private var compactTableBody: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(L10n.statsTablePlayersColumn).frame(maxWidth: .infinity, alignment: .leading)
+                ForEach(columns, id: \.label) { column in
+                    Text(column.label)
+                        .frame(minWidth: resolvedColumnWidth(column.width), alignment: .trailing)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(Brand.textSecondary)
+            .padding(.horizontal, DS.Spacing.s3)
+            .padding(.vertical, DS.Spacing.s2)
+            .accessibilityHidden(true)
+
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                let cells = values(row)
                 HStack {
-                    Text(L10n.statsTablePlayersColumn).frame(maxWidth: .infinity, alignment: .leading)
-                    ForEach(columns, id: \.label) { column in
-                        Text(column.label)
+                    Text("\(index + 1). \(row.name)")
+                        .foregroundStyle(Brand.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineLimit(1)
+                    ForEach(Array(columns.enumerated()), id: \.offset) { columnIndex, column in
+                        Text(columnIndex < cells.count ? cells[columnIndex] : "-")
                             .frame(minWidth: resolvedColumnWidth(column.width), alignment: .trailing)
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
-                    }
-                }
-                .font(.caption)
-                .foregroundStyle(Brand.textSecondary)
-                .padding(.horizontal, DS.Spacing.s3)
-                .padding(.vertical, DS.Spacing.s2)
-                .accessibilityHidden(true)
-
-                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                    let cells = values(row)
-                    HStack {
-                        Text("\(index + 1). \(row.name)")
                             .foregroundStyle(Brand.textPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .lineLimit(1)
-                        ForEach(Array(columns.enumerated()), id: \.offset) { columnIndex, column in
-                            Text(columnIndex < cells.count ? cells[columnIndex] : "-")
-                                .frame(minWidth: resolvedColumnWidth(column.width), alignment: .trailing)
-                                .lineLimit(1)
-                                .fixedSize(horizontal: true, vertical: false)
-                                .foregroundStyle(Brand.textPrimary)
-                        }
                     }
-                    .font(.subheadline)
-                    .padding(.horizontal, DS.Spacing.s3)
-                    .padding(.vertical, DS.Spacing.s3)
-                    .background(index.isMultiple(of: 2) ? Color.clear : Brand.cardElevated.opacity(0.4))
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(rowAccessibilityLabel(index: index, row: row, cells: cells))
                 }
+                .font(.subheadline)
+                .padding(.horizontal, DS.Spacing.s3)
+                .padding(.vertical, DS.Spacing.s3)
+                .background(index.isMultiple(of: 2) ? Color.clear : Brand.cardElevated.opacity(0.4))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(rowAccessibilityLabel(index: index, row: row, cells: cells))
             }
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 
     private func rowAccessibilityLabel(index: Int, row: PlayerStatBreakdown, cells: [String]) -> String {

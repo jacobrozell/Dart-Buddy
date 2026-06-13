@@ -12,6 +12,7 @@ TestResults-*.xcresult/
 xcodebuild*.log
 coverage_reports/
 coverage-summary.txt
+documentation-summary.txt
 *.xcuserstate
 *.xcuserdatad/
 
@@ -19,7 +20,10 @@ coverage-summary.txt
 DartBuddy.xcodeproj/
 
 # Firebase (download from Firebase Console; copy from Resources/GoogleService-Info.plist.example)
-Resources/GoogleService-Info.plist
+# Real plist lives ONLY at Resources/GoogleService-Info.plist — never under .lproj/.
+**/GoogleService-Info.plist
+!**/GoogleService-Info.plist.example
+**/*.lproj/GoogleService-Info.plist
 
 # MCP screenshot / scratch output
 tmp/

@@ -7,6 +7,7 @@ struct KillerMatchScreen: View {
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
     let feedbackPreferences: FeedbackPreferences
+    let lifecycleDependencies: MatchLifecycleChromeDependencies
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -42,7 +43,7 @@ struct KillerMatchScreen: View {
             }
 
             if viewModel.killerState != nil {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         KillerScoreboardView(rows: viewModel.scoreboardRows)
                         if viewModel.isPickPhase {
@@ -53,12 +54,15 @@ struct KillerMatchScreen: View {
                                 KillerNumberGridView(assignments: viewModel.numberGridAssignments)
                             }
                         }
-                        stateBanner
                     }
+                } padChrome: {
+                    stateBanner
                 } controls: {
-                    killerPad
-                    if showsPartialTurnSubmit {
-                        submitButton
+                    VStack(spacing: DS.Spacing.s2) {
+                        killerPad
+                        if showsPartialTurnSubmit {
+                            submitButton
+                        }
                     }
                 }
                 .onChange(of: viewModel.enteredDarts) { old, darts in
@@ -80,19 +84,13 @@ struct KillerMatchScreen: View {
         .background(Brand.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {}
-            Button("play.match.exit.saveAndExit") { dismiss() }
-            Button("play.match.exit.abandon", role: .destructive) {
-                actionTask?.cancel()
-                actionTask = Task {
-                    await viewModel.abandonMatch()
-                    dismiss()
-                }
-            }
-        } message: {
-            Text("play.match.exit.confirm.message")
-        }
+        .matchLifecycleChrome(
+            host: viewModel,
+            showExitConfirmation: $showExitConfirmation,
+            onShowSummary: onShowSummary,
+            onDismiss: { dismiss() },
+            dependencies: lifecycleDependencies
+        )
         .onChange(of: viewModel.state) { _, newValue in
             switch newValue {
             case .matchCompleted:
@@ -100,6 +98,8 @@ struct KillerMatchScreen: View {
                 onShowSummary()
             case .becameKillerFeedback:
                 haptics.playSuccess()
+                // Match X01/Cricket: the visual banner is also announced to VoiceOver.
+                AccessibilityNotification.Announcement(L10n.string("play.killer.becameKiller")).post()
             default:
                 break
             }
@@ -110,7 +110,11 @@ struct KillerMatchScreen: View {
             haptics.playImpact()
         }
         .task { await viewModel.onAppear() }
-        .onDisappear { actionTask?.cancel() }
+        .onDisappear {
+            actionTask?.cancel()
+            guard !showExitConfirmation else { return }
+            viewModel.onDisappear()
+        }
     }
 
     @ViewBuilder
@@ -120,6 +124,7 @@ struct KillerMatchScreen: View {
             ErrorBanner(messageKey: messageKey)
         case .becameKillerFeedback:
             MatchFeedbackBanner(text: "play.killer.becameKiller", style: .legWin)
+                .accessibilityHidden(true)
         default:
             EmptyView()
         }

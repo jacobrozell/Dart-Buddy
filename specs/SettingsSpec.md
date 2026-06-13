@@ -19,10 +19,14 @@ Define configurable app preferences and data management controls for MVP.
 ## Layout
 - Grouped SwiftUI form sections:
   - Appearance
-  - Gameplay Defaults
-  - Feedback
+  - Starting Mode
+  - Match Defaults
+  - X01 Defaults
+  - During Play (scoring input presentation, haptics, sound, turn-total caller)
+  - Bot Opponents
   - Data
-  - About
+  - Help & Feedback (support FAQ, send feedback mailto, rate app, privacy policy)
+  - About (view onboarding replay, dynamic version, optional tip link)
 
 ## Behavior
 - Preference changes apply immediately where safe.
@@ -46,20 +50,15 @@ Recommended keys:
 - `defaultCheckoutMode`
 - `defaultLegsToWin`
 - `defaultSetsEnabled` (persisted from last Play setup on Start; no Settings UI control)
+- `defaultDartEntryPresentationRaw` (number pad vs visual dartboard — [`VisualDartboardInputSpec.md`](VisualDartboardInputSpec.md))
 
 ---
 
 ## 5. Data Reset Behavior
 
-`Reset All Local Data` must:
-1. Confirm with destructive modal
-2. Remove players, matches, events, stats cache, settings
-3. Return app to first-launch defaults
-4. Not leave partial data state if interrupted
+Authoritative reset policy, inventory, scaling checklist, and tests: [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md).
 
-Implementation note:
-- Execute reset in transactional sequence where possible.
-- On failure, present recoverable error and retry path.
+Summary: **Reset All Local Data** requires destructive confirmation, clears all inventoried SwiftData tables and UserDefaults, clears in-memory session stores, re-seeds default settings, and returns the app to first-launch data defaults. On failure, present a recoverable error.
 
 ---
 
@@ -78,7 +77,7 @@ Implementation note:
 
 ## Integration
 - Changed defaults appear in New Match setup prefill
-- Reset truly clears all local tables and preferences
+- Reset inventory and table coverage: [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md) §8
 
 ## UI
 - Appearance toggle behavior
@@ -90,7 +89,7 @@ Implementation note:
 - Manual: [`settings.md`](../accessibility/wcag-2.1-aa/screens/settings.md)
 
 ## 9. Analytics
-§12 — `settings_seeded` (log-only).
+§12 — `settings_seeded` (log-only). Successful reset logs `settings_reset_all_data` (log-only, not Analytics). Failures log `settings_reset_failed` → Crashlytics allowlist.
 
 ## 10. Verification
 | Field | Value |

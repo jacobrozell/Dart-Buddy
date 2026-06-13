@@ -56,7 +56,13 @@ public enum AppBootstrapper {
                 pendingMatchPlayerSelections: pendingMatchPlayerSelections
             )
             await DemoSeeder.seedIfRequested(dependencies)
-            logger.info(.appLifecycle, eventName: "app_bootstrap_ready", message: "App bootstrap completed.")
+            await PrimaryPlayerBootstrap.promoteOldestHumanIfNeeded(using: dependencies.playerRepository)
+            logger.info(
+                .appLifecycle,
+                eventName: "app_bootstrap_ready",
+                message: "App bootstrap completed.",
+                metadata: ClientEnvironment.snapshot.analyticsMetadata
+            )
             return .ready(dependencies)
         } catch {
             let appError = AppError.migrationFailure(error)
@@ -75,7 +81,7 @@ public enum AppBootstrapper {
 
     private static func validateSchemaInvariants(in container: ModelContainer) throws {
         let context = ModelContext(container)
-        let matches = try context.fetch(FetchDescriptor<SchemaV2.MatchRecord>())
+        let matches = try context.fetch(FetchDescriptor<SchemaV3.MatchRecord>())
         for match in matches {
             try validateContiguousEventIndexes(for: match.id, in: context)
         }
@@ -87,8 +93,8 @@ public enum AppBootstrapper {
         let pageSize = 500
 
         while true {
-            var descriptor = FetchDescriptor<SchemaV2.MatchEventRecord>(
-                predicate: #Predicate<SchemaV2.MatchEventRecord> { $0.matchId == matchId },
+            var descriptor = FetchDescriptor<SchemaV3.MatchEventRecord>(
+                predicate: #Predicate<SchemaV3.MatchEventRecord> { $0.matchId == matchId },
                 sortBy: [SortDescriptor(\.eventIndex, order: .forward)]
             )
             descriptor.fetchLimit = pageSize

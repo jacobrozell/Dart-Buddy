@@ -1,14 +1,10 @@
 import Foundation
 
-enum OnboardingExperience: String, Sendable {
-    case experienced
-    case beginner
-}
-
 /// Persists whether the user has finished the first-launch app tour.
 struct OnboardingStore: Sendable {
     static let completedKey = "onboarding_completed"
-    static let experienceKey = "onboarding_darts_experience"
+    static let experienceTierKey = "onboarding_experience_tier"
+    static let legacyExperienceKey = "onboarding_darts_experience"
     static let skipLaunchArgument = "-skip_onboarding"
     static let uiTestOnboardingLaunchArgument = "-ui_test_onboarding"
 
@@ -35,22 +31,31 @@ struct OnboardingStore: Sendable {
         isEnabled && !userDefaults.bool(forKey: Self.completedKey)
     }
 
-    var savedExperience: OnboardingExperience? {
-        guard let raw = userDefaults.string(forKey: Self.experienceKey) else { return nil }
-        return OnboardingExperience(rawValue: raw)
+    var savedExperienceTier: BotDifficulty? {
+        if let raw = userDefaults.string(forKey: Self.experienceTierKey),
+           let tier = BotDifficulty(rawValue: raw) {
+            return tier
+        }
+        guard let legacy = userDefaults.string(forKey: Self.legacyExperienceKey) else { return nil }
+        switch legacy {
+        case "beginner": return .easy
+        case "experienced": return .medium
+        default: return nil
+        }
     }
 
     func markCompleted() {
         userDefaults.set(true, forKey: Self.completedKey)
     }
 
-    func saveExperience(_ experience: OnboardingExperience) {
-        userDefaults.set(experience.rawValue, forKey: Self.experienceKey)
+    func saveExperienceTier(_ tier: BotDifficulty) {
+        userDefaults.set(tier.rawValue, forKey: Self.experienceTierKey)
     }
 
     func clearPersistedState() {
         userDefaults.removeObject(forKey: Self.completedKey)
-        userDefaults.removeObject(forKey: Self.experienceKey)
+        userDefaults.removeObject(forKey: Self.experienceTierKey)
+        userDefaults.removeObject(forKey: Self.legacyExperienceKey)
     }
 }
 

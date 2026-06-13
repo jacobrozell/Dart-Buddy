@@ -18,6 +18,7 @@ enum MatchTurnSupport {
             startedAt: runtime.startedAt,
             endedAt: runtime.endedAt,
             winnerPlayerId: runtime.winnerPlayerId,
+            forfeitedByPlayerId: runtime.forfeitedByPlayerId,
             currentTurnPlayerId: runtime.currentTurnPlayerId,
             currentLegIndex: runtime.currentLegIndex,
             currentSetIndex: runtime.currentSetIndex,
@@ -44,6 +45,13 @@ enum MatchTurnSupport {
             ]
         }
         return ["errorCode": "unknown"]
+    }
+
+    /// True when `scores[index]` is the single highest positive score (scoreboard leader chip).
+    static func isUniqueLeader(scores: [Int], index: Int) -> Bool {
+        guard scores.indices.contains(index),
+              let maxScore = scores.max(), maxScore > 0 else { return false }
+        return scores[index] == maxScore && scores.filter { $0 == maxScore }.count == 1
     }
 
     static func errorMessageKey(for error: Error, fallback: String) -> String {
@@ -194,5 +202,12 @@ struct MatchTurnSubmitter {
         } else {
             try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: current.runtime))
         }
+    }
+}
+
+extension MatchRuntimeState {
+    /// Participant matched by player id, falling back to participant id for guests.
+    func participant(for playerId: UUID) -> MatchParticipant? {
+        participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 }

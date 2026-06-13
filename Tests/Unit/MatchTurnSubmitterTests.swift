@@ -88,6 +88,26 @@ struct MatchTurnSubmitterTests {
 
     @MainActor
     @Test
+    func persistProgressUpdatesMatchWhileStillInProgress() async throws {
+        let fixture = try makeSubmitterFixture(afterTotals: [])
+        let repo = TurnSubmitterFakeMatchRepository()
+        let submitter = makeSubmitter(matchId: fixture.matchId, repository: repo, store: ActiveMatchStore())
+        let updated = try MatchLifecycleService.submitX01Turn(
+            session: fixture.session,
+            enteredTotal: 60,
+            darts: nil
+        )
+
+        try await submitter.persistProgress(updated)
+
+        #expect(await repo.completeCount == 0)
+        #expect(await repo.updateCount == 1)
+        #expect(await repo.appendCount == 1)
+        #expect(await repo.saveSnapshotCount == 1)
+    }
+
+    @MainActor
+    @Test
     func persistProgressCompletesMatchWhenRuntimeIsCompleted() async throws {
         let fixture = try makeSubmitterFixture(afterTotals: [180, 0, 81, 0])
         let repo = TurnSubmitterFakeMatchRepository()
@@ -139,6 +159,49 @@ struct MatchTurnSubmitterTests {
         #expect(await repo.updateCount == 1)
         #expect(await repo.saveSnapshotCount == 1)
         #expect(store.session(for: matchId)?.runtime.eventCount == 0)
+    }
+
+    @MainActor
+    @Test
+    func matchTurnSupportMatchProgressMetadataReflectsSession() throws {
+        var session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+            participants: [
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+        )
+        session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
+        let metadata = MatchTurnSupport.matchProgressMetadata(for: session)
+        #expect(metadata["eventCount"] == "1")
+        #expect(metadata["status"] == MatchLifecycleStatus.inProgress.rawValue)
+    }
+
+    @MainActor
+    @Test
+    func matchTurnSupportMapsRuntimeToSummary() throws {
+        let session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(MatchConfigX01(startScore: 301, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+            participants: [
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+        )
+        let summary = MatchTurnSupport.matchSummary(from: session.runtime)
+        #expect(summary.id == session.runtime.matchId)
+        #expect(summary.status == .inProgress)
+        #expect(summary.type == .x01)
+    }
+
+    @MainActor
+    @Test
+    func matchTurnSupportErrorHelpersMapAppError() {
+        let error = AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.invalidTurn")
+        #expect(MatchTurnSupport.errorMessageKey(for: error, fallback: "fallback") == "error.match.invalidTurn")
+        #expect(MatchTurnSupport.appErrorMetadata(for: error)["errorCode"] == ErrorCode.validationFailed.rawValue)
+        #expect(MatchTurnSupport.errorMessageKey(for: NSError(domain: "test", code: 1), fallback: "fallback") == "fallback")
     }
 
     @MainActor
@@ -283,22 +346,6 @@ private actor TurnSubmitterFakeMatchRepository: MatchRepository {
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
 
-    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
-        MatchSummary(
-            id: UUID(),
-            type: type,
-            status: status,
-            startedAt: Date(),
-            endedAt: status == .completed ? Date() : nil,
-            winnerPlayerId: nil,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 0,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
 }
 
 private final class TurnSubmitterSilentLogSink: LogSink, @unchecked Sendable {

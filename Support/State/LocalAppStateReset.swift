@@ -5,9 +5,10 @@ enum LocalAppStateReset {
     static let didResetNotification = Notification.Name("dartBuddy.localDataDidReset")
 
     static func clearAllPersistedAuxiliaryState(userDefaults: UserDefaults = .standard) {
-        OnboardingStore(userDefaults: userDefaults).clearPersistedState()
-        AppStoreUpdateChecker.clearPersistedState(userDefaults: userDefaults)
-        CricketSetupPreferences.clearStored(userDefaults: userDefaults)
+        LocalDataResetInventory.clearAuxiliaryUserDefaults(userDefaults: userDefaults)
+        for store in LocalDataResetInventory.setupPreferenceStores {
+            store.clearStored(userDefaults: userDefaults)
+        }
     }
 
     static func notifyDidReset() {

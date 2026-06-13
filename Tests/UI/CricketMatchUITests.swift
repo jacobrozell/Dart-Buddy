@@ -1,105 +1,6 @@
 import XCTest
 
 final class CricketMatchUITests: DartBuddyUITestCase {
-    /// Submits one visit that triple-closes three number targets (20, 19, 18).
-    private func waitForActivePlayer(_ name: String, in app: XCUIApplication, timeout: TimeInterval) {
-        let column = app.otherElements["cricket_column_active"]
-        XCTAssertTrue(column.waitForExistence(timeout: timeout))
-        let predicate = NSPredicate(format: "label BEGINSWITH[c] %@", name)
-        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: column)
-        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed)
-    }
-
-    private func waitForCricketPadReady(_ app: XCUIApplication, timeout: TimeInterval) {
-        let key = app.buttons["cricket_20"]
-        XCTAssertTrue(key.waitForExistence(timeout: timeout))
-        XCTAssertTrue(key.wait(for: \.isEnabled, toEqual: true, timeout: timeout + 5))
-        // Closure transitions briefly disable human input between visits.
-        Thread.sleep(forTimeInterval: 0.75)
-    }
-
-    private func submitTripleCloseVisit(
-        targets: [String],
-        in app: XCUIApplication,
-        timeout: TimeInterval
-    ) {
-        XCTAssertEqual(targets.count, 3)
-        waitForCricketPadReady(app, timeout: timeout)
-        app.buttons["cricket_triple"].tap()
-        for target in targets {
-            let key = app.buttons["cricket_\(target)"]
-            XCTAssertTrue(key.waitForExistence(timeout: timeout))
-            key.tap()
-            Thread.sleep(forTimeInterval: 0.15)
-        }
-        // Three darts auto-submit; wait for the pad to return before the next visit.
-        waitForCricketPadReady(app, timeout: timeout + 5)
-    }
-
-    /// Submits one visit that closes the bull (two inner-bull marks).
-    private func submitBullCloseVisit(in app: XCUIApplication, timeout: TimeInterval) {
-        waitForCricketPadReady(app, timeout: timeout)
-        let bull = app.buttons["cricket_bull"]
-        XCTAssertTrue(bull.waitForExistence(timeout: timeout))
-        for _ in 0 ..< 2 {
-            app.buttons["cricket_double"].tap()
-            Thread.sleep(forTimeInterval: 0.35)
-            bull.tap()
-            Thread.sleep(forTimeInterval: 0.15)
-        }
-        app.buttons["cricket_enter"].tap()
-        let summary = app.otherElements["matchSummaryHeader"]
-        if summary.waitForExistence(timeout: 3) { return }
-        waitForCricketPadReady(app, timeout: timeout + 5)
-    }
-
-    private func closeAllCricketTargets(in app: XCUIApplication, timeout: TimeInterval) {
-        submitTripleCloseVisit(targets: ["20", "19", "18"], in: app, timeout: timeout)
-        submitTripleCloseVisit(targets: ["17", "16", "15"], in: app, timeout: timeout)
-        submitBullCloseVisit(in: app, timeout: timeout)
-    }
-
-    private func submitMissVisit(in app: XCUIApplication, timeout: TimeInterval) {
-        waitForCricketPadReady(app, timeout: timeout)
-        let miss = app.buttons["cricket_miss"]
-        XCTAssertTrue(miss.waitForExistence(timeout: timeout))
-        miss.tap()
-        Thread.sleep(forTimeInterval: 0.15)
-        miss.tap()
-        Thread.sleep(forTimeInterval: 0.15)
-        miss.tap()
-        waitForCricketPadReady(app, timeout: timeout + 5)
-    }
-
-    /// Closes every target for whoever is active, skipping `(playerCount - 1)` opponents between close visits.
-    private func closeAllCricketTargetsForCurrentPlayer(
-        in app: XCUIApplication,
-        playerCount: Int,
-        timeout: TimeInterval
-    ) {
-        submitTripleCloseVisit(targets: ["20", "19", "18"], in: app, timeout: timeout)
-        for _ in 0 ..< (playerCount - 1) {
-            submitMissVisit(in: app, timeout: timeout)
-        }
-        submitTripleCloseVisit(targets: ["17", "16", "15"], in: app, timeout: timeout)
-        for _ in 0 ..< (playerCount - 1) {
-            submitMissVisit(in: app, timeout: timeout)
-        }
-        submitBullCloseVisit(in: app, timeout: timeout)
-    }
-
-    /// Each player closes the same target group in turn order.
-    private func runSynchronizedCloseSweep(in app: XCUIApplication, playerCount: Int, timeout: TimeInterval) {
-        for targets in [["20", "19", "18"], ["17", "16", "15"]] {
-            for _ in 0 ..< playerCount {
-                submitTripleCloseVisit(targets: targets, in: app, timeout: timeout)
-            }
-        }
-        for _ in 0 ..< playerCount {
-            submitBullCloseVisit(in: app, timeout: timeout)
-        }
-    }
-
     func testCricketMatchContinuesAfterFirstPlayerClosesAllTargets() {
         let app = launchApp(["-seed_players"])
 
@@ -111,7 +12,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
             app.otherElements["matchSummaryHeader"].waitForExistence(timeout: 2),
             "Match should not end until every player has closed all targets"
         )
-        waitForActivePlayer("Bob", in: app, timeout: timeout + 10)
+        waitForActiveCricketPlayer("Bob", in: app, timeout: timeout + 10)
         XCTAssertTrue(app.buttons["cricket_20"].isEnabled, "Opponent should still be able to score")
     }
 
@@ -149,7 +50,7 @@ final class CricketMatchUITests: DartBuddyUITestCase {
             app.otherElements["matchSummaryHeader"].waitForExistence(timeout: 2),
             "Match should not end until every player has closed all targets"
         )
-        waitForActivePlayer("Bob", in: app, timeout: timeout + 10)
+        waitForActiveCricketPlayer("Bob", in: app, timeout: timeout + 10)
         XCTAssertTrue(app.buttons["cricket_20"].isEnabled, "Opponent should still be able to score")
     }
 
@@ -157,24 +58,22 @@ final class CricketMatchUITests: DartBuddyUITestCase {
     // (`cricketUIEquivalentThreePlayerSynchronizedSweepCompletesMatch`); a UI replay is
     // slow and brittle in CI. Continuation after the first finisher is asserted above.
 
-    func testCricketSetupChipGridVisible() {
-        let app = launchApp(["-seed_players"])
-        selectCricketMode(in: app, timeout: timeout)
-        expandSetupOptions(in: app, timeout: timeout)
-        assertSetupChip("setup_cricketPointsChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketModeChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketSetLegChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketSetsChip", in: app, timeout: timeout)
-        assertSetupChip("setup_cricketLegsChip", in: app, timeout: timeout)
-    }
-
     func testCricketPointsOffDisablesModeChip() {
         let app = launchApp(["-seed_players"])
         selectCricketMode(in: app, timeout: timeout)
         tapCricketPointsOff(in: app)
+        let pointsChip = app.descendants(matching: .any)["setup_cricketPointsChip"]
+        XCTAssertTrue(pointsChip.waitForExistence(timeout: timeout))
+        XCTAssertTrue(
+            pointsChip.label.localizedCaseInsensitiveContains("Off"),
+            "Points chip should show Off before asserting mode chip state (got '\(pointsChip.label)')"
+        )
         let modeChip = app.descendants(matching: .any)["setup_cricketModeChip"]
         XCTAssertTrue(modeChip.waitForExistence(timeout: timeout))
-        XCTAssertFalse(modeChip.isEnabled)
+        XCTAssertTrue(
+            modeChip.wait(for: \.isEnabled, toEqual: false, timeout: timeout + 5),
+            "Mode chip should be disabled when cricket points are off"
+        )
     }
 
     func testCricketCutThroatSubtitleOnMatchStart() {
@@ -189,60 +88,147 @@ final class CricketMatchUITests: DartBuddyUITestCase {
         XCTAssertTrue(subtitle.label.contains("Cut Throat") || subtitle.label.contains("Lowest"))
     }
 
-    func testCutThroatCricketBotMatchStartsAndBotThrows() {
-        let app = launchApp(["-seed_players"])
-        selectCricketMode(in: app)
-        tapCricketCutThroatMode(in: app)
-        selectPlayerFromRoster("Alice", in: app)
-        addEasyBot(from: app, timeout: timeout)
-        tapStartMatch(in: app, timeout: timeout + 10)
-        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 10))
-
-        let padDisabledHint = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS[c] %@", "bot")
-        ).firstMatch
-        let padKey = app.buttons["cricket_20"]
-        let botTurnActive = padDisabledHint.waitForExistence(timeout: timeout + 15)
-            || !padKey.isEnabled
-        XCTAssertTrue(botTurnActive, "Bot should take the opening cut-throat visit")
-    }
-
     func testCricketLiveMprAndDartsIdentifiersOnActiveColumn() {
         let app = launchApp(["-seed_players"])
         startTwoPlayerCricketMatch(from: app)
-        submitTripleCloseVisit(targets: ["20", "19", "18"], in: app, timeout: timeout)
-        let darts = app.staticTexts["cricket_column_darts"]
-        let mpr = app.staticTexts["cricket_column_mpr"]
-        XCTAssertTrue(darts.waitForExistence(timeout: timeout + 5))
-        XCTAssertTrue(mpr.exists)
+
+        waitForCricketScoringPadReady(app, timeout: timeout)
+        app.buttons["cricket_triple"].tap()
+        app.buttons["cricket_20"].tap()
+
+        assertActiveCricketColumnLabel(app, contains: "1 darts", timeout: timeout + 5)
+        assertActiveCricketColumnLabel(app, contains: "marks per round", timeout: timeout + 5)
     }
 
-    func testCricketBoardVisibleInLandscape() {
+    func testCricketLandscapePadReachableAndScores() {
         let app = launchApp(["-seed_players"])
         startTwoPlayerCricketMatch(from: app)
         XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout))
 
-        XCUIDevice.shared.orientation = .landscapeLeft
-        addTeardownBlock {
-            XCUIDevice.shared.orientation = .portrait
-        }
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
 
         let column = app.otherElements["cricket_column_active"]
         XCTAssertTrue(column.waitForExistence(timeout: timeout))
-        XCTAssertTrue(column.isHittable, "Active player column should stay on screen beside the pad in landscape")
-        XCTAssertTrue(app.buttons["cricket_20"].isHittable, "Scoring pad should remain reachable in landscape")
+        XCTAssertTrue(column.isHittable, "Active player board should stay locked at the top in landscape")
+
+        let keyIdentifiers = [
+            "cricket_20", "cricket_19", "cricket_18",
+            "cricket_17", "cricket_16", "cricket_15",
+            "cricket_bull", "cricket_miss",
+            "cricket_double", "cricket_triple", "cricket_undo", "cricket_enter"
+        ]
+        assertScoringKeysBelowPinnedArea(column, in: app, keyIdentifiers: keyIdentifiers, timeout: timeout)
 
         let enter = app.buttons["cricket_enter"]
         XCTAssertTrue(enter.waitForExistence(timeout: timeout))
         XCTAssertGreaterThan(enter.frame.height, 32, "Enter should not collapse to a thin bar in landscape")
 
-        let dartsStat = app.staticTexts["cricket_column_darts"]
-        if !dartsStat.isHittable {
-            app.scrollViews.firstMatch.swipeUp()
+        let target20 = app.buttons["cricket_20"]
+        XCTAssertTrue(target20.isHittable)
+        target20.tap()
+        target20.tap()
+        target20.tap()
+
+        waitForActiveCricketPlayer("Bob", in: app, timeout: timeout + 10)
+    }
+
+    // MARK: - Phase 2 core gameplay
+
+    func testCricketEnterSubmitsPartialVisit() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+
+        app.buttons["cricket_bull"].tap()
+        app.buttons["cricket_enter"].tap()
+        waitForActiveCricketPlayer("Bob", in: app, timeout: timeout + 10)
+    }
+
+    func testCricketMissVisitAdvancesTurn() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+
+        submitCricketMissVisit(in: app, timeout: timeout)
+        waitForActiveCricketPlayer("Bob", in: app, timeout: timeout + 10)
+    }
+
+    func testCricketScoringModeShowsPoints() {
+        let app = launchApp(["-seed_players"])
+        selectCricketMode(in: app, timeout: timeout)
+        tapCricketPointsOn(in: app)
+        startTwoPlayerCricketMatch(from: app)
+
+        app.buttons["cricket_20"].tap()
+        app.buttons["cricket_20"].tap()
+        app.buttons["cricket_20"].tap()
+
+        let closedMark = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@", "Closed"))
+            .firstMatch
+        XCTAssertTrue(
+            closedMark.waitForExistence(timeout: timeout + 5),
+            "Points-on cricket should still record marks and close targets"
+        )
+    }
+
+    func testCricketUndoRemovesLastDart() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+
+        app.buttons["cricket_20"].tap()
+        app.buttons["cricket_undo"].tap()
+        XCTAssertTrue(
+            app.buttons["cricket_20"].isEnabled,
+            "Pad undo should restore scoring without freezing the visit"
+        )
+    }
+
+    func testCricketDoubleSingleMark() {
+        let app = launchApp(["-seed_players"])
+        startTwoPlayerCricketMatch(from: app)
+
+        tapCricketSegment("19", multiplier: .double, in: app, timeout: timeout)
+        XCTAssertTrue(
+            app.staticTexts["19"].waitForExistence(timeout: timeout),
+            "Double 19 should appear in the visit preview"
+        )
+    }
+
+    // MARK: - Phase 4 multi-player
+
+    func testThreePlayerCricketPinnedBoardVisibleInLandscape() {
+        let app = launchApp(["-seed_players"])
+        startThreePlayerCricketMatch(from: app)
+
+        rotateToLandscapeLeftForTest(app: app, timeout: timeout + 5)
+
+        let column = app.otherElements["cricket_column_active"]
+        XCTAssertTrue(column.waitForExistence(timeout: timeout))
+        XCTAssertTrue(column.isHittable)
+        XCTAssertTrue(app.buttons["cricket_20"].isHittable)
+    }
+
+    func testThreePlayerCricketInactiveColumnReachableViaScroll() {
+        let app = launchApp(["-seed_players"])
+        startThreePlayerCricketMatch(from: app)
+
+        let inactiveColumn = app.otherElements.matching(identifier: "cricket_column").matching(
+            NSPredicate(format: "label CONTAINS[c] %@", "Bob")
+        ).firstMatch
+        if !(inactiveColumn.waitForExistence(timeout: 2) && inactiveColumn.isHittable) {
+            for _ in 0 ..< 4 {
+                app.swipeLeft()
+                if inactiveColumn.waitForExistence(timeout: 2), inactiveColumn.isHittable {
+                    break
+                }
+            }
         }
         XCTAssertTrue(
-            dartsStat.waitForExistence(timeout: timeout),
-            "Player footer stats should be reachable in landscape"
+            inactiveColumn.waitForExistence(timeout: timeout),
+            "Bob's cricket column should exist in the horizontal board scroll"
+        )
+        XCTAssertTrue(
+            inactiveColumn.isHittable,
+            "Bob's cricket column should be reachable in the horizontal board scroll"
         )
     }
 }

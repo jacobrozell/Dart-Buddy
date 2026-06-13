@@ -275,16 +275,18 @@ Hard rule:
 
 ## 15. Schema 1.0.0 Freeze (Dart Buddy)
 
-**Ship baseline:** `SchemaV2` (`Schema.Version(2, 0, 0)`), wired in `ModelContainerFactory` and `Persistence/SchemaLock.swift`.
+**Ship baseline:** `SchemaV2` (`Schema.Version(2, 2, 0)`), wired in `ModelContainerFactory` and `Persistence/SchemaLock.swift`.
 
-**Supported upgrade path at launch:** `SchemaV1` → `SchemaV2` via `DartsMigrationPlan.migrateV1ToV2` (lightweight column adds + custom bot-kind backfill).
+**Platform:** iOS **18.0+** deployment target (`project.yml`) — required for SwiftData `#Index` on hot query fields.
+
+**Supported upgrade path at launch:** `SchemaV1` → `SchemaV2_0_0` → `SchemaV2_1_0` → `SchemaV2` via `DartsMigrationPlan` (custom bot-kind backfill + lightweight column/index adds).
 
 ### Frozen at 1.0 (do not change in place)
 
 | Entity | Notes |
 |--------|--------|
-| `PlayerRecord` | Includes `botKindRaw`, `linkedPlayerId` (training bot link) |
-| `MatchRecord` | Unchanged since V1 |
+| `PlayerRecord` | Includes `botKindRaw`, `linkedPlayerId`, optional `playerRoleRaw` (campaign) |
+| `MatchRecord` | Includes `historyCardPayload`, `isCampaignMatch`, `campaignStageId` (2.2.0); `#Index` on status/dates/type |
 | `MatchParticipantRecord` | Includes `botKindRaw`, `botSkillProfilePayload` |
 | `MatchSnapshotRecord` | Unchanged since V1 |
 | `MatchEventRecord` | Unchanged since V1 |
@@ -309,6 +311,7 @@ Hard rule:
 | Cricket config | `2` | `MatchConfigCricket.currentPayloadVersion` |
 | Baseball config | `1` | `MatchConfigBaseball.currentPayloadVersion` |
 | Match snapshot wrapper | `1` | `MatchLifecycleModels` |
+| History list card | `1` | `MatchHistoryCardPayload.currentPayloadVersion` |
 | Event payloads | per `eventTypeRaw` | engines + coders |
 
 Payload bumps do **not** require `SchemaV3` unless new **columns** or **models** are added.

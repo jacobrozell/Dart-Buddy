@@ -62,5 +62,8 @@ Navigation from outside the tab shell uses typed `AppDestination` values — nev
 |---|---|---|
 | `dartbuddy://v1/…` URLs | `DeepLinkParser` → `PendingAppDestination` → `AppRouteRouter` | [`DeepLinkSpec.md`](DeepLinkSpec.md) |
 | Siri / Shortcuts | `AppIntent.perform()` → `IntentRoutingBridge` → same router | [`AppIntentsSpec.md`](AppIntentsSpec.md) |
+| Siri queries (planned) | Query intents read repositories; may not route | [`AppIntentsSpec.md`](AppIntentsSpec.md) §4.3, §13 |
 
 Resume flow equivalence: manual Play home resume banner, `dartbuddy://v1/play/resume`, and `ResumeActiveMatchIntent` all converge on `.play(.resumeActive)` in `AppRouteRouter`.
+
+**Apple Intelligence (planned):** entity-backed parameterized intents, semantic indexing, and on-screen annotations share the same `AppDestination` / repository boundaries — see [`AppIntentsSpec.md`](AppIntentsSpec.md) §13.

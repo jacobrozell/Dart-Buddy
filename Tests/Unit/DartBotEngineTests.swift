@@ -699,6 +699,25 @@ private func killerPickTestProfile() -> BotSkillProfile {
     )
 }
 
+@Test(.tags(.unit, .match, .regression))
+func dartBotEngine_golfMissesStayOnHoleSegmentOrOffBoard() {
+    let profile = BotDifficulty.medium.skillProfile
+    for seed in 0 ..< 100 {
+        for hole in 1 ... 9 {
+            var rng = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + hole))
+            let turn = DartBotEngine.generateGolfTurn(holeSegment: hole, profile: profile, rng: &rng)
+            for dart in turn.darts {
+                if dart.isMiss { continue }
+                guard case let .oneToTwenty(value) = dart.segment else {
+                    Issue.record("Unexpected non-numeric golf bot segment")
+                    continue
+                }
+                #expect(value == hole)
+            }
+        }
+    }
+}
+
 private struct SeededRandomNumberGenerator: RandomNumberGenerator {
     private var state: UInt64
 

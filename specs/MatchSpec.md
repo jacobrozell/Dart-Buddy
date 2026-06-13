@@ -42,7 +42,7 @@ This section is conceptual and must not diverge from those sources.
 - `MatchRecord`
   - `id: UUID`
   - `type: MatchType` (`x01`, `cricket`, `baseball`)
-  - `status: MatchStatus` (`notStarted`, `inProgress`, `completed`, `abandoned`)
+  - `status: MatchStatus` (`notStarted`, `inProgress`, `completed`, `forfeited`, `abandoned`)
   - `startedAt: Date`
   - `endedAt: Date?`
   - `winnerPlayerId: UUID?`
@@ -96,6 +96,15 @@ This section is conceptual and must not diverge from those sources.
 - **Not shown** in History, Statistics, or Play home “recent games” (queries use `status = completed` only).
 - **Does not count** toward games, wins, trends, or any player aggregate in 1.0.
 - Rows may remain in local storage until **Reset All Local Data**; no abandoned-match list or purge UI in 1.0.
+
+## Forfeit (1.0.0 — see [`MatchForfeitSpec.md`](MatchForfeitSpec.md))
+- **Save & Forfeit** ends an in-progress match early while keeping committed scoring events.
+- Sets `status = forfeited`, `endedAt`, `winnerPlayerId`, `forfeitedByPlayerId`; writes `historyCardPayload`.
+- **Included** in History, Statistics, and player aggregates (with forfeit-specific win/loss rules).
+- Requires `eventCount >= 1`; not resumable; no undo-last-throw.
+- All shipped competitive modes (X01, Cricket, Baseball, Killer, Shanghai); 2–8 players including 3+ player picker flows.
+- **Scalable:** new modes inherit forfeit via `MatchLifecycleChrome` + `MatchForfeitStandingsRegistry` (one registry case per `MatchType`) — see `MatchForfeitSpec.md` §6.7.
+- Authoritative implementation spec: `MatchForfeitSpec.md`.
 
 ## Active match constraint (1.0)
 - At most one `inProgress` match at a time (`fetchActiveMatch`).

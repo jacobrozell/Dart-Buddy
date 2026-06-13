@@ -1,8 +1,12 @@
 # Dart Buddy — 1.0 Release Checklist
 
+> **Start here:** [`1.0.0-ship-checklist.md`](1.0.0-ship-checklist.md) — single master list (engineering, App Review hardening, nutrition labels, QA, Connect, submit). This file is the **expanded runbook** with full §-by-§ detail.
+
 **Customer brand:** Dart Buddy (App Store listing, marketing, Reddit)  
 **Technical target:** `DartBuddy` (Xcode scheme, bundle ID `com.jacobrozell.DartBuddy`, module)  
-**Version:** `1.0.0`  
+**Version:** `1.0.0` (lean core scorekeeper)  
+**Scope:** [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) — **X01 + Cricket** (Normal + Cut Throat), **4 tabs** (Play · Players · Activity · Settings), **preset + custom bots**, **English UI**, Analytics + Crashlytics on. **Not in 1.0:** Modes tab, party modes, Training Partner bots, player export, bundled de/es/nl.
+
 **Exit criteria:** All **P0** sections checked on a **physical iPhone** (Release build); [`../../roadmap/release/QA-Signoff-RC1.md`](../../roadmap/release/QA-Signoff-RC1.md) marked **Go**; App Store record complete and submitted.
 
 This is the **single runbook** for device QA, App Store setup, and launch marketing. Detailed criteria live in linked specs — log evidence paths here and in the sign-off doc, not duplicate prose.
@@ -39,6 +43,7 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 - [ ] `GoogleService-Info.plist` present for Release archive (copy from [`Resources/GoogleService-Info.plist.example`](../../Resources/GoogleService-Info.plist.example) + Firebase Console)
 - [ ] Debug/CI/UI tests: analytics + Crashlytics **off** (launch args `-disable_firebase_analytics` / `-ui_test_reset` — not on store build)
 - [ ] **Crashlytics:** Firebase Console → Crashlytics enabled for bundle ID; Release archive log shows dSYM upload script succeeded (no `GOOGLE_APP_ID` / sandbox errors)
+- [ ] **TestFlight telemetry smoke** (internal build, real plist): launch → verify `app_open` in Firebase Analytics Realtime or DebugView; play one X01 leg → `match_started`, `turn_submitted`, `match_completed`; confirm no events from Debug/CI builds
 - [ ] Version + build number set in [`project.yml`](../../project.yml) / Xcode (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`)
 - [ ] **Archive** with **Release** configuration + distribution signing
 
@@ -57,13 +62,17 @@ This is the **single runbook** for device QA, App Store setup, and launch market
 **Build:** Release · **Device:** Physical iPhone (simulator OK only if blocked)  
 **Pre-run:** Settings → **Reset All Local Data** → confirm → relaunch → land on **Play**.
 
-- [ ] App launches; all five tabs work: **Play**, **Players**, **Statistics**, **History**, **Settings**
+- [ ] App launches; **four tabs** work: **Play**, **Players**, **Activity**, **Settings** — **no Modes tab**
+- [ ] Play setup has **no Change mode** button (mode chosen via Edit options chips + Settings default)
 - [ ] Create players **Smoke Alice**, **Smoke Bob** on **Players**
-- [ ] **X01:** Play → New Match → X01 → 2 players → Start → submit turn → **Undo Last Turn** → no crash
-- [ ] **Cricket:** new match → submit turn → undo → board sane
-- [ ] **History:** at least one completed row → detail loads (header + timeline)
-- [ ] **Statistics:** tab loads; mode filter changes table
+- [ ] **X01:** Play → select Alice + Bob → Start → submit turn → **Undo Last Turn** → no crash
+- [ ] **Cricket (Normal):** new match → submit turn → undo → board sane
+- [ ] **Cricket (Cut Throat):** setup → Cut Throat chip → start match → pad loads
+- [ ] **Activity → History:** at least one completed row → detail loads (header + timeline)
+- [ ] **Activity → Statistics:** segment loads; mode filter shows All / X01 / Cricket only
 - [ ] **Settings:** toggle **Sound** → leave tab → relaunch → still persisted
+- [ ] **Hidden surface check:** no Modes tab, no party modes, no Export on player detail, no Training Partner section (custom bots **are** in 1.0)
+- [ ] **English UI:** device language de/es/nl still shows English strings (en-only bundle)
 - [ ] **AXXXL spot check:** Settings → Display → Larger Text → AXXXL → New Match setup + one in-match screen — primary CTA reachable
 
 **Decision:** [ ] **PASS** — continue · [ ] **FAIL** — fix before §2+
@@ -80,7 +89,8 @@ Spec reference: [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateC
 
 ### A. App shell
 
-- [ ] All five tabs; rapid tab switch 2–3×; background/foreground once — stable, no blank screens
+- [ ] All **four** tabs; rapid tab switch 2–3×; background/foreground once — stable, no blank screens
+- [ ] Confirm **Modes** tab absent; Play setup has no **Change mode** affordance
 
 ### B. Players
 
@@ -95,18 +105,19 @@ Spec reference: [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateC
 
 ### D. Cricket match
 
-- [ ] Setup: Cricket, ≥2 players → Start Match
+- [ ] Setup: Cricket (Normal), ≥2 players → Start Match
 - [ ] Enter turn via pad → submit → undo → resubmit — marks/progression correct
+- [ ] Setup: Cricket **Cut Throat** → start → at least one turn submits cleanly
 
-### E. History
+### E. Activity → History
 
 - [ ] Completed match visible (finish one if needed)
-- [ ] Filters: mode All/X01/Cricket; date 7d/30d/All
+- [ ] Filters: mode **All / X01 / Cricket** only; date 7d/30d/All
 - [ ] Detail: mode, winner, date/duration, participants, timeline — no error state
 
-### F. Statistics
+### F. Activity → Statistics
 
-- [ ] Games table + mode/date filters respond
+- [ ] Games table + mode/date filters respond (mode chips: All, X01, Cricket only)
 - [ ] Partial-data banner only when applicable ([`../../specs/StatsSpec.md`](../../specs/StatsSpec.md))
 
 ### G. Settings
@@ -116,7 +127,7 @@ Spec reference: [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateC
 
 ### H. Accessibility quick pass (AXXXL)
 
-- [ ] Setup, X01 match, Cricket match, Statistics, Settings — scrollable, no blocked primary CTA
+- [ ] Setup, X01 match, Cricket match, Activity (both segments), Settings — scrollable, no blocked primary CTA
 
 **Decision:** [ ] **PASS** · [ ] **FAIL**
 
@@ -131,20 +142,24 @@ Spec reference: [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestCheck
 | Flow | Done | Evidence / notes |
 |------|------|------------------|
 | Setup → X01 → **play to Match summary** (winner + stats) | [ ] | |
-| Setup → Cricket → **play to Match summary** | [ ] | |
+| Setup → Cricket (Normal) → **play to Match summary** | [ ] | |
+| Setup → Cricket (**Cut Throat**) → start + submit at least one turn | [ ] | |
 | **Resume** active match (background app → kill → relaunch) | [ ] | |
 | **Undo** on X01 and Cricket (mid-match, state restores) | [ ] | |
-| **History** list + detail integrity | [ ] | |
-| **Statistics** tab — filters + table after completed games | [ ] | |
+| **Activity → History** list + detail integrity | [ ] | |
+| **Activity → Statistics** — filters + table after completed games | [ ] | |
 | **Players:** archive player; **delete guard** on referenced player | [ ] | |
 | **Settings → Reset All Local Data** — confirm → clean bootstrap | [ ] | |
-| **Abandon** in-progress match — wording correct; hidden from History/Statistics ([`../../specs/MatchSpec.md`](../../specs/MatchSpec.md)) | [ ] | |
-| **Bot match:** stagger pacing; pad disabled during bot turn; bot dart haptics if enabled | [ ] | |
-| **Play home:** resume banner / in-progress row when applicable | [ ] | |
+| **Abandon** in-progress match — wording correct; hidden from Activity ([`../../specs/MatchSpec.md`](../../specs/MatchSpec.md)) | [ ] | |
+| **Preset bot match:** stagger pacing; pad disabled during bot turn; bot dart haptics if enabled | [ ] | |
+| **Custom bot:** create from Play setup (or Players +) → X01 match completes | [ ] | |
+| **Custom bot:** same bot in Cricket (Normal or Cut Throat) match | [ ] | |
+| **Play home:** resume banner when applicable | [ ] | |
 | **X01 checkout:** finish leg with double-out (if default) — summary correct | [ ] | |
 | **Cricket closure:** close a number — banner/haptic/VO sensible | [ ] | |
-| **Setup:** drag reorder roster; swipe remove player; random order at start | [ ] | |
+| **Setup:** drag reorder roster; random order at start | [ ] | |
 | **Quick-add player** from setup → returns with refreshed roster | [ ] | |
+| **Lean hidden surface:** no Modes tab, party modes, export, Training Partner (custom bots allowed) | [ ] | |
 
 ---
 
@@ -161,6 +176,19 @@ Spec reference: [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestCheck
 | Landscape + Dark | [x] | [x] |
 
 **iPad (recommended):** setup + one match — `GameplayLayout` max-width, no broken layout.
+
+### 4.1 iOS 26 Liquid Glass (simulator — P1)
+
+**Ship target remains iOS 18+.** On iOS 26+, system tab bar and nav toolbars use Liquid Glass when app code does not override them (`SystemNavigationPolicy`).
+
+**Save screenshots to:** `../../accessibility/wcag-2.1-aa/evidence/ios26-liquid-glass/` (run `./Scripts/capture-ios26-liquid-glass.sh` on **iPhone 17 Pro, iOS 26.x**)
+
+| Check | Done | Evidence |
+|-------|------|----------|
+| Tab bar glass visible on Play, Modes, Players, Activity, Settings | [x] partial (4 tabs, lean surface) | `ios26-liquid-glass/tab-*.png` (2026-06-11) |
+| No accidental opaque `.toolbarBackground` on iOS 26 (grep policy helpers only) | [x] | `SystemNavigationPolicy.swift` |
+| Settings usable with **Reduce Transparency** on | [ ] | `WCAGAccessibilityUITests` / manual |
+| Scoreboard/match UI stays opaque (brand layer) | [ ] | spot-check Play + one match |
 
 ---
 
@@ -202,12 +230,14 @@ Architecture ready; **device proof** still required — [`../../roadmap/reports/
 
 **Roll-up:** [`../../accessibility/wcag-2.1-aa/SUMMARY.md`](../../accessibility/wcag-2.1-aa/SUMMARY.md)  
 **Full manual list:** [`../../accessibility/Manual_todo.md`](../../accessibility/Manual_todo.md)  
-**Evidence folder:** `../../accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`)
+**Timed Nutrition Label script (~30 min):** [`../../accessibility/1.0-nutrition-label-checklist.md`](../../accessibility/1.0-nutrition-label-checklist.md)  
+**Evidence folder:** `../../accessibility/wcag-2.1-aa/evidence/` (`voiceover/`, `dynamic-type/`, `orientation/`, `contrast/`, `ios26-liquid-glass/`)
 
 ### VoiceOver — end-to-end (required)
 
 - [ ] Play → setup → **X01** → match summary
-- [ ] Play → setup → **Cricket** → match summary
+- [ ] Play → setup → **Cricket (Normal)** → match summary
+- [ ] Play → setup → **Cricket (Cut Throat)** → at least one submitted turn
 - [ ] Resume banner / active match when present
 - [ ] Settings reset confirmation (destructive)
 - [ ] Migration recovery (if triggered in §5)
@@ -216,16 +246,16 @@ Architecture ready; **device proof** still required — [`../../roadmap/reports/
 
 - [ ] **X01:** pad, bust, checkout, bot turn disabled state
 - [ ] **Cricket:** board, closure announcement, bot turn
-- [ ] **History** list/detail; **Players** archive/delete swipe actions
-- [ ] **Statistics:** filters, partial banner, trend/table labels
-- [ ] **Player detail** + **edit** sheet save/cancel
+- [ ] **Activity → History** list/detail; **Players** archive/delete actions
+- [ ] **Activity → Statistics:** filters (All/X01/Cricket), partial banner, trend/table labels
+- [ ] **Player detail** + **edit** sheet save/cancel (no export / training partner in lean 1.0)
 
 ### Dynamic Type (AXXXL)
 
 - [ ] Match setup (roster, START, chips)
 - [ ] X01 match (score + pad)
 - [ ] Cricket match (board + pad on phone)
-- [ ] History list, Statistics, Settings
+- [ ] History list (Activity segment), Statistics (Activity segment), Settings
 
 ### Contrast & non-color meaning
 
@@ -243,7 +273,7 @@ Record on **physical device**, Release build → [`../../roadmap/reports/Phase06
 - [ ] Cold launch → usable Play home (target: feels instant, no multi-second blank)
 - [ ] `submitTurn` perceived latency during X01/Cricket (target: immediate UI update)
 - [ ] Resume active match after relaunch
-- [ ] History first paint with ≥10 completed matches
+- [ ] History first paint with ≥10 completed matches (Activity → History segment)
 
 ---
 
@@ -269,6 +299,7 @@ Reference: [`../../specs/AppStoreConnectSpec.md`](../../specs/AppStoreConnectSpe
 | **Keywords** | darts, scoreboard, x01, cricket, scorekeeper, … | [ ] |
 | **Support URL** | `https://jacobrozell.github.io/Dart-Buddy/support.html` | [ ] |
 | **Privacy Policy URL** (App Store) | `https://jacobrozell.github.io/Dart-Buddy/privacy.html` | [ ] |
+| **Accessibility URL** (App Store) | `https://jacobrozell.github.io/Dart-Buddy/accessibility.html` | [ ] |
 | **Marketing URL** (optional) | | [ ] |
 | **Copyright** | e.g. `2026 Jacob Rozell` | [ ] |
 
@@ -296,7 +327,8 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 | **Support URL** | **Yes** | Contact method or FAQ; can be same site as privacy |
 | **Custom EULA** | No (1.0) | Default: [Apple Standard EULA](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/) — only add custom terms if you need special liability/limitation language |
 | **Terms of Service** | No (1.0) | Optional unless you add accounts, IAP, or online play |
-| **In-app privacy link** | Recommended | [`../../specs/SecurityPrivacySpec.md`](../../specs/SecurityPrivacySpec.md) — Settings row → privacy policy URL (not built yet) |
+| **In-app privacy link** | Recommended | [`../../specs/SecurityPrivacySpec.md`](../../specs/SecurityPrivacySpec.md) — Settings → Help & Feedback → Privacy Policy |
+| **Accessibility URL** | Optional (recommended) | App Store Connect → App Accessibility; same page linked in Settings → Help & Feedback → Accessibility |
 
 **Privacy policy should cover (plain language, not legal boilerplate dump):**
 
@@ -335,11 +367,12 @@ Apple does **not** require a custom EULA for most free apps — the **Standard A
 - [ ] **App icon** 1024×1024 (no alpha, no rounded corners — Apple applies mask)
 - [ ] **iPhone screenshots** in `marketing-screenshots/raw/` (**no device frames**; default **1284×2778** for 6.5" slot — see `marketing-screenshots/README.md`)
   - [ ] X01 in-match
-  - [ ] Cricket board
-  - [ ] Match setup / Play home
-  - [ ] History
-  - [ ] Match summary or **Statistics** tab
+  - [ ] Cricket board (Normal or Cut Throat)
+  - [ ] Play setup (no Modes tab / no party modes visible)
+  - [ ] Activity → History
+  - [ ] Activity → Statistics
   - [ ] Players roster (optional 6th)
+- [ ] **English only** for 1.0 listing (no localized metadata until locales re-ship)
 - [ ] **iPad** screenshots (`marketing-screenshots/ipad/raw/` — **2064×2752**, `./Scripts/capture-ipad-marketing-screenshots.sh`)
 - [ ] Preview video (optional — skip for 1.0 if not ready)
 
@@ -412,7 +445,7 @@ Post-submit ops: [`../../roadmap/release/Launch-Day-Runbook.md`](../../roadmap/r
 1. **Hook** — why you built it (pub night, existing apps had ads, wanted clean UI)
 2. **What it does** — X01 + Cricket, undo, bots, history, statistics, players, dark mode, VoiceOver basics
 3. **What it doesn’t** — no ads, no account required, data stays on device; online/watch deferred
-4. **Platform** — iPhone + iPad, iOS 17+
+4. **Platform** — iPhone + iPad, iOS 18+ (App Store minimum OS; verify on oldest supported device or simulator)
 5. **Ask** — feedback on scoring flow, Cricket UI, feature priorities
 6. **Link** — App Store URL (required once live)
 7. **Optional** — TestFlight story or “solo dev” transparency if comfortable
@@ -476,7 +509,8 @@ Do not delay ship for:
 
 | Need | Doc |
 |------|-----|
-| **This runbook** | `release_checklist.md` |
+| **Master ship checklist** | [`1.0.0-ship-checklist.md`](1.0.0-ship-checklist.md) |
+| **This runbook (expanded)** | `release_checklist.md` |
 | 10-min gate (abbrev) | [`../../specs/ReleaseGateChecklist.md`](../../specs/ReleaseGateChecklist.md) |
 | 20-min smoke (abbrev) | [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestChecklist.md) |
 | Screenshot template | [`../../specs/SmokeTestEvidenceTemplate.md`](../../specs/SmokeTestEvidenceTemplate.md) |

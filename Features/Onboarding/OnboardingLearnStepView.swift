@@ -1,10 +1,19 @@
 import SwiftUI
 
 struct OnboardingLearnStepView: View {
+    let progressIndex: Int
+    let showsBack: Bool
+    let onBack: () -> Void
     let onContinue: () -> Void
 
     var body: some View {
-        OnboardingStepChrome(showsSkip: false, onSkip: {}) {
+        OnboardingStepChrome(
+            showsSkip: false,
+            onSkip: {},
+            progressIndex: progressIndex,
+            showsBack: showsBack,
+            onBack: onBack
+        ) {
             VStack(alignment: .leading, spacing: DS.Spacing.s4) {
                 Text(L10n.onboardingLearnTitle)
                     .font(.title.bold())
@@ -19,7 +28,7 @@ struct OnboardingLearnStepView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .multilineTextAlignment(.center)
 
-                GameRulesGuideContent(initialMode: .x01)
+                GameRulesGuideContent(initialMode: .x01, showsModePicker: true)
             }
         } footer: {
             OnboardingPrimaryButton(

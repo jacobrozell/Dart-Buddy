@@ -12,10 +12,12 @@ concurrency:
 
 env:
   CI_XCODE_PROJECT: DartBuddy.xcodeproj
-  CI_XCODE_SCHEME: DartBuddy
+  CI_XCODE_SCHEME: DartBuddyUI
   CI_PARALLEL_TESTING: NO
   CI_PACKAGES_ROOT: .packages
-  SIM_DESTINATION: platform=iOS Simulator,name=iPhone 17
+  # Pro Max reports regular horizontal size class in landscape (Plus/Max class iPhones).
+  # Landscape layout UI tests must run on this form factor to catch phone-vs-iPad mistakes.
+  SIM_DESTINATION: platform=iOS Simulator,name=iPhone 17 Pro Max
 
 jobs:
   ui-tests:
@@ -85,6 +87,10 @@ jobs:
         if: always()
         run: Scripts/ci/coverage-summary.sh
 
+      - name: Documentation Summary
+        if: always()
+        run: Scripts/ci/documentation-summary.sh
+
       - name: Dump Logs on Failure
         if: failure()
         run: |
@@ -103,6 +109,7 @@ jobs:
           path: |
             TestResults.xcresult
             coverage-summary.txt
+            documentation-summary.txt
             xcodebuild-test.log
             xcodebuild-build.log
           retention-days: 7

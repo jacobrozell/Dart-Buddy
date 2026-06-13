@@ -33,7 +33,7 @@ struct HistoryRootView: View {
                     BrandRootScreenTitle(title: L10n.historyTitle)
 
                     BrandSegmented(
-                        options: ActivityModeFilter.allCases.map { ($0, $0.title) },
+                        options: ActivityModeFilter.visibleCases.map { ($0, $0.title) },
                         selection: $viewModel.modeFilter
                     )
 
@@ -54,45 +54,50 @@ struct HistoryRootView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, DS.Spacing.s6)
                             .accessibilityLabel(L10n.loading)
-                    } else if viewModel.state == .error {
-                        Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
-                            .foregroundStyle(Brand.red)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DS.Spacing.s6)
-                    } else if viewModel.rows.isEmpty {
-                        emptyListState
                     } else {
-                        ForEach(viewModel.rows) { row in
-                            Button { path.append(.detail(matchId: row.summary.id)) } label: {
-                                MatchHistoryCard(row: row)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(row.accessibilitySummary)
-                        }
-
-                        if viewModel.hasMorePages {
-                            Button {
-                                loadMoreTask?.cancel()
-                                loadMoreTask = Task { await viewModel.loadMore() }
-                            } label: {
-                                Group {
-                                    if viewModel.isLoadingMore {
-                                        ProgressView().tint(Brand.green)
-                                            .accessibilityLabel(L10n.loading)
-                                    } else {
-                                        Text(L10n.historyLoadMore)
-                                            .font(.subheadline.weight(.semibold))
+                        Group {
+                            if viewModel.state == .error {
+                                Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
+                                    .foregroundStyle(Brand.red)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, DS.Spacing.s6)
+                            } else if viewModel.rows.isEmpty {
+                                emptyListState
+                            } else {
+                                ForEach(viewModel.rows) { row in
+                                    Button { path.append(.detail(matchId: row.summary.id)) } label: {
+                                        MatchHistoryCard(row: row)
                                     }
+                                    .buttonStyle(.plain)
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel(row.accessibilitySummary)
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, DS.Spacing.s3)
+
+                                if viewModel.hasMorePages {
+                                    Button {
+                                        loadMoreTask?.cancel()
+                                        loadMoreTask = Task { await viewModel.loadMore() }
+                                    } label: {
+                                        Group {
+                                            if viewModel.isLoadingMore {
+                                                ProgressView().tint(Brand.green)
+                                                    .accessibilityLabel(L10n.loading)
+                                            } else {
+                                                Text(L10n.historyLoadMore)
+                                                    .font(.subheadline.weight(.semibold))
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, DS.Spacing.s3)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundStyle(Brand.green)
+                                    .accessibilityLabel(L10n.string("history.loadMore.accessibility"))
+                                    .accessibilityIdentifier("historyLoadMoreButton")
+                                }
                             }
-                            .buttonStyle(.plain)
-                            .foregroundStyle(Brand.green)
-                            .accessibilityLabel(L10n.string("history.loadMore.accessibility"))
-                            .accessibilityIdentifier("historyLoadMoreButton")
                         }
+                        .motionTabContentReveal(when: true)
                     }
                 }
                 .padding(.horizontal, DS.Spacing.s4)
@@ -237,30 +242,24 @@ struct HistoryRootView: View {
 
 struct MatchHistoryCard: View {
     let row: HistoryListRow
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            HStack(spacing: DS.Spacing.s2) {
-                GameModeBadge(type: row.summary.type)
-                Text(row.dateText)
-                    .font(.headline)
-                    .foregroundStyle(Brand.textPrimary)
-                Spacer()
-                if row.isFinished {
-                    StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
-                }
-            }
+            cardHeader
             Text(row.configText)
                 .font(.subheadline)
                 .foregroundStyle(Brand.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             ForEach(Array(row.standings.enumerated()), id: \.element.id) { index, standing in
                 HStack(alignment: .center) {
                     Text("\(index + 1). \(standing.name)")
                         .font(.body.weight(standing.isWinner ? .semibold : .regular))
                         .foregroundStyle(standing.isWinner ? Brand.textPrimary : Brand.textSecondary)
-                        .lineLimit(1)
-                    Spacer()
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: DS.Spacing.s2)
                     VStack(alignment: .trailing, spacing: 0) {
                         if row.summary.type == .x01 {
                             Text(L10n.format("history.standing.setsLegsFormat", standing.sets, standing.legs))
@@ -279,5 +278,47 @@ struct MatchHistoryCard: View {
         .padding(DS.Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private var cardHeader: some View {
+        ViewThatFits(in: .horizontal) {
+            compactHeader
+            stackedHeader
+        }
+    }
+
+    private var compactHeader: some View {
+        HStack(spacing: DS.Spacing.s2) {
+            GameModeBadge(type: row.summary.type)
+            Text(row.dateText)
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+            Spacer(minLength: DS.Spacing.s2)
+            statusBadge
+        }
+    }
+
+    private var stackedHeader: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            HStack(spacing: DS.Spacing.s2) {
+                GameModeBadge(type: row.summary.type)
+                Text(row.dateText)
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            statusBadge
+        }
+    }
+
+    @ViewBuilder
+    private var statusBadge: some View {
+        if row.isForfeited {
+            StatusBadge(text: L10n.string("history.status.forfeit"), color: Brand.amber)
+        } else if row.isFinished {
+            StatusBadge(text: L10n.string("history.status.finished"), color: Brand.green)
+        }
     }
 }

@@ -20,7 +20,7 @@ extension SetupHomeView {
     }
 
     private var shanghaiRoundsChip: some View {
-        chip(title: "play.shanghai.setup.rounds", color: Brand.key) {
+        chip(titleKey: "play.shanghai.setup.rounds", color: Brand.key) {
             Menu {
                 ForEach([7, 10, 20], id: \.self) { count in
                     Button(L10n.format("play.shanghai.setup.roundsValueFormat", count)) {
@@ -40,7 +40,7 @@ extension SetupHomeView {
     }
 
     private var shanghaiBonusChip: some View {
-        chip(title: "play.shanghai.setup.bonusRule", color: Brand.amber) {
+        chip(titleKey: "play.shanghai.setup.bonusRule", color: Brand.amber) {
             Menu {
                 ForEach(ShanghaiBonusRule.allCases, id: \.rawValue) { rule in
                     Button(rule.displayName) {

@@ -81,7 +81,10 @@ final class HistoryListViewModel: ObservableObject {
                !playerOptions.contains(where: { $0.id == playerFilter }) {
                 self.playerFilter = nil
             }
-            activeMatch = try await matchRepository.fetchActiveMatch()
+            let fetchedActive = try await matchRepository.fetchActiveMatch()
+            activeMatch = fetchedActive.flatMap {
+                ProductSurface.isMatchTypeReachable($0.type) ? $0 : nil
+            }
             let batch = try await PerformanceMonitor.measure(.historyLoad, logger: logger) {
                 try await fetchHistoryPage(0)
             }
@@ -106,8 +109,10 @@ final class HistoryListViewModel: ObservableObject {
     }
 
     private func repositoryFilter() -> MatchHistoryFilter {
-        MatchHistoryFilter(
-            matchType: modeFilter.matchType,
+        let types = modeFilter.historyQueryTypes
+        return MatchHistoryFilter(
+            matchType: types.matchType,
+            includedMatchTypes: types.includedMatchTypes,
             startedAfter: dateFilter.startedAfter,
             participantPlayerId: playerFilter
         )
@@ -123,7 +128,8 @@ final class HistoryListViewModel: ObservableObject {
                     dateText: Self.dateFormatter.string(from: record.summary.startedAt),
                     configText: configText,
                     standings: standings,
-                    isFinished: record.summary.status == .completed
+                    isFinished: record.summary.status == .completed || record.summary.status == .forfeited,
+                    isForfeited: record.summary.status == .forfeited
                 )
             )
         }
@@ -137,6 +143,21 @@ final class HistoryListViewModel: ObservableObject {
     }()
 
     private func standingsAndConfig(for record: MatchHistoryRecord) async -> (String, [HistoryStanding]) {
+        if let data = record.historyCardPayload,
+           let payload = try? CodablePayloadCoder.decode(MatchHistoryCardPayload.self, from: data) {
+            let standings = payload.standings.map {
+                HistoryStanding(
+                    id: $0.playerId,
+                    name: $0.name,
+                    isWinner: $0.isWinner,
+                    sets: $0.sets,
+                    legs: $0.legs,
+                    score: $0.score
+                )
+            }
+            return (payload.configText, standings)
+        }
+
         let summary = record.summary
         let nameById = Dictionary(
             uniqueKeysWithValues: record.participants.map { ($0.playerId ?? $0.id, $0.displayNameAtMatchStart) }

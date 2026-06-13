@@ -70,9 +70,14 @@ for shot in "$RAW_DIR"/*.png; do
   base="$(basename "$shot" .png)"
   out="$FRAMED_DIR/${base}-framed.png"
   work="$WORK_DIR/prepared.png"
-  echo "→ Framing ${base}..."
 
   read -r SHOT_W SHOT_H <<<"$(magick identify -format "%w %h" "$shot")"
+  if [[ "$SHOT_W" -gt "$SHOT_H" ]]; then
+    echo "→ Skipping ${base} (landscape — frameit offsets are portrait-only)"
+    continue
+  fi
+
+  echo "→ Framing ${base}..."
   if [[ "$SHOT_W" -ne "$SCREEN_WIDTH" ]]; then
     magick "$shot" -resize "${SCREEN_WIDTH}x" "$work"
     read -r SHOT_W SHOT_H <<<"$(magick identify -format "%w %h" "$work")"

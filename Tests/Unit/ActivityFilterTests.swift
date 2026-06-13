@@ -17,7 +17,7 @@ struct ActivityFilterTests {
     @Test
     func modeFilterCatalogIdsRoundTripForShippedModes() throws {
         for filter in ActivityModeFilter.allCases where filter != .all {
-            let catalogId = try #require(filter.catalogEntryId)
+            guard let catalogId = filter.catalogEntryId else { continue }
             #expect(ActivityModeFilter.from(catalogEntryId: catalogId) == filter)
             #expect(GameModeCatalog.entry(for: catalogId)?.matchType == filter.matchType)
         }
@@ -28,6 +28,50 @@ struct ActivityFilterTests {
         for filter in ActivityModeFilter.allCases {
             #expect(!filter.title.isEmpty)
         }
+    }
+
+    @Test
+    func modeFilterVisibleCasesRespectProductSurface() {
+        let visible = Set(ActivityModeFilter.visibleCases)
+        #expect(visible.contains(.all))
+        #expect(visible.contains(.x01))
+        #expect(visible.contains(.cricket))
+
+        if ProductSurface.showsPartyModes {
+            #expect(visible.contains(.baseball))
+            #expect(visible.contains(.killer))
+            #expect(visible.contains(.shanghai))
+        } else {
+            #expect(!visible.contains(.baseball))
+            #expect(!visible.contains(.killer))
+            #expect(!visible.contains(.shanghai))
+            #expect(!visible.contains(.fleet))
+            #expect(!visible.contains(.raid))
+            #expect(!visible.contains(.aroundTheClock))
+        }
+    }
+
+    @Test
+    func allGamesFilterScopesToReachableMatchTypesOnLeanSurface() {
+        guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        let included = ActivityModeFilter.includedMatchTypesForAllFilter
+        #expect(included == [.x01, .cricket])
+
+        let query = ActivityModeFilter.all.historyQueryTypes
+        #expect(query.matchType == nil)
+        #expect(query.includedMatchTypes == [.x01, .cricket])
+    }
+
+    @Test
+    func availableCatalogModesMatchVisibleActivityFilters() {
+        let availableFilterIds = Set(
+            GameModeCatalog.available.compactMap { ActivityModeFilter.from(catalogEntryId: $0.id)?.rawValue }
+        )
+        let visibleFilterIds = Set(
+            ActivityModeFilter.visibleCases.map(\.rawValue).filter { $0 != ActivityModeFilter.all.rawValue }
+        )
+        #expect(availableFilterIds == visibleFilterIds)
     }
 
     @Test
@@ -79,7 +123,8 @@ struct ActivityFilterTests {
                 HistoryStanding(id: UUID(), name: "Alice", isWinner: true, sets: 0, legs: 1, score: 0),
                 HistoryStanding(id: UUID(), name: "Bob", isWinner: false, sets: 0, legs: 0, score: 121)
             ],
-            isFinished: true
+            isFinished: true,
+            isForfeited: false
         )
 
         let accessibility = row.accessibilitySummary

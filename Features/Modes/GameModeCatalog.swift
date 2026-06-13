@@ -3,8 +3,8 @@ import SwiftUI
 
 /// Single source of truth for every game mode Dart Buddy intends to offer.
 ///
-/// This is the catalog stub described in `docs/full-game-catalog-ui.md`: all 29
-/// modes (5 shipped + 24 planned) live here as data so the Modes tab, Activity
+/// This is the catalog stub described in `docs/full-game-catalog-ui.md`: all 34
+/// modes live here as data so the Modes tab, Activity
 /// filters, history badges, and per-mode setup can read one list instead of each
 /// hard-coding mode knowledge. Planned modes carry `status == .planned` (no
 /// `MatchType`, not routable) and surface as "coming soon" until their engine
@@ -13,12 +13,13 @@ import SwiftUI
 /// Identity (icon/accent) is keyed off the catalog `id`, **not** `MatchType`,
 /// so the 23 modes without a `MatchType` still get a stable look. Nothing here
 /// renders yet; promoting these into UI is gated on `specs/ModesTabSpec.md`
-/// (per `specs/SpecGovernance.md`).
+/// (per `specs/SpecGovernance.md`). Per-mode rules: `specs/game-modes/implemented/` or `planned/`.
 
 /// Top-level grouping a mode is browsed under in the catalog.
 enum GameModeSection: String, CaseIterable, Identifiable, Hashable {
     case standard
     case party
+    case coop
     case practice
 
     var id: String { rawValue }
@@ -67,6 +68,8 @@ enum ModeStatKind: String, Hashable {
     case goals       // goals timeline
     case boardClaim  // grid / ring claim log
     case roleScore   // role / phase scores
+    case bossRaid    // co-op boss PvE outcomes
+    case coopHeist   // shared puzzle co-op (The Vault)
 }
 
 /// One mode in the catalog.
@@ -81,6 +84,8 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     let section: GameModeSection
     let status: GameModeStatus
     let minimumPlayers: Int
+    /// Most modes scale to a full board of players; solo-only drills set this to 1.
+    var maximumPlayers: Int = 8
     /// Non-nil only for shipped, routable modes.
     let matchType: MatchType?
     let uiTemplate: GameplayUITemplate
@@ -88,10 +93,25 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     /// SF Symbol for the mode badge (id-keyed identity).
     let iconSystemName: String
 
+    /// Competitive matches using shared lifecycle get forfeit via MatchLifecycleChrome.
+    var usesStandardMatchForfeit: Bool { matchType != nil && status == .shipped }
+
     var isAvailable: Bool { status.isAvailable }
 
-    /// Solo modes skip the roster step in setup.
-    var isSolo: Bool { minimumPlayers <= 1 }
+    /// Whether Play setup can apply this entry on the current product surface.
+    var isSelectableInPlaySetup: Bool { pendingModeSelection != nil }
+
+    /// Solo modes skip the roster step in setup — they cap at a single player.
+    /// X01 has a minimum of one but is multiplayer-capable, so it is *not* solo.
+    var isSolo: Bool { maximumPlayers <= 1 }
+
+    /// Whether the rules sheet covers this mode (`GameRulesCatalog`), including preview guides on planned co-op cards.
+    var hasRulesGuide: Bool {
+        if let matchType {
+            return GameRulesCatalog.hasGuide(for: matchType)
+        }
+        return GameRulesCatalog.hasPreviewGuide(for: id)
+    }
 }
 
 /// The full mode catalog. Order within a section is the display order.
@@ -112,8 +132,8 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "standard.americanCricket", name: "American Cricket", blurb: "Cricket on 20→15 + bull",
-            section: .standard, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .markBoard, statKind: .marks,
+            section: .standard, status: .shipped, minimumPlayers: 2,
+            matchType: .americanCricket, uiTemplate: .markBoard, statKind: .marks,
             iconSystemName: "circle.grid.3x3"
         ),
 
@@ -138,20 +158,20 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.mickeyMouse", name: "Mickey Mouse", blurb: "Cricket variant, descending targets",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .markBoard, statKind: .marks,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .mickeyMouse, uiTemplate: .markBoard, statKind: .marks,
             iconSystemName: "circle.grid.2x2.fill"
         ),
         GameModeCatalogEntry(
             id: "party.mulligan", name: "Mulligan", blurb: "Random close targets each game",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .markBoard, statKind: .marks,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .mulligan, uiTemplate: .markBoard, statKind: .marks,
             iconSystemName: "arrow.uturn.backward.circle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.englishCricket", name: "English Cricket", blurb: "Batter vs bowler scoring",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .englishCricket, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "figure.cricket"
         ),
         GameModeCatalogEntry(
@@ -162,44 +182,44 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.knockout", name: "Knockout", blurb: "Beat the previous score or lose a life",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .knockout, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "bolt.horizontal.fill"
         ),
         GameModeCatalogEntry(
             id: "party.suddenDeath", name: "Sudden Death", blurb: "Lowest score is eliminated",
-            section: .party, status: .planned, minimumPlayers: 3,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 3,
+            matchType: .suddenDeath, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "exclamationmark.triangle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.fiftyOneByFives", name: "51 By 5's", blurb: "Score must be divisible by five",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .checkoutScore, statKind: .checkout,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .fiftyOneByFives, uiTemplate: .checkoutScore, statKind: .checkout,
             iconSystemName: "5.circle.fill"
         ),
         GameModeCatalogEntry(
             id: "party.golf", name: "Golf", blurb: "Nine or eighteen holes, fewest strokes",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .inningPoints, statKind: .innings,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .golf, uiTemplate: .inningPoints, statKind: .innings,
             iconSystemName: "figure.golf"
         ),
         GameModeCatalogEntry(
             id: "party.football", name: "Football", blurb: "Kickoff on bull, then score goals",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .phaseRace, statKind: .goals,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .football, uiTemplate: .phaseRace, statKind: .goals,
             iconSystemName: "soccerball"
         ),
         GameModeCatalogEntry(
             id: "party.grandNational", name: "Grand National", blurb: "Clear the fences in order",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .grandNational, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "flag.checkered"
         ),
         GameModeCatalogEntry(
             id: "party.hareAndHounds", name: "Hare and Hounds", blurb: "Chase around the board",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .hareAndHounds, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "hare.fill"
         ),
         GameModeCatalogEntry(
@@ -222,57 +242,89 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.scam", name: "Scam", blurb: "Stopper blocks, scorer scores",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "theatermasks.fill"
         ),
         GameModeCatalogEntry(
             id: "party.snooker", name: "Snooker", blurb: "Reds and colours on the board",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "circle.fill"
         ),
         GameModeCatalogEntry(
+            id: "party.fleet", name: "Fleet", blurb: "Hide, call, throw, sink",
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .fleet, uiTemplate: .boardState, statKind: .boardClaim,
+            iconSystemName: "ferry.fill"
+        ),
+        GameModeCatalogEntry(
             id: "party.ticTacToe", name: "Tic-Tac-Toe", blurb: "Claim three segments in a row",
-            section: .party, status: .planned, minimumPlayers: 2,
+            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "number.square.fill"
+        ),
+
+        // MARK: Co-op
+        GameModeCatalogEntry(
+            id: "coop.raid", name: "Raid", blurb: "Co-op boss fight — close, then finish",
+            section: .coop, status: .shipped, minimumPlayers: 1, maximumPlayers: 3,
+            matchType: .raid, uiTemplate: .phaseRace, statKind: .bossRaid,
+            iconSystemName: "shield.lefthalf.filled"
+        ),
+        GameModeCatalogEntry(
+            id: "coop.cerberus", name: "Cerberus", blurb: "Three heads — assign, close, survive bites",
+            section: .coop, status: .planned, minimumPlayers: 1, maximumPlayers: 3,
+            matchType: nil, uiTemplate: .roleSplit, statKind: .bossRaid,
+            iconSystemName: "pawprint.fill"
+        ),
+        GameModeCatalogEntry(
+            id: "coop.theVault", name: "The Vault", blurb: "Crack five locks before the alarm ends the run",
+            section: .coop, status: .planned, minimumPlayers: 1, maximumPlayers: 4,
+            matchType: nil, uiTemplate: .phaseRace, statKind: .coopHeist,
+            iconSystemName: "lock.shield.fill"
+        ),
+        GameModeCatalogEntry(
+            id: "coop.clearTheBoard", name: "Clear the Board", blurb: "Close every S/D/T cell — together or team vs team",
+            section: .coop, status: .planned, minimumPlayers: 1, maximumPlayers: 8,
+            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
+            iconSystemName: "square.grid.3x3.fill"
         ),
 
         // MARK: Practice
         GameModeCatalogEntry(
             id: "practice.aroundTheClock", name: "Around the Clock", blurb: "Hit 1 through 20 in order",
-            section: .practice, status: .planned, minimumPlayers: 1,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .aroundTheClock, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "clock.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.aroundTheClock180", name: "180 Around the Clock", blurb: "Around the clock, scoring points",
-            section: .practice, status: .planned, minimumPlayers: 1,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .aroundTheClock180, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "clock.badge.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.chaseTheDragon", name: "Chase the Dragon", blurb: "Trebles 1→20 then bull",
-            section: .practice, status: .planned, minimumPlayers: 1,
-            matchType: nil, uiTemplate: .sequenceProgress, statKind: .sequence,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .chaseTheDragon, uiTemplate: .sequenceProgress, statKind: .sequence,
             iconSystemName: "flame.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.nineLives", name: "Nine Lives", blurb: "Three darts, three targets, nine lives",
-            section: .practice, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            section: .practice, status: .shipped, minimumPlayers: 2,
+            matchType: .nineLives, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "heart.fill"
         ),
         GameModeCatalogEntry(
             id: "practice.bobs27", name: "Bob's 27", blurb: "Doubles checkout drill",
-            section: .practice, status: .planned, minimumPlayers: 1,
+            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
             matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "scope"
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .planned, minimumPlayers: 1,
+            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
             matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
@@ -283,9 +335,13 @@ enum GameModeCatalog {
         all.filter { $0.section == section }
     }
 
-    /// Playable-today entries.
+    /// Playable-today entries for the current product surface.
     static var available: [GameModeCatalogEntry] {
-        all.filter(\.isAvailable)
+        all.filter { entry in
+            guard entry.isAvailable else { return false }
+            guard let matchType = entry.matchType else { return false }
+            return ProductSurface.isMatchTypeReachable(matchType)
+        }
     }
 
     /// "Coming soon" entries — the ones the "+N more coming" teaser collapses.
@@ -296,6 +352,34 @@ enum GameModeCatalog {
     /// Number of planned modes in a section (drives the "+N more coming" teaser).
     static func comingSoonCount(in section: GameModeSection) -> Int {
         entries(in: section).filter { !$0.isAvailable }.count
+    }
+
+    /// Lean 1.0 Play setup picker exposes only core scorekeeper modes.
+    private static let leanPlaySetupStandardIDs = ["standard.x01", "standard.cricket"]
+
+    /// Sections for the in-place mode picker on Play setup (lean 1.0 shows X01 + Cricket only).
+    static func playSetupPickerSections() -> [(GameModeSection, [GameModeCatalogEntry])] {
+        guard ProductSurface.showsPartyModes else {
+            let standard = leanPlaySetupStandardIDs.compactMap { entry(for: $0) }.filter(\.isAvailable)
+            guard !standard.isEmpty else { return [] }
+            return [(.standard, standard)]
+        }
+
+        return GameModeSection.allCases.compactMap { section in
+            if section == .coop, !ProductSurface.showsCoopModes { return nil }
+            let sectionEntries = entries(in: section)
+            guard !sectionEntries.isEmpty else { return nil }
+            return (section, sectionEntries)
+        }
+    }
+
+    /// Collapsed coming-soon count below the teaser rows in the Play setup picker.
+    static func playSetupPickerMoreComingCount(
+        in section: GameModeSection,
+        displayedCount: Int
+    ) -> Int {
+        guard ProductSurface.showsPartyModes else { return 0 }
+        return max(0, entries(in: section).count - displayedCount)
     }
 
     /// Catalog entry backing a routable match type, if any.
@@ -331,22 +415,34 @@ extension GameModeCatalogEntry {
         switch section {
         case .standard: return Brand.proBot
         case .party: return Brand.orange
+        case .coop: return Brand.amber
         case .practice: return Brand.green.opacity(0.85)
         }
     }
 
     var playerCountLabel: String {
-        minimumPlayers == 1
-            ? L10n.string("modes.playerCount.solo")
-            : L10n.format("modes.playerCount.rangeFormat", minimumPlayers, 8)
+        if isSolo {
+            return L10n.string("modes.playerCount.solo")
+        }
+        if minimumPlayers >= maximumPlayers {
+            return L10n.format("modes.playerCount.exactFormat", minimumPlayers)
+        }
+        // Modes accept the minimum and up; "+" avoids implying a hard upper cap.
+        return L10n.format("modes.playerCount.minimumFormat", minimumPlayers)
     }
 
     /// Prefill payload when the user taps an available catalog card.
     var pendingModeSelection: PendingModeSelection? {
         guard isAvailable, let matchType else { return nil }
+        if section == .party, !ProductSurface.showsPartyModes { return nil }
+        if section == .coop, !ProductSurface.showsCoopModes { return nil }
         switch section {
         case .standard:
-            let mode: MatchSetupViewModel.SetupMode = matchType == .cricket ? .cricket : .x01
+            let mode: MatchSetupViewModel.SetupMode? = switch matchType {
+            case .cricket: .cricket
+            case .x01: .x01
+            default: nil
+            }
             return PendingModeSelection(
                 setupCategory: .standard,
                 mode: mode,
@@ -360,15 +456,26 @@ extension GameModeCatalogEntry {
             case .shanghai: .shanghai
             default: nil
             }
-            guard let partyGame else { return nil }
             return PendingModeSelection(
                 setupCategory: .party,
                 mode: nil,
                 partyGame: partyGame,
                 matchType: matchType
             )
+        case .coop:
+            return PendingModeSelection(
+                setupCategory: .standard,
+                mode: nil,
+                partyGame: nil,
+                matchType: matchType
+            )
         case .practice:
-            return nil
+            return PendingModeSelection(
+                setupCategory: .standard,
+                mode: nil,
+                partyGame: nil,
+                matchType: matchType
+            )
         }
     }
 }

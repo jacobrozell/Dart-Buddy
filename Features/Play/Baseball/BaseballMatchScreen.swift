@@ -8,6 +8,7 @@ struct BaseballMatchScreen: View {
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
     let feedbackPreferences: FeedbackPreferences
+    let lifecycleDependencies: MatchLifecycleChromeDependencies
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -47,8 +48,10 @@ struct BaseballMatchScreen: View {
             }
 
             if let state = viewModel.baseballState {
-                SideBySideMatchBody {
-                    scoreboardSection(state: state)
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
+                    scoreboardSection(state: state, includesBanner: false)
+                } padChrome: {
+                    stateBanner
                 } controls: {
                     baseballPad
                 }
@@ -69,19 +72,13 @@ struct BaseballMatchScreen: View {
         .background(Brand.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {}
-            Button("play.match.exit.saveAndExit") { dismiss() }
-            Button("play.match.exit.abandon", role: .destructive) {
-                actionTask?.cancel()
-                actionTask = Task {
-                    await viewModel.abandonMatch()
-                    dismiss()
-                }
-            }
-        } message: {
-            Text("play.match.exit.confirm.message")
-        }
+        .matchLifecycleChrome(
+            host: viewModel,
+            showExitConfirmation: $showExitConfirmation,
+            onShowSummary: onShowSummary,
+            onDismiss: { dismiss() },
+            dependencies: lifecycleDependencies
+        )
         .onChange(of: viewModel.state) { _, newValue in
             switch newValue {
             case .matchCompleted:
@@ -89,6 +86,8 @@ struct BaseballMatchScreen: View {
                 onShowSummary()
             case .perfectInningFeedback:
                 haptics.playSuccess()
+                // Match X01/Cricket: the visual banner is also announced to VoiceOver.
+                AccessibilityNotification.Announcement(L10n.string("play.baseball.perfectInning")).post()
             default:
                 break
             }
@@ -99,11 +98,15 @@ struct BaseballMatchScreen: View {
             haptics.playImpact()
         }
         .task { await viewModel.onAppear() }
-        .onDisappear { actionTask?.cancel() }
+        .onDisappear {
+            actionTask?.cancel()
+            guard !showExitConfirmation else { return }
+            viewModel.onDisappear()
+        }
     }
 
     @ViewBuilder
-    private func scoreboardSection(state: BaseballState) -> some View {
+    private func scoreboardSection(state: BaseballState, includesBanner: Bool = true) -> some View {
         VStack(spacing: DS.Spacing.s3) {
             BaseballScoreboardView(
                 rows: viewModel.scoreboardRows,
@@ -123,7 +126,9 @@ struct BaseballMatchScreen: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("baseball_playoff_strip")
             }
-            stateBanner
+            if includesBanner {
+                stateBanner
+            }
         }
     }
 
@@ -136,6 +141,7 @@ struct BaseballMatchScreen: View {
             MatchFeedbackBanner(text: "play.baseball.stretchGateOpened", style: .cricketClosure)
         case .perfectInningFeedback:
             MatchFeedbackBanner(text: "play.baseball.perfectInning", style: .legWin)
+                .accessibilityHidden(true)
         default:
             if let hint = viewModel.stretchGateHint {
                 MatchFeedbackBanner(text: LocalizedStringKey(hint), style: .cricketClosure)

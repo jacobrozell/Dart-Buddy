@@ -10,10 +10,6 @@ struct SettingsRootView: View {
     @State private var retryTask: Task<Void, Never>?
     @State private var showsOnboarding = false
 
-    private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 760 : .infinity
-    }
-
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
         _preferences = ObservedObject(wrappedValue: dependencies.userPreferencesStore)
@@ -32,41 +28,17 @@ struct SettingsRootView: View {
         NavigationStack(path: $path) {
             Group {
                 if let settings = viewModel.settings {
-                    settingsForm(settings)
+                    settingsContent(settings)
                 } else {
-                    switch viewModel.state {
-                    case let .error(messageKey):
-                        ContentUnavailableView(
-                            L10n.errorTitle,
-                            systemImage: "exclamationmark.triangle",
-                            description: Text(LocalizedStringKey(messageKey))
-                                .foregroundStyle(
-                                    AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
-                                        ? Brand.textSecondary
-                                        : DS.ColorRole.textSecondary
-                                )
-                        )
-                        .brandScoreboardEmptyState(
-                            when: AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
-                        )
-                        .overlay(alignment: .bottom) {
-                            Button(L10n.retry) {
-                                retryTask?.cancel()
-                                retryTask = Task { await viewModel.onAppear() }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(Brand.green)
-                            .accessibilityIdentifier("settings_retryButton")
-                            .tabRootScrollChrome()
-                        }
-                    default:
-                        ProgressView(L10n.settingsLoading)
-                            .accessibilityIdentifier("settings_loading")
-                            .accessibilityLabel(L10n.settingsLoading)
-                    }
+                    settingsPlaceholderContent
                 }
             }
-            .navigationTitle(L10n.settingsTitle)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background {
+                settingsRootBackground
+                    .ignoresSafeArea()
+            }
+            .navigationBarHidden(true)
             .task { await viewModel.onAppear() }
             .navigationDestination(for: SettingsRoute.self) { route in
                 switch route {
@@ -100,6 +72,12 @@ struct SettingsRootView: View {
         }
     }
 
+    private var settingsRootBackground: Color {
+        AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
+            ? Brand.background
+            : Color(uiColor: .systemGroupedBackground)
+    }
+
     private var resetConfirmationBinding: Binding<Bool> {
         Binding(
             get: { viewModel.state == .showResetConfirmation },
@@ -111,28 +89,90 @@ struct SettingsRootView: View {
         )
     }
 
-    @ViewBuilder
-    private func settingsForm(_ settings: SettingsSummary) -> some View {
-        let usesBrand = AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
+    private var usesBrandSettingsPalette: Bool {
+        AppAppearancePolicy.settingsUsesBrandPalette(appearanceModeRaw: preferences.appearanceModeRaw)
+    }
 
-        Form {
-            appearanceSection(settings, usesBrand: usesBrand)
-            startingModeSection(settings, usesBrand: usesBrand)
-            matchDefaultsSection(settings, usesBrand: usesBrand)
-            x01DefaultsSection(settings, usesBrand: usesBrand)
-            duringPlaySection(usesBrand: usesBrand)
-            botOpponentsSection(usesBrand: usesBrand)
-            dataSection(usesBrand: usesBrand)
-            aboutSection(usesBrand: usesBrand)
+    @ViewBuilder
+    private var settingsPlaceholderContent: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            settingsScreenTitle
+                .padding(.horizontal, DS.Spacing.s4)
+                .readableRootContentWidth(horizontalSizeClass)
+
+            switch viewModel.state {
+            case let .error(messageKey):
+                ContentUnavailableView(
+                    L10n.errorTitle,
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(LocalizedStringKey(messageKey))
+                        .foregroundStyle(
+                            usesBrandSettingsPalette ? Brand.textSecondary : DS.ColorRole.textSecondary
+                        )
+                )
+                .brandScoreboardEmptyState(when: usesBrandSettingsPalette)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .bottom) {
+                    Button(L10n.retry) {
+                        retryTask?.cancel()
+                        retryTask = Task { await viewModel.onAppear() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Brand.green)
+                    .accessibilityIdentifier("settings_retryButton")
+                    .tabRootScrollChrome()
+                }
+            default:
+                ProgressView(L10n.settingsLoading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier("settings_loading")
+                    .accessibilityLabel(L10n.settingsLoading)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func settingsContent(_ settings: SettingsSummary) -> some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            settingsScreenTitle
+                .padding(.horizontal, DS.Spacing.s4)
+                .readableRootContentWidth(horizontalSizeClass)
+
+            Form {
+                appearanceSection(settings, usesBrand: usesBrandSettingsPalette)
+                startingModeSection(settings, usesBrand: usesBrandSettingsPalette)
+                matchDefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
+                x01DefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
+                duringPlaySection(usesBrand: usesBrandSettingsPalette)
+                botOpponentsSection(usesBrand: usesBrandSettingsPalette)
+                dataSection(usesBrand: usesBrandSettingsPalette)
+                helpAndFeedbackSection(usesBrand: usesBrandSettingsPalette)
+                aboutSection(usesBrand: usesBrandSettingsPalette)
+            }
+            .tint(Brand.green)
+            .readableRootContentWidth(horizontalSizeClass)
+            .tabRootScrollChrome()
+            .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(L10n.settingsTitle)
         .accessibilityIdentifier("settings_form")
-        .tint(Brand.green)
-        .frame(maxWidth: contentMaxWidth)
-        .frame(maxWidth: .infinity, alignment: .center)
-        .tabRootScrollChrome()
-        .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
+    }
+
+    @ViewBuilder
+    private var settingsScreenTitle: some View {
+        if usesBrandSettingsPalette {
+            BrandRootScreenTitle(title: L10n.settingsTitle)
+        } else {
+            Text(L10n.settingsTitle)
+                .font(
+                    dynamicTypeSize.isAccessibilitySize
+                        ? .title.weight(.bold)
+                        : .largeTitle.weight(.heavy)
+                )
+                .foregroundStyle(.primary)
+                .accessibilityAddTraits(.isHeader)
+        }
     }
 
     private func appearanceSection(_ settings: SettingsSummary, usesBrand: Bool) -> some View {
@@ -250,6 +290,23 @@ struct SettingsRootView: View {
 
     private func duringPlaySection(usesBrand: Bool) -> some View {
         Section {
+            if dependencies.featureFlags.isEnabled(.enableVisualDartboardInput) {
+                Picker("settings.dartEntryPresentation.label", selection: Binding(
+                    get: {
+                        DartEntryPresentation(
+                            rawValueOrDefault: viewModel.settings?.defaultDartEntryPresentationRaw
+                        ).rawValue
+                    },
+                    set: { viewModel.queueDartEntryPresentationUpdate($0) }
+                )) {
+                    Text("settings.dartEntryPresentation.numberPad")
+                        .tag(DartEntryPresentation.numberPad.rawValue)
+                    Text("settings.dartEntryPresentation.visualBoard")
+                        .tag(DartEntryPresentation.visualBoard.rawValue)
+                }
+                .accessibilityIdentifier("settings_dartEntryPresentationPicker")
+                .accessibilityHint(L10n.string("settings.dartEntryPresentation.hint"))
+            }
             Toggle("settings.feedback.haptics", isOn: Binding(
                 get: { viewModel.settings?.hapticsEnabled ?? true },
                 set: { viewModel.queueFeedbackUpdate(haptics: $0) }
@@ -306,6 +363,45 @@ struct SettingsRootView: View {
         .brandFormRowBackground(when: usesBrand)
     }
 
+    private func helpAndFeedbackSection(usesBrand: Bool) -> some View {
+        Section {
+            Link(destination: AppLinks.support) {
+                Label(L10n.settingsSupportFAQ, systemImage: "questionmark.circle")
+            }
+            .accessibilityLabel(L10n.settingsSupportFAQAccessibility)
+            .accessibilityIdentifier("settings_supportFAQLink")
+
+            Link(destination: AppSupport.feedbackMailtoURL) {
+                Label(L10n.settingsSupportFeedback, systemImage: "envelope")
+            }
+            .accessibilityLabel(L10n.settingsSupportFeedbackAccessibility)
+            .accessibilityIdentifier("settings_sendFeedbackLink")
+
+            Link(destination: AppLinks.appStoreReview) {
+                Label(L10n.settingsSupportRate, systemImage: "star")
+            }
+            .accessibilityLabel(L10n.settingsSupportRateAccessibility)
+            .accessibilityIdentifier("settings_rateAppLink")
+
+            if ProductSurface.showsAccessibilityMarketing {
+                Link(destination: AppLinks.accessibility) {
+                    Label(L10n.settingsSupportAccessibility, systemImage: "accessibility")
+                }
+                .accessibilityLabel(L10n.settingsSupportAccessibilityLabel)
+                .accessibilityIdentifier("settings_accessibilityLink")
+            }
+
+            Link(destination: AppLinks.privacy) {
+                Label(L10n.settingsSupportPrivacy, systemImage: "hand.raised")
+            }
+            .accessibilityLabel(L10n.settingsSupportPrivacyAccessibility)
+            .accessibilityIdentifier("settings_privacyPolicyLink")
+        } header: {
+            Text(L10n.settingsHelpAndFeedbackSection)
+        }
+        .brandFormRowBackground(when: usesBrand)
+    }
+
     private func aboutSection(usesBrand: Bool) -> some View {
         Section {
             Button {
@@ -316,8 +412,9 @@ struct SettingsRootView: View {
             .accessibilityLabel(L10n.settingsViewOnboardingAccessibility)
             .accessibilityIdentifier("settings_viewOnboardingButton")
 
-            Text("settings.about.value")
+            Text(AppSupport.versionLabel)
                 .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
+                .accessibilityLabel(AppSupport.versionLabel)
                 .accessibilityIdentifier("settings_aboutVersion")
 
             if let buyDeveloperCoffeeURL = AppLinks.buyDeveloperCoffee {

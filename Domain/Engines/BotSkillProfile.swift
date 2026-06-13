@@ -113,11 +113,18 @@ public struct CustomBotSkillSnapshot: Codable, Equatable, Sendable {
     public let profile: BotSkillProfile
     public let x01Average: Double
     public let cricketMPR: Double
+    public let configurationSchemaVersion: Int?
 
-    public init(profile: BotSkillProfile, x01Average: Double, cricketMPR: Double) {
+    public init(
+        profile: BotSkillProfile,
+        x01Average: Double,
+        cricketMPR: Double,
+        configurationSchemaVersion: Int? = nil
+    ) {
         self.profile = profile
         self.x01Average = x01Average
         self.cricketMPR = cricketMPR
+        self.configurationSchemaVersion = configurationSchemaVersion
     }
 
     public static func encode(_ snapshot: CustomBotSkillSnapshot) throws -> Data {

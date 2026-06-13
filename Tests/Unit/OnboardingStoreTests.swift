@@ -36,25 +36,33 @@ struct OnboardingStoreTests {
     }
 
     @Test
-    func saveAndLoadExperience() {
+    func saveAndLoadExperienceTier() {
         let defaults = makeIsolatedDefaults()
         let store = OnboardingStore(userDefaults: defaults, isEnabled: true)
-        #expect(store.savedExperience == nil)
+        #expect(store.savedExperienceTier == nil)
 
-        store.saveExperience(.experienced)
-        #expect(store.savedExperience == .experienced)
+        store.saveExperienceTier(.medium)
+        #expect(store.savedExperienceTier == .medium)
 
-        store.saveExperience(.beginner)
-        #expect(store.savedExperience == .beginner)
+        store.saveExperienceTier(.veryEasy)
+        #expect(store.savedExperienceTier == .veryEasy)
     }
 
     @Test
-    func clearPersistedStateRemovesExperience() {
+    func clearPersistedStateRemovesExperienceTier() {
         let defaults = makeIsolatedDefaults()
         let store = OnboardingStore(userDefaults: defaults, isEnabled: true)
-        store.saveExperience(.beginner)
+        store.saveExperienceTier(.easy)
         store.clearPersistedState()
-        #expect(store.savedExperience == nil)
+        #expect(store.savedExperienceTier == nil)
+    }
+
+    @Test
+    func legacyExperienceValueMigratesToTier() {
+        let defaults = makeIsolatedDefaults()
+        defaults.set("beginner", forKey: OnboardingStore.legacyExperienceKey)
+        let store = OnboardingStore(userDefaults: defaults, isEnabled: true)
+        #expect(store.savedExperienceTier == .easy)
     }
 
     private func makeIsolatedDefaults() -> UserDefaults {

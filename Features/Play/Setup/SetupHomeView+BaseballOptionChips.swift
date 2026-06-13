@@ -22,14 +22,14 @@ extension SetupHomeView {
     }
 
     private var baseballInningsChip: some View {
-        chip(title: "play.baseball.setup.innings", color: Brand.key) {
+        chip(titleKey: "play.baseball.setup.innings", color: Brand.key) {
             chipBox(L10n.string("play.baseball.setup.inningsValue"), color: Brand.key, showsMenuIndicator: false)
                 .accessibilityIdentifier("setup_baseballInningsChip")
         }
     }
 
     private var baseballTieBreakerChip: some View {
-        chip(title: "play.baseball.setup.tieBreaker", color: Brand.red) {
+        chip(titleKey: "play.baseball.setup.tieBreaker", color: Brand.red) {
             Menu {
                 ForEach(BaseballTieBreaker.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -49,7 +49,7 @@ extension SetupHomeView {
     }
 
     private var baseballStretchChip: some View {
-        chip(title: "play.baseball.setup.stretch", color: Brand.amber) {
+        chip(titleKey: "play.baseball.setup.stretch", color: Brand.amber) {
             Menu {
                 Button(L10n.string("play.baseball.stretch.off")) {
                     setupViewModel.baseballSeventhInningStretch = false

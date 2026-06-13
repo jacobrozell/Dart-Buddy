@@ -7,6 +7,7 @@ struct ShanghaiMatchScreen: View {
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
     let feedbackPreferences: FeedbackPreferences
+    let lifecycleDependencies: MatchLifecycleChromeDependencies
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -52,7 +53,7 @@ struct ShanghaiMatchScreen: View {
             }
 
             if let state = viewModel.shanghaiState {
-                SideBySideMatchBody {
+                SideBySideMatchBody(playerCount: viewModel.scoreboardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
                         Text(viewModel.goalReminder)
                             .font(.caption.weight(.semibold))
@@ -69,8 +70,9 @@ struct ShanghaiMatchScreen: View {
                             isExtraRound: state.isExtraRound
                         )
                         .accessibilityIdentifier("shanghai_round_strip")
-                        stateBanner
                     }
+                } padChrome: {
+                    stateBanner
                 } controls: {
                     shanghaiPad
                 }
@@ -91,19 +93,13 @@ struct ShanghaiMatchScreen: View {
         .background(Brand.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {}
-            Button("play.match.exit.saveAndExit") { dismiss() }
-            Button("play.match.exit.abandon", role: .destructive) {
-                actionTask?.cancel()
-                actionTask = Task {
-                    await viewModel.abandonMatch()
-                    dismiss()
-                }
-            }
-        } message: {
-            Text("play.match.exit.confirm.message")
-        }
+        .matchLifecycleChrome(
+            host: viewModel,
+            showExitConfirmation: $showExitConfirmation,
+            onShowSummary: onShowSummary,
+            onDismiss: { dismiss() },
+            dependencies: lifecycleDependencies
+        )
         .onChange(of: viewModel.state) { _, newValue in
             switch newValue {
             case .matchCompleted:
@@ -121,7 +117,11 @@ struct ShanghaiMatchScreen: View {
             haptics.playImpact()
         }
         .task { await viewModel.onAppear() }
-        .onDisappear { actionTask?.cancel() }
+        .onDisappear {
+            actionTask?.cancel()
+            guard !showExitConfirmation else { return }
+            viewModel.onDisappear()
+        }
     }
 
     @ViewBuilder
@@ -131,6 +131,7 @@ struct ShanghaiMatchScreen: View {
             ErrorBanner(messageKey: messageKey)
         case .shanghaiFeedback:
             MatchFeedbackBanner(text: "play.shanghai.achieved", style: .legWin)
+                .accessibilityHidden(true)
                 .accessibilityIdentifier("shanghai_shanghai_feedback")
         default:
             EmptyView()

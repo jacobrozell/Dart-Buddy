@@ -42,6 +42,23 @@ Layering is one-directional: `App` → `Features` → `Domain` / `Data`. See
 - **Comments explain *why*, not *what*.** Skip doc comments that restate the
   declaration. Reserve `// MARK:` for files with genuinely distinct sections.
 
+## Linting
+
+SwiftLint enforces the rules above (`.swiftlint.yml` at the repo root); the
+`lint` job in CI fails the build on violations. Run it locally with:
+
+```bash
+brew install swiftlint
+swiftlint
+```
+
+Force unwraps are an error — when you hit the documented `URL(string:)!`
+literal exception, mark it with `// swiftlint:disable:next force_unwrapping`
+and a one-line justification comment. Inline `Task.sleep` literals are also an
+error: name the duration in `Support/Gameplay/BotTurnPacing.swift` (gameplay
+pacing) or as a `private static let …Nanoseconds` on the view (animation
+timing).
+
 ## SwiftUI
 
 - Decompose large `body` blocks into `private var section: some View` computed
@@ -142,6 +159,22 @@ running locally.
 
 To refresh coverage after adding tests: re-run `Scripts/coverage-report.sh` or
 `DartBuddyCI` tests — coverage updates automatically from the latest xcresult.
+
+## Documentation coverage
+
+Regenerate a plain-text audit of what is documented vs missing:
+
+```bash
+Scripts/ci/documentation-summary.sh   # writes documentation-summary.txt
+```
+
+The report cross-checks `SpecGovernance.md` §5 (spec file, primary code paths,
+Verification dates), `GameModeCatalog` vs `specs/game-modes/`, system specs in
+`specs/README.md`, the UI screen index, and WCAG screen trackers. It does not
+gate CI — use it after feature work or quarterly audits.
+
+**CI:** each test job uploads `documentation-summary.txt` with the test
+artifacts (same pattern as `coverage-summary.txt`).
 
 ## Commits
 

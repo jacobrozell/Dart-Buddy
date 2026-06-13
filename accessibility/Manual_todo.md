@@ -2,7 +2,11 @@
 
 Human-only checks that simulator AX-tree tools cannot complete. Tick items when done and link evidence under `accessibility/wcag-2.1-aa/evidence/`.
 
-**Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02)
+**App Store Nutrition Labels (timed RC script):** [`1.0-nutrition-label-checklist.md`](1.0-nutrition-label-checklist.md)
+
+**Automated spot-checks:** see `evidence/voiceover/*-ax-spotcheck-*.md` (X01 + Cricket logged 2026-06-02; X01 less-is-more 2026-06-10; Cricket less-is-more 2026-06-11)
+
+**Less-is-more VO (implemented 2026-06-10):** evidence in `evidence/voiceover/x01-less-is-more-ax-spotcheck-2026-06-10.md` and `evidence/voiceover/cricket-less-is-more-ax-spotcheck-2026-06-11.md`
 
 ---
 
@@ -11,7 +15,7 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 - [ ] Focus order: score cards → checkout (when shown) → pad → header actions
 - [ ] Leave match → Undo last turn → score 3 darts (hear visit on score card)
 - [ ] Arm TRIPLE, score 20 — pad says “Triple 20”; score card visit says “Triple 20” not “T20”
-- [ ] Bust: hear banner + announcement (`play.x01.bustFeedback`)
+- [ ] Bust: hear announcement only (`play.x01.bustFeedback`); banner is visual-only
 - [ ] Checkout banner: hear update when route changes
 - [ ] Leg won / match complete announcements
 - [ ] Bot match: “Bot throwing…” banner; pad disabled + hint while bot plays
@@ -26,7 +30,8 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 ## VoiceOver — Cricket match (`cricket-match`)
 
 - [ ] Focus order: board (active column) → pad → Cancel / state banner
-- [ ] Active column: name, score, “Your turn” in one label
+- [ ] Active column: name, score, “Your turn” in one label (no per-visit darts/marks — see `evidence/voiceover/cricket-less-is-more-ax-spotcheck-2026-06-11.md`)
+- [ ] **Mid-game spot-check:** after several visits, confirm column labels stay concise and marks remain discoverable via pad focus (not duplicated on every column swipe)
 - [ ] Pad: “Triple 20”, “Miss”, “Double Bull” when modifiers armed
 - [ ] Close a target (3 marks): hear closure / board updated announcement
 - [ ] Bot match: pad disabled + bot banner (same pattern as X01)

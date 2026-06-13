@@ -2,7 +2,7 @@
 
 Post-1.0 exploration of dart formats listed on [Target Darts — What Dart Games Can I Play?](https://www.target-darts.co.uk/dart-games). Lighter assessments for unshipped practice/party modes live in [`party-practice-modes.md`](party-practice-modes.md).
 
-**Status:** R&D only for **planned** modes — not governed by `specs/SpecGovernance.md` until promoted to `specs/*GameSpec.md`.
+**Status:** R&D index. **Planned modes now have authoritative specs** in [`specs/game-modes/planned/`](../specs/game-modes/planned/) (see [`specs/game-modes/README.md`](../specs/game-modes/README.md)). This file remains a delivery-strategy index.
 
 ---
 
@@ -10,11 +10,11 @@ Post-1.0 exploration of dart formats listed on [Target Darts — What Dart Games
 
 | Target name | Dart Buddy | Authoritative spec |
 |-------------|------------|-------------------|
-| 501 | X01 (301 / 501) | [`specs/X01GameSpec.md`](../specs/X01GameSpec.md) |
-| Cricket | Cricket (incl. Cut Throat) | [`specs/CricketSpec.md`](../specs/CricketSpec.md) |
-| Baseball | Baseball | [`specs/BaseballGameSpec.md`](../specs/BaseballGameSpec.md) |
-| Killer | Killer | [`specs/KillerGameSpec.md`](../specs/KillerGameSpec.md) |
-| Shanghai | Shanghai | `Domain/Engines/ShanghaiEngine.swift` + `Features/Play/Shanghai/` (promote to `specs/ShanghaiGameSpec.md` when scheduled) |
+| 501 | X01 (301 / 501) | [`specs/game-modes/implemented/X01GameSpec.md`](../specs/game-modes/implemented/X01GameSpec.md) |
+| Cricket | Cricket (incl. Cut Throat) | [`specs/game-modes/implemented/CricketSpec.md`](../specs/game-modes/implemented/CricketSpec.md) |
+| Baseball | Baseball | [`specs/game-modes/implemented/BaseballGameSpec.md`](../specs/game-modes/implemented/BaseballGameSpec.md) |
+| Killer | Killer | [`specs/game-modes/implemented/KillerGameSpec.md`](../specs/game-modes/implemented/KillerGameSpec.md) |
+| Shanghai | Shanghai | [`specs/game-modes/implemented/ShanghaiGameSpec.md`](../specs/game-modes/implemented/ShanghaiGameSpec.md) |
 
 Shared lifecycle: [`specs/MatchSpec.md`](../specs/MatchSpec.md). `MatchType` today: `x01` \| `cricket` \| `baseball` \| `killer` \| `shanghai` (`Domain/Models/RepositoryModels.swift`). Catalog: [`Features/Modes/GameModeCatalog.swift`](../Features/Modes/GameModeCatalog.swift) (5 shipped + 24 planned).
 
@@ -22,14 +22,14 @@ Shared lifecycle: [`specs/MatchSpec.md`](../specs/MatchSpec.md). `MatchType` tod
 
 ## Candidate modes (not yet shipped)
 
-| Game | Doc | Priority | Players | Complexity | Notes |
-|------|-----|----------|---------|------------|-------|
-| Bob's 27 | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 1 | Low | Solo practice; doubles 1→20 + bull |
-| Around the Clock | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 1+ | Low–Med | Sequential 1→20 + bull; progress reset rules vary |
-| Halve-It | [`party-practice-modes.md`](party-practice-modes.md) | P3 | 1+ | Med | Descending score targets; house rules heavy |
-| **Golf** | [`party-practice-modes.md`](party-practice-modes.md) | P2 | 2+ | Med | 9/18 holes on segments 1→9/18; lowest strokes wins; last-dart-counts |
+| Game | Spec | Priority | Players | Complexity | Notes |
+|------|------|----------|---------|------------|-------|
+| Bob's 27 | [`specs/game-modes/planned/Bobs27GameSpec.md`](../specs/game-modes/planned/Bobs27GameSpec.md) | P2 | 1 | Low | Solo practice; doubles 1→20 + bull |
+| Around the Clock | [`specs/game-modes/planned/AroundTheClockGameSpec.md`](../specs/game-modes/planned/AroundTheClockGameSpec.md) | P2 | 1+ | Low–Med | Sequential 1→20 + bull; reset policy in spec |
+| Halve-It | [`specs/game-modes/planned/HalveItGameSpec.md`](../specs/game-modes/planned/HalveItGameSpec.md) | P3 | 1+ | Med | Curated sequence in v1 spec |
+| **Golf** | [`specs/game-modes/planned/GolfGameSpec.md`](../specs/game-modes/planned/GolfGameSpec.md) | P2 | 2+ | Med | 9/18 holes; GLD last-dart ruleset |
 
-Plus 23 additional **planned** catalog entries (Mickey Mouse, Golf, Football, …) in `GameModeCatalog` — see [`docs/full-game-catalog-ui.md`](../docs/full-game-catalog-ui.md).
+All 24 planned catalog entries have specs — see [`specs/README.md`](../specs/README.md) § Planned game modes and [`docs/full-game-catalog-ui.md`](../docs/full-game-catalog-ui.md).
 
 ---
 

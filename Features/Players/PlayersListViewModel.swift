@@ -127,6 +127,8 @@ final class PlayersListViewModel: ObservableObject {
 
     func save(_ player: EditablePlayer) async {
         do {
+            let wasPrimary = players.first(where: { $0.id == player.id })?.isPrimaryPlayer == true
+            let savedId: UUID
             if players.contains(where: { $0.id == player.id }) {
                 _ = try await repository.updatePlayerProfile(
                     playerId: player.id,
@@ -136,24 +138,30 @@ final class PlayersListViewModel: ObservableObject {
                     notes: player.notes
                 )
                 if player.isCustomBot {
-                    _ = try await repository.updateCustomBotMetrics(
-                        playerId: player.id,
-                        metrics: CustomBotMetrics(
-                            x01Average: player.customX01Average,
-                            cricketMPR: player.customCricketMPR
+                    var configuration = player.customBotConfiguration
+                        ?? CustomBotConfiguration.from(
+                            metrics: CustomBotMetrics(
+                                x01Average: player.customX01Average,
+                                cricketMPR: player.customCricketMPR
+                            )
                         )
+                    configuration.x01Average = player.customX01Average
+                    configuration.cricketMPR = player.customCricketMPR
+                    _ = try await repository.updateCustomBotConfiguration(
+                        playerId: player.id,
+                        configuration: configuration
                     )
                 }
+                savedId = player.id
             } else {
-                let created = try await repository.createPlayer(name: player.name)
-                _ = try await repository.updatePlayerProfile(
-                    playerId: created.id,
-                    name: player.name,
-                    avatarStyle: player.avatarStyle,
-                    colorToken: player.colorToken,
-                    notes: player.notes
-                )
+                let created = try await repository.createHumanPlayer(from: player)
+                savedId = created.id
                 pendingMatchPlayerSelections.enqueueForNextMatchSetup(created.id)
+            }
+            if player.isPrimaryPlayer {
+                _ = try await repository.designatePrimaryPlayer(playerId: savedId)
+            } else if wasPrimary {
+                _ = try await repository.relinquishPrimaryPlayer(playerId: savedId)
             }
             await onAppear()
         } catch {
@@ -164,6 +172,10 @@ final class PlayersListViewModel: ObservableObject {
 
     func player(id: UUID) -> EditablePlayer? {
         players.first(where: { $0.id == id })
+    }
+
+    var hasPrimaryPlayer: Bool {
+        players.contains(where: \.isPrimaryPlayer)
     }
 
     private func messageKey(for error: Error, fallback: String) -> String {

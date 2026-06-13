@@ -61,6 +61,7 @@ struct PerPlayerSectorHitsSection: View {
                     Text(row.name)
                         .font(.headline)
                         .foregroundStyle(Brand.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
                     SectorHitsChart(
                         hitsBySector: row.hitsBySector,
                         mode: mode,

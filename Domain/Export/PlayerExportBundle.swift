@@ -92,6 +92,7 @@ public struct MatchParticipantExportRecord: Codable, Sendable, Equatable {
     public let botDifficultyRaw: String?
     public let botKindRaw: String?
     public let botSkillProfilePayload: Data?
+    public let botEffectiveTierRaw: String?
 
     public init(from summary: MatchParticipantSummary) {
         id = summary.id
@@ -103,6 +104,7 @@ public struct MatchParticipantExportRecord: Codable, Sendable, Equatable {
         botDifficultyRaw = summary.botDifficultyRaw
         botKindRaw = summary.botKindRaw
         botSkillProfilePayload = summary.botSkillProfilePayload
+        botEffectiveTierRaw = summary.botEffectiveTierRaw
     }
 }
 
@@ -181,9 +183,7 @@ public enum PlayerExportBundleCoding {
 
     public static func encode(_ bundle: PlayerExportBundle) throws -> Data {
         let encoder = JSONEncoder()
-        if #available(iOS 17.0, *) {
-            encoder.outputFormatting = [.sortedKeys]
-        }
+        encoder.outputFormatting = [.sortedKeys]
         encoder.dateEncodingStrategy = .custom(encodeDate)
         return try encoder.encode(bundle)
     }
