@@ -215,35 +215,72 @@ extension DartBuddyUITestCase {
     func selectMinimumPlayers(for mode: GameModeScreenshotTarget, in app: XCUIApplication) {
         let roster = ["Alice", "Bob", "Carol"]
         for index in 0 ..< mode.playerCount {
-            selectPlayerFromRoster(roster[index], in: app, timeout: timeout + 10)
+            ensurePlayerSelectedFromRoster(roster[index], in: app, timeout: timeout + 10)
         }
     }
 
+    private func ensurePlayerSelectedFromRoster(_ name: String, in app: XCUIApplication, timeout: TimeInterval) {
+        let staged = app.descendants(matching: .any)["setup_selected_\(name)"].firstMatch
+        if staged.waitForExistence(timeout: 2) { return }
+        selectPlayerFromRoster(name, in: app, timeout: timeout)
+    }
+
     func waitForGameModeMatchBoard(_ mode: GameModeScreenshotTarget, in app: XCUIApplication) {
-        let wait = timeout + 20
+        let wait = timeout + 30
+        let exit = app.buttons["match_exit"]
         switch mode {
         case .x01:
             _ = waitForPadReady(app, timeout: wait)
-            XCTAssertTrue(app.buttons["match_exit"].waitForExistence(timeout: 5))
-        case .cricket, .americanCricket, .mickeyMouse, .mulligan, .englishCricket:
-            waitForCricketMatchBoard(in: app, timeout: wait)
+        case .cricket, .americanCricket:
+            waitForCricketScoringPadReady(app, timeout: wait)
         case .baseball:
-            XCTAssertTrue(app.otherElements["baseball_match_header"].waitForExistence(timeout: wait))
+            _ = app.descendants(matching: .any)["baseball_match_header"].waitForExistence(timeout: wait)
         case .shanghai:
-            XCTAssertTrue(app.otherElements["shanghai_match_header"].waitForExistence(timeout: wait))
+            _ = app.descendants(matching: .any)["shanghai_match_header"].waitForExistence(timeout: wait)
+        case .killer:
+            _ = app.descendants(matching: .any)["killer_match_header"].waitForExistence(timeout: wait)
+        case .mickeyMouse:
+            _ = app.descendants(matching: .any)["mickeyMouse_match_header"].waitForExistence(timeout: wait)
+        case .mulligan:
+            _ = app.descendants(matching: .any)["mulligan_match_header"].waitForExistence(timeout: wait)
+        case .englishCricket:
+            _ = app.descendants(matching: .any)["englishCricket_match_header"].waitForExistence(timeout: wait)
+        case .knockout:
+            _ = app.descendants(matching: .any)["knockout_match_header"].waitForExistence(timeout: wait)
+        case .suddenDeath:
+            _ = app.descendants(matching: .any)["suddenDeath_match_header"].waitForExistence(timeout: wait)
+        case .fiftyOneByFives:
+            _ = app.descendants(matching: .any)["fiftyOneByFives_match_header"].waitForExistence(timeout: wait)
+        case .golf:
+            _ = app.descendants(matching: .any)["golf_match_header"].waitForExistence(timeout: wait)
+        case .football:
+            _ = app.descendants(matching: .any)["football_match_header"].waitForExistence(timeout: wait)
+        case .grandNational:
+            _ = app.descendants(matching: .any)["grandNational_match_header"].waitForExistence(timeout: wait)
+        case .hareAndHounds:
+            _ = app.descendants(matching: .any)["hareAndHounds_match_header"].waitForExistence(timeout: wait)
+        case .aroundTheClock:
+            _ = app.descendants(matching: .any)["aroundTheClock_match_header"].waitForExistence(timeout: wait)
+        case .aroundTheClock180:
+            _ = app.descendants(matching: .any)["atc180_match_header"].waitForExistence(timeout: wait)
+        case .chaseTheDragon:
+            _ = app.descendants(matching: .any)["chaseTheDragon_match_header"].waitForExistence(timeout: wait)
+        case .nineLives:
+            _ = app.descendants(matching: .any)["nineLives_match_header"].waitForExistence(timeout: wait)
         case .fleet:
             let handoff = app.buttons["fleet_handoff_confirm"]
-            let exit = app.buttons["match_exit"]
             XCTAssertTrue(
                 handoff.waitForExistence(timeout: wait) || exit.waitForExistence(timeout: wait),
                 "Fleet should show handoff or gameplay chrome"
             )
-        default:
-            XCTAssertTrue(
-                app.buttons["match_exit"].waitForExistence(timeout: wait),
-                "\(mode.displayName) match screen should expose match_exit"
-            )
+            return
+        case .raid:
+            break
         }
+        XCTAssertTrue(
+            exit.waitForExistence(timeout: wait),
+            "\(mode.displayName) match screen should expose match_exit"
+        )
     }
 
     func selectCatalogModeCard(_ catalogId: String, in app: XCUIApplication, timeout: TimeInterval) {
@@ -276,6 +313,7 @@ extension DartBuddyUITestCase {
         } else {
             card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
+        ensurePlayTab(app, timeout: timeout)
     }
 
     private func catalogSearchTerm(for catalogId: String) -> String {

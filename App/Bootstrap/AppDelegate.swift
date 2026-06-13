@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        UITestLocaleOverride.applyIfNeeded()
         SnapshotOrientationLock.configureFromLaunchArguments()
         if FirebaseBootstrap.shouldConfigure {
             FirebaseApp.configure()

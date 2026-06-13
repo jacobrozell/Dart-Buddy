@@ -450,16 +450,25 @@ extension GameModeCatalogEntry {
                 matchType: matchType
             )
         case .party:
-            let partyGame: PartyGame? = switch matchType {
+            if let partyGame: PartyGame = switch matchType {
             case .baseball: .baseball
             case .killer: .killer
             case .shanghai: .shanghai
             default: nil
+            } {
+                return PendingModeSelection(
+                    setupCategory: .party,
+                    mode: nil,
+                    partyGame: partyGame,
+                    matchType: matchType
+                )
             }
+            // Catalog-only party modes (Mickey Mouse, Golf, etc.) route through matchType,
+            // not the legacy Play setup party picker.
             return PendingModeSelection(
-                setupCategory: .party,
+                setupCategory: .standard,
                 mode: nil,
-                partyGame: partyGame,
+                partyGame: nil,
                 matchType: matchType
             )
         case .coop:

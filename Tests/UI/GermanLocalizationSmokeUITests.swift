@@ -16,8 +16,7 @@ final class GermanLocalizationSmokeUITests: DartBuddyUITestCase {
 
     func testPlaySetupUsesGermanChrome() throws {
         let app = LocalizationSmokeUITestSupport.launchForLocaleSmoke(self, config: config, extraArguments: ["-seed_players"])
-        XCTAssertTrue(app.tabBars.buttons[config.playTabLabel].waitForExistence(timeout: timeout))
-        app.tabBars.buttons[config.playTabLabel].tap()
-        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: timeout))
+        LocalizationSmokeUITestSupport.tapPlayTab(in: app, config: config, timeout: timeout)
+        LocalizationSmokeUITestSupport.assertPlaySetupChromeVisible(in: app, timeout: timeout)
     }
 }

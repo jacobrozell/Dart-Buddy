@@ -23,6 +23,8 @@ final class GameModeScreenshotUITests: DartBuddyUITestCase {
         ]
 
         for group in textSizeGroups {
+            resetSimulatorOrientationToPortrait()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.75))
             var app = launchForGameModeScreenshots(usesAccessibilityTextSize: group.usesAccessibilityTextSize)
 
             for mode in GameModeScreenshotTarget.allCases {
@@ -102,6 +104,8 @@ extension GameModeScreenshotUITests {
 
         var captures: [(mode: GameModeScreenshotTarget, variant: GameModeScreenshotVariant, path: URL)] = []
         for usesAccessibilityTextSize in [false, true] {
+            resetSimulatorOrientationToPortrait()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.75))
             let app = launchForGameModeScreenshots(usesAccessibilityTextSize: usesAccessibilityTextSize)
             startGameModeMatch(mode, in: app)
             let variants: [GameModeScreenshotVariant] = usesAccessibilityTextSize
@@ -112,6 +116,7 @@ extension GameModeScreenshotUITests {
                 let path = try captureGameModeScreenshot(mode: mode, variant: variant, rootDirectory: rootDirectory)
                 captures.append((mode, variant, path))
             }
+            resetSimulatorOrientationToPortrait()
             app.terminate()
         }
 

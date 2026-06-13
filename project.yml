@@ -151,6 +151,14 @@ targets:
     info:
       path: App/DartBuddy-Info.plist
       properties:
+        CFBundleLocalizations:
+          - en
+          - de
+          - es
+          - nl
+          - fr
+          - zh-Hans
+          - it
         CFBundleURLTypes:
           - CFBundleURLName: com.jacobrozell.DartBuddy.deeplink
             CFBundleURLSchemes:
