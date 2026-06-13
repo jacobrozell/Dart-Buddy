@@ -98,7 +98,14 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             if arguments.contains("-enable_achievements") {
                 return true
             }
+            if arguments.contains("-ui_test_reset") {
+                return false
+            }
+            #if DEBUG
+            return true
+            #else
             return false
+            #endif
         }
     }
 }

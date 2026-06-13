@@ -84,9 +84,17 @@ func visionAutoScoringEnabledWithLaunchArgument() {
 }
 
 @Test(.tags(.unit, .regression))
-func achievementsDisabledByDefault() {
-    let provider = LocalFeatureFlagsProvider(arguments: [])
+func achievementsEnabledOnDevDebugBuilds() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
     #expect(!provider.isEnabled(.enableAchievements))
+
+    #if DEBUG
+    let devProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(devProvider.isEnabled(.enableAchievements))
+    #else
+    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!releaseProvider.isEnabled(.enableAchievements))
+    #endif
 }
 
 @Test(.tags(.unit, .regression))

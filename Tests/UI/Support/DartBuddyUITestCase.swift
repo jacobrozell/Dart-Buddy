@@ -71,4 +71,16 @@ class DartBuddyUITestCase: XCTestCase {
         )
     }
 
+    func launchAppWithLeanProductSurface(
+        _ extraArguments: [String] = [],
+        localeLanguage: String? = nil,
+        localeIdentifier: String? = nil
+    ) -> XCUIApplication {
+        launchApp(
+            ["-enable_lean_product_surface"] + extraArguments,
+            localeLanguage: localeLanguage,
+            localeIdentifier: localeIdentifier
+        )
+    }
+
 }

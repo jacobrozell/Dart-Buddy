@@ -1,11 +1,15 @@
 import XCTest
 
 /// Lean 1.0 smoke — matches the device QA matrix in `docs/release/release_checklist.md` §1.
-/// Runs against default product surface (no `-enable_full_product_surface`).
+/// Runs with `-enable_lean_product_surface` (Debug/`dev` defaults to full surface).
 /// **CI:** `DartBuddyUILean` scheme runs on `release/*` branches only (see `docs/release/branch-strategy.md`).
 final class Lean1_0SmokeUITests: DartBuddyUITestCase {
+    private func launchLeanApp(_ extraArguments: [String] = []) -> XCUIApplication {
+        launchAppWithLeanProductSurface(extraArguments)
+    }
+
     func testLeanShellShowsFourTabsWithoutModes() {
-        let app = launchApp(["-seed_players"])
+        let app = launchLeanApp(["-seed_players"])
 
         assertBrandAppTitleVisible(in: app, timeout: timeout)
 
@@ -29,7 +33,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanPlaySetupOpensModePickerSheet() {
-        let app = launchApp(["-seed_players"])
+        let app = launchLeanApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
         XCTAssertTrue(
@@ -64,7 +68,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanX01MatchStartsFromPlaySetup() {
-        let app = launchApp(["-seed_players", "-ui_test_disable_feedback"])
+        let app = launchLeanApp(["-seed_players", "-ui_test_disable_feedback"])
         ensurePlayTab(app, timeout: timeout + 10)
 
         configureFastX01MatchForUITest(app, timeout: timeout + 10)
@@ -77,7 +81,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanCricketNormalMatchStartsFromPlaySetup() {
-        let app = launchApp(["-seed_players"])
+        let app = launchLeanApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
         selectCricketMode(in: app)
@@ -89,7 +93,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanCricketCutThroatMatchStartsFromPlaySetup() {
-        let app = launchApp(["-seed_players"])
+        let app = launchLeanApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
         selectCricketMode(in: app)
@@ -102,7 +106,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanActivitySegmentsSwitchHistoryAndStatistics() {
-        let app = launchApp(["-seed_demo"])
+        let app = launchLeanApp(["-seed_demo"])
 
         ensureActivityHistorySegment(app, timeout: timeout)
         XCTAssertTrue(
@@ -118,7 +122,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanAddBotMenuOffersCustomBotCreation() {
-        let app = launchApp(["-seed_players"])
+        let app = launchLeanApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
         let addBot = app.buttons["Add Bot"]
@@ -145,7 +149,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanPlayerDetailHidesExportAndTrainingPartner() {
-        let app = launchApp(["-seed_demo"])
+        let app = launchLeanApp(["-seed_demo"])
 
         tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
         XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
@@ -157,7 +161,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanSettingsExposeCoreToggles() {
-        let app = launchApp(["-seed_players"])
+        let app = launchLeanApp(["-seed_players"])
         ensureSettingsTab(app, timeout: timeout)
 
         XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: timeout))
@@ -167,7 +171,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanResetAllLocalDataClearsSeededPlayers() {
-        let app = launchApp(["-seed_demo"])
+        let app = launchLeanApp(["-seed_demo"])
         waitForDemoSeed(in: app, timeout: timeout + 30)
 
         ensureSettingsTab(app, timeout: timeout + 10)
@@ -190,7 +194,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanResumeActiveMatchFromPlayHome() {
-        let app = launchApp(["-seed_demo"])
+        let app = launchLeanApp(["-seed_demo"])
 
         let resume = app.buttons["resumeMatchButton"]
         XCTAssertTrue(resume.waitForExistence(timeout: timeout), "Demo seed should expose a resumable match")
@@ -204,7 +208,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
     }
 
     func testLeanX01ForfeitAfterOneTurn() {
-        let app = launchApp(["-seed_players"])
+        let app = launchLeanApp(["-seed_players"])
         startTwoPlayerX01Match(from: app, timeout: timeout)
         scoreSingleVisit(app, segments: [20, 20, 20], timeout: timeout)
         forfeitMatchFromExit(in: app, timeout: timeout)

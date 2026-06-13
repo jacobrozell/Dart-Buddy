@@ -9,7 +9,7 @@ public enum FeatureFlag: String, CaseIterable, Sendable {
     case enableAdvancedDiagnostics
     /// Siri/Shortcuts integration. Default off until QA; enable locally with `-enable_app_intents`. See `specs/AppIntentsSpec.md`.
     case enableAppIntents
-    /// Local profile achievements. Default off; Debug scheme passes `-enable_achievements`. See `specs/AchievementsSpec.md`.
+    /// Local profile achievements. Default on in Debug / `dev`; opt in on Release with `-enable_achievements`. See `specs/AchievementsSpec.md`.
     case enableAchievements
     /// Journey / campaign tab. Spec-only until `Features/Campaign/` ships. See `specs/CampaignSpec.md`.
     case enableCampaign
