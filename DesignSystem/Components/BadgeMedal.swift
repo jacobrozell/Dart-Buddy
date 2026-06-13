@@ -84,7 +84,7 @@ struct BadgeMedal: View {
         case .locked:
             isHiddenAchievement ? L10n.string("achievements.hidden.accessibility") : L10n.string("achievements.locked.accessibility")
         case let .inProgress(percent):
-            L10n.string("achievements.inProgress.accessibility", percent)
+            L10n.format("achievements.inProgress.accessibility", percent)
         case .unlocked:
             L10n.string("achievements.unlocked.accessibility")
         }
@@ -106,7 +106,7 @@ struct AchievementUnlockRow: View {
                     .foregroundStyle(Brand.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let percent = presentation.progressPercent, !presentation.isNewUnlock, percent < 100 {
-                    Text(L10n.string("achievements.progressFormat", percent))
+                    Text(L10n.format("achievements.progressFormat", percent))
                         .font(.caption)
                         .foregroundStyle(Brand.textSecondary)
                 }
@@ -134,7 +134,7 @@ struct PlayerAchievementGallerySection: View {
                 Text(L10n.string("achievements.section.title"))
                     .font(.headline)
                     .foregroundStyle(Brand.textPrimary)
-                Text(L10n.string("achievements.section.subtitle", unlockedCount, AchievementCatalog.phase1.count))
+                Text(L10n.format("achievements.section.subtitle", unlockedCount, AchievementCatalog.phase1.count))
                     .font(.subheadline)
                     .foregroundStyle(Brand.textSecondary)
             }

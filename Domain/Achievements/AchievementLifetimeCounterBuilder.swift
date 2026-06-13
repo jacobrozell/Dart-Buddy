@@ -77,8 +77,7 @@ public enum AchievementLifetimeCounterBuilder {
             participantKeys: session.runtime.participants.map { $0.playerId ?? $0.id },
             winnerKey: session.runtime.winnerPlayerId,
             events: session.events,
-            isPartial: session.runtime.status != .completed && session.runtime.status != .forfeited,
-            status: MatchStatus(rawValue: session.runtime.status.rawValue)
+            isPartial: session.runtime.status != .completed && session.runtime.status != .forfeited
         )
     }
 
@@ -86,7 +85,7 @@ public enum AchievementLifetimeCounterBuilder {
         _ match: MatchStatsInput,
         to counters: inout [UUID: AchievementLifetimeCounters]
     ) {
-        if let status = match.status, status != .completed { return }
+        if match.isPartial { return }
         for playerId in match.participantKeys {
             guard var state = counters[playerId] else { continue }
 

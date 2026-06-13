@@ -138,10 +138,8 @@ public actor DefaultAchievementService: AchievementService {
             allInputs.append(contentsOf: result.inputs.filter { !$0.isPartial })
         }
         var byId: [UUID: MatchStatsInput] = [:]
-        for input in allInputs {
-            if input.status == .completed || input.status == nil {
-                byId[input.matchId] = input
-            }
+        for input in allInputs where !input.isPartial {
+            byId[input.matchId] = input
         }
         return Array(byId.values)
     }
