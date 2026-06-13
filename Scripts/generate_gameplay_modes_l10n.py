@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Generate de/es/nl/fr GameplayModes.strings from en.lproj/GameplayModes.strings."""
+"""Generate de/es/nl/fr/zh-Hans GameplayModes.strings from en.lproj/GameplayModes.strings."""
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -279,7 +280,25 @@ TRANSLATIONS: dict[str, tuple[str, str, str, str]] = {
         "Hole voltooid in %d worpen",
         "Trou terminé en %d coups",
     ),
+    "play.golf.announce.holeCompleteDetail": (
+        "Loch %1$d — %2$@ (%3$d Würfe)",
+        "Hoyo %1$d — %2$@ (%3$d lanzamientos)",
+        "Hole %1$d — %2$@ (%3$d worpen)",
+        "Trou %1$d — %2$@ (%3$d coups)",
+    ),
+    "play.golf.bot.throwingAtSegment": (
+        "Bot wirft auf Segment %d — nur der letzte Dart zählt",
+        "Bot lanzando al segmento %d — solo cuenta el último dardo",
+        "Bot werpt op segment %d — alleen de laatste dart telt",
+        "Bot lance sur le segment %d — seule la dernière fléchette compte",
+    ),
     "play.golf.endTurnEarly": ("Wurf früh beenden", "Terminar turno antes", "Beurt vroegtijdig beëindigen", "Terminer le tour plus tôt"),
+    "play.golf.header.targetFormat": (
+        "Ziel Segment %d",
+        "Apunta al segmento %d",
+        "Richt op segment %d",
+        "Vise le segment %d",
+    ),
     "play.golf.header.holeFormat": ("Loch %d von %d", "Hoyo %d de %d", "Hole %d van %d", "Trou %d sur %d"),
     "play.golf.holeStrip.accessibilityFormat": ("Loch %d von %d", "Hoyo %d de %d", "Hole %d van %d", "Trou %d sur %d"),
     "play.golf.lastDartCountsHint": (
@@ -288,7 +307,26 @@ TRANSLATIONS: dict[str, tuple[str, str, str, str]] = {
         "Laatste dart telt op deze hole",
         "La dernière fléchette compte sur ce trou",
     ),
+    "play.golf.lastDartPreviewLabel": (
+        "Wenn du jetzt stoppst:",
+        "Si paras ahora:",
+        "Als je nu stopt:",
+        "Si tu t'arrêtes maintenant :",
+    ),
+    "play.golf.lastDartPreviewStrokes": ("%d Würfe", "%d lanzamientos", "%d worpen", "%d coups"),
     "play.golf.leading": ("Führt", "Liderando", "Leidend", "En tête"),
+    "play.golf.strokeLegend": (
+        "Doppel 1 · Triple 2 · Einfach 3 · Fehlwurf 5",
+        "Doble 1 · Triple 2 · Simple 3 · Fallo 5",
+        "Double 1 · Triple 2 · Single 3 · Mis 5",
+        "Double 1 · Triple 2 · Simple 3 · Raté 5",
+    ),
+    "play.golf.strokeLegend.accessibility": (
+        "Wertung: Doppel = ein Wurf, Triple = zwei, Einfach = drei, Fehlwurf = fünf",
+        "Puntuación: doble = un lanzamiento, triple = dos, simple = tres, fallo = cinco",
+        "Score: double = één worp, triple = twee, single = drie, mis = vijf",
+        "Score : double = un coup, triple = deux, simple = trois, raté = cinq",
+    ),
     "play.golf.navTitle": ("Golf", "Golf", "Golf", "Golf"),
     "play.golf.pad.disabledWhileBot": (
         "Warten auf Bot-Wurf",
@@ -619,12 +657,35 @@ LOCALE_HEADERS = {
     "es": "/* Gameplay mode strings — Spanish */",
     "nl": "/* Gameplay mode strings — Dutch */",
     "fr": "/* Gameplay mode strings — French */",
+    "zh-Hans": "/* Gameplay mode strings — Simplified Chinese */",
 }
 
 
 def parse_strings(path: Path) -> list[tuple[str, str]]:
     text = path.read_text(encoding="utf-8")
     return [(m.group(1), m.group(2)) for m in re.finditer(r'"([^"\\]+)"\s*=\s*"([^"]*)"\s*;', text)]
+
+
+def write_locale_from_json(locale: str) -> None:
+    data_path = ROOT / f"Scripts/locale_data/{locale}_gameplay_modes.json"
+    if not data_path.exists():
+        raise SystemExit(f"Missing translation data: {data_path}")
+    translations = json.loads(data_path.read_text(encoding="utf-8"))
+
+    entries = parse_strings(EN_PATH)
+    missing = [key for key, _ in entries if key not in translations]
+    if missing:
+        raise SystemExit(f"Missing translations for {locale}: {missing[:8]}{'…' if len(missing) > 8 else ''}")
+
+    lines = ["", LOCALE_HEADERS[locale], ""]
+    for key, _ in entries:
+        lines.append(f'"{key}" = "{translations[key]}";')
+    lines.append("")
+
+    out = ROOT / f"Resources/{locale}.lproj/GameplayModes.strings"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(lines), encoding="utf-8")
+    print(f"Wrote {out} ({len(entries)} keys)")
 
 
 def write_locale(locale: str, index: int) -> None:
@@ -645,18 +706,15 @@ def write_locale(locale: str, index: int) -> None:
 
 def main() -> None:
     entries = parse_strings(EN_PATH)
+    for locale in ("de", "es", "nl", "fr", "zh-Hans"):
+        write_locale_from_json(locale)
+    # Legacy tuple table retained for reference; JSON is source of truth.
     en_keys = {key for key, _ in entries}
-    extra = set(TRANSLATIONS) - en_keys
-    if extra:
-        raise SystemExit(f"Unused translation keys: {sorted(extra)}")
-    missing = en_keys - set(TRANSLATIONS)
-    if missing:
-        raise SystemExit(f"Missing translation keys: {sorted(missing)}")
-
-    write_locale("de", 0)
-    write_locale("es", 1)
-    write_locale("nl", 2)
-    write_locale("fr", 3)
+    if TRANSLATIONS:
+        extra = set(TRANSLATIONS) - en_keys
+        missing = en_keys - set(TRANSLATIONS)
+        if extra or missing:
+            pass  # JSON files are authoritative; tuple drift is non-fatal.
 
 
 if __name__ == "__main__":

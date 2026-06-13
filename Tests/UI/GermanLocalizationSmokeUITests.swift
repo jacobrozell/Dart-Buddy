@@ -1,21 +1,20 @@
 import XCTest
 
-/// Smoke tests with French locale. `dev` bundles all locales; lean release branches may skip via XCTSkip.
-final class FrenchLocalizationSmokeUITests: DartBuddyUITestCase {
+final class GermanLocalizationSmokeUITests: DartBuddyUITestCase {
     private let config = LocalizationSmokeUITestSupport.LocaleConfig(
-        languageCode: "fr",
-        localeIdentifier: "fr_FR",
-        playTabLabel: "Jouer",
-        playersTabLabel: "Joueurs",
-        settingsTabLabel: "Réglages"
+        languageCode: "de",
+        localeIdentifier: "de_DE",
+        playTabLabel: "Spielen",
+        playersTabLabel: "Spieler",
+        settingsTabLabel: "Einstellungen"
     )
 
-    func testTabBarUsesFrenchLabels() throws {
+    func testTabBarUsesGermanLabels() throws {
         let app = LocalizationSmokeUITestSupport.launchForLocaleSmoke(self, config: config, extraArguments: ["-seed_players"])
         LocalizationSmokeUITestSupport.assertTabBarUsesLocalizedLabels(in: app, config: config, timeout: timeout)
     }
 
-    func testPlaySetupUsesFrenchChrome() throws {
+    func testPlaySetupUsesGermanChrome() throws {
         let app = LocalizationSmokeUITestSupport.launchForLocaleSmoke(self, config: config, extraArguments: ["-seed_players"])
         XCTAssertTrue(app.tabBars.buttons[config.playTabLabel].waitForExistence(timeout: timeout))
         app.tabBars.buttons[config.playTabLabel].tap()
