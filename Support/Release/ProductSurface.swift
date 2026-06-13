@@ -51,8 +51,7 @@ enum ProductSurface {
         if isFullProductSurfaceEnabled {
             return .full
         }
-        // dev branch: full product surface (all modes, locales, Modes tab, party modes, export).
-        return .full
+        return .lean1_0
     }
 
     /// Whether gameplay for this match type is reachable in the current product surface.

@@ -139,13 +139,13 @@ targets:
               - dartbuddy
         UILaunchScreen:
           UIColorName: LaunchBackground
-          UIImageName: LaunchMark
-          UIImageRespectsSafeAreaInsets: false
     scheme:
       testTargets:
         - DartBuddyTests
         - name: DartBuddyUITests
-          parallelizable: false
+          parallelizable: true
+      commandLineArguments:
+        "-enable_achievements": true
   DartBuddyTests:
     type: bundle.unit-test
     platform: iOS
@@ -192,5 +192,18 @@ schemes:
         - DartBuddy
       targets:
         - DartBuddyTests
+    run:
+      config: Debug
+  DartBuddyUI:
+    build:
+      targets:
+        DartBuddy: all
+    test:
+      gatherCoverageData: true
+      coverageTargets:
+        - DartBuddy
+      targets:
+        - name: DartBuddyUITests
+          parallelizable: true
     run:
       config: Debug

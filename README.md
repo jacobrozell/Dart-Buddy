@@ -134,6 +134,15 @@ Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-In
 Run tests: **Product → Test** (`⌘U`), or:
 
 ```bash
+# Unit + accessibility (matches PR CI)
+xcodebuild test -scheme DartBuddyCI \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+
+# UI only (matches nightly; skips ~1,000 unit tests)
+xcodebuild test -scheme DartBuddyUI \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max'
+
+# Everything (unit + UI)
 xcodebuild test -scheme DartBuddy \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
@@ -142,7 +151,7 @@ xcodebuild test -scheme DartBuddy \
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). Full UI smoke runs nightly via `.github/workflows/nightly-ui.yml` (`DartBuddy` scheme) and locally with `xcodebuild test -scheme DartBuddy`.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). Full UI runs nightly via `.github/workflows/nightly-ui.yml` (`DartBuddyUI` scheme — UI tests only) on iPhone 17 Pro Max. Locally: `xcodebuild test -scheme DartBuddyUI` for UI-only, or `DartBuddy` for unit + UI together.
 
 **Release builds** use Xcode Cloud (archive → TestFlight internal), triggered on demand via Slack `/dart-buddy release` or `.github/workflows/trigger-testflight.yml` — not on every push. Setup: [`docs/release/xcode-cloud.md`](docs/release/xcode-cloud.md).
 

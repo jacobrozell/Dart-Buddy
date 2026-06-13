@@ -248,6 +248,12 @@ enum GameModeCatalog {
             iconSystemName: "circle.fill"
         ),
         GameModeCatalogEntry(
+            id: "party.fleet", name: "Fleet", blurb: "Hide, call, throw, sink",
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .fleet, uiTemplate: .boardState, statKind: .boardClaim,
+            iconSystemName: "ferry.fill"
+        ),
+        GameModeCatalogEntry(
             id: "party.ticTacToe", name: "Tic-Tac-Toe", blurb: "Claim three segments in a row",
             section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
             matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
@@ -317,10 +323,13 @@ enum GameModeCatalog {
         entries(in: section).filter { !$0.isAvailable }.count
     }
 
+    /// Lean 1.0 Play setup picker exposes only core scorekeeper modes.
+    private static let leanPlaySetupStandardIDs = ["standard.x01", "standard.cricket"]
+
     /// Sections for the in-place mode picker on Play setup (lean 1.0 shows X01 + Cricket only).
     static func playSetupPickerSections() -> [(GameModeSection, [GameModeCatalogEntry])] {
         guard ProductSurface.showsPartyModes else {
-            let standard = entries(in: .standard).filter(\.isAvailable)
+            let standard = leanPlaySetupStandardIDs.compactMap { entry(for: $0) }.filter(\.isAvailable)
             guard !standard.isEmpty else { return [] }
             return [(.standard, standard)]
         }
@@ -337,7 +346,7 @@ enum GameModeCatalog {
         in section: GameModeSection,
         displayedCount: Int
     ) -> Int {
-        guard !ProductSurface.showsPartyModes else { return 0 }
+        guard ProductSurface.showsPartyModes else { return 0 }
         return max(0, entries(in: section).count - displayedCount)
     }
 

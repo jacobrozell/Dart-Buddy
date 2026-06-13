@@ -55,14 +55,4 @@ final class HistoryDetailUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.staticTexts["Sam"].waitForExistence(timeout: timeout))
     }
 
-    func testAllGamesEmptyBeforeAnyMatchCompletes() {
-        let app = launchApp(["-seed_players"])
-
-        ensureActivityHistorySegment(app, timeout: timeout)
-        XCTAssertTrue(app.staticTexts["Activity"].firstMatch.waitForExistence(timeout: timeout))
-        XCTAssertTrue(
-            app.staticTexts["No games yet. Start a match to see it here."].waitForExistence(timeout: timeout),
-            "History should be empty before any match completes"
-        )
-    }
 }

@@ -3,18 +3,18 @@ import Testing
 
 @Suite("Product surface", .tags(.unit, .regression))
 struct ProductSurfaceTests {
-    @Test("Dev branch defaults enable full product surface")
-    func devDefaultsEnableFullSurface() {
+    @Test("Lean 1.0 defaults hide extended product areas")
+    func leanDefaultsHideExtendedAreas() {
         guard !ProductSurface.isFullProductSurfaceEnabled else {
             return
         }
 
-        #expect(ProductSurface.showsModesTab)
-        #expect(ProductSurface.showsPartyModes)
-        #expect(ProductSurface.showsTrainingBots)
+        #expect(!ProductSurface.showsModesTab)
+        #expect(!ProductSurface.showsPartyModes)
+        #expect(!ProductSurface.showsTrainingBots)
         #expect(ProductSurface.showsCustomBots)
-        #expect(ProductSurface.showsPlayerExport)
-        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl"])
+        #expect(!ProductSurface.showsPlayerExport)
+        #expect(ProductSurface.bundledLocaleCodes == ["en"])
     }
 
     @Test("Full product surface restores hidden areas")

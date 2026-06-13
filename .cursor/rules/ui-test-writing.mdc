@@ -56,7 +56,7 @@ Use `element.wait(for: \.isEnabled, toEqual: true, ...)` for bot-turn recovery.
 ## Naming
 
 - Class: `{Feature}UITests`
-- Method: `test{Behavior}{Condition}` — e.g. `testX01TripleScoringUpdatesRemaining`
+- Method: `test{Behavior}{Condition}` — e.g. `testX01LandscapePadReachableAndScores`
 - Reference regressions: commit hash or regression catalog row in `docs/testing/x01-cricket-ui-test-phased-plan.md`
 
 ## Avoid
@@ -68,7 +68,8 @@ Use `element.wait(for: \.isEnabled, toEqual: true, ...)` for bot-turn recovery.
 
 ## CI tiers
 
-| Tier | Suite | Simulator |
-|------|-------|-----------|
-| PR (`DartBuddyCI`) | `Lean1_0SmokeUITests` + WCAG | iPhone 17 |
-| Nightly | `X01MatchUITests`, `CricketMatchUITests`, `RegressionUITests` landscape | iPhone 17 Pro Max for landscape |
+| Tier | Scheme | Simulator |
+|------|--------|-----------|
+| PR (`DartBuddyCI`) | Unit + accessibility only | iPhone 17 |
+| Nightly (`DartBuddyUI`) | Full `DartBuddyUITests` (class-parallel) | iPhone 17 Pro Max |
+| Local smoke | `-only-testing:DartBuddyUITests/Lean1_0SmokeUITests` | iPhone 17 |
