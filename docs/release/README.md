@@ -10,5 +10,6 @@
 | [`release_checklist.md`](release_checklist.md) | Device QA, App Store Connect, and launch runbook |
 | [`x01-cricket-ui-test-phased-plan.md`](../testing/x01-cricket-ui-test-phased-plan.md) | X01/Cricket UI test backlog + regression catalog |
 | [`xcode-cloud.md`](xcode-cloud.md) | TestFlight automation — Xcode Cloud, triggers, secrets, troubleshooting |
+| [`slack-integration.md`](slack-integration.md) | Post-1.0 Slack plan — Worker slash commands, ASC Notify, CI webhooks |
 
 Engineering audit: [`../ios-code-audit.md`](../ios-code-audit.md).

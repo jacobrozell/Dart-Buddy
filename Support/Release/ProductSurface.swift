@@ -56,6 +56,8 @@ enum ProductSurface {
 
     /// Whether gameplay for this match type is reachable in the current product surface.
     static func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
-        true
+        guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else { return false }
+        if entry.section == .party, !showsPartyModes { return false }
+        return true
     }
 }

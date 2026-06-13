@@ -31,9 +31,25 @@ struct ProductSurfaceTests {
         #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl", "fr"])
     }
 
-    @Test("Match type reachability includes all shipped modes on dev")
-    func matchTypeReachability() {
-        for matchType in [MatchType.x01, .cricket, .baseball, .killer, .shanghai, .golf, .aroundTheClock] {
+    @Test("Lean 1.0 reachability keeps core and co-op modes, hides party")
+    func leanMatchTypeReachability() {
+        guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        #expect(ProductSurface.isMatchTypeReachable(.x01))
+        #expect(ProductSurface.isMatchTypeReachable(.cricket))
+        #expect(ProductSurface.isMatchTypeReachable(.raid))
+        #expect(ProductSurface.isMatchTypeReachable(.aroundTheClock))
+        #expect(!ProductSurface.isMatchTypeReachable(.baseball))
+        #expect(!ProductSurface.isMatchTypeReachable(.killer))
+        #expect(!ProductSurface.isMatchTypeReachable(.golf))
+    }
+
+    @Test("Full product surface reachability includes every available catalog mode")
+    func fullSurfaceMatchTypeReachability() {
+        guard ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        for entry in GameModeCatalog.available {
+            guard let matchType = entry.matchType else { continue }
             #expect(ProductSurface.isMatchTypeReachable(matchType))
         }
     }

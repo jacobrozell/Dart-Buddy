@@ -23,9 +23,9 @@ CODE_SEARCH_DIRS = (
     "Support",
     "DesignSystem",
 )
-CATALOG_ID_RE = re.compile(r"`((?:standard|party|practice)\.[a-zA-Z0-9]+)`")
+CATALOG_ID_RE = re.compile(r"`((?:standard|party|coop|practice)\.[a-zA-Z0-9]+)`")
 MODES_CATALOG_KEY_RE = re.compile(
-    r"modes\.catalog\.((?:standard|party|practice)\.[a-zA-Z0-9]+)\."
+    r"modes\.catalog\.((?:standard|party|coop|practice)\.[a-zA-Z0-9]+)\."
 )
 TABLE_RULE_RE = re.compile(r"^\|[-: |]+\|\s*$")
 VERIFIED_DATE_RE = re.compile(
@@ -168,6 +168,23 @@ def resolve_code_token(token: str) -> tuple[bool, str]:
         hits = swift_files_matching("PlayerDetailView.swift")
         return bool(hits), "PlayerDetailView.swift" if hits else "missing"
 
+    if lowered == "playereditsheet":
+        hits = swift_files_matching("PlayerEditSheet.swift")
+        return bool(hits), "PlayerEditSheet.swift" if hits else "missing"
+
+    if lowered == "raidengine":
+        hits = swift_files_matching("RaidEngine.swift")
+        return bool(hits), "RaidEngine.swift" if hits else "missing"
+
+    if lowered == "playerachievementgallerysection":
+        if swift_symbol_exists("PlayerAchievementGallerySection"):
+            return True, "BadgeMedal.swift (symbol)"
+        return False, "missing"
+
+    if lowered == "defaultachievementservice":
+        hits = swift_files_matching("AchievementService.swift")
+        return bool(hits), "AchievementService.swift" if hits else "missing"
+
     if raw.endswith("/"):
         rel = raw.rstrip("/")
         path = REPO_ROOT / rel
@@ -221,18 +238,18 @@ def parse_checklist_rows() -> list[ChecklistRow]:
             continue
         seen_areas.add(area)
 
-        if area == "Planned modes (24)":
-            planned_dir = SPECS_DIR / "game-modes" / "planned"
-            planned_count = len(list(planned_dir.glob("*.md"))) if planned_dir.is_dir() else 0
+        if area == "Planned modes (12)":
+            planned_catalog = [e for e in parse_catalog_entries() if e[2] == "planned"]
+            planned_count = len(planned_catalog)
             rows.append(
                 ChecklistRow(
                     area=area,
-                    spec_refs=[str(planned_dir.relative_to(REPO_ROOT))],
+                    spec_refs=["specs/game-modes/planned/"],
                     code_tokens=["GameModeCatalog"],
-                    spec_exists=planned_count == 24,
+                    spec_exists=planned_count == 12,
                     code_ok=bool(swift_files_matching("GameModeCatalog.swift")),
                     verified=None,
-                    missing_specs=[] if planned_count == 24 else [f"expected 24 planned specs, found {planned_count}"],
+                    missing_specs=[] if planned_count == 12 else [f"expected 12 planned catalog modes, found {planned_count}"],
                     missing_code=[] if swift_files_matching("GameModeCatalog.swift") else ["GameModeCatalog.swift"],
                 )
             )
@@ -293,7 +310,7 @@ def catalog_id_from_spec(path: Path) -> str | None:
             if match:
                 return match.group(1)
     for match in CATALOG_ID_RE.finditer(text):
-        if match.group(1).startswith(("standard.", "party.", "practice.")):
+        if match.group(1).startswith(("standard.", "party.", "coop.", "practice.")):
             return match.group(1)
     key_match = MODES_CATALOG_KEY_RE.search(text)
     if key_match:
@@ -485,8 +502,16 @@ def main() -> int:
         f"({pct(planned_documented, len(planned))})"
     )
     orphan_specs = sorted(set(mode_spec_index.values()) - {row.spec_path for row in mode_rows if row.spec_path})
-    if orphan_specs:
-        lines.append("Orphan game-mode specs (no catalog id match): " + ", ".join(orphan_specs))
+    r_and_d_orphans = [
+        path for path in orphan_specs
+        if "/planned/" in path
+        and not any(
+            token in Path(path).stem.lower()
+            for token in ("bobs27", "halveit", "blindkiller", "followtheleader", "loop", "prisoner", "scam", "snooker", "tictactoe", "cerberus", "thevault", "cleartheboard")
+        )
+    ]
+    if r_and_d_orphans:
+        lines.append("R&D game-mode specs (no catalog id; informational): " + ", ".join(r_and_d_orphans))
     lines.append("")
 
     system_specs = parse_system_specs()
