@@ -53,6 +53,8 @@ enum MatchConfigDefaults {
             return .nineLives(MatchConfigNineLives())
         case .fleet:
             return .fleet(MatchConfigFleet())
+        case .raid:
+            return .raid(MatchConfigRaid())
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             fatalError("No default config for unimplemented match type: \(matchType)")
         }
