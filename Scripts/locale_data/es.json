@@ -1175,6 +1175,8 @@
   "setup.validation.minimumPlayers.short": "Selecciona al menos dos jugadores.",
   "setup.validation.partyComingSoon": "Este juego de fiesta aún no está disponible.",
   "setup.validation.partyComingSoon.short": "Próximamente.",
+  "setup.validation.coopComingSoon": "Este modo cooperativo aún no está disponible.",
+  "setup.validation.coopComingSoon.short": "Próximamente.",
   "setup.validation.partyKillerMinimumPlayers": "Killer necesita al menos tres jugadores.",
   "setup.validation.partyKillerMinimumPlayers.short": "Killer necesita tres jugadores.",
   "setup.validation.partyMinimumPlayers": "Selecciona al menos dos jugadores para este juego.",

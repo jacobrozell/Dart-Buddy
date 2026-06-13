@@ -30,6 +30,10 @@ struct SetupValidationMessagesTests {
                 == "setup.validation.partyComingSoon.short"
         )
         #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.coopComingSoon")
+                == "setup.validation.coopComingSoon.short"
+        )
+        #expect(
             SetupValidationMessages.displayKey(for: "setup.validation.partyMinimumPlayers")
                 == "setup.validation.partyMinimumPlayers.short"
         )
