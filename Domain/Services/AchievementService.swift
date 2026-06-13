@@ -173,6 +173,15 @@ public enum AchievementHooks {
         }
     }
 
+    public static func evaluateAfterUndo(_ session: MatchLifecycleSession) async {
+        guard let service else { return }
+        do {
+            try await service.evaluateAfterUndo(session: session)
+        } catch {
+            // Achievements are best-effort; undo persistence already succeeded.
+        }
+    }
+
     public static func register(service: any AchievementService) {
         self.service = service
     }

@@ -49,6 +49,26 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
              .enableOnlinePlay,
              .enableAdvancedDiagnostics:
             return false
+        case .enableCampaign:
+            if arguments.contains("-enable_campaign") {
+                return true
+            }
+            return false
+        case .enableDailyChallenge:
+            if arguments.contains("-enable_daily_challenge") {
+                return true
+            }
+            return false
+        case .enableLocalTournaments:
+            if arguments.contains("-enable_local_tournaments") {
+                return true
+            }
+            return false
+        case .enableOnlineTournaments:
+            if arguments.contains("-enable_online_tournaments") {
+                return true
+            }
+            return false
         case .enableVisionAutoScoring:
             // Phase A camera scoring. On dev/Debug builds, on by default for dogfood; opt out with `-ui_test_reset`.
             if arguments.contains("-enable_vision_scoring") {

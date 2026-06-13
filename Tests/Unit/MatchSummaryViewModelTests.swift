@@ -668,8 +668,11 @@ func matchSummaryRaidUsesCoopTeamOutcome() throws {
             MatchParticipant(playerId: hero, displayNameAtMatchStart: "Alice", turnOrder: 0)
         ]
     )
-    session.runtime.raidState?.bossHP = 2
-    session.runtime.raidState?.phase = .expose
+    if var raidState = session.runtime.raidState {
+        raidState.bossHP = 2
+        raidState.phase = .expose
+        session.runtime.raidState = raidState
+    }
     session = try MatchLifecycleService.submitRaidVisit(
         session: session,
         darts: [

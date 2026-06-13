@@ -94,3 +94,12 @@ func achievementsEnabledWithLaunchArgument() {
     let provider = LocalFeatureFlagsProvider(arguments: ["-enable_achievements"])
     #expect(provider.isEnabled(.enableAchievements))
 }
+
+@Test(.tags(.unit, .regression))
+func plannedFeatureFlagsDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!provider.isEnabled(.enableCampaign))
+    #expect(!provider.isEnabled(.enableDailyChallenge))
+    #expect(!provider.isEnabled(.enableLocalTournaments))
+    #expect(!provider.isEnabled(.enableOnlineTournaments))
+}

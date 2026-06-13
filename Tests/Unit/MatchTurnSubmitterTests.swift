@@ -127,6 +127,27 @@ struct MatchTurnSubmitterTests {
 
     @MainActor
     @Test
+    func persistProgressEvaluatesAchievementsWhenHookRegistered() async throws {
+        let fixture = try makeSubmitterFixture(afterTotals: [])
+        let repo = TurnSubmitterFakeMatchRepository()
+        let submitter = makeSubmitter(matchId: fixture.matchId, repository: repo, store: ActiveMatchStore())
+        let counting = HookCountingAchievementService()
+        AchievementHooks.register(service: counting)
+        defer { AchievementHooks.service = nil }
+
+        let updated = try MatchLifecycleService.submitX01Turn(
+            session: fixture.session,
+            enteredTotal: 60,
+            darts: nil
+        )
+
+        try await submitter.persistProgress(updated)
+
+        #expect(await counting.turnEvaluationCount == 1)
+    }
+
+    @MainActor
+    @Test
     func matchTurnSupportUndoLastTurnUpdatesRepositoryAndStore() async throws {
         var session = try MatchLifecycleService.createMatch(
             type: .x01,
@@ -346,6 +367,29 @@ private actor TurnSubmitterFakeMatchRepository: MatchRepository {
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
 
+}
+
+private actor HookCountingAchievementService: AchievementService {
+    private(set) var turnEvaluationCount = 0
+    private(set) var undoEvaluationCount = 0
+
+    func evaluateAfterTurn(session _: MatchLifecycleSession) async throws -> [AchievementUnlockPresentation] {
+        turnEvaluationCount += 1
+        return []
+    }
+
+    func evaluateAfterMatchCompleted(session _: MatchLifecycleSession) async throws -> [AchievementUnlockPresentation] {
+        turnEvaluationCount += 1
+        return []
+    }
+
+    func evaluateAfterUndo(session _: MatchLifecycleSession) async throws {
+        undoEvaluationCount += 1
+    }
+
+    func fetchGalleryProgress(playerId _: UUID) async throws -> [PlayerAchievementProgress] { [] }
+
+    func sessionPresentations(for _: UUID) async -> [AchievementUnlockPresentation] { [] }
 }
 
 private final class TurnSubmitterSilentLogSink: LogSink, @unchecked Sendable {
