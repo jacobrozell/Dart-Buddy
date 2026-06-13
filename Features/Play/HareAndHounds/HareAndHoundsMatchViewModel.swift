@@ -342,7 +342,7 @@ final class HareAndHoundsMatchViewModel: ObservableObject {
                 )
                 if event.positionAfter != event.positionBefore {
                     state = .positionAdvancedFeedback
-                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.briefModeFeedbackTransitionNanoseconds)
                 }
             }
             if updated.runtime.status == .completed {

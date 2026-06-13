@@ -316,7 +316,7 @@ final class EnglishCricketMatchViewModel: ObservableObject {
             } else if inningsJustCompleted {
                 state = .inningsCompletedFeedback
                 postAccessibilityAnnouncement(L10n.string("play.englishCricket.announce.inningsComplete"))
-                try? await Task.sleep(nanoseconds: 800_000_000)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementTransitionNanoseconds)
                 state = .readyTurn
                 if !fromBotPlayback {
                     await playBotTurnIfNeeded()

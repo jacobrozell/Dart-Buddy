@@ -11,7 +11,11 @@ public struct PerspectiveTransform: Codable, Equatable, Sendable {
         self.values = values
     }
 
-    public static let identity = PerspectiveTransform(values: [1, 0, 0, 0, 1, 0, 0, 0, 1])!
+    private init(uncheckedValues values: [Double]) {
+        self.values = values
+    }
+
+    public static let identity = PerspectiveTransform(uncheckedValues: [1, 0, 0, 0, 1, 0, 0, 0, 1])
 
     /// Similarity transform built from a circle fit: translates the board center to the
     /// origin, scales the detected radius to `1.0`, and removes the segment-orientation

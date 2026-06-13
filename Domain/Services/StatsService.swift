@@ -190,213 +190,7 @@ public enum StatsService {
             }
 
             for envelope in match.events {
-                switch envelope.payload {
-                case let .x01Turn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += turn.effectiveDartsThrown
-                    entry.points += turn.appliedTotal
-                    if turn.appliedTotal > entry.highestScore { entry.highestScore = turn.appliedTotal }
-                    if turn.didCheckout {
-                        entry.checkouts += 1
-                        entry.legs += 1
-                        if turn.startRemaining > entry.highestCheckout { entry.highestCheckout = turn.startRemaining }
-                    }
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .cricketTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.totalPointsAdded
-                    entry.cricketRounds += 1
-                    for touch in turn.targetsTouched {
-                        entry.darts += 1
-                        entry.hitsBySector[HitsBySectorKeys.key(for: touch), default: 0] += 1
-                        guard !touch.wasMiss else { continue }
-                        entry.cricketMarks += touch.marksAdded
-                        if touch.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if touch.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .baseballTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.runsThisVisit
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(for: dart, turn: turn), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .killerPick(pick):
-                    var entry = breakdown(for: pick.playerId)
-                    entry.darts += 1
-                    entry.hitsBySector[HitsBySectorKeys.key(for: pick), default: 0] += 1
-                    if !pick.wasMiss {
-                        if pick.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if pick.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[pick.playerId] = entry
-                case let .killerTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .shanghaiTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.pointsThisVisit
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(for: dart, turn: turn), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .americanCricketTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.totalPointsAdded
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .mickeyMouseTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.cricketMarks += turn.marksThisVisit
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .mulliganTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .englishCricketTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.runsAdded
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .knockoutTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.visitTotal
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .suddenDeathTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.pointsThisVisit
-                    entry.darts += 3
-                    byPlayer[turn.playerId] = entry
-                case let .fiftyOneByFivesTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.pointsAwarded
-                    entry.darts += 3
-                    byPlayer[turn.playerId] = entry
-                case let .golfTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.strokesRecorded
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .footballTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.goalsAdded
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        let wasMiss = dart.segmentRaw == "miss"
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: wasMiss), default: 0] += 1
-                        guard !wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .grandNationalTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += 3
-                    byPlayer[turn.playerId] = entry
-                case let .hareAndHoundsTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += 3
-                    byPlayer[turn.playerId] = entry
-                case let .aroundTheClockTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += turn.dartsThrown
-                    byPlayer[turn.playerId] = entry
-                case let .aroundTheClock180Turn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.points += turn.pointsThisVisit
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .chaseTheDragonTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += turn.darts.count
-                    for dart in turn.darts {
-                        entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
-                        guard !dart.wasMiss else { continue }
-                        if dart.multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
-                        if dart.multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
-                    }
-                    byPlayer[turn.playerId] = entry
-                case let .nineLivesTurn(turn):
-                    var entry = breakdown(for: turn.playerId)
-                    entry.darts += 3
-                    byPlayer[turn.playerId] = entry
-                case let .raidVisit(visit):
-                    var entry = breakdown(for: visit.playerId)
-                    entry.darts += visit.darts.count
-                    byPlayer[visit.playerId] = entry
-                case let .fleetDart(dart):
-                    var entry = breakdown(for: dart.playerId)
-                    entry.darts += 1
-                    byPlayer[dart.playerId] = entry
-                case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
-                    break
-                }
+                applyBreakdownEvent(envelope.payload, breakdown: breakdown, byPlayer: &byPlayer)
             }
         }
 
@@ -481,6 +275,427 @@ public enum StatsService {
             aggregates[playerId, default: PlayerAggregateStats()].x01Average3Dart = x01Average3Dart(totalPointsScored: points, totalDartsThrown: darts)
         }
         return aggregates
+    }
+
+    private static func applyBreakdownEvent(
+        _ payload: MatchEventPayload,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        switch payload {
+        case let .x01Turn(turn):
+            applyX01Breakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .cricketTurn(turn):
+            applyCricketBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .baseballTurn(turn):
+            applyBaseballBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .killerPick(pick):
+            applyKillerPickBreakdown(pick, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .killerTurn(turn):
+            applyKillerTurnBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .shanghaiTurn(turn):
+            applyShanghaiBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .americanCricketTurn(turn):
+            applySegmentDartBreakdown(
+                playerId: turn.playerId,
+                pointsAdded: turn.totalPointsAdded,
+                darts: turn.darts,
+                breakdown: breakdown,
+                byPlayer: &byPlayer
+            )
+        case let .mickeyMouseTurn(turn):
+            applyMickeyMouseBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .mulliganTurn(turn):
+            applySegmentDartBreakdown(playerId: turn.playerId, darts: turn.darts, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .englishCricketTurn(turn):
+            applySegmentDartBreakdown(
+                playerId: turn.playerId,
+                pointsAdded: turn.runsAdded,
+                darts: turn.darts,
+                breakdown: breakdown,
+                byPlayer: &byPlayer
+            )
+        case let .knockoutTurn(turn):
+            applySegmentDartBreakdown(
+                playerId: turn.playerId,
+                pointsAdded: turn.visitTotal,
+                darts: turn.darts,
+                breakdown: breakdown,
+                byPlayer: &byPlayer
+            )
+        case let .suddenDeathTurn(turn):
+            applyFixedDartBreakdown(
+                playerId: turn.playerId,
+                pointsAdded: turn.pointsThisVisit,
+                dartCount: 3,
+                breakdown: breakdown,
+                byPlayer: &byPlayer
+            )
+        case let .fiftyOneByFivesTurn(turn):
+            applyFixedDartBreakdown(
+                playerId: turn.playerId,
+                pointsAdded: turn.pointsAwarded,
+                dartCount: 3,
+                breakdown: breakdown,
+                byPlayer: &byPlayer
+            )
+        case let .golfTurn(turn):
+            applySegmentDartBreakdown(
+                playerId: turn.playerId,
+                pointsAdded: turn.strokesRecorded,
+                darts: turn.darts,
+                breakdown: breakdown,
+                byPlayer: &byPlayer
+            )
+        case let .footballTurn(turn):
+            applyFootballBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .grandNationalTurn(turn):
+            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .hareAndHoundsTurn(turn):
+            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .aroundTheClockTurn(turn):
+            applyAroundTheClockBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .aroundTheClock180Turn(turn):
+            applyAroundTheClock180Breakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .chaseTheDragonTurn(turn):
+            applySegmentDartBreakdown(playerId: turn.playerId, darts: turn.darts, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .nineLivesTurn(turn):
+            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .raidVisit(visit):
+            applyRaidVisitBreakdown(visit, breakdown: breakdown, byPlayer: &byPlayer)
+        case let .fleetDart(dart):
+            applyFleetDartBreakdown(dart, breakdown: breakdown, byPlayer: &byPlayer)
+        case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
+            break
+        }
+    }
+
+    private static func applyX01Breakdown(
+        _ turn: X01TurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.darts += turn.effectiveDartsThrown
+        entry.points += turn.appliedTotal
+        if turn.appliedTotal > entry.highestScore { entry.highestScore = turn.appliedTotal }
+        if turn.didCheckout {
+            entry.checkouts += 1
+            entry.legs += 1
+            if turn.startRemaining > entry.highestCheckout { entry.highestCheckout = turn.startRemaining }
+        }
+        for dart in turn.darts {
+            entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: dart.multiplierRaw, wasMiss: dart.wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyCricketBreakdown(
+        _ turn: CricketTurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.points += turn.totalPointsAdded
+        entry.cricketRounds += 1
+        for touch in turn.targetsTouched {
+            entry.darts += 1
+            entry.hitsBySector[HitsBySectorKeys.key(for: touch), default: 0] += 1
+            guard !touch.wasMiss else { continue }
+            entry.cricketMarks += touch.marksAdded
+            recordMultiplierHits(&entry, multiplierRaw: touch.multiplierRaw, wasMiss: touch.wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyBaseballBreakdown(
+        _ turn: BaseballTurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.points += turn.runsThisVisit
+        entry.darts += turn.darts.count
+        for dart in turn.darts {
+            entry.hitsBySector[HitsBySectorKeys.key(for: dart, turn: turn), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: dart.multiplierRaw, wasMiss: dart.wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyKillerPickBreakdown(
+        _ pick: KillerPickEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(pick.playerId)
+        entry.darts += 1
+        entry.hitsBySector[HitsBySectorKeys.key(for: pick), default: 0] += 1
+        recordMultiplierHits(&entry, multiplierRaw: pick.multiplierRaw, wasMiss: pick.wasMiss)
+        byPlayer[pick.playerId] = entry
+    }
+
+    private static func applyKillerTurnBreakdown(
+        _ turn: KillerTurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.darts += turn.darts.count
+        for dart in turn.darts {
+            entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: dart.multiplierRaw, wasMiss: dart.wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyShanghaiBreakdown(
+        _ turn: ShanghaiTurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.points += turn.pointsThisVisit
+        entry.darts += turn.darts.count
+        for dart in turn.darts {
+            entry.hitsBySector[HitsBySectorKeys.key(for: dart, turn: turn), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: dart.multiplierRaw, wasMiss: dart.wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyMickeyMouseBreakdown(
+        _ turn: MickeyMouseTurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.cricketMarks += turn.marksThisVisit
+        entry.darts += turn.darts.count
+        for dart in turn.darts {
+            entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: dart.multiplierRaw, wasMiss: dart.wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyFootballBreakdown(
+        _ turn: FootballTurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.points += turn.goalsAdded
+        entry.darts += turn.darts.count
+        for dart in turn.darts {
+            let wasMiss = dart.segmentRaw == "miss"
+            entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: wasMiss), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: dart.multiplierRaw, wasMiss: wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyAroundTheClockBreakdown(
+        _ turn: AroundTheClockTurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.darts += turn.dartsThrown
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyAroundTheClock180Breakdown(
+        _ turn: AroundTheClock180TurnEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(turn.playerId)
+        entry.points += turn.pointsThisVisit
+        entry.darts += turn.darts.count
+        for dart in turn.darts {
+            entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: dart.segmentRaw, wasMiss: dart.wasMiss), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: dart.multiplierRaw, wasMiss: dart.wasMiss)
+        }
+        byPlayer[turn.playerId] = entry
+    }
+
+    private static func applyRaidVisitBreakdown(
+        _ visit: RaidVisitEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(visit.playerId)
+        entry.darts += visit.darts.count
+        byPlayer[visit.playerId] = entry
+    }
+
+    private static func applyFleetDartBreakdown(
+        _ dart: FleetDartEvent,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(dart.playerId)
+        entry.darts += 1
+        byPlayer[dart.playerId] = entry
+    }
+
+    private static func applyFixedDartBreakdown(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        dartCount: Int,
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        var entry = breakdown(playerId)
+        entry.points += pointsAdded
+        entry.darts += dartCount
+        byPlayer[playerId] = entry
+    }
+
+    private static func applySegmentDartBreakdown<Dart>(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        darts: [Dart],
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown],
+        segmentRaw: (Dart) -> String,
+        wasMiss: (Dart) -> Bool,
+        multiplierRaw: (Dart) -> String
+    ) {
+        var entry = breakdown(playerId)
+        entry.points += pointsAdded
+        entry.darts += darts.count
+        for dart in darts {
+            entry.hitsBySector[HitsBySectorKeys.key(segmentRaw: segmentRaw(dart), wasMiss: wasMiss(dart)), default: 0] += 1
+            recordMultiplierHits(&entry, multiplierRaw: multiplierRaw(dart), wasMiss: wasMiss(dart))
+        }
+        byPlayer[playerId] = entry
+    }
+
+    private static func applySegmentDartBreakdown(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        darts: [AmericanCricketDartEvent],
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        applySegmentDartBreakdown(
+            playerId: playerId,
+            pointsAdded: pointsAdded,
+            darts: darts,
+            breakdown: breakdown,
+            byPlayer: &byPlayer,
+            segmentRaw: \.segmentRaw,
+            wasMiss: \.wasMiss,
+            multiplierRaw: \.multiplierRaw
+        )
+    }
+
+    private static func applySegmentDartBreakdown(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        darts: [MulliganDartEvent],
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        applySegmentDartBreakdown(
+            playerId: playerId,
+            pointsAdded: pointsAdded,
+            darts: darts,
+            breakdown: breakdown,
+            byPlayer: &byPlayer,
+            segmentRaw: \.segmentRaw,
+            wasMiss: \.wasMiss,
+            multiplierRaw: \.multiplierRaw
+        )
+    }
+
+    private static func applySegmentDartBreakdown(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        darts: [EnglishCricketDartEvent],
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        applySegmentDartBreakdown(
+            playerId: playerId,
+            pointsAdded: pointsAdded,
+            darts: darts,
+            breakdown: breakdown,
+            byPlayer: &byPlayer,
+            segmentRaw: \.segmentRaw,
+            wasMiss: \.wasMiss,
+            multiplierRaw: \.multiplierRaw
+        )
+    }
+
+    private static func applySegmentDartBreakdown(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        darts: [KnockoutDartEvent],
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        applySegmentDartBreakdown(
+            playerId: playerId,
+            pointsAdded: pointsAdded,
+            darts: darts,
+            breakdown: breakdown,
+            byPlayer: &byPlayer,
+            segmentRaw: \.segmentRaw,
+            wasMiss: \.wasMiss,
+            multiplierRaw: \.multiplierRaw
+        )
+    }
+
+    private static func applySegmentDartBreakdown(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        darts: [GolfDartEvent],
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        applySegmentDartBreakdown(
+            playerId: playerId,
+            pointsAdded: pointsAdded,
+            darts: darts,
+            breakdown: breakdown,
+            byPlayer: &byPlayer,
+            segmentRaw: \.segmentRaw,
+            wasMiss: \.wasMiss,
+            multiplierRaw: \.multiplierRaw
+        )
+    }
+
+    private static func applySegmentDartBreakdown(
+        playerId: UUID,
+        pointsAdded: Int = 0,
+        darts: [ChaseTheDragonDartEvent],
+        breakdown: (UUID) -> PlayerStatBreakdown,
+        byPlayer: inout [UUID: PlayerStatBreakdown]
+    ) {
+        applySegmentDartBreakdown(
+            playerId: playerId,
+            pointsAdded: pointsAdded,
+            darts: darts,
+            breakdown: breakdown,
+            byPlayer: &byPlayer,
+            segmentRaw: \.segmentRaw,
+            wasMiss: \.wasMiss,
+            multiplierRaw: \.multiplierRaw
+        )
+    }
+
+    private static func recordMultiplierHits(
+        _ entry: inout PlayerStatBreakdown,
+        multiplierRaw: String,
+        wasMiss: Bool
+    ) {
+        guard !wasMiss else { return }
+        if multiplierRaw == DartMultiplier.double.rawValue { entry.doubles += 1 }
+        if multiplierRaw == DartMultiplier.triple.rawValue { entry.triples += 1 }
     }
 
     /// Sector keys for `hitsBySector` aggregation (`0` = miss, aligned with the scoring pad).

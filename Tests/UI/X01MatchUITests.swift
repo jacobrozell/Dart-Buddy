@@ -195,7 +195,7 @@ final class X01MatchUITests: DartBuddyUITestCase {
         XCTAssertTrue(active.waitForExistence(timeout: timeout))
         let keyIdentifiers = [
             "pad_20", "pad_19", "pad_18", "pad_17", "pad_16", "pad_15",
-            "pad_bull", "pad_0", "pad_double", "pad_triple", "pad_undo"
+            "pad_25", "pad_0", "pad_double", "pad_triple", "pad_undo"
         ]
         assertScoringKeysBelowPinnedArea(active, in: app, keyIdentifiers: keyIdentifiers, timeout: timeout)
     }

@@ -324,7 +324,7 @@ final class MulliganMatchViewModel: ObservableObject {
             } else {
                 if didAdvance {
                     state = .targetAdvanced
-                    try? await Task.sleep(nanoseconds: 600_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteTransitionNanoseconds)
                 }
                 state = .readyTurn
                 if !fromBotPlayback {

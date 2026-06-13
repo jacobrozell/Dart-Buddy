@@ -221,7 +221,7 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         startTwoPlayerX01Match(from: app, timeout: timeout)
 
         assertInteractiveElement(app.buttons["pad_20"], identifier: "pad_20")
-        assertInteractiveElement(app.buttons["pad_bull"], identifier: "pad_bull")
+        assertInteractiveElement(app.buttons["pad_25"], identifier: "pad_25")
         assertInteractiveElement(app.buttons["pad_0"], identifier: "pad_0")
         assertInteractiveElement(app.buttons["pad_double"], identifier: "pad_double")
         assertInteractiveElement(app.buttons["pad_triple"], identifier: "pad_triple")

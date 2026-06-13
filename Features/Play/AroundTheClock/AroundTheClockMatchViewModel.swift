@@ -327,7 +327,7 @@ final class AroundTheClockMatchViewModel: ObservableObject {
                 }
                 if event.targetAfter > event.targetBefore {
                     state = .targetAdvancedFeedback
-                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.briefModeFeedbackTransitionNanoseconds)
                 }
             }
             if updated.runtime.status == .completed {

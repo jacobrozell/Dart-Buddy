@@ -25,7 +25,10 @@ final class CameraPreviewUIView: UIView {
     override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
 
     var previewLayer: AVCaptureVideoPreviewLayer {
-        layer as! AVCaptureVideoPreviewLayer
+        guard let previewLayer = layer as? AVCaptureVideoPreviewLayer else {
+            preconditionFailure("CameraPreviewUIView.layerClass must be AVCaptureVideoPreviewLayer")
+        }
+        return previewLayer
     }
 
     var boardOverlay: VisionScoringViewModel.BoardOverlay? {

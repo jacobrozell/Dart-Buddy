@@ -35,7 +35,7 @@ enum ProductSurface {
             showsTrainingBots: false,
             showsCustomBots: true,
             showsPlayerExport: false,
-            showsAccessibilityMarketing: false,
+            showsAccessibilityMarketing: true,
             bundledLocaleCodes: ["en"]
         )
     }
