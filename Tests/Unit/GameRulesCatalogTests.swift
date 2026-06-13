@@ -62,4 +62,15 @@ struct GameRulesCatalogTests {
         #expect(MatchSetupViewModel.SetupMode.x01.matchType == .x01)
         #expect(MatchSetupViewModel.SetupMode.cricket.matchType == .cricket)
     }
+
+    @Test("Raid preview guide covers co-op phases")
+    func raidPreviewGuideSections() {
+        #expect(GameRulesCatalog.hasPreviewGuide(for: "coop.raid"))
+        let guide = GameRulesCatalog.previewGuide(for: "coop.raid")
+        #expect(guide.id == "coop.raid")
+        let ids = Set(guide.sections.map(\.id))
+        #expect(ids == ["overview", "shield", "expose", "enrage", "hearts", "winning"])
+        #expect(guide.sections.allSatisfy { !$0.titleKey.isEmpty && !$0.bodyKey.isEmpty })
+        #expect(guide.sections.allSatisfy { L10n.string($0.titleKey) != $0.titleKey })
+    }
 }

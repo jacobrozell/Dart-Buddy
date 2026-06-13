@@ -131,6 +131,14 @@ final class HistoryDetailViewModel: ObservableObject {
                     return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
                 case let .nineLivesTurn(turn):
                     return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .fleetDart(dart):
+                    let name = participantNames[dart.playerId] ?? String(dart.playerId.uuidString.prefix(6))
+                    return L10n.format("history.timeline.fleetDartFormat", name, dart.outcome.rawValue)
+                case let .fleetSonar(sonar):
+                    let name = participantNames[sonar.playerId] ?? String(sonar.playerId.uuidString.prefix(6))
+                    return L10n.format("history.timeline.fleetSonarFormat", name, sonar.inFleet ? "yes" : "no")
+                case .fleetPlacement, .fleetPlacementUI, .fleetSink:
+                    return L10n.string("history.timeline.fleetPlacement")
                 }
             }
             matchType = match.type
@@ -273,8 +281,10 @@ final class HistoryDetailViewModel: ObservableObject {
                          .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
                          .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
                          .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
-                         .chaseTheDragonTurn, .nineLivesTurn:
+                         .chaseTheDragonTurn, .nineLivesTurn, .fleetDart:
                         true
+                    case .fleetPlacement, .fleetPlacementUI, .fleetSonar, .fleetSink:
+                        false
                     }
                 }.count
                 return L10n.format("history.detail.killerSummaryFormat", turnCount)
@@ -449,6 +459,12 @@ final class HistoryDetailViewModel: ObservableObject {
                 throwsByPlayer[turn.playerId, default: 0] += 3
             case let .nineLivesTurn(turn):
                 throwsByPlayer[turn.playerId, default: 0] += 3
+            case let .fleetDart(dart):
+                throwsByPlayer[dart.playerId, default: 0] += 1
+                if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[dart.playerId, default: 0] += 1 }
+                if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[dart.playerId, default: 0] += 1 }
+            case .fleetPlacement, .fleetPlacementUI, .fleetSonar, .fleetSink:
+                break
             }
         }
         throwsRows = standings.map { standing in

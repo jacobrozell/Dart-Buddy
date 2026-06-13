@@ -24,4 +24,17 @@ struct GameModeSectionTests {
         #expect(!practice.isEmpty)
         #expect(practice.contains { $0.isAvailable })
     }
+
+    @Test
+    func coopSectionContainsPlannedModes() {
+        let coop = GameModeCatalog.entries(in: .coop)
+        #expect(coop.count == 4)
+        #expect(coop.allSatisfy { !$0.isAvailable })
+        #expect(coop.map(\.id) == [
+            "coop.raid",
+            "coop.cerberus",
+            "coop.theVault",
+            "coop.clearTheBoard"
+        ])
+    }
 }

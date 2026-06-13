@@ -28,6 +28,7 @@ public enum MatchType: String, Codable, Sendable {
     case aroundTheClock180
     case chaseTheDragon
     case nineLives
+    case fleet
     case bobs27
     case halveIt
 }

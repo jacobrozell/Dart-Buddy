@@ -369,6 +369,8 @@ struct SetupHomeView: View {
             golfChipsGrid
         case .football:
             footballChipsGrid
+        case .fleet:
+            fleetChipsGrid
         case .grandNational:
             grandNationalChipsGrid
         case .hareAndHounds:

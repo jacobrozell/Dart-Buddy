@@ -41,6 +41,8 @@ struct ModePickerSheet: View {
         .sheet(item: $showsRulesForEntry) { entry in
             if let matchType = entry.matchType {
                 GameRulesGuideView(initialMode: matchType)
+            } else {
+                GameRulesGuideView(catalogPreviewId: entry.id)
             }
         }
     }

@@ -246,6 +246,25 @@ enum MatchForfeitStandingsRegistry {
                 prefersLowerScore: false
             )
 
+        case .fleet:
+            guard let state = session.runtime.fleetState else {
+                throw invalidForfeitState()
+            }
+            let shipsSunk = FleetEngine.shipsSunk(by: playerId, in: state)
+            let dartsThrown = session.events.reduce(into: 0) { count, envelope in
+                if case let .fleetDart(event) = envelope.payload, event.playerId == playerId {
+                    count += 1
+                }
+            }
+            return MatchForfeitStanding(
+                playerId: playerId,
+                primaryScore: shipsSunk,
+                tieBreakKey: -(shipsSunk * 100) + dartsThrown * 10 + turnOrder,
+                summaryKey: "play.match.forfeit.standingFormat.fleet",
+                summaryValue: shipsSunk,
+                prefersLowerScore: false
+            )
+
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             throw invalidForfeitState()
         }
@@ -294,7 +313,7 @@ enum MatchForfeitStandingsRegistry {
             ]
             config = .shanghai(MatchConfigShanghai())
         case .americanCricket, .mickeyMouse, .mulligan, .englishCricket, .knockout,
-             .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds, .nineLives:
+             .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds, .nineLives, .fleet:
             participants = [
                 MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
                 MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
@@ -372,6 +391,18 @@ enum MatchForfeitStandingsRegistry {
             return try MatchLifecycleService.submitChaseTheDragonTurn(session: session, darts: [miss])
         case .nineLives:
             return try MatchLifecycleService.submitNineLivesTurn(session: session, darts: [miss])
+        case .fleet:
+            let playerId = session.runtime.participants.first.map { $0.playerId ?? $0.id } ?? UUID()
+            let shipCount = session.runtime.fleetState?.config.shipCount.count ?? 5
+            var updated = try MatchLifecycleService.confirmFleetHandoff(session: session, playerId: playerId)
+            for segment in 1 ... shipCount {
+                updated = try MatchLifecycleService.toggleFleetPlacementCell(
+                    session: updated,
+                    playerId: playerId,
+                    cell: .segment(segment)
+                )
+            }
+            return try MatchLifecycleService.submitFleetPlacementLock(session: updated, playerId: playerId)
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             return session
         }

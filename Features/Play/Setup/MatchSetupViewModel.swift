@@ -57,6 +57,13 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var fiftyOneByFivesTargetPoints: Int = 51
     @Published var fiftyOneByFivesMustFinishExact = false
     @Published var nineLivesStartingLives: NineLivesStartingLives = .nine
+    @Published var fleetPreset: FleetPreset = .standard
+    @Published var fleetShipCount: FleetShipCount = .standard
+    @Published var fleetShipHealth: FleetShipHealth = .armored
+    @Published var fleetBullAllowed = false
+    @Published var fleetCallMode: FleetCallMode = .strict
+    @Published var fleetSonarEnabled = true
+    @Published var fleetHandoffEachTurn = false
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -127,6 +134,14 @@ final class MatchSetupViewModel: ObservableObject {
             let shanghaiPrefs = ShanghaiSetupPreferences.load()
             shanghaiRoundCount = shanghaiPrefs.roundCount
             shanghaiBonusRule = shanghaiPrefs.bonusRule
+            let fleetPrefs = FleetSetupPreferences.load()
+            fleetPreset = fleetPrefs.preset
+            fleetShipCount = fleetPrefs.shipCount
+            fleetShipHealth = fleetPrefs.shipHealth
+            fleetBullAllowed = fleetPrefs.bullAllowed
+            fleetCallMode = fleetPrefs.callMode
+            fleetSonarEnabled = fleetPrefs.sonarEnabled
+            fleetHandoffEachTurn = fleetPrefs.handoffEachTurn
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
                 applyMatchTypePreferred(preferred)
             } else {
@@ -358,6 +373,13 @@ final class MatchSetupViewModel: ObservableObject {
             chaseTheDragonLaps = config.laps
         case let .nineLives(config):
             nineLivesStartingLives = config.startingLives
+        case let .fleet(config):
+            fleetShipCount = config.shipCount
+            fleetShipHealth = config.shipHealth
+            fleetBullAllowed = config.bullAllowed
+            fleetCallMode = config.callMode
+            fleetSonarEnabled = config.sonarEnabled
+            fleetHandoffEachTurn = config.handoffEachTurn
         }
 
         normalizeForProductSurface()
@@ -432,6 +454,8 @@ final class MatchSetupViewModel: ObservableObject {
                 errors.append(catalogType == .killer ? "setup.validation.partyKillerMinimumPlayers" : "setup.validation.minimumPlayers")
             } else if selectedPlayers.allSatisfy(\.isBot) {
                 errors.append("setup.validation.requiresHuman")
+            } else if catalogType == .fleet, selectedParticipantCount != 2 {
+                errors.append("setup.validation.fleetExactTwoPlayers")
             }
         } else if setupCategory == .party {
             if !ProductSurface.showsPartyModes {
@@ -690,6 +714,17 @@ final class MatchSetupViewModel: ObservableObject {
             return .chaseTheDragon(MatchConfigChaseTheDragon(laps: chaseTheDragonLaps))
         case .nineLives:
             return .nineLives(MatchConfigNineLives(startingLives: nineLivesStartingLives))
+        case .fleet:
+            return .fleet(
+                MatchConfigFleet(
+                    shipCount: fleetShipCount,
+                    shipHealth: fleetShipHealth,
+                    bullAllowed: fleetBullAllowed,
+                    callMode: fleetCallMode,
+                    sonarEnabled: fleetSonarEnabled,
+                    handoffEachTurn: fleetHandoffEachTurn
+                )
+            )
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             return MatchConfigDefaults.config(for: .x01)
         }
@@ -721,6 +756,13 @@ final class MatchSetupViewModel: ObservableObject {
         }
     }
 
+    func applyFleetPreset(_ preset: FleetPreset) {
+        fleetPreset = preset
+        fleetShipCount = preset.shipCount
+        fleetShipHealth = preset.shipHealth
+        fleetBullAllowed = preset.bullAllowed
+    }
+
     private func persistLastUsedSetup() async {
         if setupCategory == .party, partyGame == .baseball {
             BaseballSetupPreferences.save(
@@ -736,6 +778,20 @@ final class MatchSetupViewModel: ObservableObject {
         }
         if setupCategory == .party, partyGame == .shanghai {
             ShanghaiSetupPreferences.save(roundCount: shanghaiRoundCount, bonusRule: shanghaiBonusRule)
+            return
+        }
+        if selectedCatalogMatchType == .fleet || currentMatchType == .fleet {
+            FleetSetupPreferences.save(
+                FleetSetupPreferences.Snapshot(
+                    preset: fleetPreset,
+                    shipCount: fleetShipCount,
+                    shipHealth: fleetShipHealth,
+                    bullAllowed: fleetBullAllowed,
+                    callMode: fleetCallMode,
+                    sonarEnabled: fleetSonarEnabled,
+                    handoffEachTurn: fleetHandoffEachTurn
+                )
+            )
             return
         }
         if mode == .cricket {

@@ -386,6 +386,12 @@ public enum StatsService {
                     var entry = breakdown(for: turn.playerId)
                     entry.darts += 3
                     byPlayer[turn.playerId] = entry
+                case let .fleetDart(dart):
+                    var entry = breakdown(for: dart.playerId)
+                    entry.darts += 1
+                    byPlayer[dart.playerId] = entry
+                case .fleetPlacement, .fleetPlacementUI, .fleetSonar, .fleetSink:
+                    break
                 }
             }
         }
@@ -453,7 +459,8 @@ public enum StatsService {
                 case .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
                      .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
                      .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
-                     .chaseTheDragonTurn, .nineLivesTurn:
+                     .chaseTheDragonTurn, .nineLivesTurn, .fleetPlacement, .fleetPlacementUI,
+                     .fleetSonar, .fleetDart, .fleetSink:
                     break
                 }
             }

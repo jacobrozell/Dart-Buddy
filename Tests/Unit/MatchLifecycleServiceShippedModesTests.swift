@@ -17,8 +17,8 @@ private enum ShippedModeLifecycleSupport {
     }
 
     static func participants(for type: MatchType) -> [MatchParticipant] {
-        let minimum = GameModeCatalog.entry(for: type)?.minimumPlayers ?? 2
-        return (0 ..< minimum).map { index in
+        let count = type == .fleet ? 2 : (GameModeCatalog.entry(for: type)?.minimumPlayers ?? 2)
+        return (0 ..< count).map { index in
             MatchParticipant(
                 playerId: UUID(),
                 displayNameAtMatchStart: "P\(index + 1)",
@@ -36,6 +36,8 @@ private enum ShippedModeLifecycleSupport {
              .grandNational, .hareAndHounds, .aroundTheClock, .aroundTheClock180,
              .chaseTheDragon, .nineLives:
             return try submitMissTurn(session: session)
+        case .fleet:
+            return try submitFleetTurn(session: session)
         case .golf:
             return try MatchLifecycleService.submitGolfTurn(
                 session: session,
@@ -44,6 +46,20 @@ private enum ShippedModeLifecycleSupport {
         case .killer, .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             return session
         }
+    }
+
+    private static func submitFleetTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
+        let playerId = session.runtime.participants.first.map { $0.playerId ?? $0.id } ?? UUID()
+        let shipCount = session.runtime.fleetState?.config.shipCount.count ?? 5
+        var updated = try MatchLifecycleService.confirmFleetHandoff(session: session, playerId: playerId)
+        for segment in 1 ... shipCount {
+            updated = try MatchLifecycleService.toggleFleetPlacementCell(
+                session: updated,
+                playerId: playerId,
+                cell: .segment(segment)
+            )
+        }
+        return try MatchLifecycleService.submitFleetPlacementLock(session: updated, playerId: playerId)
     }
 
     private static func submitMissTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
@@ -118,7 +134,11 @@ struct MatchLifecycleServiceShippedModesTests {
                 participants: ShippedModeLifecycleSupport.participants(for: type)
             )
             session = try ShippedModeLifecycleSupport.submitTurn(session: session)
-            #expect(ShippedModeLifecycleSupport.eventCount(in: session) == 1)
+            if type == .fleet {
+                #expect(ShippedModeLifecycleSupport.eventCount(in: session) >= 1)
+            } else {
+                #expect(ShippedModeLifecycleSupport.eventCount(in: session) == 1)
+            }
         }
     }
 

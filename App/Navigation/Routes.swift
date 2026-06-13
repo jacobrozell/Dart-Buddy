@@ -29,6 +29,7 @@ enum PlayRoute: Hashable {
     case aroundTheClock180Match(matchId: UUID)
     case chaseTheDragonMatch(matchId: UUID)
     case nineLivesMatch(matchId: UUID)
+    case fleetMatch(matchId: UUID)
     case bobs27Match(matchId: UUID)
     case halveItMatch(matchId: UUID)
     case matchSummary(matchId: UUID)
@@ -65,6 +66,7 @@ extension MatchType {
         case .aroundTheClock180: .aroundTheClock180Match(matchId: matchId)
         case .chaseTheDragon: .chaseTheDragonMatch(matchId: matchId)
         case .nineLives: .nineLivesMatch(matchId: matchId)
+        case .fleet: .fleetMatch(matchId: matchId)
         case .bobs27: .bobs27Match(matchId: matchId)
         case .halveIt: .halveItMatch(matchId: matchId)
         }

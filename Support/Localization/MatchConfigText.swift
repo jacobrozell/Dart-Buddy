@@ -30,6 +30,7 @@ enum MatchConfigText {
         case .aroundTheClock180: L10n.string("play.aroundTheClock180.title")
         case .chaseTheDragon: L10n.string("play.chaseTheDragon.title")
         case .nineLives: L10n.string("play.nineLives.title")
+        case .fleet: L10n.string("play.fleet.title")
         case .bobs27: L10n.string("play.bobs27.title")
         case .halveIt: L10n.string("play.halveIt.title")
         }

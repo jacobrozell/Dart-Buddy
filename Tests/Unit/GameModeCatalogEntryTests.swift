@@ -140,4 +140,29 @@ struct GameModeCatalogEntryTests {
         #expect(americanCricket.hasRulesGuide)
         #expect(golf.hasRulesGuide)
     }
+
+    @Test
+    func plannedCoopRaidExposesPreviewRulesGuide() throws {
+        let raid = try #require(GameModeCatalog.entry(for: "coop.raid"))
+        #expect(raid.matchType == nil)
+        #expect(raid.hasRulesGuide)
+        #expect(GameRulesCatalog.hasPreviewGuide(for: "coop.raid"))
+    }
+
+    @Test
+    func otherPlannedCoopModesLackPreviewRulesGuides() throws {
+        for id in ["coop.cerberus", "coop.theVault", "coop.clearTheBoard"] {
+            let entry = try #require(GameModeCatalog.entry(for: id))
+            #expect(!entry.hasRulesGuide)
+        }
+    }
+
+    @Test
+    func coopPlannedModesUseAmberSectionAccent() throws {
+        for id in ["coop.raid", "coop.cerberus", "coop.theVault", "coop.clearTheBoard"] {
+            let entry = try #require(GameModeCatalog.entry(for: id))
+            #expect(entry.section == .coop)
+            #expect(entry.accentColor == Brand.amber)
+        }
+    }
 }

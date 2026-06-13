@@ -22,6 +22,11 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case aroundTheClock180Turn(AroundTheClock180TurnEvent)
     case chaseTheDragonTurn(ChaseTheDragonTurnEvent)
     case nineLivesTurn(NineLivesTurnEvent)
+    case fleetPlacement(FleetPlacementEvent)
+    case fleetPlacementUI(FleetPlacementUIEvent)
+    case fleetSonar(FleetSonarEvent)
+    case fleetDart(FleetDartEvent)
+    case fleetSink(FleetSinkEvent)
 
     private enum CodingKeys: String, CodingKey {
         case kind
@@ -46,6 +51,11 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case aroundTheClock180
         case chaseTheDragon
         case nineLives
+        case fleetPlacement
+        case fleetPlacementUI
+        case fleetSonar
+        case fleetDart
+        case fleetSink
     }
 
     private enum Kind: String, Codable {
@@ -70,6 +80,11 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case aroundTheClock180Turn
         case chaseTheDragonTurn
         case nineLivesTurn
+        case fleetPlacement
+        case fleetPlacementUI
+        case fleetSonar
+        case fleetDart
+        case fleetSink
     }
 
     public init(from decoder: any Decoder) throws {
@@ -118,6 +133,16 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .chaseTheDragonTurn(try container.decode(ChaseTheDragonTurnEvent.self, forKey: .chaseTheDragon))
         case .nineLivesTurn:
             self = .nineLivesTurn(try container.decode(NineLivesTurnEvent.self, forKey: .nineLives))
+        case .fleetPlacement:
+            self = .fleetPlacement(try container.decode(FleetPlacementEvent.self, forKey: .fleetPlacement))
+        case .fleetPlacementUI:
+            self = .fleetPlacementUI(try container.decode(FleetPlacementUIEvent.self, forKey: .fleetPlacementUI))
+        case .fleetSonar:
+            self = .fleetSonar(try container.decode(FleetSonarEvent.self, forKey: .fleetSonar))
+        case .fleetDart:
+            self = .fleetDart(try container.decode(FleetDartEvent.self, forKey: .fleetDart))
+        case .fleetSink:
+            self = .fleetSink(try container.decode(FleetSinkEvent.self, forKey: .fleetSink))
         }
     }
 
@@ -187,6 +212,21 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .nineLivesTurn(event):
             try container.encode(Kind.nineLivesTurn, forKey: .kind)
             try container.encode(event, forKey: .nineLives)
+        case let .fleetPlacement(event):
+            try container.encode(Kind.fleetPlacement, forKey: .kind)
+            try container.encode(event, forKey: .fleetPlacement)
+        case let .fleetPlacementUI(event):
+            try container.encode(Kind.fleetPlacementUI, forKey: .kind)
+            try container.encode(event, forKey: .fleetPlacementUI)
+        case let .fleetSonar(event):
+            try container.encode(Kind.fleetSonar, forKey: .kind)
+            try container.encode(event, forKey: .fleetSonar)
+        case let .fleetDart(event):
+            try container.encode(Kind.fleetDart, forKey: .kind)
+            try container.encode(event, forKey: .fleetDart)
+        case let .fleetSink(event):
+            try container.encode(Kind.fleetSink, forKey: .kind)
+            try container.encode(event, forKey: .fleetSink)
         }
     }
 }
@@ -239,6 +279,7 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var aroundTheClock180State: AroundTheClock180State?
     public var chaseTheDragonState: ChaseTheDragonState?
     public var nineLivesState: NineLivesState?
+    public var fleetState: FleetState?
 }
 
 public struct MatchLifecycleSession: Sendable {
@@ -306,7 +347,8 @@ public enum MatchLifecycleService {
             aroundTheClockState: nil,
             aroundTheClock180State: nil,
             chaseTheDragonState: nil,
-            nineLivesState: nil
+            nineLivesState: nil,
+            fleetState: nil
         )
 
         switch (type, config) {
@@ -350,6 +392,8 @@ public enum MatchLifecycleService {
             runtime.chaseTheDragonState = try ChaseTheDragonEngine.makeInitialState(config: cfg, playerIds: playerIds)
         case let (.nineLives, .nineLives(cfg)):
             runtime.nineLivesState = try NineLivesEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.fleet, .fleet(cfg)):
+            runtime.fleetState = try FleetEngine.makeInitialState(config: cfg, playerIds: playerIds)
         default:
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
@@ -867,6 +911,157 @@ public enum MatchLifecycleService {
         }
     }
 
+    public static func confirmFleetHandoff(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.confirmHandoff(state: state, playerId: playerId)
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacementUI(FleetPlacementUIEvent(step: .placing(playerId), timestamp: timestamp)),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    public static func confirmFleetPassDevice(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.confirmPassDevice(state: state, playerId: playerId)
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacementUI(FleetPlacementUIEvent(step: .handoff(playerId), timestamp: timestamp)),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    public static func toggleFleetPlacementCell(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        cell: FleetBoardCell
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.togglePlacementCell(state: state, playerId: playerId, cell: cell)
+        var updated = session
+        updated.runtime.fleetState = state
+        return updated
+    }
+
+    public static func clearFleetPlacement(
+        session: MatchLifecycleSession,
+        playerId: UUID
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.clearPlacement(state: state, playerId: playerId)
+        var updated = session
+        updated.runtime.fleetState = state
+        return updated
+    }
+
+    public static func submitFleetPlacementLock(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        let outcome = try FleetEngine.lockPlacement(state: state, playerId: playerId, timestamp: timestamp)
+        state = outcome.updatedState
+        let placementEnvelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacement(outcome.placementEvent),
+            timestamp: timestamp
+        )
+        var updated = try appendAndProject(session: session, newEvent: placementEnvelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+        if let uiEvent = outcome.uiEvent {
+            let uiEnvelope = MatchEventEnvelope(
+                eventIndex: updated.runtime.eventCount,
+                payload: .fleetPlacementUI(uiEvent),
+                timestamp: timestamp
+            )
+            updated = try appendAndProject(session: updated, newEvent: uiEnvelope, timestamp: timestamp) { runtime in
+                runtime.fleetState = state
+            }
+        }
+        return updated
+    }
+
+    public static func submitFleetSonar(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        cell: FleetBoardCell,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        let outcome = try FleetEngine.useSonar(state: state, playerId: playerId, cell: cell, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetSonar(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    public static func submitFleetDart(
+        session: MatchLifecycleSession,
+        playerId: UUID,
+        callCell: FleetBoardCell,
+        dart: DartInput,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else {
+            throw fleetUnavailable()
+        }
+        state = try FleetEngine.setCall(state: state, playerId: playerId, cell: callCell)
+        let outcome = try FleetEngine.submitDart(state: state, playerId: playerId, dart: dart, timestamp: timestamp)
+        state = outcome.updatedState
+        let dartEnvelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetDart(outcome.event),
+            timestamp: timestamp
+        )
+        var updated = try appendAndProject(session: session, newEvent: dartEnvelope, timestamp: timestamp) { runtime in
+            runtime.fleetState = state
+        }
+        if let sinkEvent = outcome.sinkEvent {
+            let sinkEnvelope = MatchEventEnvelope(
+                eventIndex: updated.runtime.eventCount,
+                payload: .fleetSink(sinkEvent),
+                timestamp: timestamp
+            )
+            updated = try appendAndProject(session: updated, newEvent: sinkEnvelope, timestamp: timestamp) { runtime in
+                runtime.fleetState = state
+            }
+        }
+        return updated
+    }
+
     public static func undoLastTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
         guard !session.events.isEmpty else { return session }
         let trimmed = Array(session.events.dropLast())
@@ -948,7 +1143,8 @@ public enum MatchLifecycleService {
             guard !turn.darts.isEmpty else { return nil }
             return turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
         case .suddenDeathTurn, .fiftyOneByFivesTurn, .grandNationalTurn, .hareAndHoundsTurn,
-             .aroundTheClockTurn, .nineLivesTurn:
+             .aroundTheClockTurn, .nineLivesTurn, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
+             .fleetDart, .fleetSink:
             return nil
         }
     }
@@ -1058,6 +1254,42 @@ public enum MatchLifecycleService {
             return try submitChaseTheDragonTurn(session: session, darts: darts, timestamp: event.timestamp)
         case let .nineLivesTurn(turn):
             return try submitNineLivesTurn(session: session, darts: nineLivesReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .fleetPlacement(placement):
+            var updated = session
+            for cell in placement.ships {
+                updated = try toggleFleetPlacementCell(session: updated, playerId: placement.playerId, cell: cell)
+            }
+            return try submitFleetPlacementLock(
+                session: updated,
+                playerId: placement.playerId,
+                timestamp: placement.lockedAt
+            )
+        case let .fleetPlacementUI(ui):
+            switch ui.step {
+            case let .placing(playerId):
+                return try confirmFleetHandoff(session: session, playerId: playerId, timestamp: ui.timestamp)
+            case let .handoff(playerId):
+                return try confirmFleetPassDevice(session: session, playerId: playerId, timestamp: ui.timestamp)
+            case .passDevice, .placementComplete:
+                return try projectFleetUIStep(session: session, ui: ui)
+            }
+        case let .fleetSonar(sonar):
+            return try submitFleetSonar(
+                session: session,
+                playerId: sonar.playerId,
+                cell: sonar.cell,
+                timestamp: sonar.timestamp
+            )
+        case let .fleetDart(dart):
+            return try submitFleetDart(
+                session: session,
+                playerId: dart.playerId,
+                callCell: dart.callCell,
+                dart: fleetReplayDart(for: dart),
+                timestamp: dart.timestamp
+            )
+        case .fleetSink:
+            return session
         }
     }
 
@@ -1302,6 +1534,18 @@ public enum MatchLifecycleService {
                 winnerPlayerId: state.winnerPlayerId,
                 timestamp: timestamp
             )
+            return
+        }
+        if let state = runtime.fleetState {
+            runtime.currentTurnPlayerId = state.phase == .hunt ? state.currentPlayerId : nil
+            runtime.currentLegIndex = 0
+            runtime.currentSetIndex = 0
+            if state.isComplete {
+                runtime.status = .completed
+                runtime.endedAt = timestamp
+                runtime.winnerPlayerId = state.winnerPlayerId
+                runtime.currentTurnPlayerId = nil
+            }
         }
     }
 
@@ -1398,6 +1642,40 @@ public enum MatchLifecycleService {
             return [DartInput(multiplier: .single, segment: .oneToTwenty(min(20, max(1, target))), isMiss: false)]
         }
         return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
+    }
+
+    private static func fleetReplayDart(for event: FleetDartEvent) -> DartInput {
+        FleetEngine.dartInput(from: event)
+    }
+
+    private static func projectFleetUIStep(
+        session: MatchLifecycleSession,
+        ui: FleetPlacementUIEvent
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.fleetState else { throw fleetUnavailable() }
+        state.placementUIStep = ui.step
+        state.placementAudience = nil
+        if case let .placing(playerId) = ui.step {
+            state.placementAudience = playerId
+        }
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .fleetPlacementUI(ui),
+            timestamp: ui.timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: ui.timestamp) { runtime in
+            runtime.fleetState = state
+        }
+    }
+
+    private static func fleetUnavailable() -> AppError {
+        AppError(
+            code: .invalidGameState,
+            layer: .domain,
+            severity: .error,
+            isRecoverable: true,
+            userMessageKey: "error.match.mode.fleetUnavailable"
+        )
     }
 
     private static func makeSnapshot(from runtime: MatchRuntimeState, eventCount: Int, timestamp: Date) throws -> MatchSnapshot {

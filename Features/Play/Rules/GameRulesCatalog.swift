@@ -13,6 +13,13 @@ struct GameRulesGuide: Identifiable, Hashable, Sendable {
     let sections: [GameRulesSection]
 }
 
+/// Rules guide for planned catalog entries that do not yet have a `MatchType`.
+struct GameRulesPreviewGuide: Identifiable, Hashable, Sendable {
+    /// Catalog id, e.g. `coop.raid`.
+    let id: String
+    let sections: [GameRulesSection]
+}
+
 extension MatchSetupViewModel.SetupMode {
     var matchType: MatchType {
         switch self {
@@ -27,10 +34,22 @@ enum GameRulesCatalog {
         all.contains { $0.matchType == matchType }
     }
 
+    static func hasPreviewGuide(for catalogId: String) -> Bool {
+        previewAll.contains { $0.id == catalogId }
+    }
+
     static func guide(for matchType: MatchType) -> GameRulesGuide {
         guard let guide = all.first(where: { $0.matchType == matchType }) else {
             assertionFailure("No rules guide for \(matchType)")
             return x01
+        }
+        return guide
+    }
+
+    static func previewGuide(for catalogId: String) -> GameRulesPreviewGuide {
+        guard let guide = previewAll.first(where: { $0.id == catalogId }) else {
+            assertionFailure("No preview rules guide for \(catalogId)")
+            return raidPreview
         }
         return guide
     }
@@ -44,7 +63,7 @@ enum GameRulesCatalog {
         x01, cricket, americanCricket,
         baseball, killer, shanghai, mickeyMouse, mulligan, englishCricket,
         knockout, suddenDeath, fiftyOneByFives, golf, football, grandNational, hareAndHounds,
-        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives
+        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives, fleet
     ]
 
     private static func makeGuide(
@@ -197,5 +216,38 @@ enum GameRulesCatalog {
         ("progress", "play.rules.nineLives.progress.title", "play.rules.nineLives.progress.body"),
         ("lives", "play.rules.nineLives.lives.title", "play.rules.nineLives.lives.body"),
         ("winning", "play.rules.nineLives.winning.title", "play.rules.nineLives.winning.body")
+    ])
+
+    private static let fleet = makeGuide(id: "fleet", matchType: .fleet, [
+        ("overview", "play.rules.fleet.overview.title", "play.rules.fleet.overview.body"),
+        ("placement", "play.rules.fleet.placement.title", "play.rules.fleet.placement.body"),
+        ("shipHealth", "play.rules.fleet.shipHealth.title", "play.rules.fleet.shipHealth.body"),
+        ("hunt", "play.rules.fleet.hunt.title", "play.rules.fleet.hunt.body"),
+        ("hits", "play.rules.fleet.hits.title", "play.rules.fleet.hits.body"),
+        ("sonar", "play.rules.fleet.sonar.title", "play.rules.fleet.sonar.body"),
+        ("winning", "play.rules.fleet.winning.title", "play.rules.fleet.winning.body")
+    ])
+
+    private static let previewAll: [GameRulesPreviewGuide] = [
+        raidPreview
+    ]
+
+    private static func makePreviewGuide(
+        id: String,
+        _ sections: [(id: String, titleKey: String, bodyKey: String)]
+    ) -> GameRulesPreviewGuide {
+        GameRulesPreviewGuide(
+            id: id,
+            sections: sections.map { GameRulesSection(id: $0.id, titleKey: $0.titleKey, bodyKey: $0.bodyKey) }
+        )
+    }
+
+    private static let raidPreview = makePreviewGuide(id: "coop.raid", [
+        ("overview", "play.rules.raid.overview.title", "play.rules.raid.overview.body"),
+        ("shield", "play.rules.raid.shield.title", "play.rules.raid.shield.body"),
+        ("expose", "play.rules.raid.expose.title", "play.rules.raid.expose.body"),
+        ("enrage", "play.rules.raid.enrage.title", "play.rules.raid.enrage.body"),
+        ("hearts", "play.rules.raid.hearts.title", "play.rules.raid.hearts.body"),
+        ("winning", "play.rules.raid.winning.title", "play.rules.raid.winning.body")
     ])
 }

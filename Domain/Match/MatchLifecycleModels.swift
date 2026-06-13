@@ -213,6 +213,7 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
     case aroundTheClock180(MatchConfigAroundTheClock180)
     case chaseTheDragon(MatchConfigChaseTheDragon)
     case nineLives(MatchConfigNineLives)
+    case fleet(MatchConfigFleet)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -236,6 +237,7 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case aroundTheClock180
         case chaseTheDragon
         case nineLives
+        case fleet
     }
 
     private enum PayloadType: String, Codable {
@@ -259,6 +261,7 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case aroundTheClock180
         case chaseTheDragon
         case nineLives
+        case fleet
     }
 
     public init(from decoder: any Decoder) throws {
@@ -305,6 +308,8 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
             self = .chaseTheDragon(try container.decode(MatchConfigChaseTheDragon.self, forKey: .chaseTheDragon))
         case .nineLives:
             self = .nineLives(try container.decode(MatchConfigNineLives.self, forKey: .nineLives))
+        case .fleet:
+            self = .fleet(try container.decode(MatchConfigFleet.self, forKey: .fleet))
         }
     }
 
@@ -371,6 +376,9 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case let .nineLives(config):
             try container.encode(PayloadType.nineLives, forKey: .type)
             try container.encode(config, forKey: .nineLives)
+        case let .fleet(config):
+            try container.encode(PayloadType.fleet, forKey: .type)
+            try container.encode(config, forKey: .fleet)
         }
     }
 }
