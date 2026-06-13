@@ -50,16 +50,30 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
              .enableAdvancedDiagnostics:
             return false
         case .enableVisionAutoScoring:
-            // Phase A camera scoring; opt-in for local QA. See `specs/AutoScoringVisionSpec.md`.
+            // Phase A camera scoring. On dev/Debug builds, on by default for dogfood; opt out with `-ui_test_reset`.
             if arguments.contains("-enable_vision_scoring") {
                 return true
             }
+            if arguments.contains("-ui_test_reset") {
+                return false
+            }
+            #if DEBUG
+            return true
+            #else
             return false
+            #endif
         case .enableAppIntents:
             if arguments.contains("-enable_app_intents") {
                 return true
             }
+            if arguments.contains("-ui_test_reset") {
+                return false
+            }
+            #if DEBUG
+            return true
+            #else
             return false
+            #endif
         }
     }
 }

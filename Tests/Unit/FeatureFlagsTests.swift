@@ -44,9 +44,17 @@ func crashlyticsHonorsDisableFirebaseAnalyticsArgument() {
 }
 
 @Test(.tags(.unit, .regression))
-func appIntentsDisabledByDefault() {
-    let provider = LocalFeatureFlagsProvider(arguments: [])
+func appIntentsEnabledOnDevDebugBuilds() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
     #expect(!provider.isEnabled(.enableAppIntents))
+
+    #if DEBUG
+    let devProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(devProvider.isEnabled(.enableAppIntents))
+    #else
+    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!releaseProvider.isEnabled(.enableAppIntents))
+    #endif
 }
 
 @Test(.tags(.unit, .regression))
@@ -56,9 +64,17 @@ func appIntentsEnabledWithLaunchArgument() {
 }
 
 @Test(.tags(.unit, .regression))
-func visionAutoScoringDisabledByDefault() {
-    let provider = LocalFeatureFlagsProvider(arguments: [])
+func visionAutoScoringEnabledOnDevDebugBuilds() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
     #expect(!provider.isEnabled(.enableVisionAutoScoring))
+
+    #if DEBUG
+    let devProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(devProvider.isEnabled(.enableVisionAutoScoring))
+    #else
+    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!releaseProvider.isEnabled(.enableVisionAutoScoring))
+    #endif
 }
 
 @Test(.tags(.unit, .regression))
