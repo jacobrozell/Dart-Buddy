@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Cricket Game Specification
 
 ## 1. Purpose
@@ -122,6 +124,7 @@ Single-leg Normal + Points On: same as “Points On” with one leg — match co
 |---|---|
 | **Key prefix** | `play.rules.cricket.` |
 | **Shipped in app** | Yes (`GameRulesCatalog.cricket`) |
+| **Estimated release** | `1.0` |
 
 ### Cricket basics
 | **Title key** | `play.rules.cricket.basics.title` |

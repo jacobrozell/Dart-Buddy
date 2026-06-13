@@ -1,8 +1,8 @@
 # Co-op Mode Grouping — Implementation Plan
 
-**Status:** Phase 0 **done** · Slice 1 (Raid learn rules) **done** · Phase 1 (Raid engine) **not started**  
+**Status:** Phase 0 **done** · Slice 1 (Raid learn rules) **done** · Phase 1 (Raid engine/UI) **done** on `dev` · Phase 2 (platform extraction) **not started**  
 **Authoritative platform spec:** [`specs/CoopPvEModesSpec.md`](../../specs/CoopPvEModesSpec.md) — progress tracker §13  
-**Flagship mode spec:** [`specs/game-modes/planned/RaidGameSpec.md`](../../specs/game-modes/planned/RaidGameSpec.md)
+**Flagship mode spec:** [`specs/game-modes/implemented/RaidGameSpec.md`](../../specs/game-modes/implemented/RaidGameSpec.md)
 
 ---
 
@@ -11,37 +11,31 @@
 Use this prompt to continue co-op grouping work in a fresh session:
 
 ```
-Add the Co-op mode grouping to Dart Buddy using the work already landed.
+Continue co-op mode work on Dart Buddy.
 
-## Already done (Phase 0 — do not redo)
-- `GameModeSection.coop` + four catalog stubs: `coop.raid`, `coop.cerberus`, `coop.theVault`, `coop.clearTheBoard` in `Features/Modes/GameModeCatalog.swift`
-- `ModeStatKind.bossRaid`, `coopHeist`; amber section accent for `.coop`
-- Localization: `modes.section.coop`, `modes.catalog.coop.*` in en/de/es/nl + `Scripts/locale_data/*.json`
-- Modes tab + Play setup picker show Co-op via `GameModeSection.allCases`
-- Unit tests: 33 modes, 4 sections (`GameModeCatalogTests`, `GameModeSectionTests`)
-- Platform spec: `specs/CoopPvEModesSpec.md` (UI §7, Learn to play §8, accessibility §9, light/dark §7.5)
-- Per-mode rules specs use `coop.*` catalog ids
+## Already done (Phase 0 + Phase 1 — do not redo)
+- `GameModeSection.coop` + four catalog entries: `coop.raid` (**shipped**), three planned stubs
+- Raid playable: `RaidEngine`, `RaidMatchScreen`, `CoopBossChromeView`, co-op summary, Activity/history, forfeit
+- Learn rules + localization for Raid in en/de/es/nl
+- `docs/feature-inventory.md` + `specs/CoopPvEModesSpec.md` §13 synced (2026-06-13)
 
 ## Your task (pick scope explicitly)
-**Scope A — Co-op browse polish (no Raid engine):**
-1. Extend `GameModeCatalogEntry.hasRulesGuide` (or add `hasRulesPreview`) so planned co-op cards can show **Learn the rules** when `play.rules.{mode}.*` keys exist — start with Raid copy from `RaidGameSpec.md` § How to Play
-2. Add `GameRulesCatalog.raid` + localization keys in all four locales
-3. Verify Modes tab Co-op section: amber badges, coming-soon cards, VoiceOver labels, light/dark on `GameModeCatalogCard`
-4. Update `specs/CoopPvEModesSpec.md` §13 checklist + §16 Verification
+**Scope A — Raid polish / a11y close-out:**
+1. Manual VoiceOver pass (`accessibility/Manual_todo.md`)
+2. AXXXL + landscape boss chrome evidence
+3. UI test smoke for `coop_boss_hp_bar`, `coop_boss_phase_banner`, `coop_hero_hearts`
+4. Promote `RaidGameSpec.md` → `specs/game-modes/implemented/`
 
-**Scope B — Ship Raid (full Phase 1):**
-Implement per `specs/game-modes/planned/RaidGameSpec.md` and `specs/CoopPvEModesSpec.md` §14 promotion checklist:
-- `MatchType.raid`, `RaidEngine`, setup chips, humans-only roster validation
-- `RaidMatchScreen` + boss chrome (`coop_boss_hp_bar`, `coop_boss_phase_banner`, `coop_hero_hearts`)
-- Co-op match summary (no winner card), history, Activity filter
-- WCAG evidence: `accessibility/wcag-2.1-aa/screens/raid-match.md`
-- Promote `coop.raid` to `.shipped` in catalog; update `docs/feature-inventory.md`
+**Scope B — Phase 2 platform extraction:**
+- Reusable `BossParticipant` type; `bossRaid` stats reducer; shared co-op validation helpers
+
+**Scope C — Next co-op mode (Cerberus / Vault / Clear the Board):**
+Follow `specs/CoopPvEModesSpec.md` §14 promotion checklist.
 
 ## Constraints
 - Follow `specs/CoopPvEModesSpec.md` for roster (humans only on hero team), UI chrome, a11y, semantic `Brand.*` colors (light + dark)
 - Do not move co-op modes back to `party.*` ids
-- Match existing conventions in `ModesRootView`, `GameModeCatalogCard`, `GameRulesCatalog`
-- Run unit tests for catalog/sections after changes; add UI/a11y tests when Raid UI lands
+- Update `docs/feature-inventory.md` + `CoopPvEModesSpec.md` §13/§16 when ship status changes
 
 ## References
 - `docs/plans/coop-mode-grouping.md` (this plan)
@@ -55,15 +49,15 @@ Implement per `specs/game-modes/planned/RaidGameSpec.md` and `specs/CoopPvEModes
 
 | Area | Artifact |
 |------|----------|
-| Catalog | `GameModeSection.coop`; 4 planned entries between Party and Practice |
+| Catalog | `GameModeSection.coop`; Raid shipped + 3 planned entries between Party and Practice |
 | Visual identity | `Brand.amber` fallback accent for unreleased co-op cards |
 | Modes tab | Section header `modes.section.coop`; cards via `ModesRootView` + `GameModeCatalogCard` |
 | Play setup | Co-op rows in `playSetupPickerSections()` when party modes visible |
 | Localization | Section + 4× (name, blurb) in `en` / `de` / `es` / `nl` |
-| Tests | Catalog count 33; partition across 4 sections; coop stub ids asserted |
+| Tests | Catalog count 34; partition across 4 sections; `coop.raid` shipped |
 | Specs | `CoopPvEModesSpec.md`; Raid/Cerberus/Vault/ClearTheBoard → `coop.*` |
 
-**Not done yet:** playable co-op match, Learn rules on coming-soon cards, setup validation, boss chrome, co-op summary.
+**Not done yet:** Phase 2 platform extraction; Cerberus / Vault / Clear the Board engines; Raid WCAG UI tests + manual VO evidence; spec file promotion `planned/` → `implemented/` for shipped modes.
 
 ---
 
@@ -117,14 +111,15 @@ After Raid ships: `BossParticipant`, `CoopMatchSummary`, shared validation, `bos
 - [x] `play.rules.raid.*` exist in all four locales
 - [x] `CoopPvEModesSpec.md` §13 updated; open decision #4 resolved
 
-### Raid shipped (Slice 2)
+### Raid shipped (Slice 2) — **done on `dev`**
 
-- [ ] 1–3 humans can start Raid; bots rejected on roster
-- [ ] Boss chrome + phase flow per `RaidGameSpec.md`
-- [ ] Co-op summary — team outcome, no single-winner trophy
-- [ ] History + Activity filter for Raid
-- [ ] WCAG raid-match evidence doc + identifier tests
-- [ ] `coop.raid` catalog `status == .shipped`
+- [x] 1–3 humans can start Raid; bots rejected on roster (`setup.validation.coopHumansOnly`)
+- [x] Boss chrome + phase flow per `RaidGameSpec.md`
+- [x] Co-op summary — team outcome, no single-winner trophy
+- [x] History + Activity filter for Raid
+- [x] WCAG raid-match evidence doc (`accessibility/wcag-2.1-aa/screens/raid-match.md`) — **partial** manual evidence
+- [x] `coop.raid` catalog `status == .shipped`
+- [ ] UI test smoke for raid match identifiers
 
 ---
 
@@ -136,7 +131,7 @@ Features/Modes/ModesRootView.swift        # browse UI
 Features/Modes/GameModeCatalogCard.swift  # card + learn rules
 Features/Play/Rules/GameRulesCatalog.swift
 specs/CoopPvEModesSpec.md                 # platform + §13 tracker
-specs/game-modes/planned/RaidGameSpec.md
+specs/game-modes/implemented/RaidGameSpec.md
 Tests/Unit/GameModeCatalogTests.swift
 Tests/Unit/GameModeSectionTests.swift
 ```

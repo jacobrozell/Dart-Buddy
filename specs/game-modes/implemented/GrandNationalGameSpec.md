@@ -4,6 +4,7 @@
 Define Grand National — a sequence race around the board with hurdle elimination — for future implementation.
 
 **Status:** Shipped (`party.grandNational`).
+**Estimated release:** `1.3`
 
 **In-visit progression:** **Excluded** — one course position per visit regardless of hit count ([`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) §2).
 
@@ -84,6 +85,7 @@ Replay restores positions and elimination.
 |---|---|
 | **Key prefix** | `play.rules.grandNational.` |
 | **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.grandNational.overview.title` |

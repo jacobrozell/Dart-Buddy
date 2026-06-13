@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Player Specification
 
 ## 1. Purpose
@@ -69,7 +71,26 @@ Player state in UI is editable and user-facing; historical match/event records a
 - Name is required, trimmed, max length 32
 - Name comparison for duplicate checks is case-insensitive + whitespace-normalized
 - Empty and whitespace-only names are rejected
+- **Offensive names:** rejected on create/edit when they match the client blocklist (see §4.1). Required before online play ships; **recommended for 1.x** so local rosters are not already toxic when [`OnlinePlaySpec.md`](OnlinePlaySpec.md) P2 launches.
 - Archived players cannot be selected for new matches
+
+### 4.1 Offensive display-name policy (1.x hygiene → online mandatory)
+
+| Surface | Rule |
+|---------|------|
+| **Local create/edit** | Client-side blocklist; inline error (`player.validation.nameOffensive`); save blocked |
+| **Online profile (P2)** | Server authoritative re-check on sync; see [`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.5 |
+| **Match snapshots** | `displayNameAtMatchStart` is immutable — offensive rename does not rewrite history |
+
+Normalization before check: trim, NFKC, lowercase, leetspeak homoglyph folding (same rules as online spec).
+
+**Matching rule (locked):** Token / word-boundary match on a **small slur blocklist** — never naive “contains substring” scans. Legitimate names such as **Assassin**, **Classic**, and **Dickens** must pass unless explicitly listed as exceptions is unnecessary when boundaries are correct; maintain an allowlist for any edge cases discovered in QA.
+
+**False-positive policy:** Prefer allowing a borderline name over blocking a real player name; online report flow handles gray areas ([`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.5).
+
+**Multilingual scope (locked):** The 1.x client filter covers **English slur tokens** and **language-agnostic obfuscation** only — not curated lists for `de`, `es`, `nl`, `fr`, `zh-Hans`, or other scripts. Innocent names in other languages must not be rejected because an English blocklist misread them. Full cross-language coverage is **not** a 1.x requirement; online **report + server moderation** ([`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.5.1) is the backstop.
+
+**Out of scope (1.0):** online name report flow ([`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.6), moderator queue, automatic rename of existing offensive snapshots.
 
 ---
 
@@ -272,6 +293,7 @@ Rationale: deleting referenced identities can corrupt stats/history semantics.
 ## 15. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `PlayersRootView.swift`, `PlayerDetailView.swift`, `PlayersListViewModel.swift`, `PlayerDetailViewModel.swift`, `PlayerEditViewModel.swift`, `EditablePlayer.swift` |

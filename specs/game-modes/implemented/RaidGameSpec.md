@@ -4,7 +4,8 @@
 
 Define **Raid** — a cooperative player-vs-boss mode where **1–3 humans** share one boss HP pool, rotate standard visits, and survive phase shifts (Shield → Expose → Enrage) until the boss is defeated or every hero is down.
 
-**Status:** Planned (`coop.raid`).  
+**Status:** Shipped (`coop.raid`).  
+**Estimated release:** `1.4`
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §33.
 
 **Related specs:**
@@ -265,7 +266,8 @@ Manual screen doc (when implemented): `accessibility/wcag-2.1-aa/screens/raid-ma
 | | |
 |---|---|
 | **Key prefix** | `play.rules.raid.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.4` |
 
 ### Overview
 

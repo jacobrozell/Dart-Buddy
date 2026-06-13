@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define Football — a two-player phase race to score goals on doubles after opening bull — for future implementation.
 
-**Status:** Planned (`party.football`).
+**Status:** Shipped (`party.football`).
+**Estimated release:** `1.3`
 
 References: [darts501.com — Football](https://darts501.com/Games.html).
 
@@ -81,7 +82,8 @@ Replay restores kickoff flags and goals.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.football.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.football.overview.title` |

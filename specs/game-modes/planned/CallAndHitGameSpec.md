@@ -4,6 +4,7 @@
 Define **Call & Hit** — a solo practice drill where the app announces random targets; the player throws up to a configurable number of darts per target and self-reports hit or miss; a summary shows accuracy and per-segment breakdown. Sessions persist as completed matches in Activity history.
 
 **Status:** Planned (`practice.callAndHit`). R&D brief: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
+**Estimated release:** `TBD`
 
 **Dependencies:**
 - [`CalloutVoicesSpec.md`](../../CalloutVoicesSpec.md) — target announcement voices and phrase policy
@@ -407,4 +408,5 @@ No per-target analytics payloads (volume).
 ## 14. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `TBD` |
 | **Status** | Planned |

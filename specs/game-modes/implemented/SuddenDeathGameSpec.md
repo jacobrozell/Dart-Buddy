@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define Sudden Death — lowest-score elimination each round until one player remains — for future implementation.
 
-**Status:** Planned (`party.suddenDeath`).
+**Status:** Shipped (`party.suddenDeath`).
+**Estimated release:** `1.3`
 
 References: [darts501.com — Sudden Death](https://darts501.com/Games.html).
 
@@ -79,7 +80,8 @@ Replay restores active set and round index.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.suddenDeath.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.suddenDeath.overview.title` |

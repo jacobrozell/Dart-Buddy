@@ -4,6 +4,7 @@
 Define Chase the Dragon — hit trebles 10 through 20 then outer and inner bull in order — for future implementation.
 
 **Status:** Shipped (`practice.chaseTheDragon`).
+**Estimated release:** `1.4`
 
 **In-visit progression:** [`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) — qualifying treble/bull per step; pad uses modifiers (no segment lock).
 
@@ -81,6 +82,7 @@ Replay restores step indices.
 |---|---|
 | **Key prefix** | `play.rules.chaseTheDragon.` |
 | **Shipped in app** | Yes |
+| **Estimated release** | `1.4` |
 
 ### Overview
 | **Title key** | `play.rules.chaseTheDragon.overview.title` |

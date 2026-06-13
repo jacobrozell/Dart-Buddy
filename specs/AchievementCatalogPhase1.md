@@ -7,6 +7,7 @@ Authoritative **Phase 1** achievement list: stable IDs, evaluation predicates, h
 **Related:** Full long-term catalog — [`FutureIdeas/achievements.md`](../FutureIdeas/achievements.md). Campaign-only progression — [`CampaignSpec.md`](CampaignSpec.md) Phase 2 (`db.campaign.*`). Presentation — [`BadgesSpec.md`](BadgesSpec.md).
 
 **Status:** Product-locked for Phase 1 implementation.
+**Estimated release:** `2.0`
 
 ---
 
@@ -278,6 +279,7 @@ Locales: `en`, `de`, `es`, `nl`.
 
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `2.0` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | (spec authoring) |
 | **Code** | (planned) `Domain/Achievements/AchievementDefinition.swift` |

@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Quick Add Player Specification
 
 > **Superseded (1.0+):** Play setup now presents the full [`PlayerEditSheet`](PlayerSpec.md) as a sheet via **Add Players**. This spec is retained for historical context only.

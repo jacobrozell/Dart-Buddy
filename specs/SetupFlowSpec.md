@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Setup Flow Specification
 
 ## 1. Purpose
@@ -140,6 +142,7 @@ Authoritative schema: [`SwiftData.md`](SwiftData.md), [`DataSchemaSpec.md`](Data
 ## 11. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `MatchSetupViewModel.swift`, `SetupHomeView*.swift` |

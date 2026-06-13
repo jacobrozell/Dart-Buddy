@@ -5,6 +5,7 @@
 Define **Clear the Board** — a ring-cell sweep where players close **segment × ring** wedges (e.g. T1, D1, and S1 are three independent cells). Points accrue on first-time closes; bulls use a special **catch-up** rule by default. Ships in three shapes: **co-op** (Pure, Decay) and **Team vs Team** (friends vs friends, **no bots** in v1).
 
 **Status:** Planned (`coop.clearTheBoard`).  
+**Estimated release:** `2.0+`
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §48.
 
 **Related specs:**
@@ -368,6 +369,7 @@ Tap open cell on map → optional pad hint (segment pre-select).
 |---|---|
 | **Key prefix** | `play.rules.clearTheBoard.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `2.0+` |
 
 ### Overview
 

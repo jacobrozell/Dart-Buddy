@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define 180 Around the Clock — treble-focused scoring around 1–20 — for future implementation.
 
-**Status:** Planned (`practice.aroundTheClock180`).
+**Status:** Shipped (`practice.aroundTheClock180`).
+**Estimated release:** `1.4`
 
 References: [darts501.com — 180 Around the Clock](https://darts501.com/Games.html).
 
@@ -78,7 +79,8 @@ Replay restores index and totals.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.aroundTheClock180.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.4` |
 
 ### Overview
 | **Title key** | `play.rules.aroundTheClock180.overview.title` |

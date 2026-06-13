@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define Mickey Mouse — a descending mark-closure party game (20 down through 12, then bull) — for future implementation.
 
-**Status:** Planned (`party.mickeyMouse`).
+**Status:** Shipped (`party.mickeyMouse`).
+**Estimated release:** `1.3`
 
 References: [darts501.com — Mickey Mouse](https://darts501.com/Games.html), [Darts Corner](https://www.dartscorner.com/blogs/how-to/what-darts-games-can-you-play).
 
@@ -80,7 +81,8 @@ Replay restores target index and all mark counts.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.mickeyMouse.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.mickeyMouse.overview.title` |

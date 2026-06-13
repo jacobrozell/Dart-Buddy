@@ -4,7 +4,8 @@
 
 Define **Fleet** (Battleship on the dartboard) — a two-player hidden-information duel where each player secretly stations ships on the board, then alternates visits **calling coordinates and throwing** until one fleet is fully sunk. Damage depends on **ring** (single / double / triple); ships may require **one or three hits** to sink.
 
-**Status:** Planned (`party.fleet`).  
+**Status:** Shipped (`party.fleet`).  
+**Estimated release:** `1.4`
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §23.
 
 **Related specs:**
@@ -513,7 +514,8 @@ FleetMatchScreen
 | | |
 |---|---|
 | **Key prefix** | `play.rules.fleet.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.4` |
 
 ### Overview
 

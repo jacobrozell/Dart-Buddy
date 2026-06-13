@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define Knockout — a beat-the-leader scoring elimination party game — for future implementation.
 
-**Status:** Planned (`party.knockout`).
+**Status:** Shipped (`party.knockout`).
+**Estimated release:** `1.3`
 
 References: [darts501.com — Knockout](https://darts501.com/Games.html).
 
@@ -82,7 +83,8 @@ Replay restores high, strikes, elimination.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.knockout.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.knockout.overview.title` |

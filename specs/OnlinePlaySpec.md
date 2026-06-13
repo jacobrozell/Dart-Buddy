@@ -5,6 +5,7 @@
 Define future **online multiplayer** — real-time head-to-head legs, server-authoritative sync, and (in **P2**) **online tournaments** hosted on Firebase — fair, low-latency, and compatible with manual, watch, and vision-based scoring inputs.
 
 **Status:** Future / post-1.0. Not blocking lean 1.0 ship.
+**Estimated release:** `2.0+`
 
 **Product priority (shared with [`TournamentSpec.md`](TournamentSpec.md)):**
 
@@ -21,7 +22,9 @@ P1 ships **without** online play or Firebase backend services. P2 requires this 
 - [`MatchSpec.md`](MatchSpec.md) — leg lifecycle; online `visibility` + event timeline
 - [`FeatureFlagConfigSpec.md`](FeatureFlagConfigSpec.md) — `enableOnlinePlay`, `enableOnlineTournaments`
 - [`AppleWatchCompanionSpec.md`](AppleWatchCompanionSpec.md) — command origin metadata
-- [`AutoScoringVisionSpec.md`](AutoScoringVisionSpec.md) — vision confidence metadata
+- [`AutoScoringVisionSpec.md`](AutoScoringVisionSpec.md) — vision confidence metadata; **skill verification** (§10.4)
+- [`BotOpponentSpec.md`](BotOpponentSpec.md) — verification bot tiers (§10.4)
+- [`PlayerSpec.md`](PlayerSpec.md) — display-name validation; offensive-name policy (§10.5)
 - [`RepositorySpec.md`](RepositorySpec.md) — local/cloud reconciliation
 
 ---
@@ -88,6 +91,8 @@ From [`TournamentSpec.md`](TournamentSpec.md):
 | `tournaments/{id}/nodes/{nodeId}` | Bracket node | matchup, leg refs, status |
 | `matches/{id}` | Online leg | Links to `tournamentId` + `nodeId` when applicable |
 | `matches/{id}/events/{seq}` | Append-only events | Same schema as local timeline |
+| `users/{uid}` | Online profile | `displayName`, `displayNamePendingReview`, report counters |
+| `nameReports/{reportId}` | Name-report queue | Moderation workflow (§10.6) |
 
 **Local canonical rule:** Client caches server state; completed legs reconcile into SwiftData `MatchRecord` + `TournamentRecord` per [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAnalyticsSpec.md) §5.
 
@@ -99,6 +104,8 @@ From [`TournamentSpec.md`](TournamentSpec.md):
 | `advanceTournamentNode` | On `MatchCompleted` | Update bracket; open next node |
 | `processCheckIn` | Callable | Registration window + ready flags |
 | `withdrawParticipant` | Callable | Safe bracket repair (see Tournament §8.3) |
+| `submitPlayerNameReport` | Callable | Validate report, dedupe, enqueue, optional auto-flag (§10.6) |
+| `resolveNameReport` | Callable (moderator) | Approve / rename / ban; audit trail |
 
 Domain engines stay Firebase-agnostic; Functions import shared validation package or duplicate-tested logic.
 
@@ -126,6 +133,19 @@ Progressive integrity for **single online matches** (prerequisite for tournament
 - Signed events
 - Anti-replay and anomaly detection
 - Ranked mode eligibility rules (optional; separate from tournaments)
+
+### Phase D — Open lobbies (post–Phase A)
+
+Requires Firebase Auth + Firestore presence. **Not** full ladder/MMR (see §14).
+
+| Milestone | Features |
+|-----------|----------|
+| **L-A** | Host creates **open lobby** (mode, format, max seats); share code or browse public list |
+| **L-B** | **Skill band** on lobby (host filter + join preview) — see §10.3 |
+| **L-C** | **Verified skill badge** gates high-trust lobbies — see §10.4 |
+| **L-D** | Report player / kick / lobby moderation hooks |
+
+**Dependency rule:** Do **not** ship public open lobbies until **display-name moderation** (§10.5) is enforced server-side for online profiles.
 
 ---
 
@@ -240,6 +260,324 @@ Required metadata: `originDeviceType`, `originSessionId`, `clientTimestamp`, `se
 - Push notification: “Your match is up” (Firebase Cloud Messaging — optional sub-phase)
 - Post-leg stats drill-down (Activity)
 
+### 10.3 Open lobbies and skill matching
+
+**Product intent:** Let anyone discover and join casual online games without a pre-arranged invite, while reducing gross skill mismatch and honor-system lying about averages.
+
+**Lobby model (draft):**
+
+| Field | Purpose |
+|-------|---------|
+| `mode` / `format` | Same as local setup (`MatchType`, legs, checkout rules) |
+| `visibility` | `invite` \| `open` |
+| `maxSeats` | 2 for v1 open lobbies; party modes later |
+| `skillBand` | Optional filter — see below |
+| `requiresVerifiedSkill` | When true, only **Verified** players may join (§10.4) |
+| `hostUid` | Firebase Auth uid |
+
+**Skill band options (host-selected, joiner-visible before join):**
+
+| Band | Meaning | Trust source |
+|------|---------|--------------|
+| **Open** | No gate | — |
+| **Casual** | Self-reported rolling 3-dart average bracket (e.g. &lt; 40, 40–55, 55+) | Local stats mirror on profile — honor system |
+| **Verified only** | Must hold active **Verified** credential | Camera-verified bot challenge (§10.4) |
+| **Host pick** | Host approves each join request | Manual |
+
+**Design notes:**
+
+- Self-reported averages are **allowed for casual open lobbies** but labeled honestly in UI (“self-reported”) so players can leave before starting.
+- Tournament min-average gates ([`TournamentSpec.md`](TournamentSpec.md) §6.5) reuse the same profile fields; **Verified** attestation satisfies competitive gates without trusting local-only stats.
+- Full **MMR / ranked matchmaking** stays out of scope until a dedicated ladder spec exists (§14).
+
+### 10.4 Verified skill (“Veteran”) — camera-backed bot challenge
+
+**Naming:** Online trust tier **`Verified`** (working title). Do **not** conflate with the local achievement badge [`db.play.250` *Veteran*](AchievementCatalogPhase1.md) (250 completed games). UI copy must distinguish “Verified skill” vs “Veteran achievement.”
+
+**Problem:** Players can inflate local stats or pick offensive names before joining strangers. Honor-system averages are insufficient for skill-gated or ranked-adjacent lobbies.
+
+**Proposed path:**
+
+1. Player starts **Verification Match** from online profile or lobby gate.
+2. **Vision scoring required** — [`AutoScoringVisionSpec.md`](AutoScoringVisionSpec.md) Phase B+ (auto-commit with confidence threshold). Manual-only verification does **not** grant Verified status.
+3. Opponent is a **preset bot** at a fixed tier (draft: **`Hard`** minimum; **`Pro`** for upper competitive band). See [`BotOpponentSpec.md`](BotOpponentSpec.md).
+4. Format (draft): single X01 leg, standard double-out; player must **win** the leg.
+5. Server receives append-only turn events with `originDeviceType: vision`, confidence metadata, and calibration snapshot id.
+6. Cloud Function validates: vision coverage threshold met, no manual override on winning visits, bot tier satisfied → issue **`VerifiedSkillCredential`** on Firebase profile.
+
+**Credential (Firestore draft):**
+
+| Field | Purpose |
+|-------|---------|
+| `verifiedAt` | Server timestamp |
+| `botTier` | e.g. `hard` \| `pro` |
+| `attestedThreeDartAverage` | Derived from verified leg(s), not self-reported |
+| `expiresAt` | Optional refresh window (e.g. 90 days) — TBD |
+| `revoked` | Moderator / anomaly flag |
+
+**Unlocks (when credential active):**
+
+- Join `requiresVerifiedSkill` lobbies
+- Display **Verified** badge next to name in lobby, leg, and tournament roster
+- Satisfy tournament **min 3-dart average** gate when attested average ≥ host minimum (online P2)
+
+**Out of scope for first Verified ship:**
+
+- Continuous re-verification every match
+- Proving identity across devices without Auth upgrade
+- Storing raw camera frames (see [`SecurityPrivacySpec.md`](SecurityPrivacySpec.md) §6)
+
+### 10.5 Display-name moderation (online + pre-online hygiene)
+
+**Requirement:** Offensive, slur, and harassing **display names must not appear to other players** in any online surface (lobby list, leg UI, tournament bracket, spectate).
+
+**Phased policy:**
+
+| Phase | When | Requirement |
+|-------|------|-------------|
+| **Pre-online (recommended 1.x)** | Before P2 | Client-side blocklist on player create/edit ([`PlayerSpec.md`](PlayerSpec.md) §4). Blocks obvious slurs locally; no server yet. |
+| **Online P2 (mandatory)** | Before Phase D lobbies or any cross-user name display | **Server-side** validation on Firebase profile write / lobby join; reject or sanitize; audit log without storing rejected string in analytics |
+| **Online P2+** | After first reports | Report name → moderator queue; temporary rename to generic fallback (`Player ####`) pending review |
+
+**Implementation direction (draft):**
+
+- **Do not use naive substring matching.** A name like `Assassin` must pass; blocking any string that *contains* `ass` is unacceptable.
+- **Match whole tokens on word boundaries** after normalization — e.g. reject standalone slur tokens, not substrings inside unrelated words.
+- Normalize before tokenize: trim, lowercase, NFKC, leetspeak homoglyph folding, split on non-alphanumeric boundaries.
+- **Blocklist:** curated **slur and hate-speech tokens only** (small, reviewed list) — not a generic “profanity dictionary” that flags `class`, `Scunthorpe`, etc.
+- **Allowlist:** explicit exceptions for known false positives (e.g. `Dickens`, `Assassin`, `Classic`) — maintained alongside blocklist; unit tests per allowlist entry.
+- **Client and server both check** — server is authoritative for online
+- Local-only pass-and-play: blocklist still recommended so names are not already toxic when user later enables online
+
+**False-positive policy:** When in doubt, **allow** locally (1.x) and rely on **report + moderator** online (P2+). Prefer missing a borderline name over blocking a legitimate one. Rejection copy should be neutral (“This name isn’t allowed”) — no repeating the flagged substring.
+
+### 10.5.1 Multilingual limitation (honest scope)
+
+**Player display names are free text** — they are **not** tied to the app UI language. A user with English UI can enter a German, Spanish, or Chinese name; shipped locales (`de`, `es`, `nl`, `fr`, `zh-Hans` per [`LocalizationSpec.md`](LocalizationSpec.md)) do **not** imply the team maintains equivalent slur lists for each.
+
+**Reality:** A small English-first team **cannot** curate complete, accurate offensive-token lists for every language and script. Attempting to do so without native review risks both **false blocks** (innocent names in another language) and **false allows** (slurs the team does not recognize).
+
+**Locked strategy:**
+
+| Layer | Scope | Owner |
+|-------|--------|-------|
+| **1.x client (optional)** | English slur tokens + language-agnostic obfuscation checks (leet, zero-width, mixed-script spam) | App bundle; conservative |
+| **Online P2 server** | Re-run same English + obfuscation rules; add **third-party text moderation API** evaluation before open lobbies (vendor TBD — Perspective, Azure Content Moderator, or similar) | Cloud Function; budget + privacy review |
+| **Primary backstop (online)** | **Report name** → hide from reporter → moderator queue → rename / ban | Required before Phase D lobbies |
+| **Not in scope (v1 filter)** | Hand-maintained blocklists for `de` / `es` / `nl` / `fr` / `zh-Hans` | Defer unless native-speaking contributor or vendor list is licensed |
+
+**Product copy (online help / moderation FAQ):** State plainly that automated filters are **best-effort** and that reporting inappropriate names is the reliable path. Do not claim “all languages” coverage.
+
+**Privacy note:** Sending display names to a third-party moderation API requires disclosure in privacy policy and App Store nutrition labels when online ships ([`SecurityPrivacySpec.md`](SecurityPrivacySpec.md)).
+
+**Decision (locked for spec):** Ship **client-side** offensive-name filtering in 1.x as hygiene; **do not** launch open lobbies or public online profiles without **server-side** enforcement **and** a working **report** flow (§10.6).
+
+### 10.6 Player name reports (Firebase — online P2)
+
+**Yes — this is a Firebase integration.** Requires [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAnalyticsSpec.md) **Phase 2** (Auth + Firestore) and **Phase 3** (Cloud Functions). Not shipped in 1.x local-only play.
+
+**Why Firebase:** Reports must be **server-authoritative** (anti-spam, dedupe, moderator queue, global rename). Clients must not write moderation state directly.
+
+#### User flow
+
+| Step | Behavior |
+|------|----------|
+| 1 | Reporter taps **Report name** on an online player (lobby row, opponent card, tournament roster, post-match summary) |
+| 2 | Sheet: reason **`offensiveName`** (primary), **`harassment`**, **`other`**; optional note (max 200 chars, no required essay) |
+| 3 | Confirm → callable **`submitPlayerNameReport`** |
+| 4 | Success toast: neutral copy (“Thanks — we’ll review this.”) |
+| 5 | **Immediately:** reported display name hidden **for this reporter only** (local cache + server preference) |
+| 6 | **Moderator / auto:** see queue below |
+
+**Auth:** Firebase Auth required — **anonymous Auth is sufficient** for P2 (ties report to `reporterUid`). Upgrade to Apple sign-in optional later for ban appeals.
+
+**Not reportable in 1.x:** Local pass-and-play names on one device — no strangers, no Firebase path.
+
+#### Firestore model (draft)
+
+**`nameReports/{reportId}`** (append-only queue; clients read **none** — moderators via admin tool / Function)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `reportId` | string | Auto id |
+| `reporterUid` | string | Auth uid |
+| `reportedUid` | string | Target profile |
+| `reportedDisplayNameSnapshot` | string | Name **at report time** (for audit); not echoed in analytics |
+| `reason` | enum | `offensiveName` \| `harassment` \| `other` |
+| `note` | string? | Optional reporter note |
+| `context` | map | `lobbyId?`, `matchId?`, `tournamentId?` — no PII beyond ids |
+| `status` | enum | `open` \| `resolved` \| `dismissed` |
+| `createdAt` | timestamp | Server |
+| `resolvedAt` | timestamp? | Moderator action |
+| `resolution` | enum? | `noAction` \| `renamed` \| `banned` |
+
+**`users/{uid}`** (online profile extension)
+
+| Field | Purpose |
+|-------|---------|
+| `displayName` | Public name |
+| `displayNamePendingReview` | When true, clients show fallback label globally |
+| `displayNameFallback` | e.g. `Player 7F3A` while pending |
+| `nameReportCount` | Distinct reporters (maintained by Function) |
+| `nameReportWindowStartedAt` | Rolling window for auto-flag threshold |
+
+#### Cloud Function: `submitPlayerNameReport`
+
+1. Require Auth + **App Check** (when enabled).
+2. Reject self-reports, missing `reportedUid`, or blank snapshot.
+3. **Dedupe:** one open report per `(reporterUid, reportedUid)` per 24h.
+4. Rate-limit: max **10 reports / reporter / day** (configurable).
+5. Write `nameReports/{id}` with `status: open`.
+6. Increment distinct-reporter count on `users/{reportedUid}` (transaction).
+7. **Auto-flag (draft):** if **≥ 3 distinct reporters** in 7 days → set `displayNamePendingReview: true`, assign `displayNameFallback`, notify moderator (email / Slack webhook — ops TBD).
+8. Return `{ success: true }` — never return why a name was flagged to clients.
+
+#### Moderator resolution (v1 ops)
+
+| Option | Implementation |
+|--------|----------------|
+| **Founder-only (P2 launch)** | Firebase **custom claim** `moderator: true`; callable `resolveNameReport`; or Firebase Console + script |
+| **In-app queue (later)** | Hidden Settings flag / internal build — list open reports |
+| **Outcomes** | Dismiss → restore name; **Rename** → force generic name + warn user; **Ban** → disable online join (uid block list) |
+
+Reuse tournament **Review report** pattern ([`TournamentSpec.md`](TournamentSpec.md) §8.2) — one moderation queue can serve leg disputes and name reports in Activity (future unified **Reports** tab).
+
+#### Security rules (draft)
+
+- Clients **cannot** create/read `nameReports` directly.
+- Clients **read** other users’ `displayName` or `displayNameFallback` only (not report counts).
+- Moderator writes only via Cloud Functions.
+
+#### Privacy
+
+- Do **not** include reported names or reporter uids in Firebase Analytics ([`SecurityPrivacySpec.md`](SecurityPrivacySpec.md) §6.1).
+- Allowlisted event: `name_report_submitted` with `{ reason_category }` only.
+- Retention: resolve or dismiss reports within **90 days**; ban records kept per abuse policy.
+
+#### UI considerations (iOS — spec only)
+
+No implementation in 1.x. When online P2 ships, follow [`DesignSystemSpec.md`](DesignSystemSpec.md) and existing sheet/menu patterns (`PlayerEditSheet`, `MatchLifecycleChrome`).
+
+**Design principles**
+
+| Principle | Rule |
+|-----------|------|
+| **Discrete entry** | Report lives in a **secondary menu** (⋯) — never a primary gameplay CTA |
+| **No echo** | Do **not** repeat the reported name in the report sheet, success toast, or error copy after submit |
+| **Not destructive** | Use standard confirmation emphasis — reporting is reversible for the reporter (local unhide later, optional) |
+| **Immediate relief** | Hide the name for the reporter **before** network completes (optimistic local hide) |
+| **Neutral tone** | Copy avoids repeating slurs, judging intent, or promising instant global action |
+
+**Entry points (online surfaces only)**
+
+| Surface | Placement | Notes |
+|---------|-----------|-------|
+| **Active online leg** | Opponent score card → **⋯** menu → `Report name…` | Below pause/forfeit items; separator before destructive leg actions |
+| **Open lobby** | Participant row → trailing **⋯** | Not on host’s own row |
+| **Tournament roster / check-in** | Participant row → **⋯** | Same component as lobby |
+| **Online match summary** | Opponent result row → **⋯** | Only when `visibility == online` |
+| **Hidden** | Local Players tab, pass-and-play setup, bot rows | No report action — not strangers |
+
+Gate all entry points on `enableOnlineNameReports` + signed-in Auth.
+
+**Report sheet** (`ReportPlayerNameSheet` — working title)
+
+Presentation: **medium detent** sheet (same family as `PlayerEditSheet` / rules sheets).
+
+```
+┌─────────────────────────────────────┐
+│  Report name                    ✕   │
+├─────────────────────────────────────┤
+│  If this name is offensive or         │
+│  inappropriate, let us know.          │
+│                                       │
+│  Reason                               │
+│  ○ Offensive name          (default)  │
+│  ○ Harassment                           │
+│  ○ Other                                │
+│                                       │
+│  Additional details (optional)        │
+│  ┌─────────────────────────────────┐  │
+│  │                                 │  │
+│  └─────────────────────────────────┘  │
+│  0 / 200                              │
+│                                       │
+│  [ Cancel ]        [ Submit report ]  │
+└─────────────────────────────────────┘
+```
+
+| Element | Spec |
+|---------|------|
+| **Title** | `online.reportName.title` — e.g. “Report name” |
+| **Body** | `online.reportName.body` — one short neutral sentence; no quoted player name |
+| **Reason** | Single-select list or `Picker` / radio group; **`offensiveName` pre-selected** |
+| **Note** | Optional `TextEditor`; max **200** chars with live counter; not required |
+| **Submit** | Primary button; disabled while submitting or if dedupe says already reported |
+| **Cancel** | Dismiss without side effects |
+
+**Submit flow**
+
+1. Tap **Submit** → inline progress on button (no full-screen blocker).
+2. On success → dismiss sheet → brief **toast/banner** (`online.reportName.success`).
+3. **Optimistic hide:** replace displayed name on all visible surfaces for this `reportedUid` with `online.reportName.hiddenLabel` (e.g. “Hidden player”) until server sync provides `displayNameFallback`.
+4. On failure → inline error on sheet with **Retry**; keep local hide (reporter preference still applied).
+
+**Already reported (24h dedupe)**
+
+- If client knows dedupe applies: disable Submit; show `online.reportName.alreadyReported` footnote.
+- Menu item may show **Report name…** still, or **Name reported** (disabled) — prefer former for discoverability.
+
+**How hidden names render (reporter view)**
+
+| Context | Display |
+|---------|---------|
+| Score card / lobby row | Generic label + existing avatar chip if present |
+| VoiceOver | `online.reportName.a11y.hiddenPlayer` — e.g. “Hidden player” — **never** speak the stored offensive string |
+| Global auto-flag (3+ reports) | All clients show `displayNameFallback` from Firestore — same visual treatment |
+
+**Accessibility**
+
+- Menu action: `online.reportName.a11y.action` — “Report player name as inappropriate”.
+- Reason options: each option is a button with label + optional hint.
+- Success: post `UIAccessibility.post(notification: .announcement, …)`.
+- Reduce Motion: sheet presentation only — no celebratory animation on submit.
+
+**Localization keys (draft)**
+
+| Key | Example (en) |
+|-----|----------------|
+| `online.reportName.title` | Report name |
+| `online.reportName.body` | If this name is offensive or inappropriate, let us know. |
+| `online.reportName.reason.offensiveName` | Offensive name |
+| `online.reportName.reason.harassment` | Harassment |
+| `online.reportName.reason.other` | Other |
+| `online.reportName.note.placeholder` | Additional details (optional) |
+| `online.reportName.submit` | Submit report |
+| `online.reportName.success` | Thanks — we’ll review this. |
+| `online.reportName.alreadyReported` | You already reported this player recently. |
+| `online.reportName.error.generic` | Couldn’t send report. Try again. |
+| `online.reportName.error.rateLimit` | Too many reports today. Try again later. |
+| `online.reportName.hiddenLabel` | Hidden player |
+
+Ship keys in **all** locales per [`LocalizationSpec.md`](LocalizationSpec.md); copy stays neutral (no language-specific slur examples).
+
+**Settings / help (P2+, lightweight)**
+
+- Settings → Online → link **Community guidelines** / **How reporting works** (`online.reportName.help` static sheet).
+- Optional later: list locally hidden players with **Show name again** (clears reporter-only hide, not global moderation).
+
+**Out of scope (UI)**
+
+- In-app moderator review queue (founder uses backend tools first — see Moderator resolution above).
+- Report flow for leg disputes (separate tournament dispute UI — may share sheet chrome later).
+- Screenshot or camera attach on report.
+
+#### iOS integration (sketch)
+
+- `OnlineModerationService` behind protocol; impl calls `Functions.httpsCallable("submitPlayerNameReport")`.
+- Feature flag: `enableOnlineNameReports` (default `false` until Phase D / first cross-user name display).
+- Local hide list: `UserDefaults` or SwiftData keyed by `reportedUid` for immediate reporter UX offline.
+
 ---
 
 ## 11. Data and retention
@@ -264,6 +602,7 @@ Add to [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAnalyticsSpec.md) §12
 | `tournament_created_online` | Host publishes |
 | `tournament_check_in` | Participant ready |
 | `tournament_online_completed` | Champion |
+| `name_report_submitted` | User filed name report | `{ reason_category }` only — no names/uids |
 
 Tournament local events remain in [`TournamentSpec.md`](TournamentSpec.md) §13.
 
@@ -286,6 +625,14 @@ Tournament local events remain in [`TournamentSpec.md`](TournamentSpec.md) §13.
 - Spectator read-only cannot submit turns
 - Local P1 bracket tests unchanged (orchestrator unit tests shared)
 
+### Name reports (P2)
+
+- Dedupe: second report same pair within 24h rejected
+- Rate limit: 11th report in a day rejected
+- Auto-flag at 3 distinct reporters → global fallback name
+- Reporter-local hide persists after relaunch
+- Non-moderator cannot call `resolveNameReport`
+
 ---
 
 ## 14. Out of scope (early online)
@@ -293,7 +640,7 @@ Tournament local events remain in [`TournamentSpec.md`](TournamentSpec.md) §13.
 | Item | Defer to |
 |------|----------|
 | Voice / video chat | — |
-| Public matchmaking MMR | Ladder spec (future) |
+| **MMR / ranked ladder / Elo** | Ladder spec (future) — distinct from §10.3 open lobbies |
 | Prize money / payments | — |
 | In-tournament host chat | Tournament §8.2 Phase 5+ |
 
@@ -303,6 +650,9 @@ Tournament local events remain in [`TournamentSpec.md`](TournamentSpec.md) §13.
 |------|----------|
 | **Local tournaments** | **P1** — [`TournamentSpec.md`](TournamentSpec.md); no Firebase backend |
 | **Online head-to-head** | **P2** — Phase A–C |
+| **Open lobbies** | **P2** — Phase D (§5); after name moderation + Auth |
+| **Verified skill (camera bot challenge)** | **P2** — §10.4; requires Vision Phase B+ |
+| **Player name reports** | **P2** — §10.6; Auth + Functions; required before open lobbies |
 | **Online tournaments** | **P2** — §6; requires Phase A + Firebase Phase 3 |
 
 ---
@@ -314,6 +664,14 @@ Tournament local events remain in [`TournamentSpec.md`](TournamentSpec.md) §13.
 3. `enableOnlineTournaments` separate flag or sub-flag of `enableOnlinePlay`?
 4. Firestore real-time listeners vs polling for bracket UI?
 5. Ultimate-style paywall on online tournaments (DartCounter model)?
+6. Verified credential TTL — permanent vs 90-day refresh?
+7. Minimum bot tier for Verified: Hard only, or Pro for upper band?
+8. Open lobby browse: global list vs friends-of-friends vs geo — abuse surface?
+9. Blocklist maintenance: ship bundled list vs Remote Config updates?
+10. Third-party moderation vendor for online (privacy, cost, multilingual coverage)?
+11. Moderator staffing: founder-only vs community volunteers vs deferred auto-hide on N reports?
+12. Auto-flag threshold: 3 distinct reporters in 7 days — tune before launch?
+13. Unified Activity **Reports** tab vs name-only queue for P2?
 
 ---
 

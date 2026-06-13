@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define English Cricket — a two-role party game (Batter vs Bowler) inspired by bat-and-ball cricket — for future implementation.
 
-**Status:** Planned (`party.englishCricket`).
+**Status:** Shipped (`party.englishCricket`).
+**Estimated release:** `1.3`
 
 References: [DolfDarts — English Cricket](https://dolfdarts.com/games/english-cricket), [darts501.com](https://darts501.com/Games.html).
 
@@ -84,7 +85,8 @@ Replay restores runs, wickets, phase, and innings.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.englishCricket.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.englishCricket.overview.title` |

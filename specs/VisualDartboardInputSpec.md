@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Visual Dartboard Input Specification
 
 ## 1. Purpose
@@ -147,6 +149,7 @@ Existing `pad_*` / `cricket_*` identifiers are unchanged.
 ## 12. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-12 |
 | **Commit** | _initial implementation_ |
 | **Code** | `VisualDartboardInput.swift`, `BoardHitResolver.swift`, `DartEntryPresentation.swift` |

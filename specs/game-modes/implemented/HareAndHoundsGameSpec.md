@@ -4,6 +4,7 @@
 Define Hare and Hounds — a two-player chase around the clock-wise board — for future implementation.
 
 **Status:** Shipped (`party.hareAndHounds`).
+**Estimated release:** `1.3`
 
 **In-visit progression:** [`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) — effective target is the **course segment** after projected hits.
 
@@ -84,6 +85,7 @@ Replay restores both positions.
 |---|---|
 | **Key prefix** | `play.rules.hareAndHounds.` |
 | **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.hareAndHounds.overview.title` |

@@ -39,6 +39,14 @@ Define security, privacy, and data-protection requirements for MVP and future ne
 - Camera frames not persisted unless user explicitly opts into diagnostics
 - Watch connectivity limited to paired authenticated devices
 - Provenance metadata stored for auditability without storing unnecessary raw media
+- **Verified skill challenges** ([`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.4): store confidence + event metadata only; no raw video retention for verification
+
+## 6.1 User-generated display names (online)
+- Offensive-name blocklist enforced client-side (pre-online) and server-side before any cross-user display — [`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.5, [`PlayerSpec.md`](PlayerSpec.md) §4.1
+- **Multilingual:** 1.x filter is English + obfuscation only; do not claim full locale coverage — [`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.5.1
+- Rejected names must not appear in analytics payloads or Crashlytics breadcrumbs
+- Report / moderation flows (online): [`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.6 — Firestore queue + Cloud Functions; clients never write reports directly
+- Third-party text moderation (online): privacy-label and DPA review before enabling
 
 ---
 

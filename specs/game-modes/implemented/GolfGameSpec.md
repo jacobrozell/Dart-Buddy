@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define Golf (darts) — stroke-play across 9 or 18 holes — for future implementation.
 
-**Status:** Planned (`party.golf`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
+**Status:** Shipped (`party.golf`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
+**Estimated release:** `1.3`
 
 References: [GLD Golf darts](https://gldproducts.com/blogs/all/how-to-play-golf-darts), [darts501.com](https://darts501.com/Games.html).
 
@@ -86,7 +87,8 @@ Replay restores hole index and stroke grid.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.golf.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.golf.overview.title` |

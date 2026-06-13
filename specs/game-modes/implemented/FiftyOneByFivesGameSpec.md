@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define 51 By 5's (All Fives) — a divisibility-scoring race to 51 points — for future implementation.
 
-**Status:** Planned (`party.fiftyOneByFives`).
+**Status:** Shipped (`party.fiftyOneByFives`).
+**Estimated release:** `1.3`
 
 References: [Darts Corner — 51 By 5's](https://www.dartscorner.com/blogs/how-to/what-darts-games-can-you-play), [darts501.com — Fives](https://darts501.com/Games.html).
 
@@ -81,7 +82,8 @@ Replay restores point totals.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.fiftyOneByFives.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.fiftyOneByFives.overview.title` |

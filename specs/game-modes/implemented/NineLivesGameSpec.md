@@ -4,6 +4,7 @@
 Define Nine Lives — around-the-clock with lives lost on a scoreless visit — for future implementation.
 
 **Status:** Shipped (`practice.nineLives`).
+**Estimated release:** `1.4`
 
 **In-visit progression:** [`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) — same multi-hit visit rule as Around the Clock.
 
@@ -84,6 +85,7 @@ Replay restores lives and indices.
 |---|---|
 | **Key prefix** | `play.rules.nineLives.` |
 | **Shipped in app** | Yes |
+| **Estimated release** | `1.4` |
 
 ### Overview
 | **Title key** | `play.rules.nineLives.overview.title` |

@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define American Cricket (standard section) — a segment-sequential Cricket variant starting at 20 and descending to 15, then bull — for future implementation.
 
-**Status:** Planned (`standard.americanCricket`). Not routable until `MatchType` and engine ship.
+**Status:** Shipped (`standard.americanCricket`). Not routable until `MatchType` and engine ship.
+**Estimated release:** `1.3`
 
 References: [Darts.org — American Cricket](https://www.darts.org/rules/american-cricket.html), [Darts Corner](https://www.dartscorner.com/blogs/how-to/what-darts-games-can-you-play).
 
@@ -86,6 +87,7 @@ Event replay restores marks, points, active target, and turn order.
 |---|---|
 | **Key prefix** | `play.rules.americanCricket.` |
 | **Shipped in app** | Planned — register in `GameRulesCatalog` when mode ships |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.americanCricket.overview.title` |

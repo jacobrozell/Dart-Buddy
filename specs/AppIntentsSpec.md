@@ -1,3 +1,5 @@
+**Estimated release:** `1.4`
+
 # App Intents Specification
 
 ## 1. Purpose
@@ -554,6 +556,7 @@ flowchart TB
 ## 15. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.4` |
 | **Last verified** | 2026-06-12 |
 | **Commit** | *(pending — spec-only update)* |
 | **Code** | `IntentRoutingBridge.swift`, `Intents/Actions/`, `App/Navigation/Routes.swift` (`MatchType.playRoute`), `GameModeCatalog.swift` |

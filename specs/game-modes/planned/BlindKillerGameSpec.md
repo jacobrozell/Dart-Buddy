@@ -4,6 +4,7 @@
 Define Blind Killer — a hidden-number elimination party game — for future implementation.
 
 **Status:** Planned (`party.blindKiller`).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Blind Killer](https://darts501.com/Games.html), [`KillerGameSpec.md`](../implemented/KillerGameSpec.md).
 
@@ -84,6 +85,7 @@ Replay restores tallies and elimination set; assignments fixed from config seed.
 |---|---|
 | **Key prefix** | `play.rules.blindKiller.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.blindKiller.overview.title` |

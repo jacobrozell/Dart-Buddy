@@ -4,6 +4,7 @@
 Define Follow the Leader — match the leader's exact hit or lose a life — for future implementation.
 
 **Status:** Planned (`party.followTheLeader`).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Follow the Leader](https://darts501.com/Games.html).
 
@@ -82,6 +83,7 @@ Replay restores target, lives, elimination.
 |---|---|
 | **Key prefix** | `play.rules.followTheLeader.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.followTheLeader.overview.title` |

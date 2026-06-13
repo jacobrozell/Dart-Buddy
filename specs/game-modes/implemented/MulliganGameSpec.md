@@ -3,7 +3,8 @@
 ## 1. Purpose
 Define Mulligan — a random-target mark-closure party game — for future implementation.
 
-**Status:** Planned (`party.mulligan`).
+**Status:** Shipped (`party.mulligan`).
+**Estimated release:** `1.3`
 
 References: [Darts Corner — Mulligan](https://www.dartscorner.com/blogs/how-to/what-darts-games-can-you-play).
 
@@ -77,7 +78,8 @@ Replay restores RNG-derived sequence and mark state.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.mulligan.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
+| **Estimated release** | `1.3` |
 
 ### Overview
 | **Title key** | `play.rules.mulligan.overview.title` |

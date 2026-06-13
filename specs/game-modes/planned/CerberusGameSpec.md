@@ -5,6 +5,7 @@
 Define **Cerberus** — cooperative PvE where **2–3 humans** each damage an assigned **boss head** (segments 20, 16, 12) per round. When any head is destroyed, Cerberus **bites** the shared team life pool.
 
 **Status:** Planned (`coop.cerberus`).  
+**Estimated release:** `2.0+`
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §36.
 
 **Related specs:**
