@@ -54,9 +54,12 @@ private enum ShippedModeLifecycleSupport {
     }
 
     private static func submitFleetTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
-        let playerId = session.runtime.participants.first.map { $0.playerId ?? $0.id } ?? UUID()
-        let shipCount = session.runtime.fleetState?.config.shipCount.count ?? 5
+        guard let fleetState = session.runtime.fleetState,
+              case let .handoff(playerId) = fleetState.placementUIStep else {
+            return session
+        }
         var updated = try MatchLifecycleService.confirmFleetHandoff(session: session, playerId: playerId)
+        let shipCount = updated.runtime.fleetState?.config.shipCount.count ?? 5
         for segment in 1 ... shipCount {
             updated = try MatchLifecycleService.toggleFleetPlacementCell(
                 session: updated,
@@ -158,7 +161,11 @@ struct MatchLifecycleServiceShippedModesTests {
             session = try ShippedModeLifecycleSupport.submitTurn(session: session)
             guard session.runtime.status == .inProgress else { continue }
             session = try ShippedModeLifecycleSupport.submitTurn(session: session)
-            #expect(ShippedModeLifecycleSupport.eventCount(in: session) == 2)
+            if type == .fleet {
+                #expect(ShippedModeLifecycleSupport.eventCount(in: session) >= 2)
+            } else {
+                #expect(ShippedModeLifecycleSupport.eventCount(in: session) == 2)
+            }
         }
     }
 

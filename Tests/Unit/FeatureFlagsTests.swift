@@ -44,17 +44,9 @@ func crashlyticsHonorsDisableFirebaseAnalyticsArgument() {
 }
 
 @Test(.tags(.unit, .regression))
-func appIntentsEnabledOnDevDebugBuilds() {
-    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
+func appIntentsDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
     #expect(!provider.isEnabled(.enableAppIntents))
-
-    #if DEBUG
-    let devProvider = LocalFeatureFlagsProvider(arguments: [])
-    #expect(devProvider.isEnabled(.enableAppIntents))
-    #else
-    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
-    #expect(!releaseProvider.isEnabled(.enableAppIntents))
-    #endif
 }
 
 @Test(.tags(.unit, .regression))
@@ -64,23 +56,27 @@ func appIntentsEnabledWithLaunchArgument() {
 }
 
 @Test(.tags(.unit, .regression))
-func visionAutoScoringEnabledOnDevDebugBuilds() {
-    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
+func visionAutoScoringDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
     #expect(!provider.isEnabled(.enableVisionAutoScoring))
-
-    #if DEBUG
-    let devProvider = LocalFeatureFlagsProvider(arguments: [])
-    #expect(devProvider.isEnabled(.enableVisionAutoScoring))
-    #else
-    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
-    #expect(!releaseProvider.isEnabled(.enableVisionAutoScoring))
-    #endif
 }
 
 @Test(.tags(.unit, .regression))
 func visionAutoScoringEnabledWithLaunchArgument() {
     let provider = LocalFeatureFlagsProvider(arguments: ["-enable_vision_scoring"])
     #expect(provider.isEnabled(.enableVisionAutoScoring))
+}
+
+@Test(.tags(.unit, .regression))
+func visualDartboardInputDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!provider.isEnabled(.enableVisualDartboardInput))
+}
+
+@Test(.tags(.unit, .regression))
+func visualDartboardInputEnabledWithLaunchArgument() {
+    let provider = LocalFeatureFlagsProvider(arguments: ["-enable_visual_dartboard"])
+    #expect(provider.isEnabled(.enableVisualDartboardInput))
 }
 
 @Test(.tags(.unit, .regression))

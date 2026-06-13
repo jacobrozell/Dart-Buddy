@@ -45,7 +45,22 @@ struct ActivityFilterTests {
             #expect(!visible.contains(.baseball))
             #expect(!visible.contains(.killer))
             #expect(!visible.contains(.shanghai))
+            #expect(!visible.contains(.fleet))
+            #expect(!visible.contains(.raid))
+            #expect(!visible.contains(.aroundTheClock))
         }
+    }
+
+    @Test
+    func allGamesFilterScopesToReachableMatchTypesOnLeanSurface() {
+        guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        let included = ActivityModeFilter.includedMatchTypesForAllFilter
+        #expect(included == [.x01, .cricket])
+
+        let query = ActivityModeFilter.all.historyQueryTypes
+        #expect(query.matchType == nil)
+        #expect(query.includedMatchTypes == [.x01, .cricket])
     }
 
     @Test
