@@ -130,6 +130,7 @@ struct AroundTheClockMatchScreen: View {
             enteredDarts: $viewModel.enteredDarts,
             selectedMultiplier: $viewModel.selectedMultiplier,
             lockedSegment: viewModel.lockedSegment,
+            scoringSegmentsDisabled: viewModel.scoringSegmentsDisabled,
             showsBull: viewModel.isOnBullTarget,
             onUndoTurn: {
                 actionTask?.cancel()

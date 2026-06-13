@@ -18,7 +18,7 @@ extension SetupHomeView {
     }
 
     private var hareAndHoundsHoundStartChip: some View {
-        chip(title: "play.hareAndHounds.setup.houndStart", color: Brand.key) {
+        chip(titleKey: "play.hareAndHounds.setup.houndStart", color: Brand.key) {
             Menu {
                 ForEach(HoundStartPosition.allCases, id: \.rawValue) { position in
                     Button(position.displayName) {

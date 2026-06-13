@@ -321,11 +321,11 @@
 "settings.support.feedback" = "Feedback sturen";
 "settings.support.rate" = "Dart Buddy beoordelen";
 "settings.support.privacy" = "Privacybeleid";
+"settings.support.accessibility" = "Toegankelijkheid";
 "settings.support.faq.accessibility" = "Support en FAQ openen in de browser";
 "settings.support.feedback.accessibility" = "Feedback sturen per e-mail";
 "settings.support.rate.accessibility" = "Dart Buddy beoordelen in de App Store";
 "settings.support.privacy.accessibility" = "Privacybeleid openen in de browser";
-"settings.support.accessibility" = "Toegankelijkheid";
 "settings.support.accessibility.accessibility" = "Toegankelijkheidsinformatie openen in de browser";
 "settings.support.feedbackEmailSubject" = "Dart Buddy-feedback";
 "settings.support.feedbackEmailBodyFormat" = "App-versie: %@\n\n";
@@ -746,7 +746,6 @@
 "onboarding.welcome.body" = "Je lokale scorebord voor X01 en Cricket. Beheer spelers en wedstrijdgeschiedenis — geen account nodig en je gegevens blijven op dit apparaat.";
 "onboarding.experience.title" = "Kun je darts spelen?";
 "onboarding.experience.body" = "We passen je eerste stappen aan op basis van je ervaring.";
-
 "onboarding.roster.title" = "Stel je roster in";
 "onboarding.roster.body" = "Voeg jezelf toe en we maken een bot-tegenstander op het door jou gekozen niveau. Beide verschijnen op Spelen als je klaar bent.";
 "onboarding.roster.name" = "Je naam";

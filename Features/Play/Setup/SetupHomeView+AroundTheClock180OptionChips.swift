@@ -21,7 +21,7 @@ extension SetupHomeView {
     }
 
     private var atc180ParScoreChip: some View {
-        chip(title: "play.aroundTheClock180.setup.parScore", color: Brand.amber) {
+        chip(titleKey: "play.aroundTheClock180.setup.parScore", color: Brand.amber) {
             Menu {
                 Button(L10n.string("play.aroundTheClock180.setup.parScore.none")) {
                     setupViewModel.aroundTheClock180ParScoreEnabled = false

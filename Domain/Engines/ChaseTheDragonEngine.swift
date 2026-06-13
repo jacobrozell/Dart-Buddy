@@ -249,12 +249,10 @@ public enum ChaseTheDragonEngine {
             )
             if hit {
                 stepIndex += 1
-                // Stepped past the last position in the sequence — lap done.
                 if stepIndex == stepsPerLap {
                     updated.players[playerIndex].lapsCompleted += 1
                     let lapsNeeded = updated.config.laps.rawValue
                     if updated.players[playerIndex].lapsCompleted >= lapsNeeded {
-                        // Player finished all required laps — game over.
                         updated.players[playerIndex].stepIndex = stepIndex
                         updated.players[playerIndex].totalDartsThrown += darts.count
                         updated.turnIndex += 1
@@ -270,10 +268,8 @@ public enum ChaseTheDragonEngine {
                         )
                         return ChaseTheDragonTurnOutcome(updatedState: updated, event: event)
                     }
-                    // Reset step for next lap.
                     stepIndex = 0
                 }
-                break // Only the first qualifying hit per visit advances.
             }
         }
 

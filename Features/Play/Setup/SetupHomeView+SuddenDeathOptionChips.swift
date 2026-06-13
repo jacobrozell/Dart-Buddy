@@ -20,7 +20,7 @@ extension SetupHomeView {
     }
 
     private var suddenDeathEliminateAllTiedChip: some View {
-        chip(title: "play.suddenDeath.setup.eliminateAllTied", color: Brand.amber) {
+        chip(titleKey: "play.suddenDeath.setup.eliminateAllTied", color: Brand.amber) {
             Button {
                 setupViewModel.suddenDeathEliminateAllTied.toggle()
                 setupViewModel.revalidate()
@@ -38,7 +38,7 @@ extension SetupHomeView {
     }
 
     private var suddenDeathVisitsPerRoundChip: some View {
-        chip(title: "play.suddenDeath.setup.visitsPerRound", color: Brand.key) {
+        chip(titleKey: "play.suddenDeath.setup.visitsPerRound", color: Brand.key) {
             Menu {
                 ForEach([1, 2], id: \.self) { count in
                     Button(L10n.format("play.suddenDeath.setup.visitsPerRoundValueFormat", count)) {

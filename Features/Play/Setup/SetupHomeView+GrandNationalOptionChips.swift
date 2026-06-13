@@ -20,7 +20,7 @@ extension SetupHomeView {
     }
 
     private var grandNationalRulesetChip: some View {
-        chip(title: "play.grandNational.setup.ruleset", color: Brand.key) {
+        chip(titleKey: "play.grandNational.setup.ruleset", color: Brand.key) {
             Menu {
                 ForEach(GrandNationalRuleset.allCases, id: \.rawValue) { ruleset in
                     Button(ruleset.displayName) {
@@ -40,7 +40,7 @@ extension SetupHomeView {
     }
 
     private var grandNationalLapsChip: some View {
-        chip(title: "play.grandNational.setup.laps", color: Brand.amber) {
+        chip(titleKey: "play.grandNational.setup.laps", color: Brand.amber) {
             Menu {
                 ForEach([1, 2, 3], id: \.self) { count in
                     Button(L10n.format("play.grandNational.setup.lapsValueFormat", count)) {

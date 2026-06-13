@@ -74,6 +74,24 @@ func atc180ViewModelCanSubmitWithThreeDarts() async throws {
     #expect(vm.canSubmit == true)
 }
 
+// MARK: - Scoreboard rows
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func atc180ViewModelScoreboardRowsExposeSoloLeader() async throws {
+    let (vm, _) = try makeATC180ViewModel()
+    vm.enteredDarts = [
+        atc180Dart(.triple, 1),
+        atc180Dart(.triple, 1),
+        atc180Dart(.triple, 1),
+    ]
+    await vm.submitTurn()
+
+    #expect(vm.scoreboardRows.count == 1)
+    #expect(vm.scoreboardRows[0].cumulativePoints == 9)
+    #expect(vm.scoreboardRows[0].isLeading == true)
+}
+
 // MARK: - Submission
 
 @MainActor

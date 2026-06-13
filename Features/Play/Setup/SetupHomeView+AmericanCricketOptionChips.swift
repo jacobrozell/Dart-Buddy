@@ -7,7 +7,7 @@ extension SetupHomeView {
     }
 
     private var americanCricketPointsChip: some View {
-        chip(title: "play.americanCricket.setup.points", color: Brand.amber) {
+        chip(titleKey: "play.americanCricket.setup.points", color: Brand.amber) {
             Menu {
                 Button(L10n.string("play.americanCricket.setup.pointsOn")) {
                     setupViewModel.americanCricketPointsEnabled = true

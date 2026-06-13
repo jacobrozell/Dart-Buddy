@@ -243,25 +243,22 @@ public enum HareAndHoundsEngine {
         let playerIndex = updated.currentPlayerIndex
         let player = updated.players[playerIndex]
         let positionBefore = player.positionIndex
-        let targetSegment = player.currentSegment
-
-        // First hit on current segment advances one position clockwise.
-        let didHit = darts.contains { dartHitsSegment($0, segment: targetSegment) }
-
         var positionAfter = positionBefore
         var winReason: HareAndHoundsWinReason? = nil
 
-        if didHit {
-            let newIndex = positionBefore + 1
+        for dart in darts {
+            guard !updated.isComplete else { break }
+            let targetSegment = updated.players[playerIndex].currentSegment
+            guard dartHitsSegment(dart, segment: targetSegment) else { continue }
+
+            let newIndex = updated.players[playerIndex].positionIndex + 1
             if newIndex >= HareAndHoundsState.courseLength {
-                // Hare completed the circuit.
-                if player.role == .hare {
-                    positionAfter = HareAndHoundsState.courseLength // sentinel; normalised to 0 on store
+                if updated.players[playerIndex].role == .hare {
+                    positionAfter = HareAndHoundsState.courseLength
                     updated.players[playerIndex].positionIndex = 0
                     winReason = .hareLapComplete
                     completeMatch(&updated, winnerId: player.playerId, reason: .hareLapComplete)
                 } else {
-                    // Hound completed the course (wraps — unusual but safe).
                     updated.players[playerIndex].positionIndex = 0
                     positionAfter = 0
                 }
@@ -270,9 +267,8 @@ public enum HareAndHoundsEngine {
                 positionAfter = newIndex
             }
 
-            // Check Hound-overtake win (only if not already completed by Hare lap).
             if !updated.isComplete {
-                winReason = checkOvertake(&updated)
+                winReason = checkOvertake(&updated) ?? winReason
             }
         }
 

@@ -183,13 +183,13 @@ public enum AroundTheClockEngine {
         let playerId = updated.players[playerIndex].playerId
         let targetBefore = updated.players[playerIndex].targetIndex
 
-        // Count hits on the current target — first hit advances the index.
+        // Count hits on the current target — each hit advances the index.
         var advancedThisTurn = false
         var missCount = 0
 
         for dart in darts {
             let hits = dartHitsTarget(dart, player: updated.players[playerIndex], config: updated.config)
-            if hits && !advancedThisTurn {
+            if hits {
                 updated.players[playerIndex].targetIndex += 1
                 advancedThisTurn = true
             } else if !hits && !dart.isMiss {

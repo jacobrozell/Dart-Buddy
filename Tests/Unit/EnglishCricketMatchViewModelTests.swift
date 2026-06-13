@@ -130,6 +130,19 @@ func englishCricketViewModelHeaderAccessibilityContainsTitle() async throws {
 }
 
 @MainActor
+@Test(.tags(.integration, .match, .regression))
+func englishCricketViewModelScoreboardRowsExposeBatterAndBowler() async throws {
+    let (vm, _) = try makeEnglishCricketViewModel()
+
+    #expect(vm.scoreboardRows.count == 2)
+    #expect(vm.scoreboardRows.contains { $0.isBatter })
+    #expect(vm.scoreboardRows.contains { $0.isBowler })
+    #expect(vm.scoreboardRows.filter { $0.isActiveTurn }.count == 1)
+    let bowler = try #require(vm.scoreboardRows.first { $0.isBowler })
+    #expect(bowler.wicketsRemaining == 10)
+}
+
+@MainActor
 @Test(.tags(.integration, .match, .critical, .regression))
 func englishCricketViewModelMatchCompletesAfterBothInnings() async throws {
     let (vm, store) = try makeEnglishCricketViewModel(

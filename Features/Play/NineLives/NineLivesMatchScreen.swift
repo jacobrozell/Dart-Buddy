@@ -16,11 +16,9 @@ struct NineLivesMatchScreen: View {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 VStack(alignment: .leading, spacing: 2) {
                     BrandMatchScreenTitle(title: "play.nineLives.navTitle")
-                    if let segment = viewModel.lockedSegment {
-                        Text(L10n.format("play.nineLives.targetProgressFormat", segment, 20))
-                            .font(.caption)
-                            .foregroundStyle(Brand.textSecondary)
-                    }
+                    Text(viewModel.headerText)
+                        .font(.caption)
+                        .foregroundStyle(Brand.textSecondary)
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(viewModel.headerAccessibilityLabel)
@@ -138,6 +136,7 @@ struct NineLivesMatchScreen: View {
             enteredDarts: $viewModel.enteredDarts,
             selectedMultiplier: $viewModel.selectedMultiplier,
             lockedSegment: viewModel.lockedSegment,
+            scoringSegmentsDisabled: viewModel.scoringSegmentsDisabled,
             showsBull: false,
             onUndoTurn: {
                 actionTask?.cancel()

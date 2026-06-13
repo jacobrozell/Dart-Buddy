@@ -119,20 +119,21 @@ func hareAndHoundsWrongSegmentDoesNotAdvance() throws {
     #expect(harePlayer?.positionIndex == 0)
 }
 
-@Test(.tags(.unit, .match, .offline, .regression))
-func hareAndHoundsOnlyFirstHitCountsPerVisit() throws {
+@Test(.tags(.unit, .match, .critical, .offline, .regression))
+func hareAndHoundsMultipleHitsInOneTurnAdvanceEachSegment() throws {
     let hare = UUID()
     let state = try HareAndHoundsEngine.makeInitialState(
         config: MatchConfigHareAndHounds(),
         playerIds: [hare, UUID()]
     )
-    // Three hits on the target — should only advance once.
+    // Hare at 20 → hit 20, then 1, then 18 advances three positions.
     let outcome = try HareAndHoundsEngine.submitTurn(
         state: state,
-        darts: [hit(20), hit(20), hit(20)]
+        darts: [hit(20), hit(1), hit(18)]
     )
     let harePlayer = outcome.updatedState.players.first { $0.role == .hare }
-    #expect(harePlayer?.positionIndex == 1)
+    #expect(harePlayer?.positionIndex == 3)
+    #expect(harePlayer?.currentSegment == 4)
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))

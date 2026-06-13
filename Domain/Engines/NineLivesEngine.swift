@@ -201,10 +201,10 @@ public enum NineLivesEngine {
         let playerId = updated.players[playerIndex].playerId
         let targetIndexBefore = updated.players[playerIndex].targetIndex
 
-        // Scan darts: the first hit on the current target advances the player.
+        // Each hit on the current target advances the player for the rest of the visit.
         var advanced = false
         for dart in darts {
-            guard !advanced else { break }
+            guard updated.players[playerIndex].targetIndex < 20 else { break }
             if dartHitsTarget(dart, targetIndex: updated.players[playerIndex].targetIndex) {
                 updated.players[playerIndex].targetIndex += 1
                 advanced = true

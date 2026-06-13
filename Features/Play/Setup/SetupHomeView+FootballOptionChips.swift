@@ -20,7 +20,7 @@ extension SetupHomeView {
     }
 
     private var footballGoalsChip: some View {
-        chip(title: "play.football.setup.goalsToWin", color: Brand.key) {
+        chip(titleKey: "play.football.setup.goalsToWin", color: Brand.key) {
             Menu {
                 ForEach([5, 7, 10, 15, 20], id: \.self) { count in
                     Button(L10n.format("play.football.setup.goalsValueFormat", count)) {
@@ -40,7 +40,7 @@ extension SetupHomeView {
     }
 
     private var footballKickoffModeChip: some View {
-        chip(title: "play.football.setup.kickoffMode", color: Brand.amber) {
+        chip(titleKey: "play.football.setup.kickoffMode", color: Brand.amber) {
             Menu {
                 ForEach(FootballKickoffMode.allCases, id: \.rawValue) { mode in
                     Button(mode.displayName) {

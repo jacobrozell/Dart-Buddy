@@ -105,6 +105,29 @@ func chaseTheDragonViewModelMissDoesNotAdvanceStep() async throws {
 
 @MainActor
 @Test(.tags(.integration, .match, .regression))
+func chaseTheDragonViewModelCurrentStepLabelAdvancesDuringVisitEntry() async throws {
+    let (vm, _) = try makeChaseTheDragonViewModel()
+    vm.enteredDarts = [ctdTreble(10)]
+    #expect(vm.currentStepLabel.contains("11"))
+
+    vm.enteredDarts = [ctdTreble(10), ctdTreble(11)]
+    #expect(vm.currentStepLabel.contains("12"))
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .critical, .regression))
+func chaseTheDragonViewModelMultipleHitsInOneTurnAdvanceStep() async throws {
+    let (vm, _) = try makeChaseTheDragonViewModel()
+    vm.enteredDarts = [ctdTreble(10), ctdTreble(11), ctdTreble(12)]
+
+    await vm.submitTurn()
+
+    #expect(vm.chaseTheDragonState?.players[0].stepIndex == 3)
+    #expect(vm.enteredDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
 func chaseTheDragonViewModelCurrentStepLabelReflectsSequence() async throws {
     let (vm, _) = try makeChaseTheDragonViewModel()
 
@@ -135,6 +158,17 @@ func chaseTheDragonViewModelLapLabelPresentForMultiLap() async throws {
     let (vm, _) = try makeChaseTheDragonViewModel(laps: .three)
 
     #expect(vm.lapLabel != nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func chaseTheDragonViewModelSequenceRowsReflectParticipants() async throws {
+    let (vm, _) = try makeChaseTheDragonViewModel(participantCount: 2, laps: .one)
+
+    #expect(vm.sequenceRows.count == 2)
+    #expect(vm.sequenceRows[0].totalSteps == ChaseTheDragonEngine.stepsPerLap)
+    #expect(vm.sequenceRows.filter { $0.isActive }.count == 1)
+    #expect(vm.sequenceRows[0].completedSteps == 0)
 }
 
 // MARK: - Undo

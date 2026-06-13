@@ -18,7 +18,7 @@ extension SetupHomeView {
     }
 
     private var nineLivesStartingLivesChip: some View {
-        chip(title: "play.nineLives.setup.startingLives", color: Brand.key) {
+        chip(titleKey: "play.nineLives.setup.startingLives", color: Brand.key) {
             Menu {
                 ForEach(NineLivesStartingLives.allCases, id: \.rawValue) { option in
                     Button(option.displayName) {

@@ -321,11 +321,11 @@
 "settings.support.feedback" = "Feedback senden";
 "settings.support.rate" = "Dart Buddy bewerten";
 "settings.support.privacy" = "Datenschutzrichtlinie";
+"settings.support.accessibility" = "Barrierefreiheit";
 "settings.support.faq.accessibility" = "Support und FAQ im Browser öffnen";
 "settings.support.feedback.accessibility" = "Feedback per E-Mail senden";
 "settings.support.rate.accessibility" = "Dart Buddy im App Store bewerten";
 "settings.support.privacy.accessibility" = "Datenschutzrichtlinie im Browser öffnen";
-"settings.support.accessibility" = "Barrierefreiheit";
 "settings.support.accessibility.accessibility" = "Barrierefreiheitsinformationen im Browser öffnen";
 "settings.support.feedbackEmailSubject" = "Dart Buddy Feedback";
 "settings.support.feedbackEmailBodyFormat" = "App-Version: %@\n\n";
@@ -746,7 +746,6 @@
 "onboarding.welcome.body" = "Dein lokaler Scorekeeper für X01 und Cricket. Verwalte Spieler und Spielhistorie — kein Konto nötig, deine Daten bleiben auf diesem Gerät.";
 "onboarding.experience.title" = "Kennst du dich mit Darts aus?";
 "onboarding.experience.body" = "Wir passen deine ersten Schritte an deine Erfahrung an.";
-
 "onboarding.roster.title" = "Roster einrichten";
 "onboarding.roster.body" = "Füge dich hinzu und wir erstellen einen Bot-Gegner auf dem von dir gewählten Niveau. Beide erscheinen nach dem Abschluss unter Spielen.";
 "onboarding.roster.name" = "Dein Name";

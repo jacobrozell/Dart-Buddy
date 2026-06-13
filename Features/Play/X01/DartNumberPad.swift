@@ -8,6 +8,8 @@ struct DartNumberPad: View {
     @Binding var selectedMultiplier: DartMultiplier
     /// When set, only this segment (and optionally bull) accepts scoring input.
     var lockedSegment: Int? = nil
+    /// When true, number keys are disabled (miss and undo still work).
+    var scoringSegmentsDisabled: Bool = false
     var showsBull: Bool = true
     var maxDarts: Int = 3
     /// When false, hides the in-pad visit row (e.g. X01 landscape where the score card already shows darts).
@@ -210,6 +212,7 @@ struct DartNumberPad: View {
     }
 
     private func isSegmentEnabled(_ value: Int) -> Bool {
+        if scoringSegmentsDisabled { return false }
         guard let lockedSegment else { return true }
         return value == lockedSegment
     }
@@ -273,6 +276,7 @@ struct DartNumberPad: View {
 
     private func append(_ value: Int) {
         guard enteredDarts.count < maxDarts else { return }
+        if scoringSegmentsDisabled { return }
         if value != 25, let lockedSegment, value != lockedSegment { return }
         if value == 25, !showsBull { return }
         let dart: DartInput

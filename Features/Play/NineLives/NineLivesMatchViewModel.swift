@@ -72,17 +72,31 @@ final class NineLivesMatchViewModel: ObservableObject {
         )
     }
 
+    var currentTarget: Int? {
+        projectedPlayerState()?.currentTarget
+    }
+
     var lockedSegment: Int? {
-        guard let gameState = nineLivesState else { return nil }
+        currentTarget
+    }
+
+    var scoringSegmentsDisabled: Bool {
+        guard let gameState = nineLivesState else { return false }
         let player = gameState.players[gameState.currentPlayerIndex]
-        guard !player.isEliminated, !player.hasCompleted else { return nil }
-        return player.currentTarget
+        guard !player.isEliminated else { return false }
+        var targetIndex = player.targetIndex
+        for dart in enteredDarts {
+            guard targetIndex < 20 else { return true }
+            if NineLivesEngine.dartHitsTarget(dart, targetIndex: targetIndex) {
+                targetIndex += 1
+            }
+        }
+        return targetIndex >= 20
     }
 
     var headerText: String {
-        guard let gameState = nineLivesState else { return "" }
-        let player = gameState.players[gameState.currentPlayerIndex]
-        return L10n.format("play.nineLives.targetProgressFormat", player.currentTarget, 20)
+        guard let target = currentTarget else { return "" }
+        return L10n.format("play.nineLives.targetProgressFormat", target, 20)
     }
 
     var headerAccessibilityLabel: String {
@@ -390,5 +404,19 @@ final class NineLivesMatchViewModel: ObservableObject {
 
     private func participant(for playerId: UUID) -> MatchParticipant? {
         session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
+    }
+
+    private func projectedPlayerState() -> NineLivesPlayerState? {
+        guard let gameState = nineLivesState else { return nil }
+        var player = gameState.players[gameState.currentPlayerIndex]
+        guard !player.isEliminated else { return nil }
+        for dart in enteredDarts {
+            guard player.targetIndex < 20 else { break }
+            if NineLivesEngine.dartHitsTarget(dart, targetIndex: player.targetIndex) {
+                player.targetIndex += 1
+            }
+        }
+        guard player.targetIndex < 20 else { return nil }
+        return player
     }
 }

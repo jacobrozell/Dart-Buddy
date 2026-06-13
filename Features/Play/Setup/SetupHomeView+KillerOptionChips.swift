@@ -9,7 +9,7 @@ extension SetupHomeView {
     }
 
     private var killerLivesChip: some View {
-        chip(title: "play.killer.setup.lives", color: Brand.red) {
+        chip(titleKey: "play.killer.setup.lives", color: Brand.red) {
             Menu {
                 ForEach([3, 4, 5], id: \.self) { lives in
                     Button(L10n.format("play.killer.setup.livesValueFormat", lives)) {

@@ -74,26 +74,34 @@ final class ChaseTheDragonMatchViewModel: ObservableObject {
 
     /// The current dragon step as a display label for the header.
     var currentStepLabel: String {
-        guard let gameState = chaseTheDragonState else { return "" }
-        let stepIndex = gameState.players[gameState.currentPlayerIndex].stepIndex
-        guard stepIndex < ChaseTheDragonEngine.stepsPerLap else { return "" }
-        return ChaseTheDragonEngine.dragonSequence[stepIndex].displayLabel
+        guard let projection = projectedStepState(),
+              projection.stepIndex < ChaseTheDragonEngine.stepsPerLap else { return "" }
+        return ChaseTheDragonEngine.dragonSequence[projection.stepIndex].displayLabel
     }
 
     /// Full sequence progress for the current player (e.g. "Step 3 of 13").
     var sequenceProgressText: String {
-        guard let gameState = chaseTheDragonState else { return "" }
-        let player = gameState.players[gameState.currentPlayerIndex]
+        guard let gameState = chaseTheDragonState,
+              let projection = projectedStepState() else { return "" }
         let totalSteps = ChaseTheDragonEngine.stepsPerLap * gameState.config.laps.rawValue
-        let completedSteps = player.lapsCompleted * ChaseTheDragonEngine.stepsPerLap + player.stepIndex
+        let completedSteps = projection.lapsCompleted * ChaseTheDragonEngine.stepsPerLap + projection.stepIndex
         return L10n.format("play.chaseTheDragon.sequenceProgressFormat", completedSteps + 1, totalSteps)
+    }
+
+    var scoringSegmentsDisabled: Bool {
+        projectedStepState()?.wouldCompleteMatch == true
     }
 
     /// Current lap label shown when laps > 1.
     var lapLabel: String? {
-        guard let gameState = chaseTheDragonState, gameState.config.laps.rawValue > 1 else { return nil }
-        let player = gameState.players[gameState.currentPlayerIndex]
-        return L10n.format("play.chaseTheDragon.lapFormat", player.lapsCompleted + 1, gameState.config.laps.rawValue)
+        guard let gameState = chaseTheDragonState,
+              gameState.config.laps.rawValue > 1,
+              let projection = projectedStepState() else { return nil }
+        return L10n.format(
+            "play.chaseTheDragon.lapFormat",
+            projection.lapsCompleted + 1,
+            gameState.config.laps.rawValue
+        )
     }
 
     var headerAccessibilityLabel: String {
@@ -225,6 +233,43 @@ final class ChaseTheDragonMatchViewModel: ObservableObject {
         session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
+    private struct ProjectedStepState {
+        var stepIndex: Int
+        var lapsCompleted: Int
+        var wouldCompleteMatch: Bool
+    }
+
+    private func projectedStepState() -> ProjectedStepState? {
+        guard let gameState = chaseTheDragonState else { return nil }
+        let player = gameState.players[gameState.currentPlayerIndex]
+        var stepIndex = player.stepIndex
+        var lapsCompleted = player.lapsCompleted
+        let lapsNeeded = gameState.config.laps.rawValue
+
+        for dart in enteredDarts {
+            guard stepIndex < ChaseTheDragonEngine.stepsPerLap else { break }
+            let step = ChaseTheDragonEngine.dragonSequence[stepIndex]
+            guard step.isQualifyingHit(dart) else { continue }
+            stepIndex += 1
+            if stepIndex == ChaseTheDragonEngine.stepsPerLap {
+                lapsCompleted += 1
+                if lapsCompleted >= lapsNeeded {
+                    return ProjectedStepState(
+                        stepIndex: stepIndex,
+                        lapsCompleted: lapsCompleted,
+                        wouldCompleteMatch: true
+                    )
+                }
+                stepIndex = 0
+            }
+        }
+        return ProjectedStepState(
+            stepIndex: stepIndex,
+            lapsCompleted: lapsCompleted,
+            wouldCompleteMatch: false
+        )
+    }
+
     private func reconcileAfterSummaryUndo() async -> Bool {
         guard state == .matchCompleted,
               let stored = store.session(for: matchId),
@@ -265,10 +310,12 @@ final class ChaseTheDragonMatchViewModel: ObservableObject {
         defer { isBotPlaying = false }
 
         enteredDarts.removeAll()
-        let stepIndex = gameState.players[gameState.currentPlayerIndex].stepIndex
+        let player = gameState.players[gameState.currentPlayerIndex]
         var rng = SystemRandomNumberGenerator()
         let plannedDarts = DartBotEngine.generateChaseTheDragonTurn(
-            stepIndex: stepIndex,
+            stepIndex: player.stepIndex,
+            lapsCompleted: player.lapsCompleted,
+            lapsNeeded: gameState.config.laps.rawValue,
             profile: profile,
             rng: &rng
         )

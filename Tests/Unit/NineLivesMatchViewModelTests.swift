@@ -59,6 +59,30 @@ func nineLivesViewModelInitialTargetIsOne() async throws {
 
 @MainActor
 @Test(.tags(.integration, .match, .regression))
+func nineLivesViewModelLockedSegmentAdvancesDuringVisitEntry() async throws {
+    let (vm, _) = try makeNineLivesViewModel()
+    vm.enteredDarts = [nlHit(1)]
+    #expect(vm.lockedSegment == 2)
+
+    vm.enteredDarts = [nlHit(1), nlHit(2)]
+    #expect(vm.lockedSegment == 3)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .critical, .regression))
+func nineLivesViewModelMultipleHitsInOneTurnAdvanceTarget() async throws {
+    let (vm, _) = try makeNineLivesViewModel()
+    vm.enteredDarts = [nlHit(1), nlHit(2), nlHit(3)]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn)
+    #expect(vm.nineLivesState?.players[0].targetIndex == 3)
+    #expect(vm.enteredDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
 func nineLivesViewModelRequiresThreeDartsBeforeSubmit() async throws {
     let (vm, _) = try makeNineLivesViewModel()
     vm.enteredDarts = [nlHit(1), nlMiss()]

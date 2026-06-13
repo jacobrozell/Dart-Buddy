@@ -3,7 +3,9 @@
 ## 1. Purpose
 Define Around the Clock — hit segments 1 through 20 in order — for future implementation.
 
-**Status:** Planned (`practice.aroundTheClock`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
+**Status:** Shipped (`practice.aroundTheClock`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
+
+**In-visit progression:** [`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) (reference implementation).
 
 References: [darts501.com — Around the Clock](https://darts501.com/Games.html).
 
@@ -38,7 +40,7 @@ References: [darts501.com — Around the Clock](https://darts501.com/Games.html)
 
 ## 3. MVP Scope
 - Targets **1 → 20** in order; optional **bull finish** (setup chip)
-- 3 darts per turn; **first hit** on current target advances
+- 3 darts per turn; **each hit** on the current target advances to the next target for the rest of the visit
 - Solo: track time / dart count to finish; multiplayer: first to finish wins
 - Reset policy (setup): `noReset` (default), `resetOnThreeMisses`, `resetEntireSequence`
 - Sequence progress strip; per-dart entry; undo; local persistence
@@ -61,8 +63,8 @@ References: [darts501.com — Around the Clock](https://darts501.com/Games.html)
 - `missCountThisTurn` for reset policies
 
 ### Turn flow
-1. Darts on current target advance index on first hit.
-2. Apply reset policy at end of visit.
+1. Process darts in order; each hit on the **current** target advances index by one (see supplement §3).
+2. Apply reset policy at end of visit when no advance occurred.
 3. Win when index passes 20 (and bull if enabled).
 
 ### Undo
@@ -73,6 +75,7 @@ Replay restores indices.
 ## 5. UI Specification
 - Template E: chip trail 1–20 (+ bull)
 - Solo stats: darts thrown, elapsed time
+- Scoring pad: [`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) §4 — `lockedSegment` projects through `enteredDarts`; `scoringSegmentsDisabled` after sequence complete mid-visit
 
 ---
 
@@ -81,13 +84,13 @@ Replay restores indices.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.aroundTheClock.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
 
 ### Overview
 | **Title key** | `play.rules.aroundTheClock.overview.title` |
 | **Body key** | `play.rules.aroundTheClock.overview.body` |
 
-Hit every number in order from 1 through 20, then optionally the bull. Three darts per turn. First hit on the current target moves you forward.
+Hit every number in order from 1 through 20, then optionally the bull. Three darts per turn. Each dart that hits the current target moves you to the next number for the rest of the visit — you can hit 1, 2, and 3 on the same turn.
 
 ### Solo play
 | **Title key** | `play.rules.aroundTheClock.solo.title` |
@@ -133,7 +136,8 @@ Choose in setup: no reset (default), reset after three misses on the same target
 ---
 
 ## 7. Testing
-- Unit: advance on hit, reset policies, bull finish
+- Unit: advance on hit, **multi-hit visit** (`hit(1), hit(2), hit(3)`), reset policies, bull finish
+- View model: `lockedSegment` advances during `enteredDarts` entry
 - Solo vs multiplayer win
 
 ---
@@ -141,4 +145,4 @@ Choose in setup: no reset (default), reset after three misses on the same target
 ## 8. Verification
 | Field | Value |
 |-------|-------|
-| **Status** | Planned |
+| **Status** | Shipped |

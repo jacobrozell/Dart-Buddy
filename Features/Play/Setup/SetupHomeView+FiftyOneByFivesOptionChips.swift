@@ -23,7 +23,7 @@ extension SetupHomeView {
     }
 
     private var fiftyOneByFivesTargetChip: some View {
-        chip(title: "play.fiftyOneByFives.setup.targetPoints", color: Brand.key) {
+        chip(titleKey: "play.fiftyOneByFives.setup.targetPoints", color: Brand.key) {
             Menu {
                 ForEach([31, 41, 51, 61, 101], id: \.self) { target in
                     Button(L10n.format("play.fiftyOneByFives.setup.targetPointsValueFormat", target)) {
@@ -46,7 +46,7 @@ extension SetupHomeView {
     }
 
     private var fiftyOneByFivesMustFinishExactChip: some View {
-        chip(title: "play.fiftyOneByFives.setup.mustFinishExact", color: Brand.amber) {
+        chip(titleKey: "play.fiftyOneByFives.setup.mustFinishExact", color: Brand.amber) {
             Toggle(isOn: Binding(
                 get: { setupViewModel.fiftyOneByFivesMustFinishExact },
                 set: {

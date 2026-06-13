@@ -3,7 +3,9 @@
 ## 1. Purpose
 Define Hare and Hounds — a two-player chase around the clock-wise board — for future implementation.
 
-**Status:** Planned (`party.hareAndHounds`).
+**Status:** Shipped (`party.hareAndHounds`).
+
+**In-visit progression:** [`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) — effective target is the **course segment** after projected hits.
 
 References: [darts501.com — Hare and Hounds](https://darts501.com/Games.html).
 
@@ -38,7 +40,7 @@ References: [darts501.com — Hare and Hounds](https://darts501.com/Games.html).
 ## 3. MVP Scope
 - **Hare** starts at 20; **Hound** starts at 5 or 12 (setup chip)
 - Both advance **clockwise** following board order (20→1→18→…), hitting current segment to advance
-- 3 darts per turn; first hit on target advances one segment
+- 3 darts per turn; **each hit** on the active course segment advances one position clockwise
 - **Hare wins** by completing circuit back to 20 before hound catches up
 - **Hound wins** by passing hare on the track
 - Dual-track progress UI; undo; local persistence
@@ -61,8 +63,8 @@ References: [darts501.com — Hare and Hounds](https://darts501.com/Games.html).
 - `roles: [playerId: Role]`
 
 ### Turn flow
-1. Active player throws at their current segment.
-2. Advance on hit; check catch/overtake win conditions.
+1. Process darts in order; each hit on the **current course segment** advances one index on `clockwiseCourse` (supplement §3).
+2. Check catch/overtake and lap-complete win conditions after the visit.
 
 ### Undo
 Replay restores both positions.
@@ -72,6 +74,7 @@ Replay restores both positions.
 ## 5. UI Specification
 - Template E with **two markers** on shared segment strip
 - Role badges (Hare / Hound)
+- Scoring pad: supplement §4 — `lockedSegment` = effective **course segment** (e.g. 20 → 1 after a hit on 20)
 
 ---
 
@@ -80,7 +83,7 @@ Replay restores both positions.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.hareAndHounds.` |
-| **Shipped in app** | Planned |
+| **Shipped in app** | Yes |
 
 ### Overview
 | **Title key** | `play.rules.hareAndHounds.overview.title` |
@@ -92,7 +95,7 @@ A two-player chase around the board. The Hare leads from 20; the Hound pursues f
 | **Title key** | `play.rules.hareAndHounds.hare.title` |
 | **Body key** | `play.rules.hareAndHounds.hare.body` |
 
-The Hare must complete a full circuit back to 20 before the Hound catches up. Three darts per turn; any hit on the active segment moves you one step clockwise.
+The Hare must complete a full circuit back to 20 before the Hound catches up. Three darts per turn. Each dart that hits your **current** segment moves you one step clockwise — multiple segments in one visit are allowed.
 
 ### Hound
 | **Title key** | `play.rules.hareAndHounds.hound.title` |
@@ -132,11 +135,12 @@ Hare wins by reaching 20 first after a full lap. Hound wins by overtaking the Ha
 ---
 
 ## 7. Testing
-- Unit: catch detection, hare completion win, start positions
+- Unit: catch detection, hare completion win, start positions, **multi-segment visit**
+- View model: course-segment pad projection during entry
 
 ---
 
 ## 8. Verification
 | Field | Value |
 |-------|-------|
-| **Status** | Planned |
+| **Status** | Shipped |

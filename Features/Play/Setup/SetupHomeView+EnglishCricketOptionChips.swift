@@ -20,7 +20,7 @@ extension SetupHomeView {
     }
 
     private var englishCricketWicketsChip: some View {
-        chip(title: "play.englishCricket.setup.wicketsPerInnings", color: Brand.key) {
+        chip(titleKey: "play.englishCricket.setup.wicketsPerInnings", color: Brand.key) {
             Menu {
                 ForEach([5, 7, 10], id: \.self) { count in
                     Button(L10n.format("play.englishCricket.setup.wicketsValueFormat", count)) {
@@ -40,7 +40,7 @@ extension SetupHomeView {
     }
 
     private var englishCricketEndEarlyChip: some View {
-        chip(title: "play.englishCricket.setup.endWhenTargetPassed", color: Brand.amber) {
+        chip(titleKey: "play.englishCricket.setup.endWhenTargetPassed", color: Brand.amber) {
             Button {
                 setupViewModel.englishCricketEndWhenTargetPassed.toggle()
                 setupViewModel.revalidate()

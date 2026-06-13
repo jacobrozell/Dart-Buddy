@@ -18,7 +18,7 @@ extension SetupHomeView {
     }
 
     private var golfCourseLengthChip: some View {
-        chip(title: "play.golf.setup.courseLength", color: Brand.key) {
+        chip(titleKey: "play.golf.setup.courseLength", color: Brand.key) {
             Menu {
                 ForEach(GolfCourseLength.allCases, id: \.rawValue) { length in
                     Button(L10n.format("play.golf.setup.courseLengthValueFormat", length.rawValue)) {

@@ -73,19 +73,25 @@ final class HareAndHoundsMatchViewModel: ObservableObject {
         )
     }
 
-    /// The locked segment for the number pad (the current player's target segment).
+    /// The locked segment for the number pad (effective course segment during entry).
     var lockedSegment: Int? {
-        hareAndHoundsState.map { $0.players[$0.currentPlayerIndex].currentSegment }
+        guard !scoringSegmentsDisabled else { return nil }
+        return projectedPositionIndex().map { MatchConfigHareAndHounds.clockwiseCourse[$0] }
+    }
+
+    var scoringSegmentsDisabled: Bool {
+        projectedVisitOutcome()?.wouldCompleteMatch == true
     }
 
     var headerText: String {
         guard let gameState = hareAndHoundsState else { return "" }
         let player = gameState.players[gameState.currentPlayerIndex]
         let roleKey = player.role == .hare ? "role.hare" : "role.hound"
+        let segment = lockedSegment ?? player.currentSegment
         return L10n.format(
             "play.hareAndHounds.trackPositionFormat",
             L10n.string(roleKey),
-            player.currentSegment
+            segment
         )
     }
 
@@ -196,6 +202,45 @@ final class HareAndHoundsMatchViewModel: ObservableObject {
         session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
 
+    private struct ProjectedVisitOutcome {
+        var positionIndex: Int
+        var wouldCompleteMatch: Bool
+    }
+
+    private func projectedVisitOutcome() -> ProjectedVisitOutcome? {
+        guard let gameState = hareAndHoundsState else { return nil }
+        let playerIndex = gameState.currentPlayerIndex
+        var positionIndex = gameState.players[playerIndex].positionIndex
+        let role = gameState.players[playerIndex].role
+        let courseLength = HareAndHoundsState.courseLength
+
+        for dart in enteredDarts {
+            let segment = MatchConfigHareAndHounds.clockwiseCourse[positionIndex]
+            guard HareAndHoundsEngine.dartHitsSegment(dart, segment: segment) else { continue }
+
+            let newIndex = positionIndex + 1
+            if newIndex >= courseLength {
+                if role == .hare {
+                    return ProjectedVisitOutcome(positionIndex: 0, wouldCompleteMatch: true)
+                }
+                positionIndex = 0
+            } else {
+                positionIndex = newIndex
+                if role == .hound, let hareIndex = gameState.harePlayer?.positionIndex {
+                    let chaseDistance = (hareIndex - positionIndex + courseLength) % courseLength
+                    if chaseDistance == 0 {
+                        return ProjectedVisitOutcome(positionIndex: positionIndex, wouldCompleteMatch: true)
+                    }
+                }
+            }
+        }
+        return ProjectedVisitOutcome(positionIndex: positionIndex, wouldCompleteMatch: false)
+    }
+
+    private func projectedPositionIndex() -> Int? {
+        projectedVisitOutcome()?.positionIndex
+    }
+
     private func reconcileAfterSummaryUndo() async -> Bool {
         guard state == .matchCompleted,
               let stored = store.session(for: matchId),
@@ -237,9 +282,9 @@ final class HareAndHoundsMatchViewModel: ObservableObject {
 
         enteredDarts.removeAll()
         var rng = SystemRandomNumberGenerator()
-        let currentSegment = gameState.players[gameState.currentPlayerIndex].currentSegment
+        let player = gameState.players[gameState.currentPlayerIndex]
         let plannedDarts = DartBotEngine.generateHareAndHoundsTurn(
-            targetSegment: currentSegment,
+            positionIndex: player.positionIndex,
             profile: profile,
             rng: &rng
         )

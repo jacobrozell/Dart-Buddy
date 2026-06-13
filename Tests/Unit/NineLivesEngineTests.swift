@@ -192,18 +192,17 @@ func nineLivesRejectsSubmitWhenComplete() throws {
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))
-func nineLivesOnlyFirstHitAdvances() throws {
+func nineLivesMultipleHitsInOneTurnAdvanceEachTarget() throws {
     let players = [UUID(), UUID()]
     let state = try NineLivesEngine.makeInitialState(config: MatchConfigNineLives(), playerIds: players)
 
-    // Three darts all on target 1 — should only advance once
     let outcome = try NineLivesEngine.submitTurn(
         state: state,
-        darts: [hit(1), hit(1), hit(1)]
+        darts: [hit(1), hit(2), hit(3)]
     )
 
     #expect(outcome.event.advanced == true)
-    #expect(outcome.updatedState.players[0].targetIndex == 1)
+    #expect(outcome.updatedState.players[0].targetIndex == 3)
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))

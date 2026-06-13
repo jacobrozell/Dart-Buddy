@@ -94,14 +94,16 @@ Do not block 1.0 on these.
 
 ### Post-1.0 roadmap
 
-- [ ] **Product backlog** — [`FutureIdeas/backlog.md`](../../FutureIdeas/backlog.md) (CSV export on recovery, a11y gameplay layout, Edit Player colors/symbols, bot names/colors, custom bots, more game types, additional locales).
+- [ ] **Product backlog** — [`FutureIdeas/backlog.md`](../../FutureIdeas/backlog.md) (prioritized post-1.0 index: CSV recovery, Talk Mode, campaign, dartboard UI, platform items).
 - [ ] **Game Center achievements** — [`FutureIdeas/achievements.md`](FutureIdeas/achievements.md) (2–4 day MVP; good 1.1 candidate).
 - [ ] **Play reminders / push** — [`FutureIdeas/play-reminders.md`](FutureIdeas/play-reminders.md) (local notifications + Settings; 1–2 day MVP).
+- [ ] **Talk Mode (voice scoring input)** — [`FutureIdeas/talk-mode.md`](../../FutureIdeas/talk-mode.md) (speak darts at oche → `DartInput`; distinct from turn-total caller).
+- [ ] **Campaign mode** — [`FutureIdeas/campaign-mode.md`](../../FutureIdeas/campaign-mode.md) (ladder; depends on new game engines).
 - [ ] **Firebase Auth** — `../../specs/FirebaseBackendAnalyticsSpec.md` Phase 2
 - [ ] **Online play / Firestore sync** — `../../specs/OnlinePlaySpec.md`
 - [ ] **AI camera auto-scoring** — `AutoScoringVisionSpec`
 - [ ] **External display / AirPlay**
-- [ ] **Voice caller (“180!”)**
+- [ ] **Voice caller (“180!”)** — output/hype TTS; not Talk Mode input ([`FutureIdeas/talk-mode.md`](../../FutureIdeas/talk-mode.md))
 - [ ] **Apple Watch / widgets / cloud sync**
 
 ### Housekeeping (non-blocking)

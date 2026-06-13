@@ -18,7 +18,7 @@ extension SetupHomeView {
     }
 
     private var knockoutStrikesChip: some View {
-        chip(title: "play.knockout.setup.strikesToEliminate", color: Brand.red) {
+        chip(titleKey: "play.knockout.setup.strikesToEliminate", color: Brand.red) {
             Menu {
                 ForEach([1, 2, 3, 4, 5], id: \.self) { count in
                     Button(L10n.format("play.knockout.setup.strikesValueFormat", count)) {

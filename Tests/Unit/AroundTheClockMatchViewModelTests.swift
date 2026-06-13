@@ -63,6 +63,32 @@ func aroundTheClockViewModelInitialTargetIsOne() async throws {
 
 @MainActor
 @Test(.tags(.integration, .match, .regression))
+func aroundTheClockViewModelLockedSegmentAdvancesDuringVisitEntry() async throws {
+    let (vm, _) = try makeAroundTheClockViewModel()
+    vm.enteredDarts = [atcDart(1)]
+    #expect(vm.currentTarget == 2)
+    #expect(vm.lockedSegment == 2)
+
+    vm.enteredDarts = [atcDart(1), atcDart(2)]
+    #expect(vm.currentTarget == 3)
+    #expect(vm.lockedSegment == 3)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .critical, .regression))
+func aroundTheClockViewModelMultipleHitsInOneTurnAdvanceTarget() async throws {
+    let (vm, _) = try makeAroundTheClockViewModel()
+    vm.enteredDarts = [atcDart(1), atcDart(2), atcDart(3)]
+
+    await vm.submitTurn()
+
+    #expect(vm.state == .readyTurn || vm.state == .targetAdvancedFeedback)
+    #expect(vm.aroundTheClockState?.players[0].targetIndex == 3)
+    #expect(vm.enteredDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
 func aroundTheClockViewModelRequiresThreeDartsBeforeSubmit() async throws {
     let (vm, _) = try makeAroundTheClockViewModel()
     vm.enteredDarts = [atcDart(1), atcMiss()]

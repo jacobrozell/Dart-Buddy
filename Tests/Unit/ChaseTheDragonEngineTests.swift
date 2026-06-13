@@ -240,21 +240,20 @@ func chaseTheDragonPlayerRotationAdvancesCorrectly() throws {
     #expect(state.currentPlayerIndex == 0)
 }
 
-// MARK: - First qualifying hit only
+// MARK: - Multi-step visits
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))
-func chaseTheDragonOnlyFirstQualifyingHitAdvancesPerVisit() throws {
+func chaseTheDragonMultipleQualifyingHitsAdvancePerVisit() throws {
     let player = UUID()
     let state = try ChaseTheDragonEngine.makeInitialState(
         config: MatchConfigChaseTheDragon(),
         playerIds: [player]
     )
-    // All three darts hit T10 — should only advance one step.
     let outcome = try ChaseTheDragonEngine.submitTurn(
         state: state,
-        darts: [treble(10), treble(10), treble(10)]
+        darts: [treble(10), treble(11), treble(12)]
     )
-    #expect(outcome.updatedState.players[0].stepIndex == 1)
+    #expect(outcome.updatedState.players[0].stepIndex == 3)
 }
 
 // MARK: - Max dart validation

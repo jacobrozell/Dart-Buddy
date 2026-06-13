@@ -20,7 +20,7 @@ extension SetupHomeView {
     }
 
     private var aroundTheClockBullFinishChip: some View {
-        chip(title: "play.aroundTheClock.setup.includeBullFinish", color: Brand.amber) {
+        chip(titleKey: "play.aroundTheClock.setup.includeBullFinish", color: Brand.amber) {
             Button {
                 setupViewModel.aroundTheClockIncludeBullFinish.toggle()
                 setupViewModel.revalidate()
@@ -38,7 +38,7 @@ extension SetupHomeView {
     }
 
     private var aroundTheClockResetPolicyChip: some View {
-        chip(title: "play.aroundTheClock.setup.resetPolicy", color: Brand.key) {
+        chip(titleKey: "play.aroundTheClock.setup.resetPolicy", color: Brand.key) {
             Menu {
                 ForEach(AroundTheClockResetPolicy.allCases, id: \.rawValue) { policy in
                     Button(policy.displayName) {

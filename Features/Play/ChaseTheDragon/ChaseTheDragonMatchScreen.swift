@@ -131,6 +131,7 @@ struct ChaseTheDragonMatchScreen: View {
             enteredDarts: $viewModel.enteredDarts,
             selectedMultiplier: $viewModel.selectedMultiplier,
             lockedSegment: nil,
+            scoringSegmentsDisabled: viewModel.scoringSegmentsDisabled,
             showsBull: true,
             onUndoTurn: {
                 actionTask?.cancel()

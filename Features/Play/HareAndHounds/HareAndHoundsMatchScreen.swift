@@ -130,6 +130,7 @@ struct HareAndHoundsMatchScreen: View {
             enteredDarts: $viewModel.enteredDarts,
             selectedMultiplier: $viewModel.selectedMultiplier,
             lockedSegment: viewModel.lockedSegment,
+            scoringSegmentsDisabled: viewModel.scoringSegmentsDisabled,
             showsBull: false,
             onUndoTurn: {
                 actionTask?.cancel()

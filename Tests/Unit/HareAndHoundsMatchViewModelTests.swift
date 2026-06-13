@@ -61,6 +61,30 @@ func hareAndHoundsViewModelLockedSegmentMatchesCurrentTarget() async throws {
 
 @MainActor
 @Test(.tags(.integration, .match, .regression))
+func hareAndHoundsViewModelLockedSegmentAdvancesDuringVisitEntry() async throws {
+    let (vm, _) = try makeHareAndHoundsViewModel()
+    vm.enteredDarts = [hareAndHoundsDart(20)]
+    #expect(vm.lockedSegment == 1)
+
+    vm.enteredDarts = [hareAndHoundsDart(20), hareAndHoundsDart(1)]
+    #expect(vm.lockedSegment == 18)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .critical, .regression))
+func hareAndHoundsViewModelMultipleHitsInOneTurnAdvancePosition() async throws {
+    let (vm, _) = try makeHareAndHoundsViewModel()
+    vm.enteredDarts = [hareAndHoundsDart(20), hareAndHoundsDart(1), hareAndHoundsDart(18)]
+
+    await vm.submitTurn()
+
+    let hare = vm.hareAndHoundsState?.players.first { $0.role == .hare }
+    #expect(hare?.positionIndex == 3)
+    #expect(vm.enteredDarts.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
 func hareAndHoundsViewModelRequiresThreeDartsBeforeSubmit() async throws {
     let (vm, _) = try makeHareAndHoundsViewModel()
     vm.enteredDarts = [hareAndHoundsDart(20), missDart()]

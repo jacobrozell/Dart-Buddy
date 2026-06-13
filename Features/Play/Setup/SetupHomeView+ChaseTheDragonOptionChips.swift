@@ -18,7 +18,7 @@ extension SetupHomeView {
     }
 
     private var chaseTheDragonLapsChip: some View {
-        chip(title: "play.chaseTheDragon.setup.laps", color: Brand.amber) {
+        chip(titleKey: "play.chaseTheDragon.setup.laps", color: Brand.amber) {
             Menu {
                 ForEach(ChaseTheDragonLaps.allCases, id: \.rawValue) { laps in
                     Button(laps.displayName) {

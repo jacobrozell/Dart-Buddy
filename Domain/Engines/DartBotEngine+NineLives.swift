@@ -1,37 +1,27 @@
 import Foundation
 
 extension DartBotEngine {
-    /// Generates three darts for a Nine Lives bot turn.
-    ///
-    /// The bot aims at the player's current target (1–20). After the first hit the
-    /// player advances for the visit, so remaining darts are thrown as misses to avoid
-    /// double-advancing (the engine only counts the first hit per visit).
+    /// Generates three darts for a Nine Lives bot turn, aiming at successive targets within the visit.
     public static func generateNineLivesTurn(
         targetIndex: Int,
         profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> [DartInput] {
         var darts: [DartInput] = []
-        var hasHit = false
+        var currentIndex = targetIndex
 
         while darts.count < 3 {
-            guard !hasHit else {
+            guard currentIndex < 20 else {
                 darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
                 continue
             }
 
-            guard targetIndex < 20 else {
-                // Sequence already complete — fill remaining darts with misses.
-                darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
-                continue
-            }
-
-            let segmentValue = targetIndex + 1
+            let segmentValue = currentIndex + 1
             let dart = resolveNineLivesDart(segmentValue: segmentValue, profile: profile, rng: &rng)
-            if case let .oneToTwenty(v) = dart.segment, v == segmentValue, !dart.isMiss {
-                hasHit = true
-            }
             darts.append(dart)
+            if case let .oneToTwenty(v) = dart.segment, v == segmentValue, !dart.isMiss {
+                currentIndex += 1
+            }
         }
 
         return darts

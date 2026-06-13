@@ -73,17 +73,21 @@ final class AroundTheClockMatchViewModel: ObservableObject {
         )
     }
 
-    /// The current player's target segment value (1–20 or 25 for bull).
+    /// The current player's target segment value (1–20 or 25 for bull), including in-visit hits.
     var currentTarget: Int? {
-        guard let atcState = aroundTheClockState else { return nil }
-        let player = atcState.players[atcState.currentPlayerIndex]
-        return player.currentTarget
+        projectedPlayerState()?.currentTarget
     }
 
     /// Locked segment for the number pad (nil for bull target since the pad shows numbers 1–20).
     var lockedSegment: Int? {
         guard let target = currentTarget, target != 25 else { return nil }
         return target
+    }
+
+    /// Whether scoring segments should be disabled (sequence finished mid-visit).
+    var scoringSegmentsDisabled: Bool {
+        guard let atcState = aroundTheClockState else { return false }
+        return (projectedPlayerState()?.targetIndex ?? 0) >= atcState.sequenceLength
     }
 
     /// Whether the current target is the bull finish.
@@ -203,6 +207,20 @@ final class AroundTheClockMatchViewModel: ObservableObject {
 
     private func participant(for playerId: UUID) -> MatchParticipant? {
         session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
+    }
+
+    /// Player state after applying in-progress darts for pad targeting.
+    private func projectedPlayerState() -> AroundTheClockPlayerState? {
+        guard let atcState = aroundTheClockState else { return nil }
+        var player = atcState.players[atcState.currentPlayerIndex]
+        for dart in enteredDarts {
+            guard player.targetIndex < atcState.sequenceLength else { break }
+            if AroundTheClockEngine.dartHitsTarget(dart, player: player, config: atcState.config) {
+                player.targetIndex += 1
+            }
+        }
+        guard player.targetIndex < atcState.sequenceLength else { return nil }
+        return player
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {
