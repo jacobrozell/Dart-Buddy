@@ -106,10 +106,15 @@
 "play.football.title" = "Football";
 
 "play.golf.announce.holeComplete" = "Hole complete in %d strokes";
+"play.golf.announce.holeCompleteDetail" = "Hole %1$d — %2$@ (%3$d strokes)";
+"play.golf.bot.throwingAtSegment" = "Bot throwing at segment %d — only the last dart counts";
 "play.golf.endTurnEarly" = "End turn early";
 "play.golf.header.holeFormat" = "Hole %d of %d";
+"play.golf.header.targetFormat" = "Aim at segment %d";
 "play.golf.holeStrip.accessibilityFormat" = "Hole %d of %d";
-"play.golf.lastDartCountsHint" = "Last dart counts on this hole";
+"play.golf.lastDartCountsHint" = "Only your last dart counts on this hole";
+"play.golf.lastDartPreviewLabel" = "If you stop now:";
+"play.golf.lastDartPreviewStrokes" = "%d strokes";
 "play.golf.leading" = "Leading";
 "play.golf.navTitle" = "Golf";
 "play.golf.pad.disabledWhileBot" = "Waiting for bot turn";
@@ -127,6 +132,8 @@
 "play.golf.stroke.miss" = "Miss";
 "play.golf.stroke.single" = "Single";
 "play.golf.stroke.triple" = "Triple";
+"play.golf.strokeLegend" = "Double 1 · Triple 2 · Single 3 · Miss 5";
+"play.golf.strokeLegend.accessibility" = "Scoring: double equals one stroke, triple two, single three, miss five";
 "play.golf.strokeAccessibilityFormat" = "%d strokes, %@";
 "play.golf.title" = "Golf";
 

@@ -63,17 +63,9 @@ extension DartBotEngine {
             return intended
         }
 
-        // Miss: off-board or wrong-bed
-        let missRoll = Double.random(in: 0 ... 1, using: &rng)
-        if missRoll < profile.cricket.offBoardMissChance {
-            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
-        }
-        // Land on an adjacent segment (±1–3, clamped to 1…20)
-        if case let .oneToTwenty(value) = intended.segment {
-            let offset = Int.random(in: 1 ... 3, using: &rng) * (Bool.random(using: &rng) ? 1 : -1)
-            let adjacent = max(1, min(20, value + offset))
-            return DartInput(multiplier: .single, segment: .oneToTwenty(adjacent))
-        }
+        // Off-board miss only — matches the human pad (segment lock + 0 key).
+        // Wrong-bed darts on other segments also score 5 strokes; keeping misses
+        // as off-board avoids visit preview showing segments the pad hides.
         return DartInput(multiplier: .single, segment: .miss, isMiss: true)
     }
 }

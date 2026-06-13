@@ -16,6 +16,8 @@ final class GolfMatchViewModel: ObservableObject {
     @Published var enteredDarts: [DartInput] = []
     @Published private(set) var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
+    /// Recorded hole result shown while `holeCompleteFeedback` is active.
+    @Published private(set) var holeCompleteFeedback: (hole: Int, strokes: Int)?
 
     private let matchId: UUID
     private let store: ActiveMatchStore
@@ -88,7 +90,9 @@ final class GolfMatchViewModel: ObservableObject {
 
     var headerText: String {
         guard let state = golfState else { return "" }
-        return L10n.format("play.golf.header.holeFormat", state.currentHole, state.config.courseLength.rawValue)
+        let holeLine = L10n.format("play.golf.header.holeFormat", state.currentHole, state.config.courseLength.rawValue)
+        let targetLine = L10n.format("play.golf.header.targetFormat", state.currentHole)
+        return "\(holeLine) · \(targetLine)"
     }
 
     var lastDartHint: String {
@@ -100,10 +104,20 @@ final class GolfMatchViewModel: ObservableObject {
         return parts.joined(separator: ", ")
     }
 
-    /// Preview stroke count for the current dart entry (last entered dart).
+    /// Preview stroke count for the in-progress visit (last entered dart on the current hole).
     var currentStrokePreview: Int? {
-        guard let last = enteredDarts.last, let hole = golfState?.currentHole else { return nil }
+        guard let last = enteredDarts.last, let hole = lockedSegment else { return nil }
         return GolfEngine.strokesForLastDart(last, holeSegment: hole)
+    }
+
+    var holeCompleteFeedbackText: String? {
+        guard let feedback = holeCompleteFeedback else { return nil }
+        return L10n.format(
+            "play.golf.announce.holeCompleteDetail",
+            feedback.hole,
+            GolfStrokePresentation.label(for: feedback.strokes),
+            feedback.strokes
+        )
     }
 
     var scorecardRows: [GolfScorecardView.PlayerRow] {
@@ -200,8 +214,13 @@ final class GolfMatchViewModel: ObservableObject {
         }
     }
 
-    func announceHoleCompleteIfNeeded(strokes: Int) {
-        let announcement = L10n.format("play.golf.announce.holeComplete", strokes)
+    func announceHoleCompleteIfNeeded(strokes: Int, hole: Int) {
+        let announcement = L10n.format(
+            "play.golf.announce.holeCompleteDetail",
+            hole,
+            GolfStrokePresentation.label(for: strokes),
+            strokes
+        )
         postAccessibilityAnnouncement(announcement)
     }
 
@@ -241,6 +260,7 @@ final class GolfMatchViewModel: ObservableObject {
         guard session?.runtime.status == .inProgress else { return }
         switch state {
         case .submittingTurn, .entryInvalid, .error, .matchCompleted, .holeCompleteFeedback:
+            holeCompleteFeedback = nil
             state = .readyTurn
         default:
             break
@@ -312,9 +332,11 @@ final class GolfMatchViewModel: ObservableObject {
         case let .succeeded(updated):
             session = updated
             if let event = lastGolfTurn(in: updated) {
-                announceHoleCompleteIfNeeded(strokes: event.strokesRecorded)
+                holeCompleteFeedback = (hole: event.hole, strokes: event.strokesRecorded)
+                announceHoleCompleteIfNeeded(strokes: event.strokesRecorded, hole: event.hole)
                 state = .holeCompleteFeedback
                 try? await Task.sleep(nanoseconds: 600_000_000)
+                holeCompleteFeedback = nil
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted

@@ -2,8 +2,9 @@ import SwiftUI
 
 /// Hole-by-hole scorecard for a Golf match.
 ///
-/// Displays a row per player showing each hole's stroke count and running total.
-/// Stroke values are rendered as numbers with accessibility labels — not color-only.
+/// Uses a single horizontal scroll region so hole columns stay aligned across rows
+/// regardless of player name length. Course progress dots sit in the header row,
+/// centered over each hole column.
 struct GolfScorecardView: View {
     struct PlayerRow: Identifiable {
         let id: UUID
@@ -20,44 +21,73 @@ struct GolfScorecardView: View {
 
     let rows: [PlayerRow]
     let courseLength: Int
+    let currentHole: Int
 
     private var usesLandscapeLayout: Bool {
         GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
     }
 
     var body: some View {
-        VStack(spacing: usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2) {
-            holeHeaderRow
-            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                playerRow(row, index: index)
+        VStack(alignment: .leading, spacing: usesLandscapeLayout ? DS.Spacing.s2 : DS.Spacing.s1) {
+            strokeLegend
+            scorecardGrid
+        }
+    }
+
+    // MARK: - Grid
+
+    private var scorecardGrid: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2) {
+                headerRow
+                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                    playerRow(row, index: index)
+                }
             }
         }
+        .accessibilityIdentifier("golf_scorecard")
     }
 
     // MARK: - Header
 
-    private var holeHeaderRow: some View {
+    private var headerRow: some View {
         HStack(spacing: 0) {
             Text(L10n.string("play.golf.scorecard.playerHeader"))
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(Brand.textSecondary)
-                .frame(minWidth: 70, alignment: .leading)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
-                    ForEach(1 ... courseLength, id: \.self) { hole in
-                        Text(L10n.format("play.golf.scorecard.holeHeader", hole))
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(Brand.textSecondary)
-                            .frame(width: holeColumnWidth, alignment: .center)
-                    }
-                    Text(L10n.string("play.golf.scorecard.totalHeader"))
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(Brand.textSecondary)
-                        .frame(width: totalColumnWidth, alignment: .trailing)
-                }
+                .frame(width: nameColumnWidth, alignment: .leading)
+
+            ForEach(1 ... courseLength, id: \.self) { hole in
+                holeHeaderCell(hole)
             }
+
+            Text(L10n.string("play.golf.scorecard.totalHeader"))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Brand.textSecondary)
+                .frame(width: totalColumnWidth, alignment: .trailing)
         }
-        .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            L10n.format("play.golf.holeStrip.accessibilityFormat", currentHole, courseLength)
+        )
+        .accessibilityIdentifier("golf_hole_strip")
+    }
+
+    private func holeHeaderCell(_ hole: Int) -> some View {
+        VStack(spacing: 4) {
+            Text("\(hole)")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(hole == currentHole ? Brand.amber : Brand.textSecondary)
+            Circle()
+                .fill(progressFillColor(for: hole))
+                .frame(width: 8, height: 8)
+                .overlay {
+                    if hole == currentHole {
+                        Circle().stroke(Brand.green, lineWidth: 1.5)
+                    }
+                }
+        }
+        .frame(width: holeColumnWidth)
         .accessibilityHidden(true)
     }
 
@@ -66,43 +96,21 @@ struct GolfScorecardView: View {
     @ViewBuilder
     private func playerRow(_ row: PlayerRow, index: Int) -> some View {
         HStack(spacing: 0) {
-            // Player name + color indicator
-            HStack(spacing: DS.Spacing.s2) {
-                Circle()
-                    .fill(PlayerVisualViews.color(for: row.colorToken))
-                    .frame(width: 8, height: 8)
-                Text(row.name)
-                    .font(usesLandscapeLayout
-                        ? .body.weight(row.isActive || row.isLeading ? .bold : .regular)
-                        : .subheadline.weight(row.isActive || row.isLeading ? .bold : .regular))
-                    .foregroundStyle(Brand.textPrimary)
-                    .lineLimit(1)
-            }
-            .frame(minWidth: 70, alignment: .leading)
+            playerNameCell(row)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
-                    ForEach(Array(row.holeStrokes.enumerated()), id: \.offset) { _, strokes in
-                        strokeCell(strokes)
-                    }
-                    // Running total
-                    Text(row.runningTotal > 0
-                        ? L10n.format("play.golf.scorecard.totalFormat", row.runningTotal)
-                        : "—")
-                        .font(usesLandscapeLayout
-                            ? .subheadline.weight(.bold)
-                            : .callout.weight(.bold))
-                        .foregroundStyle(row.isActive ? Brand.green : Brand.textPrimary)
-                        .frame(width: totalColumnWidth, alignment: .trailing)
-                }
+            ForEach(Array(row.holeStrokes.enumerated()), id: \.offset) { holeIndex, strokes in
+                strokeCell(strokes, holeNumber: holeIndex + 1, isActiveHole: holeIndex + 1 == currentHole && row.isActive)
             }
 
-            if row.isLeading {
-                Text(L10n.string("play.golf.leading"))
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(Brand.green)
-                    .padding(.leading, DS.Spacing.s2)
-            }
+            Text(row.runningTotal > 0
+                ? L10n.format("play.golf.scorecard.totalFormat", row.runningTotal)
+                : "—")
+                .font(usesLandscapeLayout
+                    ? .subheadline.weight(.bold)
+                    : .callout.weight(.bold))
+                .monospacedDigit()
+                .foregroundStyle(row.isActive ? Brand.green : Brand.textPrimary)
+                .frame(width: totalColumnWidth, alignment: .trailing)
         }
         .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
         .padding(.vertical, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
@@ -113,19 +121,54 @@ struct GolfScorecardView: View {
         .accessibilityIdentifier("golf_scoreboard_row_\(index)")
     }
 
-    @ViewBuilder
-    private func strokeCell(_ strokes: Int?) -> some View {
-        if let strokes {
-            Text("\(strokes)")
-                .font(usesLandscapeLayout ? .subheadline : .caption)
-                .foregroundStyle(strokeColor(strokes))
-                .frame(width: holeColumnWidth, alignment: .center)
-        } else {
-            Text("·")
-                .font(usesLandscapeLayout ? .subheadline : .caption)
-                .foregroundStyle(Brand.textSecondary.opacity(0.4))
-                .frame(width: holeColumnWidth, alignment: .center)
+    private func playerNameCell(_ row: PlayerRow) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: DS.Spacing.s2) {
+                Circle()
+                    .fill(PlayerVisualViews.color(for: row.colorToken))
+                    .frame(width: 8, height: 8)
+                Text(row.name)
+                    .font(usesLandscapeLayout
+                        ? .body.weight(row.isActive || row.isLeading ? .bold : .regular)
+                        : .subheadline.weight(row.isActive || row.isLeading ? .bold : .regular))
+                    .foregroundStyle(Brand.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            if row.isLeading {
+                Text(L10n.string("play.golf.leading"))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Brand.green)
+            }
         }
+        .frame(width: nameColumnWidth, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func strokeCell(_ strokes: Int?, holeNumber: Int, isActiveHole: Bool) -> some View {
+        Group {
+            if let strokes {
+                Text("\(strokes)")
+                    .font(usesLandscapeLayout ? .subheadline : .caption)
+                    .monospacedDigit()
+                    .foregroundStyle(strokeColor(strokes))
+            } else {
+                Text("·")
+                    .font(usesLandscapeLayout ? .subheadline : .caption)
+                    .foregroundStyle(Brand.textSecondary.opacity(isActiveHole ? 0.65 : 0.35))
+            }
+        }
+        .frame(width: holeColumnWidth, alignment: .center)
+    }
+
+    // MARK: - Stroke legend
+
+    private var strokeLegend: some View {
+        Text(L10n.string("play.golf.strokeLegend"))
+            .font(.caption2)
+            .foregroundStyle(Brand.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(L10n.string("play.golf.strokeLegend.accessibility"))
     }
 
     // MARK: - Accessibility
@@ -150,50 +193,45 @@ struct GolfScorecardView: View {
 
     // MARK: - Layout constants
 
+    private var nameColumnWidth: CGFloat { usesLandscapeLayout ? 96 : 84 }
     private var holeColumnWidth: CGFloat { courseLength <= 9 ? 28 : 22 }
-    private var totalColumnWidth: CGFloat { 44 }
+    private var totalColumnWidth: CGFloat { 36 }
+
+    private func progressFillColor(for hole: Int) -> Color {
+        if hole < currentHole { return Brand.green }
+        if hole == currentHole { return Brand.amber }
+        return Brand.textSecondary.opacity(0.35)
+    }
 
     private func strokeColor(_ strokes: Int) -> Color {
         switch strokes {
-        case 1: return Brand.green       // double
-        case 2: return Brand.amber       // triple
-        case 3: return Brand.textPrimary // single
-        default: return Brand.textSecondary // miss (5)
+        case 1: return Brand.green
+        case 2: return Brand.amber
+        case 3: return Brand.textPrimary
+        default: return Brand.textSecondary
         }
     }
 }
 
-// MARK: - Hole progress strip
+// MARK: - Stroke helpers
 
-/// Horizontal dot strip showing completed, current, and upcoming holes.
-struct HoleProgressStrip: View {
-    let courseLength: Int
-    let currentHole: Int
-
-    var body: some View {
-        HStack(spacing: 6) {
-            ForEach(1 ... courseLength, id: \.self) { hole in
-                Circle()
-                    .fill(fillColor(for: hole))
-                    .frame(width: 10, height: 10)
-                    .overlay {
-                        if hole == currentHole {
-                            Circle().stroke(Brand.green, lineWidth: 2)
-                        }
-                    }
-                    .accessibilityHidden(true)
-            }
+enum GolfStrokePresentation {
+    static func label(for strokes: Int) -> String {
+        switch strokes {
+        case 1: return L10n.string("play.golf.stroke.double")
+        case 2: return L10n.string("play.golf.stroke.triple")
+        case 3: return L10n.string("play.golf.stroke.single")
+        default: return L10n.string("play.golf.stroke.miss")
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            L10n.format("play.golf.holeStrip.accessibilityFormat", currentHole, courseLength)
-        )
     }
 
-    private func fillColor(for hole: Int) -> Color {
-        if hole < currentHole { return Brand.green }
-        if hole == currentHole { return Brand.amber }
-        return Brand.textSecondary.opacity(0.35)
+    static func color(for strokes: Int) -> Color {
+        switch strokes {
+        case 1: return Brand.green
+        case 2: return Brand.amber
+        case 3: return Brand.textPrimary
+        default: return Brand.textSecondary
+        }
     }
 }
 
@@ -204,30 +242,18 @@ struct GolfStrokeBadge: View {
     let strokes: Int
 
     var body: some View {
-        Text(strokeLabel)
+        Text(GolfStrokePresentation.label(for: strokes))
             .font(.caption.weight(.semibold))
-            .foregroundStyle(strokeColor)
+            .foregroundStyle(GolfStrokePresentation.color(for: strokes))
             .padding(.horizontal, DS.Spacing.s2)
             .padding(.vertical, 2)
-            .background(strokeColor.opacity(0.15), in: Capsule())
-            .accessibilityLabel(L10n.format("play.golf.strokeAccessibilityFormat", strokes, strokeLabel))
-    }
-
-    private var strokeLabel: String {
-        switch strokes {
-        case 1: return L10n.string("play.golf.stroke.double")
-        case 2: return L10n.string("play.golf.stroke.triple")
-        case 3: return L10n.string("play.golf.stroke.single")
-        default: return L10n.string("play.golf.stroke.miss")
-        }
-    }
-
-    private var strokeColor: Color {
-        switch strokes {
-        case 1: return Brand.green
-        case 2: return Brand.amber
-        case 3: return Brand.textPrimary
-        default: return Brand.textSecondary
-        }
+            .background(GolfStrokePresentation.color(for: strokes).opacity(0.15), in: Capsule())
+            .accessibilityLabel(
+                L10n.format(
+                    "play.golf.strokeAccessibilityFormat",
+                    strokes,
+                    GolfStrokePresentation.label(for: strokes)
+                )
+            )
     }
 }

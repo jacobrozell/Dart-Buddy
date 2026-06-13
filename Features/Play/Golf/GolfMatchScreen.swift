@@ -42,20 +42,31 @@ struct GolfMatchScreen: View {
                 .accessibilityIdentifier("golf_undo")
             }
 
-            if let golfState = viewModel.golfState {
+            if viewModel.golfState != nil {
                 SideBySideMatchBody(playerCount: viewModel.scorecardRows.count) {
                     VStack(spacing: DS.Spacing.s3) {
+                        if viewModel.canHumanInput, let preview = viewModel.currentStrokePreview {
+                            HStack(spacing: DS.Spacing.s2) {
+                                Text(L10n.string("play.golf.lastDartPreviewLabel"))
+                                    .font(.caption)
+                                    .foregroundStyle(Brand.textSecondary)
+                                GolfStrokeBadge(strokes: preview)
+                                Text(L10n.format("play.golf.lastDartPreviewStrokes", preview))
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Brand.textPrimary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("golf_last_dart_preview")
+                        }
                         GolfScorecardView(
                             rows: viewModel.scorecardRows,
-                            courseLength: viewModel.courseLength
+                            courseLength: viewModel.courseLength,
+                            currentHole: viewModel.currentHole
                         )
-                        HoleProgressStrip(
-                            courseLength: golfState.config.courseLength.rawValue,
-                            currentHole: golfState.currentHole
-                        )
-                        .accessibilityIdentifier("golf_hole_strip")
                     }
                 } padChrome: {
+                    botTurnBanner
                     stateBanner
                 } controls: {
                     golfControls
@@ -130,9 +141,9 @@ struct GolfMatchScreen: View {
         case let .entryInvalid(messageKey), let .error(messageKey):
             ErrorBanner(messageKey: messageKey)
         case .holeCompleteFeedback:
-            if let strokes = viewModel.currentStrokePreview {
+            if let text = viewModel.holeCompleteFeedbackText {
                 MatchFeedbackBanner(
-                    text: LocalizedStringKey(L10n.format("play.golf.announce.holeComplete", strokes)),
+                    text: LocalizedStringKey(text),
                     style: .legWin
                 )
                 .accessibilityHidden(true)
@@ -140,6 +151,18 @@ struct GolfMatchScreen: View {
             }
         default:
             EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private var botTurnBanner: some View {
+        if viewModel.isBotPlaying, let segment = viewModel.lockedSegment {
+            MatchFeedbackBanner(
+                text: LocalizedStringKey(L10n.format("play.golf.bot.throwingAtSegment", segment)),
+                style: .cricketClosure,
+                animate: false
+            )
+            .accessibilityIdentifier("golf_bot_turn_banner")
         }
     }
 

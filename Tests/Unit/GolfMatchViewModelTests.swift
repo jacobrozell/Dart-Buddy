@@ -143,6 +143,47 @@ func golfViewModelScorecardRowActivePlayerIsMarked() async throws {
     #expect(activeRows.count == 1)
 }
 
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func golfViewModelHoleCompleteFeedbackUsesRecordedStrokesNotNextHole() async throws {
+    let (vm, _) = try makeGolfViewModel()
+    // Player 1 completes hole 1 with a double (1 stroke).
+    vm.enteredDarts = [golfDart(.double, 1)]
+    await vm.submitTurn(endedEarly: true)
+
+    // Player 2 is up on hole 1; after they finish, the course advances to hole 2.
+    vm.enteredDarts = [golfDart(.triple, 1)]
+    await vm.submitTurn(endedEarly: true)
+
+    #expect(vm.golfState?.currentHole == 2)
+    #expect(vm.holeCompleteFeedback == nil)
+    #expect(vm.golfState?.players[1].strokesByHole[1] == 2)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func golfViewModelCurrentStrokePreviewUsesLockedHoleSegment() async throws {
+    let (vm, _) = try makeGolfViewModel(
+        preTurns: [(darts: [golfDart(.double, 1)], endedEarly: true)]
+    )
+    vm.enteredDarts = [golfDart(.triple, 1)]
+
+    #expect(vm.lockedSegment == 1)
+    #expect(vm.currentStrokePreview == 2)
+}
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func golfViewModelScorecardRowIncludesHoleStrokes() async throws {
+    let (vm, _) = try makeGolfViewModel()
+    vm.enteredDarts = [golfDart(.double, 1)]
+    await vm.submitTurn(endedEarly: true)
+
+    let row = try #require(vm.scorecardRows.first)
+    #expect(row.holeStrokes[0] == 1)
+    #expect(row.runningTotal == 1)
+}
+
 // MARK: - Match completion
 
 @MainActor
