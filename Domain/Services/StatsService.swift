@@ -175,13 +175,9 @@ public enum StatsService {
     ) -> [PlayerStatBreakdown] {
         var byPlayer: [UUID: PlayerStatBreakdown] = [:]
 
-        func breakdown(for key: UUID) -> PlayerStatBreakdown {
-            byPlayer[key] ?? PlayerStatBreakdown(playerId: key, name: nameById[key] ?? "Player")
-        }
-
         for match in matches {
             for key in Set(match.participantKeys) {
-                var entry = breakdown(for: key)
+                var entry = playerBreakdown(for: key, in: byPlayer, nameById: nameById)
                 if !match.isPartial {
                     entry.games += 1
                     if match.winnerKey == key { entry.wins += 1 }
@@ -190,7 +186,7 @@ public enum StatsService {
             }
 
             for envelope in match.events {
-                applyBreakdownEvent(envelope.payload, breakdown: breakdown, byPlayer: &byPlayer)
+                applyBreakdownEvent(envelope.payload, nameById: nameById, byPlayer: &byPlayer)
             }
         }
 
@@ -277,42 +273,50 @@ public enum StatsService {
         return aggregates
     }
 
+    private static func playerBreakdown(
+        for key: UUID,
+        in byPlayer: [UUID: PlayerStatBreakdown],
+        nameById: [UUID: String]
+    ) -> PlayerStatBreakdown {
+        byPlayer[key] ?? PlayerStatBreakdown(playerId: key, name: nameById[key] ?? "Player")
+    }
+
     private static func applyBreakdownEvent(
         _ payload: MatchEventPayload,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
         switch payload {
         case let .x01Turn(turn):
-            applyX01Breakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyX01Breakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .cricketTurn(turn):
-            applyCricketBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyCricketBreakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .baseballTurn(turn):
-            applyBaseballBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyBaseballBreakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .killerPick(pick):
-            applyKillerPickBreakdown(pick, breakdown: breakdown, byPlayer: &byPlayer)
+            applyKillerPickBreakdown(pick, nameById: nameById, byPlayer: &byPlayer)
         case let .killerTurn(turn):
-            applyKillerTurnBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyKillerTurnBreakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .shanghaiTurn(turn):
-            applyShanghaiBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyShanghaiBreakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .americanCricketTurn(turn):
             applySegmentDartBreakdown(
                 playerId: turn.playerId,
                 pointsAdded: turn.totalPointsAdded,
                 darts: turn.darts,
-                breakdown: breakdown,
+                nameById: nameById,
                 byPlayer: &byPlayer
             )
         case let .mickeyMouseTurn(turn):
-            applyMickeyMouseBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyMickeyMouseBreakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .mulliganTurn(turn):
-            applySegmentDartBreakdown(playerId: turn.playerId, darts: turn.darts, breakdown: breakdown, byPlayer: &byPlayer)
+            applySegmentDartBreakdown(playerId: turn.playerId, darts: turn.darts, nameById: nameById, byPlayer: &byPlayer)
         case let .englishCricketTurn(turn):
             applySegmentDartBreakdown(
                 playerId: turn.playerId,
                 pointsAdded: turn.runsAdded,
                 darts: turn.darts,
-                breakdown: breakdown,
+                nameById: nameById,
                 byPlayer: &byPlayer
             )
         case let .knockoutTurn(turn):
@@ -320,7 +324,7 @@ public enum StatsService {
                 playerId: turn.playerId,
                 pointsAdded: turn.visitTotal,
                 darts: turn.darts,
-                breakdown: breakdown,
+                nameById: nameById,
                 byPlayer: &byPlayer
             )
         case let .suddenDeathTurn(turn):
@@ -328,7 +332,7 @@ public enum StatsService {
                 playerId: turn.playerId,
                 pointsAdded: turn.pointsThisVisit,
                 dartCount: 3,
-                breakdown: breakdown,
+                nameById: nameById,
                 byPlayer: &byPlayer
             )
         case let .fiftyOneByFivesTurn(turn):
@@ -336,7 +340,7 @@ public enum StatsService {
                 playerId: turn.playerId,
                 pointsAdded: turn.pointsAwarded,
                 dartCount: 3,
-                breakdown: breakdown,
+                nameById: nameById,
                 byPlayer: &byPlayer
             )
         case let .golfTurn(turn):
@@ -344,27 +348,27 @@ public enum StatsService {
                 playerId: turn.playerId,
                 pointsAdded: turn.strokesRecorded,
                 darts: turn.darts,
-                breakdown: breakdown,
+                nameById: nameById,
                 byPlayer: &byPlayer
             )
         case let .footballTurn(turn):
-            applyFootballBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyFootballBreakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .grandNationalTurn(turn):
-            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, breakdown: breakdown, byPlayer: &byPlayer)
+            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
         case let .hareAndHoundsTurn(turn):
-            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, breakdown: breakdown, byPlayer: &byPlayer)
+            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
         case let .aroundTheClockTurn(turn):
-            applyAroundTheClockBreakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyAroundTheClockBreakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .aroundTheClock180Turn(turn):
-            applyAroundTheClock180Breakdown(turn, breakdown: breakdown, byPlayer: &byPlayer)
+            applyAroundTheClock180Breakdown(turn, nameById: nameById, byPlayer: &byPlayer)
         case let .chaseTheDragonTurn(turn):
-            applySegmentDartBreakdown(playerId: turn.playerId, darts: turn.darts, breakdown: breakdown, byPlayer: &byPlayer)
+            applySegmentDartBreakdown(playerId: turn.playerId, darts: turn.darts, nameById: nameById, byPlayer: &byPlayer)
         case let .nineLivesTurn(turn):
-            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, breakdown: breakdown, byPlayer: &byPlayer)
+            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
         case let .raidVisit(visit):
-            applyRaidVisitBreakdown(visit, breakdown: breakdown, byPlayer: &byPlayer)
+            applyRaidVisitBreakdown(visit, nameById: nameById, byPlayer: &byPlayer)
         case let .fleetDart(dart):
-            applyFleetDartBreakdown(dart, breakdown: breakdown, byPlayer: &byPlayer)
+            applyFleetDartBreakdown(dart, nameById: nameById, byPlayer: &byPlayer)
         case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
             break
         }
@@ -372,10 +376,10 @@ public enum StatsService {
 
     private static func applyX01Breakdown(
         _ turn: X01TurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.darts += turn.effectiveDartsThrown
         entry.points += turn.appliedTotal
         if turn.appliedTotal > entry.highestScore { entry.highestScore = turn.appliedTotal }
@@ -393,10 +397,10 @@ public enum StatsService {
 
     private static func applyCricketBreakdown(
         _ turn: CricketTurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.points += turn.totalPointsAdded
         entry.cricketRounds += 1
         for touch in turn.targetsTouched {
@@ -411,10 +415,10 @@ public enum StatsService {
 
     private static func applyBaseballBreakdown(
         _ turn: BaseballTurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.points += turn.runsThisVisit
         entry.darts += turn.darts.count
         for dart in turn.darts {
@@ -426,10 +430,10 @@ public enum StatsService {
 
     private static func applyKillerPickBreakdown(
         _ pick: KillerPickEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(pick.playerId)
+        var entry = playerBreakdown(for: pick.playerId, in: byPlayer, nameById: nameById)
         entry.darts += 1
         entry.hitsBySector[HitsBySectorKeys.key(for: pick), default: 0] += 1
         recordMultiplierHits(&entry, multiplierRaw: pick.multiplierRaw, wasMiss: pick.wasMiss)
@@ -438,10 +442,10 @@ public enum StatsService {
 
     private static func applyKillerTurnBreakdown(
         _ turn: KillerTurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.darts += turn.darts.count
         for dart in turn.darts {
             entry.hitsBySector[HitsBySectorKeys.key(for: dart), default: 0] += 1
@@ -452,10 +456,10 @@ public enum StatsService {
 
     private static func applyShanghaiBreakdown(
         _ turn: ShanghaiTurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.points += turn.pointsThisVisit
         entry.darts += turn.darts.count
         for dart in turn.darts {
@@ -467,10 +471,10 @@ public enum StatsService {
 
     private static func applyMickeyMouseBreakdown(
         _ turn: MickeyMouseTurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.cricketMarks += turn.marksThisVisit
         entry.darts += turn.darts.count
         for dart in turn.darts {
@@ -482,10 +486,10 @@ public enum StatsService {
 
     private static func applyFootballBreakdown(
         _ turn: FootballTurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.points += turn.goalsAdded
         entry.darts += turn.darts.count
         for dart in turn.darts {
@@ -498,20 +502,20 @@ public enum StatsService {
 
     private static func applyAroundTheClockBreakdown(
         _ turn: AroundTheClockTurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.darts += turn.dartsThrown
         byPlayer[turn.playerId] = entry
     }
 
     private static func applyAroundTheClock180Breakdown(
         _ turn: AroundTheClock180TurnEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(turn.playerId)
+        var entry = playerBreakdown(for: turn.playerId, in: byPlayer, nameById: nameById)
         entry.points += turn.pointsThisVisit
         entry.darts += turn.darts.count
         for dart in turn.darts {
@@ -523,20 +527,20 @@ public enum StatsService {
 
     private static func applyRaidVisitBreakdown(
         _ visit: RaidVisitEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(visit.playerId)
+        var entry = playerBreakdown(for: visit.playerId, in: byPlayer, nameById: nameById)
         entry.darts += visit.darts.count
         byPlayer[visit.playerId] = entry
     }
 
     private static func applyFleetDartBreakdown(
         _ dart: FleetDartEvent,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(dart.playerId)
+        var entry = playerBreakdown(for: dart.playerId, in: byPlayer, nameById: nameById)
         entry.darts += 1
         byPlayer[dart.playerId] = entry
     }
@@ -545,10 +549,10 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         dartCount: Int,
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
-        var entry = breakdown(playerId)
+        var entry = playerBreakdown(for: playerId, in: byPlayer, nameById: nameById)
         entry.points += pointsAdded
         entry.darts += dartCount
         byPlayer[playerId] = entry
@@ -558,13 +562,13 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         darts: [Dart],
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown],
         segmentRaw: (Dart) -> String,
         wasMiss: (Dart) -> Bool,
         multiplierRaw: (Dart) -> String
     ) {
-        var entry = breakdown(playerId)
+        var entry = playerBreakdown(for: playerId, in: byPlayer, nameById: nameById)
         entry.points += pointsAdded
         entry.darts += darts.count
         for dart in darts {
@@ -578,14 +582,14 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         darts: [AmericanCricketDartEvent],
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
         applySegmentDartBreakdown(
             playerId: playerId,
             pointsAdded: pointsAdded,
             darts: darts,
-            breakdown: breakdown,
+            nameById: nameById,
             byPlayer: &byPlayer,
             segmentRaw: \.segmentRaw,
             wasMiss: \.wasMiss,
@@ -597,14 +601,14 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         darts: [MulliganDartEvent],
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
         applySegmentDartBreakdown(
             playerId: playerId,
             pointsAdded: pointsAdded,
             darts: darts,
-            breakdown: breakdown,
+            nameById: nameById,
             byPlayer: &byPlayer,
             segmentRaw: \.segmentRaw,
             wasMiss: \.wasMiss,
@@ -616,14 +620,14 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         darts: [EnglishCricketDartEvent],
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
         applySegmentDartBreakdown(
             playerId: playerId,
             pointsAdded: pointsAdded,
             darts: darts,
-            breakdown: breakdown,
+            nameById: nameById,
             byPlayer: &byPlayer,
             segmentRaw: \.segmentRaw,
             wasMiss: \.wasMiss,
@@ -635,14 +639,14 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         darts: [KnockoutDartEvent],
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
         applySegmentDartBreakdown(
             playerId: playerId,
             pointsAdded: pointsAdded,
             darts: darts,
-            breakdown: breakdown,
+            nameById: nameById,
             byPlayer: &byPlayer,
             segmentRaw: \.segmentRaw,
             wasMiss: \.wasMiss,
@@ -654,14 +658,14 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         darts: [GolfDartEvent],
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
         applySegmentDartBreakdown(
             playerId: playerId,
             pointsAdded: pointsAdded,
             darts: darts,
-            breakdown: breakdown,
+            nameById: nameById,
             byPlayer: &byPlayer,
             segmentRaw: \.segmentRaw,
             wasMiss: \.wasMiss,
@@ -673,14 +677,14 @@ public enum StatsService {
         playerId: UUID,
         pointsAdded: Int = 0,
         darts: [ChaseTheDragonDartEvent],
-        breakdown: (UUID) -> PlayerStatBreakdown,
+        nameById: [UUID: String],
         byPlayer: inout [UUID: PlayerStatBreakdown]
     ) {
         applySegmentDartBreakdown(
             playerId: playerId,
             pointsAdded: pointsAdded,
             darts: darts,
-            breakdown: breakdown,
+            nameById: nameById,
             byPlayer: &byPlayer,
             segmentRaw: \.segmentRaw,
             wasMiss: \.wasMiss,

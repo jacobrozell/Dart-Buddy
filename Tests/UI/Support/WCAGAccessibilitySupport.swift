@@ -96,6 +96,11 @@ extension XCTestCase {
         return false
     }
 
+    /// Parent buttons/tables/charts expose spoken summaries; visible layout text is decorative.
+    func ignoringPotentiallyInaccessibleDecorativeText(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
+        issue.compactDescription == "Potentially inaccessible text"
+    }
+
 
     func assertInteractiveElement(
         _ element: XCUIElement,

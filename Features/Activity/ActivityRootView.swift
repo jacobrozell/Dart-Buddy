@@ -309,6 +309,8 @@ struct ActivityRootView: View {
             Brand.amber.opacity(colorScheme == .dark ? 0.32 : 0.22),
             in: RoundedRectangle(cornerRadius: DS.Radius.md)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.string("stats.partialMatchBanner.accessibility"))
         .accessibilityIdentifier("statsPartialMatchBanner")
     }
 

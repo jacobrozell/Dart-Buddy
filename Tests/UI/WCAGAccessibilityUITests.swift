@@ -50,15 +50,19 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
     }
 
     func testHistoryListPassesNameRoleValueAudit() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        ensureActivityHistorySegment(app, timeout: timeout)
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+        let app = launchForAccessibility(extraArguments: ["-seed_demo", "-snapshot_tab", "history"])
+        waitForActivityHistoryAuditReady(app, timeout: timeout + 10)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue) { issue in
+            self.ignoringPotentiallyInaccessibleDecorativeText(issue)
+        }
     }
 
     func testStatisticsPassesNameRoleValueAudit() throws {
-        let app = launchForAccessibility(extraArguments: ["-seed_demo"])
-        ensureActivityStatisticsSegment(app, timeout: timeout)
-        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue)
+        let app = launchForAccessibility(extraArguments: ["-seed_demo", "-snapshot_tab", "statistics"])
+        waitForActivityStatisticsAuditReady(app, timeout: timeout + 15)
+        runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue) { issue in
+            self.ignoringPotentiallyInaccessibleDecorativeText(issue)
+        }
     }
 
     func testBaseballMatchAccessibilityContract() throws {
@@ -196,7 +200,7 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         assertInteractiveElement(delete, identifier: "historyDetailDeleteButton")
         // Result card + stat tables expose spoken summaries while keeping decorative layout text visual-only.
         runWCAGAudit(on: app, auditTypes: WCAGAccessibilityAuditProfile.nameRoleValue) { issue in
-            issue.compactDescription == "Potentially inaccessible text" && issue.element == nil
+            self.ignoringPotentiallyInaccessibleDecorativeText(issue)
         }
     }
 

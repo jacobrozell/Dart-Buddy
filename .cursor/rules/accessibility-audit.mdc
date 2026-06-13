@@ -1,0 +1,15 @@
+---
+description: Accessibility, VoiceOver, WCAG, a11y, inclusive design, or Dynamic Type — read and cite the latest audit doc first.
+alwaysApply: false
+---
+
+# Accessibility audit reference
+
+When the user mentions **accessibility**, **VoiceOver**, **WCAG**, **a11y**, **Dynamic Type**, **hit targets**, or **inclusive design**:
+
+1. **Read first:** [`accessibility/audits/2026-06-13-voiceover-accessibility-audit.md`](../../accessibility/audits/2026-06-13-voiceover-accessibility-audit.md)
+2. **Link it** in the reply so the user can open the full report.
+3. **Cross-check** open work against [`accessibility/Manual_todo.md`](../../accessibility/Manual_todo.md) and [`accessibility/wcag-2.1-aa/SUMMARY.md`](../../accessibility/wcag-2.1-aa/SUMMARY.md).
+4. **New audits:** add a dated file under `accessibility/audits/` and update this rule’s path if superseded.
+
+Do not re-audit from scratch unless the user asks for a fresh pass or the prior audit is stale (major UI changes, fixes landed).

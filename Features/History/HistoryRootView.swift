@@ -278,6 +278,7 @@ struct MatchHistoryCard: View {
         .padding(DS.Spacing.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder
