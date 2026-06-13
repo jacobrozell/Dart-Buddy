@@ -142,11 +142,12 @@ struct GameModeCatalogEntryTests {
     }
 
     @Test
-    func plannedCoopRaidExposesPreviewRulesGuide() throws {
+    func plannedCoopRaidIsShippedWithRulesGuide() throws {
         let raid = try #require(GameModeCatalog.entry(for: "coop.raid"))
-        #expect(raid.matchType == nil)
+        #expect(raid.matchType == .raid)
+        #expect(raid.isAvailable)
         #expect(raid.hasRulesGuide)
-        #expect(GameRulesCatalog.hasPreviewGuide(for: "coop.raid"))
+        #expect(GameRulesCatalog.hasGuide(for: .raid))
     }
 
     @Test

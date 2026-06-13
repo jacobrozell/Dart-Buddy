@@ -4,8 +4,8 @@ import Testing
 @Suite("Game mode catalog", .tags(.unit, .setupFlow, .regression))
 struct GameModeCatalogTests {
     @Test
-    func catalogListsAllThirtyThreeModes() {
-        #expect(GameModeCatalog.all.count == 33)
+    func catalogListsAllThirtyFourModes() {
+        #expect(GameModeCatalog.all.count == 34)
     }
 
     @Test
@@ -42,7 +42,7 @@ struct GameModeCatalogTests {
             #expect(entry.matchType == nil, "Planned mode \(entry.id) must not claim a MatchType")
             #expect(entry.isAvailable == false)
         }
-        #expect(GameModeCatalog.planned.count == 13)
+        #expect(GameModeCatalog.planned.count == 12)
     }
 
     @Test
