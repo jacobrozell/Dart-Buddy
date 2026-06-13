@@ -27,6 +27,7 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case fleetSonar(FleetSonarEvent)
     case fleetDart(FleetDartEvent)
     case fleetSink(FleetSinkEvent)
+    case raidVisit(RaidVisitEvent)
 
     private enum CodingKeys: String, CodingKey {
         case kind
@@ -56,6 +57,7 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetSonar
         case fleetDart
         case fleetSink
+        case raidVisit
     }
 
     private enum Kind: String, Codable {
@@ -85,6 +87,7 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetSonar
         case fleetDart
         case fleetSink
+        case raidVisit
     }
 
     public init(from decoder: any Decoder) throws {
@@ -143,6 +146,8 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .fleetDart(try container.decode(FleetDartEvent.self, forKey: .fleetDart))
         case .fleetSink:
             self = .fleetSink(try container.decode(FleetSinkEvent.self, forKey: .fleetSink))
+        case .raidVisit:
+            self = .raidVisit(try container.decode(RaidVisitEvent.self, forKey: .raidVisit))
         }
     }
 
@@ -227,6 +232,9 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .fleetSink(event):
             try container.encode(Kind.fleetSink, forKey: .kind)
             try container.encode(event, forKey: .fleetSink)
+        case let .raidVisit(event):
+            try container.encode(Kind.raidVisit, forKey: .kind)
+            try container.encode(event, forKey: .raidVisit)
         }
     }
 }
@@ -280,6 +288,7 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var chaseTheDragonState: ChaseTheDragonState?
     public var nineLivesState: NineLivesState?
     public var fleetState: FleetState?
+    public var raidState: RaidState?
 }
 
 public struct MatchLifecycleSession: Sendable {
@@ -348,7 +357,8 @@ public enum MatchLifecycleService {
             aroundTheClock180State: nil,
             chaseTheDragonState: nil,
             nineLivesState: nil,
-            fleetState: nil
+            fleetState: nil,
+            raidState: nil
         )
 
         switch (type, config) {
@@ -394,6 +404,8 @@ public enum MatchLifecycleService {
             runtime.nineLivesState = try NineLivesEngine.makeInitialState(config: cfg, playerIds: playerIds)
         case let (.fleet, .fleet(cfg)):
             runtime.fleetState = try FleetEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.raid, .raid(cfg)):
+            runtime.raidState = try RaidEngine.makeInitialState(config: cfg, playerIds: playerIds)
         default:
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
@@ -911,6 +923,26 @@ public enum MatchLifecycleService {
         }
     }
 
+    public static func submitRaidVisit(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.raidState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.raidUnavailable")
+        }
+        let outcome = try RaidEngine.submitVisit(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .raidVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.raidState = state
+        }
+    }
+
     public static func confirmFleetHandoff(
         session: MatchLifecycleSession,
         playerId: UUID,
@@ -1143,7 +1175,7 @@ public enum MatchLifecycleService {
             guard !turn.darts.isEmpty else { return nil }
             return turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
         case .suddenDeathTurn, .fiftyOneByFivesTurn, .grandNationalTurn, .hareAndHoundsTurn,
-             .aroundTheClockTurn, .nineLivesTurn, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
+             .aroundTheClockTurn, .nineLivesTurn, .raidVisit, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
              .fleetDart, .fleetSink:
             return nil
         }
@@ -1254,6 +1286,9 @@ public enum MatchLifecycleService {
             return try submitChaseTheDragonTurn(session: session, darts: darts, timestamp: event.timestamp)
         case let .nineLivesTurn(turn):
             return try submitNineLivesTurn(session: session, darts: nineLivesReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .raidVisit(visit):
+            let darts = visit.darts.map(RaidEngine.dartInput(from:))
+            return try submitRaidVisit(session: session, darts: darts, timestamp: event.timestamp)
         case let .fleetPlacement(placement):
             var updated = session
             for cell in placement.ships {
@@ -1530,6 +1565,19 @@ public enum MatchLifecycleService {
             projectStandardTurnState(
                 &runtime,
                 currentTurnPlayerId: state.players[state.currentPlayerIndex].playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.raidState {
+            let currentHero = state.heroes.indices.contains(state.currentHeroIndex)
+                ? state.heroes[state.currentHeroIndex].playerId
+                : nil
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : currentHero,
                 isComplete: state.isComplete,
                 winnerPlayerId: state.winnerPlayerId,
                 timestamp: timestamp
