@@ -181,6 +181,33 @@ struct MatchSummaryScreen: View {
                         .multilineTextAlignment(.center)
                         .accessibilityIdentifier("matchSummaryForfeitSubtitle")
                 }
+            } else if viewModel.isCoopMatch {
+                Image(systemName: viewModel.coopTeamVictory == true ? "checkmark.seal.fill" : "xmark.octagon.fill")
+                    .font(.system(size: trophyPointSize))
+                    .foregroundStyle(viewModel.coopTeamVictory == true ? Brand.green : Brand.redAccent)
+                    .scaleEffect(celebrate ? 1 : (reduceMotion ? 1 : 0.4))
+                    .opacity(celebrate ? 1 : (reduceMotion ? 1 : 0))
+                    .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: celebrate)
+                    .accessibilityHidden(true)
+                Text(L10n.string(viewModel.coopHeadlineKey))
+                    .font(usesLandscapeSplit ? .largeTitle.weight(.heavy) : .title.weight(.heavy))
+                    .foregroundStyle(Brand.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("matchSummaryCoopHeadline")
+                if let subheadline = viewModel.coopSubheadline {
+                    Text(subheadline)
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("matchSummaryCoopSubheadline")
+                }
+                if let mvpName = viewModel.coopMvpName {
+                    Text(L10n.format("play.raid.mvpFormat", mvpName))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Brand.amber)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("matchSummaryCoopMVP")
+                }
             } else {
                 Image(systemName: "trophy.fill")
                     .font(.system(size: trophyPointSize))
@@ -273,6 +300,20 @@ struct MatchSummaryScreen: View {
             parts.append(viewModel.typeLabel)
             if viewModel.hasResult {
                 parts.append(L10n.string("play.summary.forfeit.statsSaved"))
+            }
+            return parts.joined(separator: ". ")
+        }
+        if viewModel.isCoopMatch {
+            var parts = [L10n.string(viewModel.coopHeadlineKey)]
+            if let subheadline = viewModel.coopSubheadline {
+                parts.append(subheadline)
+            }
+            if let mvpName = viewModel.coopMvpName {
+                parts.append(L10n.format("play.raid.mvpFormat", mvpName))
+            }
+            parts.append(viewModel.typeLabel)
+            if viewModel.hasResult {
+                parts.append(L10n.string("play.summary.gameRecorded"))
             }
             return parts.joined(separator: ". ")
         }
@@ -374,7 +415,7 @@ struct MatchSummaryScreen: View {
         VStack(spacing: DS.Spacing.s2) {
             HStack(spacing: DS.Spacing.s3) {
                 PrimaryActionButton(
-                    title: L10n.summaryRematch,
+                    title: LocalizedStringKey(viewModel.rematchTitleKey),
                     isEnabled: viewModel.canRematch,
                     isLoading: isRematching,
                     accessibilityIdentifier: "matchSummaryRematch",
@@ -411,7 +452,7 @@ struct MatchSummaryScreen: View {
             ErrorBanner(messageKey: rematchErrorKey)
         }
         PrimaryActionButton(
-            title: L10n.summaryRematch,
+            title: LocalizedStringKey(viewModel.rematchTitleKey),
             isEnabled: viewModel.canRematch,
             isLoading: isRematching,
             accessibilityIdentifier: "matchSummaryRematch",

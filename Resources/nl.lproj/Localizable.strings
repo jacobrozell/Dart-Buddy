@@ -1194,6 +1194,14 @@
 "play.raid.legend.shield" = "Sluit 20–16 voor 8 schade elk";
 "play.raid.legend.expose" = "Doubles 2 · Triples 3";
 "play.raid.enrageStrikeAnnouncement" = "Baas woedeaanval";
+"play.raid.victory" = "Baas verslagen!";
+"play.raid.defeat" = "Raid mislukt";
+"play.raid.mvpFormat" = "MVP: %@";
+"play.summary.raidRematch" = "Opnieuw raiden";
+"play.summary.stat.damage" = "Schade";
+"play.summary.stat.hearts" = "Harten";
+"coop.summary.raidVictorySubheadFormat" = "%@ · %d harten over";
+"coop.summary.raidDefeatSubheadFormat" = "%@ · Baas %d HP over";
 "play.raid.setup.bossTier" = "Baasniveau";
 "play.raid.setup.bossTier.challenger" = "Uitdager";
 "play.raid.setup.bossTier.standard" = "Standaard";

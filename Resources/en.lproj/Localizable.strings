@@ -1196,6 +1196,14 @@
 "play.raid.legend.shield" = "Close 20–16 for 8 damage each";
 "play.raid.legend.expose" = "Doubles deal 2 · Triples deal 3";
 "play.raid.enrageStrikeAnnouncement" = "Boss enrage strike";
+"play.raid.victory" = "Boss defeated!";
+"play.raid.defeat" = "Raid failed";
+"play.raid.mvpFormat" = "MVP: %@";
+"play.summary.raidRematch" = "Raid again";
+"play.summary.stat.damage" = "Damage";
+"play.summary.stat.hearts" = "Hearts";
+"coop.summary.raidVictorySubheadFormat" = "%@ · %d hearts remaining";
+"coop.summary.raidDefeatSubheadFormat" = "%@ · Boss %d HP left";
 "play.raid.setup.bossTier" = "Boss tier";
 "play.raid.setup.bossTier.challenger" = "Challenger";
 "play.raid.setup.bossTier.standard" = "Standard";

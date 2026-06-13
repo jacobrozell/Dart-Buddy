@@ -1194,6 +1194,14 @@
 "play.raid.legend.shield" = "20–16 schließen für je 8 Schaden";
 "play.raid.legend.expose" = "Doubles 2 · Triples 3";
 "play.raid.enrageStrikeAnnouncement" = "Boss-Wutanfall";
+"play.raid.victory" = "Boss besiegt!";
+"play.raid.defeat" = "Raid gescheitert";
+"play.raid.mvpFormat" = "MVP: %@";
+"play.summary.raidRematch" = "Erneut raiden";
+"play.summary.stat.damage" = "Schaden";
+"play.summary.stat.hearts" = "Herzen";
+"coop.summary.raidVictorySubheadFormat" = "%@ · %d Herzen übrig";
+"coop.summary.raidDefeatSubheadFormat" = "%@ · Boss %d LP übrig";
 "play.raid.setup.bossTier" = "Boss-Stufe";
 "play.raid.setup.bossTier.challenger" = "Herausforderer";
 "play.raid.setup.bossTier.standard" = "Standard";

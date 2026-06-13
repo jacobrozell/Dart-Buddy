@@ -73,8 +73,52 @@ final class MatchSummaryViewModel: ObservableObject {
     var canRematch: Bool {
         guard let runtime = session?.runtime, runtime.status == .completed else { return false }
         let participantCount = runtime.participants.count
-        let minimum = runtime.type == .x01 ? 1 : 2
+        let minimum: Int = switch runtime.type {
+        case .x01, .raid: 1
+        default: 2
+        }
         return participantCount >= minimum
+    }
+
+    var isCoopMatch: Bool {
+        guard let type = session?.runtime.type else { return false }
+        return type == .raid
+    }
+
+    var coopTeamVictory: Bool? {
+        guard isCoopMatch, let state = session?.runtime.raidState, state.isComplete else { return nil }
+        return state.teamVictory
+    }
+
+    var coopHeadlineKey: String {
+        guard let victory = coopTeamVictory else { return "play.summary.result" }
+        return victory ? "play.raid.victory" : "play.raid.defeat"
+    }
+
+    var coopSubheadline: String? {
+        guard let state = session?.runtime.raidState else { return nil }
+        let tier = L10n.string(state.config.bossTier.displayNameKey)
+        if state.teamVictory {
+            let hearts = state.heroes.reduce(0) { $0 + $1.hearts }
+            return L10n.format("coop.summary.raidVictorySubheadFormat", tier, hearts)
+        }
+        return L10n.format("coop.summary.raidDefeatSubheadFormat", tier, state.bossHP)
+    }
+
+    var coopMvpName: String? {
+        guard let state = session?.runtime.raidState else { return nil }
+        guard let top = state.heroes.max(by: { $0.damageDealt < $1.damageDealt }), top.damageDealt > 0 else {
+            return nil
+        }
+        return participantName(for: top.playerId)
+    }
+
+    var rematchTitleKey: String {
+        session?.runtime.type == .raid ? "play.summary.raidRematch" : "play.summary.rematch"
+    }
+
+    private func participantName(for playerId: UUID) -> String? {
+        session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }?.displayNameAtMatchStart
     }
 
     /// Reverts the last accepted throw and returns restored in-progress darts, if any.
@@ -121,6 +165,9 @@ final class MatchSummaryViewModel: ObservableObject {
     var playerRows: [PlayerRow] {
         guard let session else { return [] }
         let runtime = session.runtime
+        if runtime.type == .raid, let raidState = runtime.raidState {
+            return raidPlayerRows(raidState: raidState, runtime: runtime)
+        }
         let nameById = Dictionary(
             runtime.participants.map { ($0.playerId ?? $0.id, $0.displayNameAtMatchStart) },
             uniquingKeysWith: { first, _ in first }
@@ -138,6 +185,24 @@ final class MatchSummaryViewModel: ObservableObject {
                 name: breakdown.name,
                 isWinner: breakdown.playerId == runtime.winnerPlayerId,
                 stats: Self.stats(for: breakdown, runtime: runtime)
+            )
+        }
+    }
+
+    private func raidPlayerRows(raidState: RaidState, runtime: MatchRuntimeState) -> [PlayerRow] {
+        let nameById = Dictionary(
+            runtime.participants.map { ($0.playerId ?? $0.id, $0.displayNameAtMatchStart) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        return raidState.heroes.map { hero in
+            PlayerRow(
+                id: hero.playerId,
+                name: nameById[hero.playerId] ?? L10n.string("play.raid.heroFallbackName"),
+                isWinner: false,
+                stats: [
+                    (L10n.string("play.summary.stat.damage"), "\(hero.damageDealt)"),
+                    (L10n.string("play.summary.stat.hearts"), "\(hero.hearts)")
+                ]
             )
         }
     }

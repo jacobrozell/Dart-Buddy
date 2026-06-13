@@ -656,3 +656,52 @@ private actor SummaryFakeStatsRepository: StatsRepository {
 
     func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
 }
+
+@MainActor
+@Test(.tags(.integration, .match, .regression))
+func matchSummaryRaidUsesCoopTeamOutcome() throws {
+    let hero = UUID()
+    var session = try MatchLifecycleService.createMatch(
+        type: .raid,
+        config: .raid(MatchConfigRaid(bossTier: .challenger, heroHearts: 3, enrageEnabled: false)),
+        participants: [
+            MatchParticipant(playerId: hero, displayNameAtMatchStart: "Alice", turnOrder: 0)
+        ]
+    )
+    session.runtime.raidState?.bossHP = 2
+    session.runtime.raidState?.phase = .expose
+    session = try MatchLifecycleService.submitRaidVisit(
+        session: session,
+        darts: [
+            DartInput(multiplier: .double, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+            DartInput(multiplier: .single, segment: .oneToTwenty(20))
+        ]
+    )
+
+    let store = ActiveMatchStore()
+    store.save(session)
+    let vm = MatchSummaryViewModel(
+        matchId: session.runtime.matchId,
+        store: store,
+        matchRepository: SummaryFakeMatchRepository(
+            snapshot: MatchSnapshotSummary(
+                id: UUID(),
+                matchId: session.runtime.matchId,
+                snapshotVersion: session.latestSnapshot.payloadVersion,
+                snapshotPayload: session.latestSnapshot.payload,
+                updatedAt: Date()
+            )
+        ),
+        statsRepository: SummaryFakeStatsRepository(events: [])
+    )
+    vm.refresh()
+
+    #expect(vm.isCoopMatch)
+    #expect(vm.coopTeamVictory == true)
+    #expect(vm.winnerName == nil)
+    #expect(vm.playerRows.count == 1)
+    #expect(vm.playerRows.allSatisfy { !$0.isWinner })
+    #expect(vm.canRematch)
+    #expect(vm.rematchTitleKey == "play.summary.raidRematch")
+}

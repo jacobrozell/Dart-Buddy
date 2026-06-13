@@ -1194,6 +1194,14 @@
 "play.raid.legend.shield" = "Cierra 20–16 para 8 de daño cada uno";
 "play.raid.legend.expose" = "Dobles 2 · Triples 3";
 "play.raid.enrageStrikeAnnouncement" = "Golpe de furia del jefe";
+"play.raid.victory" = "¡Jefe derrotado!";
+"play.raid.defeat" = "Raid fallida";
+"play.raid.mvpFormat" = "MVP: %@";
+"play.summary.raidRematch" = "Raid otra vez";
+"play.summary.stat.damage" = "Daño";
+"play.summary.stat.hearts" = "Corazones";
+"coop.summary.raidVictorySubheadFormat" = "%@ · %d corazones restantes";
+"coop.summary.raidDefeatSubheadFormat" = "%@ · Jefe %d PV restantes";
 "play.raid.setup.bossTier" = "Nivel del jefe";
 "play.raid.setup.bossTier.challenger" = "Retador";
 "play.raid.setup.bossTier.standard" = "Estándar";
