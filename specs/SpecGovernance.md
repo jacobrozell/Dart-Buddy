@@ -172,6 +172,7 @@ Bump **Last verified** and **Commit** when behavior in that spec changes.
 | Baseball / Killer (party) | `game-modes/implemented/BaseballGameSpec.md`, `KillerGameSpec.md` | Party engines |
 | Planned modes (24) | `specs/game-modes/planned/` | `GameModeCatalog` stubs only |
 | Modes tab | `ModesTabSpec.md` | `ModesRootView`, `GameModeCatalog` |
+| Co-op platform | `CoopPvEModesSpec.md` | `GameModeCatalog` (§ `.coop`); Raid engine TBD |
 | Preset bots | `BotOpponentSpec.md` | `DartBotEngine`, `BotDifficulty` |
 | Training bots | `TrainingBotSpec.md` | `TrainingBotSkillResolver`, Player Detail |
 | Custom bots | `CustomBotSpec.md` | `CustomBotDetailView`, `CustomBotCreationSheet` |

@@ -4,10 +4,11 @@
 
 Define **Clear the Board** — a ring-cell sweep where players close **segment × ring** wedges (e.g. T1, D1, and S1 are three independent cells). Points accrue on first-time closes; bulls use a special **catch-up** rule by default. Ships in three shapes: **co-op** (Pure, Decay) and **Team vs Team** (friends vs friends, **no bots** in v1).
 
-**Status:** Planned (`party.clearTheBoard`).  
+**Status:** Planned (`coop.clearTheBoard`).  
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §48.
 
 **Related specs:**
+- [`CoopPvEModesSpec.md`](../../CoopPvEModesSpec.md) — shared co-op platform
 - [`RaidGameSpec.md`](RaidGameSpec.md) — co-op summary variant (§9)
 - [`FleetGameSpec.md`](FleetGameSpec.md) — shared `BoardCell` / ring grid concepts
 - [`MatchSpec.md`](../../MatchSpec.md) — lifecycle, resume, abandon
@@ -20,11 +21,11 @@ Define **Clear the Board** — a ring-cell sweep where players close **segment �
 
 | Field | Value |
 |-------|-------|
-| **Section** | Party (Practice entry for Pure solo — see §3) |
+| **Section** | Co-op |
 | **UI template** | H — Board state (`boardState`) + **ring-cell** heat map |
 | **Stat kind** | `boardClaim` (cells cleared, team points, darts-to-clear) |
 | **Ruleset (v1)** | `clear_the_board_standard` |
-| **Catalog id** | `party.clearTheBoard` |
+| **Catalog id** | `coop.clearTheBoard` |
 | **MatchType** | `clearTheBoard` (when implemented) |
 
 **Display name:** Clear the Board  
@@ -416,7 +417,7 @@ Split into two even teams (1v1 through 4v4). The first team to close a cell clai
 
 | Key | Notes |
 |-----|-------|
-| `modes.catalog.party.clearTheBoard.name` / `.blurb` | |
+| `modes.catalog.coop.clearTheBoard.name` / `.blurb` | |
 | `play.clearTheBoard.setup.variant.pure` / `.decay` / `.teamVsTeam` | |
 | `play.clearTheBoard.setup.teamA` / `.teamB` | Roster assignment |
 | `setup.validation.clearTheBoardTeamEvenSplit` | 2/4/6/8 players, equal teams |
@@ -481,5 +482,5 @@ Split into two even teams (1v1 through 4v4). The first team to close a cell clai
 | Field | Value |
 |-------|-------|
 | **Status** | Planned |
-| **Catalog id** | `party.clearTheBoard` |
+| **Catalog id** | `coop.clearTheBoard` |
 | **Code** | Not started |

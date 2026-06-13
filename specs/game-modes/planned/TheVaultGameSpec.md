@@ -4,10 +4,11 @@
 
 Define **The Vault** — a cooperative heist where **2–4 humans** share a dart pool and open **5 locks** by hitting ordered segment combos. Wrong hits reset individual locks; repeated failures trigger an alarm.
 
-**Status:** Planned (`party.theVault`).  
+**Status:** Planned (`coop.theVault`).  
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §20.
 
 **Related specs:**
+- [`CoopPvEModesSpec.md`](../../CoopPvEModesSpec.md) — shared co-op platform
 - [`RaidGameSpec.md`](RaidGameSpec.md) — co-op summary variant, shared meter UI
 - [`SoloPracticeMatchSummarySupplement.md`](../../SoloPracticeMatchSummarySupplement.md) — co-op stars (darts remaining)
 - [`MatchSpec.md`](../../MatchSpec.md) — lifecycle, resume, abandon
@@ -19,11 +20,11 @@ Define **The Vault** — a cooperative heist where **2–4 humans** share a dart
 
 | Field | Value |
 |-------|-------|
-| **Section** | Party |
+| **Section** | Co-op |
 | **UI template** | G — Phase race (`phaseRace`) + shared combo chrome |
 | **Stat kind** | `coopHeist` (locks cleared, darts remaining, alarms) |
 | **Ruleset (v1)** | `the_vault_standard` |
-| **Catalog id** | `party.theVault` |
+| **Catalog id** | `coop.theVault` |
 | **MatchType** | `theVault` (when implemented) |
 
 **Display name:** The Vault  
@@ -168,4 +169,4 @@ v1: locks must open **in order** (1 → 5). v2: parallel locks optional.
 
 1. Sequential vs parallel locks in v1?
 2. Ring-required combos in standard difficulty or hard-only?
-3. Share `CoopPvEModesSpec` platform doc with Raid before implementation?
+3. ~~Share `CoopPvEModesSpec` platform doc with Raid before implementation?~~ **Done** — see [`CoopPvEModesSpec.md`](../../CoopPvEModesSpec.md) §11

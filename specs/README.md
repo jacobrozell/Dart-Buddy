@@ -51,6 +51,7 @@ Catalog of all product and system specifications. For **audit coverage** (spec +
 | [`MatchSummarySpec.md`](MatchSummarySpec.md) | Post-match screen, undo last throw |
 | [`SoloPracticeModesSpec.md`](SoloPracticeModesSpec.md) | Shared solo-only practice platform (catalog, setup, summary, history) |
 | [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplement.md) | Solo summary layout (no winner card) |
+| [`CoopPvEModesSpec.md`](CoopPvEModesSpec.md) | **Progress tracker** — co-op platform (§13); UI §7, Learn to play §8, accessibility §9, light/dark §7.5 |
 | [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md) | Blind/low-vision Guided Play platform |
 | [`GuidedPlayCompanionSpec.md`](GuidedPlayCompanionSpec.md) | Sighted guide verifier role |
 | [`ScoringInputSpec.md`](ScoringInputSpec.md) | Shared dart-entry pad, undo, submit |

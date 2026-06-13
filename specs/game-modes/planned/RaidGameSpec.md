@@ -4,10 +4,11 @@
 
 Define **Raid** — a cooperative player-vs-boss mode where **1–3 humans** share one boss HP pool, rotate standard visits, and survive phase shifts (Shield → Expose → Enrage) until the boss is defeated or every hero is down.
 
-**Status:** Planned (`party.raid`).  
+**Status:** Planned (`coop.raid`).  
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §33.
 
 **Related specs:**
+- [`CoopPvEModesSpec.md`](../../CoopPvEModesSpec.md) — shared co-op platform (catalog, setup, summary)
 - [`BotOpponentSpec.md`](../../BotOpponentSpec.md) — boss is a non-throwing bot participant (portrait + tier; no `DartBotEngine` visits in v1)
 - [`CampaignSpec.md`](../../CampaignSpec.md) — Journey stages may script boss tier, HP, and hero hearts
 - [`MatchSpec.md`](../../MatchSpec.md) — lifecycle, resume, abandon
@@ -23,11 +24,11 @@ Define **Raid** — a cooperative player-vs-boss mode where **1–3 humans** sha
 
 | Field | Value |
 |-------|-------|
-| **Section** | Party |
+| **Section** | Co-op |
 | **UI template** | G — Phase race (`phaseRace`) + boss chrome |
 | **Stat kind** | `bossRaid` (new `ModeStatKind`; see §12) |
 | **Ruleset (v1)** | `raid_standard` |
-| **Catalog id** | `party.raid` |
+| **Catalog id** | `coop.raid` |
 | **MatchType** | `raid` (when implemented) |
 
 ---
@@ -66,7 +67,7 @@ Define **Raid** — a cooperative player-vs-boss mode where **1–3 humans** sha
 | Undo | Undo last accepted hero visit | — |
 | Pause / resume | Standard in-progress match resume | — |
 | History | Full `MatchRecord` parity | Activity filter + co-op summary |
-| Entry | Modes catalog + Play party picker (when party surface ships) | Journey scripted raids |
+| Entry | Modes catalog + Play co-op picker (when co-op surface ships) | Journey scripted raids |
 
 ### Out of scope (v1)
 - Boss throws darts at heroes (`DartBotEngine` boss visits)
@@ -320,9 +321,9 @@ Reduce the boss to **zero** health before the team is wiped out.
 
 | Key | Notes |
 |-----|-------|
-| `modes.catalog.party.raid.name` | "Raid" |
-| `modes.catalog.party.raid.blurb` | e.g. "Co-op boss fight — close, then finish" |
-| `play.party.raid.title` / `.subtitle` | Setup header |
+| `modes.catalog.coop.raid.name` | "Raid" |
+| `modes.catalog.coop.raid.blurb` | e.g. "Co-op boss fight — close, then finish" |
+| `play.coop.raid.title` / `.subtitle` | Setup header |
 | `play.raid.setup.bossTier` | Tier picker label |
 | `play.raid.setup.bossTier.challenger` / `.standard` / `.nightmare` | |
 | `play.raid.setup.heroHearts` | |
@@ -532,4 +533,4 @@ Journey raids auto-bind primary player + optional guest slots — amendment to C
 | **Status** | Planned |
 | **Spec author** | 2026-06-11 brainstorm promotion |
 | **Code** | Not started |
-| **Catalog id** | `party.raid` |
+| **Catalog id** | `coop.raid` |
