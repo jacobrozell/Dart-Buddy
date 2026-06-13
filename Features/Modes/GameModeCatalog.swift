@@ -3,8 +3,8 @@ import SwiftUI
 
 /// Single source of truth for every game mode Dart Buddy intends to offer.
 ///
-/// This is the catalog stub described in `docs/full-game-catalog-ui.md`: all 29
-/// modes (5 shipped + 24 planned) live here as data so the Modes tab, Activity
+/// This is the catalog stub described in `docs/full-game-catalog-ui.md`: all 34
+/// modes live here as data so the Modes tab, Activity
 /// filters, history badges, and per-mode setup can read one list instead of each
 /// hard-coding mode knowledge. Planned modes carry `status == .planned` (no
 /// `MatchType`, not routable) and surface as "coming soon" until their engine

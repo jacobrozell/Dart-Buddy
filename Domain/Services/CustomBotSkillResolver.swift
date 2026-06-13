@@ -10,7 +10,7 @@ public enum CustomBotSkillResolver {
             return BotSkillProfileInterpolator.profile(forCricketMPR: metrics.cricketMPR, clampToTierRange: false)
         case .baseball, .killer, .shanghai, .americanCricket, .mickeyMouse, .mulligan, .englishCricket,
              .knockout, .suddenDeath, .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds,
-             .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .nineLives, .fleet:
+             .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .nineLives, .fleet, .raid:
             return BotSkillProfileInterpolator.profile(forX01Average: metrics.x01Average, clampToTierRange: false)
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             return BotSkillProfileInterpolator.profile(forX01Average: metrics.x01Average, clampToTierRange: false)

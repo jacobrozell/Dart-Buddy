@@ -40,7 +40,7 @@ public enum TrainingBotSkillResolver {
             return bumpedEasyProfile(for: .cricket)
         case .baseball, .killer, .shanghai, .americanCricket, .mickeyMouse, .mulligan, .englishCricket,
              .knockout, .suddenDeath, .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds,
-             .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .nineLives, .fleet:
+             .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .nineLives, .fleet, .raid:
             let playerAvg = breakdown.average3Dart
             if playerAvg > 0 {
                 let target = min(
@@ -63,7 +63,7 @@ public enum TrainingBotSkillResolver {
             return BotSkillProfileInterpolator.profile(forCricketMPR: 1.35)
         case .baseball, .killer, .shanghai, .americanCricket, .mickeyMouse, .mulligan, .englishCricket,
              .knockout, .suddenDeath, .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds,
-             .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .nineLives, .fleet, .blindKiller, .followTheLeader,
+             .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .nineLives, .fleet, .raid, .blindKiller, .followTheLeader,
              .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             return BotSkillProfileInterpolator.profile(forX01Average: 24)
         }

@@ -38,6 +38,11 @@ private enum ShippedModeLifecycleSupport {
             return try submitMissTurn(session: session)
         case .fleet:
             return try submitFleetTurn(session: session)
+        case .raid:
+            return try MatchLifecycleService.submitRaidVisit(
+                session: session,
+                darts: [miss(), miss(), miss()]
+            )
         case .golf:
             return try MatchLifecycleService.submitGolfTurn(
                 session: session,
