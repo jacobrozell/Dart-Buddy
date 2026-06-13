@@ -44,11 +44,19 @@ public enum MatchStatus: String, Codable, Sendable {
 
 public struct MatchHistoryFilter: Equatable, Sendable {
     public var matchType: MatchType?
+    /// When `matchType` is nil, limits results to these types (e.g. lean 1.0 "All games").
+    public var includedMatchTypes: [MatchType]?
     public var startedAfter: Date?
     public var participantPlayerId: UUID?
 
-    public init(matchType: MatchType? = nil, startedAfter: Date? = nil, participantPlayerId: UUID? = nil) {
+    public init(
+        matchType: MatchType? = nil,
+        includedMatchTypes: [MatchType]? = nil,
+        startedAfter: Date? = nil,
+        participantPlayerId: UUID? = nil
+    ) {
         self.matchType = matchType
+        self.includedMatchTypes = includedMatchTypes
         self.startedAfter = startedAfter
         self.participantPlayerId = participantPlayerId
     }

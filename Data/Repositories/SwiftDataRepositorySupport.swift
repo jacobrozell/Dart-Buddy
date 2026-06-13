@@ -10,7 +10,18 @@ func historyMatchPredicate(
     forfeitedRaw: String,
     restrictedToMatchIds matchIds: [UUID]?
 ) -> Predicate<SchemaV3.MatchRecord> {
-    switch (filter.matchType, filter.startedAfter, matchIds) {
+    let allowedTypeRaws: [String]?
+    if let matchType = filter.matchType {
+        allowedTypeRaws = [matchType.rawValue]
+    } else if let included = filter.includedMatchTypes, !included.isEmpty {
+        allowedTypeRaws = included.map(\.rawValue)
+    } else {
+        allowedTypeRaws = nil
+    }
+
+    let startedAfter = filter.startedAfter
+
+    switch (allowedTypeRaws, startedAfter, matchIds) {
     case (nil, nil, nil):
         return #Predicate<SchemaV3.MatchRecord> {
             $0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw
@@ -18,16 +29,6 @@ func historyMatchPredicate(
     case (nil, nil, let ids?):
         return #Predicate<SchemaV3.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && ids.contains($0.id)
-        }
-    case (let type?, nil, nil):
-        let typeRaw = type.rawValue
-        return #Predicate<SchemaV3.MatchRecord> {
-            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && $0.typeRaw == typeRaw
-        }
-    case (let type?, nil, let ids?):
-        let typeRaw = type.rawValue
-        return #Predicate<SchemaV3.MatchRecord> {
-            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && $0.typeRaw == typeRaw && ids.contains($0.id)
         }
     case (nil, let startedAfter?, nil):
         return #Predicate<SchemaV3.MatchRecord> {
@@ -37,15 +38,21 @@ func historyMatchPredicate(
         return #Predicate<SchemaV3.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && $0.startedAt >= startedAfter && ids.contains($0.id)
         }
-    case (let type?, let startedAfter?, nil):
-        let typeRaw = type.rawValue
+    case (let typeRaws?, nil, nil):
         return #Predicate<SchemaV3.MatchRecord> {
-            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter
+            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw)
         }
-    case (let type?, let startedAfter?, let ids?):
-        let typeRaw = type.rawValue
+    case (let typeRaws?, nil, let ids?):
         return #Predicate<SchemaV3.MatchRecord> {
-            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && $0.typeRaw == typeRaw && $0.startedAt >= startedAfter && ids.contains($0.id)
+            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw) && ids.contains($0.id)
+        }
+    case (let typeRaws?, let startedAfter?, nil):
+        return #Predicate<SchemaV3.MatchRecord> {
+            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw) && $0.startedAt >= startedAfter
+        }
+    case (let typeRaws?, let startedAfter?, let ids?):
+        return #Predicate<SchemaV3.MatchRecord> {
+            ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw) && $0.startedAt >= startedAfter && ids.contains($0.id)
         }
     }
 }

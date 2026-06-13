@@ -109,8 +109,10 @@ final class HistoryListViewModel: ObservableObject {
     }
 
     private func repositoryFilter() -> MatchHistoryFilter {
-        MatchHistoryFilter(
-            matchType: modeFilter.matchType,
+        let types = modeFilter.historyQueryTypes
+        return MatchHistoryFilter(
+            matchType: types.matchType,
+            includedMatchTypes: types.includedMatchTypes,
             startedAfter: dateFilter.startedAfter,
             participantPlayerId: playerFilter
         )
