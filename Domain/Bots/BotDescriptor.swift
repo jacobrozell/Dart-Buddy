@@ -6,7 +6,7 @@ protocol BotDescriptor: Codable, Sendable {
 }
 
 struct PresetBotDescriptor: BotDescriptor, Equatable {
-    let botKind: BotKind = .preset
+    var botKind: BotKind { .preset }
     let difficulty: BotDifficulty
 
     init(difficulty: BotDifficulty) {
@@ -15,7 +15,7 @@ struct PresetBotDescriptor: BotDescriptor, Equatable {
 }
 
 struct TrainingBotDescriptor: BotDescriptor, Equatable {
-    let botKind: BotKind = .training
+    var botKind: BotKind { .training }
     let linkedPlayerId: UUID
 
     init(linkedPlayerId: UUID) {
@@ -24,7 +24,7 @@ struct TrainingBotDescriptor: BotDescriptor, Equatable {
 }
 
 struct CustomBotDescriptor: BotDescriptor, Equatable, BotSkillResolving {
-    let botKind: BotKind = .custom
+    var botKind: BotKind { .custom }
     let configuration: CustomBotConfiguration
 
     init(configuration: CustomBotConfiguration) {

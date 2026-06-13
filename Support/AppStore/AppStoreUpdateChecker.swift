@@ -5,7 +5,7 @@ struct AppStoreUpdateOffer: Sendable, Equatable {
     let storeURL: URL
 }
 
-struct AppStoreUpdateChecker: Sendable {
+struct AppStoreUpdateChecker: @unchecked Sendable {
     private static let dismissedStoreVersionKey = "app_store_update_dismissed_version"
     // Verified literal URL.
     // swiftlint:disable:next force_unwrapping

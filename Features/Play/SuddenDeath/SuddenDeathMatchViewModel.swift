@@ -87,7 +87,7 @@ final class SuddenDeathMatchViewModel: ObservableObject {
     }
 
     var headerAccessibilityLabel: String {
-        var parts = [L10n.string("play.suddenDeath.navTitle"), headerText, playersRemainingText]
+        let parts = [L10n.string("play.suddenDeath.navTitle"), headerText, playersRemainingText]
         return parts.joined(separator: ", ")
     }
 

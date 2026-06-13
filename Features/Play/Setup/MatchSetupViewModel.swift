@@ -150,7 +150,7 @@ final class MatchSetupViewModel: ObservableObject {
             raidEnrageEnabled = raidPrefs.enrageEnabled
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
                 applyMatchTypePreferred(preferred)
-            } else {
+            } else if selectedCatalogMatchType == nil {
                 mode = settings.defaultMatchTypeRaw == MatchType.cricket.rawValue ? .cricket : .x01
             }
         } catch {

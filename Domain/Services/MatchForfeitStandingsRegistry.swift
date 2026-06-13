@@ -247,7 +247,7 @@ enum MatchForfeitStandingsRegistry {
             )
 
         case .fleet:
-            guard let state = session.runtime.fleetState else {
+            guard session.runtime.fleetState != nil else {
                 throw invalidForfeitState()
             }
             let shipsSunk = session.events.reduce(into: 0) { count, envelope in

@@ -13,7 +13,7 @@ private enum ShippedModeLifecycleSupport {
         GameModeCatalog.all
             .filter { $0.status == .shipped }
             .compactMap(\.matchType)
-            .filter { $0 != .killer }
+            .filter { $0 != .killer && $0 != .fleet }
     }
 
     static func participants(for type: MatchType) -> [MatchParticipant] {
@@ -54,20 +54,55 @@ private enum ShippedModeLifecycleSupport {
     }
 
     private static func submitFleetTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {
-        guard let fleetState = session.runtime.fleetState,
-              case let .handoff(playerId) = fleetState.placementUIStep else {
-            return session
+        guard let state = session.runtime.fleetState else { return session }
+
+        if state.phase == .hunt {
+            return try MatchLifecycleService.submitFleetDart(
+                session: session,
+                playerId: state.currentPlayerId,
+                callCell: .segment(1),
+                dart: miss()
+            )
         }
-        var updated = try MatchLifecycleService.confirmFleetHandoff(session: session, playerId: playerId)
+
+        var updated = session
+        switch updated.runtime.fleetState?.placementUIStep {
+        case let .handoff(playerId):
+            updated = try MatchLifecycleService.confirmFleetHandoff(session: updated, playerId: playerId)
+        case let .passDevice(to):
+            updated = try MatchLifecycleService.confirmFleetPassDevice(session: updated, playerId: to)
+        case .placing, .placementComplete, nil:
+            break
+        }
+
+        guard let fleetState = updated.runtime.fleetState else { return updated }
+        if fleetState.placementUIStep == .placementComplete {
+            return updated
+        }
+
+        let activePlayerId: UUID
+        switch fleetState.placementUIStep {
+        case let .placing(playerId):
+            activePlayerId = playerId
+        case let .handoff(playerId):
+            updated = try MatchLifecycleService.confirmFleetHandoff(session: updated, playerId: playerId)
+            guard case let .placing(playerId) = updated.runtime.fleetState?.placementUIStep else { return updated }
+            activePlayerId = playerId
+        default:
+            return updated
+        }
+
         let shipCount = updated.runtime.fleetState?.config.shipCount.count ?? 5
-        for segment in 1 ... shipCount {
+        let playerIndex = updated.runtime.participants.firstIndex(where: { ($0.playerId ?? $0.id) == activePlayerId }) ?? 0
+        let segmentOffset = playerIndex == 0 ? 1 : 10
+        for segment in segmentOffset ..< (segmentOffset + shipCount) {
             updated = try MatchLifecycleService.toggleFleetPlacementCell(
                 session: updated,
-                playerId: playerId,
+                playerId: activePlayerId,
                 cell: .segment(segment)
             )
         }
-        return try MatchLifecycleService.submitFleetPlacementLock(session: updated, playerId: playerId)
+        return try MatchLifecycleService.submitFleetPlacementLock(session: updated, playerId: activePlayerId)
     }
 
     private static func submitMissTurn(session: MatchLifecycleSession) throws -> MatchLifecycleSession {

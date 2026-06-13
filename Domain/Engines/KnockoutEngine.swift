@@ -346,8 +346,6 @@ public enum KnockoutEngine {
 
         // Detect round completion: when cursor wraps back to or past the
         // round leader index, we have completed a full rotation.
-        let roundLeaderId = state.roundLeaderPlayerId
-        let roundLeaderIndex = state.players.firstIndex(where: { $0.playerId == roundLeaderId }) ?? 0
         let wrappedPastLeader: Bool = {
             // Simple: did we wrap around (cursor <= startIndex) and the
             // round leader is at or before the cursor?

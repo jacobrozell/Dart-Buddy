@@ -12,11 +12,11 @@ struct ResumeActiveMatchIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard await IntentRoutingBridge.isEnabled else {
+        guard IntentRoutingBridge.isEnabled else {
             throw IntentRoutingError.disabled
         }
 
-        if await IntentRoutingBridge.isRoutingReady {
+        if IntentRoutingBridge.isRoutingReady {
             if await IntentRoutingBridge.fetchResumableActiveMatch() != nil {
                 _ = await IntentRoutingBridge.route(.play(.resumeActive), intentName: Self.intentName)
                 return .result(dialog: IntentDialog(LocalizedStringResource("intent.resumeActiveMatch.resuming")))

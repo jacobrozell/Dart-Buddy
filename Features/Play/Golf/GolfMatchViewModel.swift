@@ -100,7 +100,7 @@ final class GolfMatchViewModel: ObservableObject {
     }
 
     var headerAccessibilityLabel: String {
-        var parts = [L10n.string("play.golf.navTitle"), headerText, lastDartHint]
+        let parts = [L10n.string("play.golf.navTitle"), headerText, lastDartHint]
         return parts.joined(separator: ", ")
     }
 

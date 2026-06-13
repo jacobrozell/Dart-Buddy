@@ -298,10 +298,6 @@ public struct UndoLastDartResult: Sendable {
 public enum MatchLifecycleService {
     public static let snapshotInterval = 3
 
-    private static let soloPracticeMatchTypes: Set<MatchType> = [
-        .x01, .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .raid
-    ]
-
     public static func createMatch(
         matchId: UUID = UUID(),
         type: MatchType,
@@ -309,7 +305,7 @@ public enum MatchLifecycleService {
         participants: [MatchParticipant],
         startedAt: Date = Date()
     ) throws -> MatchLifecycleSession {
-        let minimumParticipants = soloPracticeMatchTypes.contains(type) ? 1 : 2
+        let minimumParticipants = GameModeCatalog.entry(for: type)?.minimumPlayers ?? 2
         guard participants.count >= minimumParticipants else {
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.players.minimum")
         }

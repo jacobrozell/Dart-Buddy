@@ -200,6 +200,25 @@ func applyPendingModeSelectionPrefillsPartyKiller() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
+func onAppearDoesNotResetCatalogModeSelection() async {
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    vm.applyPendingModeSelection(
+        PendingModeSelection(setupCategory: .standard, mode: nil, partyGame: nil, matchType: .golf)
+    )
+
+    await vm.onAppear()
+
+    #expect(vm.selectedCatalogMatchType == .golf)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
 func setupPartyKillerAllowsPresetBot() async {
     guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")

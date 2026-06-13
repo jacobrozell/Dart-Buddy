@@ -55,6 +55,11 @@ enum SnapshotOrientationLock {
         case .landscape: .landscapeLeft
         }
         UIDevice.current.setValue(interfaceOrientation.rawValue, forKey: "orientation")
-        UIViewController.attemptRotationToDeviceOrientation()
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?
+            .rootViewController?
+            .setNeedsUpdateOfSupportedInterfaceOrientations()
     }
 }
