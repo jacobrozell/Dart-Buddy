@@ -265,6 +265,19 @@ enum MatchForfeitStandingsRegistry {
                 prefersLowerScore: false
             )
 
+        case .raid:
+            guard let state = session.runtime.raidState else {
+                throw invalidForfeitState()
+            }
+            return MatchForfeitStanding(
+                playerId: playerId,
+                primaryScore: state.bossHP,
+                tieBreakKey: state.bossHP * 100 + turnOrder,
+                summaryKey: "play.match.forfeit.standingFormat.raid",
+                summaryValue: state.bossHP,
+                prefersLowerScore: true
+            )
+
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             throw invalidForfeitState()
         }
@@ -313,7 +326,7 @@ enum MatchForfeitStandingsRegistry {
             ]
             config = .shanghai(MatchConfigShanghai())
         case .americanCricket, .mickeyMouse, .mulligan, .englishCricket, .knockout,
-             .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds, .nineLives, .fleet:
+             .fiftyOneByFives, .golf, .football, .grandNational, .hareAndHounds, .nineLives, .fleet, .raid:
             participants = [
                 MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
                 MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
@@ -403,6 +416,8 @@ enum MatchForfeitStandingsRegistry {
                 )
             }
             return try MatchLifecycleService.submitFleetPlacementLock(session: updated, playerId: playerId)
+        case .raid:
+            return try MatchLifecycleService.submitRaidVisit(session: session, darts: [miss, miss, miss])
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
             return session
         }
