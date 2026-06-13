@@ -101,7 +101,8 @@ struct PlayRootView: View {
                      let .aroundTheClock180Match(matchId),
                      let .chaseTheDragonMatch(matchId),
                      let .nineLivesMatch(matchId),
-                     let .fleetMatch(matchId):
+                     let .fleetMatch(matchId),
+                     let .raidMatch(matchId):
                     PlayMatchRouteView(
                         route: route,
                         dependencies: dependencies,

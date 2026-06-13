@@ -39,6 +39,8 @@ struct PlayMatchRouteView: View {
             NineLivesMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
         case let .fleetMatch(matchId):
             FleetMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .raidMatch(matchId):
+            RaidMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
         default:
             EmptyView()
         }
@@ -566,6 +568,37 @@ private struct FleetMatchRouteView: View {
 
     var body: some View {
         FleetMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct RaidMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: RaidMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: RaidMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository
+            )
+        )
+    }
+
+    var body: some View {
+        RaidMatchScreen(
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,
