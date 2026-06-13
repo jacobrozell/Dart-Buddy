@@ -14,7 +14,7 @@ import Testing
 
     @Test func placementLockStartsHunt() throws {
         var state = try FleetEngine.makeInitialState(config: MatchConfigFleet(shipCount: .quick), playerIds: [p1, p2])
-        _ = try FleetEngine.confirmHandoff(state: state, playerId: p1)
+        (state, _) = try FleetEngine.confirmHandoff(state: state, playerId: p1)
         for segment in 1 ... 3 {
             state = try FleetEngine.togglePlacementCell(state: state, playerId: p1, cell: .segment(segment))
         }
@@ -23,8 +23,8 @@ import Testing
         #expect(first.updatedState.phase == .placement)
 
         var secondState = first.updatedState
-        _ = try FleetEngine.confirmPassDevice(state: secondState, playerId: p2)
-        _ = try FleetEngine.confirmHandoff(state: secondState, playerId: p2)
+        (secondState, _) = try FleetEngine.confirmPassDevice(state: secondState, playerId: p2)
+        (secondState, _) = try FleetEngine.confirmHandoff(state: secondState, playerId: p2)
         for segment in 10 ... 12 {
             secondState = try FleetEngine.togglePlacementCell(state: secondState, playerId: p2, cell: .segment(segment))
         }
