@@ -49,11 +49,9 @@ struct VisualDartboardInput: View {
                 visitPreview
             }
             board
-                .aspectRatio(1, contentMode: .fit)
-                .frame(maxHeight: boardMaxHeight)
-                .frame(maxWidth: .infinity)
             controlRow
         }
+        .fixedSize(horizontal: false, vertical: true)
         .onDisappear { hitFlashTask?.cancel() }
     }
 
@@ -74,24 +72,31 @@ struct VisualDartboardInput: View {
     }
 
     private var board: some View {
-        GeometryReader { geometry in
-            ZStack {
-                DartboardFace(scoringSegments: scoringSegments)
-                if let hitFlash {
-                    hitFlashLabel(hitFlash)
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxHeight: boardMaxHeight)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                GeometryReader { geometry in
+                    ZStack {
+                        DartboardFace(scoringSegments: scoringSegments)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                        if let hitFlash {
+                            hitFlashLabel(hitFlash)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .gesture(
+                        SpatialTapGesture().onEnded { value in
+                            handleTap(at: value.location, in: geometry.size)
+                        }
+                    )
                 }
             }
-            .contentShape(Rectangle())
-            .gesture(
-                SpatialTapGesture().onEnded { value in
-                    handleTap(at: value.location, in: geometry.size)
-                }
-            )
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(L10n.string("scoring.board.accessibility"))
-        .accessibilityHint(L10n.string("scoring.board.accessibilityHint"))
-        .accessibilityIdentifier("board_input_root")
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.string("scoring.board.accessibility"))
+            .accessibilityHint(L10n.string("scoring.board.accessibilityHint"))
+            .accessibilityIdentifier("board_input_root")
     }
 
     private func hitFlashLabel(_ flash: HitFlash) -> some View {
@@ -251,6 +256,7 @@ private struct DartboardFace: View {
             drawBulls(context: context, layout: layout)
             drawNumbers(context: context, layout: layout)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func zoneBands() -> [(start: Double, end: Double, isAccentRing: Bool)] {
