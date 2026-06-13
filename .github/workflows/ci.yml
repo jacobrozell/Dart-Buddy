@@ -36,6 +36,14 @@ jobs:
       - name: Lint
         run: swiftlint lint --reporter github-actions-logging
 
+      - name: Block Firebase plist secrets
+        run: |
+          tracked=$(git ls-files '**/GoogleService-Info.plist' | grep -v '\.example$' || true)
+          if [ -n "$tracked" ]; then
+            echo "::error::Tracked GoogleService-Info.plist must stay gitignored: $tracked"
+            exit 1
+          fi
+
   build:
     name: Build for Testing
     runs-on: macos-26

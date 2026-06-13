@@ -123,7 +123,7 @@ xcodegen generate
 open DartBuddy.xcodeproj
 ```
 
-Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS). The example uses bundle ID `com.jacobrozell.DartBuddy` — add or update the iOS app in Firebase to match before shipping.
+Copy `Resources/GoogleService-Info.plist.example` to `Resources/GoogleService-Info.plist` and replace placeholders with values from the [Firebase Console](https://console.firebase.google.com/) (Project settings → Your apps → iOS). The example uses bundle ID `com.jacobrozell.DartBuddy` — add or update the iOS app in Firebase to match before shipping. Keep the real plist at `Resources/` only (gitignored; run `sh Scripts/install-git-hooks.sh` once to block accidental commits).
 
 > **App Store continuity:** Changing the bundle ID from `com.jacobrozell.DartsScoreboard` means a new App Store listing (not an in-place update). To keep the existing listing, set `PRODUCT_BUNDLE_IDENTIFIER` back to the old value in `project.yml` and regenerate.
 
