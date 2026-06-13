@@ -35,6 +35,7 @@ enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
     case chaseTheDragon
     case nineLives
     case fleet
+    case raid
     case bobs27
     case halveIt
 

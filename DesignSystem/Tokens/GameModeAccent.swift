@@ -23,6 +23,7 @@ enum GameModeAccent {
         case .knockout, .suddenDeath, .fiftyOneByFives: Brand.orange
         case .golf, .football, .grandNational, .hareAndHounds: Brand.amber
         case .fleet: Brand.proBot
+        case .raid: Brand.amber
         case .prisoner, .scam, .snooker, .ticTacToe: Brand.redAccent
         case .aroundTheClock, .aroundTheClock180, .chaseTheDragon: Brand.green
         case .nineLives, .bobs27, .halveIt: Brand.green
@@ -47,6 +48,7 @@ enum GameModeAccent {
         case .golf: "figure.golf"
         case .football: "soccerball"
         case .fleet: "ferry.fill"
+        case .raid: "shield.lefthalf.filled"
         case .grandNational: "flag.checkered"
         case .hareAndHounds: "hare.fill"
         case .followTheLeader: "arrow.turn.down.right"

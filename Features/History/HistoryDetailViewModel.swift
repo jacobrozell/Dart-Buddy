@@ -131,6 +131,8 @@ final class HistoryDetailViewModel: ObservableObject {
                     return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
                 case let .nineLivesTurn(turn):
                     return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .raidVisit(visit):
+                    return Self.genericTurnTimeline(turnIndex: visit.turnIndex, playerId: visit.playerId, names: participantNames)
                 case let .fleetDart(dart):
                     let name = participantNames[dart.playerId] ?? String(dart.playerId.uuidString.prefix(6))
                     return L10n.format("history.timeline.fleetDartFormat", name, dart.outcome.rawValue)
@@ -281,7 +283,7 @@ final class HistoryDetailViewModel: ObservableObject {
                          .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
                          .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
                          .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
-                         .chaseTheDragonTurn, .nineLivesTurn, .fleetDart:
+                         .chaseTheDragonTurn, .nineLivesTurn, .raidVisit, .fleetDart:
                         true
                     case .fleetPlacement, .fleetPlacementUI, .fleetSonar, .fleetSink:
                         false
@@ -459,6 +461,8 @@ final class HistoryDetailViewModel: ObservableObject {
                 throwsByPlayer[turn.playerId, default: 0] += 3
             case let .nineLivesTurn(turn):
                 throwsByPlayer[turn.playerId, default: 0] += 3
+            case let .raidVisit(visit):
+                throwsByPlayer[visit.playerId, default: 0] += visit.darts.count
             case let .fleetDart(dart):
                 throwsByPlayer[dart.playerId, default: 0] += 1
                 if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[dart.playerId, default: 0] += 1 }

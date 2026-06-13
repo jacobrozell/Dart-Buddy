@@ -63,7 +63,7 @@ enum GameRulesCatalog {
         x01, cricket, americanCricket,
         baseball, killer, shanghai, mickeyMouse, mulligan, englishCricket,
         knockout, suddenDeath, fiftyOneByFives, golf, football, grandNational, hareAndHounds,
-        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives, fleet
+        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives, fleet, raid
     ]
 
     private static func makeGuide(
@@ -226,6 +226,15 @@ enum GameRulesCatalog {
         ("hits", "play.rules.fleet.hits.title", "play.rules.fleet.hits.body"),
         ("sonar", "play.rules.fleet.sonar.title", "play.rules.fleet.sonar.body"),
         ("winning", "play.rules.fleet.winning.title", "play.rules.fleet.winning.body")
+    ])
+
+    private static let raid = makeGuide(id: "raid", matchType: .raid, [
+        ("overview", "play.rules.raid.overview.title", "play.rules.raid.overview.body"),
+        ("shield", "play.rules.raid.shield.title", "play.rules.raid.shield.body"),
+        ("expose", "play.rules.raid.expose.title", "play.rules.raid.expose.body"),
+        ("enrage", "play.rules.raid.enrage.title", "play.rules.raid.enrage.body"),
+        ("hearts", "play.rules.raid.hearts.title", "play.rules.raid.hearts.body"),
+        ("winning", "play.rules.raid.winning.title", "play.rules.raid.winning.body")
     ])
 
     private static let previewAll: [GameRulesPreviewGuide] = [
