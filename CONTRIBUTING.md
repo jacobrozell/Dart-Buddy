@@ -92,9 +92,9 @@ User-facing strings go through `L10n` and `Resources/*.lproj/Localizable.strings
 hard-coded display text in views.
 
 - **Source of truth:** `Resources/en.lproj/Localizable.strings`
-- **Shipped locales:** `de`, `es`, `nl` (system locale only; no in-app language picker)
-- **PR rule:** new keys must update all four locale files; `LocalizationParityTests` enforces key and format-specifier parity in CI
-- **Generators (optional):** after adding keys to `en.lproj`, update `Scripts/locale_data/{de,es,nl}.json`, then run `python3 Scripts/generate_localizable.py all`. To import edits made directly in `.lproj` files back into JSON, run `python3 Scripts/sync_locale_data.py`.
+- **Shipped locales:** `de`, `es`, `nl`, `it` (system locale only; no in-app language picker)
+- **PR rule:** new keys must update all five locale files; `LocalizationParityTests` enforces key and format-specifier parity in CI
+- **Generators (optional):** after adding keys to `en.lproj`, update `Scripts/locale_data/{de,es,nl,it}.json`, then run `python3 Scripts/generate_localizable.py all`. To import edits made directly in `.lproj` files back into JSON, run `python3 Scripts/sync_locale_data.py`.
 
 See [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md).
 

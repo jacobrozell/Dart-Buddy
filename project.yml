@@ -72,6 +72,12 @@ targets:
       - path: Resources/nl.lproj/GameplayModes.strings
         type: file
         buildPhase: resources
+      - path: Resources/it.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/it.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources
