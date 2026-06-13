@@ -64,6 +64,9 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var fleetCallMode: FleetCallMode = .strict
     @Published var fleetSonarEnabled = true
     @Published var fleetHandoffEachTurn = false
+    @Published var raidBossTier: RaidBossTier = .standard
+    @Published var raidHeroHearts: Int = 3
+    @Published var raidEnrageEnabled = true
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -142,6 +145,10 @@ final class MatchSetupViewModel: ObservableObject {
             fleetCallMode = fleetPrefs.callMode
             fleetSonarEnabled = fleetPrefs.sonarEnabled
             fleetHandoffEachTurn = fleetPrefs.handoffEachTurn
+            let raidPrefs = RaidSetupPreferences.makeConfig()
+            raidBossTier = raidPrefs.bossTier
+            raidHeroHearts = raidPrefs.heroHearts
+            raidEnrageEnabled = raidPrefs.enrageEnabled
             if let preferred = pendingMatchPlayerSelections.consumePreferredMatchType() {
                 applyMatchTypePreferred(preferred)
             } else {
@@ -456,6 +463,12 @@ final class MatchSetupViewModel: ObservableObject {
                 errors.append("setup.validation.requiresHuman")
             } else if catalogType == .fleet, selectedParticipantCount != 2 {
                 errors.append("setup.validation.fleetExactTwoPlayers")
+            } else if entry.section == .coop {
+                if selectedParticipantCount > 3 {
+                    errors.append("setup.validation.raidHeroCount")
+                } else if selectedPlayers.contains(where: \.isBot) {
+                    errors.append("setup.validation.coopHumansOnly")
+                }
             }
         } else if setupCategory == .party {
             if !ProductSurface.showsPartyModes {
@@ -723,6 +736,14 @@ final class MatchSetupViewModel: ObservableObject {
                     callMode: fleetCallMode,
                     sonarEnabled: fleetSonarEnabled,
                     handoffEachTurn: fleetHandoffEachTurn
+                )
+            )
+        case .raid:
+            return .raid(
+                MatchConfigRaid(
+                    bossTier: raidBossTier,
+                    heroHearts: raidHeroHearts,
+                    enrageEnabled: raidEnrageEnabled
                 )
             )
         case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
