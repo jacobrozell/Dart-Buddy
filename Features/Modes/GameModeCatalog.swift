@@ -19,6 +19,7 @@ import SwiftUI
 enum GameModeSection: String, CaseIterable, Identifiable, Hashable {
     case standard
     case party
+    case coop
     case practice
 
     var id: String { rawValue }
@@ -67,6 +68,8 @@ enum ModeStatKind: String, Hashable {
     case goals       // goals timeline
     case boardClaim  // grid / ring claim log
     case roleScore   // role / phase scores
+    case bossRaid    // co-op boss PvE outcomes
+    case coopHeist   // shared puzzle co-op (The Vault)
 }
 
 /// One mode in the catalog.
@@ -102,10 +105,12 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     /// X01 has a minimum of one but is multiplayer-capable, so it is *not* solo.
     var isSolo: Bool { maximumPlayers <= 1 }
 
-    /// Whether the shipped rules sheet covers this mode (`GameRulesCatalog`).
+    /// Whether the rules sheet covers this mode (`GameRulesCatalog`), including preview guides on planned co-op cards.
     var hasRulesGuide: Bool {
-        guard let matchType else { return false }
-        return GameRulesCatalog.hasGuide(for: matchType)
+        if let matchType {
+            return GameRulesCatalog.hasGuide(for: matchType)
+        }
+        return GameRulesCatalog.hasPreviewGuide(for: id)
     }
 }
 
@@ -260,6 +265,32 @@ enum GameModeCatalog {
             iconSystemName: "number.square.fill"
         ),
 
+        // MARK: Co-op
+        GameModeCatalogEntry(
+            id: "coop.raid", name: "Raid", blurb: "Co-op boss fight — close, then finish",
+            section: .coop, status: .shipped, minimumPlayers: 1, maximumPlayers: 3,
+            matchType: .raid, uiTemplate: .phaseRace, statKind: .bossRaid,
+            iconSystemName: "shield.lefthalf.filled"
+        ),
+        GameModeCatalogEntry(
+            id: "coop.cerberus", name: "Cerberus", blurb: "Three heads — assign, close, survive bites",
+            section: .coop, status: .planned, minimumPlayers: 1, maximumPlayers: 3,
+            matchType: nil, uiTemplate: .roleSplit, statKind: .bossRaid,
+            iconSystemName: "pawprint.fill"
+        ),
+        GameModeCatalogEntry(
+            id: "coop.theVault", name: "The Vault", blurb: "Crack five locks before the alarm ends the run",
+            section: .coop, status: .planned, minimumPlayers: 1, maximumPlayers: 4,
+            matchType: nil, uiTemplate: .phaseRace, statKind: .coopHeist,
+            iconSystemName: "lock.shield.fill"
+        ),
+        GameModeCatalogEntry(
+            id: "coop.clearTheBoard", name: "Clear the Board", blurb: "Close every S/D/T cell — together or team vs team",
+            section: .coop, status: .planned, minimumPlayers: 1, maximumPlayers: 8,
+            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
+            iconSystemName: "square.grid.3x3.fill"
+        ),
+
         // MARK: Practice
         GameModeCatalogEntry(
             id: "practice.aroundTheClock", name: "Around the Clock", blurb: "Hit 1 through 20 in order",
@@ -383,6 +414,7 @@ extension GameModeCatalogEntry {
         switch section {
         case .standard: return Brand.proBot
         case .party: return Brand.orange
+        case .coop: return Brand.amber
         case .practice: return Brand.green.opacity(0.85)
         }
     }
@@ -426,6 +458,13 @@ extension GameModeCatalogEntry {
                 setupCategory: .party,
                 mode: nil,
                 partyGame: partyGame,
+                matchType: matchType
+            )
+        case .coop:
+            return PendingModeSelection(
+                setupCategory: .standard,
+                mode: nil,
+                partyGame: nil,
                 matchType: matchType
             )
         case .practice:

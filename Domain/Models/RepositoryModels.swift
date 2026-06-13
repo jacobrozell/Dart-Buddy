@@ -29,6 +29,7 @@ public enum MatchType: String, Codable, Sendable {
     case chaseTheDragon
     case nineLives
     case fleet
+    case raid
     case bobs27
     case halveIt
 }
