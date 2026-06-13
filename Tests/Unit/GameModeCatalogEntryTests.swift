@@ -129,4 +129,15 @@ struct GameModeCatalogEntryTests {
             #expect(entry.uiTemplate == .soloChallenge)
         }
     }
+
+    @Test
+    func rulesGuideAvailabilityMatchesCatalog() throws {
+        let x01 = try #require(GameModeCatalog.entry(for: .x01))
+        let americanCricket = try #require(GameModeCatalog.entry(for: .americanCricket))
+        let golf = try #require(GameModeCatalog.entry(for: .golf))
+
+        #expect(x01.hasRulesGuide)
+        #expect(americanCricket.hasRulesGuide)
+        #expect(golf.hasRulesGuide)
+    }
 }

@@ -19,13 +19,11 @@ struct GameRulesGuideContent: View {
                         (mode, MatchConfigText.modeLabel(for: mode))
                     },
                     selection: $selectedMode,
-                    accessibilityIdentifiers: [
-                        .x01: "rules_mode_x01",
-                        .cricket: "rules_mode_cricket",
-                        .baseball: "rules_mode_baseball",
-                        .killer: "rules_mode_killer",
-                        .shanghai: "rules_mode_shanghai"
-                    ]
+                    accessibilityIdentifiers: Dictionary(
+                        uniqueKeysWithValues: GameRulesCatalog.supportedMatchTypes.map {
+                            ($0, "rules_mode_\($0.rawValue)")
+                        }
+                    )
                 )
                 .frame(maxWidth: .infinity)
             }
