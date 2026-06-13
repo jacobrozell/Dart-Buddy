@@ -55,6 +55,7 @@ targets:
       # - path: Resources/de.lproj/Localizable.strings
       # - path: Resources/es.lproj/Localizable.strings
       # - path: Resources/nl.lproj/Localizable.strings
+      # - path: Resources/zh-Hans.lproj/Localizable.strings
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources

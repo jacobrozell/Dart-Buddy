@@ -10,14 +10,14 @@ struct LocalizationParityTests {
     // for a stray conversion specifier.
     private static let specifierPattern = #/%%|%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?(?:l{0,2}[diouxX]|[@fFgGeEcsp])/#
 
-    @Test("Localized strings share the same keys as English", arguments: ["de", "es", "nl"])
+    @Test("Localized strings share the same keys as English", arguments: ["de", "es", "nl", "zh-Hans"])
     func localizedKeysMatchEnglish(locale: String) throws {
         let enKeys = try Self.keys(from: "en")
         let localeKeys = try Self.keys(from: locale)
         #expect(enKeys == localeKeys)
     }
 
-    @Test("Format specifiers match per key between English and locale", arguments: ["de", "es", "nl"])
+    @Test("Format specifiers match per key between English and locale", arguments: ["de", "es", "nl", "zh-Hans"])
     func formatSpecifiersMatch(locale: String) throws {
         let en = try Self.entries(from: "en")
         let localized = try Self.entries(from: locale)
