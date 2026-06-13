@@ -31,14 +31,14 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 
 | Area | Built | In lean 1.0 app |
 |------|-------|-----------------|
-| **Game engines** | X01, Cricket (Normal + Cut Throat), Baseball, Killer, Shanghai | X01 + Cricket only |
+| **Game engines** | 22 shipped modes (Standard, Party, Co-op, Practice) — see [`docs/feature-inventory.md`](docs/feature-inventory.md) | X01 + Cricket only |
 | **App shell** | 5-tab shell (Play · Modes · Players · Activity · Settings) | 4 tabs (Modes hidden) |
 | **Bots** | Preset ladder, Training Partner, custom bots (tunable X01 avg / Cricket MPR) | Preset + custom |
 | **Players & data** | CRUD, archive guards, DBPE export bundle, migration recovery UI | Export hidden |
-| **Activity** | History + Statistics with shared filters, per-mode stat kinds (29 declared) | Shipped |
+| **Activity** | History + Statistics with shared filters, per-mode stat kinds (34 declared) | Shipped |
 | **Platform hooks** | Deep links (`dartbuddy://v1/...`), App Intents (flagged off), Firebase Analytics + Crashlytics | Deep links internal only |
-| **Catalog** | 29 modes in `GameModeCatalog` — 5 playable, 24 spec'd stubs | Not exposed |
-| **Gamification (R&D)** | Phase 1 achievement catalog spec'd; `BotAchievementTierResolver` + `botEffectiveTierRaw` on match participants | Flagged off |
+| **Catalog** | 34 modes in `GameModeCatalog` — 22 playable on `dev`, 12 stubs | Not exposed (lean picker: X01 + Cricket) |
+| **Gamification (R&D)** | Achievement evaluator + service + repository (domain layer); Phase 1 catalog spec'd | Flagged off (`enableAchievements`) |
 
 **Documentation coverage:** 27/31 feature checklist areas spec'd (gamification rows planned-only), 29/29 game modes spec'd, 26/26 system specs present — audited on every CI run (`Scripts/ci/documentation-summary.sh` → artifact). See [`documentation-summary.txt`](documentation-summary.txt) for the latest snapshot.
 
@@ -46,12 +46,13 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 
 | Gate | What runs |
 |------|-----------|
-| **PR / push** | XcodeGen → `DartBuddyCI` scheme — unit + **40 WCAG accessibility UI tests** on iPhone 17 simulator |
-| **Nightly** | Full `DartBuddy` scheme UI smoke (`.github/workflows/nightly-ui.yml`) |
-| **Release** | Xcode Cloud archive → TestFlight (on demand via Slack `/dart-buddy release` or GHA trigger) |
+| **PR / push** | XcodeGen → `DartBuddyCI` scheme — unit + accessibility unit tests on iPhone 17 simulator |
+| **Nightly** | Parallel UI matrix (`DartBuddyUISmoke`, `UIGameplay`, `UIAccessibility`, `UILocalization`, `UILandscape`, `UIChrome`) — `.github/workflows/nightly-ui.yml` |
+| **Release branches** | `DartBuddyUILean` — lean `ProductSurface` smoke (`Lean1_0SmokeUITests`) |
+| **Release** | Xcode Cloud archive → TestFlight (GHA **Trigger TestFlight**; Slack post-1.0 — [`docs/release/slack-integration.md`](docs/release/slack-integration.md)) |
 | **Migrations** | V1→V2.0→V2.1 SwiftData migration tests in CI (`SchemaV2_0_0` → `SchemaV2` lightweight) |
 
-Three Xcode test targets: `Tests/Unit/`, `Tests/Accessibility/`, `Tests/UI/`. Marketing screenshot capture scripts live under `marketing-screenshots/` and `Scripts/`.
+Three Xcode unit/accessibility targets: `Tests/Unit/`, `Tests/Accessibility/`. UI tests split into seven targets under `Tests/UI/` (see [`specs/TestPlanSpec.md`](specs/TestPlanSpec.md) § UI suites). Marketing screenshot capture scripts live under `marketing-screenshots/` and `Scripts/`.
 
 ### Recent engineering work
 
@@ -59,7 +60,8 @@ Highlights from the current development arc:
 
 - **Custom bots** — domain models, skill facets, `BotParticipantFactory`, match-setup wiring, advanced stat sliders
 - **Lean 1.0 trim** — scope lock, marketing screenshots, gameplay layout polish (iPad landscape, checkout banner)
-- **Gamification prep** — locked Phase 1 achievement catalog ([`AchievementCatalogPhase1.md`](specs/AchievementCatalogPhase1.md)), `BotAchievementTierResolver`, `botEffectiveTierRaw` snapshot on participants (SchemaV2.1)
+- **Gamification prep** — achievement domain layer (`AchievementEvaluator`, `DefaultAchievementService`), Phase 1 catalog ([`AchievementCatalogPhase1.md`](specs/AchievementCatalogPhase1.md)), `BotAchievementTierResolver`
+- **Co-op Raid + Fleet** — playable on `dev` with full product surface; lean 1.0 still gates party/co-op from resume
 - **Spec governance** — feature inventory, delete-all-data policy ([`DeleteAllDataSpec.md`](specs/DeleteAllDataSpec.md)), gamification specs ([`AchievementsSpec.md`](specs/AchievementsSpec.md))
 - **Release train** — phased ship plan with test-confidence matrix ([`docs/release/ongoing-release-plan.md`](docs/release/ongoing-release-plan.md))
 - **CI docs artifact** — automated spec/code gap report on every build
@@ -72,7 +74,7 @@ Highlights from the current development arc:
 
 | | Lean 1.0 ships | Built but hidden until later |
 |--|----------------|------------------------------|
-| **Modes** | X01 + Cricket (Normal + Cut Throat) | Baseball, Killer, Shanghai |
+| **Modes** | X01 + Cricket (Normal + Cut Throat) | 20 additional shipped engines (party, co-op Raid, practice drills) |
 | **Tabs** | Play · Players · Activity · Settings | Modes catalog |
 | **Bots** | Preset + custom | Training Partner |
 | **Locale** | English only (`de`/`es`/`nl` files stay in repo) | In-app language picker |
@@ -138,7 +140,11 @@ Run tests: **Product → Test** (`⌘U`), or:
 xcodebuild test -scheme DartBuddyCI \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 
-# UI only (matches nightly; skips ~1,000 unit tests)
+# UI only (nightly matrix — one suite example)
+xcodebuild test -scheme DartBuddyUIGameplay \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+
+# All UI suites except lean (local full UI pass)
 xcodebuild test -scheme DartBuddyUI \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max'
 
@@ -151,9 +157,11 @@ xcodebuild test -scheme DartBuddy \
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). Full UI runs nightly via `.github/workflows/nightly-ui.yml` (`DartBuddyUI` scheme — UI tests only) on iPhone 17 Pro Max. Locally: `xcodebuild test -scheme DartBuddyUI` for UI-only, or `DartBuddy` for unit + UI together.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `master`/`main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). UI runs nightly via parallel matrix in `.github/workflows/nightly-ui.yml` (six suites on iPhone 17; landscape on iPhone 17 Pro Max). Locally: `xcodebuild test -scheme DartBuddyUIGameplay` for one UI suite, or `DartBuddyUI` / `DartBuddy` for broader runs.
 
-**Release builds** use Xcode Cloud (archive → TestFlight internal), triggered on demand via Slack `/dart-buddy release` or `.github/workflows/trigger-testflight.yml` — not on every push. Setup: [`docs/release/xcode-cloud.md`](docs/release/xcode-cloud.md).
+**Branch model:** `dev` = full catalog; `release/*` = `ProductSurface` gating — [`docs/release/branch-strategy.md`](docs/release/branch-strategy.md).
+
+**Release builds** use Xcode Cloud (archive → TestFlight internal), triggered on demand via GitHub Actions **Trigger TestFlight** (Slack `/dart-buddy` after post-1.0 Worker deploy) — not on every push. Setup: [`docs/release/xcode-cloud.md`](docs/release/xcode-cloud.md) · Slack plan: [`docs/release/slack-integration.md`](docs/release/slack-integration.md).
 
 ---
 
@@ -206,6 +214,8 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 
 | Concern | Start here |
 |---------|------------|
+| Branch strategy (`dev` vs `release/*`) | [`docs/release/branch-strategy.md`](docs/release/branch-strategy.md) |
+| Store release tags (per spec) | [`docs/release/release-tagging.md`](docs/release/release-tagging.md) · [`estimated-release-registry.md`](docs/release/estimated-release-registry.md) |
 | Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md) — coverage checklist §5, PR rules §4.1) |
 | Localization | [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md) |
 | Feature specs (full index) | [`specs/README.md`](specs/README.md) § Feature Specs |
