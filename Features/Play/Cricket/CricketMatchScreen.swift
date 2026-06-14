@@ -109,10 +109,15 @@ struct CricketMatchScreen: View {
             guard let signal else { return }
             turnTotalCaller.announceTurnTotal(signal.total)
         }
-        .onChange(of: viewModel.enteredDarts.count) { oldCount, newCount in
-            guard viewModel.isBotPlaying, newCount > oldCount else { return }
-            guard feedbackPreferences.botDartHapticsEnabled else { return }
-            haptics.playImpact()
+        .onChange(of: viewModel.enteredDarts) { old, darts in
+            playBotDartEntryFeedback(
+                darts: darts,
+                previousCount: old.count,
+                isBotPlaying: viewModel.isBotPlaying,
+                audio: audio,
+                haptics: haptics,
+                botDartHapticsEnabled: feedbackPreferences.botDartHapticsEnabled
+            )
         }
         .task { await viewModel.onAppear() }
         .onDisappear {

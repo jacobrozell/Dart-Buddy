@@ -29,6 +29,7 @@ struct MainTabView: View {
     @ObservedObject var pendingDeepLink: PendingAppDestination
     @ObservedObject private var preferences: UserPreferencesStore
     @State private var selectedTab: RootTab = MainTabView.startupTab
+    @State private var activityRefreshToken = 0
     @State private var pendingPlayResume: MatchSummary?
     @State private var playNavigationResetTrigger = 0
     @State private var showsActiveMatchBadge = false
@@ -76,6 +77,7 @@ struct MainTabView: View {
                 }
             ActivityRootView(
                 dependencies: dependencies,
+                refreshToken: activityRefreshToken,
                 onResumeActiveMatch: { match in
                     guard ProductSurface.isMatchTypeReachable(match.type) else { return }
                     pendingPlayResume = match
@@ -147,7 +149,10 @@ struct MainTabView: View {
             }
             await consumePendingDeepLink()
         }
-        .onChange(of: selectedTab) { _, _ in
+        .onChange(of: selectedTab) { _, tab in
+            if tab == .activity {
+                activityRefreshToken += 1
+            }
             Task { await refreshActiveMatchBadge() }
         }
         .onChange(of: pendingDeepLink.changeCount) { _, _ in
