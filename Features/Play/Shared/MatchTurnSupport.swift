@@ -169,13 +169,23 @@ struct MatchTurnSubmitter {
         }
 
         store.save(updated)
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: matchType,
             eventName: "turn_submitted",
             message: "Turn accepted and persisted.",
             metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
         )
+        if updated.runtime.status == .completed {
+            logger.matchInfo(
+                matchId: matchId,
+                matchType: matchType,
+                category: .appLifecycle,
+                eventName: "match_completed",
+                message: "Match completed.",
+                metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
+            )
+        }
         return .succeeded(updated)
     }
 

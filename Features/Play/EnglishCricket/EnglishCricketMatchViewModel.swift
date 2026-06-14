@@ -155,7 +155,7 @@ final class EnglishCricketMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .englishCricket,
             category: .ui,

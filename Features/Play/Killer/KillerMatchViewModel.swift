@@ -175,7 +175,7 @@ final class KillerMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .killer,
             category: .ui,

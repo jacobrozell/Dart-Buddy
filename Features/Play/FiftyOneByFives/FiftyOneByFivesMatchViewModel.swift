@@ -130,7 +130,7 @@ final class FiftyOneByFivesMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .fiftyOneByFives,
             category: .ui,

@@ -144,7 +144,7 @@ final class ChaseTheDragonMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .chaseTheDragon,
             category: .ui,

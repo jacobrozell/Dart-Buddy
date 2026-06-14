@@ -154,7 +154,7 @@ final class GolfMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .golf,
             category: .ui,

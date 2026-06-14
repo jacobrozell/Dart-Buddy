@@ -152,7 +152,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .shanghai,
             category: .ui,

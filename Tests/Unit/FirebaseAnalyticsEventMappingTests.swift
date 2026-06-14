@@ -79,13 +79,49 @@ func dropsNonAllowlistedEvents() {
         timestamp: Date(),
         level: .info,
         category: .ui,
+        eventName: "bot_turn_started",
+        message: "Bot turn.",
+        metadata: [:],
+        correlationId: nil
+    )
+
+    #expect(FirebaseAnalyticsEventMapping.map(entry, appVersion: nil) == nil)
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsNavigationAndSetupBreadcrumbEvents() {
+    let screen = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .ui,
+        eventName: "match_screen_appeared",
+        message: "Presented.",
+        metadata: ["matchType": "x01", "matchId": "secret"],
+        correlationId: nil
+    )
+    let setup = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "match_setup_start",
+        message: "Starting setup.",
+        metadata: ["matchType": "cricket", "participantCount": "2"],
+        correlationId: nil
+    )
+    let home = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .ui,
         eventName: "play_home_ready",
         message: "Ready.",
         metadata: [:],
         correlationId: nil
     )
 
-    #expect(FirebaseAnalyticsEventMapping.map(entry, appVersion: nil) == nil)
+    #expect(FirebaseAnalyticsEventMapping.map(screen, appVersion: nil)?.name == "match_screen_appeared")
+    #expect(FirebaseAnalyticsEventMapping.map(screen, appVersion: nil)?.parameters["matchType"] == "x01")
+    #expect(FirebaseAnalyticsEventMapping.map(setup, appVersion: nil)?.name == "match_setup_start")
+    #expect(FirebaseAnalyticsEventMapping.map(home, appVersion: nil)?.name == "play_home_ready")
 }
 
 @Test(.tags(.unit, .logging, .regression))

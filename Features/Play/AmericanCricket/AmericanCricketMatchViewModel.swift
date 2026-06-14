@@ -125,7 +125,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .americanCricket,
             category: .ui,
@@ -274,14 +274,6 @@ final class AmericanCricketMatchViewModel: ObservableObject {
             session = updated
             let activeTargetAfter = updated.runtime.americanCricketState?.activeTargetIndex
             if updated.runtime.status == .completed {
-                logger.matchInfo(
-                    matchId: matchId,
-                    matchType: .americanCricket,
-                    category: .appLifecycle,
-                    eventName: "match_completed",
-                    message: "American Cricket match completed.",
-                    metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
-                )
                 state = .matchCompleted
             } else {
                 let didAdvance = activeTargetBefore != activeTargetAfter
@@ -311,7 +303,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
             session = undone
             state = .readyTurn
             enteredDarts.removeAll()
-            logger.matchDebug(
+            logger.matchInfo(
                 matchId: matchId,
                 matchType: .americanCricket,
                 eventName: "turn_undone",

@@ -47,7 +47,7 @@ final class PlayHomeViewModel: ObservableObject {
                 )
                 state = .readyWithActiveMatch(active)
             } else {
-                logger.debug(.ui, eventName: "play_home_ready", message: "Play home ready without active match.")
+                logger.info(.ui, eventName: "play_home_ready", message: "Play home ready without active match.")
                 state = .readyNoActiveMatch
             }
         } catch {

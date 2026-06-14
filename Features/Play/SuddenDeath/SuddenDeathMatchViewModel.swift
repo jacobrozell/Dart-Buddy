@@ -144,7 +144,7 @@ final class SuddenDeathMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .suddenDeath,
             category: .ui,

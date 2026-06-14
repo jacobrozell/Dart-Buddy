@@ -132,7 +132,7 @@ final class AroundTheClock180MatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .aroundTheClock180,
             category: .ui,

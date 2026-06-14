@@ -199,7 +199,7 @@ final class CricketMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .cricket,
             category: .ui,
@@ -356,14 +356,6 @@ final class CricketMatchViewModel: ObservableObject {
                     logger: logger,
                     metadata: ["matchType": MatchType.cricket.rawValue]
                 ) {}
-                logger.matchInfo(
-                    matchId: matchId,
-                    matchType: .cricket,
-                    category: .appLifecycle,
-                    eventName: "match_completed",
-                    message: "Cricket match completed.",
-                    metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
-                )
                 state = .matchCompleted
             } else {
                 let didCloseTarget = Self.didCloseAnyCricketTarget(
@@ -398,7 +390,7 @@ final class CricketMatchViewModel: ObservableObject {
             session = undone
             state = .readyTurn
             enteredDarts.removeAll()
-            logger.matchDebug(
+            logger.matchInfo(
                 matchId: matchId,
                 matchType: .cricket,
                 eventName: "turn_undone",
@@ -426,7 +418,7 @@ final class CricketMatchViewModel: ObservableObject {
         if !enteredDarts.isEmpty {
             enteredDarts.removeLast()
             selectedMultiplier = .single
-            logger.matchDebug(
+            logger.matchInfo(
                 matchId: matchId,
                 matchType: .cricket,
                 eventName: "dart_undone",
@@ -446,7 +438,7 @@ final class CricketMatchViewModel: ObservableObject {
             session = result.session
             state = .readyTurn
             enteredDarts = result.restoredDarts
-            logger.matchDebug(
+            logger.matchInfo(
                 matchId: matchId,
                 matchType: .cricket,
                 eventName: "dart_undone",

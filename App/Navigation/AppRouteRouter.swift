@@ -44,7 +44,7 @@ struct AppRouteRouter {
                     actions.setPendingPlayResume(match)
                     return .applied
                 }
-                dependencies.logger.debug(
+                dependencies.logger.info(
                     .ui,
                     eventName: "deep_link_failed",
                     message: "Resume deep link with no active match.",
@@ -52,7 +52,7 @@ struct AppRouteRouter {
                 )
                 return .failed(.unknownPath)
             } catch {
-                dependencies.logger.debug(
+                dependencies.logger.info(
                     .ui,
                     eventName: "deep_link_failed",
                     message: "Resume deep link fetch failed.",

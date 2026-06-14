@@ -132,7 +132,7 @@ final class GrandNationalMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .grandNational,
             category: .ui,

@@ -135,7 +135,7 @@ final class MickeyMouseMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .mickeyMouse,
             category: .ui,

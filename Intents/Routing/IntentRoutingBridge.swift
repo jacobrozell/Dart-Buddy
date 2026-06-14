@@ -76,7 +76,7 @@ enum IntentRoutingBridge {
         if case let .failed(error) = outcome, error == .unknownPath, intentName == ResumeActiveMatchIntent.intentName {
             metadata["path"] = "play/resume"
         }
-        dependencies?.logger.debug(
+        dependencies?.logger.info(
             .ui,
             eventName: eventName,
             message: "App intent routed.",
