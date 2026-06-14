@@ -53,6 +53,9 @@ if [[ ! -d "$PROJECT" ]]; then
 fi
 
 mkdir -p "$OUT_DIR"
+CAPTURE_TMP="${TMPDIR:-/tmp}/dartbuddy-marketing-capture-$$"
+mkdir -p "$CAPTURE_TMP"
+trap 'rm -rf "$CAPTURE_TMP"' EXIT
 
 SIM_UDID="$(xcrun simctl list devices available -j | python3 -c "
 import json, sys
@@ -152,7 +155,9 @@ capture_frame() {
     "${args[@]}" -snapshot_orientation "$orientation" >/dev/null
   sleep "$LAUNCH_DELAY"
   sleep "$ORIENTATION_SETTLE_SEC"
-  xcrun simctl io "$SIM_UDID" screenshot "$OUT_DIR/$filename"
+  local capture_path="$CAPTURE_TMP/$filename"
+  xcrun simctl io "$SIM_UDID" screenshot "$capture_path"
+  cp "$capture_path" "$OUT_DIR/$filename"
   normalize_screenshot_for_orientation "$OUT_DIR/$filename" "$orientation"
   verify_screenshot_orientation "$OUT_DIR/$filename" "$orientation"
   if [[ "$APP_STORE_RESIZE" == 1 ]]; then
@@ -198,8 +203,7 @@ capture "03-match-setup" \
 capture "04-activity-history" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity
 
-capture "04b-modes" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab modes
+# Lean 1.0 hides the Modes tab — skip catalog shots (see docs/release/1.0.0-ship-checklist.md).
 
 capture "05-match-summary" \
   "${COMMON_ARGS[@]}" -snapshot_match_summary

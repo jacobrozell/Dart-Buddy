@@ -161,7 +161,7 @@ struct OnboardingFlowView: View {
                 metadata["bot_tier"] = draft.botDifficulty.rawValue
                 metadata["created_player"] = "true"
             }
-            logger?.debug(
+            logger?.info(
                 .ui,
                 eventName: "onboarding_completed",
                 message: "First-launch onboarding finished.",

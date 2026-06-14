@@ -83,7 +83,7 @@ final class RaidMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .raid,
             category: .ui,

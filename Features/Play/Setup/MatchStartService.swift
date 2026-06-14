@@ -52,7 +52,7 @@ struct MatchStartService {
     let logger: any AppLogger
 
     func start(_ plan: MatchStartPlan) async -> StartOutcome {
-        logger.debug(
+        logger.info(
             .scoring,
             eventName: "match_setup_start",
             message: "Starting match from setup.",

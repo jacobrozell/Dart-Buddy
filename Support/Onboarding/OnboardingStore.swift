@@ -1,7 +1,7 @@
 import Foundation
 
 /// Persists whether the user has finished the first-launch app tour.
-struct OnboardingStore: Sendable {
+struct OnboardingStore: @unchecked Sendable {
     static let completedKey = "onboarding_completed"
     static let experienceTierKey = "onboarding_experience_tier"
     static let legacyExperienceKey = "onboarding_darts_experience"

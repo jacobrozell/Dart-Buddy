@@ -1,0 +1,44 @@
+---
+description: SwiftData schema versioning — pre-1.0 V1 lock, post-release migrations tied to git tags
+globs: Persistence/**/*,Data/Repositories/SwiftData*.swift,Support/State/LocalDataResetInventory.swift,Tests/Unit/Schema*.swift
+alwaysApply: false
+---
+
+# SwiftData schema & release tags
+
+**Authoritative spec:** [`specs/SwiftData.md`](../../specs/SwiftData.md) §15. **Ship lock:** [`Persistence/SchemaLock.swift`](../../Persistence/SchemaLock.swift).
+
+Releases are tagged in git (`v1.0.0`, …). Treat each tag as a schema contract boundary.
+
+## Pre–1.0.0 (no App Store users yet)
+
+- **Single baseline:** `SchemaV1` @ `1.0.0` only — [`DartsMigrationPlan`](../../Persistence/Migrations/DartsMigrationPlan.swift) has **no stages**.
+- **Never** edit `@Model` types inside `SchemaV1.swift` in place (causes `134504 unknown model version`).
+- **Never** add parallel schema files (`SchemaV4` achievements, etc.) to the live container until wired with a plan + test.
+- Dev devices with old stores: delete/reinstall app or Settings reset; bootstrap auto-recreates on failure ([`BootstrapStoreRecovery.swift`](../../Persistence/BootstrapStoreRecovery.swift)) — never ship a blocking recovery screen.
+
+## After a release tag ships (real user data)
+
+Each persistence change needs a **new** schema version — never edit a tagged schema file.
+
+1. Copy latest `SchemaVx` → `SchemaV{n+1}.swift`; bump `versionIdentifier`.
+2. Register in `DartsMigrationPlan.schemas` and add **one adjacent** `MigrationStage` (`Vn → V{n+1}`).
+3. Add `Tests/Unit/SchemaV{n}ToV{n+1}MigrationTests.swift` (disk-backed).
+4. Update `SchemaLock`, `ModelContainerFactory`, `LocalDataResetInventory` deleters/counters.
+5. Prefer lightweight migrations for additive columns; custom stages for backfill/rename.
+
+```swift
+// ❌ BAD — same version, changed fingerprint
+// SchemaV1.swift after v1.0.0 tag
+public var newColumn: String?
+
+// ✅ GOOD — new file after v1.0.0 tag
+// SchemaV2.swift + migrateV1ToV2 stage + test
+```
+
+## Checklist before merging schema work
+
+- [ ] Tagged release boundary identified (pre-1.0 vs post-`v1.0.0`).
+- [ ] No in-place edits to a schema already shipped in a git tag.
+- [ ] `LocalDataResetInventory` model count matches `SchemaLock.release_*_Schema.models`.
+- [ ] Migration test passes in CI (serialized suite).

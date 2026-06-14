@@ -22,11 +22,17 @@ public enum SchemaV1: VersionedSchema {
         public var isArchived: Bool
         public var isBot: Bool?
         public var botDifficultyRaw: String?
+        public var botKindRaw: String?
+        public var linkedPlayerId: UUID?
         public var avatarStyleRaw: String?
         public var preferredColorToken: String?
         public var notes: String?
+        /// Campaign primary vs guest — `PlayerRole` raw value (`CampaignSpec` §4).
+        public var playerRoleRaw: String?
         public var createdAt: Date
         public var updatedAt: Date
+
+        #Index<PlayerRecord>([\.isArchived])
 
         public init(
             id: UUID = UUID(),
@@ -34,9 +40,12 @@ public enum SchemaV1: VersionedSchema {
             isArchived: Bool = false,
             isBot: Bool? = nil,
             botDifficultyRaw: String? = nil,
+            botKindRaw: String? = nil,
+            linkedPlayerId: UUID? = nil,
             avatarStyleRaw: String? = nil,
             preferredColorToken: String? = nil,
             notes: String? = nil,
+            playerRoleRaw: String? = nil,
             createdAt: Date = Date(),
             updatedAt: Date = Date()
         ) {
@@ -45,9 +54,12 @@ public enum SchemaV1: VersionedSchema {
             self.isArchived = isArchived
             self.isBot = isBot
             self.botDifficultyRaw = botDifficultyRaw
+            self.botKindRaw = botKindRaw
+            self.linkedPlayerId = linkedPlayerId
             self.avatarStyleRaw = avatarStyleRaw
             self.preferredColorToken = preferredColorToken
             self.notes = notes
+            self.playerRoleRaw = playerRoleRaw
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }
@@ -61,13 +73,21 @@ public enum SchemaV1: VersionedSchema {
         public var startedAt: Date
         public var endedAt: Date?
         public var winnerPlayerId: UUID?
+        public var forfeitedByPlayerId: UUID?
         public var configPayload: Data
         public var currentTurnPlayerId: UUID?
         public var currentLegIndex: Int
         public var currentSetIndex: Int
         public var eventCount: Int
+        /// Versioned `MatchHistoryCardPayload` blob for fast history list rendering.
+        public var historyCardPayload: Data?
+        /// Campaign journey tagging (`CampaignSpec` §4.3).
+        public var isCampaignMatch: Bool?
+        public var campaignStageId: String?
         public var createdAt: Date
         public var updatedAt: Date
+
+        #Index<MatchRecord>([\.statusRaw], [\.startedAt], [\.endedAt], [\.typeRaw])
 
         public init(
             id: UUID = UUID(),
@@ -76,11 +96,15 @@ public enum SchemaV1: VersionedSchema {
             startedAt: Date = Date(),
             endedAt: Date? = nil,
             winnerPlayerId: UUID? = nil,
+            forfeitedByPlayerId: UUID? = nil,
             configPayload: Data,
             currentTurnPlayerId: UUID? = nil,
             currentLegIndex: Int = 0,
             currentSetIndex: Int = 0,
             eventCount: Int = 0,
+            historyCardPayload: Data? = nil,
+            isCampaignMatch: Bool? = nil,
+            campaignStageId: String? = nil,
             createdAt: Date = Date(),
             updatedAt: Date = Date()
         ) {
@@ -90,11 +114,15 @@ public enum SchemaV1: VersionedSchema {
             self.startedAt = startedAt
             self.endedAt = endedAt
             self.winnerPlayerId = winnerPlayerId
+            self.forfeitedByPlayerId = forfeitedByPlayerId
             self.configPayload = configPayload
             self.currentTurnPlayerId = currentTurnPlayerId
             self.currentLegIndex = currentLegIndex
             self.currentSetIndex = currentSetIndex
             self.eventCount = eventCount
+            self.historyCardPayload = historyCardPayload
+            self.isCampaignMatch = isCampaignMatch
+            self.campaignStageId = campaignStageId
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }
@@ -109,6 +137,12 @@ public enum SchemaV1: VersionedSchema {
         public var displayNameAtMatchStart: String
         public var avatarStyleAtMatchStart: String?
         public var botDifficultyRaw: String?
+        public var botKindRaw: String?
+        public var botSkillProfilePayload: Data?
+        /// Preset ladder tier for bot achievements (`BotAchievementTierResolver`), frozen at match start.
+        public var botEffectiveTierRaw: String?
+
+        #Index<MatchParticipantRecord>([\.matchId], [\.playerId])
 
         public init(
             id: UUID = UUID(),
@@ -117,7 +151,10 @@ public enum SchemaV1: VersionedSchema {
             turnOrder: Int,
             displayNameAtMatchStart: String,
             avatarStyleAtMatchStart: String? = nil,
-            botDifficultyRaw: String? = nil
+            botDifficultyRaw: String? = nil,
+            botKindRaw: String? = nil,
+            botSkillProfilePayload: Data? = nil,
+            botEffectiveTierRaw: String? = nil
         ) {
             self.id = id
             self.matchId = matchId
@@ -126,6 +163,9 @@ public enum SchemaV1: VersionedSchema {
             self.displayNameAtMatchStart = displayNameAtMatchStart
             self.avatarStyleAtMatchStart = avatarStyleAtMatchStart
             self.botDifficultyRaw = botDifficultyRaw
+            self.botKindRaw = botKindRaw
+            self.botSkillProfilePayload = botSkillProfilePayload
+            self.botEffectiveTierRaw = botEffectiveTierRaw
         }
     }
 
@@ -136,6 +176,8 @@ public enum SchemaV1: VersionedSchema {
         public var snapshotVersion: Int
         public var snapshotPayload: Data
         public var updatedAt: Date
+
+        #Index<MatchSnapshotRecord>([\.matchId])
 
         public init(
             id: UUID = UUID(),
@@ -160,6 +202,8 @@ public enum SchemaV1: VersionedSchema {
         public var eventTypeRaw: String
         public var eventPayload: Data
         public var createdAt: Date
+
+        #Index<MatchEventRecord>([\.matchId], [\.matchId, \.eventIndex])
 
         public init(
             id: UUID = UUID(),
@@ -192,9 +236,10 @@ public enum SchemaV1: VersionedSchema {
         public var defaultLegFormatRaw: String
         public var defaultLegsToWin: Int
         public var defaultSetsEnabled: Bool
-        /// Nil on stores created before 1.0 bot-preference columns; repository maps to `true`.
         public var botStaggerEnabled: Bool?
         public var botDartHapticsEnabled: Bool?
+        /// `DartEntryPresentation` raw value; `nil` (pre-existing stores) means number pad.
+        public var defaultDartEntryPresentationRaw: String?
         public var updatedAt: Date
 
         public init(
@@ -212,6 +257,7 @@ public enum SchemaV1: VersionedSchema {
             defaultSetsEnabled: Bool = false,
             botStaggerEnabled: Bool? = true,
             botDartHapticsEnabled: Bool? = true,
+            defaultDartEntryPresentationRaw: String? = "numberPad",
             updatedAt: Date = Date()
         ) {
             self.id = id
@@ -228,6 +274,7 @@ public enum SchemaV1: VersionedSchema {
             self.defaultSetsEnabled = defaultSetsEnabled
             self.botStaggerEnabled = botStaggerEnabled
             self.botDartHapticsEnabled = botDartHapticsEnabled
+            self.defaultDartEntryPresentationRaw = defaultDartEntryPresentationRaw
             self.updatedAt = updatedAt
         }
     }

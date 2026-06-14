@@ -265,7 +265,15 @@ struct StatisticsRootView: View {
             }
         }
         .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-        .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textPrimary) } }
+        .chartYAxis {
+            AxisMarks { _ in
+                AxisValueLabel(horizontalSpacing: DS.Spacing.s2)
+                    .foregroundStyle(Brand.textPrimary)
+            }
+        }
+        .chartPlotStyle { plotArea in
+            plotArea.padding(.leading, DS.Spacing.s1)
+        }
         .frame(height: CGFloat(viewModel.rows.count) * 44 + 24)
         .padding(DS.Spacing.s4)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))

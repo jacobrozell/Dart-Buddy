@@ -108,11 +108,27 @@ struct CricketBoardPlayerColumnFooter: View {
     let column: CricketBoardView.Column
     let sizing: CricketBoardSizing
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     private var verticalPadding: CGFloat {
         sizing == .landscapeCompact ? DS.Spacing.s1 : DS.Spacing.s2
     }
 
     var body: some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                accessibilityFooter
+            } else {
+                standardFooter
+            }
+        }
+        .padding(.horizontal, 4)
+        .padding(.vertical, verticalPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: sizing.columnFooterHeight, alignment: .topLeading)
+    }
+
+    private var standardFooter: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(L10n.format("play.cricket.column.footer.darts", column.dartsThrown))
                 .font(.caption2.monospacedDigit())
@@ -133,10 +149,41 @@ struct CricketBoardPlayerColumnFooter: View {
                     .foregroundStyle(Brand.textSecondary)
             }
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, verticalPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: sizing.columnFooterHeight, alignment: .topLeading)
+    }
+
+    private var accessibilityFooter: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: DS.Spacing.s2) {
+                Text(L10n.format("play.cricket.column.footer.darts", column.dartsThrown))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(Brand.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .accessibilityIdentifier(column.isActive ? "cricket_column_darts" : "")
+                Text("·")
+                    .font(.caption)
+                    .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
+                HStack(spacing: 4) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.caption)
+                        .foregroundStyle(Brand.textSecondary)
+                    Text(String(format: "%.2f", column.marksPerRound))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(Brand.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                        .accessibilityIdentifier(column.isActive ? "cricket_column_mpr" : "")
+                }
+            }
+            if column.setsEnabled {
+                Text(L10n.format("play.cricket.column.footer.sets", column.setsWon))
+                    .font(.caption)
+                    .foregroundStyle(Brand.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            }
+        }
     }
 }
 

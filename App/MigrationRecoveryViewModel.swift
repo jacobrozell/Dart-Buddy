@@ -38,13 +38,20 @@ final class MigrationRecoveryViewModel: ObservableObject {
     func tapExportDiagnostics() {
         Task {
             state = .exportInProgress
-            let text = """
-            migration_error_key=\(context.error.userMessageKey)
-            code=\(context.error.code.rawValue)
-            layer=\(context.error.layer.rawValue)
-            severity=\(context.error.severity.rawValue)
-            recoverable=\(context.error.isRecoverable)
-            """
+            var lines = [
+                "migration_error_key=\(context.error.userMessageKey)",
+                "code=\(context.error.code.rawValue)",
+                "layer=\(context.error.layer.rawValue)",
+                "severity=\(context.error.severity.rawValue)",
+                "recoverable=\(context.error.isRecoverable)"
+            ]
+            for (key, value) in context.error.debugContext.sorted(by: { $0.key < $1.key }) {
+                lines.append("\(key)=\(value)")
+            }
+            if let underlying = context.error.underlyingError {
+                lines.append("underlyingError=\(String(describing: underlying))")
+            }
+            let text = lines.joined(separator: "\n")
             let fileURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("DartBuddy-Migration-Diagnostics.txt")
             do {

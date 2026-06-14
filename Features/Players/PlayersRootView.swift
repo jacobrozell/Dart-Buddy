@@ -165,7 +165,8 @@ struct PlayersRootView: View {
                             actionTask?.cancel()
                             actionTask = Task { await viewModel.save(player) }
                         },
-                        onExportResult: handleExportResult
+                        onExportResult: handleExportResult,
+                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
                     )
                 case let .edit(playerId):
                     PlayerDetailView(
@@ -180,7 +181,8 @@ struct PlayersRootView: View {
                         onSave: { player in
                             actionTask?.cancel()
                             actionTask = Task { await viewModel.save(player) }
-                        }
+                        },
+                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
                     )
                 case let .matchDetail(matchId):
                     MatchHistoryDetailScreen(

@@ -13,8 +13,13 @@ public struct FirebaseAnalyticsEvent: Equatable, Sendable {
 public enum FirebaseAnalyticsEventMapping {
     private static let allowlistedLogEvents: Set<String> = [
         "app_bootstrap_ready",
+        "main_tab_presented",
+        "play_home_ready",
+        "play_home_active_match",
+        "match_setup_start",
         "match_started",
         "match_setup_baseball",
+        "match_screen_appeared",
         "match_completed",
         "turn_submitted",
         "turn_undone",
@@ -31,7 +36,8 @@ public enum FirebaseAnalyticsEventMapping {
         "deep_link_failed",
         "intent_performed",
         "intent_failed",
-        "client_environment_changed"
+        "client_environment_changed",
+        "onboarding_completed"
     ]
 
     private static let allowlistedParameterKeys: Set<String> = AnalyticsMetadataKeys.firebaseParameters

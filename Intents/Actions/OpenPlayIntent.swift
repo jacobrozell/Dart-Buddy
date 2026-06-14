@@ -12,7 +12,7 @@ struct OpenPlayIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard await IntentRoutingBridge.isEnabled else {
+        guard IntentRoutingBridge.isEnabled else {
             throw IntentRoutingError.disabled
         }
         _ = await IntentRoutingBridge.route(.play(.home), intentName: Self.intentName)

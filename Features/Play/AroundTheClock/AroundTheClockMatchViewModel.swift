@@ -104,7 +104,7 @@ final class AroundTheClockMatchViewModel: ObservableObject {
     }
 
     var headerAccessibilityLabel: String {
-        var parts = [L10n.string("play.aroundTheClock.navTitle"), headerText]
+        let parts = [L10n.string("play.aroundTheClock.navTitle"), headerText]
         return parts.joined(separator: ", ")
     }
 
@@ -138,7 +138,7 @@ final class AroundTheClockMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .aroundTheClock,
             category: .ui,

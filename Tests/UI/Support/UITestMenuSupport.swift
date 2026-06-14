@@ -107,7 +107,9 @@ extension XCTestCase {
     }
 
     func inactiveX01ScoreCards(in app: XCUIApplication) -> XCUIElementQuery {
-        app.otherElements.matching(identifier: "scoreCard")
+        app.otherElements.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'scoreCard_' AND identifier != 'scoreCard_active'")
+        )
     }
 
     func assertActiveScoreCardLabel(

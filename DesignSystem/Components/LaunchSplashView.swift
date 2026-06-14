@@ -5,35 +5,33 @@ struct LaunchSplashView: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    @State private var heroAppeared = false
-    @State private var wordmarkAppeared = false
+    @State private var footerAppeared = false
 
-    private let markSize: CGFloat = 120
+    private let animateFooter: Bool
+
+    init(animateFooter: Bool = true) {
+        self.animateFooter = animateFooter
+        _footerAppeared = State(initialValue: !animateFooter)
+    }
 
     var body: some View {
         ZStack {
-            Brand.background.ignoresSafeArea()
-
             if !reduceTransparency {
-                DartboardWedgeBackdrop()
+                LaunchSplashBackgroundView()
                     .ignoresSafeArea()
+            } else {
+                Brand.background.ignoresSafeArea()
             }
 
-            VStack(spacing: DS.Spacing.s4) {
-                Image("LaunchMark")
-                    .resizable()
-                    .aspectRatio(1, contentMode: .fit)
-                    .frame(width: markSize, height: markSize)
-                    .scaleEffect(heroAppeared ? 1 : 0.92)
-                    .opacity(heroAppeared ? 1 : 0)
+            VStack(spacing: DS.Spacing.s3) {
+                Spacer()
 
-                Text(L10n.brandTitle)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(Brand.textPrimary)
-                    .opacity(wordmarkAppeared ? 1 : 0)
+                LaunchSplashWordmark()
+                    .opacity(footerAppeared ? 1 : 0)
 
                 LaunchDotsIndicator()
-                    .opacity(heroAppeared ? 1 : 0)
+                    .opacity(footerAppeared ? 1 : 0)
+                    .padding(.bottom, DS.Spacing.s6)
             }
             .frame(maxWidth: horizontalSizeClass == .regular ? 360 : .infinity)
             .padding(.horizontal, DS.Spacing.s4)
@@ -45,17 +43,15 @@ struct LaunchSplashView: View {
     }
 
     private func runEntranceAnimation() {
+        guard animateFooter else { return }
+
         if reduceMotion {
-            heroAppeared = true
-            wordmarkAppeared = true
+            footerAppeared = true
             return
         }
 
-        withAnimation(.spring(duration: 0.5, bounce: 0.2)) {
-            heroAppeared = true
-        }
-        withAnimation(.easeOut(duration: 0.35).delay(0.2)) {
-            wordmarkAppeared = true
+        withAnimation(.easeOut(duration: 0.35).delay(0.15)) {
+            footerAppeared = true
         }
     }
 }
@@ -100,7 +96,48 @@ private struct LaunchDotsIndicator: View {
 }
 
 #if DEBUG
-#Preview("Launch Splash") {
-    LaunchSplashView()
+#Preview("Launch Splash Light") {
+    LaunchSplashView(animateFooter: false)
+        .environment(\.colorScheme, .light)
+}
+
+#Preview("Launch Splash Dark") {
+    LaunchSplashView(animateFooter: false)
+        .environment(\.colorScheme, .dark)
+}
+
+#Preview("Launch Splash — Light / Dark", traits: .sizeThatFitsLayout) {
+    LaunchSplashAppearanceComparisonPreview()
+}
+
+private struct LaunchSplashAppearanceComparisonPreview: View {
+    private let deviceWidth: CGFloat = 220
+    private let deviceHeight: CGFloat = 476
+
+    var body: some View {
+        HStack(alignment: .top, spacing: DS.Spacing.s4) {
+            appearanceColumn(title: "Light", scheme: .light)
+            appearanceColumn(title: "Dark", scheme: .dark)
+        }
+        .padding(DS.Spacing.s4)
+        .background(Color(.systemGroupedBackground))
+    }
+
+    private func appearanceColumn(title: String, scheme: ColorScheme) -> some View {
+        VStack(spacing: DS.Spacing.s2) {
+            LaunchSplashView(animateFooter: false)
+                .frame(width: deviceWidth, height: deviceHeight)
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.lg))
+                .overlay {
+                    RoundedRectangle(cornerRadius: DS.Radius.lg)
+                        .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+                }
+                .environment(\.colorScheme, scheme)
+
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+    }
 }
 #endif

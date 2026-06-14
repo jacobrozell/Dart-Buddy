@@ -202,7 +202,10 @@ struct CustomBotDetailView: View {
                 BotDifficultyStatsSection(profile: displayProfile)
 
                 customizationSection
-                PlayerDetailStatsContent(viewModel: statsViewModel)
+                PlayerDetailStatsContent(
+                    viewModel: statsViewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)

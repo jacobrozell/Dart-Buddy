@@ -11,10 +11,10 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
     public func fetchSettings() async throws -> SettingsSummary {
         try dataCall {
             let context = ModelContext(container)
-            if let record = try context.fetch(FetchDescriptor<SchemaV3.SettingsRecord>()).first {
+            if let record = try context.fetch(FetchDescriptor<SchemaV1.SettingsRecord>()).first {
                 return mapSettings(record)
             }
-            let created = SchemaV3.SettingsRecord()
+            let created = SchemaV1.SettingsRecord()
             context.insert(created)
             try context.save()
             return mapSettings(created)
@@ -29,14 +29,14 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
         try dataCall {
             let context = ModelContext(container)
             let settingsId = settings.id
-            let descriptor = FetchDescriptor<SchemaV3.SettingsRecord>(
-                predicate: #Predicate<SchemaV3.SettingsRecord> { $0.id == settingsId }
+            let descriptor = FetchDescriptor<SchemaV1.SettingsRecord>(
+                predicate: #Predicate<SchemaV1.SettingsRecord> { $0.id == settingsId }
             )
-            let record: SchemaV3.SettingsRecord
+            let record: SchemaV1.SettingsRecord
             if let existing = try context.fetch(descriptor).first {
                 record = existing
             } else {
-                let created = SchemaV3.SettingsRecord(id: settings.id)
+                let created = SchemaV1.SettingsRecord(id: settings.id)
                 context.insert(created)
                 record = created
             }
@@ -66,11 +66,11 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
     public func resetPreferencesToDefaults() async throws {
         try dataCall {
             let context = ModelContext(container)
-            let record: SchemaV3.SettingsRecord
-            if let existing = try context.fetch(FetchDescriptor<SchemaV3.SettingsRecord>()).first {
+            let record: SchemaV1.SettingsRecord
+            if let existing = try context.fetch(FetchDescriptor<SchemaV1.SettingsRecord>()).first {
                 record = existing
             } else {
-                let created = SchemaV3.SettingsRecord()
+                let created = SchemaV1.SettingsRecord()
                 context.insert(created)
                 record = created
             }
@@ -97,7 +97,7 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
         try dataCall {
             try LocalDataResetInventory.deleteAllSwiftDataRecords(in: container)
             let context = ModelContext(container)
-            context.insert(SchemaV3.SettingsRecord())
+            context.insert(SchemaV1.SettingsRecord())
             try context.save()
         }
     }

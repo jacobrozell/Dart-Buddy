@@ -101,7 +101,7 @@ final class MickeyMouseMatchViewModel: ObservableObject {
     }
 
     var headerAccessibilityLabel: String {
-        var parts = [L10n.string("play.mickeyMouse.navTitle"), headerText]
+        let parts = [L10n.string("play.mickeyMouse.navTitle"), headerText]
         return parts.joined(separator: ", ")
     }
 
@@ -135,7 +135,7 @@ final class MickeyMouseMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .mickeyMouse,
             category: .ui,

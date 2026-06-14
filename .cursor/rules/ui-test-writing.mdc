@@ -74,3 +74,4 @@ Use `element.wait(for: \.isEnabled, toEqual: true, ...)` for bot-turn recovery.
 | Nightly matrix | `DartBuddyUISmoke`, `UIGameplay`, `UIAccessibility`, `UILocalization`, `UILandscape`, `UIChrome` | iPhone 17 (Pro Max for landscape) |
 | Release branch | `DartBuddyUILean` | iPhone 17 |
 | Local full UI | `DartBuddyUI` | iPhone 17 Pro Max |
+| Local lean smoke | `DartBuddyUILean` | iPhone 17 |

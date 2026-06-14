@@ -245,6 +245,8 @@ struct CricketMatchScreen: View {
         return Text(L10n.format("play.cricket.roundTurn", round, turn))
             .font(.caption)
             .foregroundStyle(Brand.textSecondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, DS.Spacing.s2)
             .padding(.top, DS.Spacing.s1)
@@ -255,22 +257,14 @@ struct CricketMatchScreen: View {
         let round = state.roundIndex + 1
         let turn = state.currentPlayerIndex + 1
 
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.format("play.cricket.round", round))
-                    Text(L10n.format("play.cricket.turn", turn))
-                }
-                .font(.caption)
-            } else {
-                Text(L10n.format("play.cricket.roundTurn", round, turn))
-                    .font(.subheadline)
-            }
-        }
-        .foregroundStyle(Brand.textSecondary)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.bottom, DS.Spacing.s2)
+        Text(L10n.format("play.cricket.roundTurn", round, turn))
+            .font(dynamicTypeSize.isAccessibilitySize ? .caption : .subheadline)
+            .foregroundStyle(Brand.textSecondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, DS.Spacing.s4)
+            .padding(.bottom, DS.Spacing.s2)
     }
 
     private var cricketTapPad: some View {

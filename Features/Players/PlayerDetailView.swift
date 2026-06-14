@@ -8,6 +8,7 @@ struct PlayerDetailView: View {
     let onArchiveToggle: () -> Void
     let onSave: (EditablePlayer) -> Void
     let onExportResult: (Result<URL, Error>) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
 
     init(
         player: EditablePlayer?,
@@ -16,7 +17,8 @@ struct PlayerDetailView: View {
         onEdit: @escaping () -> Void,
         onArchiveToggle: @escaping () -> Void,
         onSave: @escaping (EditablePlayer) -> Void,
-        onExportResult: @escaping (Result<URL, Error>) -> Void = { _ in }
+        onExportResult: @escaping (Result<URL, Error>) -> Void = { _ in },
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.existingNames = existingNames
@@ -25,6 +27,7 @@ struct PlayerDetailView: View {
         self.onArchiveToggle = onArchiveToggle
         self.onSave = onSave
         self.onExportResult = onExportResult
+        self.onSelectRecentMatch = onSelectRecentMatch
     }
 
     var body: some View {
@@ -35,7 +38,8 @@ struct PlayerDetailView: View {
                         player: player,
                         existingNames: existingNames,
                         dependencies: dependencies,
-                        onSave: onSave
+                        onSave: onSave,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 } else if player.isBot, let botDifficulty = player.botDifficulty {
                     BotDetailView(
@@ -43,14 +47,16 @@ struct PlayerDetailView: View {
                         difficulty: botDifficulty,
                         existingNames: existingNames,
                         dependencies: dependencies,
-                        onSave: onSave
+                        onSave: onSave,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 } else if player.isBot {
                     TrainingBotDetailView(
                         player: player,
                         existingNames: existingNames,
                         dependencies: dependencies,
-                        onSave: onSave
+                        onSave: onSave,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 } else {
                     PlayerStatsDetailView(
@@ -58,7 +64,8 @@ struct PlayerDetailView: View {
                         dependencies: dependencies,
                         onEdit: onEdit,
                         onArchiveToggle: onArchiveToggle,
-                        onExportResult: onExportResult
+                        onExportResult: onExportResult,
+                        onSelectRecentMatch: onSelectRecentMatch
                     )
                 }
             } else {

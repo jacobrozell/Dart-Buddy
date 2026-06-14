@@ -66,7 +66,7 @@ Welcome → Skip → Ready → Play tab
 - **Preferences (experienced path):** Curated subset of Settings (appearance, gameplay defaults, X01 defaults, feedback toggles). Changes persist immediately via `SettingsViewModel`.
 - **Learn to play (beginner path):** Reuses `GameRulesGuideContent` with onboarding **Continue** footer.
 - **App tour:** Four cards for Play, Players, Activity, and Settings tabs plus a short roadmap note.
-- **Support & feedback:** Links to hosted support FAQ, feedback mailto, and privacy policy (same destinations as Settings → Help & Feedback).
+- **Support & feedback:** Links to hosted support FAQ, feedback mailto, accessibility page (when `ProductSurface.showsAccessibilityMarketing`), and privacy policy (same destinations as Settings → Help & Feedback, except Rate the App).
 - **Ready:** Shared finale with **Start a Match** and a Settings replay hint.
 - **Skip / Start a Match:** Sets `onboarding_completed`; first launch selects the Play tab. **Start a Match** also persists `onboarding_darts_experience` (`experienced` | `beginner`) when the user completed a branch. Skip from Welcome lands on Ready without persisting experience. First launch cannot be swipe-dismissed (must use Skip or Start a Match).
 - **Replay:** Settings → About → **View onboarding** presents the same flow in `.replay` mode without changing completion state or saved experience.

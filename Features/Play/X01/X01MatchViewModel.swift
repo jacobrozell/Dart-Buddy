@@ -279,7 +279,7 @@ final class X01MatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .x01,
             category: .ui,
@@ -461,14 +461,6 @@ final class X01MatchViewModel: ObservableObject {
                     logger: logger,
                     metadata: ["matchType": MatchType.x01.rawValue]
                 ) {}
-                logger.matchInfo(
-                    matchId: matchId,
-                    matchType: .x01,
-                    category: .appLifecycle,
-                    eventName: "match_completed",
-                    message: "X01 match completed.",
-                    metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
-                )
                 state = .matchCompleted
             } else if case let .x01Turn(event) = updated.events.last?.payload, event.isBust {
                 logger.matchDebug(
@@ -504,7 +496,7 @@ final class X01MatchViewModel: ObservableObject {
             state = .readyTurn
             enteredDarts.removeAll()
             totalEntryText = ""
-            logger.matchDebug(
+            logger.matchInfo(
                 matchId: matchId,
                 matchType: .x01,
                 eventName: "turn_undone",
@@ -532,7 +524,7 @@ final class X01MatchViewModel: ObservableObject {
         if !enteredDarts.isEmpty {
             enteredDarts.removeLast()
             selectedMultiplier = .single
-            logger.matchDebug(
+            logger.matchInfo(
                 matchId: matchId,
                 matchType: .x01,
                 eventName: "dart_undone",
@@ -553,7 +545,7 @@ final class X01MatchViewModel: ObservableObject {
             state = .readyTurn
             enteredDarts = result.restoredDarts
             totalEntryText = ""
-            logger.matchDebug(
+            logger.matchInfo(
                 matchId: matchId,
                 matchType: .x01,
                 eventName: "dart_undone",

@@ -1,69 +1,72 @@
 import SwiftUI
 
-/// Full-screen launch backdrop compositions. Background art only — title and spinner stay in
-/// `LaunchSplashView` so copy stays localized and live UI can sit on top.
+/// Full-screen ambient launch backdrop. Title and spinner stay in `LaunchSplashView`
+/// so copy stays localized and live UI can sit on top.
 struct LaunchSplashBackgroundView: View {
-    enum Style: String, CaseIterable {
-        /// Large centered board (~78% of the short edge), upper-center placement.
-        case hero
-        /// Oversized board cropped at the edges for an immersive fill.
-        case ambient
-        /// Soft watermark board with a sharper hero mark near center.
-        case soft
-    }
+    @Environment(\.colorScheme) private var colorScheme
 
-    let style: Style
+    private enum Layout {
+        /// Fraction of the short screen edge used for the board diameter.
+        static let boardScale: CGFloat = 0.88
+    }
 
     var body: some View {
         GeometryReader { geometry in
+            let palette = LaunchSplashPalette.forColorScheme(colorScheme)
             let side = min(geometry.size.width, geometry.size.height)
+            let boardSize = side * Layout.boardScale
+            let boardCenter = CGPoint(
+                x: geometry.size.width / 2,
+                y: geometry.size.height / 2
+            )
 
             ZStack {
-                Brand.background
+                palette.canvasBackground
 
-                switch style {
-                case .hero:
-                    LaunchMarkView()
-                        .frame(width: side * 0.78, height: side * 0.78)
-                        .position(
-                            x: geometry.size.width / 2,
-                            y: geometry.size.height * 0.4
-                        )
+                RadialGradient(
+                    colors: [
+                        palette.glowColor.opacity(palette.glowOpacity),
+                        palette.canvasBackground.opacity(0)
+                    ],
+                    center: .center,
+                    startRadius: boardSize * 0.05,
+                    endRadius: boardSize * 0.62
+                )
 
-                case .ambient:
-                    LaunchMarkView()
-                        .frame(width: side * 1.18, height: side * 1.18)
-                        .position(
-                            x: geometry.size.width / 2,
-                            y: geometry.size.height * 0.43
-                        )
+                Circle()
+                    .fill(palette.glowColor.opacity(palette.bullGlowOpacity))
+                    .frame(width: boardSize * 0.34, height: boardSize * 0.34)
+                    .blur(radius: boardSize * 0.08)
+                    .position(boardCenter)
 
-                    LinearGradient(
-                        colors: [
-                            Brand.background.opacity(0),
-                            Brand.background.opacity(0.55),
-                            Brand.background
-                        ],
-                        startPoint: UnitPoint(x: 0.5, y: 0.55),
-                        endPoint: .bottom
+                LaunchMarkView()
+                    .frame(width: boardSize, height: boardSize)
+                    .position(boardCenter)
+                    .shadow(
+                        color: palette.boardShadowColor,
+                        radius: palette.boardShadowRadius,
+                        y: palette.boardShadowY
                     )
 
-                case .soft:
-                    LaunchMarkView()
-                        .opacity(0.12)
-                        .frame(width: side * 1.02, height: side * 1.02)
-                        .position(
-                            x: geometry.size.width / 2,
-                            y: geometry.size.height * 0.4
-                        )
+                RadialGradient(
+                    colors: [
+                        palette.canvasBackground.opacity(0),
+                        palette.vignetteEdge
+                    ],
+                    center: .center,
+                    startRadius: side * 0.35,
+                    endRadius: side * 0.95
+                )
 
-                    LaunchMarkView()
-                        .frame(width: side * 0.42, height: side * 0.42)
-                        .position(
-                            x: geometry.size.width / 2,
-                            y: geometry.size.height * 0.4
-                        )
-                }
+                LinearGradient(
+                    colors: [
+                        palette.canvasBackground.opacity(0),
+                        palette.bottomFadeMid,
+                        palette.canvasBackground
+                    ],
+                    startPoint: UnitPoint(x: 0.5, y: 0.55),
+                    endPoint: .bottom
+                )
             }
         }
         .accessibilityHidden(true)
@@ -71,15 +74,13 @@ struct LaunchSplashBackgroundView: View {
 }
 
 #if DEBUG
-#Preview("Launch Splash Hero") {
-    LaunchSplashBackgroundView(style: .hero)
+#Preview("Launch Splash Background Light") {
+    LaunchSplashBackgroundView()
+        .environment(\.colorScheme, .light)
 }
 
-#Preview("Launch Splash Ambient") {
-    LaunchSplashBackgroundView(style: .ambient)
-}
-
-#Preview("Launch Splash Soft") {
-    LaunchSplashBackgroundView(style: .soft)
+#Preview("Launch Splash Background Dark") {
+    LaunchSplashBackgroundView()
+        .environment(\.colorScheme, .dark)
 }
 #endif

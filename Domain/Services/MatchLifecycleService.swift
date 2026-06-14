@@ -298,10 +298,6 @@ public struct UndoLastDartResult: Sendable {
 public enum MatchLifecycleService {
     public static let snapshotInterval = 3
 
-    private static let soloPracticeMatchTypes: Set<MatchType> = [
-        .x01, .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .raid
-    ]
-
     public static func createMatch(
         matchId: UUID = UUID(),
         type: MatchType,

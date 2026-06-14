@@ -16,7 +16,11 @@ struct MainTabView: View {
                 self = .activity
             default:
                 guard let tab = RootTab(rawValue: snapshotArgument) else { return nil }
-                self = tab
+                if tab == .modes, !ProductSurface.showsModesTab {
+                    self = .play
+                } else {
+                    self = tab
+                }
             }
         }
     }
@@ -130,7 +134,7 @@ struct MainTabView: View {
         .task {
             configureIntentRouting()
             ClientEnvironmentMonitor.startReportingChanges(using: dependencies.logger)
-            dependencies.logger.debug(
+            dependencies.logger.info(
                 .ui,
                 eventName: "main_tab_presented",
                 message: "Main tab shell rendered."
@@ -190,7 +194,7 @@ struct MainTabView: View {
         configureIntentRouting()
         guard !showsOnboarding else {
             if pendingDeepLink.hasPending {
-                dependencies.logger.debug(
+                dependencies.logger.info(
                     .ui,
                     eventName: "deep_link_deferred",
                     message: "Deep link waiting for onboarding.",
@@ -204,7 +208,7 @@ struct MainTabView: View {
             onboardingComplete: true
         ) else { return }
 
-        dependencies.logger.debug(
+        dependencies.logger.info(
             .ui,
             eventName: "deep_link_received",
             message: "Applying deep link.",
@@ -216,7 +220,7 @@ struct MainTabView: View {
 
         switch outcome {
         case .applied:
-            dependencies.logger.debug(
+            dependencies.logger.info(
                 .ui,
                 eventName: "deep_link_applied",
                 message: "Deep link routed.",

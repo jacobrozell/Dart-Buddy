@@ -137,7 +137,7 @@ final class NineLivesMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .nineLives,
             category: .ui,

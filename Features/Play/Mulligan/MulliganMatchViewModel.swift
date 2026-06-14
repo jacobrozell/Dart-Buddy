@@ -136,7 +136,7 @@ final class MulliganMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .mulligan,
             category: .ui,

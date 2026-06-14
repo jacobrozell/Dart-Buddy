@@ -48,9 +48,9 @@ struct MatchScoringBody<Active: View, Scoreboard: View, PadChrome: View, Pad: Vi
                 if showsActiveBand {
                     active()
                 }
-                scoreboard()
                 padChrome()
                 pad()
+                scoreboard()
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s2)

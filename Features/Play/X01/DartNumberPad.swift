@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Per-dart entry pad matching the reference scoreboard: a grid of 1-20 plus
-/// the bull (25), with sticky DOUBLE / TRIPLE modifiers, a miss (0) key, and an
+/// the bull, with sticky DOUBLE / TRIPLE modifiers, a miss (0) key, and an
 /// undo key. Tapping a number appends a dart to the current visit (max 3).
 struct DartNumberPad: View {
     @Binding var enteredDarts: [DartInput]
@@ -194,10 +194,14 @@ struct DartNumberPad: View {
         return .body.weight(.semibold)
     }
 
+    private func segmentKeyTitle(_ value: Int) -> String {
+        value == 25 ? L10n.string("scoring.pad.bullLabel") : String(value)
+    }
+
     private func numberKey(_ value: Int, minHeight: CGFloat? = nil) -> some View {
         let enabled = value == 25 ? showsBull : isSegmentEnabled(value)
         return ScoringPadKey(
-            title: String(value),
+            title: segmentKeyTitle(value),
             font: numberKeyFont,
             minHeight: minHeight ?? displayKeyMinHeight,
             accessibilityLabel: DartInput.padKeyAccessibilityLabel(

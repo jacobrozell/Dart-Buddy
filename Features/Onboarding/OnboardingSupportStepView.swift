@@ -36,6 +36,15 @@ struct OnboardingSupportStepView: View {
                         accessibilityLabel: L10n.onboardingSupportFeedbackAccessibility,
                         identifier: "onboarding_support_feedback"
                     )
+                    if ProductSurface.showsAccessibilityMarketing {
+                        supportLink(
+                            title: L10n.settingsSupportAccessibility,
+                            systemImage: "accessibility",
+                            destination: AppLinks.accessibility,
+                            accessibilityLabel: L10n.settingsSupportAccessibilityLabel,
+                            identifier: "onboarding_support_accessibility"
+                        )
+                    }
                     supportLink(
                         title: L10n.onboardingSupportPrivacy,
                         systemImage: "hand.raised",

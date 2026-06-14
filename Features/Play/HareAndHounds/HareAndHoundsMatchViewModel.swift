@@ -131,7 +131,7 @@ final class HareAndHoundsMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .hareAndHounds,
             category: .ui,

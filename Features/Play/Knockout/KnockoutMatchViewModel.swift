@@ -122,7 +122,7 @@ final class KnockoutMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .knockout,
             category: .ui,

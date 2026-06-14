@@ -143,54 +143,44 @@ public struct MatchSnapshotExportRecord: Codable, Sendable, Equatable {
 }
 
 public enum PlayerExportBundleCoding {
-    private static let fractionalISO8601: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-
-    private static let wholeSecondISO8601: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
-
     private static func normalizedExportDate(_ date: Date) -> Date {
         let milliseconds = (date.timeIntervalSince1970 * 1_000).rounded() / 1_000
         return Date(timeIntervalSince1970: milliseconds)
     }
 
-    private static func encodeDate(_ date: Date, to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        let normalized = normalizedExportDate(date)
-        try container.encode(fractionalISO8601.string(from: normalized))
-    }
-
-    private static func decodeDate(from decoder: Decoder) throws -> Date {
-        let container = try decoder.singleValueContainer()
-        let string = try container.decode(String.self)
-        if let date = fractionalISO8601.date(from: string) {
-            return normalizedExportDate(date)
-        }
-        if let date = wholeSecondISO8601.date(from: string) {
-            return normalizedExportDate(date)
-        }
-        throw DecodingError.dataCorruptedError(
-            in: container,
-            debugDescription: "Invalid ISO8601 date: \(string)"
-        )
-    }
-
     public static func encode(_ bundle: PlayerExportBundle) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        encoder.dateEncodingStrategy = .custom(encodeDate)
+        encoder.dateEncodingStrategy = .custom { date, encoder in
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            var container = encoder.singleValueContainer()
+            let normalized = normalizedExportDate(date)
+            try container.encode(formatter.string(from: normalized))
+        }
         return try encoder.encode(bundle)
     }
 
     public static func decode(_ data: Data) throws -> PlayerExportBundle {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom(decodeDate)
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let fractionalISO8601 = ISO8601DateFormatter()
+            fractionalISO8601.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let wholeSecondISO8601 = ISO8601DateFormatter()
+            wholeSecondISO8601.formatOptions = [.withInternetDateTime]
+            let container = try decoder.singleValueContainer()
+            let string = try container.decode(String.self)
+            if let date = fractionalISO8601.date(from: string) {
+                return normalizedExportDate(date)
+            }
+            if let date = wholeSecondISO8601.date(from: string) {
+                return normalizedExportDate(date)
+            }
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Invalid ISO8601 date: \(string)"
+            )
+        }
         return try decoder.decode(PlayerExportBundle.self, from: data)
     }
 }

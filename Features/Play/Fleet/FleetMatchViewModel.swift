@@ -159,7 +159,7 @@ final class FleetMatchViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        logger.matchDebug(
+        logger.matchInfo(
             matchId: matchId,
             matchType: .fleet,
             category: .ui,

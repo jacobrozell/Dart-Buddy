@@ -150,10 +150,12 @@ struct SettingsRootView: View {
                 aboutSection(usesBrand: usesBrandSettingsPalette)
             }
             .tint(Brand.green)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .readableRootContentWidth(horizontalSizeClass)
             .tabRootScrollChrome()
             .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(L10n.settingsTitle)
         .accessibilityIdentifier("settings_form")
@@ -240,6 +242,7 @@ struct SettingsRootView: View {
                 get: { settings.defaultSetsEnabled },
                 set: { queueGameplayDefaults(from: settings, setsEnabled: $0) }
             ))
+            .accessibilityElement(children: .combine)
             .accessibilityIdentifier("settings_defaultSetsToggle")
         } header: {
             Text(L10n.settingsMatchDefaultsSection)
