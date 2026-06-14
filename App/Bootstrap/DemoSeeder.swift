@@ -61,6 +61,22 @@ enum DemoSeeder {
             await seedCricketSnapshot(dependencies)
         }
 
+        if arguments.contains("-snapshot_match_baseball") {
+            await seedBaseballSnapshot(dependencies)
+        }
+
+        if arguments.contains("-snapshot_match_killer") {
+            await seedKillerSnapshot(dependencies)
+        }
+
+        if arguments.contains("-snapshot_match_shanghai") {
+            await seedShanghaiSnapshot(dependencies)
+        }
+
+        if arguments.contains("-snapshot_match_aroundTheClock") {
+            await seedAroundTheClockSnapshot(dependencies)
+        }
+
         if arguments.contains("-snapshot_match_summary") {
             await seedSummarySnapshot(dependencies)
         }
@@ -198,6 +214,144 @@ enum DemoSeeder {
             await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
         } catch {
             dependencies.logger.error(.appLifecycle, eventName: "x01_snapshot_seed_failed", message: "X01 snapshot seed failed: \(error)")
+        }
+    }
+
+    /// Populates the fixed Baseball match id used by `-snapshot_match_baseball`
+    /// (Jacob leading Sam mid-inning 5).
+    private static func seedBaseballSnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000004") ?? UUID()
+        let config = MatchConfigPayload.baseball(MatchConfigBaseball())
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Sam", turnOrder: 1)
+        ]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .baseball,
+                config: config,
+                participants: participants
+            )
+            for inning in 1 ... 4 {
+                session = try MatchLifecycleService.submitBaseballTurn(session: session, darts: [d(.triple, inning)])
+                session = try MatchLifecycleService.submitBaseballTurn(session: session, darts: [d(.single, inning)])
+            }
+            session = try MatchLifecycleService.submitBaseballTurn(session: session, darts: [d(.triple, 5)])
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "baseball_snapshot_seed_failed",
+                message: "Baseball snapshot seed failed: \(error)"
+            )
+        }
+    }
+
+    /// Populates the fixed Killer match id used by `-snapshot_match_killer`
+    /// (pick phase complete; Jacob is Killer; Sam down one life).
+    private static func seedKillerSnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000005") ?? UUID()
+        let config = MatchConfigPayload.killer(MatchConfigKiller())
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Sam", turnOrder: 1),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Alex", turnOrder: 2)
+        ]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .killer,
+                config: config,
+                participants: participants
+            )
+            session = try MatchLifecycleService.submitKillerPick(session: session, dart: d(.single, 7))
+            session = try MatchLifecycleService.submitKillerPick(session: session, dart: d(.single, 12))
+            session = try MatchLifecycleService.submitKillerPick(session: session, dart: d(.single, 20))
+            session = try MatchLifecycleService.submitKillerTurn(session: session, darts: [d(.double, 7)])
+            session = try MatchLifecycleService.submitKillerTurn(session: session, darts: [d(.double, 12)])
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "killer_snapshot_seed_failed",
+                message: "Killer snapshot seed failed: \(error)"
+            )
+        }
+    }
+
+    /// Populates the fixed Shanghai match id used by `-snapshot_match_shanghai`
+    /// (round 8 in progress; Jacob leading on cumulative points).
+    private static func seedShanghaiSnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000006") ?? UUID()
+        let config = MatchConfigPayload.shanghai(MatchConfigShanghai())
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0),
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Sam", turnOrder: 1)
+        ]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .shanghai,
+                config: config,
+                participants: participants
+            )
+            for round in 1 ... 7 {
+                session = try MatchLifecycleService.submitShanghaiTurn(session: session, darts: [d(.single, round)])
+                session = try MatchLifecycleService.submitShanghaiTurn(session: session, darts: [d(.single, max(1, round - 1))])
+            }
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "shanghai_snapshot_seed_failed",
+                message: "Shanghai snapshot seed failed: \(error)"
+            )
+        }
+    }
+
+    /// Populates the fixed Around the Clock match id used by `-snapshot_match_aroundTheClock`
+    /// (solo Jacob on target 12 after progressing through 1–11).
+    private static func seedAroundTheClockSnapshot(_ dependencies: AppDependencies) async {
+        let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000007") ?? UUID()
+        let config = MatchConfigPayload.aroundTheClock(MatchConfigAroundTheClock())
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0)
+        ]
+        do {
+            var session = try MatchLifecycleService.createMatch(
+                matchId: matchId,
+                type: .aroundTheClock,
+                config: config,
+                participants: participants
+            )
+            session = try MatchLifecycleService.submitAroundTheClockTurn(
+                session: session,
+                darts: [d(.single, 1), d(.single, 2), d(.single, 3)]
+            )
+            session = try MatchLifecycleService.submitAroundTheClockTurn(
+                session: session,
+                darts: [d(.single, 4), d(.single, 5), d(.single, 6)]
+            )
+            session = try MatchLifecycleService.submitAroundTheClockTurn(
+                session: session,
+                darts: [d(.single, 7), d(.single, 8), d(.single, 9)]
+            )
+            session = try MatchLifecycleService.submitAroundTheClockTurn(
+                session: session,
+                darts: [d(.single, 10), d(.single, 11)]
+            )
+            let finalSession = session
+            await MainActor.run { dependencies.activeMatchStore.save(finalSession) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "around_the_clock_snapshot_seed_failed",
+                message: "Around the Clock snapshot seed failed: \(error)"
+            )
         }
     }
 
