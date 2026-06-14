@@ -16,14 +16,17 @@
         <a href="support.html">Support</a>
         <a href="privacy.html">Privacy Policy</a>
       </nav>
-      <p class="meta">Last updated: June 13, 2026</p>
+      <p class="meta">Last updated: June 14, 2026</p>
     </header>
 
-    <p>Dart Buddy is a darts scorekeeper for <strong>X01</strong> and <strong>Cricket</strong>. We design for clarity during play: high-contrast scores, large tap targets on the scoring pad, and support for common iPhone accessibility settings.</p>
+    <p>Dart Buddy is a darts scorekeeper for <strong>X01</strong> and <strong>Cricket</strong>. We design for clarity during play: high-contrast scores, large tap targets on the scoring pad, and support for common iOS accessibility settings.</p>
 
-    <p>This page describes how Dart Buddy works with iOS accessibility features. Availability may vary by screen; we continue to improve coverage with each release.</p>
+    <p>This page describes the accessibility features Dart Buddy currently declares on the App Store. We continue to improve coverage with each release.</p>
 
-    <h2>Supported features</h2>
+    <h2>App Store accessibility features</h2>
+    <p>Dart Buddy declares support on the App Store for <strong>Larger Text</strong>, <strong>Dark Interface</strong>, and <strong>Reduced Motion</strong> on iPhone and iPad.</p>
+
+    <h2>How each feature works</h2>
 
     <h3>Dark Interface</h3>
     <p>Dart Buddy supports light, dark, and system appearance.</p>
@@ -38,20 +41,13 @@
       <li>iOS <strong>Settings</strong> → <strong>Accessibility</strong> → <strong>Motion</strong> → <strong>Reduce Motion</strong></li>
     </ul>
 
-    <h3>VoiceOver</h3>
-    <p>Core flows include spoken labels for scoring controls, player score cards, match setup, history, players, and settings. Gameplay announcements cover events such as busts, leg wins, and cricket target closures.</p>
-    <ul>
-      <li>iOS <strong>Settings</strong> → <strong>Accessibility</strong> → <strong>VoiceOver</strong></li>
-      <li>On the scoring pad, keys are announced with full dart names (for example, “Triple 20” rather than “T20”).</li>
-    </ul>
-
     <h3>Larger Text (Dynamic Type)</h3>
     <p>Text scales with your system text size. Layouts adapt at larger sizes so setup, scores, and primary actions remain reachable.</p>
     <ul>
       <li>iOS <strong>Settings</strong> → <strong>Accessibility</strong> → <strong>Display &amp; Text Size</strong> → <strong>Larger Text</strong></li>
     </ul>
 
-    <h3>Contrast and non-color cues</h3>
+    <h2>Design for clarity</h2>
     <p>Scoreboard typography and controls are designed for legibility in light and dark mode. Turn state, cricket target closure, and status feedback use text and icons—not color alone.</p>
 
     <h2>Gameplay tips</h2>
@@ -62,11 +58,9 @@
       <li><strong>Orientation:</strong> Portrait and landscape are supported on iPhone.</li>
     </ul>
 
-    <h2>App Store accessibility features</h2>
-    <p>Dart Buddy declares support on the App Store for <strong>VoiceOver</strong>, <strong>Dark Interface</strong>, <strong>Sufficient Contrast</strong>, <strong>Larger Text</strong>, <strong>Differentiate Without Color Alone</strong>, and <strong>Reduced Motion</strong> on iPhone and iPad. Each feature is intended to work across core tasks: onboarding, settings, match setup, X01 and Cricket scoring, match summary, players, and activity (history and statistics).</p>
-
     <h2>Known limitations</h2>
     <ul>
+      <li><strong>VoiceOver</strong> is not declared on the App Store yet. Some screens include accessibility labels, but full VoiceOver coverage across every flow is still in progress.</li>
       <li>At the largest accessibility text sizes, some secondary stats may require scrolling on smaller phones.</li>
       <li>Dart Buddy does not include video content; <strong>Captions</strong> and <strong>Audio Descriptions</strong> do not apply.</li>
       <li>If any core task does not work with an assistive feature on your device, please report it using the contact below.</li>
@@ -79,7 +73,7 @@
       <li><strong>GitHub Issues:</strong> <a href="https://github.com/jacobrozell/Dart-Buddy/issues">github.com/jacobrozell/Dart-Buddy/issues</a> (label your report “accessibility” if possible)</li>
       <li><a href="support.html">Support page</a></li>
     </ul>
-    <p>Include your iOS version, device model, which assistive feature you use (for example VoiceOver or Larger Text), and the screen where you had trouble.</p>
+    <p>Include your iOS version, device model, which assistive feature you use (for example Larger Text or Reduce Motion), and the screen where you had trouble.</p>
 
     <footer>
       <p>Dart Buddy targets <a href="https://www.w3.org/WAI/WCAG21/quickref/">WCAG 2.1 Level AA</a> for core flows. Technical details for contributors are in the <a href="https://github.com/jacobrozell/Dart-Buddy/tree/main/specs/AccessibilitySpec.md">project accessibility specification</a>.</p>
