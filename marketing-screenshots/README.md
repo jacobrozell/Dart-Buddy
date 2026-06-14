@@ -54,12 +54,13 @@ Fix existing PNGs without re-capturing:
 2. **Cricket board** — marks and scoring (`-snapshot_match_cricket`)
 3. **Match setup** — new game home (`-seed_demo`)
 4. **Activity (History)** — completed matches (`-seed_demo -snapshot_tab activity`)
-4b. **Modes** — game catalog (`-seed_demo -snapshot_tab modes`)
 5. **Match summary** — post-game stats (`-snapshot_match_summary`)
 6. **Players** — roster (`-seed_demo -snapshot_tab players`)
 7. **Activity (Statistics)** — leaderboards (`-seed_demo -snapshot_tab activity -snapshot_activity_segment statistics`)
 8. **Onboarding welcome** — first-launch tour (`-ui_test_onboarding`)
 9. **Settings** — preferences shell (`-seed_demo -snapshot_tab settings`)
+
+Lean 1.0 omits the **Modes** catalog shot (`04b-modes`); the Modes tab is hidden in the shipping build.
 
 ## iPad (12.9" / 13" Displays)
 
