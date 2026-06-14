@@ -35,6 +35,55 @@ public enum AnalyticsMetadataKeys {
         "statKind"
     ]
 
+    private static let matchEntry: Set<String> = [
+        "startSource"
+    ]
+
+    private static let matchConfig: Set<String> = [
+        "configStartScore",
+        "configCheckoutMode",
+        "configCheckInMode",
+        "configLegFormat",
+        "configSetsEnabled",
+        "configPointsEnabled",
+        "configScoringMode",
+        "configInningCount",
+        "configTieBreaker",
+        "configSeventhInningStretch",
+        "configStartingLives",
+        "configRoundCount",
+        "configBonusRule",
+        "configWicketsPerInnings",
+        "configEndWhenTargetPassed",
+        "configStrikesToEliminate",
+        "configVisitsPerRound",
+        "configEliminationRule",
+        "configTargetPoints",
+        "configMustFinishExact",
+        "configCourseLength",
+        "configGoalsToWin",
+        "configKickoffMode",
+        "configRuleset",
+        "configLaps",
+        "configHoundStart",
+        "configIncludeBullFinish",
+        "configResetPolicy",
+        "configParScoreEnabled",
+        "configParScore",
+        "configShipCount",
+        "configSonarEnabled",
+        "configHandoffEachTurn",
+        "configBossTier",
+        "configHeroHearts",
+        "configEnrageEnabled"
+    ]
+
+    private static let onboarding: Set<String> = [
+        "skipped",
+        "bot_tier",
+        "created_player"
+    ]
+
     private static let generalRedaction: Set<String> = [
         "errorCode",
         "layer",
@@ -60,7 +109,12 @@ public enum AnalyticsMetadataKeys {
         "intentName"
     ]
 
-    private static let generalFirebase: Set<String> = gameMode.union(botRoster).union([
+    private static let generalFirebase: Set<String> = gameMode
+        .union(botRoster)
+        .union(matchEntry)
+        .union(matchConfig)
+        .union(onboarding)
+        .union([
         "matchType",
         "errorCode",
         "layer",
@@ -82,7 +136,13 @@ public enum AnalyticsMetadataKeys {
         "intentName"
     ])
 
-    public static let defaultRedactionAllowed: Set<String> = generalRedaction.union(gameMode).union(botRoster).union(clientEnvironment)
+    public static let defaultRedactionAllowed: Set<String> = generalRedaction
+        .union(gameMode)
+        .union(botRoster)
+        .union(matchEntry)
+        .union(matchConfig)
+        .union(onboarding)
+        .union(clientEnvironment)
 
     public static let firebaseParameters: Set<String> = generalFirebase.union(clientEnvironment)
 }

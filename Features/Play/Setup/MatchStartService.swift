@@ -31,6 +31,7 @@ struct MatchStartPlan {
     let config: MatchConfigPayload
     let roster: [RosterEntry]
     let randomOrder: Bool
+    let startSource: MatchStartSource
 }
 
 /// Creates and persists a match from a `MatchStartPlan`, and abandons the
@@ -118,16 +119,18 @@ struct MatchStartService {
                 snapshotPayload: session.latestSnapshot.payload
             )
             activeMatchStore.save(session)
-            let gameModeMetadata = GameModeAnalytics.metadata(
+            let matchMetadata = MatchAnalytics.metadata(
                 for: plan.matchType,
+                config: plan.config,
                 participantCount: participants.count,
-                participants: participants
+                participants: participants,
+                startSource: plan.startSource
             )
             logger.info(
                 .scoring,
                 eventName: "match_started",
                 message: "Match created and persisted.",
-                metadata: gameModeMetadata.merging([
+                metadata: matchMetadata.merging([
                     "matchId": persisted.id.uuidString
                 ]) { _, new in new },
                 correlationId: persisted.id.uuidString
@@ -136,7 +139,7 @@ struct MatchStartService {
                 .scoring,
                 eventName: GameModeAnalytics.playedEventName,
                 message: "User started playing a game mode.",
-                metadata: gameModeMetadata,
+                metadata: matchMetadata,
                 correlationId: persisted.id.uuidString
             )
             return .started(plan.matchType.playRoute(matchId: persisted.id))

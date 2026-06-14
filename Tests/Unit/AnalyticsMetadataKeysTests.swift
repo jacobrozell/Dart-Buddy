@@ -19,7 +19,7 @@ struct AnalyticsMetadataKeysTests {
 
     @Test
     func firebaseParametersIncludeMatchLifecycleFields() {
-        for key in ["matchType", "participantCount", "path", "intentName", "errorCode", "gameModeId", "gameModeSection", "botDifficulty", "hasBot"] {
+        for key in ["matchType", "participantCount", "path", "intentName", "errorCode", "gameModeId", "gameModeSection", "botDifficulty", "hasBot", "startSource", "configCheckoutMode", "bot_tier", "skipped"] {
             #expect(AnalyticsMetadataKeys.firebaseParameters.contains(key))
         }
     }

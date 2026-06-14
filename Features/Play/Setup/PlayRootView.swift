@@ -47,6 +47,11 @@ struct PlayRootView: View {
                 pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
                 onResumeMatch: { match in
                     guard ProductSurface.isMatchTypeReachable(match.type) else { return }
+                    MatchAnalytics.logResumed(
+                        logger: dependencies.logger,
+                        match: match,
+                        startSource: .resume
+                    )
                     path.append(match.type.playRoute(matchId: match.id))
                 },
                 onStartRoute: { next in path.append(next) },
@@ -180,6 +185,11 @@ struct PlayRootView: View {
                     pendingResumeMatch = nil
                     return
                 }
+                MatchAnalytics.logResumed(
+                    logger: dependencies.logger,
+                    match: match,
+                    startSource: .deepLink
+                )
                 path = [match.type.playRoute(matchId: match.id)]
                 pendingResumeMatch = nil
             }

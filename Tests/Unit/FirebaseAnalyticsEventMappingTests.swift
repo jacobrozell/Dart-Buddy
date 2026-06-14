@@ -229,6 +229,9 @@ func mapsGameModePlayedAndCompletedEvents() {
             "humanCount": "1",
             "botDifficulty": "medium",
             "botKind": "preset",
+            "startSource": "setup",
+            "configStartScore": "501",
+            "configCheckoutMode": "doubleOut",
             "matchId": "secret"
         ],
         correlationId: nil
@@ -253,12 +256,82 @@ func mapsGameModePlayedAndCompletedEvents() {
     #expect(playedEvent?.parameters["gameModeSection"] == "standard")
     #expect(playedEvent?.parameters["botDifficulty"] == "medium")
     #expect(playedEvent?.parameters["botKind"] == "preset")
+    #expect(playedEvent?.parameters["startSource"] == "setup")
+    #expect(playedEvent?.parameters["configStartScore"] == "501")
     #expect(playedEvent?.parameters["matchId"] == nil)
 
     let completedEvent = FirebaseAnalyticsEventMapping.map(completed, appVersion: nil)
     #expect(completedEvent?.name == "game_mode_completed")
     #expect(completedEvent?.parameters["gameModeId"] == "standard.cricket")
     #expect(completedEvent?.parameters["status"] == "completed")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsMatchResumedAndOnboardingCompletedEvents() {
+    let resumed = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .ui,
+        eventName: "match_resumed",
+        message: "Resumed.",
+        metadata: [
+            "matchType": "cricket",
+            "gameModeId": "standard.cricket",
+            "startSource": "resume",
+            "status": "inProgress",
+            "matchId": "secret"
+        ],
+        correlationId: nil
+    )
+    let onboarding = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .ui,
+        eventName: "onboarding_completed",
+        message: "Finished.",
+        metadata: [
+            "skipped": "false",
+            "bot_tier": "medium",
+            "created_player": "true"
+        ],
+        correlationId: nil
+    )
+
+    let resumedEvent = FirebaseAnalyticsEventMapping.map(resumed, appVersion: nil)
+    #expect(resumedEvent?.name == "match_resumed")
+    #expect(resumedEvent?.parameters["startSource"] == "resume")
+    #expect(resumedEvent?.parameters["matchId"] == nil)
+
+    let onboardingEvent = FirebaseAnalyticsEventMapping.map(onboarding, appVersion: "1.0.0")
+    #expect(onboardingEvent?.name == "onboarding_completed")
+    #expect(onboardingEvent?.parameters["bot_tier"] == "medium")
+    #expect(onboardingEvent?.parameters["skipped"] == "false")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsMatchAbandonedWithLifecycleMetadata() {
+    let abandoned = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .appLifecycle,
+        eventName: "match_abandoned",
+        message: "Abandoned.",
+        metadata: [
+            "matchType": "x01",
+            "gameModeId": "standard.x01",
+            "configStartScore": "501",
+            "botDifficulty": "easy",
+            "eventCount": "3",
+            "matchId": "secret"
+        ],
+        correlationId: nil
+    )
+
+    let event = FirebaseAnalyticsEventMapping.map(abandoned, appVersion: nil)
+    #expect(event?.name == "match_abandoned")
+    #expect(event?.parameters["configStartScore"] == "501")
+    #expect(event?.parameters["botDifficulty"] == "easy")
+    #expect(event?.parameters["matchId"] == nil)
 }
 
 @Test(.tags(.unit, .logging, .regression))

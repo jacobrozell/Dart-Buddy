@@ -191,7 +191,7 @@ struct MatchTurnSubmitter {
                 category: .appLifecycle,
                 eventName: GameModeAnalytics.completedEventName,
                 message: "User completed a game mode match.",
-                metadata: GameModeAnalytics.metadata(for: updated)
+                metadata: MatchAnalytics.metadata(for: updated)
             )
         }
         return .succeeded(updated)

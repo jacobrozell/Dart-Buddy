@@ -20,7 +20,7 @@ extension MatchPlaySessionHost {
                 category: .appLifecycle,
                 eventName: "match_abandoned",
                 message: "Match abandoned by user.",
-                metadata: ["eventCount": String(abandoned.runtime.eventCount)]
+                metadata: MatchAnalytics.metadata(for: abandoned)
             )
         } catch {
             hostMatchLogger.matchError(
