@@ -210,6 +210,58 @@ func mapsIntentFailedEvent() {
 }
 
 @Test(.tags(.unit, .logging, .regression))
+func mapsGameModePlayedAndCompletedEvents() {
+    let played = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "game_mode_played",
+        message: "Started.",
+        metadata: [
+            "matchType": "x01",
+            "gameModeId": "standard.x01",
+            "gameModeSection": "standard",
+            "uiTemplate": "checkoutScore",
+            "statKind": "checkout",
+            "participantCount": "2",
+            "hasBot": "true",
+            "botCount": "1",
+            "humanCount": "1",
+            "botDifficulty": "medium",
+            "botKind": "preset",
+            "matchId": "secret"
+        ],
+        correlationId: nil
+    )
+    let completed = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .appLifecycle,
+        eventName: "game_mode_completed",
+        message: "Finished.",
+        metadata: [
+            "matchType": "cricket",
+            "gameModeId": "standard.cricket",
+            "status": "completed"
+        ],
+        correlationId: nil
+    )
+
+    let playedEvent = FirebaseAnalyticsEventMapping.map(played, appVersion: "1.0.0")
+    #expect(playedEvent?.name == "game_mode_played")
+    #expect(playedEvent?.parameters["gameModeId"] == "standard.x01")
+    #expect(playedEvent?.parameters["gameModeSection"] == "standard")
+    #expect(playedEvent?.parameters["botDifficulty"] == "medium")
+    #expect(playedEvent?.parameters["botKind"] == "preset")
+    #expect(playedEvent?.parameters["matchId"] == nil)
+
+    let completedEvent = FirebaseAnalyticsEventMapping.map(completed, appVersion: nil)
+    #expect(completedEvent?.name == "game_mode_completed")
+    #expect(completedEvent?.parameters["gameModeId"] == "standard.cricket")
+    #expect(completedEvent?.parameters["status"] == "completed")
+}
+
+@Test(.tags(.unit, .logging, .regression))
 func mapsMatchCompletedAndTurnSubmittedEvents() {
     let completed = LogEntry(
         timestamp: Date(),

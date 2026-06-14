@@ -16,6 +16,25 @@ public enum AnalyticsMetadataKeys {
         "changedSignals"
     ]
 
+    private static let botRoster: Set<String> = [
+        "hasBot",
+        "botCount",
+        "humanCount",
+        "botDifficulty",
+        "botDifficulties",
+        "botKind",
+        "botKinds",
+        "botEffectiveTier",
+        "botEffectiveTiers"
+    ]
+
+    private static let gameMode: Set<String> = [
+        "gameModeId",
+        "gameModeSection",
+        "uiTemplate",
+        "statKind"
+    ]
+
     private static let generalRedaction: Set<String> = [
         "errorCode",
         "layer",
@@ -41,7 +60,7 @@ public enum AnalyticsMetadataKeys {
         "intentName"
     ]
 
-    private static let generalFirebase: Set<String> = [
+    private static let generalFirebase: Set<String> = gameMode.union(botRoster).union([
         "matchType",
         "errorCode",
         "layer",
@@ -61,9 +80,9 @@ public enum AnalyticsMetadataKeys {
         "path",
         "version",
         "intentName"
-    ]
+    ])
 
-    public static let defaultRedactionAllowed: Set<String> = generalRedaction.union(clientEnvironment)
+    public static let defaultRedactionAllowed: Set<String> = generalRedaction.union(gameMode).union(botRoster).union(clientEnvironment)
 
     public static let firebaseParameters: Set<String> = generalFirebase.union(clientEnvironment)
 }

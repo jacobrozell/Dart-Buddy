@@ -18,6 +18,8 @@ public enum FirebaseAnalyticsEventMapping {
         "play_home_active_match",
         "match_setup_start",
         "match_started",
+        "game_mode_played",
+        "game_mode_completed",
         "match_setup_baseball",
         "match_screen_appeared",
         "match_completed",

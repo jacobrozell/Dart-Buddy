@@ -118,15 +118,25 @@ struct MatchStartService {
                 snapshotPayload: session.latestSnapshot.payload
             )
             activeMatchStore.save(session)
+            let gameModeMetadata = GameModeAnalytics.metadata(
+                for: plan.matchType,
+                participantCount: participants.count,
+                participants: participants
+            )
             logger.info(
                 .scoring,
                 eventName: "match_started",
                 message: "Match created and persisted.",
-                metadata: [
-                    "matchId": persisted.id.uuidString,
-                    "matchType": plan.matchType.rawValue,
-                    "participantCount": String(participants.count)
-                ],
+                metadata: gameModeMetadata.merging([
+                    "matchId": persisted.id.uuidString
+                ]) { _, new in new },
+                correlationId: persisted.id.uuidString
+            )
+            logger.info(
+                .scoring,
+                eventName: GameModeAnalytics.playedEventName,
+                message: "User started playing a game mode.",
+                metadata: gameModeMetadata,
                 correlationId: persisted.id.uuidString
             )
             return .started(plan.matchType.playRoute(matchId: persisted.id))

@@ -66,7 +66,7 @@ Rules:
   - scoring flow reliability (`turn_submitted`, `undo_used`)
   - feature adoption (`vision_session_started`, `watch_input_used`)
 - Include minimal metadata only:
-  - mode (`x01`, `cricket`)
+  - mode (`matchType`, catalog `gameModeId`, `gameModeSection`)
   - checkout mode
   - app version
   - anonymous installation/session ids
@@ -129,7 +129,9 @@ Source of truth in code:
 | Log `eventName` | Firebase name | Typical feature | Notes |
 |-----------------|---------------|-----------------|-------|
 | `app_bootstrap_ready` | `app_open` | App shell | Successful launch |
-| `match_started` | `match_started` | Setup / match | After persist + route |
+| `match_started` | `match_started` | Setup / match | After persist + route; includes catalog `gameModeId` metadata |
+| `game_mode_played` | `game_mode_played` | Setup / match | Dedicated mode-popularity signal (X01 vs Cricket, etc.) |
+| `game_mode_completed` | `game_mode_completed` | All shipped modes | Natural match completion with catalog metadata |
 | `match_setup_baseball` | `match_setup_baseball` | Party setup | Baseball start from setup |
 | `match_completed` | `match_completed` | X01 / Cricket / Baseball | Engine reports complete |
 | `turn_submitted` | `turn_submitted` | X01 / Cricket | Accepted turn |
@@ -150,7 +152,11 @@ Source of truth in code:
 | `guided_practice_completed` | `guided_practice_completed` | Guided Play | Guided Practice session complete |
 | `guided_play_settings_enabled` | `guided_play_settings_enabled` | Settings | User enabled Guided Play profile |
 
-Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `participantCount`, `operation`, `schemaVersion`, `fromSchema`, `toSchema`, `legIndex`, `setIndex`, `source`, `isBot`, `path`, `version`, `intentName`, plus client-environment keys (`deviceClass`, `isVoiceOverRunning`, `isSwitchControlRunning`, `isBoldTextEnabled`, `isReduceMotionEnabled`, `isScreenCaptured`, `isExternalDisplayConnected`, `interfaceOrientation`, `trigger`, `changedSignals`), Guided Play keys (`sessionRole`, `targetKind`, `dartsPerTarget`, `targetCount`, `hadGuide`, `accuracyBucket`, `guidedPlayEnabled`), and `app_version`, `log_category` injected by mapper.
+Allowlisted metadata keys: `matchType`, `gameModeId`, `gameModeSection`, `uiTemplate`, `statKind`, `hasBot`, `botCount`, `humanCount`, `botDifficulty`, `botDifficulties`, `botKind`, `botKinds`, `botEffectiveTier`, `botEffectiveTiers`, `errorCode`, `layer`, `status`, `participantCount`, `operation`, `schemaVersion`, `fromSchema`, `toSchema`, `legIndex`, `setIndex`, `source`, `isBot`, `path`, `version`, `intentName`, plus client-environment keys (`deviceClass`, `isVoiceOverRunning`, `isSwitchControlRunning`, `isBoldTextEnabled`, `isReduceMotionEnabled`, `isScreenCaptured`, `isExternalDisplayConnected`, `interfaceOrientation`, `trigger`, `changedSignals`), Guided Play keys (`sessionRole`, `targetKind`, `dartsPerTarget`, `targetCount`, `hadGuide`, `accuracyBucket`, `guidedPlayEnabled`), and `app_version`, `log_category` injected by mapper.
+
+**Game mode analytics:** `game_mode_played` and `game_mode_completed` use `GameModeAnalytics.metadata(for:)` (`Support/Logging/GameModeAnalytics.swift`), which derives `gameModeId` / section / template / stat kind from `GameModeCatalog`. New shipped modes only need a catalog row — no analytics wiring per mode.
+
+**Bot roster analytics:** The same events include bot metadata from `BotAnalytics.metadata(for:)` (`Support/Logging/BotAnalytics.swift`) when participants are available. Use `botDifficulty` / `botKind` for single-bot matches, or `botDifficulties` / `botKinds` / `botEffectiveTiers` when multiple bots are in the roster. Training and custom bots report `botKind` without a preset `botDifficulty`.
 
 ### Firebase Crashlytics (non-fatal allowlist)
 
