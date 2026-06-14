@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Export launch splash background candidates (light/dark × 3 styles).
+# Export ambient launch splash assets (light/dark).
 #
 # Usage:
 #   ./Scripts/export-launch-splash-images.sh
 #
 # Output:
-#   Resources/LaunchSplashCandidates/{hero,ambient,soft}-{light,dark}.png
-#   Resources/LaunchSplashCandidates/{hero,ambient,soft}-{light,dark}-composed.png
+#   Resources/LaunchSplashCandidates/ambient-{light,dark}.png
+#   Resources/LaunchSplashCandidates/ambient-{light,dark}-composed.png
 
 set -euo pipefail
 
@@ -45,7 +45,7 @@ xcodebuild test \
   -scheme "$SCHEME" \
   -destination "platform=iOS Simulator,id=$SIM_UDID" \
   -derivedDataPath "$DERIVED_DATA" \
-  -only-testing:DartBuddyTests/LaunchSplashExportTests/testExportLaunchSplashCandidates \
+  -only-testing:DartBuddyTests/LaunchSplashExportTests/testExportLaunchSplashAssets \
   CODE_SIGNING_ALLOWED=NO \
   | xcbeautify 2>/dev/null || true
 

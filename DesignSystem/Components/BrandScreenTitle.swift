@@ -8,6 +8,25 @@ struct BrandAppTitle: View {
     }
 }
 
+/// Launch splash wordmark — rounded heavy type distinct from in-app titles.
+struct LaunchSplashWordmark: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var wordmarkFont: Font {
+        if dynamicTypeSize.isAccessibilitySize {
+            return .system(.title, design: .rounded).weight(.bold)
+        }
+        return .system(size: 34, weight: .heavy, design: .rounded)
+    }
+
+    var body: some View {
+        Text(L10n.brandTitle)
+            .font(wordmarkFont)
+            .foregroundStyle(Brand.textPrimary)
+            .tracking(0.6)
+    }
+}
+
 /// Root tab screens (Play, Statistics, Settings).
 struct BrandRootScreenTitle: View {
     let title: LocalizedStringKey

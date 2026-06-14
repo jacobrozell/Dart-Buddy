@@ -7,44 +7,37 @@ final class LaunchSplashExportTests: XCTestCase {
     private let exportScale: CGFloat = 3
 
     @MainActor
-    func testExportLaunchSplashCandidates() throws {
+    func testExportLaunchSplashAssets() throws {
         let sourceRoot = try sourceRootURL()
         let outputDirectory = sourceRoot
             .appendingPathComponent("Resources/LaunchSplashCandidates", isDirectory: true)
         try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
 
-        for style in LaunchSplashBackgroundView.Style.allCases {
-            for scheme in [ColorScheme.light, ColorScheme.dark] {
-                let suffix = scheme == .light ? "light" : "dark"
-                let backgroundURL = outputDirectory.appendingPathComponent("\(style.rawValue)-\(suffix).png")
-                try export(
-                    LaunchSplashBackgroundView(style: style)
-                        .frame(width: exportSize.width, height: exportSize.height)
-                        .environment(\.colorScheme, scheme),
-                    to: backgroundURL
-                )
+        for scheme in [ColorScheme.light, ColorScheme.dark] {
+            let suffix = scheme == .light ? "light" : "dark"
+            let backgroundURL = outputDirectory.appendingPathComponent("ambient-\(suffix).png")
+            try export(
+                LaunchSplashBackgroundView()
+                    .frame(width: exportSize.width, height: exportSize.height)
+                    .environment(\.colorScheme, scheme),
+                to: backgroundURL
+            )
 
-                let composedURL = outputDirectory.appendingPathComponent("\(style.rawValue)-\(suffix)-composed.png")
-                try export(
-                    launchSplashPreview(style: style, colorScheme: scheme),
-                    to: composedURL
-                )
-            }
+            let composedURL = outputDirectory.appendingPathComponent("ambient-\(suffix)-composed.png")
+            try export(
+                launchSplashPreview(colorScheme: scheme),
+                to: composedURL
+            )
         }
     }
 
     @MainActor
-    private func launchSplashPreview(
-        style: LaunchSplashBackgroundView.Style,
-        colorScheme: ColorScheme
-    ) -> some View {
+    private func launchSplashPreview(colorScheme: ColorScheme) -> some View {
         ZStack {
-            LaunchSplashBackgroundView(style: style)
+            LaunchSplashBackgroundView()
             VStack(spacing: DS.Spacing.s3) {
                 Spacer()
-                Text(L10n.brandTitle)
-                    .font(.title.weight(.semibold))
-                    .foregroundStyle(Brand.textPrimary)
+                LaunchSplashWordmark()
                 LaunchSplashExportSpinner()
                     .padding(.bottom, DS.Spacing.s6)
             }

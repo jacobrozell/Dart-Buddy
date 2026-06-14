@@ -3,8 +3,11 @@ import SwiftUI
 /// Minimal dartboard mark for launch and brand moments. Uses the same ring geometry as
 /// gameplay boards so the icon reads as a real board at small sizes.
 struct LaunchMarkView: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Canvas { context, size in
+            let palette = LaunchSplashPalette.forColorScheme(colorScheme)
             let side = min(size.width, size.height)
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
             let boardRadius = side * 0.46
@@ -18,21 +21,23 @@ struct LaunchMarkView: View {
                     height: boardRadius * 2
                 )
             )
-            context.fill(backing, with: .color(Brand.card))
+            context.fill(backing, with: .color(palette.face))
 
             drawWedges(
                 context: context,
                 center: center,
-                playableRadius: playableRadius
+                playableRadius: playableRadius,
+                palette: palette
             )
             drawBulls(
                 context: context,
                 center: center,
-                playableRadius: playableRadius
+                playableRadius: playableRadius,
+                palette: palette
             )
 
             let rim = backing.strokedPath(StrokeStyle(lineWidth: 1.5))
-            context.stroke(rim, with: .color(Brand.cardElevated))
+            context.stroke(rim, with: .color(palette.rim))
         }
         .aspectRatio(1, contentMode: .fit)
         .accessibilityHidden(true)
@@ -41,7 +46,8 @@ struct LaunchMarkView: View {
     private func drawWedges(
         context: GraphicsContext,
         center: CGPoint,
-        playableRadius: CGFloat
+        playableRadius: CGFloat,
+        palette: LaunchSplashPalette
     ) {
         let wedgeCount = BoardHitResolver.segmentOrder.count
         let wedgeAngle = 2 * Double.pi / Double(wedgeCount)
@@ -61,12 +67,12 @@ struct LaunchMarkView: View {
                     outerFraction: band.end
                 )
                 let fill: Color = band.isAccentRing
-                    ? (isDarkWedge ? Brand.red : Brand.green)
-                    : (isDarkWedge ? Brand.dartBox : Brand.key)
+                    ? (isDarkWedge ? palette.accentRed : palette.accentGreen)
+                    : (isDarkWedge ? palette.wedgeDark : palette.wedgeLight)
                 context.fill(path, with: .color(fill))
 
                 path = path.strokedPath(StrokeStyle(lineWidth: 0.35))
-                context.fill(path, with: .color(Brand.cardElevated.opacity(0.65)))
+                context.fill(path, with: .color(palette.wire))
             }
         }
     }
@@ -74,21 +80,22 @@ struct LaunchMarkView: View {
     private func drawBulls(
         context: GraphicsContext,
         center: CGPoint,
-        playableRadius: CGFloat
+        playableRadius: CGFloat,
+        palette: LaunchSplashPalette
     ) {
         let outer = circlePath(
             center: center,
             playableRadius: playableRadius,
             fraction: BoardHitResolver.RingBounds.outerBull
         )
-        context.fill(outer, with: .color(Brand.green))
+        context.fill(outer, with: .color(palette.accentGreen))
 
         let inner = circlePath(
             center: center,
             playableRadius: playableRadius,
             fraction: BoardHitResolver.RingBounds.innerBull
         )
-        context.fill(inner, with: .color(Brand.red))
+        context.fill(inner, with: .color(palette.accentRed))
     }
 
     private func zoneBands() -> [(start: Double, end: Double, isAccentRing: Bool)] {
@@ -137,10 +144,19 @@ struct LaunchMarkView: View {
 }
 
 #if DEBUG
-#Preview("Launch Mark") {
+#Preview("Launch Mark Light") {
     LaunchMarkView()
         .frame(width: 120, height: 120)
         .padding()
-        .background(Brand.background)
+        .background(LaunchSplashPalette.forColorScheme(.light).canvasBackground)
+        .environment(\.colorScheme, .light)
+}
+
+#Preview("Launch Mark Dark") {
+    LaunchMarkView()
+        .frame(width: 120, height: 120)
+        .padding()
+        .background(LaunchSplashPalette.forColorScheme(.dark).canvasBackground)
+        .environment(\.colorScheme, .dark)
 }
 #endif
