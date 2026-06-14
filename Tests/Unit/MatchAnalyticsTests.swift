@@ -84,6 +84,62 @@ struct MatchAnalyticsTests {
         #expect(metadata["startSource"] == "deepLink")
         #expect(metadata["gameModeId"] == "standard.x01")
         #expect(metadata["status"] == MatchStatus.inProgress.rawValue)
+        #expect(metadata["eventCount"] == "4")
+        #expect(metadata["participantCount"] == nil)
+    }
+
+    @Test
+    func resumeMetadataUsesSessionConfigAndRosterWhenAvailable() throws {
+        let matchId = UUID()
+        let session = try MatchLifecycleService.createMatch(
+            matchId: matchId,
+            type: .x01,
+            config: .x01(
+                MatchConfigX01(
+                    startScore: 301,
+                    legsToWin: 1,
+                    setsEnabled: false,
+                    setsToWin: nil,
+                    checkoutMode: .singleOut
+                )
+            ),
+            participants: [
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(
+                    playerId: UUID(),
+                    displayNameAtMatchStart: "Bot",
+                    turnOrder: 1,
+                    botDifficultyRaw: BotDifficulty.easy.rawValue,
+                    botKindRaw: BotKind.preset.rawValue,
+                    botEffectiveTierRaw: BotDifficulty.easy.rawValue
+                )
+            ]
+        )
+        let match = MatchSummary(
+            id: matchId,
+            type: .x01,
+            status: .inProgress,
+            startedAt: Date(),
+            endedAt: nil,
+            winnerPlayerId: nil,
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: session.runtime.eventCount,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+
+        let metadata = MatchAnalytics.resumeMetadata(
+            for: match,
+            startSource: .resume,
+            session: session
+        )
+
+        #expect(metadata["startSource"] == "resume")
+        #expect(metadata["participantCount"] == "2")
+        #expect(metadata["configStartScore"] == "301")
+        #expect(metadata["botDifficulty"] == "easy")
     }
 
     @Test

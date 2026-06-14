@@ -9,27 +9,35 @@ enum RouteOutcome: Equatable {
 struct AppRouteRouter {
     struct Actions {
         var setSelectedTab: (MainTabView.RootTab) -> Void
-        var setPendingPlayResume: (MatchSummary?) -> Void
+        var setPendingPlayResume: (PendingMatchResume?) -> Void
         var resetPlayNavigation: () -> Void
     }
 
     let dependencies: AppDependencies
 
-    func handle(_ destination: AppDestination, actions: Actions) async -> RouteOutcome {
+    func handle(
+        _ destination: AppDestination,
+        actions: Actions,
+        resumeStartSource: MatchStartSource = .deepLink
+    ) async -> RouteOutcome {
         switch destination {
         case let .tab(tab):
             actions.setSelectedTab(tab.rootTab)
             return .applied
 
         case let .play(playLink):
-            return await handlePlay(playLink, actions: actions)
+            return await handlePlay(playLink, actions: actions, resumeStartSource: resumeStartSource)
 
         case .activity, .players, .settings:
             return .failed(.unknownPath)
         }
     }
 
-    private func handlePlay(_ link: PlayDeepLink, actions: Actions) async -> RouteOutcome {
+    private func handlePlay(
+        _ link: PlayDeepLink,
+        actions: Actions,
+        resumeStartSource: MatchStartSource
+    ) async -> RouteOutcome {
         switch link {
         case .home:
             actions.setSelectedTab(.play)
@@ -41,7 +49,9 @@ struct AppRouteRouter {
             do {
                 if let match = try await dependencies.matchRepository.fetchActiveMatch(),
                    ProductSurface.isMatchTypeReachable(match.type) {
-                    actions.setPendingPlayResume(match)
+                    actions.setPendingPlayResume(
+                        PendingMatchResume(match: match, startSource: resumeStartSource)
+                    )
                     return .applied
                 }
                 dependencies.logger.info(

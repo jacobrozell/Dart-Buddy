@@ -10,14 +10,16 @@ enum GameModeAnalytics {
 
     static func metadata(
         for matchType: MatchType,
-        participantCount: Int,
+        participantCount: Int? = nil,
         participants: [MatchParticipant]? = nil,
         status: MatchLifecycleStatus? = nil,
         extra: [String: String] = [:]
     ) -> [String: String] {
         var result = extra
         result["matchType"] = matchType.rawValue
-        result["participantCount"] = String(participantCount)
+        if let participantCount {
+            result["participantCount"] = String(participantCount)
+        }
 
         if let entry = GameModeCatalog.entry(for: matchType) {
             result["gameModeId"] = entry.id

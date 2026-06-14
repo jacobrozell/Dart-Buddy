@@ -33,8 +33,9 @@ struct AnalyticsMetadataKeysTests {
 
     @Test
     func defaultRedactionIncludesSensitiveIdentifiers() {
-        for key in ["matchId", "playerId", "correlationId", "settingsId"] {
+        for key in ["matchId", "correlationId", "settingsId"] {
             #expect(AnalyticsMetadataKeys.defaultRedactionAllowed.contains(key))
         }
+        #expect(AnalyticsMetadataKeys.isBlockedPersonalDataKey("playerId"))
     }
 }

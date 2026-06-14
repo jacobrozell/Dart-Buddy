@@ -58,7 +58,11 @@ enum IntentRoutingBridge {
 
         if let dependencies, let routeActions {
             let router = AppRouteRouter(dependencies: dependencies)
-            let outcome = await router.handle(destination, actions: routeActions)
+            let outcome = await router.handle(
+                destination,
+                actions: routeActions,
+                resumeStartSource: .intent
+            )
             let applied = succeeded && outcome == .applied
             let eventName = applied ? "intent_performed" : "intent_failed"
             log(intentName: intentName, eventName: eventName, outcome: outcome)

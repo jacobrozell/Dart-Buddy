@@ -8,3 +8,9 @@ enum MatchStartSource: String, Sendable {
     case deepLink
     case intent
 }
+
+/// Deferred navigation into an in-progress match plus funnel attribution.
+struct PendingMatchResume: Equatable, Sendable {
+    let match: MatchSummary
+    let startSource: MatchStartSource
+}

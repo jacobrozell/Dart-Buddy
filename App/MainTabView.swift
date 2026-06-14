@@ -30,7 +30,7 @@ struct MainTabView: View {
     @ObservedObject private var preferences: UserPreferencesStore
     @State private var selectedTab: RootTab = MainTabView.startupTab
     @State private var activityRefreshToken = 0
-    @State private var pendingPlayResume: MatchSummary?
+    @State private var pendingPlayResume: PendingMatchResume?
     @State private var playNavigationResetTrigger = 0
     @State private var showsActiveMatchBadge = false
     @State private var appStoreUpdateOffer: AppStoreUpdateOffer?
@@ -80,7 +80,7 @@ struct MainTabView: View {
                 refreshToken: activityRefreshToken,
                 onResumeActiveMatch: { match in
                     guard ProductSurface.isMatchTypeReachable(match.type) else { return }
-                    pendingPlayResume = match
+                    pendingPlayResume = PendingMatchResume(match: match, startSource: .resume)
                     selectedTab = .play
                 },
                 onStartMatch: { selectedTab = .play }

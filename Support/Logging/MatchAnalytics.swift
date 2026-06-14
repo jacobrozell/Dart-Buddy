@@ -56,27 +56,35 @@ enum MatchAnalytics {
 
     static func resumeMetadata(
         for match: MatchSummary,
-        startSource: MatchStartSource
+        startSource: MatchStartSource,
+        session: MatchLifecycleSession? = nil
     ) -> [String: String] {
+        if let session, session.runtime.matchId == match.id {
+            return metadata(for: session, startSource: startSource)
+        }
+
         var result = GameModeAnalytics.metadata(
             for: match.type,
-            participantCount: 0
+            status: MatchLifecycleStatus(rawValue: match.status.rawValue)
         )
         result["startSource"] = startSource.rawValue
-        result["status"] = match.status.rawValue
+        if match.eventCount > 0 {
+            result["eventCount"] = String(match.eventCount)
+        }
         return result
     }
 
     static func logResumed(
         logger: any AppLogger,
         match: MatchSummary,
-        startSource: MatchStartSource
+        startSource: MatchStartSource,
+        session: MatchLifecycleSession? = nil
     ) {
         logger.info(
             .ui,
             eventName: resumedEventName,
             message: "User resumed an in-progress match.",
-            metadata: resumeMetadata(for: match, startSource: startSource),
+            metadata: resumeMetadata(for: match, startSource: startSource, session: session),
             correlationId: match.id.uuidString
         )
     }

@@ -106,6 +106,7 @@ final class PlayersListViewModel: ObservableObject {
             }
             players[idx].isArchived = nextArchived
             applySearch()
+            await AnalyticsUserIdentity.sync(from: repository)
         } catch {
             state = .error
             errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")

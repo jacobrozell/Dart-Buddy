@@ -127,7 +127,6 @@ public enum AnalyticsMetadataKeys {
         "layer",
         "matchId",
         "matchType",
-        "playerId",
         "settingsId",
         "schemaVersion",
         "fromSchema",
