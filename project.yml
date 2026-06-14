@@ -104,6 +104,7 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.sports
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_UILaunchScreen_Generation: NO
+        INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         # Camera auto-scoring (flag `enableVisionAutoScoring`, specs/AutoScoringVisionSpec.md).
         INFOPLIST_KEY_NSCameraUsageDescription: Dart Buddy uses the camera to detect darts on the board and score throws automatically.
@@ -126,10 +127,6 @@ targets:
           - CFBundleURLName: com.jacobrozell.DartBuddy.deeplink
             CFBundleURLSchemes:
               - dartbuddy
-        UILaunchScreen:
-          UIColorName: LaunchBackground
-          UIImageName: LaunchSplashBackdrop
-          UIImageRespectsSafeAreaInsets: false
     scheme:
       testTargets:
         - DartBuddyTests

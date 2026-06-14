@@ -3,15 +3,15 @@ import SwiftUI
 /// Full-screen ambient launch backdrop. Title and spinner stay in `LaunchSplashView`
 /// so copy stays localized and live UI can sit on top.
 ///
-/// At runtime this displays the same catalog image used by `UILaunchScreen` so the
-/// static launch screen and in-app splash stay pixel-aligned. Regenerate assets with
-/// `Scripts/export-launch-splash-images.sh` after changing `LaunchSplashBackgroundCanvas`.
+/// Renders the launch backdrop live so board sizing follows the same layout math as the
+/// exported PNG. `LaunchScreen.storyboard` shows that PNG with aspect-fill; plist-only
+/// `UILaunchScreen` image keys scale inconsistently across devices.
+///
+/// Regenerate catalog assets with `Scripts/export-launch-splash-images.sh` after changing
+/// `LaunchSplashBackgroundCanvas`.
 struct LaunchSplashBackgroundView: View {
     var body: some View {
-        Image("LaunchSplashBackdrop")
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .accessibilityHidden(true)
+        LaunchSplashBackgroundCanvas()
     }
 }
 
