@@ -147,7 +147,7 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        CURRENT_PROJECT_VERSION: 2
+        CURRENT_PROJECT_VERSION: 3
         MARKETING_VERSION: 1.1.0
     info:
       path: App/DartBuddy-Info.plist
@@ -319,7 +319,7 @@ targets:
     platform: iOS
     sources:
       - path: Tests/UI/Support
-      - path: Tests/UI/Lean1_0SmokeUITests.swift
+      - path: Tests/UI/PartyPack1_1SmokeUITests.swift
         type: file
     dependencies:
       - target: DartBuddy

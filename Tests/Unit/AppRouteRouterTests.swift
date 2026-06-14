@@ -83,6 +83,69 @@ struct AppRouteRouterTests {
     }
 
     @Test
+    func resumeUnreachableGolfMatchFailsWhenPartyVisible() async throws {
+        guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        let activeMatch = MatchSummary(
+            id: UUID(),
+            type: .golf,
+            status: .inProgress,
+            startedAt: Date(),
+            endedAt: nil,
+            winnerPlayerId: nil,
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: 0,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        let state = RouteTestState(selectedTab: .settings)
+        let router = AppRouteRouter(
+            dependencies: try makeDependencies(activeMatch: activeMatch)
+        )
+        let outcome = await router.handle(
+            .play(.resumeActive),
+            actions: state.makeActions()
+        )
+
+        #expect(outcome == .failed(.unknownPath))
+        #expect(state.selectedTab == .play)
+        #expect(state.pendingResume == nil)
+    }
+
+    @Test
+    func resumeReachableBaseballMatchSucceeds() async throws {
+        guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        let activeMatch = MatchSummary(
+            id: UUID(),
+            type: .baseball,
+            status: .inProgress,
+            startedAt: Date(),
+            endedAt: nil,
+            winnerPlayerId: nil,
+            currentTurnPlayerId: nil,
+            currentLegIndex: 0,
+            currentSetIndex: 0,
+            eventCount: 0,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        let state = RouteTestState(selectedTab: .settings)
+        let router = AppRouteRouter(
+            dependencies: try makeDependencies(activeMatch: activeMatch)
+        )
+        let outcome = await router.handle(
+            .play(.resumeActive),
+            actions: state.makeActions()
+        )
+
+        #expect(outcome == .applied)
+        #expect(state.pendingResume?.match.id == activeMatch.id)
+    }
+
+    @Test
     func resumeWithoutActiveMatchFails() async throws {
         let state = RouteTestState(selectedTab: .settings)
         let router = AppRouteRouter(dependencies: try makeDependencies(activeMatch: nil))

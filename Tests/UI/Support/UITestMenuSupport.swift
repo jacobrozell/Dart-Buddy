@@ -499,13 +499,11 @@ extension XCTestCase {
         XCTAssertTrue(changeButton.waitForExistence(timeout: timeout), "Expected Change mode button")
         changeButton.tap()
         let card = app.descendants(matching: .any)["modes_card_\(catalogId)"]
-        if !card.waitForExistence(timeout: 3) {
-            for _ in 0 ..< 4 where card.exists == false {
-                app.swipeUp()
-            }
-        }
-        XCTAssertTrue(card.waitForExistence(timeout: timeout), "Expected picker card \(catalogId)")
+        scrollToPlaySetupPickerCard(card, in: app, timeout: timeout)
+        XCTAssertTrue(card.isHittable, "Expected picker card \(catalogId) to be hittable")
         tapHittableElement(card)
+        _ = app.buttons["modePicker_cancelButton"].waitForNonExistence(timeout: timeout)
+        ensurePlayTab(app, timeout: timeout)
         assertSelectedModeName(expectedModeName, in: app, timeout: timeout)
     }
 
@@ -706,6 +704,26 @@ extension XCTestCase {
             return button
         }
         return app.descendants(matching: .any)[identifier]
+    }
+
+    private func scrollToPlaySetupPickerCard(
+        _ card: XCUIElement,
+        in app: XCUIApplication,
+        timeout: TimeInterval
+    ) {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if card.exists, card.isHittable { return }
+            app.swipeUp()
+        }
+        for _ in 0 ..< 6 {
+            app.swipeDown()
+        }
+        for _ in 0 ..< 20 {
+            if card.exists, card.isHittable { return }
+            app.swipeUp()
+        }
+        XCTAssertTrue(card.waitForExistence(timeout: 2), "Expected picker card to exist")
     }
 
     private func tapHittableElement(_ element: XCUIElement) {

@@ -46,10 +46,12 @@ struct ProductSurfaceTests {
         #expect(ProductSurface.isMatchTypeReachable(.baseball))
         #expect(ProductSurface.isMatchTypeReachable(.killer))
         #expect(ProductSurface.isMatchTypeReachable(.shanghai))
+        #expect(ProductSurface.isMatchTypeReachable(.aroundTheClock))
         #expect(!ProductSurface.isMatchTypeReachable(.golf))
         #expect(!ProductSurface.isMatchTypeReachable(.fleet))
         #expect(!ProductSurface.isMatchTypeReachable(.raid))
-        #expect(!ProductSurface.isMatchTypeReachable(.aroundTheClock))
+        #expect(!ProductSurface.isMatchTypeReachable(.aroundTheClock180))
+        #expect(!ProductSurface.isMatchTypeReachable(.mickeyMouse))
     }
 
     @Test("Full product surface exposes shipped catalog modes")

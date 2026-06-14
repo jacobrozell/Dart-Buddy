@@ -420,6 +420,10 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
+        if let matchType = selection.matchType,
+           !ProductSurface.isMatchTypeReachable(matchType) {
+            return
+        }
         if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
         if let matchType = selection.matchType,
            let entry = GameModeCatalog.entry(for: matchType),
@@ -458,13 +462,18 @@ final class MatchSetupViewModel: ObservableObject {
             setupCategory = .standard
             mode = .x01
         }
-        if let catalogType = selectedCatalogMatchType,
-           let entry = GameModeCatalog.entry(for: catalogType),
-           entry.section == .coop,
-           !ProductSurface.showsCoopModes {
-            setupCategory = .standard
-            mode = .x01
-            selectedCatalogMatchType = nil
+        if let catalogType = selectedCatalogMatchType {
+            if !ProductSurface.isMatchTypeReachable(catalogType) {
+                setupCategory = .standard
+                mode = .x01
+                selectedCatalogMatchType = nil
+            } else if let entry = GameModeCatalog.entry(for: catalogType),
+                      entry.section == .coop,
+                      !ProductSurface.showsCoopModes {
+                setupCategory = .standard
+                mode = .x01
+                selectedCatalogMatchType = nil
+            }
         }
     }
 

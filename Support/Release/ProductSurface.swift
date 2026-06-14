@@ -82,14 +82,34 @@ enum ProductSurface {
         isFullProductSurfaceEnabled ? .full : .party1_1
     }
 
+    /// Catalog IDs shipped in the default Release Party Pack 1.1 surface.
+    static let partyPack1_1CatalogIDs: Set<String> = [
+        "standard.x01",
+        "standard.cricket",
+        "party.baseball",
+        "party.killer",
+        "party.shanghai",
+        "practice.aroundTheClock"
+    ]
+
     /// Whether gameplay for this match type is reachable in the current product surface.
     static func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
-        switch matchType {
-        case .x01, .cricket:
-            return true
-        default:
-            guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
-                return false
+        guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
+            return false
+        }
+        return isCatalogEntryReachable(entry)
+    }
+
+    /// Whether a shipped catalog entry is reachable in the current product surface.
+    static func isCatalogEntryReachable(_ entry: GameModeCatalogEntry) -> Bool {
+        guard entry.isAvailable, entry.matchType != nil else { return false }
+
+        if isFullProductSurfaceEnabled {
+            switch entry.matchType {
+            case .x01, .cricket:
+                return true
+            default:
+                break
             }
             switch entry.section {
             case .party:
@@ -100,5 +120,7 @@ enum ProductSurface {
                 return showsModesTab
             }
         }
+
+        return partyPack1_1CatalogIDs.contains(entry.id)
     }
 }

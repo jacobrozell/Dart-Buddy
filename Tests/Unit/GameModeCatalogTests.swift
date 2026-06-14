@@ -23,12 +23,18 @@ struct GameModeCatalogTests {
         #expect(available.allSatisfy { $0.isAvailable })
         #expect(mappedTypes == Set(available.compactMap(\.matchType)))
 
-        if ProductSurface.showsPartyModes {
-            #expect(mappedTypes.contains(.baseball))
-            #expect(mappedTypes.contains(.golf))
+        if ProductSurface.isFullProductSurfaceEnabled {
+            if ProductSurface.showsPartyModes {
+                #expect(mappedTypes.contains(.baseball))
+                #expect(mappedTypes.contains(.golf))
+            } else {
+                #expect(!mappedTypes.contains(.baseball))
+                #expect(!mappedTypes.contains(.golf))
+            }
         } else {
-            #expect(!mappedTypes.contains(.baseball))
-            #expect(!mappedTypes.contains(.golf))
+            #expect(mappedTypes == Set([
+                .x01, .cricket, .baseball, .killer, .shanghai, .aroundTheClock
+            ]))
         }
 
         for type in mappedTypes {
@@ -92,13 +98,31 @@ struct GameModeCatalogTests {
     }
 
     @Test
-    func playSetupPickerShowsAllSectionsWhenPartyModesVisible() {
-        guard ProductSurface.showsPartyModes else { return }
+    func playSetupPickerShowsAllSectionsWhenFullSurfacePartyVisible() {
+        guard ProductSurface.isFullProductSurfaceEnabled, ProductSurface.showsPartyModes else { return }
 
         let sections = GameModeCatalog.playSetupPickerSections()
         #expect(sections.map(\.0) == GameModeSection.allCases)
-        #expect(sections.first { $0.0 == .practice }?.1.count == GameModeCatalog.entries(in: .practice).count)
-        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: 0) == 0)
+        let practiceEntries = GameModeCatalog.entries(in: .practice)
+        #expect(sections.first { $0.0 == .practice }?.1.count == practiceEntries.count)
+        #expect(
+            GameModeCatalog.playSetupPickerMoreComingCount(
+                in: .practice,
+                displayedCount: practiceEntries.count
+            ) == 0
+        )
+    }
+
+    @Test
+    func playSetupPickerShowsSixReachableModesOnPartyPack() {
+        guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        let sections = GameModeCatalog.playSetupPickerSections()
+        let ids = Set(sections.flatMap(\.1).map(\.id))
+        #expect(ids == ProductSurface.partyPack1_1CatalogIDs)
+        #expect(sections.map(\.0) == [.standard, .party, .practice])
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .party, displayedCount: 3) == 0)
+        #expect(!sections.contains { $0.0 == .coop })
     }
 
     @Test
