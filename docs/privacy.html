@@ -49,7 +49,7 @@
       <li><code>app_open</code> — app finished launching</li>
       <li><code>match_started</code>, <code>match_completed</code>, <code>match_abandoned</code></li>
       <li><code>turn_submitted</code>, <code>undo_used</code></li>
-      <li>Failure signals such as <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>app_bootstrap_migration_failure</code></li>
+      <li>Failure signals such as <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>bootstrap_store_open_failed</code></li>
       <li><code>client_environment_changed</code> — when display or accessibility context changes (for example orientation, VoiceOver, Reduce Motion, Bold Text, or screen capture). Parameters are boolean flags and device class only — not player names or match content.</li>
     </ul>
     <p>Event parameters are restricted to non-identifying technical context, such as game mode (X01/Cricket), app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>

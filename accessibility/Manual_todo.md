@@ -62,10 +62,6 @@ Human-only checks that simulator AX-tree tools cannot complete. Tick items when 
 - [x] Reset all data → confirmation → Cancel (AX spot-check + UI test — `evidence/voiceover/settings-reset-ax-spotcheck-2026-06-06.md`)
 - [ ] Reset flow audio pass + destructive confirm execution (`evidence/voiceover/core-flow-settings-reset.md`)
 
-## VoiceOver — Migration recovery (`migration-recovery`)
-
-- [ ] Retry / Export / Reset buttons (`migration_retry`, `migration_export`, `migration_reset`)
-
 ## VoiceOver — Statistics (`statistics`)
 
 - [ ] Player filter menu (`statsPlayerFilterMenu`)

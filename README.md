@@ -34,7 +34,7 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 | **Game engines** | X01, Cricket (Normal + Cut Throat), Baseball, Killer, Shanghai | X01 + Cricket only |
 | **App shell** | 5-tab shell (Play · Modes · Players · Activity · Settings) | 4 tabs (Modes hidden) |
 | **Bots** | Preset ladder, Training Partner, custom bots (tunable X01 avg / Cricket MPR) | Preset + custom |
-| **Players & data** | CRUD, archive guards, DBPE export bundle, migration recovery UI | Export hidden |
+| **Players & data** | CRUD, archive guards, DBPE export bundle, bootstrap store recovery | Export hidden |
 | **Activity** | History + Statistics with shared filters, per-mode stat kinds (29 declared) | Shipped |
 | **Platform hooks** | Deep links (`dartbuddy://v1/...`), App Intents (flagged off), Firebase Analytics + Crashlytics | Deep links internal only |
 | **Catalog** | 29 modes in `GameModeCatalog` — 5 playable, 24 spec'd stubs | Not exposed |
@@ -76,11 +76,11 @@ Highlights from the current development arc:
 | **Tabs** | Play · Players · Activity · Settings | Modes catalog |
 | **Bots** | Preset + custom | Training Partner |
 | **Locale** | English only (`de`/`es`/`nl` files stay in repo) | In-app language picker |
-| **Other** | Onboarding, rules sheet, migration recovery | Player export, App Intents |
+| **Other** | Onboarding, rules sheet | Player export, App Intents |
 
 **Telemetry:** Firebase Analytics + Crashlytics in Release builds with a real plist (allowlisted events only; off in Debug/CI unless opted in).
 
-**Remaining for App Store:** Device QA on lean matrix, accessibility evidence, migration recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md) · [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md).
+**Remaining for App Store:** Device QA on lean matrix, accessibility evidence, bootstrap store recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md) · [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md).
 
 ---
 

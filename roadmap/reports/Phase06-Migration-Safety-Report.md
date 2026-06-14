@@ -1,26 +1,28 @@
 # Phase 06 Migration Safety Report
 
 ## Scope
-- Validate schema/version baseline and migration recovery readiness.
+- Validate schema/version baseline and bootstrap store recovery readiness.
 
 ## Current Baseline
 - Explicit `SchemaV1` present.
 - `DartsMigrationPlan` scaffold present.
 - `ModelContainerFactory` centralized.
-- Migration recovery route present in app boot path.
+- `BootstrapStoreRecovery` handles open/migration failures at launch (no blocking recovery UI).
 
 ## Validation Evidence
 - Schema invariant tests present (event index continuity).
 - Settings seeding idempotency test present.
-- Manual migration smoke test: **Pending local run**.
+- Manual bootstrap store recovery smoke: **Pending local run**.
 
-## Recovery Options
-- Retry migration route: implemented (re-bootstrap attempt in app shell)
-- Export diagnostics route: implemented (diagnostics text file export to temp directory)
-- Reset data route: implemented (local store file reset + re-bootstrap)
+## Recovery Behavior
+- Open failure: backup (when possible), delete store, recreate container, continue bootstrap.
+- Invariant repair failure: same recreation path.
+- Exhausted recovery: in-memory fallback container so the app remains launchable.
+- User-initiated full wipe: Settings → Reset All Local Data only.
 
 ## Risk Notes
-- Recovery handlers are now wired, but still require manual smoke verification on target runtime/device.
+- Automatic recreation loses local data when the store cannot be opened; faults are logged for observability.
+- Manual smoke on target device still required to confirm relaunch after corrupt store.
 
 ## Status
 - Architecture readiness: Pass

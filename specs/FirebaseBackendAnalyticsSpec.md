@@ -138,7 +138,7 @@ Source of truth in code:
 | `match_abandoned` | `match_abandoned` | Match lifecycle | Replace-active / abandon |
 | `match_start_failed` | `match_start_failed` | Setup | Start errors |
 | `turn_persist_failed` | `turn_persist_failed` | Match | Persistence failure |
-| `app_bootstrap_migration_failure` | `app_bootstrap_migration_failure` | Migration recovery | Boot blocked |
+| `bootstrap_store_open_failed` | `bootstrap_store_open_failed` | Bootstrap | Store open/migration failure (auto-repair) |
 | `deep_link_received` | `deep_link_received` | Deep links | Parsed link applying |
 | `deep_link_applied` | `deep_link_applied` | Deep links | Route succeeded |
 | `deep_link_deferred` | `deep_link_deferred` | Deep links | Queued during onboarding |
@@ -156,7 +156,7 @@ Allowlisted metadata keys: `matchType`, `errorCode`, `layer`, `status`, `partici
 
 | Log `eventName` | Feature |
 |-----------------|---------|
-| `app_bootstrap_migration_failure` | Migration recovery |
+| `bootstrap_store_open_failed` | Bootstrap store recovery |
 | `match_start_failed` | Setup |
 | `turn_persist_failed` | Match |
 | `match_session_load_failed` | X01 / Cricket resume |

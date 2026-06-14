@@ -63,7 +63,7 @@ UI test execution policy:
 - Training Partner: eligibility UI + add to setup (`PlayerDetailUITests`, setup helpers)
 - Quick add player from empty roster → auto-selected in setup
 - Statistics partial-match banner when active match matches filters
-- Migration recovery: retry / export / reset (manual RC — [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md))
+- Bootstrap store recovery: forced corrupt store → app launches (manual RC — [`SwiftData.md`](SwiftData.md) §9)
 - Localization: `LocalizationParityTests` + `de`/`es`/`nl` smoke UI tests
 
 ---

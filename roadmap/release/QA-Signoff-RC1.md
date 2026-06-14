@@ -69,7 +69,7 @@ Simulator on **iOS 26+**; policy: `SystemNavigationPolicy`. Evidence: `accessibi
 ## Defects
 - P0:
   - Missing completed RC manual evidence for required release gates.
-  - Migration recovery operational validation incomplete.
+  - Bootstrap store recovery operational validation incomplete.
 - P1:
   - Performance target measurements not yet recorded on target device.
   - Orientation and accessibility matrix evidence incomplete.

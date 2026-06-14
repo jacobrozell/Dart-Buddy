@@ -4,7 +4,7 @@
 
 Define what **Reset All Local Data** must wipe, how new persistence surfaces register for reset as the app scales, and how automated tests prevent inventory drift.
 
-**Related specs:** Settings entry point — [`SettingsSpec.md`](SettingsSpec.md). SwiftData models — [`SwiftData.md`](SwiftData.md), [`DataSchemaSpec.md`](DataSchemaSpec.md). Migration recovery alternate path — [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md). Privacy — [`SecurityPrivacySpec.md`](SecurityPrivacySpec.md) §3.
+**Related specs:** Settings entry point — [`SettingsSpec.md`](SettingsSpec.md). SwiftData models — [`SwiftData.md`](SwiftData.md), [`DataSchemaSpec.md`](DataSchemaSpec.md). Bootstrap store recovery — [`SwiftData.md`](SwiftData.md) §9. Privacy — [`SecurityPrivacySpec.md`](SecurityPrivacySpec.md) §3.
 
 ---
 
@@ -12,7 +12,6 @@ Define what **Reset All Local Data** must wipe, how new persistence surfaces reg
 
 ### In scope
 - Settings → **Reset All Local Data** (destructive, confirmed)
-- Migration recovery → **Reset local data** (same end state; file-level SQLite delete)
 - Canonical inventory of every cleared surface
 - Regression tests that fail when inventory and schema diverge
 
@@ -59,10 +58,10 @@ Manual smoke: [`SmokeTestChecklist.md`](SmokeTestChecklist.md) **Pre-Run Reset**
 | Entry | Trigger | SwiftData | UserDefaults | In-memory |
 |-------|---------|-----------|--------------|-----------|
 | **Settings** | `SettingsViewModel.confirmReset()` | Row delete via `LocalDataResetInventory` + fresh `SettingsRecord` | `LocalAppStateReset.clearAllPersistedAuxiliaryState()` | `ActiveMatchStore`, `PendingMatchPlayerSelections` |
-| **Migration recovery** | `MigrationRecoveryView` reset handler | `AppStoreReset.deleteSQLiteStore()` (file delete) | Same UserDefaults clear | Fresh bootstrap (new dependency graph) |
+| **Bootstrap recovery** | `BootstrapStoreRecovery` store recreation | `AppStoreReset.deleteSQLiteStore()` (file delete) | Same UserDefaults clear on next Settings reset | Fresh bootstrap (new dependency graph) |
 | **UI tests / demo** | `-ui_test_reset` launch arg | SQLite file delete before container creation | Same UserDefaults clear | N/A (new process) |
 
-All user-visible wipe paths must converge on the inventory in §6. Migration recovery may skip row-by-row delete because the store file is removed; outcome must match Settings reset.
+All user-visible wipe paths must converge on the inventory in §6. Bootstrap store recreation may skip row-by-row delete because the store file is removed; outcome must match Settings reset when the user later resets from Settings.
 
 ---
 
@@ -177,7 +176,7 @@ Use this on every PR that adds persistence or a shipped game mode:
 - [ ] **Mode setup chips persisted?** → `{Mode}SetupPreferences` + `PersistedSetupPreferences` + `setupPreferenceStores`
 - [ ] **Other UserDefaults?** → `clearAuxiliaryUserDefaults`
 - [ ] **Session cache?** → `SettingsViewModel.confirmReset()` + `inMemorySurfaces`
-- [ ] **Migration recovery still valid?** → file delete path clears same UserDefaults
+- [ ] **Bootstrap recovery still valid?** → file delete path clears same UserDefaults when user resets from Settings
 - [ ] **Tests updated?** → §8
 - [ ] **Gamification model added?** → §6.6 + `LocalDataResetInventory`
 - [ ] **This spec §6 inventory table updated** if the shipped surface list changed
@@ -240,7 +239,7 @@ Log-only event on successful Settings reset: `settings_reset_all_data` ([`Loggin
 
 ## 11. Future Improvements
 
-- Export diagnostic bundle before reset (Migration recovery already has export path)
-- Unified reset service callable from Settings and Migration recovery (single orchestrator)
+- Export diagnostic bundle before reset
+- Unified reset service callable from Settings and bootstrap recovery (single orchestrator)
 - Cancel pending local notifications on reset ([`FutureIdeas/play-reminders.md`](../FutureIdeas/play-reminders.md))
 - UI test: confirm reset → empty roster/history

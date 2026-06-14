@@ -38,11 +38,9 @@ Define root app composition: launch behavior, tab structure, routing entry point
 ---
 
 ## 5. Global Error/Recovery
-- Migration failure routes to recovery screen — see [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md):
-  - Retry
-  - Export diagnostics
-  - Reset local data (last resort)
-- App never silently wipes data.
+- SwiftData store open/migration failures are handled automatically at bootstrap via `BootstrapStoreRecovery` — see [`SwiftData.md`](SwiftData.md) §9.
+- User-initiated wipe remains Settings → **Reset All Local Data** — see [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md).
+- App never silently wipes data without logging a fault and attempting repair/backup first.
 
 ---
 

@@ -67,7 +67,7 @@ Screens on the **release-critical path**:
 
 `play-home` → `match-setup` → (`x01-match` | `cricket-match`) → `match-summary`
 
-Plus tab sustainability: `history-list`, `history-detail`, `players-list`, `settings`, `migration-recovery`, `statistics`.
+Plus tab sustainability: `history-list`, `history-detail`, `players-list`, `settings`, `statistics`.
 
 ---
 

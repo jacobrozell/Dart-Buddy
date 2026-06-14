@@ -26,9 +26,7 @@ Prevent spec drift, duplication conflicts, and ambiguous ownership so implementa
 - Localization and string key policy:
   - `specs/LocalizationSpec.md` (authoritative)
 - Feature behavior:
-  - Feature specs in [`specs/README.md`](README.md) § Feature Specs are authoritative for feature UX/rules (e.g. `PlayHomeSpec`, `BotOpponentSpec`, `TrainingBotSpec`, `StatisticsTabSpec`, `MigrationRecoverySpec`).
-- Migration recovery UX (not schema policy):
-  - `specs/MigrationRecoverySpec.md` (authoritative)
+  - Feature specs in [`specs/README.md`](README.md) § Feature Specs are authoritative for feature UX/rules (e.g. `PlayHomeSpec`, `BotOpponentSpec`, `TrainingBotSpec`, `StatisticsTabSpec`).
 - Cross-cutting test policy:
   - `specs/TestPlanSpec.md` (authoritative)
 - Swift Testing tag taxonomy and CI filtering policy:
@@ -183,7 +181,6 @@ Bump **Last verified** and **Commit** when behavior in that spec changes.
 | Statistics segment | `StatisticsTabSpec.md` | `ActivityRootView`, `StatisticsRootView`, `StatisticsViewModel` |
 | Settings | `SettingsSpec.md` | `SettingsRootView`, `SettingsViewModel` |
 | Delete all local data | `DeleteAllDataSpec.md` | `LocalDataResetInventory`, `SettingsViewModel`, `SwiftDataSettingsRepository` |
-| Migration recovery | `MigrationRecoverySpec.md` | `MigrationRecoveryView`, `AppBootstrapper` |
 | Deep links | `DeepLinkSpec.md` | `DeepLinkParser`, `AppRouteRouter` |
 | App Intents | `AppIntentsSpec.md` | `IntentRoutingBridge`, `Intents/` |
 | App shell | `AppShellSpec.md` | `DartBuddyApp`, `MainTabView` |

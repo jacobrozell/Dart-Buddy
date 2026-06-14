@@ -51,7 +51,6 @@ Wireframes and visual behavior: [`UIBlueprintSpec.md`](UIBlueprintSpec.md).
 | Statistics segment | [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | Embedded in Activity; charts in `StatsChartViews` |
 | Players list / detail / edit | [`PlayerSpec.md`](PlayerSpec.md), [`PlayerExportImportSpec.md`](PlayerExportImportSpec.md) | `PlayersRootView`, `PlayerDetailView`, export via `PlayerExportService` |
 | Settings | [`SettingsSpec.md`](SettingsSpec.md) | `SettingsRootView` |
-| Migration recovery | [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) | `MigrationRecoveryView` (no tabs) |
 | Preset / training / custom bots | [`BotOpponentSpec.md`](BotOpponentSpec.md), [`TrainingBotSpec.md`](TrainingBotSpec.md), [`CustomBotSpec.md`](CustomBotSpec.md) | Setup Add Bot + Player Detail + `CustomBotCreationSheet` |
 
 When adding a screen: update the feature spec first, then add one row to this table. Add state/event detail here only if it is shared across multiple features (e.g. global loading chrome).

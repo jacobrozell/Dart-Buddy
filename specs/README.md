@@ -111,7 +111,6 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 ### App health
 | Spec | Covers |
 |------|--------|
-| [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) | Migration failure recovery UI |
 | [`DeepLinkSpec.md`](DeepLinkSpec.md) | Versioned `dartbuddy://v1/…` URLs, parser, router, deferred delivery |
 | [`AppIntentsSpec.md`](AppIntentsSpec.md) | Siri/Shortcuts/Apple Intelligence — Phase 1 intents, entities roadmap, `IndexedEntity`, on-screen context, testing ladder |
 
