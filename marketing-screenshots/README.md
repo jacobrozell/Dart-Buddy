@@ -62,6 +62,8 @@ Fix existing PNGs without re-capturing:
 
 Lean 1.0 omits the **Modes** catalog shot (`04b-modes`); the Modes tab is hidden in the shipping build.
 
+**1.1 Party Pack:** see [`1.1/README.md`](1.1/README.md) and `./Scripts/capture-1.1-marketing-screenshots.sh` for Baseball, Killer, Shanghai, and Around the Clock captures.
+
 ## iPad (12.9" / 13" Displays)
 
 App Store accepts portrait **2064 × 2752** or **2048 × 2732**, and landscape **2752 × 2064** or **2732 × 2048**.
@@ -110,6 +112,10 @@ APP_STORE_WIDTH=1242 APP_STORE_HEIGHT=2688 ./Scripts/capture-marketing-screensho
 | X01 in progress | `-snapshot_match_x01` |
 | X01 in progress (8 players) | `-snapshot_match_x01_8player` |
 | Cricket in progress | `-snapshot_match_cricket` |
+| Baseball in progress | `-snapshot_match_baseball` |
+| Killer in progress | `-snapshot_match_killer` |
+| Shanghai in progress | `-snapshot_match_shanghai` |
+| Around the Clock in progress | `-snapshot_match_aroundTheClock` |
 | Demo data | `-seed_demo` |
 | Match summary | `-snapshot_match_summary` |
 | Tab | `-snapshot_tab play` / `modes` / `players` / `activity` / `settings` |
