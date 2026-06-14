@@ -68,30 +68,35 @@ struct PlayRootView: View {
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .cricketMatch(matchId):
                     CricketMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .baseballMatch(matchId):
                     BaseballMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .killerMatch(matchId):
                     KillerMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .shanghaiMatch(matchId):
                     ShanghaiMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .americanCricketMatch(matchId),
                      let .mickeyMouseMatch(matchId),
                      let .mulliganMatch(matchId),
@@ -114,6 +119,7 @@ struct PlayRootView: View {
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(route)
                 case .blindKillerMatch,
                      .followTheLeaderMatch,
                      .loopMatch,
@@ -134,6 +140,7 @@ struct PlayRootView: View {
                         ),
                         onRematch: { runtime in
                             if let route = await setupViewModel.startRematchRoute(from: runtime) {
+                                dependencies.activeMatchStore.remove(matchId: runtime.matchId)
                                 path = [route]
                                 return nil
                             }
