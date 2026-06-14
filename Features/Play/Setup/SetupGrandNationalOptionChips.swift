@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var grandNationalChipsGrid: some View {
+struct SetupGrandNationalOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -20,7 +24,7 @@ extension SetupHomeView {
     }
 
     private var grandNationalRulesetChip: some View {
-        chip(titleKey: "play.grandNational.setup.ruleset", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.grandNational.setup.ruleset", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(GrandNationalRuleset.allCases, id: \.rawValue) { ruleset in
                     Button(ruleset.displayName) {
@@ -29,10 +33,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.grandNationalRuleset.displayName,
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_grandNationalRulesetChip")
@@ -40,7 +44,7 @@ extension SetupHomeView {
     }
 
     private var grandNationalLapsChip: some View {
-        chip(titleKey: "play.grandNational.setup.laps", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.grandNational.setup.laps", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([1, 2, 3], id: \.self) { count in
                     Button(L10n.format("play.grandNational.setup.lapsValueFormat", count)) {
@@ -49,10 +53,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     L10n.format("play.grandNational.setup.lapsValueFormat", setupViewModel.grandNationalLaps),
                     color: Brand.amber,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_grandNationalLapsChip")

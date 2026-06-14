@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var fiftyOneByFivesChipsGrid: some View {
+struct SetupFiftyOneByFivesOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [
@@ -23,7 +27,7 @@ extension SetupHomeView {
     }
 
     private var fiftyOneByFivesTargetChip: some View {
-        chip(titleKey: "play.fiftyOneByFives.setup.targetPoints", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fiftyOneByFives.setup.targetPoints", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([31, 41, 51, 61, 101], id: \.self) { target in
                     Button(L10n.format("play.fiftyOneByFives.setup.targetPointsValueFormat", target)) {
@@ -32,13 +36,13 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     L10n.format(
                         "play.fiftyOneByFives.setup.targetPointsValueFormat",
                         setupViewModel.fiftyOneByFivesTargetPoints
                     ),
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_fiftyOneByFivesTargetChip")
@@ -46,7 +50,7 @@ extension SetupHomeView {
     }
 
     private var fiftyOneByFivesMustFinishExactChip: some View {
-        chip(titleKey: "play.fiftyOneByFives.setup.mustFinishExact", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fiftyOneByFives.setup.mustFinishExact", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Toggle(isOn: Binding(
                 get: { setupViewModel.fiftyOneByFivesMustFinishExact },
                 set: {

@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var englishCricketChipsGrid: some View {
+struct SetupEnglishCricketOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -20,7 +24,7 @@ extension SetupHomeView {
     }
 
     private var englishCricketWicketsChip: some View {
-        chip(titleKey: "play.englishCricket.setup.wicketsPerInnings", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.englishCricket.setup.wicketsPerInnings", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([5, 7, 10], id: \.self) { count in
                     Button(L10n.format("play.englishCricket.setup.wicketsValueFormat", count)) {
@@ -29,10 +33,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     L10n.format("play.englishCricket.setup.wicketsValueFormat", setupViewModel.englishCricketWicketsPerInnings),
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_englishCricketWicketsChip")
@@ -40,17 +44,17 @@ extension SetupHomeView {
     }
 
     private var englishCricketEndEarlyChip: some View {
-        chip(titleKey: "play.englishCricket.setup.endWhenTargetPassed", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.englishCricket.setup.endWhenTargetPassed", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Button {
                 setupViewModel.englishCricketEndWhenTargetPassed.toggle()
                 setupViewModel.revalidate()
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.englishCricketEndWhenTargetPassed
                         ? L10n.string("common.on")
                         : L10n.string("common.off"),
                     color: Brand.amber,
-                    showsMenuIndicator: false
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false
                 )
             }
             .accessibilityIdentifier("setup_englishCricketEndEarlyChip")

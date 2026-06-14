@@ -1,8 +1,23 @@
 import SwiftUI
 
-// Roster management for match setup: random-order toggle, add player / add bot
-// actions, the reorderable turn-order list, and the available-player picker.
-extension SetupHomeView {
+struct SetupHomeRosterSection: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    @ScaledMetric(relativeTo: .body) private var rosterRowHeight: CGFloat = 52
+    @ScaledMetric(relativeTo: .body) private var turnOrderRowVerticalInset: CGFloat = 8
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Binding var startTask: Task<Void, Never>?
+    let onShowCustomBot: () -> Void
+    let onShowAddPlayer: () -> Void
+
+    var body: some View {
+        Group {
+            rosterControls
+            selectedRosterSection
+            availablePlayerList
+        }
+    }
+
     var rosterControls: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
@@ -37,7 +52,6 @@ extension SetupHomeView {
         .accessibilityIdentifier("setup_randomOrderToggle")
     }
 
-    /// Killer, baseball, and Shanghai allow preset difficulty bots only.
     private var showsBotMenu: Bool {
         guard setupViewModel.setupCategory != .party || ProductSurface.showsPartyModes else { return false }
         return setupViewModel.setupCategory != .party
@@ -64,61 +78,59 @@ extension SetupHomeView {
     private var rosterActionButtons: some View {
         rosterActionButtonStack {
             if showsBotMenu {
-            Menu {
-                if showsTrainingBotsInSetup, !setupViewModel.availableTrainingBots.isEmpty {
-                    Section(L10n.trainingBotSetupSection) {
-                        ForEach(setupViewModel.availableTrainingBots) { bot in
-                            Button {
-                                setupViewModel.addTrainingBot(bot.id)
-                            } label: {
-                                Label {
+                Menu {
+                    if showsTrainingBotsInSetup, !setupViewModel.availableTrainingBots.isEmpty {
+                        Section(L10n.trainingBotSetupSection) {
+                            ForEach(setupViewModel.availableTrainingBots) { bot in
+                                Button {
+                                    setupViewModel.addTrainingBot(bot.id)
+                                } label: {
+                                    Label {
+                                        Text(bot.name)
+                                    } icon: {
+                                        Circle()
+                                            .fill(PlayerVisualViews.trainingBotColor(linkedToken: bot.colorToken))
+                                            .frame(width: 10, height: 10)
+                                    }
+                                }
+                                .accessibilityIdentifier("training_bot_add_setup")
+                            }
+                        }
+                    }
+                    if showsCustomBotsInSetup, !setupViewModel.availableCustomBots.isEmpty {
+                        Section(L10n.customBotSetupSection) {
+                            ForEach(setupViewModel.availableCustomBots) { bot in
+                                Button {
+                                    setupViewModel.addExistingCustomBot(bot.id)
+                                } label: {
                                     Text(bot.name)
-                                } icon: {
-                                    Circle()
-                                        .fill(PlayerVisualViews.trainingBotColor(linkedToken: bot.colorToken))
-                                        .frame(width: 10, height: 10)
                                 }
                             }
-                            .accessibilityIdentifier("training_bot_add_setup")
                         }
                     }
-                }
-                if showsCustomBotsInSetup, !setupViewModel.availableCustomBots.isEmpty {
-                    Section(L10n.customBotSetupSection) {
-                        ForEach(setupViewModel.availableCustomBots) { bot in
-                            Button {
-                                setupViewModel.addExistingCustomBot(bot.id)
-                            } label: {
-                                Text(bot.name)
+                    Section(L10n.addBotTitle) {
+                        if showsCustomBotsInSetup {
+                            Button(action: onShowCustomBot) {
+                                Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
                             }
+                            .accessibilityIdentifier("setup_addCustomBot")
+                        }
+                        ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
+                            botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
                         }
                     }
+                } label: {
+                    rosterActionButtonLabel(systemImage: "cpu", title: L10n.addBotTitle)
                 }
-                Section(L10n.addBotTitle) {
-                    if showsCustomBotsInSetup {
-                        Button {
-                            showsCustomBotSheet = true
-                        } label: {
-                            Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
-                        }
-                        .accessibilityIdentifier("setup_addCustomBot")
-                    }
-                    ForEach(BotDifficulty.allCases, id: \.self) { difficulty in
-                        botMenuButton(difficulty.displayName, difficulty: difficulty, color: PlayerVisualViews.botDifficultyColor(difficulty))
-                    }
-                }
-            } label: {
-                rosterActionButtonLabel(systemImage: "cpu", title: L10n.addBotTitle)
+                .accessibilityLabel(L10n.addBotTitle)
+                .accessibilityIdentifier("setup_addBot")
+                .rosterActionButtonChrome(
+                    background: Brand.cardElevated,
+                    border: Brand.textSecondary.opacity(0.35),
+                    matchesSiblingHeight: true
+                )
             }
-            .accessibilityLabel(L10n.addBotTitle)
-            .accessibilityIdentifier("setup_addBot")
-            .rosterActionButtonChrome(
-                background: Brand.cardElevated,
-                border: Brand.textSecondary.opacity(0.35),
-                matchesSiblingHeight: true
-            )
-            }
-            Button { showsAddPlayerSheet = true } label: {
+            Button(action: onShowAddPlayer) {
                 rosterActionButtonLabel(systemImage: "person.badge.plus", title: L10n.setupAddPlayers)
             }
             .buttonStyle(.plain)
@@ -506,4 +518,3 @@ private extension View {
         }
     }
 }
-

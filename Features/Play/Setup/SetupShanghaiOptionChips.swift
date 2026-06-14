@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var shanghaiChipsGrid: some View {
+struct SetupShanghaiOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -20,7 +24,7 @@ extension SetupHomeView {
     }
 
     private var shanghaiRoundsChip: some View {
-        chip(titleKey: "play.shanghai.setup.rounds", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.shanghai.setup.rounds", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([7, 10, 20], id: \.self) { count in
                     Button(L10n.format("play.shanghai.setup.roundsValueFormat", count)) {
@@ -29,10 +33,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     L10n.format("play.shanghai.setup.roundsValueFormat", setupViewModel.shanghaiRoundCount),
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_shanghaiRoundsChip")
@@ -40,7 +44,7 @@ extension SetupHomeView {
     }
 
     private var shanghaiBonusChip: some View {
-        chip(titleKey: "play.shanghai.setup.bonusRule", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.shanghai.setup.bonusRule", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(ShanghaiBonusRule.allCases, id: \.rawValue) { rule in
                     Button(rule.displayName) {
@@ -49,10 +53,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.shanghaiBonusRule.displayName,
                     color: Brand.amber,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_shanghaiBonusChip")

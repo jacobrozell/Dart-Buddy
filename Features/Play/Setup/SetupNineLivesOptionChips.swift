@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var nineLivesChipsGrid: some View {
+struct SetupNineLivesOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -18,7 +22,7 @@ extension SetupHomeView {
     }
 
     private var nineLivesStartingLivesChip: some View {
-        chip(titleKey: "play.nineLives.setup.startingLives", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.nineLives.setup.startingLives", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(NineLivesStartingLives.allCases, id: \.rawValue) { option in
                     Button(option.displayName) {
@@ -27,10 +31,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.nineLivesStartingLives.displayName,
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_nineLivesStartingLivesChip")

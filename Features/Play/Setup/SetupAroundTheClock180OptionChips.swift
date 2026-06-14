@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var aroundTheClock180ChipsGrid: some View {
+struct SetupAroundTheClock180OptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [
@@ -21,7 +25,7 @@ extension SetupHomeView {
     }
 
     private var atc180ParScoreChip: some View {
-        chip(titleKey: "play.aroundTheClock180.setup.parScore", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.aroundTheClock180.setup.parScore", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.aroundTheClock180.setup.parScore.none")) {
                     setupViewModel.aroundTheClock180ParScoreEnabled = false
@@ -35,7 +39,7 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.aroundTheClock180ParScoreEnabled
                         ? L10n.format(
                             "play.aroundTheClock180.setup.parScoreValueFormat",
@@ -43,7 +47,7 @@ extension SetupHomeView {
                         )
                         : L10n.string("play.aroundTheClock180.setup.parScore.none"),
                     color: Brand.amber,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_aroundTheClock180ParScoreChip")

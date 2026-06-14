@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var baseballChipsGrid: some View {
+struct SetupBaseballOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -22,14 +26,14 @@ extension SetupHomeView {
     }
 
     private var baseballInningsChip: some View {
-        chip(titleKey: "play.baseball.setup.innings", color: Brand.key) {
-            chipBox(L10n.string("play.baseball.setup.inningsValue"), color: Brand.key, showsMenuIndicator: false)
+        SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.innings", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+            SetupOptionChipHelpers.chipBox(L10n.string("play.baseball.setup.inningsValue"), color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false)
                 .accessibilityIdentifier("setup_baseballInningsChip")
         }
     }
 
     private var baseballTieBreakerChip: some View {
-        chip(titleKey: "play.baseball.setup.tieBreaker", color: Brand.red) {
+        SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.tieBreaker", color: Brand.red, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(BaseballTieBreaker.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -38,10 +42,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.baseballTieBreaker.displayName,
                     color: Brand.red,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_baseballTieBreakerChip")
@@ -49,7 +53,7 @@ extension SetupHomeView {
     }
 
     private var baseballStretchChip: some View {
-        chip(titleKey: "play.baseball.setup.stretch", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.stretch", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.baseball.stretch.off")) {
                     setupViewModel.baseballSeventhInningStretch = false
@@ -60,12 +64,12 @@ extension SetupHomeView {
                     setupViewModel.revalidate()
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.baseballSeventhInningStretch
                         ? L10n.string("play.baseball.stretch.on")
                         : L10n.string("play.baseball.stretch.off"),
                     color: Brand.amber,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_baseballStretchChip")

@@ -1,10 +1,14 @@
 import SwiftUI
 
-// X01 game-option chips (points, check-in/out, set/leg format, sets, legs).
+struct SetupX01OptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
 // Cricket has no per-match options, so this cluster only renders for `.x01`.
-extension SetupHomeView {
+
     @ViewBuilder
-    var chipsGrid: some View {
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -50,7 +54,7 @@ extension SetupHomeView {
     }
 
     private var pointsChip: some View {
-        chip(titleKey: "play.setup.chip.points", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.points", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(X01StartScores.all, id: \.self) { score in
                     Button("\(score)") {
@@ -60,15 +64,15 @@ extension SetupHomeView {
                     .accessibilityIdentifier("setup_startScoreOption_\(score)")
                 }
             } label: {
-                chipBox("\(setupViewModel.x01StartScore)", color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox("\(setupViewModel.x01StartScore)", color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
-            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.points", "\(setupViewModel.x01StartScore)"))
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.points", "\(setupViewModel.x01StartScore)"))
             .accessibilityIdentifier("setup_startScoreChip")
         }
     }
 
     private var checkoutChip: some View {
-        chip(titleKey: "play.setup.chip.checkOut", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.checkOut", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(X01CheckoutMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -78,15 +82,15 @@ extension SetupHomeView {
                     .accessibilityIdentifier("setup_checkoutOption_\(value.rawValue)")
                 }
             } label: {
-                chipBox(setupViewModel.x01CheckoutMode.displayName, color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(setupViewModel.x01CheckoutMode.displayName, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
-            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.checkOut", setupViewModel.x01CheckoutMode.displayName))
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.checkOut", setupViewModel.x01CheckoutMode.displayName))
             .accessibilityIdentifier("setup_checkoutChip")
         }
     }
 
     private var checkInChip: some View {
-        chip(titleKey: "play.setup.chip.checkIn", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.checkIn", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(X01CheckInMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -95,15 +99,15 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(setupViewModel.x01CheckInMode.displayName, color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(setupViewModel.x01CheckInMode.displayName, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
-            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.checkIn", setupViewModel.x01CheckInMode.displayName))
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.checkIn", setupViewModel.x01CheckInMode.displayName))
             .accessibilityIdentifier("setup_checkInChip")
         }
     }
 
     private var legFormatChip: some View {
-        chip(titleKey: "play.setup.chip.setLeg", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.setLeg", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(X01LegFormat.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -112,15 +116,15 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(setupViewModel.x01LegFormat.displayName, color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(setupViewModel.x01LegFormat.displayName, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
-            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.setLeg", setupViewModel.x01LegFormat.displayName))
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.setLeg", setupViewModel.x01LegFormat.displayName))
             .accessibilityIdentifier("setup_setLegChip")
         }
     }
 
     private var setsChip: some View {
-        chip(titleKey: "play.setup.chip.sets", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.sets", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(1 ... 5, id: \.self) { value in
                     Button("\(value)") {
@@ -130,15 +134,15 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox("\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)", color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
-            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.sets", "\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)"))
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.sets", "\(setupViewModel.x01SetsEnabled ? setupViewModel.x01SetsToWin : 1)"))
             .accessibilityIdentifier("setup_setsChip")
         }
     }
 
     private var legsChip: some View {
-        chip(titleKey: "play.setup.chip.legs", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.legs", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(1 ... 9, id: \.self) { value in
                     Button("\(value)") {
@@ -148,51 +152,10 @@ extension SetupHomeView {
                     .accessibilityIdentifier("setup_legsOption_\(value)")
                 }
             } label: {
-                chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox("\(setupViewModel.x01LegsToWin)", color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
-            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.legs", "\(setupViewModel.x01LegsToWin)"))
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.legs", "\(setupViewModel.x01LegsToWin)"))
             .accessibilityIdentifier("setup_legsChip")
         }
-    }
-
-    func chip<Content: View>(titleKey: String, color: Color, @ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 6) {
-            Text(L10n.string(titleKey))
-                .font(.caption)
-                .foregroundStyle(Brand.textSecondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            content()
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    func chipBox(_ text: String, color: Color, showsMenuIndicator: Bool = false) -> some View {
-        Text(text)
-            .font(.headline.weight(.bold))
-            // Chips use solid bright brand fills; dark ink keeps the value legible in dark mode
-            // where adaptive white text would fail AA. Light mode is unchanged.
-            .foregroundStyle(Brand.textPrimary)
-            .lineLimit(2)
-            .minimumScaleFactor(0.6)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, minHeight: dynamicTypeSize.isAccessibilitySize ? 56 : 52)
-            .padding(.horizontal, 4)
-            .background(color, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-            .overlay(alignment: .topTrailing) {
-                if showsMenuIndicator {
-                    Image(systemName: "chevron.down")
-                        // Relative font so the menu indicator scales with Dynamic Type
-                        // instead of staying a fixed 9pt at accessibility sizes.
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(Brand.textSecondary)
-                        .padding(5)
-                        .accessibilityHidden(true)
-                }
-            }
-    }
-
-    func chipAccessibilityLabel(_ titleKey: String, _ value: String) -> String {
-        L10n.format("play.setup.chip.accessibilityFormat", L10n.string(titleKey), value)
     }
 }

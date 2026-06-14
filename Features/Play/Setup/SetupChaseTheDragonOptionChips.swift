@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var chaseTheDragonChipsGrid: some View {
+struct SetupChaseTheDragonOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -18,7 +22,7 @@ extension SetupHomeView {
     }
 
     private var chaseTheDragonLapsChip: some View {
-        chip(titleKey: "play.chaseTheDragon.setup.laps", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.chaseTheDragon.setup.laps", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(ChaseTheDragonLaps.allCases, id: \.rawValue) { laps in
                     Button(laps.displayName) {
@@ -27,10 +31,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.chaseTheDragonLaps.displayName,
                     color: Brand.amber,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_chaseTheDragonLapsChip")

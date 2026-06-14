@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var raidChipsGrid: some View {
+struct SetupRaidOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: DS.Spacing.s3)], spacing: DS.Spacing.s3) {
                 raidBossTierChip
@@ -19,7 +23,7 @@ extension SetupHomeView {
     }
 
     private var raidBossTierChip: some View {
-        chip(titleKey: "play.raid.setup.bossTier", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.bossTier", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(RaidBossTier.allCases, id: \.rawValue) { tier in
                     Button(L10n.string(tier.displayNameKey)) {
@@ -28,14 +32,14 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(L10n.string(RaidSetupPreferences.loadBossTier().displayNameKey), color: Brand.amber, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(L10n.string(RaidSetupPreferences.loadBossTier().displayNameKey), color: Brand.amber, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
             .accessibilityIdentifier("setup_raidBossTierChip")
         }
     }
 
     private var raidHeroHeartsChip: some View {
-        chip(titleKey: "play.raid.setup.heroHearts", color: Brand.redAccent) {
+        SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.heroHearts", color: Brand.redAccent, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([3, 4, 5], id: \.self) { hearts in
                     Button("\(hearts)") {
@@ -44,22 +48,22 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox("\(RaidSetupPreferences.loadHeroHearts())", color: Brand.redAccent, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox("\(RaidSetupPreferences.loadHeroHearts())", color: Brand.redAccent, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
             .accessibilityIdentifier("setup_raidHeroHeartsChip")
         }
     }
 
     private var raidEnrageChip: some View {
-        chip(titleKey: "play.raid.setup.enrageEnabled", color: Brand.orange) {
+        SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.enrageEnabled", color: Brand.orange, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("common.on")) { RaidSetupPreferences.save(enrageEnabled: true) }
                 Button(L10n.string("common.off")) { RaidSetupPreferences.save(enrageEnabled: false) }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     RaidSetupPreferences.loadEnrageEnabled() ? L10n.string("common.on") : L10n.string("common.off"),
                     color: Brand.orange,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_raidEnrageChip")

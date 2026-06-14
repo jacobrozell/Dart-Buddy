@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var aroundTheClockChipsGrid: some View {
+struct SetupAroundTheClockOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -20,17 +24,17 @@ extension SetupHomeView {
     }
 
     private var aroundTheClockBullFinishChip: some View {
-        chip(titleKey: "play.aroundTheClock.setup.includeBullFinish", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.aroundTheClock.setup.includeBullFinish", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Button {
                 setupViewModel.aroundTheClockIncludeBullFinish.toggle()
                 setupViewModel.revalidate()
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.aroundTheClockIncludeBullFinish
                         ? L10n.string("common.on")
                         : L10n.string("common.off"),
                     color: Brand.amber,
-                    showsMenuIndicator: false
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false
                 )
             }
             .accessibilityIdentifier("setup_aroundTheClockBullFinishChip")
@@ -38,7 +42,7 @@ extension SetupHomeView {
     }
 
     private var aroundTheClockResetPolicyChip: some View {
-        chip(titleKey: "play.aroundTheClock.setup.resetPolicy", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.aroundTheClock.setup.resetPolicy", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(AroundTheClockResetPolicy.allCases, id: \.rawValue) { policy in
                     Button(policy.displayName) {
@@ -47,10 +51,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.aroundTheClockResetPolicy.displayName,
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_aroundTheClockResetPolicyChip")

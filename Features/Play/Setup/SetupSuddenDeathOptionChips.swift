@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var suddenDeathChipsGrid: some View {
+struct SetupSuddenDeathOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -20,17 +24,17 @@ extension SetupHomeView {
     }
 
     private var suddenDeathEliminateAllTiedChip: some View {
-        chip(titleKey: "play.suddenDeath.setup.eliminateAllTied", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.suddenDeath.setup.eliminateAllTied", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Button {
                 setupViewModel.suddenDeathEliminateAllTied.toggle()
                 setupViewModel.revalidate()
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.suddenDeathEliminateAllTied
                         ? L10n.string("common.on")
                         : L10n.string("common.off"),
                     color: Brand.amber,
-                    showsMenuIndicator: false
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false
                 )
             }
             .accessibilityIdentifier("setup_suddenDeathEliminateAllTiedChip")
@@ -38,7 +42,7 @@ extension SetupHomeView {
     }
 
     private var suddenDeathVisitsPerRoundChip: some View {
-        chip(titleKey: "play.suddenDeath.setup.visitsPerRound", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.suddenDeath.setup.visitsPerRound", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([1, 2], id: \.self) { count in
                     Button(L10n.format("play.suddenDeath.setup.visitsPerRoundValueFormat", count)) {
@@ -47,10 +51,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     L10n.format("play.suddenDeath.setup.visitsPerRoundValueFormat", setupViewModel.suddenDeathVisitsPerRound),
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_suddenDeathVisitsPerRoundChip")

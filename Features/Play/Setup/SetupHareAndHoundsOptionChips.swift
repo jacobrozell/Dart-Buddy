@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var hareAndHoundsChipsGrid: some View {
+struct SetupHareAndHoundsOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -18,7 +22,7 @@ extension SetupHomeView {
     }
 
     private var hareAndHoundsHoundStartChip: some View {
-        chip(titleKey: "play.hareAndHounds.setup.houndStart", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.hareAndHounds.setup.houndStart", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(HoundStartPosition.allCases, id: \.rawValue) { position in
                     Button(position.displayName) {
@@ -27,10 +31,10 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.hareAndHoundsHoundStart.displayName,
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_hareAndHoundsHoundStartChip")

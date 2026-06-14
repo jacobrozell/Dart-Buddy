@@ -1,13 +1,17 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var americanCricketChipsGrid: some View {
+struct SetupAmericanCricketOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         americanCricketPointsChip
     }
 
     private var americanCricketPointsChip: some View {
-        chip(titleKey: "play.americanCricket.setup.points", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.americanCricket.setup.points", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.americanCricket.setup.pointsOn")) {
                     setupViewModel.americanCricketPointsEnabled = true
@@ -18,12 +22,12 @@ extension SetupHomeView {
                     setupViewModel.revalidate()
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.americanCricketPointsEnabled
                         ? L10n.string("play.americanCricket.setup.pointsOn")
                         : L10n.string("play.americanCricket.setup.pointsOff"),
                     color: Brand.amber,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_americanCricketPointsChip")

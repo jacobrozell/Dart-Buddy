@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var fleetChipsGrid: some View {
+struct SetupFleetOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: DS.Spacing.s3)], spacing: DS.Spacing.s3) {
                 fleetPresetChip
@@ -31,7 +35,7 @@ extension SetupHomeView {
     }
 
     private var fleetPresetChip: some View {
-        chip(titleKey: "play.fleet.setup.preset", color: Brand.proBot) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.preset", color: Brand.proBot, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(FleetSetupPreferences.Preset.allCases, id: \.rawValue) { preset in
                     Button(L10n.string(preset.titleKey)) {
@@ -40,14 +44,14 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(L10n.string(FleetSetupPreferences.loadPreset().titleKey), color: Brand.proBot, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(L10n.string(FleetSetupPreferences.loadPreset().titleKey), color: Brand.proBot, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
             .accessibilityIdentifier("setup_fleetPresetChip")
         }
     }
 
     private var fleetShipCountChip: some View {
-        chip(titleKey: "play.fleet.setup.shipCountLabel", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.shipCountLabel", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(FleetShipCount.allCases, id: \.rawValue) { count in
                     Button("\(count.count)") {
@@ -56,14 +60,14 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox("\(FleetSetupPreferences.loadShipCount().count)", color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox("\(FleetSetupPreferences.loadShipCount().count)", color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
             .accessibilityIdentifier("setup_fleetShipCountChip")
         }
     }
 
     private var fleetShipHealthChip: some View {
-        chip(titleKey: "play.fleet.setup.shipHealth", color: Brand.amber) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.shipHealth", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.fleet.setup.shipHealth.fragile")) {
                     FleetSetupPreferences.save(shipHealth: .fragile)
@@ -76,22 +80,22 @@ extension SetupHomeView {
                 let label = health == .fragile
                     ? L10n.string("play.fleet.setup.shipHealth.fragile")
                     : L10n.string("play.fleet.setup.shipHealth.armored")
-                chipBox(label, color: Brand.amber, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(label, color: Brand.amber, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
             .accessibilityIdentifier("setup_fleetShipHealthChip")
         }
     }
 
     private var fleetBullChip: some View {
-        chip(titleKey: "play.fleet.setup.bullAllowed", color: Brand.green) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.bullAllowed", color: Brand.green, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("common.on")) { FleetSetupPreferences.save(bullAllowed: true) }
                 Button(L10n.string("common.off")) { FleetSetupPreferences.save(bullAllowed: false) }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     FleetSetupPreferences.loadBullAllowed() ? L10n.string("common.on") : L10n.string("common.off"),
                     color: Brand.green,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_fleetBullChip")
@@ -99,7 +103,7 @@ extension SetupHomeView {
     }
 
     private var fleetCallModeChip: some View {
-        chip(titleKey: "play.fleet.setup.callMode", color: Brand.orange) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.callMode", color: Brand.orange, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.fleet.setup.callMode.strict")) {
                     FleetSetupPreferences.save(callMode: .strict)
@@ -112,22 +116,22 @@ extension SetupHomeView {
                 let label = mode == .strict
                     ? L10n.string("play.fleet.setup.callMode.strict")
                     : L10n.string("play.fleet.setup.callMode.callOnly")
-                chipBox(label, color: Brand.orange, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(label, color: Brand.orange, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
             .accessibilityIdentifier("setup_fleetCallModeChip")
         }
     }
 
     private var fleetSonarChip: some View {
-        chip(titleKey: "play.fleet.setup.sonarEnabled", color: Brand.proBot) {
+        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.sonarEnabled", color: Brand.proBot, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("common.on")) { FleetSetupPreferences.save(sonarEnabled: true) }
                 Button(L10n.string("common.off")) { FleetSetupPreferences.save(sonarEnabled: false) }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     FleetSetupPreferences.loadSonarEnabled() ? L10n.string("common.on") : L10n.string("common.off"),
                     color: Brand.proBot,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityIdentifier("setup_fleetSonarChip")

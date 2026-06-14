@@ -1,8 +1,12 @@
 import SwiftUI
 
-extension SetupHomeView {
-    @ViewBuilder
-    var cricketChipsGrid: some View {
+struct SetupCricketOptionChips: View {
+    @ObservedObject var setupViewModel: MatchSetupViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+@ViewBuilder
+    var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             LazyVGrid(
                 columns: [GridItem(.flexible(), spacing: DS.Spacing.s3), GridItem(.flexible(), spacing: DS.Spacing.s3)],
@@ -47,7 +51,7 @@ extension SetupHomeView {
     }
 
     private var cricketPointsChip: some View {
-        chip(titleKey: "play.setup.chip.points", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.points", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Picker(
                 selection: Binding(
                     get: { setupViewModel.cricketPointsEnabled },
@@ -67,17 +71,17 @@ extension SetupHomeView {
                     .tag(false)
                     .accessibilityIdentifier("setup_cricketPointsOption_off")
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.cricketPointsEnabled
                         ? L10n.string("play.cricket.points.on")
                         : L10n.string("play.cricket.points.off"),
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .pickerStyle(.menu)
             .accessibilityLabel(
-                chipAccessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel(
                     "play.setup.chip.points",
                     setupViewModel.cricketPointsEnabled
                         ? L10n.string("play.cricket.points.on")
@@ -89,7 +93,7 @@ extension SetupHomeView {
     }
 
     private var cricketModeChip: some View {
-        chip(titleKey: "play.setup.chip.mode", color: Brand.red) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.mode", color: Brand.red, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(CricketScoringMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -99,23 +103,23 @@ extension SetupHomeView {
                     .accessibilityIdentifier("setup_cricketModeOption_\(value.rawValue)")
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     setupViewModel.cricketScoringMode.displayName,
                     color: Brand.red,
-                    showsMenuIndicator: setupViewModel.cricketPointsEnabled
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: setupViewModel.cricketPointsEnabled
                 )
                 .opacity(setupViewModel.cricketPointsEnabled ? 1 : 0.45)
             }
             .disabled(!setupViewModel.cricketPointsEnabled)
             .accessibilityLabel(
-                chipAccessibilityLabel("play.setup.chip.mode", setupViewModel.cricketScoringMode.displayName)
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.mode", setupViewModel.cricketScoringMode.displayName)
             )
             .accessibilityIdentifier("setup_cricketModeChip")
         }
     }
 
     private var cricketLegFormatChip: some View {
-        chip(titleKey: "play.setup.chip.setLeg", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.setLeg", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(X01LegFormat.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -124,17 +128,17 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(setupViewModel.cricketLegFormat.displayName, color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(setupViewModel.cricketLegFormat.displayName, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
             .accessibilityLabel(
-                chipAccessibilityLabel("play.setup.chip.setLeg", setupViewModel.cricketLegFormat.displayName)
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.setLeg", setupViewModel.cricketLegFormat.displayName)
             )
             .accessibilityIdentifier("setup_cricketSetLegChip")
         }
     }
 
     private var cricketSetsChip: some View {
-        chip(titleKey: "play.setup.chip.sets", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.sets", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(1 ... 5, id: \.self) { value in
                     Button("\(value)") {
@@ -144,14 +148,14 @@ extension SetupHomeView {
                     }
                 }
             } label: {
-                chipBox(
+                SetupOptionChipHelpers.chipBox(
                     "\(setupViewModel.cricketSetsEnabled ? setupViewModel.cricketSetsToWin : 1)",
                     color: Brand.key,
-                    showsMenuIndicator: true
+                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
             .accessibilityLabel(
-                chipAccessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel(
                     "play.setup.chip.sets",
                     "\(setupViewModel.cricketSetsEnabled ? setupViewModel.cricketSetsToWin : 1)"
                 )
@@ -161,7 +165,7 @@ extension SetupHomeView {
     }
 
     private var cricketLegsChip: some View {
-        chip(titleKey: "play.setup.chip.legs", color: Brand.key) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.legs", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(1 ... 9, id: \.self) { value in
                     Button("\(value)") {
@@ -171,9 +175,9 @@ extension SetupHomeView {
                     .accessibilityIdentifier("setup_cricketLegsOption_\(value)")
                 }
             } label: {
-                chipBox("\(setupViewModel.cricketLegsToWin)", color: Brand.key, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox("\(setupViewModel.cricketLegsToWin)", color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
-            .accessibilityLabel(chipAccessibilityLabel("play.setup.chip.legs", "\(setupViewModel.cricketLegsToWin)"))
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.setup.chip.legs", "\(setupViewModel.cricketLegsToWin)"))
             .accessibilityIdentifier("setup_cricketLegsChip")
         }
     }
