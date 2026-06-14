@@ -64,7 +64,10 @@ enum ProductSurface {
     static var bundledLocaleCodes: [String] { active.bundledLocaleCodes }
 
     static var isFullProductSurfaceEnabled: Bool {
-        let arguments = ProcessInfo.processInfo.arguments
+        isFullProductSurfaceEnabled(arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isFullProductSurfaceEnabled(arguments: [String]) -> Bool {
         if arguments.contains(leanProductSurfaceLaunchArgument) {
             return false
         }
@@ -79,7 +82,11 @@ enum ProductSurface {
     }
 
     private static var active: Configuration {
-        isFullProductSurfaceEnabled ? .full : .party1_1
+        configuration(for: ProcessInfo.processInfo.arguments)
+    }
+
+    static func configuration(for arguments: [String]) -> Configuration {
+        isFullProductSurfaceEnabled(arguments: arguments) ? .full : .party1_1
     }
 
     /// Catalog IDs shipped in the default Release Party Pack 1.1 surface.
@@ -94,17 +101,26 @@ enum ProductSurface {
 
     /// Whether gameplay for this match type is reachable in the current product surface.
     static func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
+        isMatchTypeReachable(matchType, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isMatchTypeReachable(_ matchType: MatchType, arguments: [String]) -> Bool {
         guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
             return false
         }
-        return isCatalogEntryReachable(entry)
+        return isCatalogEntryReachable(entry, arguments: arguments)
     }
 
     /// Whether a shipped catalog entry is reachable in the current product surface.
     static func isCatalogEntryReachable(_ entry: GameModeCatalogEntry) -> Bool {
+        isCatalogEntryReachable(entry, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isCatalogEntryReachable(_ entry: GameModeCatalogEntry, arguments: [String]) -> Bool {
         guard entry.isAvailable, entry.matchType != nil else { return false }
 
-        if isFullProductSurfaceEnabled {
+        let config = configuration(for: arguments)
+        if isFullProductSurfaceEnabled(arguments: arguments) {
             switch entry.matchType {
             case .x01, .cricket:
                 return true
@@ -113,11 +129,11 @@ enum ProductSurface {
             }
             switch entry.section {
             case .party:
-                return showsPartyModes
+                return config.showsPartyModes
             case .coop:
-                return showsCoopModes
+                return config.showsCoopModes
             case .standard, .practice:
-                return showsModesTab
+                return config.showsModesTab
             }
         }
 

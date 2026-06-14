@@ -156,6 +156,7 @@ final class MatchSetupViewModel: ObservableObject {
         } catch {
             validationErrors = ["setup.error.load"]
         }
+        normalizeForProductSurface()
         revalidate()
     }
 
