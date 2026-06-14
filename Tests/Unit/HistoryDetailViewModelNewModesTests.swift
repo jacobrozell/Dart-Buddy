@@ -25,14 +25,23 @@ private func makeCompletedModeFixture(type: MatchType) throws -> HistoryModesFix
     let winner = UUID()
     let loser = UUID()
     let matchId = UUID()
+    var participants = [
+        MatchParticipant(playerId: winner, displayNameAtMatchStart: "Winner", turnOrder: 0),
+        MatchParticipant(playerId: loser, displayNameAtMatchStart: "Loser", turnOrder: 1)
+    ]
+    if type == .killer {
+        participants.append(MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Third", turnOrder: 2))
+    }
+    if type == .aroundTheClock {
+        participants = [
+            MatchParticipant(playerId: winner, displayNameAtMatchStart: "Winner", turnOrder: 0)
+        ]
+    }
     var session = try MatchLifecycleService.createMatch(
         matchId: matchId,
         type: type,
         config: MatchConfigDefaults.config(for: type),
-        participants: [
-            MatchParticipant(playerId: winner, displayNameAtMatchStart: "Winner", turnOrder: 0),
-            MatchParticipant(playerId: loser, displayNameAtMatchStart: "Loser", turnOrder: 1)
-        ]
+        participants: participants
     )
     session = try appendSampleTurns(to: session, type: type)
 
@@ -51,10 +60,16 @@ private func makeCompletedModeFixture(type: MatchType) throws -> HistoryModesFix
         createdAt: now,
         updatedAt: now
     )
-    let participants = [
-        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: winner, turnOrder: 0, displayNameAtMatchStart: "Winner", avatarStyleAtMatchStart: nil),
-        MatchParticipantSummary(id: UUID(), matchId: matchId, playerId: loser, turnOrder: 1, displayNameAtMatchStart: "Loser", avatarStyleAtMatchStart: nil)
-    ]
+    let participantSummaries = participants.map {
+        MatchParticipantSummary(
+            id: UUID(),
+            matchId: matchId,
+            playerId: $0.playerId ?? UUID(),
+            turnOrder: $0.turnOrder,
+            displayNameAtMatchStart: $0.displayNameAtMatchStart,
+            avatarStyleAtMatchStart: nil
+        )
+    }
     let events = try session.events.map { envelope in
         MatchEventSummary(
             id: UUID(),
@@ -77,7 +92,7 @@ private func makeCompletedModeFixture(type: MatchType) throws -> HistoryModesFix
         winner: winner,
         loser: loser,
         summary: summary,
-        participants: participants,
+        participants: participantSummaries,
         events: events,
         snapshot: snapshot
     )
@@ -131,6 +146,29 @@ private func appendSampleTurns(
         return updated
     case .grandNational:
         return try MatchLifecycleService.submitGrandNationalTurn(session: session, darts: [miss()])
+    case .baseball:
+        var updated = session
+        updated = try MatchLifecycleService.submitBaseballTurn(session: updated, darts: [segment(.single, 1)])
+        updated = try MatchLifecycleService.submitBaseballTurn(session: updated, darts: [segment(.single, 1)])
+        return updated
+    case .shanghai:
+        var updated = session
+        updated = try MatchLifecycleService.submitShanghaiTurn(session: updated, darts: [segment(.single, 1)])
+        updated = try MatchLifecycleService.submitShanghaiTurn(session: updated, darts: [segment(.single, 1)])
+        return updated
+    case .aroundTheClock:
+        var updated = session
+        updated = try MatchLifecycleService.submitAroundTheClockTurn(session: updated, darts: [miss()])
+        updated = try MatchLifecycleService.submitAroundTheClockTurn(session: updated, darts: [miss()])
+        return updated
+    case .killer:
+        var updated = session
+        updated = try MatchLifecycleService.submitKillerPick(session: updated, dart: segment(.single, 7))
+        updated = try MatchLifecycleService.submitKillerPick(session: updated, dart: segment(.single, 12))
+        updated = try MatchLifecycleService.submitKillerPick(session: updated, dart: segment(.single, 20))
+        updated = try MatchLifecycleService.submitKillerTurn(session: updated, darts: [miss()])
+        updated = try MatchLifecycleService.submitKillerTurn(session: updated, darts: [miss()])
+        return updated
     default:
         return try MatchLifecycleService.submitKnockoutTurn(
             session: session,
@@ -308,5 +346,70 @@ struct HistoryDetailViewModelNewModesTests {
         #expect(!vm.configText.isEmpty)
         #expect(vm.timeline.count == 1)
         #expect(vm.throwsRows.count == 2)
+    }
+
+    @Test
+    @MainActor
+    func baseballHistoryBuildsLineScoreAndTimeline() async throws {
+        let fixture = try makeCompletedModeFixture(type: .baseball)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .baseball)
+        #expect(vm.timeline.count == 2)
+        #expect(vm.standings.count == 2)
+        #expect(vm.header?.modeSpecificSummaryText.isEmpty == false)
+    }
+
+    @Test
+    @MainActor
+    func killerHistoryBuildsTimelineForThreePlayers() async throws {
+        let fixture = try makeCompletedModeFixture(type: .killer)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .killer)
+        #expect(vm.timeline.count >= 2)
+        #expect(vm.standings.count == 3)
+    }
+
+    @Test
+    @MainActor
+    func shanghaiHistoryBuildsBreakdowns() async throws {
+        let fixture = try makeCompletedModeFixture(type: .shanghai)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .shanghai)
+        #expect(vm.breakdowns.count == 2)
+        #expect(vm.timeline.count == 2)
+    }
+
+    @Test
+    @MainActor
+    func aroundTheClockHistoryBuildsSoloTimeline() async throws {
+        let fixture = try makeCompletedModeFixture(type: .aroundTheClock)
+        let vm = HistoryDetailViewModel(
+            matchId: fixture.matchId,
+            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
+            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+        )
+        await vm.onAppear()
+
+        #expect(vm.matchType == .aroundTheClock)
+        #expect(vm.timeline.count == 2)
+        #expect(vm.standings.count == 1)
     }
 }

@@ -159,6 +159,74 @@ func playHomeShowsResumeForBaseballMatch() async throws {
 
 @MainActor
 @Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeShowsResumeForKillerMatch() async throws {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .killer,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B"), makePlayer("C")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    if case let .readyWithActiveMatch(match) = vm.state {
+        #expect(match.type == .killer)
+    } else {
+        Issue.record("Expected resume state for killer match")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeShowsResumeForShanghaiMatch() async throws {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .shanghai,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    if case let .readyWithActiveMatch(match) = vm.state {
+        #expect(match.type == .shanghai)
+    } else {
+        Issue.record("Expected resume state for shanghai match")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
 func playHomeShowsResumeForAroundTheClockMatch() async throws {
     guard !ProductSurface.isFullProductSurfaceEnabled else { return }
 

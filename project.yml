@@ -339,6 +339,8 @@ schemes:
         - DartBuddy
       targets:
         - DartBuddyTests
+      commandLineArguments:
+        "-enable_lean_product_surface": true
     run:
       config: Debug
   DartBuddyUISmoke:

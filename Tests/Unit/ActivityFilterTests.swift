@@ -4,6 +4,8 @@ import Testing
 
 @Suite("Activity filters", .tags(.unit, .history, .stats, .regression))
 struct ActivityFilterTests {
+    private static let partyPackReleaseArguments = [ProductSurface.leanProductSurfaceLaunchArgument]
+
     @Test
     func modeFilterMapsShippedModesToMatchTypes() {
         #expect(ActivityModeFilter.all.matchType == nil)
@@ -32,44 +34,49 @@ struct ActivityFilterTests {
 
     @Test
     func modeFilterVisibleCasesRespectProductSurface() {
-        let visible = Set(ActivityModeFilter.visibleCases)
+        let visible = Set(ActivityModeFilter.visibleCases(arguments: Self.partyPackReleaseArguments))
         #expect(visible.contains(.all))
         #expect(visible.contains(.x01))
         #expect(visible.contains(.cricket))
-
-        if ProductSurface.showsPartyModes {
-            #expect(visible.contains(.baseball))
-            #expect(visible.contains(.killer))
-            #expect(visible.contains(.shanghai))
-        } else {
-            #expect(!visible.contains(.baseball))
-            #expect(!visible.contains(.killer))
-            #expect(!visible.contains(.shanghai))
-            #expect(!visible.contains(.fleet))
-            #expect(!visible.contains(.raid))
-            #expect(!visible.contains(.aroundTheClock))
-        }
+        #expect(visible.contains(.baseball))
+        #expect(visible.contains(.killer))
+        #expect(visible.contains(.shanghai))
+        #expect(visible.contains(.aroundTheClock))
+        #expect(!visible.contains(.fleet))
+        #expect(!visible.contains(.raid))
+        #expect(!visible.contains(.golf))
+        #expect(!visible.contains(.americanCricket))
     }
 
     @Test
-    func allGamesFilterScopesToReachableMatchTypesOnLeanSurface() {
-        guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+    func allGamesFilterScopesToReachableMatchTypesOnPartyPack() {
+        let args = Self.partyPackReleaseArguments
+        let included = ActivityModeFilter.includedMatchTypesForAllFilter(arguments: args)
+        #expect(included == [.x01, .cricket, .baseball, .killer, .shanghai, .aroundTheClock])
 
-        let included = ActivityModeFilter.includedMatchTypesForAllFilter
-        #expect(included == [.x01, .cricket])
-
-        let query = ActivityModeFilter.all.historyQueryTypes
+        let query = ActivityModeFilter.all.historyQueryTypes(arguments: args)
         #expect(query.matchType == nil)
-        #expect(query.includedMatchTypes == [.x01, .cricket])
+        #expect(query.includedMatchTypes == included)
     }
 
     @Test
-    func availableCatalogModesMatchVisibleActivityFilters() {
+    func allGamesFilterHasNoRestrictionOnFullSurface() {
+        let args = [ProductSurface.fullProductSurfaceLaunchArgument]
+        #expect(ActivityModeFilter.includedMatchTypesForAllFilter(arguments: args) == nil)
+    }
+
+    @Test
+    func availableCatalogModesMatchVisibleActivityFiltersOnPartyPack() {
+        let args = Self.partyPackReleaseArguments
         let availableFilterIds = Set(
-            GameModeCatalog.available.compactMap { ActivityModeFilter.from(catalogEntryId: $0.id)?.rawValue }
+            ProductSurface.partyPack1_1CatalogIDs.compactMap {
+                ActivityModeFilter.from(catalogEntryId: $0)?.rawValue
+            }
         )
         let visibleFilterIds = Set(
-            ActivityModeFilter.visibleCases.map(\.rawValue).filter { $0 != ActivityModeFilter.all.rawValue }
+            ActivityModeFilter.visibleCases(arguments: args)
+                .map(\.rawValue)
+                .filter { $0 != ActivityModeFilter.all.rawValue }
         )
         #expect(availableFilterIds == visibleFilterIds)
     }
