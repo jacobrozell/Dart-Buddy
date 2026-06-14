@@ -29,7 +29,7 @@ public enum FirebaseAnalyticsEventMapping {
         "match_forfeit_failed",
         "match_start_failed",
         "turn_persist_failed",
-        "app_bootstrap_migration_failure",
+        "bootstrap_store_open_failed",
         "deep_link_received",
         "deep_link_applied",
         "deep_link_deferred",

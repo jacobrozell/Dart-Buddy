@@ -8,7 +8,7 @@ func mapsAllowlistedFaultToNonFatalError() {
         timestamp: Date(),
         level: .fault,
         category: .migration,
-        eventName: "app_bootstrap_migration_failure",
+        eventName: "bootstrap_store_open_failed",
         message: "Migration failed.",
         metadata: ["errorCode": "schema_mismatch", "playerName": "Alice"],
         correlationId: nil
@@ -18,7 +18,7 @@ func mapsAllowlistedFaultToNonFatalError() {
 
     #expect(error?.domain == "com.jacobrozell.DartBuddy.logger")
     #expect(error?.code == 1001)
-    #expect(error?.userInfo["event_name"] as? String == "app_bootstrap_migration_failure")
+    #expect(error?.userInfo["event_name"] as? String == "bootstrap_store_open_failed")
     #expect(error?.userInfo["log_category"] as? String == "migration")
     #expect(error?.userInfo["errorCode"] as? String == "schema_mismatch")
     #expect(error?.userInfo["playerName"] == nil)

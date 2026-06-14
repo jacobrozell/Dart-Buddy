@@ -80,9 +80,6 @@
 "players.row.botSuffix" = ", Bot %@";
 "players.row.archivedSuffix" = ", archiviert";
 "settings.reset.accessibility" = "Alle Daten zurücksetzen";
-"migration.retry.accessibility" = "Migration erneut versuchen";
-"migration.export.accessibility" = "Diagnose exportieren";
-"migration.reset.accessibility" = "Lokale Daten zurücksetzen";
 "stats.filter.player.accessibilityFormat" = "Nach Spieler filtern, %@";
 "stats.partialMatchBanner.accessibility" = "Statistik enthält dein laufendes Spiel.";
 "stats.trend.accessibilityPointFormat" = "%@, Durchschnitt %.1f";
@@ -244,11 +241,6 @@
 "settings.reset.confirmTitle" = "Alle lokalen Daten zurücksetzen?";
 "settings.reset.confirmMessage" = "Dies löscht alle lokalen Daten auf diesem Gerät: Spieler, Spiele, Einstellungen, gespeicherte Präferenzen und die Willkommens-Tour.";
 "settings.reset.confirmAction" = "Daten zurücksetzen";
-"migration.title" = "Wiederherstellung erforderlich";
-"migration.message" = "Die App konnte lokale Daten nicht öffnen. Du kannst erneut versuchen, Diagnose exportieren oder lokale Daten zurücksetzen.";
-"migration.retry" = "Erneut versuchen";
-"migration.export" = "Diagnose exportieren";
-"migration.reset" = "Lokale Daten zurücksetzen";
 "scoring.backspace" = "Rücktaste";
 "scoring.clearTurn" = "Wurf leeren";
 "scoring.submitTurn" = "Wurf absenden";
@@ -387,9 +379,6 @@
 "play.setup.checkout" = "Checkout";
 "play.setup.legsToWinFormat" = "Legs zum Sieg: %d";
 "play.setup.setsToWinFormat" = "Sets zum Sieg: %d";
-"migration.errorKeyFormat" = "Fehlerschlüssel: %@";
-"migration.stateFormat" = "Status: %@";
-"migration.diagnosticsExported" = "Diagnose exportiert: %@";
 "scoring.turnTotalPlaceholder" = "Wurfsumme (0–180)";
 "scoring.turnTotal.accessibilityLabel" = "Wurfsumme";
 "scoring.multiplier.hint" = "Multiplikator für den nächsten Dart wählen.";

@@ -80,9 +80,6 @@
 "players.row.botSuffix" = ", bot %@";
 "players.row.archivedSuffix" = ", archived";
 "settings.reset.accessibility" = "Reset all data";
-"migration.retry.accessibility" = "Retry migration";
-"migration.export.accessibility" = "Export diagnostics";
-"migration.reset.accessibility" = "Reset local data";
 "stats.filter.player.accessibilityFormat" = "Filter by player, %@";
 "stats.partialMatchBanner.accessibility" = "Statistics include your in-progress match.";
 "stats.trend.accessibilityPointFormat" = "%@, average %.1f";
@@ -244,11 +241,6 @@
 "settings.reset.confirmTitle" = "Reset all local data?";
 "settings.reset.confirmMessage" = "This clears all local data on this device: players, matches, settings, saved preferences, and the welcome tour.";
 "settings.reset.confirmAction" = "Reset Data";
-"migration.title" = "Recovery Required";
-"migration.message" = "The app could not open local data. You can retry, export diagnostics, or reset local data.";
-"migration.retry" = "Retry";
-"migration.export" = "Export Diagnostics";
-"migration.reset" = "Reset Local Data";
 "scoring.backspace" = "Backspace";
 "scoring.clearTurn" = "Clear Turn";
 "scoring.submitTurn" = "Submit Turn";
@@ -387,9 +379,6 @@
 "play.setup.checkout" = "Checkout";
 "play.setup.legsToWinFormat" = "Legs to Win: %d";
 "play.setup.setsToWinFormat" = "Sets to Win: %d";
-"migration.errorKeyFormat" = "Error key: %@";
-"migration.stateFormat" = "State: %@";
-"migration.diagnosticsExported" = "Diagnostics exported: %@";
 "scoring.turnTotalPlaceholder" = "Turn Total (0-180)";
 "scoring.turnTotal.accessibilityLabel" = "Turn total";
 "scoring.multiplier.hint" = "Select multiplier for next dart.";

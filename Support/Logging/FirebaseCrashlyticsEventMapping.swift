@@ -4,7 +4,7 @@ public enum FirebaseCrashlyticsEventMapping {
     private static let errorDomain = "com.jacobrozell.DartBuddy.logger"
 
     private static let allowlistedLogEvents: Set<String> = [
-        "app_bootstrap_migration_failure",
+        "bootstrap_store_open_failed",
         "match_start_failed",
         "turn_persist_failed",
         "match_session_load_failed",
@@ -19,7 +19,7 @@ public enum FirebaseCrashlyticsEventMapping {
 
     /// Stable NSError codes for Crashlytics grouping (documented in unit tests).
     static let eventCodes: [String: Int] = [
-        "app_bootstrap_migration_failure": 1001,
+        "bootstrap_store_open_failed": 1001,
         "match_start_failed": 1002,
         "turn_persist_failed": 1003,
         "match_session_load_failed": 1004,

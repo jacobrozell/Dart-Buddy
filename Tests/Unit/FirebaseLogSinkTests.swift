@@ -24,7 +24,7 @@ struct FirebaseLogSinkTests {
         let sink = FirebaseCrashlyticsLogSink(appVersion: "1.2.3", isCollectionEnabled: false)
         sink.write(makeEntry(level: .info, eventName: "play_home_ready"))
         sink.write(makeEntry(level: .error, eventName: "turn_persist_failed"))
-        sink.write(makeEntry(level: .fault, eventName: "app_bootstrap_migration_failure"))
+        sink.write(makeEntry(level: .fault, eventName: "bootstrap_store_open_failed"))
     }
 
     @Test

@@ -80,9 +80,6 @@
 "players.row.botSuffix" = ", bot %@";
 "players.row.archivedSuffix" = ", archivado";
 "settings.reset.accessibility" = "Restablecer todos los datos";
-"migration.retry.accessibility" = "Reintentar la migración";
-"migration.export.accessibility" = "Exportar diagnóstico";
-"migration.reset.accessibility" = "Restablecer datos locales";
 "stats.filter.player.accessibilityFormat" = "Filtrar por jugador, %@";
 "stats.partialMatchBanner.accessibility" = "Las estadísticas incluyen tu partido en curso.";
 "stats.trend.accessibilityPointFormat" = "%@, promedio %.1f";
@@ -244,11 +241,6 @@
 "settings.reset.confirmTitle" = "¿Restablecer todos los datos locales?";
 "settings.reset.confirmMessage" = "Esto borra todos los datos locales en este dispositivo: jugadores, partidos, ajustes, preferencias guardadas y el recorrido de bienvenida.";
 "settings.reset.confirmAction" = "Restablecer datos";
-"migration.title" = "Recuperación requerida";
-"migration.message" = "La aplicación no pudo abrir datos locales. Puede volver a intentarlo, exportar diagnósticos o restablecer datos locales.";
-"migration.retry" = "Rever";
-"migration.export" = "Exportar diagnóstico";
-"migration.reset" = "Restablecer datos locales";
 "scoring.backspace" = "Retroceso";
 "scoring.clearTurn" = "Borrar giro";
 "scoring.submitTurn" = "Enviar turno";
@@ -387,9 +379,6 @@
 "play.setup.checkout" = "Checkout";
 "play.setup.legsToWinFormat" = "Leg para ganar: %d";
 "play.setup.setsToWinFormat" = "Set para ganar: %d";
-"migration.errorKeyFormat" = "Clave de error: %@";
-"migration.stateFormat" = "Estado: %@";
-"migration.diagnosticsExported" = "Diagnóstico exportado: %@";
 "scoring.turnTotalPlaceholder" = "Total de turnos (0-180)";
 "scoring.turnTotal.accessibilityLabel" = "Turno total";
 "scoring.multiplier.hint" = "Seleccione el multiplicador para el siguiente dardo.";
