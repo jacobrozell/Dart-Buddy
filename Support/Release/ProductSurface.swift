@@ -2,8 +2,8 @@ import Foundation
 
 /// Controls which product areas are reachable in this build.
 ///
-/// **Debug / `dev`:** defaults to the full catalog (all tabs, party modes, locales).
-/// **Release / App Store:** defaults to lean 1.0 (X01 + Cricket picker, 4 tabs, English bundle).
+/// **Debug:** defaults to the full catalog (all tabs, party modes, locales).
+/// **Release / App Store:** defaults to 1.1 Party Pack (X01 + Cricket + party modes, 4 tabs, English bundle).
 /// Launch args override either default — see `docs/release/branch-strategy.md`.
 enum ProductSurface {
     struct Configuration: Sendable, Equatable {
@@ -30,6 +30,18 @@ enum ProductSurface {
         static let lean1_0 = Configuration(
             showsModesTab: false,
             showsPartyModes: false,
+            showsCoopModes: false,
+            showsTrainingBots: false,
+            showsCustomBots: true,
+            showsPlayerExport: false,
+            showsAccessibilityMarketing: true,
+            bundledLocaleCodes: ["en"]
+        )
+
+        /// 1.1 Party Pack — lean shell plus Baseball, Killer, and Shanghai in Play setup.
+        static let party1_1 = Configuration(
+            showsModesTab: false,
+            showsPartyModes: true,
             showsCoopModes: false,
             showsTrainingBots: false,
             showsCustomBots: true,
@@ -67,7 +79,7 @@ enum ProductSurface {
     }
 
     private static var active: Configuration {
-        isFullProductSurfaceEnabled ? .full : .lean1_0
+        isFullProductSurfaceEnabled ? .full : .party1_1
     }
 
     /// Whether gameplay for this match type is reachable in the current product surface.
