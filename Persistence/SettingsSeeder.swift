@@ -9,8 +9,8 @@ public struct SettingsSeeder {
     }
 
     @discardableResult
-    public func seedDefaultsIfNeeded(in context: ModelContext) throws -> SchemaV3.SettingsRecord {
-        let descriptor = FetchDescriptor<SchemaV3.SettingsRecord>()
+    public func seedDefaultsIfNeeded(in context: ModelContext) throws -> SchemaV1.SettingsRecord {
+        let descriptor = FetchDescriptor<SchemaV1.SettingsRecord>()
         if let existing = try context.fetch(descriptor).first {
             logger.debug(
                 .settings,
@@ -21,7 +21,7 @@ public struct SettingsSeeder {
             return existing
         }
 
-        let created = SchemaV3.SettingsRecord()
+        let created = SchemaV1.SettingsRecord()
         context.insert(created)
         try context.save()
         logger.info(

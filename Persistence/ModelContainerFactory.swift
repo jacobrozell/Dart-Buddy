@@ -9,7 +9,7 @@ public enum ModelContainerFactory {
     }
 
     public static func makeContainer(mode: StorageMode = .appDefault) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV3.self)
+        let schema = Schema(versionedSchema: SchemaV1.self)
         let configuration: ModelConfiguration
         switch mode {
         case .inMemory:
@@ -34,6 +34,15 @@ public enum ModelContainerFactory {
             return .inMemory
         }
         return .appDefault
+    }
+
+    /// Last-resort container when on-disk recovery is exhausted (should never happen in production).
+    static func makeInMemoryFallbackContainer() -> ModelContainer {
+        do {
+            return try makeContainer(mode: .inMemory)
+        } catch {
+            fatalError("Unable to create fallback model container: \(error)")
+        }
     }
 
     private static func ensureParentDirectoryExists(for storeURL: URL) throws {

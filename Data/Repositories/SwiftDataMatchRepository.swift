@@ -12,8 +12,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
         try dataCall {
             let context = ModelContext(container)
             let inProgressRaw = MatchStatus.inProgress.rawValue
-            let activeDescriptor = FetchDescriptor<SchemaV3.MatchRecord>(
-                predicate: #Predicate<SchemaV3.MatchRecord> { $0.statusRaw == inProgressRaw }
+            let activeDescriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == inProgressRaw }
             )
             if try context.fetchCount(activeDescriptor) > 0 {
                 throw AppError(
@@ -26,7 +26,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
             }
             let now = Date()
             let matchId = UUID()
-            let record = SchemaV3.MatchRecord(
+            let record = SchemaV1.MatchRecord(
                 id: matchId,
                 typeRaw: type.rawValue,
                 statusRaw: inProgressRaw,
@@ -40,7 +40,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
             context.insert(record)
             for participant in participants {
                 context.insert(
-                    SchemaV3.MatchParticipantRecord(
+                    SchemaV1.MatchParticipantRecord(
                         id: participant.id,
                         matchId: matchId,
                         playerId: participant.playerId,
@@ -63,8 +63,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
         try dataCall {
             let context = ModelContext(container)
             let inProgressRaw = MatchStatus.inProgress.rawValue
-            let descriptor = FetchDescriptor<SchemaV3.MatchRecord>(
-                predicate: #Predicate<SchemaV3.MatchRecord> { $0.statusRaw == inProgressRaw },
+            let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.statusRaw == inProgressRaw },
                 sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
             )
             return try context.fetch(descriptor).first.map(mapMatch)
@@ -78,7 +78,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
             let safeSize = max(1, pageSize)
             let completedRaw = MatchStatus.completed.rawValue
             let forfeitedRaw = MatchStatus.forfeited.rawValue
-            var descriptor = FetchDescriptor<SchemaV3.MatchRecord>(
+            var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
                 predicate: finishedHistoryPredicate(completedRaw: completedRaw, forfeitedRaw: forfeitedRaw),
                 sortBy: [SortDescriptor(\.endedAt, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
             )
@@ -98,8 +98,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
 
             let restrictedMatchIds: [UUID]?
             if let playerId = filter.participantPlayerId {
-                let participantDescriptor = FetchDescriptor<SchemaV3.MatchParticipantRecord>(
-                    predicate: #Predicate<SchemaV3.MatchParticipantRecord> { $0.playerId == playerId }
+                let participantDescriptor = FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                    predicate: #Predicate<SchemaV1.MatchParticipantRecord> { $0.playerId == playerId }
                 )
                 let matchIds = Array(Set(try context.fetch(participantDescriptor).map(\.matchId)))
                 guard !matchIds.isEmpty else { return [] }
@@ -108,7 +108,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
                 restrictedMatchIds = nil
             }
 
-            var descriptor = FetchDescriptor<SchemaV3.MatchRecord>(
+            var descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
                 predicate: historyMatchPredicate(
                     filter: filter,
                     completedRaw: completedRaw,
@@ -123,8 +123,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
             guard !pageMatches.isEmpty else { return [] }
             let pageMatchIds = pageMatches.map(\.id)
 
-            let participantDescriptor = FetchDescriptor<SchemaV3.MatchParticipantRecord>(
-                predicate: #Predicate<SchemaV3.MatchParticipantRecord> { pageMatchIds.contains($0.matchId) },
+            let participantDescriptor = FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                predicate: #Predicate<SchemaV1.MatchParticipantRecord> { pageMatchIds.contains($0.matchId) },
                 sortBy: [SortDescriptor(\.turnOrder, order: .forward)]
             )
             let participants = try context.fetch(participantDescriptor).map(mapParticipant)
@@ -170,8 +170,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
                 let matchId = match.id
                 let eventCount = match.eventCount
                 let staleEvents = try context.fetch(
-                    FetchDescriptor<SchemaV3.MatchEventRecord>(
-                        predicate: #Predicate<SchemaV3.MatchEventRecord> {
+                    FetchDescriptor<SchemaV1.MatchEventRecord>(
+                        predicate: #Predicate<SchemaV1.MatchEventRecord> {
                             $0.matchId == matchId && $0.eventIndex >= eventCount
                         }
                     )
@@ -230,7 +230,7 @@ public actor SwiftDataMatchRepository: MatchRepository {
             let match = try fetchMatchRecord(id: matchId, in: context)
             let nextIndex = match.eventCount
             let now = Date()
-            let event = SchemaV3.MatchEventRecord(
+            let event = SchemaV1.MatchEventRecord(
                 matchId: matchId,
                 eventIndex: nextIndex,
                 eventTypeRaw: eventTypeRaw,
@@ -249,20 +249,20 @@ public actor SwiftDataMatchRepository: MatchRepository {
         try dataCall {
             let context = ModelContext(container)
             let existing = try context.fetch(
-                FetchDescriptor<SchemaV3.MatchSnapshotRecord>(
-                    predicate: #Predicate<SchemaV3.MatchSnapshotRecord> { $0.matchId == matchId },
+                FetchDescriptor<SchemaV1.MatchSnapshotRecord>(
+                    predicate: #Predicate<SchemaV1.MatchSnapshotRecord> { $0.matchId == matchId },
                     sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
                 )
             ).first
             let now = Date()
-            let record: SchemaV3.MatchSnapshotRecord
+            let record: SchemaV1.MatchSnapshotRecord
             if let existing {
                 existing.snapshotVersion = snapshotVersion
                 existing.snapshotPayload = snapshotPayload
                 existing.updatedAt = now
                 record = existing
             } else {
-                let created = SchemaV3.MatchSnapshotRecord(
+                let created = SchemaV1.MatchSnapshotRecord(
                     matchId: matchId,
                     snapshotVersion: snapshotVersion,
                     snapshotPayload: snapshotPayload,
@@ -279,8 +279,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
     public func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
         try dataCall {
             let context = ModelContext(container)
-            let descriptor = FetchDescriptor<SchemaV3.MatchSnapshotRecord>(
-                predicate: #Predicate<SchemaV3.MatchSnapshotRecord> { $0.matchId == matchId },
+            let descriptor = FetchDescriptor<SchemaV1.MatchSnapshotRecord>(
+                predicate: #Predicate<SchemaV1.MatchSnapshotRecord> { $0.matchId == matchId },
                 sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
             return try context.fetch(descriptor).first.map(mapSnapshot)
@@ -290,8 +290,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
     public func fetchMatch(matchId: UUID) async throws -> MatchSummary? {
         try dataCall {
             let context = ModelContext(container)
-            let descriptor = FetchDescriptor<SchemaV3.MatchRecord>(
-                predicate: #Predicate<SchemaV3.MatchRecord> { $0.id == matchId }
+            let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+                predicate: #Predicate<SchemaV1.MatchRecord> { $0.id == matchId }
             )
             return try context.fetch(descriptor).first.map(mapMatch)
         }
@@ -300,8 +300,8 @@ public actor SwiftDataMatchRepository: MatchRepository {
     public func fetchParticipants(matchId: UUID) async throws -> [MatchParticipantSummary] {
         try dataCall {
             let context = ModelContext(container)
-            let descriptor = FetchDescriptor<SchemaV3.MatchParticipantRecord>(
-                predicate: #Predicate<SchemaV3.MatchParticipantRecord> { $0.matchId == matchId },
+            let descriptor = FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                predicate: #Predicate<SchemaV1.MatchParticipantRecord> { $0.matchId == matchId },
                 sortBy: [SortDescriptor(\.turnOrder, order: .forward)]
             )
             return try context.fetch(descriptor).map(mapParticipant)
@@ -321,18 +321,18 @@ public actor SwiftDataMatchRepository: MatchRepository {
             let context = ModelContext(container)
             let match = try fetchMatchRecord(id: matchId, in: context)
             let participants = try context.fetch(
-                FetchDescriptor<SchemaV3.MatchParticipantRecord>(
-                    predicate: #Predicate<SchemaV3.MatchParticipantRecord> { $0.matchId == matchId }
+                FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+                    predicate: #Predicate<SchemaV1.MatchParticipantRecord> { $0.matchId == matchId }
                 )
             )
             let snapshots = try context.fetch(
-                FetchDescriptor<SchemaV3.MatchSnapshotRecord>(
-                    predicate: #Predicate<SchemaV3.MatchSnapshotRecord> { $0.matchId == matchId }
+                FetchDescriptor<SchemaV1.MatchSnapshotRecord>(
+                    predicate: #Predicate<SchemaV1.MatchSnapshotRecord> { $0.matchId == matchId }
                 )
             )
             let events = try context.fetch(
-                FetchDescriptor<SchemaV3.MatchEventRecord>(
-                    predicate: #Predicate<SchemaV3.MatchEventRecord> { $0.matchId == matchId }
+                FetchDescriptor<SchemaV1.MatchEventRecord>(
+                    predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId }
                 )
             )
             participants.forEach(context.delete)
@@ -348,16 +348,16 @@ public actor SwiftDataMatchRepository: MatchRepository {
         forfeitedByPlayerId: UUID? = nil,
         in context: ModelContext
     ) throws -> Data? {
-        let snapshotDescriptor = FetchDescriptor<SchemaV3.MatchSnapshotRecord>(
-            predicate: #Predicate<SchemaV3.MatchSnapshotRecord> { $0.matchId == matchId },
+        let snapshotDescriptor = FetchDescriptor<SchemaV1.MatchSnapshotRecord>(
+            predicate: #Predicate<SchemaV1.MatchSnapshotRecord> { $0.matchId == matchId },
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
         guard let snapshot = try context.fetch(snapshotDescriptor).first,
               let runtime = try? CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshot.snapshotPayload) else {
             return nil
         }
-        let participantDescriptor = FetchDescriptor<SchemaV3.MatchParticipantRecord>(
-            predicate: #Predicate<SchemaV3.MatchParticipantRecord> { $0.matchId == matchId }
+        let participantDescriptor = FetchDescriptor<SchemaV1.MatchParticipantRecord>(
+            predicate: #Predicate<SchemaV1.MatchParticipantRecord> { $0.matchId == matchId }
         )
         let participants = try context.fetch(participantDescriptor)
         let nameById = Dictionary(
@@ -376,9 +376,9 @@ public actor SwiftDataMatchRepository: MatchRepository {
         return try CodablePayloadCoder.encode(payload)
     }
 
-    private func fetchMatchRecord(id: UUID, in context: ModelContext) throws -> SchemaV3.MatchRecord {
-        let descriptor = FetchDescriptor<SchemaV3.MatchRecord>(
-            predicate: #Predicate<SchemaV3.MatchRecord> { $0.id == id }
+    private func fetchMatchRecord(id: UUID, in context: ModelContext) throws -> SchemaV1.MatchRecord {
+        let descriptor = FetchDescriptor<SchemaV1.MatchRecord>(
+            predicate: #Predicate<SchemaV1.MatchRecord> { $0.id == id }
         )
         guard let match = try context.fetch(descriptor).first else {
             throw AppError(
