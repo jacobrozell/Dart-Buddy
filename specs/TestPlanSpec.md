@@ -29,15 +29,30 @@ Test-first policy for this project:
   - archive player -> setup/history behavior
 
 ## UI Tests (`Tests/UI/`)
-- Tab navigation smoke (all five tabs including Statistics)
+
+UI tests are split into **seven Xcode targets** (shared helpers in `Tests/UI/Support/`) so nightly CI can run suites in parallel without multi-hour monolithic runs. See [`docs/release/branch-strategy.md`](../docs/release/branch-strategy.md).
+
+| Scheme | Target | Classes | Nightly job |
+|--------|--------|---------|-------------|
+| `DartBuddyUISmoke` | `DartBuddyUISmokeUITests` | `MatchSetupUITests`, `ModesAndActivityUITests`, `MatchChromeUITests` | UI Smoke |
+| `DartBuddyUIGameplay` | `DartBuddyUIGameplayUITests` | `X01MatchUITests`, `CricketMatchUITests` | UI Gameplay |
+| `DartBuddyUIAccessibility` | `DartBuddyUIAccessibilityUITests` | `WCAGAccessibilityUITests` (~48 tests) | UI Accessibility |
+| `DartBuddyUILocalization` | `DartBuddyUILocalizationUITests` | `FrenchLocalizationSmokeUITests`, `GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`, `ChineseLocalizationSmokeUITests`, `ItalianLocalizationSmokeUITests` | UI Localization |
+| `DartBuddyUILandscape` | `DartBuddyUILandscapeUITests` | `RegressionUITests` (landscape + bot regressions; **iPhone 17 Pro Max**) | UI Landscape |
+| `DartBuddyUIChrome` | `DartBuddyUIChromeUITests` | `SettingsUITests`, `OnboardingUITests`, `PlayerDetailUITests`, `BotDetailUITests`, `HistoryDetailUITests` | UI Chrome |
+| `DartBuddyUILean` | `DartBuddyUILeanUITests` | `Lean1_0SmokeUITests` | **Release branches only** (`release/*`) |
+
+`DartBuddyUI` scheme runs all targets **except** `DartBuddyUILean` (full local UI pass). `DartBuddy` scheme runs unit + all UI targets for a complete local run.
+
+Other UI coverage:
 - Marketing screenshot harness (`-snapshot_*`, `-seed_demo` launch args)
-- Core happy paths (checkout, Cricket grid, Cut Throat Cricket + bot, settings persistence)
-- Localization smoke (`GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`) with `-AppleLanguages`
+- Localization uses `AppleLanguages` / `AppleLocale` via `DartBuddyUITestCase.launchApp(localeLanguage:localeIdentifier:)`
 
 UI test execution policy:
-- **1.0:** CI runs `DartBuddyCI` (unit + accessibility only). `DartBuddyUITests` run nightly (`.github/workflows/nightly-ui.yml`) and locally before release.
-- **Post-1.0:** Optional nightly UI job or expanded matrix after UI lock.
-- Prioritize robust unit + integration coverage first.
+- **PR / `dev`:** `DartBuddyCI` (unit + `Tests/Accessibility/` only).
+- **Nightly:** parallel matrix in `.github/workflows/nightly-ui.yml` (`CI_PARALLEL_TESTING: YES`).
+- **Release branches:** add `DartBuddyUILean` job for `ProductSurface` regressions.
+- Prioritize robust unit + integration coverage first; UI suites stay thin (observable UI state, not game rules).
 
 ---
 
@@ -64,13 +79,14 @@ UI test execution policy:
 - Quick add player from empty roster → auto-selected in setup
 - Statistics partial-match banner when active match matches filters
 - Migration recovery: retry / export / reset (manual RC — [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md))
-- Localization: `LocalizationParityTests` + `de`/`es`/`nl` smoke UI tests
+- Localization: `LocalizationParityTests` + `de`/`es`/`nl`/`fr`/`zh-Hans`/`it` smoke UI tests (`DartBuddyUILocalization` scheme)
 
 ---
 
 ## 5. CI Recommendations
 - Run unit + accessibility on PR via `DartBuddyCI` scheme (see `.github/workflows/ci.yml`)
-- Run `DartBuddyUITests` nightly and locally before release (see `.github/workflows/nightly-ui.yml`)
+- Run UI suites nightly via parallel matrix (see `.github/workflows/nightly-ui.yml`); run `DartBuddyUI` locally before release
+- Run `DartBuddyUILean` on `release/*` branches only
 - `DartBuddyPerformanceTests` (long-run bot simulations) is excluded from CI schemes; run locally or on nightly jobs
 - Track coverage trend for domain and repository layers
 
@@ -105,8 +121,10 @@ Use canonical tags from `specs/SwiftTestingTagsSpec.md`.
   - `ui`, `accessibility`, `smoke`
 - `LocalizationParityTests` (`Tests/Unit/`):
   - `unit`, `localization`, `critical`
-- `GermanLocalizationSmokeUITests` / `SpanishLocalizationSmokeUITests` / `DutchLocalizationSmokeUITests`:
+- `GermanLocalizationSmokeUITests` / `SpanishLocalizationSmokeUITests` / `DutchLocalizationSmokeUITests` / `FrenchLocalizationSmokeUITests` / `ChineseLocalizationSmokeUITests` / `ItalianLocalizationSmokeUITests`:
   - `ui`, `localization`, `smoke`
+- `Lean1_0SmokeUITests`:
+  - `ui`, `smoke`, `releaseGate`
 
 ---
 

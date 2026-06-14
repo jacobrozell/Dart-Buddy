@@ -1,25 +1,22 @@
 import XCTest
 
-/// Smoke tests with German locale; functional UI tests keep English via default launch.
-/// Lean 1.0 bundles English only — see `project.yml` and skip until 1.2+ locale restore.
 final class GermanLocalizationSmokeUITests: DartBuddyUITestCase {
-    private var leanLocalesUnavailable: String {
-        "Lean 1.0 bundles English resources only; restore de/es/nl in project.yml for 1.2+."
-    }
+    private let config = LocalizationSmokeUITestSupport.LocaleConfig(
+        languageCode: "de",
+        localeIdentifier: "de_DE",
+        playTabLabel: "Spielen",
+        playersTabLabel: "Spieler",
+        settingsTabLabel: "Einstellungen"
+    )
 
-    func testLeanTabBarUsesGermanLabels() throws {
-        throw XCTSkip(leanLocalesUnavailable)
-    }
-
-    func testFullSurfaceTabBarUsesGermanLabels() throws {
-        throw XCTSkip(leanLocalesUnavailable)
+    func testTabBarUsesGermanLabels() throws {
+        let app = LocalizationSmokeUITestSupport.launchForLocaleSmoke(self, config: config, extraArguments: ["-seed_players"])
+        LocalizationSmokeUITestSupport.assertTabBarUsesLocalizedLabels(in: app, config: config, timeout: timeout)
     }
 
     func testPlaySetupUsesGermanChrome() throws {
-        throw XCTSkip(leanLocalesUnavailable)
-    }
-
-    func testSettingsUsesGermanSectionLabels() throws {
-        throw XCTSkip(leanLocalesUnavailable)
+        let app = LocalizationSmokeUITestSupport.launchForLocaleSmoke(self, config: config, extraArguments: ["-seed_players"])
+        LocalizationSmokeUITestSupport.tapPlayTab(in: app, config: config, timeout: timeout)
+        LocalizationSmokeUITestSupport.assertPlaySetupChromeVisible(in: app, timeout: timeout)
     }
 }

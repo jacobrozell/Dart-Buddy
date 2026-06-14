@@ -32,7 +32,7 @@ struct ProductSurfaceTests {
         #expect(ProductSurface.showsCustomBots)
         #expect(ProductSurface.showsPlayerExport)
         #expect(ProductSurface.showsAccessibilityMarketing)
-        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl"])
+        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl", "fr", "zh-Hans", "it"])
     }
 
     @Test("Lean 1.0 only exposes X01 and Cricket gameplay")
@@ -58,7 +58,8 @@ struct ProductSurfaceTests {
             return
         }
 
-        for matchType in [MatchType.x01, .cricket, .baseball, .killer, .shanghai, .golf, .aroundTheClock, .fleet, .raid] {
+        for entry in GameModeCatalog.available {
+            guard let matchType = entry.matchType else { continue }
             #expect(ProductSurface.isMatchTypeReachable(matchType))
         }
     }

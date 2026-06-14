@@ -427,14 +427,16 @@ final class MatchSetupViewModel: ObservableObject {
            !ProductSurface.showsCoopModes {
             return
         }
-        setupCategory = selection.setupCategory
-        if let mode = selection.mode {
-            self.mode = mode
-        }
-        if let partyGame = selection.partyGame {
-            self.partyGame = partyGame
-        }
         selectedCatalogMatchType = selection.matchType
+        if let partyGame = selection.partyGame {
+            setupCategory = .party
+            self.partyGame = partyGame
+        } else {
+            setupCategory = selection.setupCategory
+            if let mode = selection.mode {
+                self.mode = mode
+            }
+        }
         normalizeForProductSurface()
         revalidate()
     }

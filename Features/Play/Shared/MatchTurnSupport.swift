@@ -76,6 +76,7 @@ enum MatchTurnSupport {
             snapshotPayload: result.session.latestSnapshot.payload
         )
         store.save(result.session)
+        await AchievementHooks.evaluateAfterUndo(result.session)
         return result
     }
 
@@ -94,6 +95,7 @@ enum MatchTurnSupport {
             snapshotPayload: undone.latestSnapshot.payload
         )
         store.save(undone)
+        await AchievementHooks.evaluateAfterUndo(undone)
         return undone
     }
 }
@@ -212,6 +214,7 @@ struct MatchTurnSubmitter {
         } else {
             try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: current.runtime))
         }
+        await AchievementHooks.evaluateAfterPersistedTurn(current)
     }
 }
 

@@ -56,6 +56,10 @@ struct PlayerStatsDetailView: View {
                     onSelectRecentMatch: onSelectRecentMatch
                 )
 
+                if dependencies.featureFlags.isEnabled(.enableAchievements) {
+                    PlayerAchievementGallerySection(progress: viewModel.achievementProgress)
+                }
+
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DS.Spacing.s3) {
                         Button(L10n.edit, action: onEdit)

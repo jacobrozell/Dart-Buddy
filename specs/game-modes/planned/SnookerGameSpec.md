@@ -4,6 +4,7 @@
 Define Snooker darts — reds and colours break-building on a standard board — for future implementation.
 
 **Status:** Planned (`party.snooker`).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Snooker](https://darts501.com/Games.html).
 
@@ -82,6 +83,7 @@ Replay restores table and scores.
 |---|---|
 | **Key prefix** | `play.rules.snooker.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.snooker.overview.title` |

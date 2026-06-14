@@ -12,7 +12,7 @@ from localizable_strings import format_entries, parse_entries
 ROOT = Path(__file__).resolve().parents[1]
 EN_PATH = ROOT / "Resources/en.lproj/Localizable.strings"
 DATA_DIR = ROOT / "Scripts/locale_data"
-SUPPORTED_LOCALES = ("de", "es", "nl")
+SUPPORTED_LOCALES = ("de", "es", "nl", "fr", "zh-Hans", "it")
 
 
 def load_translations(locale: str) -> dict[str, str]:

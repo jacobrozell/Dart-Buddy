@@ -4,6 +4,7 @@
 Define how Dart Buddy speaks **practice target callouts** and related in-session announcements. Covers voice catalog, user configuration, phrase templates, accessibility, and integration with existing turn-total speech ([`SettingsSpec.md`](SettingsSpec.md) § During Play).
 
 **Status:** Planned — ships with Call & Hit ([`game-modes/planned/CallAndHitGameSpec.md`](game-modes/planned/CallAndHitGameSpec.md)); reusable for future modes (Around the Clock prompts, checkout drills, full "180!" caller). **Guided Practice** extends phrases and defaults — see §6 Guided Play.
+**Estimated release:** `TBD`
 
 **Related:**
 - [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md) — Guided Practice consumer
@@ -261,6 +262,7 @@ No logging of spoken target content.
 ## 13. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `TBD` |
 | **Status** | Planned |
 | **Blocked by** | None (can land voice platform before Call & Hit UI) |
 | **Primary consumer** | [`CallAndHitGameSpec.md`](game-modes/planned/CallAndHitGameSpec.md) |

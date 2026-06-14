@@ -49,6 +49,26 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
              .enableOnlinePlay,
              .enableAdvancedDiagnostics:
             return false
+        case .enableCampaign:
+            if arguments.contains("-enable_campaign") {
+                return true
+            }
+            return false
+        case .enableDailyChallenge:
+            if arguments.contains("-enable_daily_challenge") {
+                return true
+            }
+            return false
+        case .enableLocalTournaments:
+            if arguments.contains("-enable_local_tournaments") {
+                return true
+            }
+            return false
+        case .enableOnlineTournaments:
+            if arguments.contains("-enable_online_tournaments") {
+                return true
+            }
+            return false
         case .enableVisionAutoScoring:
             if arguments.contains("-enable_vision_scoring") {
                 return true
@@ -63,7 +83,14 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             if arguments.contains("-enable_achievements") {
                 return true
             }
+            if arguments.contains("-ui_test_reset") {
+                return false
+            }
+            #if DEBUG
+            return true
+            #else
             return false
+            #endif
         case .enableVisualDartboardInput:
             if arguments.contains("-enable_visual_dartboard") {
                 return true

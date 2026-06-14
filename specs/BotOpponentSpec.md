@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Bot Opponent Specification
 
 ## 1. Purpose
@@ -145,6 +147,7 @@ Bot detail UI renders `BotDifficultyDisplayProfile` (hit %, visit range, checkou
 ## 12. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `DartBotEngine.swift`, `BotDifficulty` |

@@ -6,6 +6,7 @@ Define **Guided Play** — an accessibility-first play experience for blind and 
 **Product name:** **Guided Play** (Settings label). Avoid user-facing copy **“Blind mode”** — confuses with the party game [Blind Killer](game-modes/planned/BlindKillerGameSpec.md) (`party.blindKiller`).
 
 **Status:** **WIP / R&D** — documented for future exploration; **not scheduled for implementation.** Product decisions (human guide only vs camera + talk-back) are **open.**
+**Estimated release:** `TBD`
 
 **R&D brief:** [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) — dependencies, permissions, deferred decisions.
 
@@ -237,5 +238,6 @@ Key prefix: `guidedPlay.*`, `settings.guidedPlay.*`, `modes.catalog.practice.gui
 ## 14. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `TBD` |
 | **Status** | WIP / R&D |
 | **R&D brief** | [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) |

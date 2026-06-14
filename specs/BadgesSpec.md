@@ -7,6 +7,7 @@ Define how **local achievements** render on player profiles: medal components, g
 **Related specs:** Achievement domain — [`AchievementsSpec.md`](AchievementsSpec.md). Player screens — [`PlayerSpec.md`](PlayerSpec.md). Design tokens — [`DesignSystemSpec.md`](DesignSystemSpec.md). Campaign collectibles — [`CampaignSpec.md`](CampaignSpec.md) §9 (campaign badges, later phase).
 
 **Status:** Post-1.0 R&D — ships with local achievements; campaign-specific badge art is a later add-on.
+**Estimated release:** `2.0`
 
 ---
 
@@ -131,6 +132,7 @@ No business logic in views; locked/hidden rules come from repository + definitio
 
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `2.0` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | (spec authoring — no implementation yet) |
 | **Code** | (planned) `BadgeMedal.swift`, Player detail views |

@@ -4,6 +4,7 @@
 Define Bob's 27 — solo doubles practice from 27 points — for future implementation.
 
 **Status:** Planned (`practice.bobs27`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
+**Estimated release:** `TBD`
 
 References: [Target Darts — Bob's 27](https://www.target-darts.co.uk/dart-games), [darts501.com](https://darts501.com/Games.html).
 
@@ -83,6 +84,7 @@ Replay restores round and score.
 |---|---|
 | **Key prefix** | `play.rules.bobs27.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.bobs27.overview.title` |

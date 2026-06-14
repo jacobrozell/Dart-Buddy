@@ -47,7 +47,7 @@ Example route groups:
 ---
 
 ## 5. Testing
-- Limited UI tests in CI: tab smoke, marketing snapshot harness, core happy paths (see `Tests/UI/DartBuddyUITests.swift`).
+- Limited UI tests in CI: tab smoke, marketing snapshot harness, core happy paths (see `Tests/UI/` and `specs/TestPlanSpec.md` § UI suites).
 - Full UI automation matrix (edge flows, accessibility suite) deferred post-1.0 UI lock.
 - Deep link routing: `Tests/Unit/DeepLinkParserTests.swift`, `Tests/Unit/AppRouteRouterTests.swift` (see [`DeepLinkSpec.md`](DeepLinkSpec.md)).
 - App Intents routing: `Tests/Unit/IntentRoutingBridgeTests.swift` (see [`AppIntentsSpec.md`](AppIntentsSpec.md)).

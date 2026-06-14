@@ -7,6 +7,7 @@ Define **Tournaments** — a cross-cutting platform for running **multi-match co
 Remix Night ([`RemixNightGameSpec.md`](game-modes/planned/RemixNightGameSpec.md)) is a **preset tournament format** (random multi-mode mini-legs, leg-win scoring), not the tournament system itself. This spec covers the shell: create, register, draw, progression, host/moderator tools, spectate (online), and history — reusable for pub knockouts, mode-mixed gauntlets, and remote events.
 
 **Status:** Future / post-1.0 R&D. Not blocking lean 1.0 ship.
+**Estimated release:** `2.0+`
 
 ### Product priority (shared with [`OnlinePlaySpec.md`](OnlinePlaySpec.md))
 

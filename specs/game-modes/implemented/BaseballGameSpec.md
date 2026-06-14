@@ -1,3 +1,5 @@
+**Estimated release:** `1.1`
+
 # Baseball Game Specification
 
 ## 1. Purpose
@@ -104,6 +106,7 @@ Authoritative payload fields: [`SwiftData.md`](../../SwiftData.md) § Payload ve
 |---|---|
 | **Key prefix** | `play.rules.baseball.` |
 | **Shipped in app** | Yes (`GameRulesCatalog.baseball`) |
+| **Estimated release** | `1.1` |
 
 ### Overview
 | **Title key** | `play.rules.baseball.overview.title` |

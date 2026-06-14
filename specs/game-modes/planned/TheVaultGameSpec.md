@@ -5,6 +5,7 @@
 Define **The Vault** — a cooperative heist where **2–4 humans** share a dart pool and open **5 locks** by hitting ordered segment combos. Wrong hits reset individual locks; repeated failures trigger an alarm.
 
 **Status:** Planned (`coop.theVault`).  
+**Estimated release:** `2.0+`
 **Brainstorm origin:** [`FutureIdeas/custom-games-brainstorm.md`](../../../FutureIdeas/custom-games-brainstorm.md) §20.
 
 **Related specs:**

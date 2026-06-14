@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Browse all 28 game modes (5 shipped + 23 planned), search the catalog, and quick-start into Play setup.
+Browse all 34 game modes (22 shipped + 12 planned), search the catalog, and quick-start into Play setup.
 
 ## Tab placement
 
@@ -40,6 +40,7 @@ Browse all 28 game modes (5 shipped + 23 planned), search the catalog, and quick
 ## Game mode families (planned addendum)
 
 **Status:** Approved direction · not implemented  
+**Estimated release:** `1.3`
 **Full plan:** [`docs/plans/game-mode-families.md`](../docs/plans/game-mode-families.md)
 
 Group related rulesets under **one catalog card** with a **variant sheet** on tap. Engines, `MatchType`, and persistence stay separate; family is browse/setup metadata only.

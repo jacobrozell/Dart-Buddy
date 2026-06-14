@@ -1,3 +1,5 @@
+**Estimated release:** `1.2`
+
 # Training Bot Specification
 
 ## 1. Purpose
@@ -98,6 +100,7 @@ Log event names (add to [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAnaly
 ## 9. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.2` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `TrainingBotSkillResolver.swift`, `PlayerDetailView` TrainingPartnerSection |
