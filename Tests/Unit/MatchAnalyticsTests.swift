@@ -85,4 +85,82 @@ struct MatchAnalyticsTests {
         #expect(metadata["gameModeId"] == "standard.x01")
         #expect(metadata["status"] == MatchStatus.inProgress.rawValue)
     }
+
+    @Test
+    func metadataOmitsParticipantDisplayNames() {
+        let humanName = "Jacob Rozell"
+        let botRosterName = "Medium Bot"
+        let participants = [
+            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: humanName, turnOrder: 0),
+            MatchParticipant(
+                playerId: UUID(),
+                displayNameAtMatchStart: botRosterName,
+                turnOrder: 1,
+                botDifficultyRaw: BotDifficulty.medium.rawValue,
+                botKindRaw: BotKind.preset.rawValue,
+                botEffectiveTierRaw: BotDifficulty.medium.rawValue
+            )
+        ]
+
+        let metadata = MatchAnalytics.metadata(
+            for: .x01,
+            config: .x01(
+                MatchConfigX01(
+                    startScore: 501,
+                    legsToWin: 1,
+                    setsEnabled: false,
+                    setsToWin: nil,
+                    checkoutMode: .doubleOut
+                )
+            ),
+            participantCount: participants.count,
+            participants: participants,
+            startSource: .setup,
+            extra: [
+                "displayName": humanName,
+                "playerName": humanName,
+                "botName": botRosterName
+            ]
+        )
+
+        for key in metadata.keys {
+            #expect(!AnalyticsMetadataKeys.isBlockedPersonalDataKey(key))
+        }
+        for value in metadata.values {
+            #expect(!value.contains(humanName))
+            #expect(!value.contains(botRosterName))
+        }
+        #expect(metadata["botDifficulty"] == "medium")
+    }
+
+    @Test
+    func forfeitMetadataIncludesResolutionAndDuration() throws {
+        let session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(
+                MatchConfigX01(
+                    startScore: 501,
+                    legsToWin: 1,
+                    setsEnabled: false,
+                    setsToWin: nil,
+                    checkoutMode: .doubleOut
+                )
+            ),
+            participants: [
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+        )
+
+        let metadata = MatchAnalytics.forfeitMetadata(
+            for: session,
+            resolution: "automatic",
+            durationSeconds: 120
+        )
+
+        #expect(metadata["resolution"] == "automatic")
+        #expect(metadata["durationSeconds"] == "120")
+        #expect(metadata["eventCount"] == "0")
+        #expect(metadata["participantCount"] == "2")
+    }
 }

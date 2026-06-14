@@ -67,11 +67,6 @@ public enum FirebaseAnalyticsEventMapping {
     }
 
     private static func sanitizedParameters(from metadata: [String: String]) -> [String: String] {
-        metadata.reduce(into: [:]) { result, pair in
-            guard allowlistedParameterKeys.contains(pair.key) else { return }
-            let value = String(pair.value.prefix(100))
-            guard !value.isEmpty else { return }
-            result[pair.key] = value
-        }
+        FirebaseMetadataSanitizer.sanitize(metadata, allowedKeys: allowlistedParameterKeys)
     }
 }

@@ -53,6 +53,7 @@ public enum AppBootstrapper {
         )
         await DemoSeeder.seedIfRequested(dependencies)
         await PrimaryPlayerBootstrap.promoteOldestHumanIfNeeded(using: dependencies.playerRepository)
+        await AnalyticsUserIdentity.sync(from: dependencies.playerRepository)
         logger.info(
             .appLifecycle,
             eventName: "app_bootstrap_ready",

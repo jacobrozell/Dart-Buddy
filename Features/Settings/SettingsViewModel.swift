@@ -178,6 +178,7 @@ final class SettingsViewModel: ObservableObject {
             pendingMatchPlayerSelections.clearAll()
             LocalAppStateReset.clearAllPersistedAuxiliaryState()
             LocalAppStateReset.notifyDidReset()
+            AnalyticsUserIdentity.sync(userId: nil)
             settings = try await repository.fetchSettings()
             if let settings { userPreferencesStore.apply(settings) }
             state = .ready

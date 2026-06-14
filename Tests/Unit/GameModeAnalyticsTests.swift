@@ -26,22 +26,4 @@ struct GameModeAnalyticsTests {
         #expect(metadata["gameModeId"] == GameModeCatalog.entry(for: .x01)?.id)
         #expect(metadata["source"] == "test")
     }
-
-    @Test
-    func sessionMetadataIncludesProgressAndStatus() throws {
-        let session = try MatchLifecycleService.createMatch(
-            type: .cricket,
-            config: .cricket(MatchConfigCricket()),
-            participants: [
-                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
-                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
-            ]
-        )
-
-        let metadata = GameModeAnalytics.metadata(for: session)
-
-        #expect(metadata["gameModeId"] == "standard.cricket")
-        #expect(metadata["status"] == MatchLifecycleStatus.inProgress.rawValue)
-        #expect(metadata["eventCount"] == "0")
-    }
 }

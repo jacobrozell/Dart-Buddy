@@ -32,21 +32,7 @@ public enum FirebaseCrashlyticsEventMapping {
         "settings_reset_failed": 1011
     ]
 
-    private static let allowlistedParameterKeys: Set<String> = [
-        "matchType",
-        "errorCode",
-        "layer",
-        "status",
-        "participantCount",
-        "operation",
-        "schemaVersion",
-        "fromSchema",
-        "toSchema",
-        "legIndex",
-        "setIndex",
-        "source",
-        "isBot"
-    ]
+    private static let allowlistedParameterKeys: Set<String> = AnalyticsMetadataKeys.crashlyticsParameters
 
     public static func nonFatalError(for entry: LogEntry, appVersion: String?) -> NSError? {
         guard entry.level >= .error,
@@ -67,11 +53,6 @@ public enum FirebaseCrashlyticsEventMapping {
     }
 
     private static func sanitizedParameters(from metadata: [String: String]) -> [String: String] {
-        metadata.reduce(into: [:]) { result, pair in
-            guard allowlistedParameterKeys.contains(pair.key) else { return }
-            let value = String(pair.value.prefix(100))
-            guard !value.isEmpty else { return }
-            result[pair.key] = value
-        }
+        FirebaseMetadataSanitizer.sanitize(metadata, allowedKeys: allowlistedParameterKeys)
     }
 }

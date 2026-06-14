@@ -1,6 +1,9 @@
 import Foundation
 
 /// Product-health telemetry for computer-opponent usage in matches.
+///
+/// Emits preset/training/custom **kinds** and difficulty **tiers** only — never
+/// `displayNameAtMatchStart` or other roster labels.
 enum BotAnalytics {
     static func metadata(for participants: [MatchParticipant]) -> [String: String] {
         let bots = participants.filter(\.isBot)

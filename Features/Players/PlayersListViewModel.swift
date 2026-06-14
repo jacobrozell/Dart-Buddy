@@ -118,6 +118,7 @@ final class PlayersListViewModel: ObservableObject {
             try await repository.deletePlayer(playerId: id)
             players.remove(at: idx)
             applySearch()
+            await AnalyticsUserIdentity.sync(from: repository)
             return true
         } catch {
             errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")
@@ -164,6 +165,7 @@ final class PlayersListViewModel: ObservableObject {
                 _ = try await repository.relinquishPrimaryPlayer(playerId: savedId)
             }
             await onAppear()
+            await AnalyticsUserIdentity.sync(from: repository)
         } catch {
             state = .error
             errorMessageKey = messageKey(for: error, fallback: "error.repository.storage")

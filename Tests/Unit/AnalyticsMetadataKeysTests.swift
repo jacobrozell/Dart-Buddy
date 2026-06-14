@@ -25,6 +25,13 @@ struct AnalyticsMetadataKeysTests {
     }
 
     @Test
+    func crashlyticsParametersAreSubsetOfDefaultRedactionAllowlist() {
+        for key in AnalyticsMetadataKeys.crashlyticsParameters {
+            #expect(AnalyticsMetadataKeys.defaultRedactionAllowed.contains(key))
+        }
+    }
+
+    @Test
     func defaultRedactionIncludesSensitiveIdentifiers() {
         for key in ["matchId", "playerId", "correlationId", "settingsId"] {
             #expect(AnalyticsMetadataKeys.defaultRedactionAllowed.contains(key))

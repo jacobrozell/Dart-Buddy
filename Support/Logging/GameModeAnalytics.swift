@@ -36,21 +36,6 @@ enum GameModeAnalytics {
             result.merge(BotAnalytics.metadata(for: participants)) { _, new in new }
         }
 
-        return result
-    }
-
-    static func metadata(
-        for session: MatchLifecycleSession,
-        extra: [String: String] = [:]
-    ) -> [String: String] {
-        var merged = extra
-        merged.merge(MatchTurnSupport.matchProgressMetadata(for: session)) { _, new in new }
-        return metadata(
-            for: session.runtime.type,
-            participantCount: session.runtime.participants.count,
-            participants: session.runtime.participants,
-            status: session.runtime.status,
-            extra: merged
-        )
+        return AnalyticsMetadataKeys.withoutPersonalData(result)
     }
 }

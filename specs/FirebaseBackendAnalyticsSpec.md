@@ -71,14 +71,25 @@ Rules:
   - app version
   - anonymous installation/session ids
 
-Do not include:
+Do not include on individual events:
+- player or bot **display names** (roster labels, usernames, profile names)
+- per-event player identifiers (`playerId`, `forfeited_by_player_id`, etc.)
 - precise location
 - ad identifiers
 - freeform personal notes
 
+**Firebase User ID (allowed):** After bootstrap, the app calls `Analytics.setUserID` via `AnalyticsUserIdentity` (`Support/Logging/AnalyticsUserIdentity.swift`). Phase 1 uses the designated **primary human** player's UUID (lowercased, no name). Phase 2 (Firebase Auth + online play) will prefer the authenticated Firebase UID when signed in, with the local primary UUID as fallback until account linking is complete. Bot profiles are never used as User ID. Clearing local data clears User ID.
+
+Per-event metadata still never includes player UUIDs — User ID is the only cross-session identity surface.
+
+Bot telemetry uses difficulty **tiers** (`easy`, `medium`, `pro`) and bot **kinds** (`preset`, `training`, `custom`) only — never roster display names.
+
 ---
 
 ## 7. Privacy and Compliance
+- **No personal information in event parameters:** Firebase events pass through an allowlist plus a personal-data blocklist (`AnalyticsMetadataKeys.isBlockedPersonalDataKey`). Names and name-like metadata keys are dropped before Firebase Analytics and Crashlytics sinks.
+- **Anonymous User ID:** Primary human player UUID (Phase 1) or Firebase Auth UID when signed in (Phase 2) may be set as Firebase User ID only (see §6). It is not duplicated on individual events.
+- **Online play (Phase 2+):** When Firebase Auth ships, call `AnalyticsUserIdentity.sync(primaryPlayer:authenticatedFirebaseUID:)` after sign-in/sign-out. Online match events remain PII-free; correlate sessions via User ID and future online-specific keys (e.g. `matchVisibility`: `local` / `online`) — not player names or per-event UUIDs.
 - Respect App Tracking Transparency boundaries (no tracking profile usage).
 - Maintain clear privacy disclosure updates before enabling each Firebase service.
 - Support opt-out path for non-essential diagnostics where required.

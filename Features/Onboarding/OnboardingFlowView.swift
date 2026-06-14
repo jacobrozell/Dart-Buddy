@@ -153,6 +153,7 @@ struct OnboardingFlowView: View {
             if !skippedFromWelcome, let draft = rosterDraft {
                 await persistRoster(draft)
                 store.saveExperienceTier(draft.botDifficulty)
+                await AnalyticsUserIdentity.sync(from: dependencies.playerRepository)
             }
             store.markCompleted()
 

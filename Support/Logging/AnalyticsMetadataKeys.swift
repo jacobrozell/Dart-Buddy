@@ -84,6 +84,44 @@ public enum AnalyticsMetadataKeys {
         "created_player"
     ]
 
+    /// Keys that must never reach analytics sinks, even if accidentally allowlisted.
+    private static let blockedPersonalDataKeys: Set<String> = [
+        "playerId",
+        "playerName",
+        "displayName",
+        "displayNameAtMatchStart",
+        "botName",
+        "userName",
+        "linkedPlayerId",
+        "forfeited_by_player_id",
+        "winner_player_id",
+        "notes"
+    ]
+
+    /// Substrings matched against lowercased metadata keys to catch name-like fields.
+    private static let blockedPersonalDataKeyFragments: [String] = [
+        "playername",
+        "displayname",
+        "botname",
+        "username",
+        "profilename",
+        "linkedplayer",
+        "participantname",
+        "rostername"
+    ]
+
+    public static func isBlockedPersonalDataKey(_ key: String) -> Bool {
+        if blockedPersonalDataKeys.contains(key) {
+            return true
+        }
+        let lowercased = key.lowercased()
+        return blockedPersonalDataKeyFragments.contains { lowercased.contains($0) }
+    }
+
+    public static func withoutPersonalData(_ metadata: [String: String]) -> [String: String] {
+        metadata.filter { !isBlockedPersonalDataKey($0.key) }
+    }
+
     private static let generalRedaction: Set<String> = [
         "errorCode",
         "layer",
@@ -99,6 +137,8 @@ public enum AnalyticsMetadataKeys {
         "elapsedMs",
         "participantCount",
         "eventCount",
+        "durationSeconds",
+        "resolution",
         "legIndex",
         "setIndex",
         "status",
@@ -120,8 +160,8 @@ public enum AnalyticsMetadataKeys {
         "layer",
         "status",
         "participantCount",
-        "participant_count",
-        "event_count",
+        "eventCount",
+        "durationSeconds",
         "resolution",
         "operation",
         "schemaVersion",
@@ -145,4 +185,20 @@ public enum AnalyticsMetadataKeys {
         .union(clientEnvironment)
 
     public static let firebaseParameters: Set<String> = generalFirebase.union(clientEnvironment)
+
+    public static let crashlyticsParameters: Set<String> = [
+        "matchType",
+        "errorCode",
+        "layer",
+        "status",
+        "participantCount",
+        "operation",
+        "schemaVersion",
+        "fromSchema",
+        "toSchema",
+        "legIndex",
+        "setIndex",
+        "source",
+        "isBot"
+    ]
 }

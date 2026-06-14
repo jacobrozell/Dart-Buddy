@@ -88,40 +88,4 @@ struct BotAnalyticsTests {
         #expect(metadata["botDifficulty"] == nil)
         #expect(metadata["botDifficulties"] == nil)
     }
-
-    @Test
-    func gameModeMetadataMergesBotRosterFields() {
-        let participants = [
-            MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "Jacob", turnOrder: 0),
-            MatchParticipant(
-                playerId: UUID(),
-                displayNameAtMatchStart: "Bot",
-                turnOrder: 1,
-                botDifficultyRaw: BotDifficulty.medium.rawValue,
-                botKindRaw: BotKind.preset.rawValue,
-                botEffectiveTierRaw: BotDifficulty.medium.rawValue
-            )
-        ]
-
-        let metadata = MatchAnalytics.metadata(
-            for: .x01,
-            config: .x01(
-                MatchConfigX01(
-                    startScore: 501,
-                    legsToWin: 1,
-                    setsEnabled: false,
-                    setsToWin: nil,
-                    checkoutMode: .doubleOut
-                )
-            ),
-            participantCount: participants.count,
-            participants: participants,
-            startSource: .setup
-        )
-
-        #expect(metadata["gameModeId"] == "standard.x01")
-        #expect(metadata["botDifficulty"] == "medium")
-        #expect(metadata["botKind"] == "preset")
-        #expect(metadata["configStartScore"] == "501")
-    }
 }

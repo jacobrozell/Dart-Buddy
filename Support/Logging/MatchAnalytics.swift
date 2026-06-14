@@ -43,6 +43,17 @@ enum MatchAnalytics {
         )
     }
 
+    static func forfeitMetadata(
+        for session: MatchLifecycleSession,
+        resolution: String,
+        durationSeconds: Int
+    ) -> [String: String] {
+        var metadata = metadata(for: session)
+        metadata["durationSeconds"] = String(durationSeconds)
+        metadata["resolution"] = resolution
+        return metadata
+    }
+
     static func resumeMetadata(
         for match: MatchSummary,
         startSource: MatchStartSource
