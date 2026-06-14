@@ -64,7 +64,7 @@ public extension AppError {
             severity: .fault,
             isRecoverable: true,
             userMessageKey: "error.migration.failed",
-            debugContext: [:],
+            debugContext: ["underlyingError": String(describing: error)],
             underlyingError: error
         )
     }

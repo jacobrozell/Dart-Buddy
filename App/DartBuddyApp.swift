@@ -75,22 +75,6 @@ struct DartBuddyApp: App {
             MainTabView(dependencies: dependencies, pendingDeepLink: pendingDeepLink)
                 .modelContainer(dependencies.modelContainer)
                 .uiTestAccessibilityDynamicTypeOverride()
-        case let .migrationRecovery(context):
-            MigrationRecoveryView(
-                context: context,
-                retryHandler: {
-                    await refreshBootstrapResult()
-                    if case .ready = self.bootstrapResult { return true }
-                    return false
-                },
-                resetHandler: {
-                    AppStoreReset.deleteSQLiteStore()
-                    LocalAppStateReset.clearAllPersistedAuxiliaryState()
-                    await refreshBootstrapResult()
-                    if case .ready = self.bootstrapResult { return true }
-                    return false
-                }
-            )
         }
     }
 }
