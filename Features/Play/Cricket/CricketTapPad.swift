@@ -118,7 +118,7 @@ struct CricketTapPad: View {
                     }
                 }
             }
-            bullMissRow(showSpacer: true)
+            bullMissRow(showSpacer: false)
             controlRow()
             enterButton()
         }
@@ -231,8 +231,7 @@ struct CricketTapPad: View {
                     .foregroundStyle(Brand.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: displayVisitSlotMinHeight)
-                    .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
+                    .scoringPadVisitSlotStyle(minHeight: displayVisitSlotMinHeight)
             }
         }
         .accessibilityHidden(true)

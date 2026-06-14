@@ -72,7 +72,7 @@ enum GameplayLayout {
         guard usesAccessibilityTabListLayout(dynamicTypeSize: dynamicTypeSize) else {
             return DS.Spacing.s6
         }
-        let tabBarClearance = 72 * DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
+        let tabBarClearance = 88 * DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
         return DS.Spacing.s6 + tabBarClearance
     }
 

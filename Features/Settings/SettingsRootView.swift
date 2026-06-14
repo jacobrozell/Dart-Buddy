@@ -101,6 +101,13 @@ struct SettingsRootView: View {
     }
 
     @ViewBuilder
+    private func settingsSectionFooter(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(.footnote)
+            .foregroundStyle(usesBrandSettingsPalette ? Brand.textSecondary : Color.secondary)
+    }
+
+    @ViewBuilder
     private var settingsPlaceholderBody: some View {
         switch viewModel.state {
         case let .error(messageKey):
@@ -185,7 +192,7 @@ struct SettingsRootView: View {
             Text(L10n.appearanceSection)
         } footer: {
             if settings.appearanceModeRaw != "dark" {
-                Text("settings.theme.footer")
+                settingsSectionFooter("settings.theme.footer")
             }
         }
         .brandFormRowBackground(when: usesBrand)
@@ -204,7 +211,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsStartingModeSection)
         } footer: {
-            Text(L10n.settingsStartingModeFooter)
+            settingsSectionFooter(L10n.settingsStartingModeFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -240,7 +247,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsMatchDefaultsSection)
         } footer: {
-            Text(L10n.settingsMatchDefaultsFooter)
+            settingsSectionFooter(L10n.settingsMatchDefaultsFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -279,7 +286,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.x01DefaultsSection)
         } footer: {
-            Text(L10n.x01DefaultsFooter)
+            settingsSectionFooter(L10n.x01DefaultsFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -322,7 +329,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsDuringPlaySection)
         } footer: {
-            Text(L10n.settingsDuringPlayFooter)
+            settingsSectionFooter(L10n.settingsDuringPlayFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -343,7 +350,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsBotOpponentsSection)
         } footer: {
-            Text(L10n.settingsBotOpponentsFooter)
+            settingsSectionFooter(L10n.settingsBotOpponentsFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -424,7 +431,7 @@ struct SettingsRootView: View {
             Text(L10n.aboutSection)
         } footer: {
             if AppLinks.buyDeveloperCoffee != nil {
-                Text(L10n.settingsBuyDeveloperCoffeeFooter)
+                settingsSectionFooter(L10n.settingsBuyDeveloperCoffeeFooter)
             }
         }
         .brandFormRowBackground(when: usesBrand)

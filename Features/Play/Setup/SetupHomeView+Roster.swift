@@ -115,7 +115,7 @@ extension SetupHomeView {
             .rosterActionButtonChrome(
                 background: Brand.cardElevated,
                 border: Brand.textSecondary.opacity(0.35),
-                matchesSiblingHeight: !dynamicTypeSize.isAccessibilitySize
+                matchesSiblingHeight: true
             )
             }
             Button { showsAddPlayerSheet = true } label: {
@@ -126,7 +126,7 @@ extension SetupHomeView {
             .accessibilityIdentifier("setup_addPlayer")
             .rosterActionButtonChrome(
                 background: Brand.green,
-                matchesSiblingHeight: !dynamicTypeSize.isAccessibilitySize
+                matchesSiblingHeight: true
             )
         }
     }

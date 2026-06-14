@@ -257,39 +257,11 @@ struct SetupHomeView: View {
                 .foregroundStyle(Brand.textPrimary)
                 .accessibilityHidden(true)
 
-            HStack(alignment: .top, spacing: DS.Spacing.s3) {
-                HStack(alignment: .top, spacing: DS.Spacing.s3) {
-                    if let entry = selectedCatalogEntry, let matchType = entry.matchType {
-                        GameModeBadge(type: matchType, size: 36)
-                    }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title"))
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(Brand.textPrimary)
-                        Text(modeConfigSummary)
-                            .font(.subheadline)
-                            .foregroundStyle(Brand.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(selectedModeAccessibilityLabel)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier("setup_selectedModeName")
-                Spacer(minLength: 0)
-                Button(action: changeModeTapped) {
-                    Text(L10n.string("play.setup.changeMode"))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Brand.green)
-                        .padding(.horizontal, DS.Spacing.s2)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("setup_changeModeButton")
+            if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
+                accessibilitySelectedModeCard
+            } else {
+                compactSelectedModeCard
             }
-            .padding(DS.Spacing.s3)
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
 
             if learnToPlayMatchType != nil {
                 learnToPlayButton
@@ -318,6 +290,62 @@ struct SetupHomeView: View {
                 }
             }
         }
+    }
+
+    private var selectedModeSummaryBlock: some View {
+        HStack(alignment: .top, spacing: DS.Spacing.s3) {
+            if let entry = selectedCatalogEntry, let matchType = entry.matchType {
+                GameModeBadge(type: matchType, size: 36)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                Text(selectedCatalogEntry?.localizedName ?? L10n.string("play.x01.title"))
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Brand.textPrimary)
+                Text(modeConfigSummary)
+                    .font(.subheadline)
+                    .foregroundStyle(Brand.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(selectedModeAccessibilityLabel)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("setup_selectedModeName")
+    }
+
+    private var changeModeButton: some View {
+        Button(action: changeModeTapped) {
+            Text(L10n.string("play.setup.changeMode"))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Brand.green)
+                .padding(.horizontal, DS.Spacing.s2)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("setup_changeModeButton")
+    }
+
+    private var compactSelectedModeCard: some View {
+        HStack(alignment: .top, spacing: DS.Spacing.s3) {
+            selectedModeSummaryBlock
+            Spacer(minLength: DS.Spacing.s2)
+            changeModeButton
+        }
+        .padding(DS.Spacing.s3)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+    }
+
+    private var accessibilitySelectedModeCard: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            selectedModeSummaryBlock
+            HStack {
+                Spacer(minLength: 0)
+                changeModeButton
+            }
+        }
+        .padding(DS.Spacing.s3)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 
     private var activeMatchTypeForSetupOptions: MatchType? {
@@ -415,6 +443,7 @@ struct SetupHomeView: View {
         VStack(spacing: 6) {
             PrimaryActionButton(
                 title: setupViewModel.isSubmitting ? L10n.setupStartingButton : L10n.setupStartButton,
+                accent: .green,
                 isEnabled: setupViewModel.canStart && !setupViewModel.isSubmitting
             ) {
                 startTask?.cancel()

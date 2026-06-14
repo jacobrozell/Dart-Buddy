@@ -296,7 +296,7 @@ struct CricketMarkCell: View {
         if isKnockedOut {
             return Brand.textSecondary
         }
-        return marks >= 3 ? PlayerVisualViews.accentColor(token: colorToken) : Brand.textPrimary
+        return marks >= 1 ? PlayerVisualViews.accentColor(token: colorToken) : Brand.textPrimary
     }
 
     var body: some View {

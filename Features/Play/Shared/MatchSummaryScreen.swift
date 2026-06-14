@@ -149,11 +149,11 @@ struct MatchSummaryScreen: View {
         .frame(
             maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass),
             maxHeight: isRegularWidth ? .infinity : nil,
-            alignment: .top
+            alignment: isRegularWidth ? .center : .top
         )
         .frame(maxWidth: .infinity, alignment: isRegularWidth ? .center : .leading)
         .padding(DS.Spacing.s4)
-        .padding(.top, isRegularWidth ? DS.Spacing.s6 : 0)
+        .padding(.vertical, isRegularWidth ? DS.Spacing.s6 : 0)
     }
 
     private func celebrationHeader(trophyPointSize: CGFloat) -> some View {
@@ -416,6 +416,7 @@ struct MatchSummaryScreen: View {
             HStack(spacing: DS.Spacing.s3) {
                 PrimaryActionButton(
                     title: LocalizedStringKey(viewModel.rematchTitleKey),
+                    accent: .green,
                     isEnabled: viewModel.canRematch,
                     isLoading: isRematching,
                     accessibilityIdentifier: "matchSummaryRematch",
@@ -453,6 +454,7 @@ struct MatchSummaryScreen: View {
         }
         PrimaryActionButton(
             title: LocalizedStringKey(viewModel.rematchTitleKey),
+            accent: .green,
             isEnabled: viewModel.canRematch,
             isLoading: isRematching,
             accessibilityIdentifier: "matchSummaryRematch",

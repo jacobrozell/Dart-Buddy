@@ -40,8 +40,11 @@ struct PlayersRootView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            playersBody
-                .tabRootScreenBackground()
+            VStack(spacing: 0) {
+                playersListHeader
+                playersBody
+            }
+            .tabRootScreenBackground()
                 .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
                 .navigationBarHidden(true)
                 .safeAreaInset(edge: .bottom) {
@@ -158,9 +161,6 @@ struct PlayersRootView: View {
                 actionTask?.cancel()
                 retryTask?.cancel()
             }
-        }
-        .safeAreaInset(edge: .top, spacing: DS.Spacing.s3) {
-            playersListHeader
         }
     }
 

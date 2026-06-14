@@ -27,17 +27,31 @@ struct StandardMatchScoringBody<Active: View, Scoreboard: View, PadChrome: View,
     }
 
     private var bottomRegion: some View {
-        VStack(spacing: DS.Spacing.s2) {
-            if scoreboardSharesBottomRow {
-                scoreboardScroll
+        Group {
+            if scoreboardFillsRemainingHeight {
+                VStack(spacing: DS.Spacing.s2) {
+                    if scoreboardSharesBottomRow {
+                        scoreboardScroll
+                    }
+                    padChrome()
+                        .frame(maxWidth: .infinity)
+                    pad()
+                        .frame(maxWidth: .infinity, alignment: .top)
+                }
+            } else {
+                VStack(spacing: DS.Spacing.s2) {
+                    Spacer(minLength: 0)
+                    VStack(spacing: DS.Spacing.s2) {
+                        if scoreboardSharesBottomRow {
+                            scoreboardScroll
+                        }
+                        padChrome()
+                            .frame(maxWidth: .infinity)
+                        pad()
+                            .frame(maxWidth: .infinity, alignment: .top)
+                    }
+                }
             }
-            padChrome()
-                .frame(maxWidth: .infinity)
-            if !scoreboardFillsRemainingHeight {
-                Spacer(minLength: 0)
-            }
-            pad()
-                .frame(maxWidth: .infinity, alignment: .top)
         }
     }
 

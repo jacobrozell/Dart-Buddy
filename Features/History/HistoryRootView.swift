@@ -269,7 +269,7 @@ struct MatchHistoryCard: View {
                         Text("\(standing.score)")
                             .font(.title3.weight(.bold))
                             .monospacedDigit()
-                            .foregroundStyle(Brand.textPrimary)
+                            .foregroundStyle(standing.isWinner ? Brand.textPrimary : Brand.textSecondary)
                     }
                 }
                 .padding(.top, 2)
