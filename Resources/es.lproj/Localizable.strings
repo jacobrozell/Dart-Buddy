@@ -674,9 +674,7 @@
 "play.x01.scoreCard.averageFormat" = "Promedio de tres dardos %.2f";
 "scoring.visitDartsFormat" = "Visita dardos %@";
 "cricket.target.bull" = "Bull";
-"scoring.pad.bullLabel" = "25";
-"scoring.pad.bullLabel.armedDouble" = "50";
-"scoring.pad.bull.hint.armedDouble" = "Cuenta como toro interior.";
+"scoring.pad.bullLabel" = "BULL";
 "scoring.pad.missLabel" = "MISS";
 "scoring.checkout.bull" = "Bull";
 "scoring.checkout.doubleFormat" = "D%d";

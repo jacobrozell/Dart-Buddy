@@ -170,13 +170,11 @@ struct CricketTapPad: View {
     }
 
     private func bullKey(minHeight: CGFloat? = nil) -> some View {
-        let showsInnerBull = selectedMultiplier == .double
-        return ScoringPadKey(
-            title: ScoringPadLabels.bullTitle(armedMultiplier: selectedMultiplier),
+        ScoringPadKey(
+            title: L10n.string("scoring.pad.bullLabel"),
             font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
             minHeight: minHeight ?? displayBullMissKeyMinHeight,
             accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
-            accessibilityHint: showsInnerBull ? L10n.string("scoring.pad.bull.hint.armedDouble") : nil,
             identifier: "cricket_bull",
             action: appendBull
         )

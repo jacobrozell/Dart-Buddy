@@ -62,11 +62,4 @@ enum ScoringPadLabels {
         case .single: return ""
         }
     }
-
-    /// Outer bull (25) by default; inner bull (50) when DOUBLE is armed.
-    static func bullTitle(armedMultiplier: DartMultiplier) -> String {
-        armedMultiplier == .double
-            ? L10n.string("scoring.pad.bullLabel.armedDouble")
-            : L10n.string("scoring.pad.bullLabel")
-    }
 }

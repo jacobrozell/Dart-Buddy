@@ -674,9 +674,7 @@
 "play.x01.scoreCard.averageFormat" = "3-dart gemiddelde %.2f";
 "scoring.visitDartsFormat" = "Beurt-darts %@";
 "cricket.target.bull" = "Bull";
-"scoring.pad.bullLabel" = "25";
-"scoring.pad.bullLabel.armedDouble" = "50";
-"scoring.pad.bull.hint.armedDouble" = "Telt als binnenbull.";
+"scoring.pad.bullLabel" = "BULL";
 "scoring.pad.missLabel" = "MISS";
 "scoring.checkout.bull" = "Bull";
 "scoring.checkout.doubleFormat" = "D%d";

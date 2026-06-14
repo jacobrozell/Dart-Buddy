@@ -194,17 +194,11 @@ struct DartNumberPad: View {
     }
 
     private func segmentKeyTitle(_ value: Int) -> String {
-        if value == 25 {
-            return ScoringPadLabels.bullTitle(armedMultiplier: selectedMultiplier)
-        }
-        return String(value)
+        value == 25 ? L10n.string("scoring.pad.bullLabel") : String(value)
     }
 
     private func numberKey(_ value: Int, minHeight: CGFloat? = nil) -> some View {
         let enabled = value == 25 ? showsBull : isSegmentEnabled(value)
-        let bullHint = value == 25 && selectedMultiplier == .double
-            ? L10n.string("scoring.pad.bull.hint.armedDouble")
-            : nil
         return ScoringPadKey(
             title: segmentKeyTitle(value),
             font: numberKeyFont,
@@ -213,7 +207,6 @@ struct DartNumberPad: View {
                 segmentValue: value,
                 armedMultiplier: selectedMultiplier
             ),
-            accessibilityHint: bullHint,
             identifier: "pad_\(value)",
             action: { append(value) }
         )
