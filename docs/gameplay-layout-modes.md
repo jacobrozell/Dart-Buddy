@@ -172,10 +172,8 @@ Cricket differs from X01: on **iPhone** the board is **not** split into active/i
 |----------|-------------|-------|-----|------------|
 | iPhone | Portrait | Full board (all players), scrolls | Full width | 2×3 segment grid + bull/miss row |
 | iPhone | Landscape | **Transposed** active-only board (targets as columns) | Full width, short | Single-row segments + modifiers |
-| iPad | Portrait (≤2P) | Full board scrolls | Full width | 2×3 segment grid |
-| iPad | Portrait (3+P) | **Split:** active column top; inactive scroll left | 420pt sidebar | 2×3 compact grid in sidebar |
-| iPad | Landscape (≤2P) | **Transposed** active-only board (same as iPhone) | Full width, short | Single-row segments + modifiers |
-| iPad | Landscape (3+P) | **Split:** active top; inactive scroll left; board fills column height | 300pt sidebar | 2×3 compact grid in sidebar |
+| iPad | Portrait | Full board scrolls | Full width | 2×3 segment grid |
+| iPad | Landscape | **Transposed** active-only board (same as iPhone) | Full width, short | Single-row segments + modifiers |
 | Any | AX | Full board in scroll | Full width in scroll | Accessibility grid |
 
 ### Round / turn label
@@ -184,7 +182,7 @@ Cricket differs from X01: on **iPhone** the board is **not** split into active/i
 |-----------|-----------|
 | iPhone portrait | Below header, above board |
 | iPhone landscape | Inside scoreboard scroll (top of scroll content) |
-| iPad | Inside scoreboard scroll when landscape; hidden in header area when side-by-side |
+| iPad landscape | Inside scoreboard scroll (top of scroll content) |
 
 ### UI examples
 
@@ -199,8 +197,8 @@ Cricket differs from X01: on **iPhone** the board is **not** split into active/i
 
 ![iPad Cricket portrait dark](../marketing-screenshots/ipad/raw/ipad-pro-13-inch-m5-02-cricket-match-dark.png)
 
-- Active player board pinned top  
-- Opponent scrolls beside the sidebar pad  
+- Full board scrolls above the pad  
+- Pad pinned at bottom, full width  
 
 **iPhone landscape (transposed board)**
 

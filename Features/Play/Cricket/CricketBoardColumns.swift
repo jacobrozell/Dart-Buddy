@@ -14,6 +14,8 @@ struct CricketBoardTargetColumn: View {
                     .font(.subheadline.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(Brand.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
                     .frame(width: width, height: sizing.markRowHeight)
                 Divider().overlay(Brand.cardElevated)
             }
@@ -96,6 +98,7 @@ struct CricketBoardPlayerColumn: View {
         }
         .modifier(CricketBoardColumnWidthModifier(width: width))
         .padding(.vertical, sizing == .landscapeCompact ? DS.Spacing.s1 : DS.Spacing.s2)
+        .frame(height: sizing.headerHeight)
         .background(column.isActive ? CricketBoardMetrics.activeColumnFill : Color.clear)
     }
 

@@ -71,8 +71,8 @@ func cricketBoardColumnLayoutDistributesThreePlayersOnTypicalPhoneWidth() {
 
 @Test(.tags(.unit, .cricket, .regression))
 func cricketBoardColumnWidthTokensAreStable() {
-    #expect(CricketBoardMetrics.targetColumnWidth >= 24)
-    #expect(CricketBoardMetrics.targetColumnWidth <= 32)
+    #expect(CricketBoardMetrics.targetColumnWidth >= 28)
+    #expect(CricketBoardMetrics.targetColumnWidth <= 36)
     #expect(CricketBoardMetrics.scrollIndicatorPlayerThreshold == 3)
     #expect(CricketBoardMetrics.playerColumnWidth >= 80)
     #expect(CricketBoardMetrics.playerColumnWidth <= 88)
