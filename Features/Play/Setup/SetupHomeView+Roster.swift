@@ -34,6 +34,7 @@ extension SetupHomeView {
         .buttonStyle(.plain)
         .accessibilityLabel(L10n.setupRandomOrder)
         .accessibilityAddTraits(setupViewModel.randomOrder ? .isSelected : [])
+        .accessibilityIdentifier("setup_randomOrderToggle")
     }
 
     /// Killer, baseball, and Shanghai allow preset difficulty bots only.
@@ -110,6 +111,7 @@ extension SetupHomeView {
                 rosterActionButtonLabel(systemImage: "cpu", title: L10n.addBotTitle)
             }
             .accessibilityLabel(L10n.addBotTitle)
+            .accessibilityIdentifier("setup_addBot")
             .rosterActionButtonChrome(
                 background: Brand.cardElevated,
                 border: Brand.textSecondary.opacity(0.35),
@@ -197,38 +199,35 @@ extension SetupHomeView {
                         .font(.footnote)
                         .foregroundStyle(Brand.textSecondary)
                 }
-                List {
-                    ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
-                        selectedRosterRow(player: player, position: index + 1)
-                            .listRowBackground(Brand.card)
-                            .listRowSeparatorTint(Brand.cardElevated)
-                            .listRowInsets(
-                                EdgeInsets(
-                                    top: turnOrderRowVerticalInset,
-                                    leading: DS.Spacing.s1,
-                                    bottom: turnOrderRowVerticalInset,
-                                    trailing: DS.Spacing.s1
+                if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
+                    accessibilityTurnOrderList
+                } else {
+                    List {
+                        ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
+                            selectedRosterRow(player: player, position: index + 1)
+                                .listRowBackground(Brand.card)
+                                .listRowSeparatorTint(Brand.cardElevated)
+                                .listRowInsets(
+                                    EdgeInsets(
+                                        top: turnOrderRowVerticalInset,
+                                        leading: DS.Spacing.s1,
+                                        bottom: turnOrderRowVerticalInset,
+                                        trailing: DS.Spacing.s1
+                                    )
                                 )
-                            )
+                        }
+                        .onMove { source, destination in
+                            setupViewModel.moveSelectedPlayers(from: source, to: destination)
+                        }
                     }
-                    .onMove { source, destination in
-                        setupViewModel.moveSelectedPlayers(from: source, to: destination)
-                    }
+                    .listStyle(.plain)
+                    .listRowSpacing(0)
+                    .scrollContentBackground(.hidden)
+                    .scrollDisabled(true)
+                    .environment(\.editMode, .constant(turnOrderEditMode))
+                    .frame(height: turnOrderListHeight)
+                    .accessibilityIdentifier("setup_turnOrderList")
                 }
-                .listStyle(.plain)
-                .listRowSpacing(0)
-                .scrollContentBackground(.hidden)
-                .scrollDisabled(true)
-                .environment(
-                    \.editMode,
-                    .constant(
-                        GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
-                            ? .inactive
-                            : .active
-                    )
-                )
-                .frame(height: turnOrderListHeight)
-                .accessibilityIdentifier("setup_turnOrderList")
             }
         }
     }
@@ -255,58 +254,155 @@ extension SetupHomeView {
         }
     }
 
+    private var turnOrderEditMode: EditMode {
+        if voiceOverEnabled
+            || GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
+        {
+            return .inactive
+        }
+        return .active
+    }
+
+    private var accessibilityTurnOrderList: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
+                selectedRosterRow(player: player, position: index + 1)
+                    .padding(.horizontal, DS.Spacing.s3)
+                    .padding(.vertical, turnOrderRowVerticalInset)
+                if index < setupViewModel.selectedPlayers.count - 1 {
+                    Divider().overlay(Brand.cardElevated)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+        .accessibilityIdentifier("setup_turnOrderList")
+    }
+
+    private func selectedRosterRowAccessibilityLabel(player: PlayerSummary, position: Int) -> String {
+        L10n.format("play.setup.turnOrder.rowAccessibilityFormat", position, player.name)
+    }
+
     private func selectedRosterRow(player: PlayerSummary, position: Int) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                accessibilitySelectedRosterRow(player: player, position: position)
+            } else {
+                compactSelectedRosterRow(player: player, position: position)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(selectedRosterRowAccessibilityLabel(player: player, position: position))
+        .accessibilityIdentifier("setup_selected_\(player.name)")
+        .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
+            setupViewModel.removeFromSelection(player.id)
+        }
+    }
+
+    private func compactSelectedRosterRow(player: PlayerSummary, position: Int) -> some View {
         HStack(spacing: DS.Spacing.s3) {
             HStack(spacing: DS.Spacing.s3) {
                 Text(L10n.format("common.playerOrdinal", position))
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Brand.textSecondary)
                     .frame(width: 28, alignment: .leading)
+                    .accessibilityHidden(true)
                 PlayerRosterAvatar(
                     avatarStyle: player.avatarStyle,
                     colorToken: player.colorToken,
                     size: 28
                 )
+                .accessibilityHidden(true)
                 Text(player.name)
                     .font(.headline)
                     .foregroundStyle(Brand.textPrimary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                    .layoutPriority(1)
+                    .accessibilityHidden(true)
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(
-                L10n.format("play.setup.turnOrder.rowAccessibilityFormat", position, player.name)
-            )
-            .accessibilityIdentifier("setup_selected_\(player.name)")
-            Spacer()
-            if let difficulty = player.botDifficulty {
-                BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
-            } else if player.isCustomBot, let metrics = player.customBotMetrics {
-                CustomBotBadge(metrics: metrics, prominence: .compact)
-            }
-            Button {
-                setupViewModel.removeFromSelection(player.id)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(Brand.textSecondary)
-            }
-            .buttonStyle(.plain)
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-            .accessibilityHidden(true)
-            .accessibilityIdentifier("setup_remove_\(player.name)")
-        }
-        .accessibilityAction(named: Text(L10n.setupRemoveFromMatch)) {
-            setupViewModel.removeFromSelection(player.id)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            selectedRosterRowTrailingControls(player: player, stacksBadgeWithRemove: false)
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                setupViewModel.removeFromSelection(player.id)
-            } label: {
-                Text(L10n.setupRemoveFromMatch)
-            }
-            .accessibilityLabel(L10n.setupRemoveFromMatch)
-            .accessibilityIdentifier("setup_remove_\(player.name)")
+            selectedRosterRemoveSwipeAction(player: player)
         }
+    }
+
+    private func accessibilitySelectedRosterRow(player: PlayerSummary, position: Int) -> some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            HStack(alignment: .top, spacing: DS.Spacing.s3) {
+                Text(L10n.format("common.playerOrdinal", position))
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .fixedSize()
+                    .accessibilityHidden(true)
+                PlayerRosterAvatar(
+                    avatarStyle: player.avatarStyle,
+                    colorToken: player.colorToken,
+                    size: 28
+                )
+                .accessibilityHidden(true)
+                Text(player.name)
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityHidden(true)
+            }
+            selectedRosterRowTrailingControls(player: player, stacksBadgeWithRemove: true)
+        }
+    }
+
+    @ViewBuilder
+    private func selectedRosterRowTrailingControls(
+        player: PlayerSummary,
+        stacksBadgeWithRemove: Bool
+    ) -> some View {
+        HStack(alignment: .center, spacing: DS.Spacing.s2) {
+            if let difficulty = player.botDifficulty {
+                BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
+            } else if player.isCustomBot, let metrics = player.customBotMetrics {
+                CustomBotBadge(metrics: metrics, prominence: .compact)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
+            }
+            if stacksBadgeWithRemove {
+                Spacer(minLength: 0)
+            }
+            if !voiceOverEnabled {
+                selectedRosterRemoveButton(player: player)
+            }
+        }
+        .frame(maxWidth: stacksBadgeWithRemove ? .infinity : nil, alignment: .trailing)
+    }
+
+    private func selectedRosterRemoveButton(player: PlayerSummary) -> some View {
+        Button {
+            setupViewModel.removeFromSelection(player.id)
+        } label: {
+            Image(systemName: "xmark.circle.fill")
+                .font(.title3)
+                .foregroundStyle(Brand.textSecondary)
+        }
+        .buttonStyle(.plain)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
+        .accessibilityLabel(L10n.setupRemoveFromMatch)
+        .accessibilityIdentifier("setup_remove_\(player.name)")
+    }
+
+    private func selectedRosterRemoveSwipeAction(player: PlayerSummary) -> some View {
+        Button(role: .destructive) {
+            setupViewModel.removeFromSelection(player.id)
+        } label: {
+            Text(L10n.setupRemoveFromMatch)
+        }
+        .accessibilityLabel(L10n.setupRemoveFromMatch)
+        .accessibilityIdentifier("setup_remove_\(player.name)")
     }
 
     private var botRosterList: some View {

@@ -47,6 +47,11 @@ enum GameplayLayout {
         dynamicTypeSize.isAccessibilitySize
     }
 
+    /// Stacked score/name/visit on X01 cards when horizontal compact layout would clip at large text.
+    static func usesStackedPlayerScoreCardLayout(dynamicTypeSize: DynamicTypeSize) -> Bool {
+        dynamicTypeSize.isAccessibilitySize || dynamicTypeSize >= .xxxLarge
+    }
+
     /// Number-pad columns: fewer columns at AX sizes so labels stay legible.
     static func scoringPadColumnCount(dynamicTypeSize: DynamicTypeSize) -> Int {
         usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) ? 4 : 7
@@ -403,7 +408,9 @@ enum GameplayLayout {
         dynamicTypeSize: DynamicTypeSize,
         verticalSizeClass: UserInterfaceSizeClass? = nil
     ) -> Bool {
-        guard !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) else { return false }
+        if usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
+            return playerCount == 2
+        }
         if usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
             return true
         }

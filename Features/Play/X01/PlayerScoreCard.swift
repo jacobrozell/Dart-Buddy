@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// One player's row on the X01 match screen: remaining score, current visit, and running stats.
-/// Switches to a stacked layout at accessibility text sizes.
+/// Switches to a stacked layout at xxxLarge and accessibility text sizes.
 struct PlayerScoreCard: View {
     let name: String
     let score: Int
@@ -28,8 +28,12 @@ struct PlayerScoreCard: View {
         )
     }
 
+    private var usesStackedLayout: Bool {
+        GameplayLayout.usesStackedPlayerScoreCardLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
     private var usesCompactDensity: Bool {
-        !usesWideLayout && !dynamicTypeSize.isAccessibilitySize
+        !usesWideLayout && !usesStackedLayout
     }
 
     private var accentColor: Color {
@@ -42,8 +46,8 @@ struct PlayerScoreCard: View {
                 .fill(isActive ? accentColor : Color.clear)
                 .frame(width: 6)
             Group {
-                if dynamicTypeSize.isAccessibilitySize {
-                    accessibilityBody
+                if usesStackedLayout {
+                    stackedBody
                 } else if usesWideLayout {
                     wideBody
                 } else {
@@ -56,7 +60,7 @@ struct PlayerScoreCard: View {
         .animation(MotionPolicy.standardAnimation(reduceMotion: reduceMotion), value: isActive)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
-        .accessibilityIdentifier(isActive ? "scoreCard_active" : "scoreCard")
+        .accessibilityIdentifier(isActive ? "scoreCard_active" : "scoreCard_\(name)")
     }
 
     private var compactBody: some View {
@@ -86,22 +90,30 @@ struct PlayerScoreCard: View {
         }
     }
 
-    private var accessibilityBody: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+    private var stackedBody: some View {
+        VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? DS.Spacing.s2 : DS.Spacing.s3) {
             scoreNameColumn
-            visitColumn
-            statsColumn
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if isActive {
+                visitColumn
+                if !dynamicTypeSize.isAccessibilitySize {
+                    statsColumn
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else if !dynamicTypeSize.isAccessibilitySize {
+                statsColumn
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 
     private var displayScoreFontSize: CGFloat {
-        if dynamicTypeSize.isAccessibilitySize { return min(scoreFontSize, 56) }
+        if dynamicTypeSize.isAccessibilitySize { return min(scoreFontSize, 48) }
+        if usesStackedLayout { return min(scoreFontSize, 52) }
         return usesCompactDensity ? compactScoreFontSize : scoreFontSize
     }
 
     private var displayDartBoxSize: CGFloat {
-        if dynamicTypeSize.isAccessibilitySize { return min(dartBoxSize, 44) }
+        if dynamicTypeSize.isAccessibilitySize { return min(dartBoxSize, 40) }
         return usesCompactDensity ? compactDartBoxSize : dartBoxSize
     }
 
@@ -123,7 +135,7 @@ struct PlayerScoreCard: View {
 
     private var scoreNameColumn: some View {
         VStack(alignment: .leading, spacing: 2) {
-            if isActive && dynamicTypeSize.isAccessibilitySize {
+            if isActive && usesStackedLayout {
                 Text(L10n.string("play.x01.turn.active"))
                     .font(.caption.weight(.bold))
                     .foregroundStyle(accentColor)
@@ -156,7 +168,7 @@ struct PlayerScoreCard: View {
     }
 
     private var statsColumn: some View {
-        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: usesCompactDensity ? 4 : 6) {
+        VStack(alignment: usesStackedLayout ? .leading : .trailing, spacing: usesCompactDensity ? 4 : 6) {
             setsLegsLabels
             HStack(spacing: 4) {
                 Image(systemName: "scope").font(.footnote)
@@ -171,11 +183,11 @@ struct PlayerScoreCard: View {
             .foregroundStyle(Brand.textSecondary)
             .accessibilityIdentifier(isActive ? "scoreCard_average" : "")
         }
-        .frame(minWidth: dynamicTypeSize.isAccessibilitySize ? nil : 72, alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing)
+        .frame(minWidth: usesStackedLayout ? nil : 72, alignment: usesStackedLayout ? .leading : .trailing)
     }
 
     private var setsLegsLabels: some View {
-        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: 2) {
+        VStack(alignment: usesStackedLayout ? .leading : .trailing, spacing: 2) {
             Text(L10n.format("play.x01.setsCountFormat", setsWon))
             Text(L10n.format("play.x01.legsCountFormat", legsWon))
         }

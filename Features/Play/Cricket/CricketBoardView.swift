@@ -37,10 +37,13 @@ struct CricketBoardSizing: Equatable {
 
     static func accessibility(dynamicTypeSize: DynamicTypeSize) -> CricketBoardSizing {
         let scale = DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
+        let captionLine = 14 * scale
+        // Darts + MPR share one row at AX; optional sets line below.
+        let footerContent = captionLine * 2.5 + DS.Spacing.s2 * 2
         return CricketBoardSizing(
             markRowHeight: max(44, CricketBoardMetrics.markRowHeight * scale),
             headerHeight: max(56, CricketBoardMetrics.headerHeight * scale),
-            columnFooterHeight: max(56, CricketBoardMetrics.columnFooterHeight * scale)
+            columnFooterHeight: max(68, footerContent)
         )
     }
 

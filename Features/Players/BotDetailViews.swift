@@ -6,6 +6,7 @@ struct BotDetailView: View {
     let existingNames: [String]
     let dependencies: AppDependencies
     let onSave: (EditablePlayer) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
@@ -16,13 +17,15 @@ struct BotDetailView: View {
         difficulty: BotDifficulty,
         existingNames: [String],
         dependencies: AppDependencies,
-        onSave: @escaping (EditablePlayer) -> Void
+        onSave: @escaping (EditablePlayer) -> Void,
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.difficulty = difficulty
         self.existingNames = existingNames
         self.dependencies = dependencies
         self.onSave = onSave
+        self.onSelectRecentMatch = onSelectRecentMatch
         _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
         _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
@@ -48,7 +51,10 @@ struct BotDetailView: View {
 
                 customizationSection
 
-                PlayerDetailStatsContent(viewModel: statsViewModel)
+                PlayerDetailStatsContent(
+                    viewModel: statsViewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)
@@ -114,6 +120,7 @@ struct TrainingBotDetailView: View {
     let existingNames: [String]
     let dependencies: AppDependencies
     let onSave: (EditablePlayer) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
@@ -124,12 +131,14 @@ struct TrainingBotDetailView: View {
         player: EditablePlayer,
         existingNames: [String],
         dependencies: AppDependencies,
-        onSave: @escaping (EditablePlayer) -> Void
+        onSave: @escaping (EditablePlayer) -> Void,
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.existingNames = existingNames
         self.dependencies = dependencies
         self.onSave = onSave
+        self.onSelectRecentMatch = onSelectRecentMatch
         _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
         _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
@@ -159,7 +168,10 @@ struct TrainingBotDetailView: View {
                 }
 
                 customizationSection
-                PlayerDetailStatsContent(viewModel: statsViewModel)
+                PlayerDetailStatsContent(
+                    viewModel: statsViewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
             }
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, DS.Spacing.s6)

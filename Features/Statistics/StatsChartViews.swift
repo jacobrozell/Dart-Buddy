@@ -5,6 +5,7 @@ struct SectorHitsChart: View {
     let hitsBySector: [String: Int]
     let mode: MatchType
     var height: CGFloat = 200
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var hits: [SectorHit] {
         var merged: [String: Int] = [:]
@@ -26,16 +27,25 @@ struct SectorHitsChart: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s4)
             } else {
-                Chart(hits) { hit in
-                    BarMark(
-                        x: .value(L10n.string("stats.chart.axis.sector"), StatsSectorOrder.label(hit.sector, mode: mode)),
-                        y: .value(L10n.string("stats.chart.axis.hits"), hit.count)
-                    )
-                    .foregroundStyle(Brand.green)
+                let chartHeight = resolvedHeight
+                ScrollView(.horizontal, showsIndicators: false) {
+                    Chart(hits) { hit in
+                        BarMark(
+                            x: .value(L10n.string("stats.chart.axis.sector"), StatsSectorOrder.label(hit.sector, mode: mode)),
+                            y: .value(L10n.string("stats.chart.axis.hits"), hit.count)
+                        )
+                        .foregroundStyle(Brand.green)
+                    }
+                    .chartXAxis {
+                        AxisMarks { _ in
+                            AxisValueLabel(orientation: .vertical)
+                                .foregroundStyle(Brand.textSecondary)
+                        }
+                    }
+                    .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
+                    .frame(width: max(CGFloat(hits.count) * sectorBarWidth, 280), height: chartHeight)
                 }
-                .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-                .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-                .frame(height: height)
+                .frame(height: chartHeight)
                 .padding(DS.Spacing.s4)
                 .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
                 .accessibilityElement(children: .ignore)
@@ -47,6 +57,15 @@ struct SectorHitsChart: View {
 
     private var sectorAccessibilityValue: String {
         hits.map { "\(StatsSectorOrder.label($0.sector, mode: mode)): \($0.count)" }.joined(separator: ", ")
+    }
+
+    private var sectorBarWidth: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? 36 : 28
+    }
+
+    private var resolvedHeight: CGFloat {
+        let base = max(height, 200)
+        return dynamicTypeSize.isAccessibilitySize ? base * 1.15 : base
     }
 }
 
@@ -126,6 +145,7 @@ struct AverageTrendChart: View {
 struct PlayerAverageChart: View {
     let average: Double
     let playerName: String
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Chart {
@@ -141,12 +161,24 @@ struct PlayerAverageChart: View {
             }
         }
         .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-        .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textPrimary) } }
-        .frame(height: 72)
+        .chartYAxis {
+            AxisMarks { _ in
+                AxisValueLabel(horizontalSpacing: DS.Spacing.s2)
+                    .foregroundStyle(Brand.textPrimary)
+            }
+        }
+        .chartPlotStyle { plotArea in
+            plotArea.padding(.leading, DS.Spacing.s1)
+        }
+        .frame(height: rowHeight + 24)
         .padding(DS.Spacing.s4)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(localized: "stats.threeDartAverage"))
         .accessibilityValue(String(format: "%.1f", average))
+    }
+
+    private var rowHeight: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? 52 : 44
     }
 }

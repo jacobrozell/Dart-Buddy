@@ -32,7 +32,7 @@ struct ScoringPadKey: View {
                 .foregroundStyle(foreground)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: minHeight)
+                .frame(minWidth: 44, maxWidth: .infinity, minHeight: minHeight)
                 .background(background, in: ScoringPadStyle.keyShape)
         }
         .accessibilityLabel(accessibilityLabel)
@@ -55,7 +55,7 @@ struct ScoringPadIconKey: View {
             Image(systemName: systemImage)
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Brand.textPrimary)
-                .frame(maxWidth: .infinity, minHeight: minHeight)
+                .frame(minWidth: 44, maxWidth: .infinity, minHeight: minHeight)
                 .background(background, in: ScoringPadStyle.keyShape)
         }
         .accessibilityLabel(accessibilityLabel)

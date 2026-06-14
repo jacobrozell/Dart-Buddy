@@ -24,6 +24,7 @@ struct MatchExitConfirmationModifier: ViewModifier {
             Button("play.match.exit.saveAndExit") {
                 onSaveAndExit()
             }
+            .accessibilityIdentifier("match_exit_save_and_exit")
             if canForfeit {
                 Button("play.match.exit.saveAndForfeit", role: .destructive) {
                     onSaveAndForfeit()

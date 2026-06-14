@@ -4,6 +4,7 @@ struct SetupHomeView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
+    @Environment(\.accessibilityVoiceOverEnabled) var voiceOverEnabled
     @ScaledMetric(relativeTo: .body) var rosterRowHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .body) var turnOrderRowVerticalInset: CGFloat = 8
     @ObservedObject var homeViewModel: PlayHomeViewModel
@@ -27,7 +28,7 @@ struct SetupHomeView: View {
     }
 
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical) {
             Group {
                 if usesWideSetupLayout {
                     wideSetupContent
@@ -35,11 +36,13 @@ struct SetupHomeView: View {
                     compactSetupContent
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, DS.Spacing.s4)
             .padding(.bottom, setupScrollBottomPadding)
             .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
             .frame(maxWidth: .infinity)
         }
+        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .background(Brand.background.ignoresSafeArea())
         .navigationBarHidden(true)
         .safeAreaInset(edge: .bottom, spacing: 0) {

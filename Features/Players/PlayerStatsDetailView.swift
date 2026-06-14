@@ -6,6 +6,7 @@ struct PlayerStatsDetailView: View {
     let onEdit: () -> Void
     let onArchiveToggle: () -> Void
     let onExportResult: (Result<URL, Error>) -> Void
+    let onSelectRecentMatch: (UUID) -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @StateObject private var viewModel: PlayerDetailViewModel
 
@@ -14,13 +15,15 @@ struct PlayerStatsDetailView: View {
         dependencies: AppDependencies,
         onEdit: @escaping () -> Void,
         onArchiveToggle: @escaping () -> Void,
-        onExportResult: @escaping (Result<URL, Error>) -> Void
+        onExportResult: @escaping (Result<URL, Error>) -> Void,
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
     ) {
         self.player = player
         self.dependencies = dependencies
         self.onEdit = onEdit
         self.onArchiveToggle = onArchiveToggle
         self.onExportResult = onExportResult
+        self.onSelectRecentMatch = onSelectRecentMatch
         _viewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
             playerName: player.name,
@@ -48,7 +51,10 @@ struct PlayerStatsDetailView: View {
                         .foregroundStyle(Brand.textSecondary)
                 }
 
-                PlayerDetailStatsContent(viewModel: viewModel)
+                PlayerDetailStatsContent(
+                    viewModel: viewModel,
+                    onSelectRecentMatch: onSelectRecentMatch
+                )
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DS.Spacing.s3) {
@@ -106,6 +112,7 @@ struct PlayerStatsDetailView: View {
 
 struct PlayerDetailStatsContent: View {
     @ObservedObject var viewModel: PlayerDetailViewModel
+    var onSelectRecentMatch: (UUID) -> Void = { _ in }
 
     var body: some View {
         Group {
@@ -149,29 +156,40 @@ struct PlayerDetailStatsContent: View {
 
             VStack(spacing: 0) {
                 ForEach(viewModel.recentMatches) { match in
-                    HStack(spacing: DS.Spacing.s3) {
-                        Text(MatchConfigText.modeLabel(for: match.type))
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(Brand.textSecondary)
-                            .frame(width: 56, alignment: .leading)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(match.opponentLabel)
-                                .font(.subheadline)
-                                .foregroundStyle(Brand.textPrimary)
-                                .lineLimit(1)
-                            Text(match.playedAt, style: .date)
-                                .font(.caption)
+                    Button {
+                        onSelectRecentMatch(match.id)
+                    } label: {
+                        HStack(spacing: DS.Spacing.s3) {
+                            Text(MatchConfigText.modeLabel(for: match.type))
+                                .font(.caption.weight(.semibold))
                                 .foregroundStyle(Brand.textSecondary)
+                                .frame(width: 56, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(match.opponentLabel)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Brand.textPrimary)
+                                    .lineLimit(1)
+                                Text(match.playedAt, style: .date)
+                                    .font(.caption)
+                                    .foregroundStyle(Brand.textSecondary)
+                            }
+                            Spacer()
+                            Text(match.didWin ? L10n.playersDetailWin : L10n.playersDetailLoss)
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(match.didWin ? Brand.green : Brand.red)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Brand.textSecondary)
+                                .accessibilityHidden(true)
                         }
-                        Spacer()
-                        Text(match.didWin ? L10n.playersDetailWin : L10n.playersDetailLoss)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(match.didWin ? Brand.green : Brand.red)
+                        .padding(.horizontal, DS.Spacing.s3)
+                        .padding(.vertical, DS.Spacing.s3)
+                        .contentShape(Rectangle())
                     }
-                    .padding(.horizontal, DS.Spacing.s3)
-                    .padding(.vertical, DS.Spacing.s3)
+                    .buttonStyle(.plain)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(recentMatchAccessibilityLabel(match))
+                    .accessibilityIdentifier("playerDetail_recentMatch_\(match.id.uuidString)")
                     if match.id != viewModel.recentMatches.last?.id {
                         Divider().overlay(Brand.cardElevated)
                     }

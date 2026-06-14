@@ -24,7 +24,7 @@ Every pad variant (compact, landscape wide, accessibility) must expose the **sam
 
 | Element | Identifier |
 |---------|------------|
-| Active X01 card | `scoreCard_active` (inactive: `scoreCard`) — combined label, `children: .ignore` |
+| Active X01 card | `scoreCard_active` (inactive: `scoreCard_<name>`) — combined label, `children: .ignore` |
 | Active Cricket column | `cricket_column_active` (`cricket_column`) |
 | Match exit | `match_exit` |
 | X01 config summary | `x01_match_config_summary` |

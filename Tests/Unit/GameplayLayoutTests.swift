@@ -28,6 +28,14 @@ func gameplayLayoutUsesAccessibilityMatchScoringOnlyAtAXSizes() {
     #expect(GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: .accessibility5) == true)
 }
 
+@Test(.tags(.unit, .regression, .accessibility))
+func gameplayLayoutUsesStackedPlayerScoreCardAtLargeTextSizes() {
+    #expect(GameplayLayout.usesStackedPlayerScoreCardLayout(dynamicTypeSize: .large) == false)
+    #expect(GameplayLayout.usesStackedPlayerScoreCardLayout(dynamicTypeSize: .xxLarge) == false)
+    #expect(GameplayLayout.usesStackedPlayerScoreCardLayout(dynamicTypeSize: .xxxLarge) == true)
+    #expect(GameplayLayout.usesStackedPlayerScoreCardLayout(dynamicTypeSize: .accessibility3) == true)
+}
+
 @Test(.tags(.unit, .regression))
 func gameplayLayoutScoringPadUsesFourColumnsAtAXSizes() {
     #expect(GameplayLayout.scoringPadColumnCount(dynamicTypeSize: .large) == 7)
@@ -687,6 +695,13 @@ func gameplayLayoutPinsActiveX01CardForThreePlusPlayersInPortrait() {
         GameplayLayout.usesPinnedActiveX01PlayerCard(
             playerCount: 4,
             dynamicTypeSize: .xxxLarge,
+            verticalSizeClass: .regular
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: 2,
+            dynamicTypeSize: .accessibility3,
             verticalSizeClass: .regular
         ) == true
     )
