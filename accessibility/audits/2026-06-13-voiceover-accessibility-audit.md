@@ -195,4 +195,4 @@ AX-tree tools cannot replace these ([`Manual_todo.md`](../Manual_todo.md)):
 
 | Date | Change |
 |------|--------|
-| 2026-06-13 | Initial audit via iOS Simulator MCP + codebase review |
+| 2026-06-13 | Engineering fixes: turn-order VO collapse, Sets toggle combine, setup/exit IDs, per-player scoreCard IDs, 44pt pad min width |

@@ -13,7 +13,7 @@ func gameplayUITestIdentifierContract() {
     ]
 
     let boardLandmarks = [
-        "scoreCard_active", "scoreCard", "cricket_column_active", "cricket_column",
+        "scoreCard_active", "scoreCard_Alice", "cricket_column_active", "cricket_column",
         "match_exit", "match_undo", "x01_match_config_summary", "cricket_match_subtitle"
     ]
 
@@ -23,13 +23,14 @@ func gameplayUITestIdentifierContract() {
     ]
 
     let forfeitLandmarks = [
-        "match_exit_save_and_forfeit", "match_exit_abandon",
+        "match_exit_save_and_exit", "match_exit_save_and_forfeit", "match_exit_abandon",
         "forfeit_player_picker", "forfeit_winner_picker", "forfeit_final_confirm",
         "forfeit_confirm_action", "forfeit_confirm_cancel"
     ]
 
     let setupLandmarks = [
-        "startMatchButton", "resumeMatchButton", "setup_changeModeButton", "setup_addPlayer"
+        "startMatchButton", "resumeMatchButton", "setup_changeModeButton", "setup_addPlayer",
+        "setup_addBot", "setup_randomOrderToggle"
     ]
 
     for identifier in x01PadKeys + cricketPadKeys + boardLandmarks + summaryLandmarks + forfeitLandmarks + setupLandmarks {
