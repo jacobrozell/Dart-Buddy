@@ -46,7 +46,8 @@ struct AppRouteRouterTests {
 
         #expect(outcome == .applied)
         #expect(state.selectedTab == .play)
-        #expect(state.pendingResume?.id == activeMatch.id)
+        #expect(state.pendingResume?.match.id == activeMatch.id)
+        #expect(state.pendingResume?.startSource == .deepLink)
     }
 
     @Test
@@ -207,7 +208,7 @@ struct AppRouteRouterTests {
 @MainActor
 private final class RouteTestState {
     var selectedTab: MainTabView.RootTab
-    var pendingResume: MatchSummary?
+    var pendingResume: PendingMatchResume?
     var resetCount = 0
 
     init(selectedTab: MainTabView.RootTab) {

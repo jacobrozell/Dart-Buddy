@@ -133,6 +133,72 @@ jobs:
             DerivedData/Build/Products
           retention-days: 1
 
+  release-build:
+    name: Release Build (whole-module)
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Select Xcode 26.2
+        uses: maxim-lobanov/setup-xcode@60606e260d2fc5762a71e64e74b2174e8ea3c8bd # v1.6.0
+        with:
+          xcode-version: '26.2'
+
+      - name: Prepare Firebase config
+        run: cp Resources/GoogleService-Info.plist.example Resources/GoogleService-Info.plist
+
+      - name: Install CI tools
+        run: brew install xcodegen xcbeautify
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Restore SPM Cache
+        id: spm-cache
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        with:
+          path: .packages
+          key: ${{ runner.os }}-spm-${{ hashFiles('project.yml', '**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Resolve Package Dependencies
+        if: steps.spm-cache.outputs.cache-hit != 'true'
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project "${{ env.CI_XCODE_PROJECT }}" \
+            -scheme DartBuddy \
+            -clonedSourcePackagesDirPath ./.packages/cloned_sources \
+            -packageCachePath "$(pwd)/.packages/cache"
+
+      - name: Release Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project "${{ env.CI_XCODE_PROJECT }}" \
+            -scheme DartBuddy \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath DerivedData \
+            -clonedSourcePackagesDirPath ./.packages/cloned_sources \
+            -packageCachePath "$(pwd)/.packages/cache" \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee xcodebuild-release.log | xcbeautify --renderer github-actions
+
+      - name: Upload Release Build Log on Failure
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        if: failure()
+        with:
+          name: release-build-log
+          path: xcodebuild-release.log
+          retention-days: 1
+          if-no-files-found: ignore
+
   test:
     name: Test
     runs-on: macos-26

@@ -187,6 +187,14 @@ struct MatchTurnSubmitter {
                 message: "Match completed.",
                 metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
             )
+            logger.matchInfo(
+                matchId: matchId,
+                matchType: matchType,
+                category: .appLifecycle,
+                eventName: GameModeAnalytics.completedEventName,
+                message: "User completed a game mode match.",
+                metadata: MatchAnalytics.metadata(for: updated)
+            )
         }
         return .succeeded(updated)
     }

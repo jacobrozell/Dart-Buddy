@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Layout rhythm and semantic colors for **native** surfaces (Settings light theme,
-/// migration recovery footnotes). Scoreboard screens use `Brand` for colors — see `DesignSystem/README.md`.
+/// Layout rhythm and semantic colors for **native** surfaces (Settings light theme).
+/// Scoreboard screens use `Brand` for colors — see `DesignSystem/README.md`.
 enum DS {
     enum Spacing {
         static let s1: CGFloat = 4

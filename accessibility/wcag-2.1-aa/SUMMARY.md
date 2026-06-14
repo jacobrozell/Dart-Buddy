@@ -22,7 +22,6 @@
 | [player-detail](screens/player-detail.md) | 12 | 8 | 4 | 0 | 0 | 0 | Partial |
 | [player-edit](screens/player-edit.md) | 12 | 9 | 3 | 0 | 0 | 0 | Partial |
 | [settings](screens/settings.md) | 12 | 6 | 6 | 0 | 0 | 0 | Partial |
-| [migration-recovery](screens/migration-recovery.md) | 12 | 6 | 6 | 0 | 0 | 0 | Partial |
 | [_shared-components](screens/_shared-components.md) | 8 | 5 | 2 | 1 | 0 | 0 | Partial |
 
 *All 13 MVP screens: **zero Required Fail** in code scope. `DBX-DESIGN-SYSTEM` remains Fail on `_shared-components` (post-MVP). Screens stay **Partial** until manual VO/contrast/AXXXL evidence.*

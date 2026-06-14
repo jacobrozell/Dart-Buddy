@@ -20,4 +20,4 @@
 
 ## Outstanding Actions Before RC
 - Validate release verbosity behavior (debug dropped in Release).
-- Complete migration recovery operational validation on device (retry/export/reset paths).
+- Complete bootstrap store recovery validation on device (corrupt store → relaunch).

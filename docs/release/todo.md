@@ -28,7 +28,7 @@ Close `../../roadmap/release/QA-Signoff-RC1.md` — no P0 rows left `Pending`. W
 ### Data & recovery (device)
 
 - [x] **SwiftData 1.0 schema freeze** — `SchemaV2` baseline documented (`specs/SwiftData.md` §15); V1→V2 migration test in CI.
-- [ ] **Migration recovery smoke** — Retry / export / reset paths on target runtime (upgrade or forced failure); log in `Phase06-Migration-Safety-Report.md`. Distinct from settings reset.
+- [ ] **Bootstrap store recovery smoke** — Corrupt/truncate store on device → app launches cleanly (fresh store); log in `Phase06-Migration-Safety-Report.md`. Distinct from settings reset.
 
 ### App Store & release ops
 

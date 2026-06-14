@@ -24,7 +24,7 @@ enum Brand {
     )
     static let dartBox = dynamic(
         light: UIColor(red: 0.80, green: 0.80, blue: 0.82, alpha: 1),
-        dark: UIColor(red: 0.02, green: 0.02, blue: 0.02, alpha: 1)
+        dark: UIColor(red: 0.16, green: 0.16, blue: 0.17, alpha: 1)
     )
 
     static let green = Color(red: 0.20, green: 0.68, blue: 0.32)

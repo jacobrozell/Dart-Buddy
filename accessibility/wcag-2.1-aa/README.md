@@ -44,7 +44,6 @@ Maps to `specs/UIBlueprintSpec.md` §3 plus Statistics tab.
 | `player-detail` | `PlayersRootView` (detail route) | [screens/player-detail.md](screens/player-detail.md) |
 | `player-edit` | `PlayersRootView` (sheet) | [screens/player-edit.md](screens/player-edit.md) |
 | `settings` | `SettingsRootView` | [screens/settings.md](screens/settings.md) |
-| `migration-recovery` | `MigrationRecoveryView` | [screens/migration-recovery.md](screens/migration-recovery.md) |
 
 Shared UI used on multiple screens: [screens/_shared-components.md](screens/_shared-components.md).
 

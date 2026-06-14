@@ -7,7 +7,7 @@
 
 ## Pre-Launch Gate Checklist
 1. Confirm `QA-Signoff-RC1.md` has no open P0 items.
-2. Confirm migration smoke run completed and recovery paths validated.
+2. Confirm bootstrap store recovery smoke completed (corrupt store relaunch).
 3. Confirm performance metrics captured against MVP targets:
    - launch < 2s
    - submitTurn < 100ms
@@ -48,7 +48,7 @@ Use `Rollback-and-Hotfix-Criteria.md` as source of truth.
 5. Publish user-facing status and ETA.
 
 ## First Post-Launch Patch Queue (1.0.x)
-- Priority 1: Migration recovery execution hardening and UX clarity.
+- Priority 1: Bootstrap store recovery hardening and observability.
 - Priority 2: High-impact scoring/input friction surfaced from live feedback.
 - Priority 3: History and player flow polish issues with measurable user impact.
 - Priority 4: Accessibility and orientation evidence gaps converted into repeatable checklist process.

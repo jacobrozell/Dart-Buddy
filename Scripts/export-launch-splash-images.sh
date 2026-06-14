@@ -14,7 +14,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCHEME="DartBuddy"
 PROJECT="$ROOT/DartBuddy.xcodeproj"
 DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/launch-splash-export}"
-SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
+SIM_NAME="${SIM_NAME:-iPhone 17}"
 
 if [[ ! -d "$PROJECT" ]]; then
   echo "→ Generating Xcode project…"
@@ -49,4 +49,11 @@ xcodebuild test \
   CODE_SIGNING_ALLOWED=NO \
   | xcbeautify 2>/dev/null || true
 
-echo "→ Done. Review PNGs in Resources/LaunchSplashCandidates/"
+ASSET_DIR="$ROOT/Resources/Media.xcassets/LaunchSplashBackdrop.imageset"
+echo "→ Updating asset catalog…"
+cp "$ROOT/Resources/LaunchSplashCandidates/ambient-light.png" \
+  "$ASSET_DIR/LaunchSplashBackdrop-light.png"
+cp "$ROOT/Resources/LaunchSplashCandidates/ambient-dark.png" \
+  "$ASSET_DIR/LaunchSplashBackdrop-dark.png"
+
+echo "→ Done. Review PNGs in Resources/LaunchSplashCandidates/ and LaunchSplashBackdrop.imageset/"

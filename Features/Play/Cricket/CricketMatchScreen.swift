@@ -109,10 +109,15 @@ struct CricketMatchScreen: View {
             guard let signal else { return }
             turnTotalCaller.announceTurnTotal(signal.total)
         }
-        .onChange(of: viewModel.enteredDarts.count) { oldCount, newCount in
-            guard viewModel.isBotPlaying, newCount > oldCount else { return }
-            guard feedbackPreferences.botDartHapticsEnabled else { return }
-            haptics.playImpact()
+        .onChange(of: viewModel.enteredDarts) { old, darts in
+            playBotDartEntryFeedback(
+                darts: darts,
+                previousCount: old.count,
+                isBotPlaying: viewModel.isBotPlaying,
+                audio: audio,
+                haptics: haptics,
+                botDartHapticsEnabled: feedbackPreferences.botDartHapticsEnabled
+            )
         }
         .task { await viewModel.onAppear() }
         .onDisappear {
@@ -145,13 +150,11 @@ struct CricketMatchScreen: View {
         let inactiveColumns = columns.filter { !$0.isActive }
         let split = usesSplitCricketScoreboard
 
-        let inactiveCount = split ? inactiveColumns.count : max(0, columns.count - 1)
-
         return MatchScoringBody(
             playerCount: columns.count,
             showsActiveBand: split && !activeColumns.isEmpty,
             scoreboardSharesBottomRow: split ? !inactiveColumns.isEmpty : true,
-            scoreboardFillsRemainingHeight: inactiveCount >= 3,
+            scoreboardFillsRemainingHeight: true,
             active: {
                 if split {
                     activeCricketBoard(columns: activeColumns, allColumns: columns)

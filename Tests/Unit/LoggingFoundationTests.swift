@@ -17,6 +17,24 @@ func redactionPolicyAllowlistsMetadata() {
 }
 
 @Test(.tags(.unit, .logging, .regression, .critical))
+func redactionPolicyDropsPersonalDataKeys() {
+    let policy = DefaultRedactionPolicy(
+        allowedMetadataKeys: ["errorCode", "displayName", "playerName", "botName"]
+    )
+    let output = policy.redact(metadata: [
+        "errorCode": "migrationFailed",
+        "displayName": "Jacob",
+        "playerName": "Jacob",
+        "botName": "Medium Bot"
+    ])
+
+    #expect(output["errorCode"] == "migrationFailed")
+    #expect(output["displayName"] == nil)
+    #expect(output["playerName"] == nil)
+    #expect(output["botName"] == nil)
+}
+
+@Test(.tags(.unit, .logging, .regression, .critical))
 func loggerDropsEntriesBelowMinimumLevel() {
     let sink = RecordingSink()
     let logger = DefaultAppLogger(

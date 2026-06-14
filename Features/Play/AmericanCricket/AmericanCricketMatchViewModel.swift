@@ -171,7 +171,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
                 category: .appLifecycle,
                 eventName: "match_abandoned",
                 message: "American Cricket match abandoned by user.",
-                metadata: ["eventCount": String(abandoned.runtime.eventCount)]
+                metadata: MatchAnalytics.metadata(for: abandoned)
             )
         } catch {
             logger.matchError(

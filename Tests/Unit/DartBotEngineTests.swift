@@ -491,6 +491,34 @@ import Testing
     Issue.record("Expected at least one seeded cut-throat punish visit to score on opponent")
 }
 
+@Test func dartBotEngine_cricketStandardScoresOnClosedBedWhenOpponentOpen() throws {
+    let players = [UUID(), UUID()]
+    var state = try CricketEngine.makeInitialState(
+        config: cricketConfig(scoringMode: .standard),
+        playerIds: players
+    )
+    let allClosed = Dictionary(uniqueKeysWithValues: CricketTarget.allCases.map { ($0.rawValue, 3) })
+    state.players[0].marks = allClosed
+    state.players[1].marks = allClosed
+    state.players[1].marks["20"] = 0
+
+    var foundScoringAim = false
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed + 300))
+        let darts = DartBotEngine.generateCricketTurn(
+            state: state,
+            playerIndex: 0,
+            difficulty: .medium,
+            rng: &rng
+        )
+        if darts.allSatisfy({ cricketDartAims(at: 20, dart: $0) }) {
+            foundScoringAim = true
+            break
+        }
+    }
+    #expect(foundScoringAim)
+}
+
 @Test func dartBotEngine_cricketStandardStillClosesFromTwenty() throws {
     let players = [UUID(), UUID()]
     let state = try CricketEngine.makeInitialState(

@@ -17,7 +17,7 @@ final class LaunchSplashExportTests: XCTestCase {
             let suffix = scheme == .light ? "light" : "dark"
             let backgroundURL = outputDirectory.appendingPathComponent("ambient-\(suffix).png")
             try export(
-                LaunchSplashBackgroundView()
+                LaunchSplashBackgroundCanvas()
                     .frame(width: exportSize.width, height: exportSize.height)
                     .environment(\.colorScheme, scheme),
                 to: backgroundURL
@@ -34,7 +34,7 @@ final class LaunchSplashExportTests: XCTestCase {
     @MainActor
     private func launchSplashPreview(colorScheme: ColorScheme) -> some View {
         ZStack {
-            LaunchSplashBackgroundView()
+            LaunchSplashBackgroundCanvas()
             VStack(spacing: DS.Spacing.s3) {
                 Spacer()
                 LaunchSplashWordmark()

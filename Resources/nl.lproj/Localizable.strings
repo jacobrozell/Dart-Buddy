@@ -80,9 +80,6 @@
 "players.row.botSuffix" = ", %@-bot";
 "players.row.archivedSuffix" = ", gearchiveerd";
 "settings.reset.accessibility" = "Alle gegevens wissen";
-"migration.retry.accessibility" = "Migratie opnieuw proberen";
-"migration.export.accessibility" = "Diagnostiek exporteren";
-"migration.reset.accessibility" = "Lokale gegevens wissen";
 "stats.filter.player.accessibilityFormat" = "Filter op speler, %@";
 "stats.partialMatchBanner.accessibility" = "Statistieken bevatten je lopende wedstrijd.";
 "stats.trend.accessibilityPointFormat" = "%@, gemiddelde %.1f";
@@ -244,11 +241,6 @@
 "settings.reset.confirmTitle" = "Alle lokale gegevens wissen?";
 "settings.reset.confirmMessage" = "Dit wist alle lokale gegevens op dit apparaat: spelers, wedstrijden, instellingen, opgeslagen voorkeuren en de welkomstrondleiding.";
 "settings.reset.confirmAction" = "Gegevens wissen";
-"migration.title" = "Herstel vereist";
-"migration.message" = "De app kon lokale gegevens niet openen. Je kunt opnieuw proberen, diagnostiek exporteren of lokale gegevens wissen.";
-"migration.retry" = "Opnieuw proberen";
-"migration.export" = "Diagnostiek exporteren";
-"migration.reset" = "Lokale gegevens wissen";
 "scoring.backspace" = "Wissen";
 "scoring.clearTurn" = "Beurt wissen";
 "scoring.submitTurn" = "Beurt verzenden";
@@ -387,9 +379,6 @@
 "play.setup.checkout" = "Checkout";
 "play.setup.legsToWinFormat" = "Legs om te winnen: %d";
 "play.setup.setsToWinFormat" = "Sets om te winnen: %d";
-"migration.errorKeyFormat" = "Foutsleutel: %@";
-"migration.stateFormat" = "Status: %@";
-"migration.diagnosticsExported" = "Diagnostiek geëxporteerd: %@";
 "scoring.turnTotalPlaceholder" = "Beurttotaal (0-180)";
 "scoring.turnTotal.accessibilityLabel" = "Beurttotaal";
 "scoring.multiplier.hint" = "Selecteer vermenigvuldiger voor de volgende dart.";

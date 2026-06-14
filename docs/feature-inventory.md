@@ -153,7 +153,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Visual dartboard input (X01 + Cricket) | Shipped | Settings default + in-match toggle | [`VisualDartboardInputSpec.md`](../specs/VisualDartboardInputSpec.md) |
 | Checkout suggester (X01) | Shipped | | `Domain/Engines/CheckoutSuggester.swift` |
 | Onboarding (first launch + replay) | Shipped | Experience branching | `Features/Onboarding/` |
-| Migration recovery UI | Shipped | Retry, export, reset on schema failure | [`MigrationRecoverySpec.md`](../specs/MigrationRecoverySpec.md) |
+| Bootstrap store recovery | Shipped | Auto-repair/recreate on open failure | [`SwiftData.md`](../specs/SwiftData.md) §9, `BootstrapStoreRecovery.swift` |
 | App Store update checker | Shipped | Prompt when newer store version | `AppStoreUpdateChecker.swift` |
 | iPad two-pane master-detail | Planned | Post-1.0 IA | [`ux-design-review.md`](ux-design-review.md) |
 | External display / AirPlay | Planned | Post-1.0 | [`release/todo.md`](release/todo.md) |

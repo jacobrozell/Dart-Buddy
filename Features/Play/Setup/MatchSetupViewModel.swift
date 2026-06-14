@@ -416,7 +416,7 @@ final class MatchSetupViewModel: ObservableObject {
         selectedPlayerIds.removeAll { !loadedIds.contains($0) }
         revalidate()
         guard canStart else { return nil }
-        return await performStart()
+        return await performStart(source: .rematch)
     }
 
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
@@ -815,7 +815,7 @@ final class MatchSetupViewModel: ObservableObject {
         }
     }
 
-    private func performStart() async -> PlayRoute? {
+    private func performStart(source: MatchStartSource = .setup) async -> PlayRoute? {
         guard canStart else { return nil }
         isSubmitting = true
         defer { isSubmitting = false }
@@ -823,7 +823,8 @@ final class MatchSetupViewModel: ObservableObject {
             matchType: currentMatchType,
             config: currentConfig,
             roster: selectedPlayers.map(MatchStartPlan.RosterEntry.init),
-            randomOrder: randomOrder
+            randomOrder: randomOrder,
+            startSource: source
         )
         switch await startService.start(plan) {
         case let .started(route):

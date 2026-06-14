@@ -222,8 +222,7 @@ struct PlayerScoreCard: View {
             .foregroundStyle(Brand.textPrimary)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
-            .frame(width: displayDartBoxSize, height: displayDartBoxSize)
-            .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
+            .scoringPadVisitSlotStyle(minHeight: displayDartBoxSize, minWidth: displayDartBoxSize)
     }
 
     private func dartLabel(_ dart: DartInput) -> String {

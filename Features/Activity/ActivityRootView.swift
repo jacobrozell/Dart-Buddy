@@ -17,6 +17,9 @@ enum ActivitySegment: String, CaseIterable, Identifiable {
 
 struct ActivityRootView: View {
     let dependencies: AppDependencies
+    /// Bumped by `MainTabView` when the Activity tab is selected so data reloads
+    /// even if SwiftUI does not re-fire `onAppear` on an already-mounted tab.
+    let refreshToken: Int
     var onResumeActiveMatch: ((MatchSummary) -> Void)?
     var onStartMatch: (() -> Void)?
 
@@ -26,8 +29,6 @@ struct ActivityRootView: View {
     @State private var period: ActivityPeriod = .all
     @State private var playerFilter: UUID?
     @State private var historyPath: [HistoryRoute] = []
-    @State private var hasLoadedHistory = false
-    @State private var hasLoadedStatistics = false
     @State private var filterTask: Task<Void, Never>?
     @State private var loadMoreTask: Task<Void, Never>?
     @State private var statsLoadTask: Task<Void, Never>?
@@ -37,10 +38,12 @@ struct ActivityRootView: View {
 
     init(
         dependencies: AppDependencies,
+        refreshToken: Int = 0,
         onResumeActiveMatch: ((MatchSummary) -> Void)? = nil,
         onStartMatch: (() -> Void)? = nil
     ) {
         self.dependencies = dependencies
+        self.refreshToken = refreshToken
         self.onResumeActiveMatch = onResumeActiveMatch
         self.onStartMatch = onStartMatch
         _historyViewModel = StateObject(
@@ -95,20 +98,9 @@ struct ActivityRootView: View {
             }
             .background(Brand.background.ignoresSafeArea())
             .navigationBarHidden(true)
-            .task { await loadSegmentIfNeeded() }
-            .onChange(of: segment) { _, newSegment in
-                Task {
-                    syncFiltersToViewModels()
-                    switch newSegment {
-                    case .history:
-                        hasLoadedHistory = true
-                        await historyViewModel.applyFilters()
-                    case .statistics:
-                        hasLoadedStatistics = true
-                        await statisticsViewModel.load()
-                    }
-                }
-            }
+            .onAppear { scheduleSegmentRefresh() }
+            .onChange(of: refreshToken) { _, _ in scheduleSegmentRefresh() }
+            .onChange(of: segment) { _, _ in scheduleSegmentRefresh() }
             .onChange(of: modeFilter) { _, _ in applySharedFilters() }
             .onChange(of: period) { _, _ in applySharedFilters() }
             .onChange(of: playerFilter) { _, _ in applySharedFilters() }
@@ -351,17 +343,18 @@ struct ActivityRootView: View {
         return .history
     }
 
-    private func loadSegmentIfNeeded() async {
+    private func scheduleSegmentRefresh() {
+        filterTask?.cancel()
+        filterTask = Task { await refreshCurrentSegment() }
+    }
+
+    private func refreshCurrentSegment() async {
         syncFiltersToViewModels()
         switch segment {
-        case .history where !hasLoadedHistory:
-            hasLoadedHistory = true
+        case .history:
             await historyViewModel.applyFilters()
-        case .statistics where !hasLoadedStatistics:
-            hasLoadedStatistics = true
+        case .statistics:
             await statisticsViewModel.load()
-        default:
-            break
         }
     }
 }

@@ -48,7 +48,8 @@ struct AppIntentsCoverageTests {
         let state = IntentPerformTestState(selectedTab: .settings)
         try configureIntentBridge(state: state, activeMatch: activeMatch)
         _ = try await ResumeActiveMatchIntent().perform()
-        #expect(state.pendingResume?.id == activeMatch.id)
+        #expect(state.pendingResume?.match.id == activeMatch.id)
+        #expect(state.pendingResume?.startSource == .intent)
     }
 
     @Test
@@ -78,7 +79,7 @@ struct AppIntentsCoverageTests {
 private final class IntentPerformTestState {
     var selectedTab: MainTabView.RootTab
     var resetCount = 0
-    var pendingResume: MatchSummary?
+    var pendingResume: PendingMatchResume?
 
     init(selectedTab: MainTabView.RootTab) {
         self.selectedTab = selectedTab
