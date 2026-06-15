@@ -275,12 +275,9 @@ func x01ViewModelDetectsActiveBotTurn() throws {
     )
     let store = ActiveMatchStore()
     store.save(session)
-    let vm = X01MatchViewModel(
+    let vm = makeX01BotIntegrationViewModel(
         matchId: session.runtime.matchId,
-        store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
-        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
-        statsRepository: FakeStatsRepositoryBuilder.empty()
+        store: store
     )
 
     #expect(vm.isCurrentPlayerBot)
@@ -378,12 +375,9 @@ func x01ViewModelBotTurnSubmitsVisit() async throws {
     )
     let store = ActiveMatchStore()
     store.save(session)
-    let vm = X01MatchViewModel(
+    let vm = makeX01BotIntegrationViewModel(
         matchId: session.runtime.matchId,
-        store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
-        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
-        statsRepository: FakeStatsRepositoryBuilder.empty()
+        store: store
     )
 
     await vm.playBotTurnIfNeeded()
@@ -433,12 +427,9 @@ func x01ViewModelCountsBotVisitDartsWhileBotIsActive() async throws {
     )
     let store = ActiveMatchStore()
     store.save(session)
-    let vm = X01MatchViewModel(
+    let vm = makeX01BotIntegrationViewModel(
         matchId: session.runtime.matchId,
-        store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
-        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
-        statsRepository: FakeStatsRepositoryBuilder.empty()
+        store: store
     )
     vm.inputMode = .dartEntry
     vm.enteredDarts = [
@@ -484,12 +475,9 @@ func x01ViewModelSignalsTurnTotalCallerForBotVisit() async throws {
     )
     let store = ActiveMatchStore()
     store.save(session)
-    let vm = X01MatchViewModel(
+    let vm = makeX01BotIntegrationViewModel(
         matchId: session.runtime.matchId,
-        store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
-        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
-        statsRepository: FakeStatsRepositoryBuilder.empty()
+        store: store
     )
 
     await vm.playBotTurnIfNeeded()
@@ -673,16 +661,21 @@ func x01RecoverBotPlaybackRestartsAfterExitAlertDismissedWithStay() async throws
 private func waitForX01EventCount(
     _ count: Int,
     on vm: X01MatchViewModel,
-    expectedState: X01MatchViewModel.State? = nil
+    expectedState: X01MatchViewModel.State? = nil,
+    timeoutNanoseconds: UInt64 = 25_000_000,
+    maxAttempts: Int = 400
 ) async throws {
-    for _ in 0 ..< 140 {
+    for _ in 0 ..< maxAttempts {
         let stateMatches = expectedState.map { vm.state == $0 } ?? true
         if vm.session?.events.count == count, vm.isBotPlaying == false, stateMatches {
             return
         }
-        try await Task.sleep(nanoseconds: 25_000_000)
+        await Task.yield()
+        try await Task.sleep(nanoseconds: timeoutNanoseconds)
     }
-    Issue.record("Timed out waiting for \(count) X01 events (got \(vm.session?.events.count ?? -1)).")
+    Issue.record(
+        "Timed out waiting for \(count) X01 events (got \(vm.session?.events.count ?? -1), botPlaying: \(vm.isBotPlaying), state: \(vm.state))."
+    )
 }
 
 @MainActor
@@ -847,12 +840,9 @@ func x01UndoBackToBotTurnRestartsBot() async throws {
     )
     let store = ActiveMatchStore()
     store.save(session)
-    let vm = X01MatchViewModel(
+    let vm = makeX01BotIntegrationViewModel(
         matchId: session.runtime.matchId,
-        store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
-        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
-        statsRepository: FakeStatsRepositoryBuilder.empty()
+        store: store
     )
 
     await vm.playBotTurnIfNeeded()
@@ -901,12 +891,9 @@ func x01ViewModelBotContinuesAfterHumanBust() async throws {
     }
     let store = ActiveMatchStore()
     store.save(session)
-    let vm = X01MatchViewModel(
+    let vm = makeX01BotIntegrationViewModel(
         matchId: session.runtime.matchId,
-        store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
-        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
-        statsRepository: FakeStatsRepositoryBuilder.empty()
+        store: store
     )
     vm.inputMode = .totalEntry
     vm.totalEntryText = "50"
@@ -946,12 +933,9 @@ func x01ViewModelHumanCanSubmitAfterBotBust() async throws {
     session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 50, darts: nil)
     let store = ActiveMatchStore()
     store.save(session)
-    let vm = X01MatchViewModel(
+    let vm = makeX01BotIntegrationViewModel(
         matchId: session.runtime.matchId,
-        store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
-        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
-        statsRepository: FakeStatsRepositoryBuilder.empty()
+        store: store
     )
     #expect(vm.isCurrentPlayerBot == false)
     #expect(vm.canHumanInput)
@@ -1046,6 +1030,32 @@ func cricketViewModelSignalsTurnTotalCallerForBotVisit() async throws {
 }
 
 // MARK: - Test helpers
+
+@MainActor
+private func instantBotFeedbackPreferences() -> FeedbackPreferences {
+    let prefs = FeedbackPreferences()
+    prefs.botStaggerEnabled = false
+    prefs.hapticsEnabled = false
+    prefs.soundEnabled = false
+    prefs.botDartHapticsEnabled = false
+    return prefs
+}
+
+@MainActor
+private func makeX01BotIntegrationViewModel(
+    matchId: UUID,
+    store: ActiveMatchStore,
+    feedbackPreferences: FeedbackPreferences? = nil
+) -> X01MatchViewModel {
+    X01MatchViewModel(
+        matchId: matchId,
+        store: store,
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty(),
+        feedbackPreferences: feedbackPreferences ?? instantBotFeedbackPreferences()
+    )
+}
 
 private func makeBotTestPlayer(_ name: String) -> PlayerSummary {
     PlayerSummary(id: UUID(), name: name, isArchived: false, createdAt: Date(), updatedAt: Date())

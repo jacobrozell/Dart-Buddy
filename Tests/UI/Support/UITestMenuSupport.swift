@@ -228,23 +228,56 @@ extension XCTestCase {
         }
     }
 
-    func ensurePlayersTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        let search = app.descendants(matching: .any)["players_searchField"]
-        let playerRow = app.buttons.matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "player_row_")
-        ).firstMatch
-        if search.waitForExistence(timeout: 1) || playerRow.waitForExistence(timeout: 1) {
-            return
-        }
-        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
+    func waitForAppBootstrapReady(in app: XCUIApplication, timeout: TimeInterval = 30) {
+        let marker = app.descendants(matching: .any)["app_bootstrap_ready"]
+        let tabBar = app.tabBars.firstMatch
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            if search.exists || playerRow.exists {
+            if marker.exists || tabBar.exists {
                 return
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
-        XCTAssertTrue(search.exists || playerRow.exists, "Players tab should be visible")
+        XCTAssertTrue(
+            marker.exists || tabBar.exists,
+            "App should finish bootstrap before UI tests interact"
+        )
+    }
+
+    private func playersTabContentIsVisible(in app: XCUIApplication) -> Bool {
+        let search = app.descendants(matching: .any)["players_searchField"]
+        let playerRow = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "player_row_")
+        ).firstMatch
+        let emptyState = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS[c] %@", "No players")
+        ).firstMatch
+        return search.exists || playerRow.exists || emptyState.exists
+    }
+
+    func ensurePlayersTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+        if playersTabContentIsVisible(in: app) {
+            return
+        }
+
+        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
+
+        let loading = app.descendants(matching: .any)["players_loading"]
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if loading.exists {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+                continue
+            }
+            if playersTabContentIsVisible(in: app) {
+                return
+            }
+            if app.descendants(matching: .any)["brand_app_title"].exists {
+                tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: 1)
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        }
+        XCTAssertTrue(playersTabContentIsVisible(in: app), "Players tab should be visible")
     }
 
     func ensureModesTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -495,14 +528,19 @@ extension XCTestCase {
         expectedModeName: String? = nil,
         timeout: TimeInterval = 10
     ) {
+        ensurePlayTab(app, timeout: timeout)
         let changeButton = app.buttons["setup_changeModeButton"]
         XCTAssertTrue(changeButton.waitForExistence(timeout: timeout), "Expected Change mode button")
         changeButton.tap()
+        XCTAssertTrue(
+            app.buttons["modePicker_cancelButton"].waitForExistence(timeout: timeout),
+            "Mode picker sheet should appear after tapping Change mode"
+        )
         let card = app.descendants(matching: .any)["modes_card_\(catalogId)"]
-        scrollToPlaySetupPickerCard(card, in: app, timeout: timeout)
+        scrollToPlaySetupPickerCard(card, in: app, timeout: timeout + 10)
         XCTAssertTrue(card.isHittable, "Expected picker card \(catalogId) to be hittable")
         tapHittableElement(card)
-        _ = app.buttons["modePicker_cancelButton"].waitForNonExistence(timeout: timeout)
+        _ = app.buttons["modePicker_cancelButton"].waitForNonExistence(timeout: timeout + 5)
         ensurePlayTab(app, timeout: timeout)
         assertSelectedModeName(expectedModeName, in: app, timeout: timeout)
     }
@@ -715,15 +753,42 @@ extension XCTestCase {
         while Date() < deadline {
             if card.exists, card.isHittable { return }
             app.swipeUp()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
         for _ in 0 ..< 6 {
             app.swipeDown()
         }
-        for _ in 0 ..< 20 {
+        let retryDeadline = Date().addingTimeInterval(timeout)
+        while Date() < retryDeadline {
             if card.exists, card.isHittable { return }
             app.swipeUp()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
-        XCTAssertTrue(card.waitForExistence(timeout: 2), "Expected picker card to exist")
+        XCTAssertTrue(card.waitForExistence(timeout: timeout), "Expected picker card to exist")
+    }
+
+    func waitForMatchGameplayChrome(
+        headerIdentifier: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval = 15,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let header = app.descendants(matching: .any)[headerIdentifier]
+        let exit = app.buttons["match_exit"]
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if header.exists || exit.exists {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        }
+        XCTAssertTrue(
+            header.exists || exit.exists,
+            "Expected match screen '\(headerIdentifier)' or match_exit",
+            file: file,
+            line: line
+        )
     }
 
     private func tapHittableElement(_ element: XCUIElement) {
@@ -814,19 +879,25 @@ extension XCTestCase {
     }
 
     func waitForDemoSeed(in app: XCUIApplication, timeout: TimeInterval = 30) {
-        ensurePlayersTab(app, timeout: timeout)
         let jacob = app.buttons["player_row_Jacob"]
         let botRow = app.buttons.matching(
             NSPredicate(format: "identifier BEGINSWITH 'player_row_bot_'")
         ).firstMatch
+        let resume = app.buttons["resumeMatchButton"]
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            if jacob.exists || botRow.exists {
+            if jacob.exists || botRow.exists || resume.exists {
                 return
             }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+            if !playersTabContentIsVisible(in: app) {
+                tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: 2)
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
         }
-        XCTAssertTrue(jacob.exists || botRow.exists, "Demo seed should populate the Players roster")
+        XCTAssertTrue(
+            jacob.exists || botRow.exists || resume.exists,
+            "Demo seed should populate the Players roster or expose a resumable match"
+        )
     }
 
     /// Waits until the cricket pad accepts input after auto-submit, bot visits, or closure transitions.

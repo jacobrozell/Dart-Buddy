@@ -55,7 +55,7 @@ class DartBuddyUITestCase: XCTestCase {
             app.launchEnvironment = environment
         }
         app.launch()
-        _ = app.tabBars.firstMatch.waitForExistence(timeout: 15)
+        waitForAppBootstrapReady(in: app, timeout: 30)
         return app
     }
 

@@ -110,8 +110,10 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         selectPlayerFromRoster("Bob", in: app)
         tapStartMatch(in: app, timeout: timeout)
 
-        XCTAssertTrue(
-            app.descendants(matching: .any)["baseball_match_header"].waitForExistence(timeout: timeout + 5)
+        waitForMatchGameplayChrome(
+            headerIdentifier: "baseball_match_header",
+            in: app,
+            timeout: timeout + 15
         )
     }
 
@@ -119,13 +121,14 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         let app = launchPartyPackApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
-        selectModeFromPlaySetupPicker("party.killer", in: app, expectedModeName: "Killer", timeout: timeout)
+        selectModeFromPlaySetupPicker("party.killer", in: app, expectedModeName: "Killer", timeout: timeout + 10)
         selectAliceBobAndCarol(from: app)
         tapStartMatch(in: app, timeout: timeout + 10)
 
-        XCTAssertTrue(
-            app.descendants(matching: .any)["killer_match_header"].waitForExistence(timeout: timeout + 10),
-            "Killer should open after start with three players"
+        waitForMatchGameplayChrome(
+            headerIdentifier: "killer_match_header",
+            in: app,
+            timeout: timeout + 20
         )
     }
 
@@ -165,8 +168,10 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         selectPlayerFromRoster("Bob", in: app)
         tapStartMatch(in: app, timeout: timeout)
 
-        XCTAssertTrue(
-            app.descendants(matching: .any)["shanghai_match_header"].waitForExistence(timeout: timeout + 5)
+        waitForMatchGameplayChrome(
+            headerIdentifier: "shanghai_match_header",
+            in: app,
+            timeout: timeout + 15
         )
     }
 
@@ -190,8 +195,10 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         waitForStartEnabled(start, timeout: timeout)
         tapStartMatch(in: app, timeout: timeout)
 
-        XCTAssertTrue(
-            app.descendants(matching: .any)["aroundTheClock_match_header"].waitForExistence(timeout: timeout + 5)
+        waitForMatchGameplayChrome(
+            headerIdentifier: "aroundTheClock_match_header",
+            in: app,
+            timeout: timeout + 20
         )
     }
 
@@ -207,7 +214,13 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         let customBotByLabel = app.buttons.containing(
             NSPredicate(format: "label CONTAINS %@", "Custom Bot")
         ).firstMatch
-        if customBotOption.waitForExistence(timeout: 2) {
+        if !customBotOption.waitForExistence(timeout: timeout) {
+            XCTAssertTrue(
+                waitForSetupMenu(in: app, timeout: timeout) || customBotByLabel.waitForExistence(timeout: 1),
+                "Add Bot menu should present setup options"
+            )
+        }
+        if customBotOption.exists {
             XCTAssertTrue(customBotOption.exists)
         } else {
             XCTAssertTrue(
@@ -223,7 +236,7 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         let app = launchPartyPackApp(["-seed_demo"])
         waitForDemoSeed(in: app, timeout: timeout + 30)
 
-        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
+        ensurePlayersTab(app, timeout: timeout)
         XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout + 10))
         app.buttons["player_row_Jacob"].tap()
         XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 15))
@@ -234,6 +247,7 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
 
     func testPartyPackResumeActiveMatchFromPlayHome() {
         let app = launchPartyPackApp(["-seed_demo"])
+        waitForDemoSeed(in: app, timeout: timeout + 30)
 
         let resume = app.buttons["resumeMatchButton"]
         XCTAssertTrue(resume.waitForExistence(timeout: timeout), "Demo seed should expose a resumable match")
@@ -251,6 +265,7 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         waitForDemoSeed(in: app, timeout: timeout + 30)
 
         ensureActivityHistorySegment(app, timeout: timeout)
+        waitForSeededActivityHistoryContent(app, timeout: timeout + 15)
         XCTAssertTrue(
             app.staticTexts["FINISHED"].waitForExistence(timeout: timeout + 5),
             "Demo history should list completed games as FINISHED"

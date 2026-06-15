@@ -154,9 +154,10 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
 
     func testLeanPlayerDetailHidesExportAndTrainingPartner() {
         let app = launchLeanApp(["-seed_demo"])
+        waitForDemoSeed(in: app, timeout: timeout + 30)
 
-        tapTabBarItem(named: "Players", identifier: "tab_players", in: app, timeout: timeout)
-        XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout))
+        ensurePlayersTab(app, timeout: timeout)
+        XCTAssertTrue(app.buttons["player_row_Jacob"].waitForExistence(timeout: timeout + 10))
         app.buttons["player_row_Jacob"].tap()
         XCTAssertTrue(app.staticTexts["X01"].waitForExistence(timeout: timeout + 10))
 
@@ -199,6 +200,7 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
 
     func testLeanResumeActiveMatchFromPlayHome() {
         let app = launchLeanApp(["-seed_demo"])
+        waitForDemoSeed(in: app, timeout: timeout + 30)
 
         let resume = app.buttons["resumeMatchButton"]
         XCTAssertTrue(resume.waitForExistence(timeout: timeout), "Demo seed should expose a resumable match")

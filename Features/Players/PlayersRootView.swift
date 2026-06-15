@@ -171,6 +171,7 @@ struct PlayersRootView: View {
                 .tint(Brand.green)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.vertical, DS.Spacing.s6)
+                .accessibilityIdentifier("players_loading")
                 .accessibilityLabel(L10n.loading)
         } else if viewModel.state == .error {
             ContentUnavailableView(

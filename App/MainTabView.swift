@@ -99,6 +99,13 @@ struct MainTabView: View {
                         .accessibilityIdentifier("tab_settings")
                 }
         }
+        .overlay(alignment: .topLeading) {
+            Color.clear
+                .frame(width: 1, height: 1)
+                .accessibilityIdentifier("app_bootstrap_ready")
+                .accessibilityLabel("Bootstrap ready")
+                .allowsHitTesting(false)
+        }
         .preferredColorScheme(preferences.preferredColorScheme)
         .tint(Brand.green)
         .alert(L10n.updateAvailableTitle, isPresented: appStoreUpdateAlertBinding) {
