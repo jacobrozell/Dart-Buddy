@@ -1,6 +1,6 @@
 # Tier 1 Scalability Refactor Plan
 
-**Status:** Phase 0 complete · Phase 1 complete (all modes use lifecycle handlers)  
+**Status:** Phase 0 complete · Phase 1 complete · Phase 2 in progress (MatchSessionController pilot)  
 **Created:** 2026-06-14  
 **Updated:** 2026-06-15  
 **Goal:** Reduce linear-growth hotspots so adding game mode #26 touches **4 new files** (setup config, lifecycle handler, thin VM, screen) instead of **4 central files**.
@@ -319,7 +319,7 @@ Extend `PersistedSetupPreferences` to all modes (today only 4 conform in `Persis
 |-------|--------|-------|
 | 0 — Test fakes | **Complete** | `FakeRepositories.swift`, `FakeRepositoryBuilders.swift`, `MatchTestFixtures.swift`; 35+ test files migrated. Remaining inline fakes are domain-specific (stats loader pagination, corrupt snapshots, player-list blocking). |
 | 1 — Lifecycle plugins | **Complete** | 22 handlers under `Domain/Match/Lifecycle/Handlers/`; `MatchLifecycleService` (~922 lines) delegates submit/replay to handlers. Public API unchanged. |
-| 2 — Match VM core | Not started | |
+| 2 — Match VM core | **In progress** | `MatchSessionController` (+ Undo/Bot/Lifecycle extensions) extracted; Golf and Knockout migrated as pilots. Remaining standard/party modes still inline scaffolding. |
 | 3 — Setup registry | Not started | |
 
 Update this table when phases complete or ship gates change.
