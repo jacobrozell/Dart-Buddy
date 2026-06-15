@@ -63,4 +63,43 @@ struct MatchConfigAnalyticsTests {
         #expect(metadata["configTieBreaker"] == "bullPlayoff")
         #expect(metadata["configSeventhInningStretch"] == "true")
     }
+
+    @Test
+    func metadataMapsKillerVariants() {
+        let metadata = MatchConfigAnalytics.metadata(
+            for: .killer(MatchConfigKiller(startingLives: 5))
+        )
+
+        #expect(metadata["configStartingLives"] == "5")
+    }
+
+    @Test
+    func metadataMapsShanghaiVariants() {
+        let metadata = MatchConfigAnalytics.metadata(
+            for: .shanghai(
+                MatchConfigShanghai(
+                    roundCount: 15,
+                    bonusRule: .instantWin
+                )
+            )
+        )
+
+        #expect(metadata["configRoundCount"] == "15")
+        #expect(metadata["configBonusRule"] == "instantWin")
+    }
+
+    @Test
+    func metadataMapsAroundTheClockVariants() {
+        let metadata = MatchConfigAnalytics.metadata(
+            for: .aroundTheClock(
+                MatchConfigAroundTheClock(
+                    includeBullFinish: true,
+                    resetPolicy: .resetOnThreeMisses
+                )
+            )
+        )
+
+        #expect(metadata["configIncludeBullFinish"] == "true")
+        #expect(metadata["configResetPolicy"] == "resetOnThreeMisses")
+    }
 }

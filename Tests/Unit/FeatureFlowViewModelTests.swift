@@ -496,6 +496,139 @@ func historyListViewModelPaginatesResults() async {
     #expect(vm.hasMorePages == false)
 }
 
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyFiltersByPartyPackModes() async {
+    let now = Date()
+    let summaries = [
+        MatchSummary(
+            id: UUID(), type: .baseball, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        ),
+        MatchSummary(
+            id: UUID(), type: .killer, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        ),
+        MatchSummary(
+            id: UUID(), type: .shanghai, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        ),
+        MatchSummary(
+            id: UUID(), type: .aroundTheClock, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        )
+    ]
+    let repository = FakeHistoryMatchRepository(rows: summaries)
+    let vm = HistoryListViewModel(
+        matchRepository: repository,
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    let filters: [(ActivityModeFilter, MatchType)] = [
+        (.baseball, .baseball),
+        (.killer, .killer),
+        (.shanghai, .shanghai),
+        (.aroundTheClock, .aroundTheClock)
+    ]
+    for (filter, expectedType) in filters {
+        vm.modeFilter = filter
+        await vm.applyFilters()
+        #expect(vm.rows.count == 1)
+        #expect(vm.rows.first?.summary.type == expectedType)
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyAllGamesFilterExcludesUnreachableModesOnPartyPack() async {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let now = Date()
+    let reachable = MatchSummary(
+        id: UUID(), type: .baseball, status: .completed, startedAt: now, endedAt: now,
+        winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+        eventCount: 1, createdAt: now, updatedAt: now
+    )
+    let hidden = MatchSummary(
+        id: UUID(), type: .golf, status: .completed, startedAt: now, endedAt: now,
+        winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+        eventCount: 1, createdAt: now, updatedAt: now
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: [reachable, hidden]),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    vm.modeFilter = .all
+    await vm.applyFilters()
+
+    #expect(vm.rows.count == 1)
+    #expect(vm.rows.first?.summary.type == .baseball)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyIgnoresUnreachableGolfActiveMatch() async {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .golf,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: [], activeMatch: activeMatch),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    await vm.applyFilters()
+
+    #expect(vm.activeMatch == nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyExposesReachableBaseballActiveMatch() async throws {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .baseball,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 2,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: [], activeMatch: activeMatch),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    await vm.applyFilters()
+
+    #expect(vm.activeMatch?.id == activeMatch.id)
+    #expect(vm.activeMatch?.type == .baseball)
+}
+
 // MARK: - Stats / detail fixtures
 
 private struct StatsFixture {
@@ -1014,15 +1147,18 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     let rows: [MatchSummary]
     let participantsByMatchId: [UUID: [MatchParticipantSummary]]
     let snapshotsByMatchId: [UUID: MatchSnapshotSummary]
+    let activeMatch: MatchSummary?
 
     init(
         rows: [MatchSummary],
         participantsByMatchId: [UUID: [MatchParticipantSummary]] = [:],
-        snapshotsByMatchId: [UUID: MatchSnapshotSummary] = [:]
+        snapshotsByMatchId: [UUID: MatchSnapshotSummary] = [:],
+        activeMatch: MatchSummary? = nil
     ) {
         self.rows = rows
         self.participantsByMatchId = participantsByMatchId
         self.snapshotsByMatchId = snapshotsByMatchId
+        self.activeMatch = activeMatch
     }
 
     private var allRecords: [MatchHistoryRecord] {
@@ -1032,6 +1168,7 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     private func filteredRecords(filter: MatchHistoryFilter) -> [MatchHistoryRecord] {
         allRecords.filter { record in
             if let type = filter.matchType, record.summary.type != type { return false }
+            if let included = filter.includedMatchTypes, !included.contains(record.summary.type) { return false }
             if let startedAfter = filter.startedAfter, record.summary.startedAt < startedAfter { return false }
             if let playerId = filter.participantPlayerId {
                 guard record.participants.contains(where: { ($0.playerId ?? $0.id) == playerId }) else { return false }
@@ -1041,7 +1178,7 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     }
 
     func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { rows.first! }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchActiveMatch() async throws -> MatchSummary? { activeMatch }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { rows }
     func fetchHistoryWithParticipants(page: Int, pageSize: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
         let filtered = filteredRecords(filter: filter)
