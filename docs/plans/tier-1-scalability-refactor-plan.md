@@ -1,6 +1,6 @@
 # Tier 1 Scalability Refactor Plan
 
-**Status:** Phase 0 complete · Phase 1 in progress (coordinator + pilot handlers)  
+**Status:** Phase 0 complete · Phase 1 complete (all modes use lifecycle handlers)  
 **Created:** 2026-06-14  
 **Updated:** 2026-06-15  
 **Goal:** Reduce linear-growth hotspots so adding game mode #26 touches **4 new files** (setup config, lifecycle handler, thin VM, screen) instead of **4 central files**.
@@ -318,7 +318,7 @@ Extend `PersistedSetupPreferences` to all modes (today only 4 conform in `Persis
 | Phase | Status | Notes |
 |-------|--------|-------|
 | 0 — Test fakes | **Complete** | `FakeRepositories.swift`, `FakeRepositoryBuilders.swift`, `MatchTestFixtures.swift`; 35+ test files migrated. Remaining inline fakes are domain-specific (stats loader pagination, corrupt snapshots, player-list blocking). |
-| 1 — Lifecycle plugins | **In progress** | All 16 standard modes use dedicated handlers (Fleet complete). Special modes (X01, Cricket, Killer, Baseball, Shanghai, Raid) remain in `MatchLifecycleService`. |
+| 1 — Lifecycle plugins | **Complete** | 22 handlers under `Domain/Match/Lifecycle/Handlers/`; `MatchLifecycleService` (~922 lines) delegates submit/replay to handlers. Public API unchanged. |
 | 2 — Match VM core | Not started | |
 | 3 — Setup registry | Not started | |
 
