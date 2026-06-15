@@ -30,9 +30,11 @@ private func makeX01ViewModel(
     let vm = X01MatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(failAppend: failAppend),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: failAppend
+            ? FakeMatchRepositoryBuilder.matchViewModelFailingAppend(completedType: .x01)
+            : FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
     return (vm, matchId, store)
 }
@@ -86,9 +88,9 @@ private func makeHumanBotX01ViewModel(preloadedTotals: [Int] = []) throws -> X01
     return X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
 }
 
@@ -116,9 +118,9 @@ private func makeDoubleOutX01ViewModel(
     let vm = X01MatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
     return (vm, matchId, store)
 }
@@ -180,9 +182,9 @@ func x01ViewModelPlayerCardsCarryParticipantColor() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
 
@@ -218,9 +220,9 @@ func x01ViewModelPlayerCardsFallbackColorForLegacyParticipants() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
 
@@ -264,9 +266,9 @@ func x01ViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws {
     let vm = X01MatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01RehydratingFakeMatchRepository(snapshot: snapshotSummary),
-        statsRepository: X01RehydratingFakeStatsRepository(events: eventSummaries)
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.rehydrating(snapshot: snapshotSummary, completedType: .x01),
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: eventSummaries)
     )
 
     #expect(vm.session == nil)
@@ -458,9 +460,9 @@ func x01ViewModelBlocksPadWhileBotTurnPendingAfterHumanBust() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
 
     #expect(vm.isCurrentPlayerBot)
@@ -516,9 +518,9 @@ func x01ViewModelErrorsWhenSessionUnavailable() async throws {
     let vm = X01MatchViewModel(
         matchId: UUID(),
         store: ActiveMatchStore(),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
     vm.inputMode = .totalEntry
     vm.totalEntryText = "20"
@@ -588,9 +590,9 @@ func x01ViewModelSignalsLegFinishSoundBeforeMatchEnds() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
     vm.inputMode = .totalEntry
     vm.totalEntryText = "41"
@@ -645,9 +647,9 @@ private func makeThreePlayerX01ViewModel(
     return X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
 }
 
@@ -733,9 +735,9 @@ func x01ViewModelClearsVisitSlotsAtLegBoundary() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
-        matchRepository: X01FakeMatchRepository(),
-        statsRepository: X01FakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01),
+        statsRepository: FakeStatsRepository()
     )
     vm.inputMode = .totalEntry
     vm.totalEntryText = "41"
@@ -813,13 +815,13 @@ func x01ViewModelCheckoutRoutesListsEveryFewestDartFinish() async throws {
 @Test(.tags(.integration, .x01, .match, .regression))
 func x01ViewModelAbandonMatchMarksAbandonedAndClearsStore() async throws {
     let (_, matchId, store) = try makeX01ViewModel(totals: [60, 0])
-    let repo = X01AbandonCapturingMatchRepository()
+    let repo = FakeMatchRepositoryBuilder.abandonCapturing(completedType: .x01)
     let abandoningVM = X01MatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
         matchRepository: repo,
-        statsRepository: X01FakeStatsRepository()
+        statsRepository: FakeStatsRepository()
     )
     await abandoningVM.onAppear()
 
@@ -896,13 +898,13 @@ func x01ViewModelReconcileAfterSummaryUndoOnAppear() async throws {
     let matchId = session.runtime.matchId
     let store = ActiveMatchStore()
     store.save(session)
-    let matchRepo = X01FakeMatchRepository()
+    let matchRepo = FakeMatchRepositoryBuilder.matchViewModel(completedType: .x01)
     let vm = X01MatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
         matchRepository: matchRepo,
-        statsRepository: X01FakeStatsRepository()
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
     vm.inputMode = .totalEntry
@@ -942,9 +944,9 @@ func x01ViewModelSurfacesErrorWhenSnapshotPayloadInvalid() async throws {
     let vm = X01MatchViewModel(
         matchId: matchId,
         store: ActiveMatchStore(),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink()),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
         matchRepository: X01CorruptSnapshotMatchRepository(matchId: matchId),
-        statsRepository: X01FakeStatsRepository()
+        statsRepository: FakeStatsRepository()
     )
 
     await vm.onAppear()
@@ -974,22 +976,6 @@ func x01ViewModelUndoRevertsToReadyTurn() async throws {
 
 // MARK: - Fakes
 
-private final class SilentLogSink: LogSink, @unchecked Sendable {
-    func write(_: LogEntry) {}
-}
-
-private actor X01RehydratingFakeStatsRepository: StatsRepository {
-    let events: [MatchEventSummary]
-
-    init(events: [MatchEventSummary]) { self.events = events }
-
-    func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary] {
-        events.filter { $0.matchId == matchId }
-    }
-
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
 private actor X01CorruptSnapshotMatchRepository: MatchRepository {
     let matchId: UUID
 
@@ -1011,102 +997,6 @@ private actor X01CorruptSnapshotMatchRepository: MatchRepository {
     func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor X01RehydratingFakeMatchRepository: MatchRepository {
-    let snapshot: MatchSnapshotSummary
-
-    init(snapshot: MatchSnapshotSummary) { self.snapshot = snapshot }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .x01, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        snapshot.matchId == matchId ? snapshot : nil
-    }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-}
-
-private actor X01FakeStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
-private actor X01AbandonCapturingMatchRepository: MatchRepository {
-    private(set) var lastStatus: MatchStatus?
-    private(set) var snapshotSaved = false
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_ match: MatchSummary) async throws { lastStatus = match.status }
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        snapshotSaved = true
-        return MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor X01FakeMatchRepository: MatchRepository {
-    let failAppend: Bool
-    init(failAppend: Bool = false) { self.failAppend = failAppend }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .x01, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        if failAppend {
-            throw AppError(code: .storageUnavailable, layer: .data, severity: .error, isRecoverable: true, userMessageKey: "error.repository.storage")
-        }
-        return MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
 }
 
 @Test func dartSpokenAccessibilityUsesFullMultiplierNames() {

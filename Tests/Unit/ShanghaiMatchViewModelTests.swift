@@ -30,9 +30,9 @@ private func makeShanghaiViewModel(
     let vm = ShanghaiMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: ShanghaiSilentLogSink()),
-        matchRepository: ShanghaiFakeMatchRepository(),
-        statsRepository: ShanghaiFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .shanghai),
+        statsRepository: FakeStatsRepository(),
         feedbackPreferences: {
             let prefs = FeedbackPreferences()
             prefs.botStaggerEnabled = false
@@ -151,9 +151,9 @@ func shanghaiViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws
     let vm = ShanghaiMatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: ShanghaiSilentLogSink()),
-        matchRepository: ShanghaiRehydratingFakeMatchRepository(snapshot: snapshotSummary),
-        statsRepository: ShanghaiRehydratingFakeStatsRepository(events: eventSummaries),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.rehydrating(snapshot: snapshotSummary, completedType: .shanghai),
+        statsRepository: FakeStatsRepository(events: eventSummaries),
         feedbackPreferences: FeedbackPreferences()
     )
 
@@ -167,69 +167,4 @@ func shanghaiViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws
 
 private struct ShanghaiSilentLogSink: LogSink {
     func write(_: LogEntry) {}
-}
-
-private actor ShanghaiFakeMatchRepository: MatchRepository {
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .shanghai, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-}
-
-private actor ShanghaiFakeStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
-private actor ShanghaiRehydratingFakeMatchRepository: MatchRepository {
-    let snapshot: MatchSnapshotSummary
-    init(snapshot: MatchSnapshotSummary) { self.snapshot = snapshot }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .shanghai, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        snapshot.matchId == matchId ? snapshot : nil
-    }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-}
-
-private actor ShanghaiRehydratingFakeStatsRepository: StatsRepository {
-    let events: [MatchEventSummary]
-    init(events: [MatchEventSummary]) { self.events = events }
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { events }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
 }

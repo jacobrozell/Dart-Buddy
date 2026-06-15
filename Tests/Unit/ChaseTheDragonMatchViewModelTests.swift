@@ -43,9 +43,9 @@ private func makeChaseTheDragonViewModel(
     let vm = ChaseTheDragonMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CTDSilentLogSink()),
-        matchRepository: CTDFakeMatchRepository(),
-        statsRepository: CTDFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .chaseTheDragon),
+        statsRepository: FakeStatsRepository(),
         feedbackPreferences: {
             let prefs = FeedbackPreferences()
             prefs.botStaggerEnabled = false
@@ -257,9 +257,9 @@ func chaseTheDragonViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async 
     let vm = ChaseTheDragonMatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CTDSilentLogSink()),
-        matchRepository: CTDRehydratingFakeMatchRepository(snapshot: snapshotSummary),
-        statsRepository: CTDRehydratingFakeStatsRepository(events: eventSummaries),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.rehydrating(snapshot: snapshotSummary, completedType: .chaseTheDragon),
+        statsRepository: FakeStatsRepository(events: eventSummaries),
         feedbackPreferences: FeedbackPreferences()
     )
 
@@ -275,83 +275,4 @@ func chaseTheDragonViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async 
 
 private struct CTDSilentLogSink: LogSink {
     func write(_: LogEntry) {}
-}
-
-private actor CTDFakeMatchRepository: MatchRepository {
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .chaseTheDragon, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
-}
-
-private actor CTDFakeStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
-private actor CTDRehydratingFakeMatchRepository: MatchRepository {
-    let snapshot: MatchSnapshotSummary
-    init(snapshot: MatchSnapshotSummary) { self.snapshot = snapshot }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .chaseTheDragon, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        snapshot.matchId == matchId ? snapshot : nil
-    }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
-}
-
-private actor CTDRehydratingFakeStatsRepository: StatsRepository {
-    let events: [MatchEventSummary]
-    init(events: [MatchEventSummary]) { self.events = events }
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { events }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
 }
