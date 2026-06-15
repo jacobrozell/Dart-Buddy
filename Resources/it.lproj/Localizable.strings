@@ -34,6 +34,8 @@
 "setup.validation.invalidSets" = "Il numero di set deve essere almeno 1.";
 "setup.validation.invalidSets.short" = "Il numero di set deve essere almeno 1.";
 "setup.validation.partyComingSoon" = "Questo party game non è ancora disponibile.";
+"setup.validation.coopComingSoon" = "Questa modalità cooperativa non è ancora disponibile.";
+"setup.validation.coopComingSoon.short" = "Prossimamente.";
 "setup.validation.partyComingSoon.short" = "In arrivo.";
 "setup.validation.partyMinimumPlayers" = "Seleziona almeno due giocatori per questo gioco.";
 "setup.validation.partyMinimumPlayers.short" = "Servono almeno due giocatori.";
@@ -78,9 +80,6 @@
 "players.row.botSuffix" = ", bot %@";
 "players.row.archivedSuffix" = ", archiviato";
 "settings.reset.accessibility" = "Reimposta tutti i dati";
-"migration.retry.accessibility" = "Riprova migrazione";
-"migration.export.accessibility" = "Esporta diagnostica";
-"migration.reset.accessibility" = "Reimposta dati locali";
 "stats.filter.player.accessibilityFormat" = "Filtra per giocatore, %@";
 "stats.partialMatchBanner.accessibility" = "Le statistiche includono la tua partita in corso.";
 "stats.trend.accessibilityPointFormat" = "%@, media %.1f";
@@ -242,11 +241,6 @@
 "settings.reset.confirmTitle" = "Reimpostare tutti i dati locali?";
 "settings.reset.confirmMessage" = "Questo cancella tutti i dati locali su questo dispositivo: giocatori, partite, impostazioni, preferenze salvate e il tour di benvenuto.";
 "settings.reset.confirmAction" = "Reimposta dati";
-"migration.title" = "Recupero richiesto";
-"migration.message" = "L'app non è riuscita ad aprire i dati locali. Puoi riprovare, esportare la diagnostica o reimpostare i dati locali.";
-"migration.retry" = "Riprova";
-"migration.export" = "Esporta diagnostica";
-"migration.reset" = "Reimposta dati locali";
 "scoring.backspace" = "Cancella";
 "scoring.clearTurn" = "Cancella turno";
 "scoring.submitTurn" = "Invia turno";
@@ -385,9 +379,6 @@
 "play.setup.checkout" = "Checkout";
 "play.setup.legsToWinFormat" = "Leg per vincere: %d";
 "play.setup.setsToWinFormat" = "Set per vincere: %d";
-"migration.errorKeyFormat" = "Chiave errore: %@";
-"migration.stateFormat" = "Stato: %@";
-"migration.diagnosticsExported" = "Diagnostica esportata: %@";
 "scoring.turnTotalPlaceholder" = "Totale turno (0-180)";
 "scoring.turnTotal.accessibilityLabel" = "Totale turno";
 "scoring.multiplier.hint" = "Seleziona il moltiplicatore per la prossima freccetta.";

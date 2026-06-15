@@ -80,6 +80,7 @@ final class MatchSetupViewModel: ObservableObject {
     private let pendingMatchPlayerSelections: PendingMatchPlayerSelections
     private let logger: any AppLogger
     private let startService: MatchStartService
+    private let productSurfaceArguments: [String]
     private var hasAppliedSettingsDefaultMode = false
 
     init(
@@ -88,19 +89,29 @@ final class MatchSetupViewModel: ObservableObject {
         matchRepository: any MatchRepository,
         activeMatchStore: ActiveMatchStore,
         pendingMatchPlayerSelections: PendingMatchPlayerSelections,
-        logger: any AppLogger = DefaultAppLogger(minimumLevel: .fault, sink: NoOpLogSink())
+        logger: any AppLogger = DefaultAppLogger(minimumLevel: .fault, sink: NoOpLogSink()),
+        productSurfaceArguments: [String]? = nil
     ) {
         self.playerRepository = playerRepository
         self.settingsRepository = settingsRepository
         self.matchRepository = matchRepository
         self.pendingMatchPlayerSelections = pendingMatchPlayerSelections
         self.logger = logger
+        self.productSurfaceArguments = productSurfaceArguments ?? ProcessInfo.processInfo.arguments
         self.startService = MatchStartService(
             playerRepository: playerRepository,
             matchRepository: matchRepository,
             activeMatchStore: activeMatchStore,
             logger: logger
         )
+    }
+
+    private var productSurfaceConfiguration: ProductSurface.Configuration {
+        ProductSurface.configuration(for: productSurfaceArguments)
+    }
+
+    private func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
+        ProductSurface.isMatchTypeReachable(matchType, arguments: productSurfaceArguments)
     }
 
     var canStart: Bool {
@@ -422,14 +433,14 @@ final class MatchSetupViewModel: ObservableObject {
 
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
         if let matchType = selection.matchType,
-           !ProductSurface.isMatchTypeReachable(matchType) {
+           !isMatchTypeReachable(matchType) {
             return
         }
-        if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
+        if selection.setupCategory == .party, !productSurfaceConfiguration.showsPartyModes { return }
         if let matchType = selection.matchType,
            let entry = GameModeCatalog.entry(for: matchType),
            entry.section == .coop,
-           !ProductSurface.showsCoopModes {
+           !productSurfaceConfiguration.showsCoopModes {
             return
         }
         selectedCatalogMatchType = selection.matchType
@@ -459,18 +470,18 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     private func normalizeForProductSurface() {
-        if setupCategory == .party, !ProductSurface.showsPartyModes {
+        if setupCategory == .party, !productSurfaceConfiguration.showsPartyModes {
             setupCategory = .standard
             mode = .x01
         }
         if let catalogType = selectedCatalogMatchType {
-            if !ProductSurface.isMatchTypeReachable(catalogType) {
+            if !isMatchTypeReachable(catalogType) {
                 setupCategory = .standard
                 mode = .x01
                 selectedCatalogMatchType = nil
             } else if let entry = GameModeCatalog.entry(for: catalogType),
                       entry.section == .coop,
-                      !ProductSurface.showsCoopModes {
+                      !productSurfaceConfiguration.showsCoopModes {
                 setupCategory = .standard
                 mode = .x01
                 selectedCatalogMatchType = nil
@@ -496,10 +507,10 @@ final class MatchSetupViewModel: ObservableObject {
         catalogType: MatchType,
         entry: GameModeCatalogEntry
     ) -> [String] {
-        if entry.section == .party, !ProductSurface.showsPartyModes {
+        if entry.section == .party, !productSurfaceConfiguration.showsPartyModes {
             return ["setup.validation.partyComingSoon"]
         }
-        if entry.section == .coop, !ProductSurface.showsCoopModes {
+        if entry.section == .coop, !productSurfaceConfiguration.showsCoopModes {
             return ["setup.validation.coopComingSoon"]
         }
         if !entry.isAvailable {
@@ -529,7 +540,7 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     private func partySelectionValidationErrors() -> [String] {
-        if !ProductSurface.showsPartyModes {
+        if !productSurfaceConfiguration.showsPartyModes {
             return ["setup.validation.partyComingSoon"]
         }
         if !partyGame.isAvailable {

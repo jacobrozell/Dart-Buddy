@@ -258,7 +258,8 @@ func applyPendingModeSelectionIgnoresUnreachableModesOnPartyPack() async {
         settingsRepository: FakeSettingsRepository(),
         matchRepository: FakeMatchRepository(),
         activeMatchStore: ActiveMatchStore(),
-        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        productSurfaceArguments: args
     )
     vm.updateSetupCategory(.party)
     vm.updatePartyGame(.killer)

@@ -34,6 +34,8 @@
 "setup.validation.invalidSets" = "Le nombre de sets doit être au moins 1.";
 "setup.validation.invalidSets.short" = "Le nombre de sets doit être au moins 1.";
 "setup.validation.partyComingSoon" = "Ce jeu de soirée n'est pas encore disponible.";
+"setup.validation.coopComingSoon" = "Ce mode coop n'est pas encore disponible.";
+"setup.validation.coopComingSoon.short" = "Bientôt disponible.";
 "setup.validation.partyComingSoon.short" = "Bientôt disponible.";
 "setup.validation.partyMinimumPlayers" = "Sélectionne au moins deux joueurs pour ce jeu.";
 "setup.validation.partyMinimumPlayers.short" = "Au moins deux joueurs requis.";
@@ -78,9 +80,6 @@
 "players.row.botSuffix" = ", robot %@";
 "players.row.archivedSuffix" = ", archivé";
 "settings.reset.accessibility" = "Réinitialiser toutes les données";
-"migration.retry.accessibility" = "Réessayer la migration";
-"migration.export.accessibility" = "Exporter le diagnostic";
-"migration.reset.accessibility" = "Réinitialiser les données locales";
 "stats.filter.player.accessibilityFormat" = "Filtrer par joueur, %@";
 "stats.partialMatchBanner.accessibility" = "Les statistiques incluent ton match en cours.";
 "stats.trend.accessibilityPointFormat" = "%@, moyenne %.1f";
@@ -242,11 +241,6 @@
 "settings.reset.confirmTitle" = "Réinitialiser toutes les données locales ?";
 "settings.reset.confirmMessage" = "Cela efface toutes les données locales : joueurs, matchs, réglages, préférences et l'intro.";
 "settings.reset.confirmAction" = "Réinitialiser";
-"migration.title" = "Récupération nécessaire";
-"migration.message" = "L'application n'a pas pu ouvrir les données locales. Tu peux réessayer, exporter le diagnostic ou réinitialiser.";
-"migration.retry" = "Réessayer";
-"migration.export" = "Exporter le diagnostic";
-"migration.reset" = "Réinitialiser les données locales";
 "scoring.backspace" = "Effacer";
 "scoring.clearTurn" = "Effacer le tour";
 "scoring.submitTurn" = "Valider le tour";
@@ -385,9 +379,6 @@
 "play.setup.checkout" = "Finition";
 "play.setup.legsToWinFormat" = "Manches à gagner : %d";
 "play.setup.setsToWinFormat" = "Sets à gagner : %d";
-"migration.errorKeyFormat" = "Clé d'erreur : %@";
-"migration.stateFormat" = "État : %@";
-"migration.diagnosticsExported" = "Diagnostics exportés : %@";
 "scoring.turnTotalPlaceholder" = "Total du tour (0-180)";
 "scoring.turnTotal.accessibilityLabel" = "Total du tour";
 "scoring.multiplier.hint" = "Choisis un multiplicateur pour la prochaine fléchette.";

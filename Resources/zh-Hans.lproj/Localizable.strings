@@ -34,6 +34,8 @@
 "setup.validation.invalidSets" = "盘数至少为 1。";
 "setup.validation.invalidSets.short" = "盘数至少为 1。";
 "setup.validation.partyComingSoon" = "此派对游戏尚未推出。";
+"setup.validation.coopComingSoon" = "该合作模式尚不可用。";
+"setup.validation.coopComingSoon.short" = "即将推出。";
 "setup.validation.partyComingSoon.short" = "敬请期待。";
 "setup.validation.partyMinimumPlayers" = "此游戏至少需要两名玩家。";
 "setup.validation.partyMinimumPlayers.short" = "至少需要两名玩家。";
@@ -78,9 +80,6 @@
 "players.row.botSuffix" = ",机器人 %@";
 "players.row.archivedSuffix" = ",已归档";
 "settings.reset.accessibility" = "重置所有数据";
-"migration.retry.accessibility" = "重试迁移";
-"migration.export.accessibility" = "导出诊断信息";
-"migration.reset.accessibility" = "重置本地数据";
 "stats.filter.player.accessibilityFormat" = "按玩家筛选,%@";
 "stats.partialMatchBanner.accessibility" = "统计数据包含进行中的比赛。";
 "stats.trend.accessibilityPointFormat" = "%@,平均 %.1f";
@@ -242,11 +241,6 @@
 "settings.reset.confirmTitle" = "重置所有本地数据?";
 "settings.reset.confirmMessage" = "此操作将清除本设备上的所有本地数据:玩家、比赛、设置、已保存的偏好以及欢迎引导。";
 "settings.reset.confirmAction" = "重置数据";
-"migration.title" = "需要恢复";
-"migration.message" = "应用无法打开本地数据。你可以重试、导出诊断信息或重置本地数据。";
-"migration.retry" = "重试";
-"migration.export" = "导出诊断信息";
-"migration.reset" = "重置本地数据";
 "scoring.backspace" = "退格";
 "scoring.clearTurn" = "清除本回合";
 "scoring.submitTurn" = "提交回合";
@@ -385,9 +379,6 @@
 "play.setup.checkout" = "收尾";
 "play.setup.legsToWinFormat" = "获胜所需局数:%d";
 "play.setup.setsToWinFormat" = "获胜所需盘数:%d";
-"migration.errorKeyFormat" = "错误关键字:%@";
-"migration.stateFormat" = "状态:%@";
-"migration.diagnosticsExported" = "诊断信息已导出:%@";
 "scoring.turnTotalPlaceholder" = "回合总分 (0-180)";
 "scoring.turnTotal.accessibilityLabel" = "回合总分";
 "scoring.multiplier.hint" = "为下一镖选择倍数。";
