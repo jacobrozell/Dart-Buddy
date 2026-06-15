@@ -296,7 +296,7 @@ public struct UndoLastDartResult: Sendable {
 }
 
 public enum MatchLifecycleService {
-    public static let snapshotInterval = 3
+    public static let snapshotInterval = MatchLifecycleCoordinator.snapshotInterval
 
     public static func createMatch(
         matchId: UUID = UUID(),
@@ -399,7 +399,7 @@ public enum MatchLifecycleService {
         }
 
         MatchRuntimeProjection.project(&runtime, timestamp: startedAt)
-        let initialSnapshot = try makeSnapshot(from: runtime, eventCount: 0, timestamp: startedAt)
+        let initialSnapshot = try MatchLifecycleCoordinator.makeSnapshot(from: runtime, eventCount: 0, timestamp: startedAt)
         return MatchLifecycleSession(runtime: runtime, events: [], latestSnapshot: initialSnapshot)
     }
 
@@ -414,7 +414,7 @@ public enum MatchLifecycleService {
         runtime.status = .abandoned
         runtime.endedAt = timestamp
         runtime.currentTurnPlayerId = nil
-        let snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
+        let snapshot = try MatchLifecycleCoordinator.makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
         return MatchLifecycleSession(runtime: runtime, events: session.events, latestSnapshot: snapshot)
     }
 
@@ -486,7 +486,7 @@ public enum MatchLifecycleService {
         runtime.forfeitedByPlayerId = forfeitingPlayerId
         runtime.winnerPlayerId = winnerPlayerId
         runtime.currentTurnPlayerId = nil
-        let snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
+        let snapshot = try MatchLifecycleCoordinator.makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
         return MatchLifecycleSession(runtime: runtime, events: session.events, latestSnapshot: snapshot)
     }
 
@@ -506,7 +506,7 @@ public enum MatchLifecycleService {
             payload: .x01Turn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.x01State = x01State
         }
     }
@@ -526,7 +526,7 @@ public enum MatchLifecycleService {
             payload: .cricketTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.cricketState = cricketState
         }
     }
@@ -546,7 +546,7 @@ public enum MatchLifecycleService {
             payload: .baseballTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.baseballState = baseballState
         }
     }
@@ -566,7 +566,7 @@ public enum MatchLifecycleService {
             payload: .killerPick(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.killerState = killerState
         }
     }
@@ -586,7 +586,7 @@ public enum MatchLifecycleService {
             payload: .killerTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.killerState = killerState
         }
     }
@@ -606,7 +606,7 @@ public enum MatchLifecycleService {
             payload: .shanghaiTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.shanghaiState = shanghaiState
         }
     }
@@ -626,7 +626,7 @@ public enum MatchLifecycleService {
             payload: .americanCricketTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.americanCricketState = state
         }
     }
@@ -646,7 +646,7 @@ public enum MatchLifecycleService {
             payload: .mickeyMouseTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.mickeyMouseState = state
         }
     }
@@ -666,7 +666,7 @@ public enum MatchLifecycleService {
             payload: .mulliganTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.mulliganState = state
         }
     }
@@ -686,7 +686,7 @@ public enum MatchLifecycleService {
             payload: .englishCricketTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.englishCricketState = state
         }
     }
@@ -696,19 +696,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.knockoutState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.knockoutUnavailable")
-        }
-        let outcome = try KnockoutEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .knockoutTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.knockoutState = state
-        }
+        try KnockoutMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitSuddenDeathTurn(
@@ -726,7 +714,7 @@ public enum MatchLifecycleService {
             payload: .suddenDeathTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.suddenDeathState = state
         }
     }
@@ -746,7 +734,7 @@ public enum MatchLifecycleService {
             payload: .fiftyOneByFivesTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.fiftyOneByFivesState = state
         }
     }
@@ -756,19 +744,7 @@ public enum MatchLifecycleService {
         input: GolfTurnInput,
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.golfState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.golfUnavailable")
-        }
-        let outcome = try GolfEngine.submitTurn(state: state, input: input, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .golfTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.golfState = state
-        }
+        try GolfMatchLifecycleHandler.submitTurn(session: session, input: input, timestamp: timestamp)
     }
 
     public static func submitFootballTurn(
@@ -786,7 +762,7 @@ public enum MatchLifecycleService {
             payload: .footballTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.footballState = state
         }
     }
@@ -796,19 +772,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.grandNationalState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.grandNationalUnavailable")
-        }
-        let outcome = try GrandNationalEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .grandNationalTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.grandNationalState = state
-        }
+        try GrandNationalMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitHareAndHoundsTurn(
@@ -826,7 +790,7 @@ public enum MatchLifecycleService {
             payload: .hareAndHoundsTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.hareAndHoundsState = state
         }
     }
@@ -846,7 +810,7 @@ public enum MatchLifecycleService {
             payload: .aroundTheClockTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.aroundTheClockState = state
         }
     }
@@ -866,7 +830,7 @@ public enum MatchLifecycleService {
             payload: .aroundTheClock180Turn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.aroundTheClock180State = state
         }
     }
@@ -886,7 +850,7 @@ public enum MatchLifecycleService {
             payload: .chaseTheDragonTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.chaseTheDragonState = state
         }
     }
@@ -906,7 +870,7 @@ public enum MatchLifecycleService {
             payload: .nineLivesTurn(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.nineLivesState = state
         }
     }
@@ -926,7 +890,7 @@ public enum MatchLifecycleService {
             payload: .raidVisit(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.raidState = state
         }
     }
@@ -946,7 +910,7 @@ public enum MatchLifecycleService {
             payload: .fleetPlacementUI(uiEvent),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.fleetState = state
         }
     }
@@ -966,7 +930,7 @@ public enum MatchLifecycleService {
             payload: .fleetPlacementUI(uiEvent),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.fleetState = state
         }
     }
@@ -1013,7 +977,7 @@ public enum MatchLifecycleService {
             payload: .fleetPlacement(outcome.event),
             timestamp: timestamp
         )
-        var updated = try appendAndProject(session: session, newEvent: placementEnvelope, timestamp: timestamp) { runtime in
+        var updated = try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: placementEnvelope, timestamp: timestamp) { runtime in
             runtime.fleetState = state
         }
         if let uiEvent = outcome.uiEvent {
@@ -1022,7 +986,7 @@ public enum MatchLifecycleService {
                 payload: .fleetPlacementUI(uiEvent),
                 timestamp: timestamp
             )
-            updated = try appendAndProject(session: updated, newEvent: uiEnvelope, timestamp: timestamp) { runtime in
+            updated = try MatchLifecycleCoordinator.appendAndProject(session: updated, newEvent: uiEnvelope, timestamp: timestamp) { runtime in
                 runtime.fleetState = state
             }
         }
@@ -1045,7 +1009,7 @@ public enum MatchLifecycleService {
             payload: .fleetSonar(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
             runtime.fleetState = state
         }
     }
@@ -1068,7 +1032,7 @@ public enum MatchLifecycleService {
             payload: .fleetDart(outcome.event),
             timestamp: timestamp
         )
-        return try appendAndProject(session: session, newEvent: dartEnvelope, timestamp: timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: dartEnvelope, timestamp: timestamp) { runtime in
             runtime.fleetState = state
         }
     }
@@ -1238,21 +1202,18 @@ public enum MatchLifecycleService {
             let darts = turn.darts.map(EnglishCricketEngine.dartInput(from:))
             return try submitEnglishCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
         case let .knockoutTurn(turn):
-            let darts = turn.darts.map(KnockoutEngine.dartInput(from:))
-            return try submitKnockoutTurn(session: session, darts: darts, timestamp: event.timestamp)
+            return try KnockoutMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .suddenDeathTurn(turn):
             return try submitSuddenDeathTurn(session: session, darts: suddenDeathReplayDarts(for: turn), timestamp: event.timestamp)
         case let .fiftyOneByFivesTurn(turn):
             return try submitFiftyOneByFivesTurn(session: session, darts: fiftyOneByFivesReplayDarts(for: turn), timestamp: event.timestamp)
         case let .golfTurn(turn):
-            let darts = turn.darts.map(GolfEngine.dartInput(from:))
-            let input = GolfTurnInput(darts: darts, endedEarly: turn.endedEarly)
-            return try submitGolfTurn(session: session, input: input, timestamp: event.timestamp)
+            return try GolfMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .footballTurn(turn):
             let darts = turn.darts.map(FootballEngine.dartInput(from:))
             return try submitFootballTurn(session: session, darts: darts, timestamp: event.timestamp)
         case let .grandNationalTurn(turn):
-            return try submitGrandNationalTurn(session: session, darts: grandNationalReplayDarts(for: turn), timestamp: event.timestamp)
+            return try GrandNationalMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .hareAndHoundsTurn(turn):
             return try submitHareAndHoundsTurn(session: session, darts: hareAndHoundsReplayDarts(for: turn), timestamp: event.timestamp)
         case let .aroundTheClockTurn(turn):
@@ -1305,26 +1266,6 @@ public enum MatchLifecycleService {
         }
     }
 
-    private static func appendAndProject(
-        session: MatchLifecycleSession,
-        newEvent: MatchEventEnvelope,
-        timestamp: Date,
-        update: (inout MatchRuntimeState) -> Void
-    ) throws -> MatchLifecycleSession {
-        var runtime = session.runtime
-        runtime.eventCount += 1
-        update(&runtime)
-        MatchRuntimeProjection.project(&runtime, timestamp: timestamp)
-
-        var events = session.events
-        events.append(newEvent)
-        var snapshot = session.latestSnapshot
-        if runtime.eventCount % snapshotInterval == 0 || runtime.status == .completed {
-            snapshot = try makeSnapshot(from: runtime, eventCount: runtime.eventCount, timestamp: timestamp)
-        }
-        return MatchLifecycleSession(runtime: runtime, events: events, latestSnapshot: snapshot)
-    }
-
     private static func suddenDeathReplayDarts(for turn: SuddenDeathTurnEvent) -> [DartInput] {
         guard turn.pointsThisVisit > 0 else { return [DartInput(multiplier: .single, segment: .miss, isMiss: true)] }
         let perDart = turn.pointsThisVisit / 3
@@ -1358,14 +1299,6 @@ public enum MatchLifecycleService {
             return [DartInput(multiplier: .triple, segment: .oneToTwenty(segment), isMiss: false)]
         }
         return [DartInput(multiplier: .single, segment: .oneToTwenty(min(20, rawTotal)), isMiss: false)]
-    }
-
-    private static func grandNationalReplayDarts(for turn: GrandNationalTurnEvent) -> [DartInput] {
-        if turn.segmentIndexAfter > turn.segmentIndexBefore {
-            let segment = grandNationalCourseOrder[turn.segmentIndexBefore]
-            return [DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false)]
-        }
-        return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
     }
 
     private static func hareAndHoundsReplayDarts(for turn: HareAndHoundsTurnEvent) -> [DartInput] {
@@ -1419,7 +1352,7 @@ public enum MatchLifecycleService {
             payload: .fleetPlacementUI(ui),
             timestamp: ui.timestamp
         )
-        return try appendAndProject(session: session, newEvent: envelope, timestamp: ui.timestamp) { runtime in
+        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: ui.timestamp) { runtime in
             runtime.fleetState = state
         }
     }
@@ -1431,15 +1364,6 @@ public enum MatchLifecycleService {
             severity: .error,
             isRecoverable: true,
             userMessageKey: "error.match.mode.fleetUnavailable"
-        )
-    }
-
-    private static func makeSnapshot(from runtime: MatchRuntimeState, eventCount: Int, timestamp: Date) throws -> MatchSnapshot {
-        MatchSnapshot(
-            payloadVersion: 1,
-            eventCount: eventCount,
-            createdAt: timestamp,
-            payload: try CodablePayloadCoder.encode(runtime)
         )
     }
 

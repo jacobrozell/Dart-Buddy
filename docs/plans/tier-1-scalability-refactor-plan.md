@@ -1,6 +1,6 @@
 # Tier 1 Scalability Refactor Plan
 
-**Status:** Phase 0 complete · Phase 1 not started  
+**Status:** Phase 0 complete · Phase 1 in progress (coordinator + pilot handlers)  
 **Created:** 2026-06-14  
 **Updated:** 2026-06-15  
 **Goal:** Reduce linear-growth hotspots so adding game mode #26 touches **4 new files** (setup config, lifecycle handler, thin VM, screen) instead of **4 central files**.
@@ -318,7 +318,7 @@ Extend `PersistedSetupPreferences` to all modes (today only 4 conform in `Persis
 | Phase | Status | Notes |
 |-------|--------|-------|
 | 0 — Test fakes | **Complete** | `FakeRepositories.swift`, `FakeRepositoryBuilders.swift`, `MatchTestFixtures.swift`; 35+ test files migrated. Remaining inline fakes are domain-specific (stats loader pagination, corrupt snapshots, player-list blocking). |
-| 1 — Lifecycle plugins | Not started | Ship gate: pilot Golf, Grand National, Knockout after 1.1 |
+| 1 — Lifecycle plugins | **In progress** | `MatchLifecycleCoordinator` extracted; pilot handlers: Golf, Knockout, Grand National. |
 | 2 — Match VM core | Not started | |
 | 3 — Setup registry | Not started | |
 
