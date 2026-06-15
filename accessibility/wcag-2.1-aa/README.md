@@ -37,9 +37,9 @@ Maps to `specs/UIBlueprintSpec.md` §3 plus Statistics tab.
 | `killer-match` | `KillerMatchScreen` | [screens/killer-match.md](screens/killer-match.md) |
 | `shanghai-match` | `ShanghaiMatchScreen` | [screens/shanghai-match.md](screens/shanghai-match.md) |
 | `match-summary` | `MatchSummaryScreen` | [screens/match-summary.md](screens/match-summary.md) |
-| `history-list` | `HistoryRootView` | [screens/history-list.md](screens/history-list.md) |
+| `history-list` | `ActivityRootView` (history segment) | [screens/history-list.md](screens/history-list.md) |
 | `history-detail` | `MatchHistoryDetailScreen` | [screens/history-detail.md](screens/history-detail.md) |
-| `statistics` | `StatisticsRootView` | [screens/statistics.md](screens/statistics.md) |
+| `statistics` | `ActivityRootView` (statistics segment) | [screens/statistics.md](screens/statistics.md) |
 | `players-list` | `PlayersRootView` | [screens/players-list.md](screens/players-list.md) |
 | `player-detail` | `PlayersRootView` (detail route) | [screens/player-detail.md](screens/player-detail.md) |
 | `player-edit` | `PlayersRootView` (sheet) | [screens/player-edit.md](screens/player-edit.md) |
