@@ -284,7 +284,7 @@ final class SuddenDeathMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -295,7 +295,7 @@ final class SuddenDeathMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -336,7 +336,7 @@ final class SuddenDeathMatchViewModel: ObservableObject {
                 }
                 announceRoundResultsIfNeeded(eliminatedNames: names)
                 state = .eliminationFeedback
-                try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementTransitionNanoseconds)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementDelayNanoseconds(feedbackPreferences: feedbackPreferences))
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted

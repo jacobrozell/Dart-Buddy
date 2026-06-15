@@ -262,6 +262,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
     #expect(baseline.soundEnabled == true)
     #expect(baseline.botStaggerEnabled == true)
     #expect(baseline.botDartHapticsEnabled == true)
+    #expect(baseline.instantBotTurnsEnabled == false)
 
     let updated = SettingsSummary(
         id: baseline.id,
@@ -278,6 +279,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
         defaultSetsEnabled: baseline.defaultSetsEnabled,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        instantBotTurnsEnabled: true,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: baseline.updatedAt
     )
@@ -288,6 +290,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
     #expect(reloaded.soundEnabled == false)
     #expect(reloaded.botStaggerEnabled == false)
     #expect(reloaded.botDartHapticsEnabled == false)
+    #expect(reloaded.instantBotTurnsEnabled == true)
 }
 
 @Test(.tags(.integration, .stats, .swiftdata, .regression))
@@ -365,6 +368,7 @@ func settingsRepositoryResetsPreferencesToDefaults() async throws {
         defaultSetsEnabled: true,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+            instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "visualBoard",
         updatedAt: Date()
     )

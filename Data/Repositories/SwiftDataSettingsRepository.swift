@@ -56,6 +56,7 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultSetsEnabled = settings.defaultSetsEnabled
             record.botStaggerEnabled = settings.botStaggerEnabled
             record.botDartHapticsEnabled = settings.botDartHapticsEnabled
+            record.instantBotTurnsEnabled = settings.instantBotTurnsEnabled
             record.defaultDartEntryPresentationRaw = settings.defaultDartEntryPresentationRaw
             record.updatedAt = settings.updatedAt
             try context.save()
@@ -87,6 +88,7 @@ public actor SwiftDataSettingsRepository: SettingsRepository {
             record.defaultSetsEnabled = false
             record.botStaggerEnabled = true
             record.botDartHapticsEnabled = true
+            record.instantBotTurnsEnabled = false
             record.defaultDartEntryPresentationRaw = DartEntryPresentation.default.rawValue
             record.updatedAt = Date()
             try context.save()

@@ -318,7 +318,7 @@ final class GolfMatchViewModel: ObservableObject {
                     holeCompleteFeedback = (hole: event.hole, strokes: event.strokesRecorded)
                     announceHoleCompleteIfNeeded(strokes: event.strokesRecorded, hole: event.hole)
                     state = .holeCompleteFeedback
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteDelayNanoseconds(feedbackPreferences: sessionController.feedbackPreferences))
                     holeCompleteFeedback = nil
                 }
                 if updated.runtime.status == .completed {

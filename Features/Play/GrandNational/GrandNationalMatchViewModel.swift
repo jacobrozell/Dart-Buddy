@@ -237,7 +237,7 @@ final class GrandNationalMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -248,7 +248,7 @@ final class GrandNationalMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -286,11 +286,11 @@ final class GrandNationalMatchViewModel: ObservableObject {
                 announceResultIfNeeded(event: event)
                 if event.eliminated {
                     state = .eliminatedFeedback
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 } else if event.segmentIndexAfter != event.segmentIndexBefore
                     || event.lapsCompletedAfter > event.lapsCompletedBefore {
                     state = .hurdleClearedFeedback
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.briefModeFeedbackTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.briefModeFeedbackDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
             }
             if updated.runtime.status == .completed {

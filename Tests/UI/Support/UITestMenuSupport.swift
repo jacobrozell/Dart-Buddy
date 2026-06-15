@@ -494,6 +494,7 @@ extension XCTestCase {
             "settings_defaultCheckInPicker",
             "settings_defaultSetsToggle",
             "settings_turnTotalCallerToggle",
+            "settings_instantBotTurnsToggle",
             "settings_botDartHapticsToggle",
             "settings_resetAllDataButton"
         ]

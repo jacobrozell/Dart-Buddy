@@ -248,7 +248,7 @@ final class AroundTheClockMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -259,7 +259,7 @@ final class AroundTheClockMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -303,7 +303,7 @@ final class AroundTheClockMatchViewModel: ObservableObject {
                 }
                 if event.targetAfter > event.targetBefore {
                     state = .targetAdvancedFeedback
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.briefModeFeedbackTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.briefModeFeedbackDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
             }
             if updated.runtime.status == .completed {

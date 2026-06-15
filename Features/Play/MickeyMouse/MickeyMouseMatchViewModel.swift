@@ -225,7 +225,7 @@ final class MickeyMouseMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -236,7 +236,7 @@ final class MickeyMouseMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -276,7 +276,7 @@ final class MickeyMouseMatchViewModel: ObservableObject {
             } else if didAdvance {
                 state = .targetAdvanced
                 postAccessibilityAnnouncement(L10n.string("play.mickeyMouse.announce.targetAdvanced"))
-                try? await Task.sleep(nanoseconds: BotTurnPacing.mickeyMouseTargetAdvancedTransitionNanoseconds)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.mickeyMouseTargetAdvancedDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 state = .readyTurn
                 if !fromBotPlayback {
                     await playBotTurnIfNeeded()

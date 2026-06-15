@@ -163,6 +163,7 @@ enum L10n {
     static let settingsDuringPlayFooter: LocalizedStringKey = "settings.feedback.duringPlay.footer"
     static let settingsBotOpponentsSection: LocalizedStringKey = "settings.botOpponents"
     static let settingsBotOpponentsFooter: LocalizedStringKey = "settings.botOpponents.footer"
+    static let settingsBotOpponentsInstantOverridesFooter: LocalizedStringKey = "settings.botOpponents.instantOverrides"
     static let dataSection: LocalizedStringKey = "settings.data"
     static let aboutSection: LocalizedStringKey = "settings.about"
     static let settingsHelpAndFeedbackSection: LocalizedStringKey = "settings.helpAndFeedback"

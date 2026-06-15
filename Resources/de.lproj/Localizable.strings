@@ -358,6 +358,10 @@
 "settings.feedback.turnTotalCaller" = "Wurfsumme ansagen";
 "settings.feedback.turnTotalCaller.footer" = "Spricht deine Wurfsumme nach dem Absenden. Erfordert eingeschalteten Ton.";
 "settings.feedback.turnTotalCaller.hint" = "Erfordert eingeschalteten Ton.";
+"settings.feedback.instantBotTurns" = "Sofortige Bot-Würfe";
+"settings.feedback.instantBotTurns.hint" = "Bot-Würfe werden sofort ausgeführt, ohne Wurfgeräusche oder Haptik. Wird auch bei iOS Bewegung reduzieren aktiviert.";
+"settings.feedback.instantBotTurns.accessibilityHint" = "Wenn aktiv, werden Bot-Aufnahmen sofort ohne Wurfgeräusche oder Haptik ausgeführt.";
+"settings.botOpponents.instantOverrides" = "Bot-Wurftempo und Dart-Haptik haben keine Wirkung, solange Sofortige Bot-Würfe aktiv ist.";
 "settings.feedback.footer" = "Wurfsumme erfordert Ton. Bot-Haptik folgt der Haptik-Einstellung.";
 "settings.feedback.botStagger" = "Bot-Wurftempo";
 "settings.feedback.botDartHaptics" = "Bot-Dart-Haptik";

@@ -21,6 +21,7 @@ func userPreferencesStoreAppliesBotPacingFromSettings() {
         defaultSetsEnabled: false,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        instantBotTurnsEnabled: true,
         defaultDartEntryPresentationRaw: "visualBoard",
         updatedAt: Date()
     )
@@ -29,6 +30,7 @@ func userPreferencesStoreAppliesBotPacingFromSettings() {
 
     #expect(store.feedback.botStaggerEnabled == false)
     #expect(store.feedback.botDartHapticsEnabled == false)
+    #expect(store.feedback.instantBotTurnsEnabled == true)
     #expect(store.appearanceModeRaw == "dark")
     #expect(store.preferredColorScheme == .dark)
     #expect(store.defaultDartEntryPresentation == .visualBoard)

@@ -149,6 +149,7 @@ func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
         defaultSetsEnabled: record.defaultSetsEnabled,
         botStaggerEnabled: record.botStaggerEnabled ?? true,
         botDartHapticsEnabled: record.botDartHapticsEnabled ?? true,
+        instantBotTurnsEnabled: record.instantBotTurnsEnabled ?? false,
         defaultDartEntryPresentationRaw: record.defaultDartEntryPresentationRaw ?? "numberPad",
         updatedAt: record.updatedAt
     )

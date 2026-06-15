@@ -385,10 +385,13 @@ final class BaseballMatchViewModel: ObservableObject {
             existingCount: partialVisitCount
         )
 
+        let visitPrefix = enteredDarts
         guard await BotVisitPlayback.revealVisit(
             dartsToReveal,
             feedbackPreferences: feedbackPreferences,
-            append: { enteredDarts.append($0) }
+            applyRevealedDarts: { revealed in
+                enteredDarts = visitPrefix + revealed
+            }
         ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
@@ -425,7 +428,7 @@ final class BaseballMatchViewModel: ObservableObject {
                 announceTurnIfNeeded(visitRuns: event.runsThisVisit, cumulativeRuns: event.cumulativeRunsAfterTurn)
                 if event.runsThisVisit == 9 {
                     state = .perfectInningFeedback
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballPerfectInningTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballPerfectInningDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
             }
             if updated.runtime.status == .completed {
@@ -436,7 +439,7 @@ final class BaseballMatchViewModel: ObservableObject {
                    playerIndex.flatMap({ updated.runtime.baseballState?.players[$0].stretchGateOpen }) == false,
                    darts.contains(where: { $0.segment == .outerBull || $0.segment == .innerBull }) {
                     state = .stretchGateHint
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballStretchGateHintNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.baseballStretchGateHintDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {

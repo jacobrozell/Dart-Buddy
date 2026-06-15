@@ -358,6 +358,10 @@
 "settings.feedback.turnTotalCaller" = "Annoncer le total du tour";
 "settings.feedback.turnTotalCaller.footer" = "Annonce ton score de volée après validation. Exige que le son soit activé.";
 "settings.feedback.turnTotalCaller.hint" = "Exige que le son soit activé.";
+"settings.feedback.instantBotTurns" = "Tours de bot instantanés";
+"settings.feedback.instantBotTurns.hint" = "Les bots jouent immédiatement, sans sons ni retours haptiques par fléchette. S'active aussi avec Réduire les animations d'iOS.";
+"settings.feedback.instantBotTurns.accessibilityHint" = "Lorsque cette option est activée, les visites du bot s'appliquent instantanément sans sons ni retours haptiques de lancer.";
+"settings.botOpponents.instantOverrides" = "Le rythme du bot et les retours haptiques des fléchettes n'ont aucun effet tant que les tours instantanés sont activés.";
 "settings.feedback.footer" = "L'annonce du total exige le son. Le retour haptique du bot suit l'option Vibrations.";
 "settings.feedback.botStagger" = "Rythme du bot";
 "settings.feedback.botDartHaptics" = "Vibrations des fléchettes du bot";

@@ -358,6 +358,10 @@
 "settings.feedback.turnTotalCaller" = "Annuncia totale del turno";
 "settings.feedback.turnTotalCaller.footer" = "Pronuncia il punteggio della tua visita dopo l'invio. Richiede il Suono attivo.";
 "settings.feedback.turnTotalCaller.hint" = "Richiede il Suono attivo.";
+"settings.feedback.instantBotTurns" = "Turni bot istantanei";
+"settings.feedback.instantBotTurns.hint" = "I bot giocano subito, senza suoni o feedback aptico per freccetta. Si attiva anche con Riduci movimento di iOS.";
+"settings.feedback.instantBotTurns.accessibilityHint" = "Quando attivo, le visite del bot si applicano subito senza suoni o feedback aptico del lancio.";
+"settings.botOpponents.instantOverrides" = "Il ritmo del bot e il feedback aptico delle freccette non hanno effetto mentre i turni istantanei sono attivi.";
 "settings.feedback.footer" = "L'annuncio del totale richiede il Suono. Le vibrazioni dei bot seguono l'interruttore Vibrazioni.";
 "settings.feedback.botStagger" = "Ritmo lancio bot";
 "settings.feedback.botDartHaptics" = "Vibrazioni freccette bot";

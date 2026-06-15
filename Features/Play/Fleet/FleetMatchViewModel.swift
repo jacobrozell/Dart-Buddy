@@ -409,7 +409,7 @@ final class FleetMatchViewModel: ObservableObject {
             rng: &rng
         )
         enteredDarts = [dart]
-        try? await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+        try? await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         await submitDart()
         guard session?.runtime.status != .completed else { return false }
         return currentBotSkillProfile != nil && state == .ready

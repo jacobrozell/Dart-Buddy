@@ -36,6 +36,7 @@
 - [x] Reset button identifier + accessibility label
 - [x] Full-form identifier contract for reorganized sections
 - [x] Dependent-toggle VoiceOver hints (turn total requires sound; bot haptics follows haptics)
+- [x] Instant bot turns toggle (`settings_instantBotTurnsToggle`) — [`InstantBotTurnsSpec.md`](../../../specs/InstantBotTurnsSpec.md)
 - [x] Landscape + AXXXL automated smoke
 - [x] Localized section headers (de/es/nl smoke)
 - [x] Reset destructive flow AX spot-check + automated alert contract test

@@ -358,6 +358,10 @@
 "settings.feedback.turnTotalCaller" = "Announce Turn Total";
 "settings.feedback.turnTotalCaller.footer" = "Speaks your visit score after you submit. Requires Sound to be on.";
 "settings.feedback.turnTotalCaller.hint" = "Requires Sound to be on.";
+"settings.feedback.instantBotTurns" = "Instant Bot Turns";
+"settings.feedback.instantBotTurns.hint" = "Bot throws resolve immediately with no per-dart sounds or haptics. Also enabled when iOS Reduce Motion is on.";
+"settings.feedback.instantBotTurns.accessibilityHint" = "When on, bot visits apply instantly without throw sounds or haptics.";
+"settings.botOpponents.instantOverrides" = "Bot throw pace and dart haptics have no effect while Instant Bot Turns is on.";
 "settings.feedback.footer" = "Turn total requires Sound. Bot haptics follow the Haptics toggle.";
 "settings.feedback.botStagger" = "Bot Throw Pace";
 "settings.feedback.botDartHaptics" = "Bot Dart Haptics";

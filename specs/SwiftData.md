@@ -293,7 +293,7 @@ Implementation: `Persistence/BootstrapStoreRecovery.swift`.
 | `MatchParticipantRecord` | Includes `botKindRaw`, `botSkillProfilePayload` |
 | `MatchSnapshotRecord` | Unchanged since V1 |
 | `MatchEventRecord` | Unchanged since V1 |
-| `SettingsRecord` | `botStaggerEnabled` / `botDartHapticsEnabled` stay **optional**; repository maps `nil` → `true` |
+| `SettingsRecord` | `botStaggerEnabled` / `botDartHapticsEnabled` / `instantBotTurnsEnabled` stay **optional**; repository maps `nil` → `true` for bot toggles, `nil` → `false` for `instantBotTurnsEnabled` |
 
 ### Intentionally optional / runtime-defaulted
 

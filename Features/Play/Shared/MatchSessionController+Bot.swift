@@ -21,11 +21,12 @@ extension MatchSessionController {
         var enteredDarts: [DartInput] = []
         let revealed = await BotVisitPlayback.revealVisit(
             plannedDarts,
-            feedbackPreferences: feedbackPreferences
-        ) { dart in
-            enteredDarts.append(dart)
-            setEnteredDarts(enteredDarts)
-        }
+            feedbackPreferences: feedbackPreferences,
+            applyRevealedDarts: { revealed in
+                enteredDarts = revealed
+                setEnteredDarts(revealed)
+            }
+        )
         guard revealed else { return false }
 
         await submitFromBotPlayback()

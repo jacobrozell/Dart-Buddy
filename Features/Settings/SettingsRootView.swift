@@ -326,6 +326,12 @@ struct SettingsRootView: View {
             ))
             .accessibilityIdentifier("settings_turnTotalCallerToggle")
             .accessibilityHint(L10n.string("settings.feedback.turnTotalCaller.hint"))
+            Toggle("settings.feedback.instantBotTurns", isOn: Binding(
+                get: { viewModel.settings?.instantBotTurnsEnabled ?? false },
+                set: { viewModel.queueFeedbackUpdate(instantBotTurns: $0) }
+            ))
+            .accessibilityIdentifier("settings_instantBotTurnsToggle")
+            .accessibilityHint(L10n.string("settings.feedback.instantBotTurns.accessibilityHint"))
         } header: {
             Text(L10n.settingsDuringPlaySection)
         } footer: {
@@ -335,22 +341,29 @@ struct SettingsRootView: View {
     }
 
     private func botOpponentsSection(usesBrand: Bool) -> some View {
-        Section {
+        let instantBotTurnsOn = viewModel.settings?.instantBotTurnsEnabled ?? false
+        return Section {
             Toggle("settings.feedback.botStagger", isOn: Binding(
                 get: { viewModel.settings?.botStaggerEnabled ?? true },
                 set: { viewModel.queueBotPacingUpdate(stagger: $0) }
             ))
             .accessibilityIdentifier("settings_botStaggerToggle")
+            .disabled(instantBotTurnsOn)
             Toggle("settings.feedback.botDartHaptics", isOn: Binding(
                 get: { viewModel.settings?.botDartHapticsEnabled ?? true },
                 set: { viewModel.queueBotPacingUpdate(dartHaptics: $0) }
             ))
             .accessibilityIdentifier("settings_botDartHapticsToggle")
             .accessibilityHint(L10n.string("settings.feedback.botDartHaptics.hint"))
+            .disabled(instantBotTurnsOn)
         } header: {
             Text(L10n.settingsBotOpponentsSection)
         } footer: {
-            settingsSectionFooter(L10n.settingsBotOpponentsFooter)
+            settingsSectionFooter(
+                instantBotTurnsOn
+                    ? L10n.settingsBotOpponentsInstantOverridesFooter
+                    : L10n.settingsBotOpponentsFooter
+            )
         }
         .brandFormRowBackground(when: usesBrand)
     }

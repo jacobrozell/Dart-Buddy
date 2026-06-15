@@ -237,9 +237,7 @@ final class AroundTheClock180MatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(
-            staggerEnabled: feedbackPreferences.botStaggerEnabled
-        )
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -251,9 +249,7 @@ final class AroundTheClock180MatchViewModel: ObservableObject {
 
         do {
             try await Task.sleep(
-                nanoseconds: BotTurnPacing.submitDelayNanoseconds(
-                    staggerEnabled: feedbackPreferences.botStaggerEnabled
-                )
+                nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences)
             )
         } catch {
             return false

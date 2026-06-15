@@ -358,6 +358,10 @@
 "settings.feedback.turnTotalCaller" = "Beurttotaal aankondigen";
 "settings.feedback.turnTotalCaller.footer" = "Spreekt je beurtscore uit na het verzenden. Vereist dat Geluid aan staat.";
 "settings.feedback.turnTotalCaller.hint" = "Vereist dat Geluid aan staat.";
+"settings.feedback.instantBotTurns" = "Directe botbeurten";
+"settings.feedback.instantBotTurns.hint" = "Bots werpen direct, zonder worpgeluiden of haptiek per pijl. Wordt ook ingeschakeld bij iOS Beweging verminderen.";
+"settings.feedback.instantBotTurns.accessibilityHint" = "Wanneer ingeschakeld, worden botbeurten direct toegepast zonder worpgeluiden of haptiek.";
+"settings.botOpponents.instantOverrides" = "Bot-worptempo en pijlhaptiek hebben geen effect zolang Directe botbeurten aan staat.";
 "settings.feedback.footer" = "Beurttotaal vereist Geluid. Bot-haptiek volgt de Haptiek-schakelaar.";
 "settings.feedback.botStagger" = "Bot-worptempo";
 "settings.feedback.botDartHaptics" = "Bot-dart-haptiek";

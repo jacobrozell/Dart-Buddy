@@ -14,6 +14,9 @@ Define configurable app preferences and data management controls for MVP.
 - Default game setup values
 - Local data reset action (destructive)
 
+### Post-MVP (documented; see linked specs)
+- **Instant bot turns** — app-wide bot playback speed ([`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md))
+
 ---
 
 ## 3. UI Specification
@@ -24,8 +27,8 @@ Define configurable app preferences and data management controls for MVP.
   - Starting Mode
   - Match Defaults
   - X01 Defaults
-  - During Play (scoring input presentation, haptics, sound, turn-total caller)
-  - Bot Opponents
+  - During Play (scoring input presentation, haptics, sound, turn-total caller, **instant bot turns** — [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md))
+  - Bot Opponents (bot stagger, bot dart haptics — disabled when instant bot turns is on)
   - Data
   - Help & Feedback (support FAQ, send feedback mailto, rate app, privacy policy)
   - About (view onboarding replay, dynamic version, optional tip link)
@@ -47,12 +50,18 @@ Recommended keys:
 - `appearanceMode`
 - `hapticsEnabled`
 - `soundEnabled`
+- `turnTotalCallerEnabled`
+- `instantBotTurnsEnabled` (optional persisted; default `false` — [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md))
 - `defaultMatchType`
 - `defaultX01StartScore`
 - `defaultCheckoutMode`
 - `defaultLegsToWin`
 - `defaultSetsEnabled` (persisted from last Play setup on Start; no Settings UI control)
 - `defaultDartEntryPresentationRaw` (number pad vs visual dartboard — [`VisualDartboardInputSpec.md`](VisualDartboardInputSpec.md))
+- `botStaggerEnabled` (optional persisted; default `true`)
+- `botDartHapticsEnabled` (optional persisted; default `true`)
+
+Runtime mirror: `FeedbackPreferences` in `UserPreferencesStore` reflects `hapticsEnabled`, `soundEnabled`, `turnTotalCallerEnabled`, `instantBotTurnsEnabled`, `botStaggerEnabled`, and `botDartHapticsEnabled` for in-match services.
 
 ---
 
@@ -103,8 +112,25 @@ Summary: **Reset All Local Data** requires destructive confirmation, clears all 
 
 ---
 
-## 11. Future Improvements
+## 11. During Play and Bot Opponents (feedback keys)
+
+| Setting | Section | Persisted key | Default | Spec |
+|---------|---------|---------------|---------|------|
+| Dart entry presentation | During Play | `defaultDartEntryPresentationRaw` | number pad | [`VisualDartboardInputSpec.md`](VisualDartboardInputSpec.md) |
+| Haptics | During Play | `hapticsEnabled` | `true` | This spec |
+| Sound | During Play | `soundEnabled` | `true` | This spec |
+| Turn total caller | During Play | `turnTotalCallerEnabled` | `false` | This spec |
+| **Instant bot turns** | During Play | `instantBotTurnsEnabled` | `false` | [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) |
+| Bot stagger | Bot Opponents | `botStaggerEnabled` | `true` | [`BotOpponentSpec.md`](BotOpponentSpec.md), [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) |
+| Bot dart haptics | Bot Opponents | `botDartHapticsEnabled` | `true` | [`BotOpponentSpec.md`](BotOpponentSpec.md), [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) |
+
+**Instant bot turns** is app-wide: one toggle affects all modes and all bot kinds. It is not per-bot and not per-match. When on, stagger and bot dart haptics have no effect (controls disabled in UI).
+
+---
+
+## 12. Future Improvements
 - Backup/export settings profile
 - Separate advanced gameplay rules section
+- In-app “Reduce animations” toggle (UI motion only — [`AnimationSpec.md`](AnimationSpec.md) §5.3)
 - Diagnostic mode toggle for internal builds
 - iCloud settings sync (post local-only milestone)

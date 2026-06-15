@@ -298,10 +298,13 @@ final class CricketMatchViewModel: ObservableObject {
             existingCount: partialVisitCount
         )
 
+        let visitPrefix = enteredDarts
         guard await BotVisitPlayback.revealVisit(
             dartsToReveal,
             feedbackPreferences: feedbackPreferences,
-            append: { enteredDarts.append($0) }
+            applyRevealedDarts: { revealed in
+                enteredDarts = visitPrefix + revealed
+            }
         ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
@@ -366,7 +369,7 @@ final class CricketMatchViewModel: ObservableObject {
                 )
                 if didCloseTarget {
                     state = .closureTransition
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds())
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
                 state = .readyTurn
                 if updated.runtime.status != .completed, !fromBotPlayback {

@@ -268,6 +268,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Haptics + sound | Shipped | During-play feedback | same |
 | Turn total caller (TTS) | Shipped | Speaks visit total after submit | `FeedbackServices.swift` |
 | Bot pacing (stagger + dart haptics) | Shipped | Bot opponent UX tuning | same |
+| Instant bot turns (app-wide) | Shipped | Settings → During Play; all modes & bot kinds | [`InstantBotTurnsSpec.md`](../specs/InstantBotTurnsSpec.md) |
 | Reset all data | Shipped | Destructive local wipe | same |
 | Replay onboarding | Shipped | From Settings | same |
 | Buy Developer a Coffee link | Shipped | External link | `AppLinks.swift` |

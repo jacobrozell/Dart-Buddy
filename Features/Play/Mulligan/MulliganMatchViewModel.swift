@@ -246,7 +246,7 @@ final class MulliganMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -257,7 +257,7 @@ final class MulliganMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -300,7 +300,7 @@ final class MulliganMatchViewModel: ObservableObject {
             } else {
                 if didAdvance {
                     state = .targetAdvanced
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.golfHoleCompleteDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
                 state = .readyTurn
                 if !fromBotPlayback {

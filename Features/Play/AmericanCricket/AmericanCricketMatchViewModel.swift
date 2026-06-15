@@ -188,7 +188,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -199,7 +199,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -247,7 +247,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
                 let didAdvance = activeTargetBefore != activeTargetAfter
                 if didAdvance {
                     state = .targetAdvanced
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds())
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
                 state = .readyTurn
                 if !fromBotPlayback {

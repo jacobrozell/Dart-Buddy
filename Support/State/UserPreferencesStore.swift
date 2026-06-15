@@ -12,6 +12,7 @@ public final class FeedbackPreferences: @unchecked Sendable {
     public var turnTotalCallerEnabled = false
     public var botStaggerEnabled = true
     public var botDartHapticsEnabled = true
+    public var instantBotTurnsEnabled = false
 }
 
 @MainActor
@@ -32,5 +33,6 @@ public final class UserPreferencesStore: ObservableObject {
         feedback.turnTotalCallerEnabled = settings.turnTotalCallerEnabled
         feedback.botStaggerEnabled = settings.botStaggerEnabled
         feedback.botDartHapticsEnabled = settings.botDartHapticsEnabled
+        feedback.instantBotTurnsEnabled = settings.instantBotTurnsEnabled
     }
 }

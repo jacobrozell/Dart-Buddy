@@ -236,9 +236,11 @@ public enum SchemaV1: VersionedSchema {
         public var defaultLegFormatRaw: String
         public var defaultLegsToWin: Int
         public var defaultSetsEnabled: Bool
-        public var botStaggerEnabled: Bool?
-        public var botDartHapticsEnabled: Bool?
-        /// `DartEntryPresentation` raw value; `nil` (pre-existing stores) means number pad.
+    public var botStaggerEnabled: Bool?
+    public var botDartHapticsEnabled: Bool?
+    /// When `true`, bot visits resolve instantly app-wide — `nil` (legacy stores) means off.
+    public var instantBotTurnsEnabled: Bool?
+    /// `DartEntryPresentation` raw value; `nil` (pre-existing stores) means number pad.
         public var defaultDartEntryPresentationRaw: String?
         public var updatedAt: Date
 
@@ -257,6 +259,7 @@ public enum SchemaV1: VersionedSchema {
             defaultSetsEnabled: Bool = false,
             botStaggerEnabled: Bool? = true,
             botDartHapticsEnabled: Bool? = true,
+            instantBotTurnsEnabled: Bool? = false,
             defaultDartEntryPresentationRaw: String? = "numberPad",
             updatedAt: Date = Date()
         ) {
@@ -274,6 +277,7 @@ public enum SchemaV1: VersionedSchema {
             self.defaultSetsEnabled = defaultSetsEnabled
             self.botStaggerEnabled = botStaggerEnabled
             self.botDartHapticsEnabled = botDartHapticsEnabled
+            self.instantBotTurnsEnabled = instantBotTurnsEnabled
             self.defaultDartEntryPresentationRaw = defaultDartEntryPresentationRaw
             self.updatedAt = updatedAt
         }

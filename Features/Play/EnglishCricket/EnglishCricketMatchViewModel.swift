@@ -240,7 +240,7 @@ final class EnglishCricketMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -251,7 +251,7 @@ final class EnglishCricketMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -292,7 +292,7 @@ final class EnglishCricketMatchViewModel: ObservableObject {
             } else if inningsJustCompleted {
                 state = .inningsCompletedFeedback
                 postAccessibilityAnnouncement(L10n.string("play.englishCricket.announce.inningsComplete"))
-                try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementTransitionNanoseconds)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 state = .readyTurn
                 if !fromBotPlayback {
                     await playBotTurnIfNeeded()

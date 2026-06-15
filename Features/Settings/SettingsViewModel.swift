@@ -71,6 +71,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -83,8 +84,18 @@ final class SettingsViewModel: ObservableObject {
         queueMutation { await self.updateAppearance(value) }
     }
 
-    func updateFeedback(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) async {
-        guard let current = applyFeedbackDraft(haptics: haptics, sound: sound, turnTotalCaller: turnTotalCaller) else { return }
+    func updateFeedback(
+        haptics: Bool? = nil,
+        sound: Bool? = nil,
+        turnTotalCaller: Bool? = nil,
+        instantBotTurns: Bool? = nil
+    ) async {
+        guard let current = applyFeedbackDraft(
+            haptics: haptics,
+            sound: sound,
+            turnTotalCaller: turnTotalCaller,
+            instantBotTurns: instantBotTurns
+        ) else { return }
         await persist(current)
     }
 
@@ -93,8 +104,18 @@ final class SettingsViewModel: ObservableObject {
         await persist(current)
     }
 
-    func queueFeedbackUpdate(haptics: Bool? = nil, sound: Bool? = nil, turnTotalCaller: Bool? = nil) {
-        guard let current = applyFeedbackDraft(haptics: haptics, sound: sound, turnTotalCaller: turnTotalCaller) else { return }
+    func queueFeedbackUpdate(
+        haptics: Bool? = nil,
+        sound: Bool? = nil,
+        turnTotalCaller: Bool? = nil,
+        instantBotTurns: Bool? = nil
+    ) {
+        guard let current = applyFeedbackDraft(
+            haptics: haptics,
+            sound: sound,
+            turnTotalCaller: turnTotalCaller,
+            instantBotTurns: instantBotTurns
+        ) else { return }
         queueMutation { await self.persist(current) }
     }
 
@@ -138,6 +159,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: setsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -228,7 +250,8 @@ final class SettingsViewModel: ObservableObject {
     private func applyFeedbackDraft(
         haptics: Bool?,
         sound: Bool?,
-        turnTotalCaller: Bool?
+        turnTotalCaller: Bool?,
+        instantBotTurns: Bool? = nil
     ) -> SettingsSummary? {
         guard var current = settings else { return nil }
         current = SettingsSummary(
@@ -246,6 +269,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: instantBotTurns ?? current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -271,6 +295,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: stagger ?? current.botStaggerEnabled,
             botDartHapticsEnabled: dartHaptics ?? current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -296,6 +321,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: DartEntryPresentation(rawValueOrDefault: value).rawValue,
             updatedAt: Date()
         )

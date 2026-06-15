@@ -358,6 +358,10 @@
 "settings.feedback.turnTotalCaller" = "播报回合总分";
 "settings.feedback.turnTotalCaller.footer" = "在你提交后朗读本回合得分,需要开启声音。";
 "settings.feedback.turnTotalCaller.hint" = "需要开启声音。";
+"settings.feedback.instantBotTurns" = "机器人即时回合";
+"settings.feedback.instantBotTurns.hint" = "机器人立即完成投掷，无每镖音效或触觉反馈。开启 iOS“减少动态效果”时也会启用。";
+"settings.feedback.instantBotTurns.accessibilityHint" = "开启后，机器人回合立即生效，无投掷音效或触觉反馈。";
+"settings.botOpponents.instantOverrides" = "开启机器人即时回合后，投掷节奏和镖针触觉反馈将无效。";
 "settings.feedback.footer" = "回合总分需要声音。机器人的触感反馈跟随触感开关。";
 "settings.feedback.botStagger" = "机器人投掷节奏";
 "settings.feedback.botDartHaptics" = "机器人飞镖触感";

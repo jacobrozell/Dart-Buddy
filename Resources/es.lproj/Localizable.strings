@@ -358,6 +358,10 @@
 "settings.feedback.turnTotalCaller" = "Anunciar el total del turno";
 "settings.feedback.turnTotalCaller.footer" = "Habla la puntuación de tu visita después de enviarla. Requiere que el sonido esté activado.";
 "settings.feedback.turnTotalCaller.hint" = "Requiere que el sonido esté activado.";
+"settings.feedback.instantBotTurns" = "Turnos de bot instantáneos";
+"settings.feedback.instantBotTurns.hint" = "Los bots lanzan al instante, sin sonidos ni hápticos por dardo. También se activa con Reducir movimiento de iOS.";
+"settings.feedback.instantBotTurns.accessibilityHint" = "Cuando está activado, las visitas del bot se aplican al instante sin sonidos ni hápticos de lanzamiento.";
+"settings.botOpponents.instantOverrides" = "El ritmo del bot y los hápticos de dardo no tienen efecto mientras los turnos instantáneos estén activados.";
 "settings.feedback.footer" = "El total de turnos requiere sonido. Los hápticos del bot siguen la palanca de hápticos.";
 "settings.feedback.botStagger" = "Ritmo de lanzamiento de bot";
 "settings.feedback.botDartHaptics" = "Bot Dart Hápticos";
