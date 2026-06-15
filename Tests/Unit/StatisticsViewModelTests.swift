@@ -8,9 +8,9 @@ import Testing
 @Test(.tags(.integration, .stats, .regression))
 func statisticsViewModelIsEmptyWhenNoCompletedOrActiveMatches() async {
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(),
-        statsRepository: StatsVMFakeStatsRepository(events: []),
-        playerRepository: StatsVMFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents([], filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
     await vm.load()
 
@@ -23,9 +23,9 @@ func statisticsViewModelIsEmptyWhenNoCompletedOrActiveMatches() async {
 func statisticsViewModelFiltersByMode() async throws {
     let fixture = try makeStatsVMCompletedFixture()
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(completed: fixture),
-        statsRepository: StatsVMFakeStatsRepository(events: fixture.events),
-        playerRepository: StatsVMFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(completed: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(fixture.events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
 
     vm.modeFilter = .cricket
@@ -42,9 +42,9 @@ func statisticsViewModelFiltersByMode() async throws {
 func statisticsViewModelFiltersByPeriod() async throws {
     let fixture = try makeStatsVMCompletedFixture(playedAt: Date().addingTimeInterval(-864_000))
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(completed: fixture),
-        statsRepository: StatsVMFakeStatsRepository(events: fixture.events),
-        playerRepository: StatsVMFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(completed: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(fixture.events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
 
     vm.period = .d7
@@ -61,9 +61,9 @@ func statisticsViewModelFiltersByPeriod() async throws {
 func statisticsViewModelIncludesPartialActiveMatch() async throws {
     let partial = try makeStatsVMPartialFixture()
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(active: partial),
-        statsRepository: StatsVMFakeStatsRepository(events: partial.events),
-        playerRepository: StatsVMFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(active: HistoryMatchRecord(partial)),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(partial.events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
     vm.modeFilter = .x01
     vm.period = .all
@@ -85,12 +85,15 @@ func statisticsViewModelShowsTrendChartForFilteredPlayer() async throws {
     let sam = UUID()
     let earlier = try makeStatsVMCompletedFixture(playedAt: Date().addingTimeInterval(-86_400), jacob: jacob, sam: sam)
     let later = try makeStatsVMCompletedFixture(playedAt: Date(), jacob: jacob, sam: sam)
-    let repo = MultiStatsVMFakeMatchRepository(fixtures: [earlier, later])
+    let repo = FakeMatchRepositoryBuilder.multiStatsVM(records: [
+        HistoryMatchRecord(earlier),
+        HistoryMatchRecord(later)
+    ])
     let events = earlier.events + later.events
     let vm = StatisticsViewModel(
         matchRepository: repo,
-        statsRepository: StatsVMFakeStatsRepository(events: events),
-        playerRepository: StatsVMFakePlayerRepository()
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
     vm.modeFilter = .x01
     vm.playerFilter = jacob
@@ -106,9 +109,9 @@ func statisticsViewModelShowsTrendChartForFilteredPlayer() async throws {
 func statisticsViewModelIncludesPartialCricketActiveMatch() async throws {
     let partial = try makeStatsVMPartialCricketFixture()
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(active: partial),
-        statsRepository: StatsVMFakeStatsRepository(events: partial.events),
-        playerRepository: StatsVMFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(active: HistoryMatchRecord(partial)),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(partial.events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
     vm.modeFilter = .cricket
     await vm.load()
@@ -126,9 +129,9 @@ func statisticsViewModelClearsStalePlayerFilter() async throws {
     let fixture = try makeStatsVMCompletedFixture()
     let missingPlayer = UUID()
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(completed: fixture),
-        statsRepository: StatsVMFakeStatsRepository(events: fixture.events),
-        playerRepository: StatsVMFakePlayerRepository(players: [
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(completed: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(fixture.events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly(players: [
             PlayerSummary(id: fixture.jacob, name: "Jacob", isArchived: false, createdAt: Date(), updatedAt: Date())
         ])
     )
@@ -143,9 +146,9 @@ func statisticsViewModelClearsStalePlayerFilter() async throws {
 func statisticsViewModelFiltersCricketCompletedMatches() async throws {
     let fixture = try makeStatsVMCricketCompletedFixture()
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(completed: fixture),
-        statsRepository: StatsVMFakeStatsRepository(events: fixture.events),
-        playerRepository: StatsVMFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(completed: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(fixture.events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
 
     vm.modeFilter = .x01
@@ -165,9 +168,9 @@ func statisticsViewModelFiltersCricketCompletedMatches() async throws {
 func statisticsViewModelOmitsPartialWhenModeDiffers() async throws {
     let partial = try makeStatsVMPartialFixture()
     let vm = StatisticsViewModel(
-        matchRepository: StatsVMFakeMatchRepository(active: partial),
-        statsRepository: StatsVMFakeStatsRepository(events: partial.events),
-        playerRepository: StatsVMFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(active: HistoryMatchRecord(partial)),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents(partial.events, filterByMatchId: true),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
     vm.modeFilter = .cricket
     await vm.load()
@@ -184,8 +187,8 @@ func matchSummaryViewModelHasNoResultWhenSnapshotMissing() async {
     let vm = MatchSummaryViewModel(
         matchId: UUID(),
         store: ActiveMatchStore(),
-        matchRepository: StatsVMFakeMatchRepository(),
-        statsRepository: StatsVMFakeStatsRepository(events: [])
+        matchRepository: FakeMatchRepositoryBuilder.statsVM(),
+        statsRepository: FakeStatsRepositoryBuilder.withEvents([], filterByMatchId: true)
     )
 
     await vm.loadIfNeeded()
@@ -526,152 +529,31 @@ private func makeStatsVMPartialFixture() throws -> StatsVMPartialFixture {
     )
 }
 
-private actor MultiStatsVMFakeMatchRepository: MatchRepository {
-    let fixtures: [StatsVMCompletedFixture]
-
-    init(fixtures: [StatsVMCompletedFixture]) { self.fixtures = fixtures }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] {
-        fixtures.map(\.summary)
-    }
-    func fetchHistoryWithParticipants(page: Int, pageSize: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
-        guard page == 0 else { return [] }
-        return fixtures.compactMap { fixture in
-            if let type = filter.matchType, fixture.summary.type != type { return nil }
-            if let startedAfter = filter.startedAfter, fixture.summary.startedAt < startedAfter { return nil }
-            return MatchHistoryRecord(summary: fixture.summary, participants: fixture.participants)
-        }.prefix(pageSize).map { $0 }
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        fixtures.first { $0.matchId == matchId }?.snapshot
-    }
-    func fetchMatch(matchId: UUID) async throws -> MatchSummary? {
-        fixtures.first { $0.matchId == matchId }?.summary
-    }
-    func fetchParticipants(matchId: UUID) async throws -> [MatchParticipantSummary] {
-        fixtures.first { $0.matchId == matchId }?.participants ?? []
+private extension HistoryMatchRecord {
+    init(_ fixture: StatsVMCompletedFixture) {
+        self.init(
+            matchId: fixture.matchId,
+            summary: fixture.summary,
+            participants: fixture.participants,
+            snapshot: fixture.snapshot
+        )
     }
 
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fatalError() }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fatalError() }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { fatalError() }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { fatalError() }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor StatsVMFakeMatchRepository: MatchRepository {
-    private let completed: StatsVMCompletedFixture?
-    private let active: (any StatsVMActiveFixture)?
-
-    init(completed: StatsVMCompletedFixture? = nil, active: StatsVMPartialFixture? = nil) {
-        self.completed = completed
-        self.active = active
+    init(_ fixture: StatsVMPartialFixture) {
+        self.init(
+            matchId: fixture.matchId,
+            summary: fixture.summary,
+            participants: fixture.participants,
+            snapshot: fixture.snapshot
+        )
     }
 
-    init(completed: StatsVMCompletedFixture? = nil, active: StatsVMPartialCricketFixture) {
-        self.completed = completed
-        self.active = active
+    init(_ fixture: StatsVMPartialCricketFixture) {
+        self.init(
+            matchId: fixture.matchId,
+            summary: fixture.summary,
+            participants: fixture.participants,
+            snapshot: fixture.snapshot
+        )
     }
-
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { active?.summaryMatch }
-
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] {
-        completed.map { [$0.summary] } ?? []
-    }
-
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
-        guard let completed else { return [] }
-        if let type = filter.matchType, completed.summary.type != type { return [] }
-        if let startedAfter = filter.startedAfter, completed.summary.startedAt < startedAfter { return [] }
-        if let playerId = filter.participantPlayerId,
-           !completed.participants.contains(where: { $0.playerId == playerId }) {
-            return []
-        }
-        return [MatchHistoryRecord(summary: completed.summary, participants: completed.participants)]
-    }
-
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        if active?.matchId == matchId { return active?.snapshotSummary }
-        if completed?.matchId == matchId { return completed?.snapshot }
-        return nil
-    }
-
-    func fetchMatch(matchId: UUID) async throws -> MatchSummary? {
-        if active?.matchId == matchId { return active?.summaryMatch }
-        if completed?.matchId == matchId { return completed?.summary }
-        return nil
-    }
-
-    func fetchParticipants(matchId: UUID) async throws -> [MatchParticipantSummary] {
-        if let active, active.matchId == matchId { return active.participantSummaries }
-        if completed?.matchId == matchId { return completed?.participants ?? [] }
-        return []
-    }
-
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor StatsVMFakeStatsRepository: StatsRepository {
-    private let events: [MatchEventSummary]
-
-    init(events: [MatchEventSummary]) { self.events = events }
-
-    func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary] {
-        events.filter { $0.matchId == matchId }
-    }
-
-    func fetchEvents(matchIds: [UUID]) async throws -> [MatchEventSummary] {
-        events.filter { matchIds.contains($0.matchId) }
-    }
-}
-
-private protocol StatsVMActiveFixture {
-    var matchId: UUID { get }
-    var summaryMatch: MatchSummary { get }
-    var participantSummaries: [MatchParticipantSummary] { get }
-    var snapshotSummary: MatchSnapshotSummary { get }
-}
-
-extension StatsVMPartialFixture: StatsVMActiveFixture {
-    var summaryMatch: MatchSummary { summary }
-    var participantSummaries: [MatchParticipantSummary] { participants }
-    var snapshotSummary: MatchSnapshotSummary { snapshot }
-}
-
-extension StatsVMPartialCricketFixture: StatsVMActiveFixture {
-    var summaryMatch: MatchSummary { summary }
-    var participantSummaries: [MatchParticipantSummary] { participants }
-    var snapshotSummary: MatchSnapshotSummary { snapshot }
-}
-
-private actor StatsVMFakePlayerRepository: PlayerRepository {
-    let players: [PlayerSummary]
-
-    init(players: [PlayerSummary] = []) { self.players = players }
-
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
-    func createPlayer(name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
 }

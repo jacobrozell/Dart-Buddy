@@ -177,38 +177,15 @@ private func appendSampleTurns(
     }
 }
 
-private actor HistoryModesFakeMatchRepository: MatchRepository {
-    let fixture: HistoryModesFixture
-    init(fixture: HistoryModesFixture) { self.fixture = fixture }
-
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fixture.summary }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [fixture.summary] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
-        [MatchHistoryRecord(summary: fixture.summary, participants: fixture.participants)]
+private extension HistoryMatchRecord {
+    init(_ fixture: HistoryModesFixture) {
+        self.init(
+            matchId: fixture.matchId,
+            summary: fixture.summary,
+            participants: fixture.participants,
+            snapshot: fixture.snapshot
+        )
     }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fixture.summary }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        matchId == fixture.matchId ? fixture.snapshot : nil
-    }
-    func fetchMatch(matchId: UUID) async throws -> MatchSummary? { matchId == fixture.matchId ? fixture.summary : nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { fixture.participants }
-    func deleteMatch(matchId _: UUID) async throws {}
-    func forfeitMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?, forfeitedByPlayerId _: UUID) async throws -> MatchSummary { fixture.summary }
-}
-
-private actor HistoryModesFakeStatsRepository: StatsRepository {
-    let events: [MatchEventSummary]
-    init(events: [MatchEventSummary]) { self.events = events }
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { events }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
 }
 
 @Suite("History detail — new modes", .tags(.unit, .history, .regression))
@@ -219,8 +196,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .football)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -239,8 +216,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .golf)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -256,8 +233,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .englishCricket)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -273,8 +250,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .americanCricket)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -289,8 +266,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .knockout)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -305,8 +282,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .mulligan)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -321,8 +298,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .nineLives)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -337,8 +314,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .grandNational)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -354,8 +331,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .baseball)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -371,8 +348,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .killer)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -387,8 +364,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .shanghai)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 
@@ -403,8 +380,8 @@ struct HistoryDetailViewModelNewModesTests {
         let fixture = try makeCompletedModeFixture(type: .aroundTheClock)
         let vm = HistoryDetailViewModel(
             matchId: fixture.matchId,
-            matchRepository: HistoryModesFakeMatchRepository(fixture: fixture),
-            statsRepository: HistoryModesFakeStatsRepository(events: fixture.events)
+            matchRepository: FakeMatchRepositoryBuilder.historyDetail(record: HistoryMatchRecord(fixture)),
+            statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
         )
         await vm.onAppear()
 

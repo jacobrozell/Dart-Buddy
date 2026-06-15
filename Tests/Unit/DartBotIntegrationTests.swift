@@ -278,9 +278,9 @@ func x01ViewModelDetectsActiveBotTurn() throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
 
     #expect(vm.isCurrentPlayerBot)
@@ -328,9 +328,9 @@ func x01ViewModelPlaysConsecutiveBotsAfterHumanTurn() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty(),
         feedbackPreferences: prefs
     )
     vm.inputMode = .totalEntry
@@ -381,9 +381,9 @@ func x01ViewModelBotTurnSubmitsVisit() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
 
     await vm.playBotTurnIfNeeded()
@@ -436,9 +436,9 @@ func x01ViewModelCountsBotVisitDartsWhileBotIsActive() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
     vm.inputMode = .dartEntry
     vm.enteredDarts = [
@@ -487,9 +487,9 @@ func x01ViewModelSignalsTurnTotalCallerForBotVisit() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
 
     await vm.playBotTurnIfNeeded()
@@ -538,9 +538,9 @@ func x01OnAppearRestartsBotAfterInterruptedTurn() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty(),
         feedbackPreferences: prefs
     )
 
@@ -597,9 +597,9 @@ func x01DisappearAndReappearRestartsBotAfterInterruptedTurn() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty(),
         feedbackPreferences: prefs
     )
 
@@ -650,9 +650,9 @@ func x01RecoverBotPlaybackRestartsAfterExitAlertDismissedWithStay() async throws
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty(),
         feedbackPreferences: prefs
     )
 
@@ -729,9 +729,9 @@ func x01UndoLastDartStepsThroughRestoredBotDartsBeforePreviousTurn() async throw
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty(),
         feedbackPreferences: prefs
     )
     vm.inputMode = .dartEntry
@@ -785,9 +785,9 @@ func x01UndoDuringActiveBotPlaybackCompletesVisit() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty(),
         feedbackPreferences: prefs
     )
     vm.inputMode = .dartEntry
@@ -850,9 +850,9 @@ func x01UndoBackToBotTurnRestartsBot() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
 
     await vm.playBotTurnIfNeeded()
@@ -904,9 +904,9 @@ func x01ViewModelBotContinuesAfterHumanBust() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
     vm.inputMode = .totalEntry
     vm.totalEntryText = "50"
@@ -949,9 +949,9 @@ func x01ViewModelHumanCanSubmitAfterBotBust() async throws {
     let vm = X01MatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
     #expect(vm.isCurrentPlayerBot == false)
     #expect(vm.canHumanInput)
@@ -994,9 +994,9 @@ func cricketViewModelDetectsActiveBotTurn() throws {
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
 
     #expect(vm.isCurrentPlayerBot)
@@ -1031,9 +1031,9 @@ func cricketViewModelSignalsTurnTotalCallerForBotVisit() async throws {
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: BotSilentLogSink()),
-        matchRepository: BotFakeMatchRepository(),
-        statsRepository: BotFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.botIntegration(),
+        statsRepository: FakeStatsRepositoryBuilder.empty()
     )
 
     await vm.playBotTurnIfNeeded()
@@ -1054,9 +1054,9 @@ private func makeBotTestPlayer(_ name: String) -> PlayerSummary {
 @MainActor
 private func botSetupViewModel(players: [PlayerSummary], store: ActiveMatchStore) -> MatchSetupViewModel {
     MatchSetupViewModel(
-        playerRepository: BotFakePlayerRepository(players: players),
-        settingsRepository: BotFakeSettingsRepository(),
-        matchRepository: BotCapturingMatchRepository(store: store),
+        playerRepository: FakePlayerRepositoryBuilder.botIntegration(players: players),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepositoryBuilder.botSetupCapturing(),
         activeMatchStore: store,
         pendingMatchPlayerSelections: PendingMatchPlayerSelections()
     )
@@ -1076,138 +1076,4 @@ private struct BotTestSeededRNG: RandomNumberGenerator {
         z = (z ^ (z >> 27)) &* 0x94D049BB133111EB
         return z ^ (z >> 31)
     }
-}
-
-private final class BotSilentLogSink: LogSink, @unchecked Sendable {
-    func write(_: LogEntry) {}
-}
-
-private actor BotFakePlayerRepository: PlayerRepository {
-    private var players: [PlayerSummary]
-    init(players: [PlayerSummary]) { self.players = players }
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
-    func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
-    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
-        let name = BotNaming.nextDefaultName(difficulty: difficulty, existingNames: players.map(\.name))
-        let bot = PlayerSummary(
-            id: UUID(),
-            name: name,
-            isArchived: false,
-            isBot: true,
-            botDifficultyRaw: difficulty.rawValue,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-        players.append(bot)
-        return bot
-    }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-}
-
-private actor BotFakeSettingsRepository: SettingsRepository {
-    func fetchSettings() async throws -> SettingsSummary { settings }
-    func seedDefaultsIfNeeded() async throws -> SettingsSummary { settings }
-    func updateSettings(_ settings: SettingsSummary) async throws -> SettingsSummary { settings }
-    func resetPreferencesToDefaults() async throws {}
-    func resetAllLocalData() async throws {}
-
-    private let settings = SettingsSummary(
-        id: UUID(),
-        appearanceModeRaw: "system",
-        hapticsEnabled: true,
-        soundEnabled: true,
-        turnTotalCallerEnabled: false,
-        defaultMatchTypeRaw: "x01",
-        defaultX01StartScore: 501,
-        defaultCheckoutModeRaw: "doubleOut",
-        defaultCheckInModeRaw: "straightIn",
-        defaultLegFormatRaw: "firstTo",
-        defaultLegsToWin: 3,
-        defaultSetsEnabled: false,
-        botStaggerEnabled: true,
-        botDartHapticsEnabled: true,
-        defaultDartEntryPresentationRaw: "numberPad",
-        updatedAt: Date()
-    )
-}
-
-private actor BotCapturingMatchRepository: MatchRepository {
-    let store: ActiveMatchStore
-
-    init(store: ActiveMatchStore) { self.store = store }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(
-            id: UUID(),
-            type: type,
-            status: .inProgress,
-            startedAt: Date(),
-            endedAt: nil,
-            winnerPlayerId: nil,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 0,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor BotFakeMatchRepository: MatchRepository {
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: .x01, status: .completed, startedAt: Date(), endedAt: Date(),
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 1, createdAt: Date(), updatedAt: Date()
-        )
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor BotFakeStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
 }
