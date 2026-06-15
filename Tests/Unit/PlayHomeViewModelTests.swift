@@ -21,8 +21,8 @@ func playHomeShowsResumeWhenActiveMatchExists() async throws {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -40,8 +40,8 @@ func playHomeShowsResumeWhenActiveMatchExists() async throws {
 func playHomeDoesNotOfferAbandonedMatch() async {
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: nil),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(nil),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -54,8 +54,8 @@ func playHomeDoesNotOfferAbandonedMatch() async {
 func playHomeShowsNoActiveMatchWhenRosterExistsButNoActiveMatch() async {
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: nil),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(nil),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -84,8 +84,8 @@ func playHomeIgnoresActivePartyMatchWhenPartyHidden() async {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -114,8 +114,8 @@ func playHomeIgnoresActiveGolfMatchWhenGolfNotReachable() async {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -144,8 +144,8 @@ func playHomeShowsResumeForBaseballMatch() async throws {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -178,8 +178,8 @@ func playHomeShowsResumeForKillerMatch() async throws {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B"), makePlayer("C")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -212,8 +212,8 @@ func playHomeShowsResumeForShanghaiMatch() async throws {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -246,8 +246,8 @@ func playHomeShowsResumeForAroundTheClockMatch() async throws {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -287,8 +287,8 @@ func playHomeShowsResumeForCricketMatch() async throws {
     )
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -305,8 +305,8 @@ func playHomeShowsResumeForCricketMatch() async throws {
 func playHomeSurfacesErrorWhenActiveMatchLookupFails() async {
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
-        matchRepository: FailingMatchRepository(),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.failingActiveLookup(userMessageKey: "error.playHome.load"),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -322,9 +322,9 @@ func playHomeSurfacesErrorWhenActiveMatchLookupFails() async {
 @Test(.tags(.integration, .navigation, .regression))
 func playHomeSurfacesErrorWhenPlayerLoadFails() async {
     let vm = PlayHomeViewModel(
-        playerRepository: FailingPlayerRepository(),
-        matchRepository: FakeMatchRepository(activeMatch: nil),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        playerRepository: FakePlayerRepositoryBuilder.failingFetch(userMessageKey: "error.playHome.load"),
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(nil),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
@@ -341,79 +341,11 @@ func playHomeSurfacesErrorWhenPlayerLoadFails() async {
 func playHomeShowsNoActiveMatchWhenRosterEmpty() async {
     let vm = PlayHomeViewModel(
         playerRepository: FakePlayerRepository(players: []),
-        matchRepository: FakeMatchRepository(activeMatch: nil),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch(nil),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
 
     await vm.onAppear()
 
     #expect(vm.state == .readyNoActiveMatch)
-}
-
-private func makePlayer(_ name: String) -> PlayerSummary {
-    PlayerSummary(id: UUID(), name: name, isArchived: false, createdAt: Date(), updatedAt: Date())
-}
-
-private actor FailingPlayerRepository: PlayerRepository {
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] {
-        throw AppError(code: .storageUnavailable, layer: .data, severity: .error, isRecoverable: true, userMessageKey: "error.playHome.load")
-    }
-    func createPlayer(name _: String) async throws -> PlayerSummary { fatalError() }
-    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { fatalError() }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { fatalError() }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { fatalError() }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-}
-
-private actor FakePlayerRepository: PlayerRepository {
-    let players: [PlayerSummary]
-    init(players: [PlayerSummary]) { self.players = players }
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
-    func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
-    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { players[0] }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-}
-
-private actor FailingMatchRepository: MatchRepository {
-    func fetchActiveMatch() async throws -> MatchSummary? {
-        throw AppError(code: .storageUnavailable, layer: .data, severity: .error, isRecoverable: true, userMessageKey: "error.playHome.load")
-    }
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fatalError() }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fatalError() }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { fatalError() }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { fatalError() }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor FakeMatchRepository: MatchRepository {
-    let activeMatch: MatchSummary?
-    init(activeMatch: MatchSummary?) { self.activeMatch = activeMatch }
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func fetchActiveMatch() async throws -> MatchSummary? { activeMatch }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private final class RecordingSink: LogSink, @unchecked Sendable {
-    func write(_: LogEntry) {}
 }
