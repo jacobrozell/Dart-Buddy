@@ -16,11 +16,11 @@ final class FleetMatchViewModel: ObservableObject {
     @Published var showLockConfirm = false
     @Published var showWrongPlayerAlert = false
     @Published var showPrivacyShield = false
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
     @Published private(set) var sonarResult: Bool?
 
-    private let matchId: UUID
+    let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
@@ -299,30 +299,6 @@ final class FleetMatchViewModel: ObservableObject {
         }
     }
 
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .fleet,
-                category: .appLifecycle,
-                eventName: "fleet_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
-    }
 
     func recoverBotPlaybackIfNeeded() {
         MatchBotPlaybackRecovery.recoverIfNeeded(
@@ -469,37 +445,23 @@ final class FleetMatchViewModel: ObservableObject {
         false
     }
 
-    private func loadSessionIfNeeded() async {
+    func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(
-                snapshot: snapshot,
-                tailEvents: tailEvents,
-                persistedEvents: envelopes
-            )
-            store.save(rehydrated)
-            session = rehydrated
-        } catch {
-            state = .error("error.match.loadFailed")
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .fleet,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "fleet.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 
@@ -514,4 +476,11 @@ final class FleetMatchViewModel: ObservableObject {
     private func playBotTurnIfNeeded() async {
         await runBotAutomationIfNeeded()
     }
+}
+extension FleetMatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { isBotPlaying || state == .submitting }
+    var hostMatchRepository: any MatchRepository { matchRepository }
+    var hostMatchStore: ActiveMatchStore { store }
+    var hostMatchLogger: any AppLogger { logger }
+    var hostMatchType: MatchType { .fleet }
 }

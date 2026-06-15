@@ -7,6 +7,7 @@ struct RaidMatchScreen: View {
     let audio: any AudioFeedbackService
     let haptics: any HapticsService
     let feedbackPreferences: FeedbackPreferences
+    let lifecycleDependencies: MatchLifecycleChromeDependencies
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
@@ -90,25 +91,13 @@ struct RaidMatchScreen: View {
         .background(Brand.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .alert("play.match.exit.confirm.title", isPresented: $showExitConfirmation) {
-            Button("common.stay", role: .cancel) {}
-            Button("play.match.exit.saveAndExit") {
-                showExitConfirmation = false
-                viewModel.onDisappear()
-                dismiss()
-            }
-            Button("play.match.exit.abandon", role: .destructive) {
-                showExitConfirmation = false
-                viewModel.onDisappear()
-                actionTask?.cancel()
-                actionTask = Task {
-                    await viewModel.abandonMatch()
-                    dismiss()
-                }
-            }
-        } message: {
-            Text("play.match.exit.confirm.message")
-        }
+        .matchLifecycleChrome(
+            host: viewModel,
+            showExitConfirmation: $showExitConfirmation,
+            onShowSummary: onShowSummary,
+            onDismiss: { dismiss() },
+            dependencies: lifecycleDependencies
+        )
         .onChange(of: viewModel.state) { _, newValue in
             if case .matchCompleted = newValue {
                 audio.playMatchFinished()
