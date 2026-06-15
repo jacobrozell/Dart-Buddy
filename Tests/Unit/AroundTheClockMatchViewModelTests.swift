@@ -75,6 +75,24 @@ func aroundTheClockViewModelLockedSegmentAdvancesDuringVisitEntry() async throws
 }
 
 @MainActor
+@Test(.tags(.integration, .match, .regression))
+func aroundTheClockViewModelUndoLastDartRestoresLockedSegment() async throws {
+    let (vm, _) = try makeAroundTheClockViewModel()
+    vm.enteredDarts = [atcDart(1), atcDart(2)]
+    #expect(vm.lockedSegment == 3)
+
+    await vm.undoLastDart()
+    #expect(vm.enteredDarts.count == 1)
+    #expect(vm.currentTarget == 2)
+    #expect(vm.lockedSegment == 2)
+
+    await vm.undoLastDart()
+    #expect(vm.enteredDarts.isEmpty)
+    #expect(vm.currentTarget == 1)
+    #expect(vm.lockedSegment == 1)
+}
+
+@MainActor
 @Test(.tags(.integration, .match, .critical, .regression))
 func aroundTheClockViewModelMultipleHitsInOneTurnAdvanceTarget() async throws {
     let (vm, _) = try makeAroundTheClockViewModel()
