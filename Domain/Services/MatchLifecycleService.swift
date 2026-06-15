@@ -616,19 +616,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.americanCricketState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.americanCricketUnavailable")
-        }
-        let outcome = try AmericanCricketEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .americanCricketTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.americanCricketState = state
-        }
+        try AmericanCricketMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitMickeyMouseTurn(
@@ -636,19 +624,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.mickeyMouseState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.mickeyMouseUnavailable")
-        }
-        let outcome = try MickeyMouseEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .mickeyMouseTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.mickeyMouseState = state
-        }
+        try MickeyMouseMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitMulliganTurn(
@@ -656,19 +632,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.mulliganState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.mulliganUnavailable")
-        }
-        let outcome = try MulliganEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .mulliganTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.mulliganState = state
-        }
+        try MulliganMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitEnglishCricketTurn(
@@ -676,19 +640,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.englishCricketState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.englishCricketUnavailable")
-        }
-        let outcome = try EnglishCricketEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .englishCricketTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.englishCricketState = state
-        }
+        try EnglishCricketMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitKnockoutTurn(
@@ -704,19 +656,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.suddenDeathState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.suddenDeathUnavailable")
-        }
-        let outcome = try SuddenDeathEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .suddenDeathTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.suddenDeathState = state
-        }
+        try SuddenDeathMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitFiftyOneByFivesTurn(
@@ -724,19 +664,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.fiftyOneByFivesState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.fiftyOneByFivesUnavailable")
-        }
-        let outcome = try FiftyOneByFivesEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .fiftyOneByFivesTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.fiftyOneByFivesState = state
-        }
+        try FiftyOneByFivesMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitGolfTurn(
@@ -752,19 +680,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.footballState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.footballUnavailable")
-        }
-        let outcome = try FootballEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .footballTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.footballState = state
-        }
+        try FootballMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitGrandNationalTurn(
@@ -780,19 +696,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.hareAndHoundsState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.hareAndHoundsUnavailable")
-        }
-        let outcome = try HareAndHoundsEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .hareAndHoundsTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.hareAndHoundsState = state
-        }
+        try HareAndHoundsMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitAroundTheClockTurn(
@@ -800,19 +704,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.aroundTheClockState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.aroundTheClockUnavailable")
-        }
-        let outcome = try AroundTheClockEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .aroundTheClockTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.aroundTheClockState = state
-        }
+        try AroundTheClockMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitAroundTheClock180Turn(
@@ -820,19 +712,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.aroundTheClock180State else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.aroundTheClock180Unavailable")
-        }
-        let outcome = try AroundTheClock180Engine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .aroundTheClock180Turn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.aroundTheClock180State = state
-        }
+        try AroundTheClock180MatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitChaseTheDragonTurn(
@@ -840,19 +720,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.chaseTheDragonState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.chaseTheDragonUnavailable")
-        }
-        let outcome = try ChaseTheDragonEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .chaseTheDragonTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.chaseTheDragonState = state
-        }
+        try ChaseTheDragonMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitNineLivesTurn(
@@ -860,19 +728,7 @@ public enum MatchLifecycleService {
         darts: [DartInput],
         timestamp: Date = Date()
     ) throws -> MatchLifecycleSession {
-        guard var state = session.runtime.nineLivesState else {
-            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.nineLivesUnavailable")
-        }
-        let outcome = try NineLivesEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
-        state = outcome.updatedState
-        let envelope = MatchEventEnvelope(
-            eventIndex: session.runtime.eventCount,
-            payload: .nineLivesTurn(outcome.event),
-            timestamp: timestamp
-        )
-        return try MatchLifecycleCoordinator.appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
-            runtime.nineLivesState = state
-        }
+        try NineLivesMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
     public static func submitRaidVisit(
@@ -1190,42 +1046,35 @@ public enum MatchLifecycleService {
             let darts = turn.darts.map(ShanghaiEngine.dartInput(from:))
             return try submitShanghaiTurn(session: session, darts: darts, timestamp: event.timestamp)
         case let .americanCricketTurn(turn):
-            let darts = turn.darts.map(AmericanCricketEngine.dartInput(from:))
-            return try submitAmericanCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
+            return try AmericanCricketMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .mickeyMouseTurn(turn):
-            let darts = turn.darts.map(MickeyMouseEngine.dartInput(from:))
-            return try submitMickeyMouseTurn(session: session, darts: darts, timestamp: event.timestamp)
+            return try MickeyMouseMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .mulliganTurn(turn):
-            let darts = turn.darts.map(MulliganEngine.dartInput(from:))
-            return try submitMulliganTurn(session: session, darts: darts, timestamp: event.timestamp)
+            return try MulliganMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .englishCricketTurn(turn):
-            let darts = turn.darts.map(EnglishCricketEngine.dartInput(from:))
-            return try submitEnglishCricketTurn(session: session, darts: darts, timestamp: event.timestamp)
+            return try EnglishCricketMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .knockoutTurn(turn):
             return try KnockoutMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .suddenDeathTurn(turn):
-            return try submitSuddenDeathTurn(session: session, darts: suddenDeathReplayDarts(for: turn), timestamp: event.timestamp)
+            return try SuddenDeathMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .fiftyOneByFivesTurn(turn):
-            return try submitFiftyOneByFivesTurn(session: session, darts: fiftyOneByFivesReplayDarts(for: turn), timestamp: event.timestamp)
+            return try FiftyOneByFivesMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .golfTurn(turn):
             return try GolfMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .footballTurn(turn):
-            let darts = turn.darts.map(FootballEngine.dartInput(from:))
-            return try submitFootballTurn(session: session, darts: darts, timestamp: event.timestamp)
+            return try FootballMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .grandNationalTurn(turn):
             return try GrandNationalMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .hareAndHoundsTurn(turn):
-            return try submitHareAndHoundsTurn(session: session, darts: hareAndHoundsReplayDarts(for: turn), timestamp: event.timestamp)
+            return try HareAndHoundsMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .aroundTheClockTurn(turn):
-            return try submitAroundTheClockTurn(session: session, darts: aroundTheClockReplayDarts(for: turn), timestamp: event.timestamp)
+            return try AroundTheClockMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .aroundTheClock180Turn(turn):
-            let darts = turn.darts.map(AroundTheClock180Engine.dartInput(from:))
-            return try submitAroundTheClock180Turn(session: session, darts: darts, timestamp: event.timestamp)
+            return try AroundTheClock180MatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .chaseTheDragonTurn(turn):
-            let darts = turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
-            return try submitChaseTheDragonTurn(session: session, darts: darts, timestamp: event.timestamp)
+            return try ChaseTheDragonMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .nineLivesTurn(turn):
-            return try submitNineLivesTurn(session: session, darts: nineLivesReplayDarts(for: turn), timestamp: event.timestamp)
+            return try NineLivesMatchLifecycleHandler.replayTurn(turn, session: session, timestamp: event.timestamp)
         case let .raidVisit(visit):
             let darts = visit.darts.map(RaidEngine.dartInput(from:))
             return try submitRaidVisit(session: session, darts: darts, timestamp: event.timestamp)
@@ -1264,73 +1113,6 @@ public enum MatchLifecycleService {
                 timestamp: dart.timestamp
             )
         }
-    }
-
-    private static func suddenDeathReplayDarts(for turn: SuddenDeathTurnEvent) -> [DartInput] {
-        guard turn.pointsThisVisit > 0 else { return [DartInput(multiplier: .single, segment: .miss, isMiss: true)] }
-        let perDart = turn.pointsThisVisit / 3
-        let remainder = turn.pointsThisVisit % 3
-        return (0 ..< 3).map { index in
-            let points = perDart + (index < remainder ? 1 : 0)
-            guard points > 0 else {
-                return DartInput(multiplier: .single, segment: .miss, isMiss: true)
-            }
-            return DartInput(multiplier: .single, segment: .oneToTwenty(min(20, max(1, points))), isMiss: false)
-        }
-    }
-
-    private static func fiftyOneByFivesReplayDarts(for turn: FiftyOneByFivesTurnEvent) -> [DartInput] {
-        guard turn.rawTotal > 0 else {
-            return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
-        }
-        return synthesizeReplayDarts(forRawTotal: turn.rawTotal)
-    }
-
-    private static func synthesizeReplayDarts(forRawTotal rawTotal: Int) -> [DartInput] {
-        if rawTotal <= 20 {
-            return [DartInput(multiplier: .single, segment: .oneToTwenty(rawTotal), isMiss: false)]
-        }
-        if rawTotal <= 40, rawTotal % 2 == 0 {
-            let segment = rawTotal / 2
-            return [DartInput(multiplier: .double, segment: .oneToTwenty(segment), isMiss: false)]
-        }
-        if rawTotal <= 60, rawTotal % 3 == 0 {
-            let segment = rawTotal / 3
-            return [DartInput(multiplier: .triple, segment: .oneToTwenty(segment), isMiss: false)]
-        }
-        return [DartInput(multiplier: .single, segment: .oneToTwenty(min(20, rawTotal)), isMiss: false)]
-    }
-
-    private static func hareAndHoundsReplayDarts(for turn: HareAndHoundsTurnEvent) -> [DartInput] {
-        if turn.positionAfter > turn.positionBefore {
-            let segment = MatchConfigHareAndHounds.clockwiseCourse[turn.positionBefore]
-            return [DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false)]
-        }
-        return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
-    }
-
-    private static func aroundTheClockReplayDarts(for turn: AroundTheClockTurnEvent) -> [DartInput] {
-        if turn.targetAfter > turn.targetBefore {
-            let segment: DartSegment
-            if turn.targetBefore < 20 {
-                segment = .oneToTwenty(turn.targetBefore + 1)
-            } else {
-                segment = .outerBull
-            }
-            return [DartInput(multiplier: .single, segment: segment, isMiss: false)]
-        }
-        return Array(
-            repeating: DartInput(multiplier: .single, segment: .miss, isMiss: true),
-            count: max(1, turn.dartsThrown)
-        )
-    }
-
-    private static func nineLivesReplayDarts(for turn: NineLivesTurnEvent) -> [DartInput] {
-        if turn.advanced {
-            let target = turn.targetIndexBefore + 1
-            return [DartInput(multiplier: .single, segment: .oneToTwenty(min(20, max(1, target))), isMiss: false)]
-        }
-        return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
     }
 
     private static func fleetReplayDart(for event: FleetDartEvent) -> DartInput {

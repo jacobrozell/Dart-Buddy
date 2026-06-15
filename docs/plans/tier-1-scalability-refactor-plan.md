@@ -318,7 +318,7 @@ Extend `PersistedSetupPreferences` to all modes (today only 4 conform in `Persis
 | Phase | Status | Notes |
 |-------|--------|-------|
 | 0 — Test fakes | **Complete** | `FakeRepositories.swift`, `FakeRepositoryBuilders.swift`, `MatchTestFixtures.swift`; 35+ test files migrated. Remaining inline fakes are domain-specific (stats loader pagination, corrupt snapshots, player-list blocking). |
-| 1 — Lifecycle plugins | **In progress** | `MatchLifecycleCoordinator` extracted; pilot handlers: Golf, Knockout, Grand National. |
+| 1 — Lifecycle plugins | **In progress** | `MatchLifecycleCoordinator` extracted; all standard modes except Fleet now use dedicated handlers (15/16). Special modes (X01, Cricket, Killer, Baseball, Shanghai, Raid, Fleet) remain. |
 | 2 — Match VM core | Not started | |
 | 3 — Setup registry | Not started | |
 
