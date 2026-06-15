@@ -22,9 +22,11 @@ enum GameplayLayout {
     /// Play setup uses a two-pane layout on iPad regular width.
     static func usesWideSetupHomeLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        dynamicTypeSize: DynamicTypeSize
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
         horizontalSizeClass == .regular
+            && isPad
             && !usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
