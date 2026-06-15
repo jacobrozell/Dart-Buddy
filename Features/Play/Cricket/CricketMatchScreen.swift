@@ -37,7 +37,7 @@ struct CricketMatchScreen: View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 VStack(alignment: .leading, spacing: 2) {
-                    BrandMatchScreenTitle(title: L10n.cricketTitle)
+                    BrandMatchScreenTitle(title: "play.cricket.title")
                     if let subtitle = viewModel.matchSubtitle {
                         Text(subtitle)
                             .font(.caption)

@@ -51,7 +51,7 @@ struct X01MatchScreen: View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 VStack(alignment: .leading, spacing: usesLandscapeMatchLayout ? 0 : 2) {
-                    BrandMatchScreenTitle(title: L10n.x01Title)
+                    BrandMatchScreenTitle(title: "play.x01.title")
                     if showsConfigSummaryInHeader, let summary = viewModel.configSummary {
                         Text(summary)
                             .font(.caption2)
