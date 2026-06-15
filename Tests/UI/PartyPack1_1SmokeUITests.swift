@@ -89,6 +89,18 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.buttons["pad_20"].waitForExistence(timeout: timeout))
     }
 
+    func testPartyPackCricketNormalMatchStartsFromPlaySetup() {
+        let app = launchPartyPackApp(["-seed_players"])
+        ensurePlayTab(app, timeout: timeout)
+
+        selectCricketMode(in: app)
+        selectPlayerFromRoster("Alice", in: app)
+        selectPlayerFromRoster("Bob", in: app)
+        tapStartMatch(in: app, timeout: timeout)
+
+        XCTAssertTrue(app.buttons["cricket_20"].waitForExistence(timeout: timeout + 5))
+    }
+
     func testPartyPackBaseballMatchStartsFromPlaySetup() {
         let app = launchPartyPackApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
@@ -117,6 +129,33 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         )
     }
 
+    func testPartyPackKillerSetupBlocksTwoPlayers() {
+        let app = launchPartyPackApp(["-seed_players"])
+        ensurePlayTab(app, timeout: timeout + 10)
+
+        selectModeFromPlaySetupPicker("party.killer", in: app, expectedModeName: "Killer", timeout: timeout + 10)
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout + 15)
+        selectPlayerFromRoster("Bob", in: app, timeout: timeout + 15)
+
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        XCTAssertFalse(start.isEnabled, "Killer should block start with only two players")
+
+        let inlineHints = app.descendants(matching: .any)["setupValidationHints"]
+        let killerValidationCopy = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS[c] %@", "three players")
+        ).firstMatch
+        if inlineHints.waitForExistence(timeout: 2),
+           inlineHints.label.localizedCaseInsensitiveContains("three players") {
+            XCTAssertTrue(inlineHints.exists)
+        } else {
+            XCTAssertTrue(
+                killerValidationCopy.waitForExistence(timeout: timeout),
+                "Killer setup should explain the three-player minimum"
+            )
+        }
+    }
+
     func testPartyPackShanghaiMatchStartsFromPlaySetup() {
         let app = launchPartyPackApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
@@ -142,6 +181,13 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
             timeout: timeout
         )
         selectPlayerFromRoster("Alice", in: app)
+        XCTAssertFalse(
+            app.descendants(matching: .any)["setup_selected_Bob"].exists,
+            "Around the Clock solo setup should not require a second player"
+        )
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        waitForStartEnabled(start, timeout: timeout)
         tapStartMatch(in: app, timeout: timeout)
 
         XCTAssertTrue(
@@ -197,6 +243,60 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
             app,
             contains: "121",
             timeout: timeout + 5
+        )
+    }
+
+    func testPartyPackActivitySegmentsSwitchHistoryAndStatistics() {
+        let app = launchPartyPackApp(["-seed_demo"])
+        waitForDemoSeed(in: app, timeout: timeout + 30)
+
+        ensureActivityHistorySegment(app, timeout: timeout)
+        XCTAssertTrue(
+            app.staticTexts["FINISHED"].waitForExistence(timeout: timeout + 5),
+            "Demo history should list completed games as FINISHED"
+        )
+        XCTAssertTrue(
+            app.buttons["activityModeFilterMenu"].waitForExistence(timeout: timeout),
+            "Activity history should expose the mode filter menu"
+        )
+
+        ensureActivityStatisticsSegment(app, timeout: timeout)
+        waitForActivityStatisticsAuditReady(app, timeout: timeout + 10)
+        let gamesLabel = app.descendants(matching: .any).containing(
+            NSPredicate(format: "label CONTAINS[c] %@", "Games")
+        ).firstMatch
+        XCTAssertTrue(
+            gamesLabel.waitForExistence(timeout: timeout + 5),
+            "Statistics segment should show the Games summary"
+        )
+        XCTAssertTrue(
+            app.buttons["activityModeFilterMenu"].waitForExistence(timeout: timeout),
+            "Activity statistics should expose the mode filter menu"
+        )
+    }
+
+    func testPartyPackSettingsExposeCoreToggles() {
+        let app = launchPartyPackApp(["-seed_players"])
+        ensureSettingsTab(app, timeout: timeout)
+
+        XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Starting Mode"].waitForExistence(timeout: timeout))
+        scrollToFeedbackSwitches(app)
+        XCTAssertTrue(app.switches["settings_soundToggle"].waitForExistence(timeout: timeout))
+    }
+
+    func testPartyPackHiddenModeResumeNotOffered() {
+        let app = launchPartyPackApp(["-seed_players", "-seed_unreachable_active_match"])
+        ensurePlayTab(app, timeout: timeout + 10)
+
+        assertBrandAppTitleVisible(in: app, timeout: timeout)
+        XCTAssertFalse(
+            app.buttons["resumeMatchButton"].waitForExistence(timeout: 2),
+            "Unreachable in-progress match should not expose Resume on Play home"
+        )
+        XCTAssertTrue(
+            app.buttons["startMatchButton"].waitForExistence(timeout: timeout),
+            "Play setup should remain available when resume is blocked"
         )
     }
 }
