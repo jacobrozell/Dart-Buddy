@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-06-13T11:23:07.280337",
+  "simulatorName": "iPhone 17 Pro Max",
+  "captureCount": 14,
+  "note": "Partial capture: 6 modes at default text size; x01 includes MCP massive-text variants. Re-run ./Scripts/capture_game_mode_screenshots.sh for full matrix.",
+  "modes": [
+    {
+      "folder": "americanCricket",
+      "screenshots": [
+        "landscape.png",
+        "portrait.png"
+      ]
+    },
+    {
+      "folder": "baseball",
+      "screenshots": [
+        "landscape.png",
+        "portrait.png"
+      ]
+    },
+    {
+      "folder": "cricket",
+      "screenshots": [
+        "landscape.png",
+        "portrait.png"
+      ]
+    },
+    {
+      "folder": "killer",
+      "screenshots": [
+        "landscape.png",
+        "portrait.png"
+      ]
+    },
+    {
+      "folder": "shanghai",
+      "screenshots": [
+        "landscape.png",
+        "portrait.png"
+      ]
+    },
+    {
+      "folder": "x01",
+      "screenshots": [
+        "landscape.png",
+        "massive-text-landscape.png",
+        "massive-text-portrait.png",
+        "portrait.png"
+      ]
+    }
+  ]
+}

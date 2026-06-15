@@ -42,6 +42,17 @@ struct GameModeCatalogEntryTests {
                 partyGame: .shanghai,
                 matchType: .shanghai
             ))
+            let mickeyMouse = try #require(GameModeCatalog.entry(for: .mickeyMouse))
+            if ProductSurface.isFullProductSurfaceEnabled {
+                #expect(mickeyMouse.pendingModeSelection == PendingModeSelection(
+                    setupCategory: .standard,
+                    mode: nil,
+                    partyGame: nil,
+                    matchType: .mickeyMouse
+                ))
+            } else {
+                #expect(mickeyMouse.pendingModeSelection == nil)
+            }
         } else {
             #expect(baseball.pendingModeSelection == nil)
             #expect(killer.pendingModeSelection == nil)

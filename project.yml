@@ -54,13 +54,42 @@ targets:
       - path: Resources/en.lproj/GameplayModes.strings
         type: file
         buildPhase: resources
-      # Lean 1.0 ships English only. Re-add for 1.2+ (see docs/release/lean-1.0-implementation-plan.md).
-      # - path: Resources/de.lproj/Localizable.strings
-      # - path: Resources/de.lproj/GameplayModes.strings
-      # - path: Resources/es.lproj/Localizable.strings
-      # - path: Resources/es.lproj/GameplayModes.strings
-      # - path: Resources/nl.lproj/Localizable.strings
-      # - path: Resources/nl.lproj/GameplayModes.strings
+      - path: Resources/de.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/de.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/es.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/es.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/nl.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/nl.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/fr.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/fr.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/zh-Hans.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/zh-Hans.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/it.lproj/Localizable.strings
+        type: file
+        buildPhase: resources
+      - path: Resources/it.lproj/GameplayModes.strings
+        type: file
+        buildPhase: resources
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources
@@ -118,11 +147,19 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 3
+        MARKETING_VERSION: 1.1.0
     info:
       path: App/DartBuddy-Info.plist
       properties:
+        CFBundleLocalizations:
+          - en
+          - de
+          - es
+          - nl
+          - fr
+          - zh-Hans
+          - it
         CFBundleURLTypes:
           - CFBundleURLName: com.jacobrozell.DartBuddy.deeplink
             CFBundleURLSchemes:
@@ -192,6 +229,8 @@ targets:
         type: file
       - path: Tests/UI/CricketMatchUITests.swift
         type: file
+      - path: Tests/UI/GameModeScreenshotUITests.swift
+        type: file
       - path: Tests/UI/MatchForfeitUITests.swift
         type: file
     dependencies:
@@ -220,11 +259,17 @@ targets:
     platform: iOS
     sources:
       - path: Tests/UI/Support
+      - path: Tests/UI/FrenchLocalizationSmokeUITests.swift
+        type: file
       - path: Tests/UI/GermanLocalizationSmokeUITests.swift
         type: file
       - path: Tests/UI/SpanishLocalizationSmokeUITests.swift
         type: file
       - path: Tests/UI/DutchLocalizationSmokeUITests.swift
+        type: file
+      - path: Tests/UI/ChineseLocalizationSmokeUITests.swift
+        type: file
+      - path: Tests/UI/ItalianLocalizationSmokeUITests.swift
         type: file
     dependencies:
       - target: DartBuddy
@@ -274,7 +319,7 @@ targets:
     platform: iOS
     sources:
       - path: Tests/UI/Support
-      - path: Tests/UI/Lean1_0SmokeUITests.swift
+      - path: Tests/UI/PartyPack1_1SmokeUITests.swift
         type: file
     dependencies:
       - target: DartBuddy
@@ -294,6 +339,8 @@ schemes:
         - DartBuddy
       targets:
         - DartBuddyTests
+      commandLineArguments:
+        "-enable_lean_product_surface": true
     run:
       config: Debug
   DartBuddyUISmoke:

@@ -4,6 +4,7 @@
 Define Scam — alternating Stopper and Scorer roles across the full board — for future implementation.
 
 **Status:** Planned (`party.scam`).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Scam](https://darts501.com/Games.html).
 
@@ -82,6 +83,7 @@ Replay restores closed set and scores.
 |---|---|
 | **Key prefix** | `play.rules.scam.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.scam.overview.title` |

@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Statistics Tab Specification
 
 ## 1. Purpose
@@ -147,6 +149,7 @@ No dedicated Analytics events; product health inferred from `match_completed` + 
 ## 11. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `ActivityRootView.swift`, `StatisticsRootView.swift`, `StatisticsViewModel.swift` |

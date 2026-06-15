@@ -4,6 +4,7 @@
 Define Halve-It — descending target sequence with halve-on-miss scoring — for future implementation.
 
 **Status:** Planned (`practice.halveIt`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Halve-it](https://darts501.com/Games.html).
 
@@ -83,6 +84,7 @@ Replay restores totals and round index.
 |---|---|
 | **Key prefix** | `play.rules.halveIt.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.halveIt.overview.title` |

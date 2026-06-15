@@ -1,3 +1,5 @@
+**Estimated release:** `dev-only`
+
 # Auto-Scoring Vision Specification (Future R&D)
 
 > **Implementation status:** Phase A (guided calibration + assistive detection) is

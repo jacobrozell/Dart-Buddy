@@ -33,6 +33,13 @@ public enum AppBootstrapper {
 
         let matchRepository = SwiftDataMatchRepository(container: container)
         let statsRepository = SwiftDataStatsRepository(container: container)
+        let featureFlags = LocalFeatureFlagsProvider()
+        let achievementService = DefaultAchievementService(
+            achievementRepository: SwiftDataAchievementRepository(container: container),
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            featureFlags: featureFlags
+        )
         let dependencies = AppDependencies(
             modelContainer: container,
             logger: logger,
@@ -49,8 +56,12 @@ public enum AppBootstrapper {
             turnTotalCallerService: GatedTurnTotalCallerService(underlying: baseTurnTotalCaller, preferences: feedbackPreferences),
             userPreferencesStore: userPreferencesStore,
             activeMatchStore: activeMatchStore,
-            pendingMatchPlayerSelections: pendingMatchPlayerSelections
+            pendingMatchPlayerSelections: pendingMatchPlayerSelections,
+            featureFlags: featureFlags
         )
+        await MainActor.run {
+            AchievementHooks.register(service: achievementService)
+        }
         await DemoSeeder.seedIfRequested(dependencies)
         await PrimaryPlayerBootstrap.promoteOldestHumanIfNeeded(using: dependencies.playerRepository)
         await AnalyticsUserIdentity.sync(from: dependencies.playerRepository)

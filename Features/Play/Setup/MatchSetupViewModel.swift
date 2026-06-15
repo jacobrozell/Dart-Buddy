@@ -156,6 +156,7 @@ final class MatchSetupViewModel: ObservableObject {
         } catch {
             validationErrors = ["setup.error.load"]
         }
+        normalizeForProductSurface()
         revalidate()
     }
 
@@ -420,6 +421,10 @@ final class MatchSetupViewModel: ObservableObject {
     }
 
     func applyPendingModeSelection(_ selection: PendingModeSelection) {
+        if let matchType = selection.matchType,
+           !ProductSurface.isMatchTypeReachable(matchType) {
+            return
+        }
         if selection.setupCategory == .party, !ProductSurface.showsPartyModes { return }
         if let matchType = selection.matchType,
            let entry = GameModeCatalog.entry(for: matchType),
@@ -427,14 +432,16 @@ final class MatchSetupViewModel: ObservableObject {
            !ProductSurface.showsCoopModes {
             return
         }
-        setupCategory = selection.setupCategory
-        if let mode = selection.mode {
-            self.mode = mode
-        }
-        if let partyGame = selection.partyGame {
-            self.partyGame = partyGame
-        }
         selectedCatalogMatchType = selection.matchType
+        if let partyGame = selection.partyGame {
+            setupCategory = .party
+            self.partyGame = partyGame
+        } else {
+            setupCategory = selection.setupCategory
+            if let mode = selection.mode {
+                self.mode = mode
+            }
+        }
         normalizeForProductSurface()
         revalidate()
     }
@@ -456,13 +463,18 @@ final class MatchSetupViewModel: ObservableObject {
             setupCategory = .standard
             mode = .x01
         }
-        if let catalogType = selectedCatalogMatchType,
-           let entry = GameModeCatalog.entry(for: catalogType),
-           entry.section == .coop,
-           !ProductSurface.showsCoopModes {
-            setupCategory = .standard
-            mode = .x01
-            selectedCatalogMatchType = nil
+        if let catalogType = selectedCatalogMatchType {
+            if !ProductSurface.isMatchTypeReachable(catalogType) {
+                setupCategory = .standard
+                mode = .x01
+                selectedCatalogMatchType = nil
+            } else if let entry = GameModeCatalog.entry(for: catalogType),
+                      entry.section == .coop,
+                      !ProductSurface.showsCoopModes {
+                setupCategory = .standard
+                mode = .x01
+                selectedCatalogMatchType = nil
+            }
         }
     }
 

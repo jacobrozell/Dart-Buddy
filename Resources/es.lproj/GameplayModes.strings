@@ -19,7 +19,7 @@
 "play.aroundTheClock.announce.complete" = "Secuencia completa";
 "play.aroundTheClock.bullFinishEnabled" = "Finalizar en bull";
 "play.aroundTheClock.currentTargetFormat" = "Objetivo %d";
-"play.aroundTheClock.navTitle" = "Around The Clock";
+"play.aroundTheClock.navTitle" = "Around the Clock";
 "play.aroundTheClock.pad.disabledWhileBot" = "Esperando turno del bot";
 "play.aroundTheClock.pad.lockedSegmentHint" = "Solo el segmento %d avanza tu objetivo";
 "play.aroundTheClock.progressReset" = "Progreso reiniciado";
@@ -30,9 +30,9 @@
 "play.aroundTheClock.setup.resetPolicy.resetEntireSequence" = "Reiniciar secuencia completa";
 "play.aroundTheClock.setup.resetPolicy.resetOnThreeMisses" = "Reiniciar tras tres fallos";
 "play.aroundTheClock.targetAdvanced" = "Objetivo avanzado";
-"play.aroundTheClock.title" = "Around The Clock";
+"play.aroundTheClock.title" = "Around the Clock";
 "play.aroundTheClock180.leading" = "Liderando";
-"play.aroundTheClock180.navTitle" = "180 Around The Clock";
+"play.aroundTheClock180.navTitle" = "180 Around the Clock";
 "play.aroundTheClock180.numberIndexFormat" = "Número %d de %d";
 "play.aroundTheClock180.numberStrip.accessibilityFormat" = "Número %d de %d";
 "play.aroundTheClock180.pad.disabledWhileBot" = "Esperando turno del bot";
@@ -42,14 +42,14 @@
 "play.aroundTheClock180.setup.parScore" = "Par %d";
 "play.aroundTheClock180.setup.parScore.none" = "Sin par";
 "play.aroundTheClock180.setup.parScoreValueFormat" = "Par %d";
-"play.aroundTheClock180.title" = "180 Around The Clock";
+"play.aroundTheClock180.title" = "180 Around the Clock";
 "play.aroundTheClock180.visitPointsFormat" = "%d puntos esta visita, %d total";
 "play.blindKiller.title" = "Blind Killer";
 "play.bobs27.title" = "Bob's 27";
 "play.chaseTheDragon.dragonComplete" = "Dragón completo";
 "play.chaseTheDragon.lapFormat" = "Vuelta %d de %d";
 "play.chaseTheDragon.leading" = "Liderando";
-"play.chaseTheDragon.navTitle" = "Chase The Dragon";
+"play.chaseTheDragon.navTitle" = "Chase the Dragon";
 "play.chaseTheDragon.pad.disabledWhileBot" = "Esperando turno del bot";
 "play.chaseTheDragon.sequenceProgressFormat" = "Paso %d de %d";
 "play.chaseTheDragon.setup.laps" = "Vueltas";
@@ -58,7 +58,7 @@
 "play.chaseTheDragon.step.innerBull" = "Bull interior";
 "play.chaseTheDragon.step.outerBull" = "Bull exterior";
 "play.chaseTheDragon.step.trebleFormat" = "Triple %d";
-"play.chaseTheDragon.title" = "Chase The Dragon";
+"play.chaseTheDragon.title" = "Chase the Dragon";
 "play.englishCricket.announce.inningsComplete" = "Entrada completada";
 "play.englishCricket.header.inningsFormat" = "Entrada %d";
 "play.englishCricket.navTitle" = "English Cricket";
@@ -71,7 +71,7 @@
 "play.englishCricket.setup.wicketsPerInnings" = "Wickets por entrada";
 "play.englishCricket.setup.wicketsValueFormat" = "%d wickets";
 "play.englishCricket.title" = "English Cricket";
-"play.englishCricket.visitRunsFormat" = "%d carreras esta visita";
+"play.englishCricket.visitRunsFormat" = "%d carreras en la visita";
 "play.englishCricket.wicketsRemainingFormat" = "%d wickets restantes";
 "play.fiftyOneByFives.divisibleByFiveReminder" = "La puntuación debe ser divisible por cinco";
 "play.fiftyOneByFives.leading" = "Liderando";
@@ -99,10 +99,15 @@
 "play.football.setup.kickoffMode.twoOuterBulls" = "Dos bulls exteriores";
 "play.football.title" = "Football";
 "play.golf.announce.holeComplete" = "Hoyo completado en %d lanzamientos";
+"play.golf.announce.holeCompleteDetail" = "Hoyo %1$d — %2$@ (%3$d lanzamientos)";
+"play.golf.bot.throwingAtSegment" = "Bot lanzando al segmento %d — solo cuenta el último dardo";
 "play.golf.endTurnEarly" = "Terminar turno antes";
 "play.golf.header.holeFormat" = "Hoyo %d de %d";
+"play.golf.header.targetFormat" = "Apunta al segmento %d";
 "play.golf.holeStrip.accessibilityFormat" = "Hoyo %d de %d";
 "play.golf.lastDartCountsHint" = "El último dardo cuenta en este hoyo";
+"play.golf.lastDartPreviewLabel" = "Si paras ahora:";
+"play.golf.lastDartPreviewStrokes" = "%d lanzamientos";
 "play.golf.leading" = "Liderando";
 "play.golf.navTitle" = "Golf";
 "play.golf.pad.disabledWhileBot" = "Esperando turno del bot";
@@ -120,6 +125,8 @@
 "play.golf.stroke.miss" = "Fallo";
 "play.golf.stroke.single" = "Simple";
 "play.golf.stroke.triple" = "Triple";
+"play.golf.strokeLegend" = "Doble 1 · Triple 2 · Simple 3 · Fallo 5";
+"play.golf.strokeLegend.accessibility" = "Puntuación: Doble cuenta 1 golpe, Triple 2, Simple 3, Fallo 5";
 "play.golf.strokeAccessibilityFormat" = "%d lanzamientos, %@";
 "play.golf.title" = "Golf";
 "play.grandNational.announce.finished" = "Recorrido completado";
@@ -140,7 +147,7 @@
 "play.grandNational.title" = "Grand National";
 "play.halveIt.title" = "Halve-It";
 "play.hareAndHounds.dualTrackAccessibilityFormat" = "Segmento %d";
-"play.hareAndHounds.navTitle" = "Hare And Hounds";
+"play.hareAndHounds.navTitle" = "Hare and Hounds";
 "play.hareAndHounds.pad.disabledWhileBot" = "Esperando turno del bot";
 "play.hareAndHounds.pad.lockedSegmentHint" = "Solo el segmento %d avanza tu posición";
 "play.hareAndHounds.positionAdvanced" = "Posición avanzada";
@@ -148,7 +155,7 @@
 "play.hareAndHounds.setup.houndStart" = "Inicio del perro";
 "play.hareAndHounds.setup.houndStart.segment12" = "Segmento 12";
 "play.hareAndHounds.setup.houndStart.segment5" = "Segmento 5";
-"play.hareAndHounds.title" = "Hare And Hounds";
+"play.hareAndHounds.title" = "Hare and Hounds";
 "play.hareAndHounds.trackPositionFormat" = "%@ en segmento %d";
 "play.knockout.announce.beatHigh" = "%d puntos — nueva marca alta";
 "play.knockout.announce.missedHigh" = "%d puntos — por debajo de la marca";
@@ -160,8 +167,8 @@
 "play.knockout.roundFormat" = "Ronda %d";
 "play.knockout.setup.strikesToEliminate" = "Strikes para eliminar";
 "play.knockout.setup.strikesValueFormat" = "%d strikes";
-"play.knockout.strikeAwarded" = "Strike otorgado";
-"play.knockout.strikesCountFormat" = "%d de %d strikes";
+"play.knockout.strikeAwarded" = "Strike recibido";
+"play.knockout.strikesCountFormat" = "%d / %d strikes";
 "play.knockout.strikesRemainingFormat" = "%d strikes restantes";
 "play.knockout.title" = "Knockout";
 "play.loop.title" = "Loop";
@@ -176,7 +183,7 @@
 "play.mulligan.activeTargetFormat" = "Objetivo %@";
 "play.mulligan.announce.turnFormat" = "%d marcas en el objetivo";
 "play.mulligan.drawnTargets.listAccessibilityFormat" = "Objetivos sorteados: %@";
-"play.mulligan.drawnTargets.title" = "Objetivos sorteados";
+"play.mulligan.drawnTargets.title" = "Mulligan";
 "play.mulligan.marksAccessibilityFormat" = "%d marcas en el objetivo activo";
 "play.mulligan.navTitle" = "Mulligan";
 "play.mulligan.pad.disabledWhileBot" = "Esperando turno del bot";
@@ -216,4 +223,4 @@
 "play.suddenDeath.thisRoundFormat" = "+%d";
 "play.suddenDeath.title" = "Sudden Death";
 "play.suddenDeath.totalPointsAccessibilityFormat" = "%d puntos en total";
-"play.ticTacToe.title" = "Tres en raya";
+"play.ticTacToe.title" = "Tic-Tac-Toe";

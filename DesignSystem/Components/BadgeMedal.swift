@@ -139,15 +139,15 @@ struct PlayerAchievementGallerySection: View {
                     .foregroundStyle(Brand.textSecondary)
             }
 
-            if progress.isEmpty {
+            if unlockedCount == 0 {
                 Text(L10n.string("achievements.empty"))
                     .font(.subheadline)
                     .foregroundStyle(Brand.textSecondary)
-            } else {
-                LazyVGrid(columns: columns, alignment: .leading, spacing: DS.Spacing.s3) {
-                    ForEach(sortedDefinitions, id: \.id) { definition in
-                        achievementTile(for: definition)
-                    }
+            }
+
+            LazyVGrid(columns: columns, alignment: .leading, spacing: DS.Spacing.s3) {
+                ForEach(sortedDefinitions, id: \.id) { definition in
+                    achievementTile(for: definition)
                 }
             }
         }
@@ -156,14 +156,23 @@ struct PlayerAchievementGallerySection: View {
 
     private var sortedDefinitions: [AchievementDefinition] {
         AchievementCatalog.phase1.sorted { lhs, rhs in
-            let left = progress.first { $0.achievementId == lhs.id }
-            let right = progress.first { $0.achievementId == rhs.id }
-            switch (left?.isUnlocked, right?.isUnlocked) {
-            case (true, false): return true
-            case (false, true): return false
-            default: return lhs.id < rhs.id
-            }
+            let leftRank = sortRank(for: lhs)
+            let rightRank = sortRank(for: rhs)
+            if leftRank.tier != rightRank.tier { return leftRank.tier < rightRank.tier }
+            if leftRank.secondary != rightRank.secondary { return leftRank.secondary > rightRank.secondary }
+            return lhs.id < rhs.id
         }
+    }
+
+    private func sortRank(for definition: AchievementDefinition) -> (tier: Int, secondary: TimeInterval) {
+        let record = progress.first { $0.achievementId == definition.id }
+        if record?.isUnlocked == true {
+            return (0, record?.unlockedAt?.timeIntervalSince1970 ?? 0)
+        }
+        if definition.isIncremental, let percent = record?.progressPercent, percent > 0 {
+            return (1, TimeInterval(percent))
+        }
+        return (2, 0)
     }
 
     @ViewBuilder

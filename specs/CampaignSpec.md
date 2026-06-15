@@ -7,6 +7,7 @@ Define **Journey** — Dart Buddy’s single-player campaign: progression UI, sc
 **Related specs:** Bots — [`BotOpponentSpec.md`](BotOpponentSpec.md), [`CustomBotSpec.md`](CustomBotSpec.md). Match lifecycle — [`MatchSpec.md`](MatchSpec.md). Summary — [`MatchSummarySpec.md`](MatchSummarySpec.md). Stats (separate) — [`StatsSpec.md`](StatsSpec.md). Achievements (addon later) — [`AchievementsSpec.md`](AchievementsSpec.md). Daily engagement — [`DailyChallengeSpec.md`](DailyChallengeSpec.md). Reset — [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md). R&D brief — [`FutureIdeas/campaign-mode.md`](../FutureIdeas/campaign-mode.md).
 
 **Status:** Post-1.0 R&D — feature-flagged. Decisions in §16 and star rules (§8) are **directional** until implementation; nothing here blocks experimentation.
+**Estimated release:** `2.0+`
 
 ---
 
@@ -312,6 +313,7 @@ No PII; hash `primary_player_id` if needed.
 
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `2.0+` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | (spec authoring — no implementation yet) |
 | **Code** | (planned) `Features/Campaign/`, `Resources/Campaign/` |

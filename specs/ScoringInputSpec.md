@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Scoring Input Specification
 
 ## 1. Purpose
@@ -151,6 +153,7 @@ Turn submission:
 ## 12. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | `340f788` |
 | **Code** | `DartNumberPad.swift` (X01/Cricket/party match screens) |

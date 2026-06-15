@@ -221,6 +221,15 @@ struct PlayRootView: View {
         if arguments.contains("-snapshot_match_baseball") {
             return .baseballMatch(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000004") ?? UUID())
         }
+        if arguments.contains("-snapshot_match_killer") {
+            return .killerMatch(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000005") ?? UUID())
+        }
+        if arguments.contains("-snapshot_match_shanghai") {
+            return .shanghaiMatch(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000006") ?? UUID())
+        }
+        if arguments.contains("-snapshot_match_aroundTheClock") {
+            return .aroundTheClockMatch(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000007") ?? UUID())
+        }
         if arguments.contains("-snapshot_match_summary") {
             return .matchSummary(matchId: UUID(uuidString: "00000000-0000-0000-0000-000000000003") ?? UUID())
         }

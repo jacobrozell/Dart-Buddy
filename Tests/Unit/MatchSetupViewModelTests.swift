@@ -200,7 +200,37 @@ func applyPendingModeSelectionPrefillsPartyKiller() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func onAppearDoesNotResetCatalogModeSelection() async {
+func applyPendingModeSelectionPrefillsCatalogPartyMickeyMouse() async {
+    guard ProductSurface.isFullProductSurfaceEnabled else { return }
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.killer)
+
+    vm.applyPendingModeSelection(
+        PendingModeSelection(
+            setupCategory: .standard,
+            mode: nil,
+            partyGame: nil,
+            matchType: .mickeyMouse
+        )
+    )
+
+    #expect(vm.setupCategory == .standard)
+    #expect(vm.partyGame == .killer)
+    #expect(vm.selectedCatalogMatchType == .mickeyMouse)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func onAppearDoesNotResetCatalogModeSelectionOnFullSurface() async {
+    guard ProductSurface.isFullProductSurfaceEnabled else { return }
+
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
         settingsRepository: FakeSettingsRepository(),
@@ -215,6 +245,36 @@ func onAppearDoesNotResetCatalogModeSelection() async {
     await vm.onAppear()
 
     #expect(vm.selectedCatalogMatchType == .golf)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func applyPendingModeSelectionIgnoresUnreachableModesOnPartyPack() async {
+    let args = [ProductSurface.leanProductSurfaceLaunchArgument]
+    guard !ProductSurface.isFullProductSurfaceEnabled(arguments: args) else { return }
+
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B"), makePlayer("C")]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.killer)
+
+    vm.applyPendingModeSelection(
+        PendingModeSelection(
+            setupCategory: .party,
+            mode: nil,
+            partyGame: nil,
+            matchType: .mickeyMouse
+        )
+    )
+
+    #expect(vm.setupCategory == .party)
+    #expect(vm.partyGame == .killer)
+    #expect(vm.selectedCatalogMatchType == nil)
 }
 
 @MainActor

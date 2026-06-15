@@ -1,3 +1,5 @@
+**Estimated release:** `2.0+`
+
 # Apple Watch Companion Specification (Future)
 
 ## 1. Purpose

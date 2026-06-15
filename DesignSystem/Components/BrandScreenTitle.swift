@@ -49,7 +49,12 @@ struct BrandRootScreenTitle: View {
 
 /// In-match gameplay headers (X01, Cricket).
 struct BrandMatchScreenTitle: View {
-    let title: LocalizedStringKey
+    private let title: String
+
+    /// Resolves `key` from Localizable and GameplayModes string tables.
+    init(title key: String) {
+        self.title = L10n.string(key)
+    }
 
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 

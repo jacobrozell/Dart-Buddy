@@ -95,6 +95,172 @@ func playHomeIgnoresActivePartyMatchWhenPartyHidden() async {
 
 @MainActor
 @Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeIgnoresActiveGolfMatchWhenGolfNotReachable() async {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .golf,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    #expect(vm.state == .readyNoActiveMatch)
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeShowsResumeForBaseballMatch() async throws {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .baseball,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    if case let .readyWithActiveMatch(match) = vm.state {
+        #expect(match.type == .baseball)
+    } else {
+        Issue.record("Expected resume state for baseball match")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeShowsResumeForKillerMatch() async throws {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .killer,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B"), makePlayer("C")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    if case let .readyWithActiveMatch(match) = vm.state {
+        #expect(match.type == .killer)
+    } else {
+        Issue.record("Expected resume state for killer match")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeShowsResumeForShanghaiMatch() async throws {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .shanghai,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    if case let .readyWithActiveMatch(match) = vm.state {
+        #expect(match.type == .shanghai)
+    } else {
+        Issue.record("Expected resume state for shanghai match")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
+func playHomeShowsResumeForAroundTheClockMatch() async throws {
+    guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .aroundTheClock,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = PlayHomeViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A")]),
+        matchRepository: FakeMatchRepository(activeMatch: activeMatch),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: RecordingSink())
+    )
+
+    await vm.onAppear()
+
+    if case let .readyWithActiveMatch(match) = vm.state {
+        #expect(match.type == .aroundTheClock)
+    } else {
+        Issue.record("Expected resume state for Around the Clock match")
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .navigation, .match, .regression))
 func playHomeShowsResumeForCricketMatch() async throws {
     var session = try MatchLifecycleService.createMatch(
         type: .cricket,

@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # X01 Game Specification
 
 ## 1. Purpose
@@ -134,6 +136,7 @@ Source copy for the in-app **How to play** sheet (`GameRulesGuideView` → `Game
 |---|---|
 | **Key prefix** | `play.rules.x01.` |
 | **Shipped in app** | Yes (`GameRulesCatalog.x01`) |
+| **Estimated release** | `1.0` |
 
 ### The game
 | **Title key** | `play.rules.x01.overview.title` |

@@ -94,6 +94,54 @@ struct DemoSeederTests {
     }
 
     @Test
+    func baseballSnapshotLaunchArgumentStoresActiveMatch() async throws {
+        let dependencies = try makeDependencies()
+
+        await DemoSeeder.seedIfRequested(dependencies, arguments: ["-snapshot_match_baseball"])
+
+        let summary = await MainActor.run { dependencies.activeMatchStore.activeMatchSummary() }
+        #expect(summary?.id.uuidString == "00000000-0000-0000-0000-000000000004")
+        #expect(summary?.type == .baseball)
+        #expect(summary?.status == .inProgress)
+    }
+
+    @Test
+    func killerSnapshotLaunchArgumentStoresActiveMatch() async throws {
+        let dependencies = try makeDependencies()
+
+        await DemoSeeder.seedIfRequested(dependencies, arguments: ["-snapshot_match_killer"])
+
+        let summary = await MainActor.run { dependencies.activeMatchStore.activeMatchSummary() }
+        #expect(summary?.id.uuidString == "00000000-0000-0000-0000-000000000005")
+        #expect(summary?.type == .killer)
+        #expect(summary?.status == .inProgress)
+    }
+
+    @Test
+    func shanghaiSnapshotLaunchArgumentStoresActiveMatch() async throws {
+        let dependencies = try makeDependencies()
+
+        await DemoSeeder.seedIfRequested(dependencies, arguments: ["-snapshot_match_shanghai"])
+
+        let summary = await MainActor.run { dependencies.activeMatchStore.activeMatchSummary() }
+        #expect(summary?.id.uuidString == "00000000-0000-0000-0000-000000000006")
+        #expect(summary?.type == .shanghai)
+        #expect(summary?.status == .inProgress)
+    }
+
+    @Test
+    func aroundTheClockSnapshotLaunchArgumentStoresActiveMatch() async throws {
+        let dependencies = try makeDependencies()
+
+        await DemoSeeder.seedIfRequested(dependencies, arguments: ["-snapshot_match_aroundTheClock"])
+
+        let summary = await MainActor.run { dependencies.activeMatchStore.activeMatchSummary() }
+        #expect(summary?.id.uuidString == "00000000-0000-0000-0000-000000000007")
+        #expect(summary?.type == .aroundTheClock)
+        #expect(summary?.status == .inProgress)
+    }
+
+    @Test
     func summarySnapshotLaunchArgumentStoresCompletedMatch() async throws {
         let dependencies = try makeDependencies()
         let matchId = UUID(uuidString: "00000000-0000-0000-0000-000000000003")!

@@ -19,7 +19,7 @@
 "play.aroundTheClock.announce.complete" = "Reeks voltooid";
 "play.aroundTheClock.bullFinishEnabled" = "Afronden op bull";
 "play.aroundTheClock.currentTargetFormat" = "Doel %d";
-"play.aroundTheClock.navTitle" = "Around The Clock";
+"play.aroundTheClock.navTitle" = "Around the Clock";
 "play.aroundTheClock.pad.disabledWhileBot" = "Wachten op botbeurt";
 "play.aroundTheClock.pad.lockedSegmentHint" = "Alleen segment %d verplaatst je doel";
 "play.aroundTheClock.progressReset" = "Voortgang gereset";
@@ -30,9 +30,9 @@
 "play.aroundTheClock.setup.resetPolicy.resetEntireSequence" = "Hele reeks resetten";
 "play.aroundTheClock.setup.resetPolicy.resetOnThreeMisses" = "Reset na drie missers";
 "play.aroundTheClock.targetAdvanced" = "Doel verder";
-"play.aroundTheClock.title" = "Around The Clock";
+"play.aroundTheClock.title" = "Around the Clock";
 "play.aroundTheClock180.leading" = "Leidend";
-"play.aroundTheClock180.navTitle" = "180 Around The Clock";
+"play.aroundTheClock180.navTitle" = "180 Around the Clock";
 "play.aroundTheClock180.numberIndexFormat" = "Nummer %d van %d";
 "play.aroundTheClock180.numberStrip.accessibilityFormat" = "Nummer %d van %d";
 "play.aroundTheClock180.pad.disabledWhileBot" = "Wachten op botbeurt";
@@ -42,14 +42,14 @@
 "play.aroundTheClock180.setup.parScore" = "Par %d";
 "play.aroundTheClock180.setup.parScore.none" = "Geen par";
 "play.aroundTheClock180.setup.parScoreValueFormat" = "Par %d";
-"play.aroundTheClock180.title" = "180 Around The Clock";
+"play.aroundTheClock180.title" = "180 Around the Clock";
 "play.aroundTheClock180.visitPointsFormat" = "%d punten deze beurt, %d totaal";
 "play.blindKiller.title" = "Blind Killer";
 "play.bobs27.title" = "Bob's 27";
 "play.chaseTheDragon.dragonComplete" = "Draak voltooid";
 "play.chaseTheDragon.lapFormat" = "Ronde %d van %d";
 "play.chaseTheDragon.leading" = "Leidend";
-"play.chaseTheDragon.navTitle" = "Chase The Dragon";
+"play.chaseTheDragon.navTitle" = "Chase the Dragon";
 "play.chaseTheDragon.pad.disabledWhileBot" = "Wachten op botbeurt";
 "play.chaseTheDragon.sequenceProgressFormat" = "Stap %d van %d";
 "play.chaseTheDragon.setup.laps" = "Rondes";
@@ -58,7 +58,7 @@
 "play.chaseTheDragon.step.innerBull" = "Inner bull";
 "play.chaseTheDragon.step.outerBull" = "Outer bull";
 "play.chaseTheDragon.step.trebleFormat" = "Triple %d";
-"play.chaseTheDragon.title" = "Chase The Dragon";
+"play.chaseTheDragon.title" = "Chase the Dragon";
 "play.englishCricket.announce.inningsComplete" = "Innings voltooid";
 "play.englishCricket.header.inningsFormat" = "Innings %d";
 "play.englishCricket.navTitle" = "English Cricket";
@@ -68,7 +68,7 @@
 "play.englishCricket.role.bowler" = "Bowler";
 "play.englishCricket.runsFormat" = "%d runs";
 "play.englishCricket.setup.endWhenTargetPassed" = "Einde bij overschrijden doel";
-"play.englishCricket.setup.wicketsPerInnings" = "Wickets per innings";
+"play.englishCricket.setup.wicketsPerInnings" = "Wickets per inning";
 "play.englishCricket.setup.wicketsValueFormat" = "%d wickets";
 "play.englishCricket.title" = "English Cricket";
 "play.englishCricket.visitRunsFormat" = "%d runs deze beurt";
@@ -99,10 +99,15 @@
 "play.football.setup.kickoffMode.twoOuterBulls" = "Twee outer bulls";
 "play.football.title" = "Football";
 "play.golf.announce.holeComplete" = "Hole voltooid in %d worpen";
+"play.golf.announce.holeCompleteDetail" = "Hole %1$d — %2$@ (%3$d worpen)";
+"play.golf.bot.throwingAtSegment" = "Bot werpt op segment %d — alleen de laatste dart telt";
 "play.golf.endTurnEarly" = "Beurt vroegtijdig beëindigen";
 "play.golf.header.holeFormat" = "Hole %d van %d";
+"play.golf.header.targetFormat" = "Richt op segment %d";
 "play.golf.holeStrip.accessibilityFormat" = "Hole %d van %d";
 "play.golf.lastDartCountsHint" = "Laatste dart telt op deze hole";
+"play.golf.lastDartPreviewLabel" = "Als je nu stopt:";
+"play.golf.lastDartPreviewStrokes" = "%d worpen";
 "play.golf.leading" = "Leidend";
 "play.golf.navTitle" = "Golf";
 "play.golf.pad.disabledWhileBot" = "Wachten op botbeurt";
@@ -120,6 +125,8 @@
 "play.golf.stroke.miss" = "Mis";
 "play.golf.stroke.single" = "Single";
 "play.golf.stroke.triple" = "Triple";
+"play.golf.strokeLegend" = "Double 1 · Triple 2 · Single 3 · Mis 5";
+"play.golf.strokeLegend.accessibility" = "Score: Double telt 1 slag, Triple 2, Single 3, mis 5";
 "play.golf.strokeAccessibilityFormat" = "%d worpen, %@";
 "play.golf.title" = "Golf";
 "play.grandNational.announce.finished" = "Parcours voltooid";
@@ -140,7 +147,7 @@
 "play.grandNational.title" = "Grand National";
 "play.halveIt.title" = "Halve-It";
 "play.hareAndHounds.dualTrackAccessibilityFormat" = "Segment %d";
-"play.hareAndHounds.navTitle" = "Hare And Hounds";
+"play.hareAndHounds.navTitle" = "Hare and Hounds";
 "play.hareAndHounds.pad.disabledWhileBot" = "Wachten op botbeurt";
 "play.hareAndHounds.pad.lockedSegmentHint" = "Alleen segment %d verplaatst je positie";
 "play.hareAndHounds.positionAdvanced" = "Positie verder";
@@ -148,7 +155,7 @@
 "play.hareAndHounds.setup.houndStart" = "Hondstart";
 "play.hareAndHounds.setup.houndStart.segment12" = "Segment 12";
 "play.hareAndHounds.setup.houndStart.segment5" = "Segment 5";
-"play.hareAndHounds.title" = "Hare And Hounds";
+"play.hareAndHounds.title" = "Hare and Hounds";
 "play.hareAndHounds.trackPositionFormat" = "%@ op segment %d";
 "play.knockout.announce.beatHigh" = "%d punten — nieuwe hoogste score";
 "play.knockout.announce.missedHigh" = "%d punten — onder de hoogste score";
@@ -161,7 +168,7 @@
 "play.knockout.setup.strikesToEliminate" = "Strikes tot eliminatie";
 "play.knockout.setup.strikesValueFormat" = "%d strikes";
 "play.knockout.strikeAwarded" = "Strike toegekend";
-"play.knockout.strikesCountFormat" = "%d van %d strikes";
+"play.knockout.strikesCountFormat" = "%d / %d strikes";
 "play.knockout.strikesRemainingFormat" = "%d strikes over";
 "play.knockout.title" = "Knockout";
 "play.loop.title" = "Loop";
@@ -176,7 +183,7 @@
 "play.mulligan.activeTargetFormat" = "Doel %@";
 "play.mulligan.announce.turnFormat" = "%d markeringen op doel";
 "play.mulligan.drawnTargets.listAccessibilityFormat" = "Getrokken doelen: %@";
-"play.mulligan.drawnTargets.title" = "Getrokken doelen";
+"play.mulligan.drawnTargets.title" = "Mulligan";
 "play.mulligan.marksAccessibilityFormat" = "%d markeringen op actief doel";
 "play.mulligan.navTitle" = "Mulligan";
 "play.mulligan.pad.disabledWhileBot" = "Wachten op botbeurt";
@@ -216,4 +223,4 @@
 "play.suddenDeath.thisRoundFormat" = "+%d";
 "play.suddenDeath.title" = "Sudden Death";
 "play.suddenDeath.totalPointsAccessibilityFormat" = "%d punten totaal";
-"play.ticTacToe.title" = "Boter-kaas-en-eieren";
+"play.ticTacToe.title" = "Tic-Tac-Toe";

@@ -7,6 +7,7 @@ Define a **once-per-day challenge** that gives players a concrete reason to retu
 **Related specs:** Notifications infrastructure — [`FutureIdeas/play-reminders.md`](../FutureIdeas/play-reminders.md) (promote scheduling patterns to Settings when built). Achievements — [`AchievementsSpec.md`](AchievementsSpec.md) (optional challenge-completion badge). Analytics — [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAnalyticsSpec.md). Feature flags — [`FeatureFlagConfigSpec.md`](FeatureFlagConfigSpec.md).
 
 **Status:** Post-1.0 R&D — ships after or alongside play-reminder plumbing; feature-flagged.
+**Estimated release:** `2.0+`
 
 ---
 
@@ -219,6 +220,7 @@ Settings UI may group under **Notifications** or **Engagement** with separate to
 
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `2.0+` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | (spec authoring — no implementation yet) |
 | **Code** | (planned) `DailyChallengeService`, Journey tab card |

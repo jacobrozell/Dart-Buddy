@@ -365,9 +365,17 @@ enum GameModeCatalog {
             return [(.standard, standard)]
         }
 
+        if ProductSurface.isFullProductSurfaceEnabled {
+            return GameModeSection.allCases.compactMap { section in
+                if section == .coop, !ProductSurface.showsCoopModes { return nil }
+                let sectionEntries = entries(in: section)
+                guard !sectionEntries.isEmpty else { return nil }
+                return (section, sectionEntries)
+            }
+        }
+
         return GameModeSection.allCases.compactMap { section in
-            if section == .coop, !ProductSurface.showsCoopModes { return nil }
-            let sectionEntries = entries(in: section)
+            let sectionEntries = available.filter { $0.section == section }
             guard !sectionEntries.isEmpty else { return nil }
             return (section, sectionEntries)
         }
@@ -378,6 +386,7 @@ enum GameModeCatalog {
         in section: GameModeSection,
         displayedCount: Int
     ) -> Int {
+        guard ProductSurface.isFullProductSurfaceEnabled else { return 0 }
         guard ProductSurface.showsPartyModes else { return 0 }
         return max(0, entries(in: section).count - displayedCount)
     }
@@ -434,8 +443,7 @@ extension GameModeCatalogEntry {
     /// Prefill payload when the user taps an available catalog card.
     var pendingModeSelection: PendingModeSelection? {
         guard isAvailable, let matchType else { return nil }
-        if section == .party, !ProductSurface.showsPartyModes { return nil }
-        if section == .coop, !ProductSurface.showsCoopModes { return nil }
+        guard ProductSurface.isMatchTypeReachable(matchType) else { return nil }
         switch section {
         case .standard:
             let mode: MatchSetupViewModel.SetupMode? = switch matchType {
@@ -450,16 +458,25 @@ extension GameModeCatalogEntry {
                 matchType: matchType
             )
         case .party:
-            let partyGame: PartyGame? = switch matchType {
+            if let partyGame: PartyGame = switch matchType {
             case .baseball: .baseball
             case .killer: .killer
             case .shanghai: .shanghai
             default: nil
+            } {
+                return PendingModeSelection(
+                    setupCategory: .party,
+                    mode: nil,
+                    partyGame: partyGame,
+                    matchType: matchType
+                )
             }
+            // Catalog-only party modes (Mickey Mouse, Golf, etc.) route through matchType,
+            // not the legacy Play setup party picker.
             return PendingModeSelection(
-                setupCategory: .party,
+                setupCategory: .standard,
                 mode: nil,
-                partyGame: partyGame,
+                partyGame: nil,
                 matchType: matchType
             )
         case .coop:

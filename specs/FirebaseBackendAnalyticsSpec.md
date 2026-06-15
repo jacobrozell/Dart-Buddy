@@ -24,10 +24,12 @@ Define how Firebase will be introduced for backend and analytics in a phased way
 ## Phase 2 (Post-1.0)
 - Firebase Authentication (anonymous first, upgrade path later)
 - Firestore for cloud profile/sync metadata
+- Online profile fields + **name report queue** (clients write via Functions only) — [`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.6
 
 ## Phase 3
 - Cloud Functions for trusted server-side validation and online orchestration
 - Optional App Check for abuse protection
+- **`submitPlayerNameReport` / `resolveNameReport`** callables — [`OnlinePlaySpec.md`](OnlinePlaySpec.md) §10.6
 - **Online play + online tournaments** — consumes Auth + Firestore + Functions; see [`OnlinePlaySpec.md`](OnlinePlaySpec.md) and [`TournamentSpec.md`](TournamentSpec.md) (P2)
 
 ---

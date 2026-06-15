@@ -510,19 +510,29 @@ func gameplayLayoutUsesWideSetupHomeOnlyOnIPadRegularWidth() {
     #expect(
         GameplayLayout.usesWideSetupHomeLayout(
             horizontalSizeClass: .regular,
-            dynamicTypeSize: .large
+            dynamicTypeSize: .large,
+            isPad: true
         ) == true
     )
     #expect(
         GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: .regular,
+            dynamicTypeSize: .large,
+            isPad: false
+        ) == false
+    )
+    #expect(
+        GameplayLayout.usesWideSetupHomeLayout(
             horizontalSizeClass: .compact,
-            dynamicTypeSize: .large
+            dynamicTypeSize: .large,
+            isPad: true
         ) == false
     )
     #expect(
         GameplayLayout.usesWideSetupHomeLayout(
             horizontalSizeClass: .regular,
-            dynamicTypeSize: .accessibility3
+            dynamicTypeSize: .accessibility3,
+            isPad: true
         ) == false
     )
 }

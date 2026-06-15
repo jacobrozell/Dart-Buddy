@@ -4,6 +4,7 @@
 Define **cross-mode contracts** for solo-only practice drills in Dart Buddy: catalog registration, setup (no roster), match lifecycle, summary screen, history, and statistics. Mode-specific rules stay in each `*GameSpec.md`; this doc is the shared platform.
 
 **Status:** Planned — applies when first solo practice mode ships (Call & Hit target).
+**Estimated release:** `1.4`
 
 **Consumers (planned Practice section):**
 
@@ -205,4 +206,5 @@ Inherit [`MatchSpec.md`](MatchSpec.md) lifecycle events. Solo practice adds no s
 ## 14. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.4` |
 | **Status** | Planned |

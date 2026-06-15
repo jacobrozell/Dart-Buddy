@@ -8,6 +8,10 @@ struct DartBuddyApp: App {
     @State private var showsLaunchSplash = true
     @StateObject private var pendingDeepLink = PendingAppDestination()
 
+    init() {
+        UITestLocaleOverride.applyIfNeeded()
+    }
+
     var body: some Scene {
         WindowGroup {
             ZStack {

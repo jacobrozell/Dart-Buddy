@@ -4,7 +4,8 @@
 
 Define **cross-mode contracts** for cooperative modes in Dart Buddy: catalog registration, setup (humans-only roster), match lifecycle, shared-objective UI, co-op summary, history, and statistics. Mode-specific rules stay in each `*GameSpec.md`; this doc is the shared platform.
 
-**Status:** **In progress** — Phase 0 (catalog + platform spec) landed; first playable mode not shipped.
+**Status:** **In progress** — Phase 0 done; **Raid shipped** (`coop.raid`); Cerberus / Vault / Clear the Board still planned.
+**Estimated release:** `1.4`
 
 **Progress tracker:** §13 (update checklist rows when work lands). **Implementation plan / agent query:** [`docs/plans/coop-mode-grouping.md`](../docs/plans/coop-mode-grouping.md).
 
@@ -26,7 +27,7 @@ Define **cross-mode contracts** for cooperative modes in Dart Buddy: catalog reg
 - [`DesignSystemSpec.md`](DesignSystemSpec.md) — semantic colors, Dynamic Type, light/dark contrast
 - [`AccessibilitySpec.md`](AccessibilitySpec.md) — WCAG 2.1 AA baseline
 - [`AnimationSpec.md`](AnimationSpec.md) — motion + Reduce Motion
-- [`game-modes/planned/RaidGameSpec.md`](game-modes/planned/RaidGameSpec.md) — flagship reference implementation
+- [`game-modes/implemented/RaidGameSpec.md`](game-modes/implemented/RaidGameSpec.md) — flagship reference implementation
 
 ---
 
@@ -247,18 +248,16 @@ In-app rules use [`GameRulesGuideView`](../Features/Play/Rules/GameRulesGuideVie
 
 | Mode | Guide sections (min) | Spec |
 |------|------------------------|------|
-| Raid | overview, shield, expose, enrage, hearts, winning | [`RaidGameSpec.md`](game-modes/planned/RaidGameSpec.md) § How to Play |
+| Raid | overview, shield, expose, enrage, hearts, winning | [`RaidGameSpec.md`](game-modes/implemented/RaidGameSpec.md) § How to Play |
 | Cerberus | overview, assignments, heads, bites, winning | [`CerberusGameSpec.md`](game-modes/planned/CerberusGameSpec.md) |
 | The Vault | overview, locks, combos, alarm, solo vs co-op | [`TheVaultGameSpec.md`](game-modes/planned/TheVaultGameSpec.md) |
 | Clear the Board | overview, cells, points, variants (Pure / Decay / TvT), bull catch-up | [`ClearTheBoardGameSpec.md`](game-modes/planned/ClearTheBoardGameSpec.md) |
 
 ### Coming-soon cards
 
-[`ModesTabSpec.md`](ModesTabSpec.md) and [`docs/full-game-catalog-ui.md`](../docs/full-game-catalog-ui.md) intend **Learn the rules** on planned modes when copy exists. Today `hasRulesGuide` requires a shipped `MatchType` — co-op stubs cannot show the button until Raid registers in `GameRulesCatalog`.
+[`ModesTabSpec.md`](ModesTabSpec.md) and [`docs/full-game-catalog-ui.md`](../docs/full-game-catalog-ui.md) intend **Learn the rules** on planned modes when copy exists. Shipped modes use `GameRulesCatalog.hasGuide(for:)`; planned co-op entries with copy use `hasPreviewGuide(for:)`.
 
-**Phase 1 follow-up (recommended):** extend `GameModeCatalogEntry.hasRulesGuide` (or parallel `hasRulesPreview`) for planned co-op entries once `play.rules.{mode}.*` keys exist in `en`, so users can read rules before the engine ships.
-
-**Status:** **Done for Raid** — `coop.raid` shows Learn the rules via `GameRulesCatalog.previewGuide`; Cerberus, Vault, and Clear the Board remain planned until their `play.rules.*` keys land.
+**Status:** **Done for Raid** — `coop.raid` is shipped and shows Learn the rules; Cerberus, Vault, and Clear the Board remain planned until their `play.rules.*` keys land.
 
 ---
 
@@ -372,24 +371,26 @@ Extend [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplem
 | Modes tab renders Co-op section | **Done** | `ModesRootView.swift` (via `GameModeSection.allCases`) |
 | Play setup picker includes Co-op rows | **Done** | `GameModeCatalog.playSetupPickerSections()` |
 | Unit tests: 33 modes, 4 sections, coop stubs | **Done** | `GameModeCatalogTests.swift`, `GameModeSectionTests.swift` |
-| Per-mode specs migrated to `coop.*` ids | **Done** | `game-modes/planned/RaidGameSpec.md`, `CerberusGameSpec.md`, `TheVaultGameSpec.md`, `ClearTheBoardGameSpec.md` |
+| Per-mode specs migrated to `coop.*` ids | **Done** | `game-modes/implemented/RaidGameSpec.md`, `CerberusGameSpec.md`, `TheVaultGameSpec.md`, `ClearTheBoardGameSpec.md` |
 | This platform spec + index links | **Done** | `CoopPvEModesSpec.md`, `specs/README.md` |
 | Learn rules preview on `coop.raid` (planned card) | **Done** | `GameRulesCatalog.swift`, `GameModeCatalogEntry.hasRulesGuide`, `play.rules.raid.*` in `en` / `de` / `es` / `nl` |
 
-### Phase 1 — Raid (flagship; target first ship)
+### Phase 1 — Raid (flagship; **shipped** on `dev`)
 
 | Item | Status | Owner spec |
 |------|--------|------------|
-| `MatchType.raid` + `RaidEngine` | Planned | [`RaidGameSpec.md`](game-modes/planned/RaidGameSpec.md) |
-| Boss chrome UI + accessibility IDs | Planned | §7, §9, Raid spec §8 |
-| Learn to play — `GameRulesCatalog.raid` + localization | **Done** (preview on coming-soon card) | §8, Raid spec § How to Play |
-| Light/dark + Dynamic Type pass on Raid chrome | Planned | §7.5, §9 evidence doc |
-| Humans-only roster validation | Planned | §5, [`SetupFlowSpec.md`](SetupFlowSpec.md) |
-| `BossParticipant` attachment at match start | Planned | §5, [`BotOpponentSpec.md`](BotOpponentSpec.md) |
-| Co-op match summary (`summaryStyle: .coop`) | Planned | §10, [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplement.md) |
-| History list card + Activity filter | Planned | §11, [`HistorySpec.md`](HistorySpec.md) |
-| `GameRulesCatalog` + How to Play | Planned | §8, Raid spec § Localization |
-| Promote catalog `status` → `.shipped` | Planned | `GameModeCatalog.swift` |
+| `MatchType.raid` + `RaidEngine` | **Done** | [`RaidGameSpec.md`](game-modes/implemented/RaidGameSpec.md) |
+| Boss chrome UI + accessibility IDs | **Done** (manual VO / AXXXL evidence partial) | §7, §9, `accessibility/wcag-2.1-aa/screens/raid-match.md` |
+| Learn to play — `GameRulesCatalog.raid` + localization | **Done** | §8, Raid spec § How to Play |
+| Light/dark + Dynamic Type pass on Raid chrome | **Partial** | §7.5, §9 evidence doc |
+| Humans-only roster validation | **Done** | §5, `MatchSetupViewModel` (`setup.validation.coopHumansOnly`) |
+| `bossParticipantId` at match start | **Done** (inline UUID; reusable `BossParticipant` type deferred) | §5, `RaidEngine.makeInitialState` |
+| Co-op match summary (`summaryStyle: .coop`) | **Done** | §10, `MatchSummaryScreen` / `MatchSummaryViewModel` |
+| History list card + Activity filter | **Done** | §11, `ActivityModeFilter.raid` |
+| Raid setup chips (boss tier, hearts, enrage) | **Done** | `SetupHomeView+RaidOptionChips.swift`, `RaidSetupPreferences` |
+| Raid forfeit standings | **Done** | `MatchForfeitStandingsRegistry` |
+| Promote catalog `status` → `.shipped` | **Done** | `GameModeCatalog.swift` (`coop.raid`) |
+| UI test smoke for raid match identifiers | Planned | §14 item 14 |
 
 ### Phase 2 — Shared platform extraction (after Raid)
 
@@ -397,7 +398,7 @@ Extend [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplem
 |------|--------|-------|
 | `BossParticipant` type (reusable) | Planned | Extract from Raid match start |
 | `CoopMatchSummary` shell | Planned | No single-winner ceremony |
-| `setup.validation.coopHumansOnly` | Planned | Block bots on hero roster |
+| `setup.validation.coopHumansOnly` | **Done** (Raid) | Block bots on hero roster |
 | Stats reducer for `bossRaid` | Planned | [`StatsSpec.md`](StatsSpec.md) supplement TBD |
 
 ### Phase 3 — Second co-op mode
@@ -419,7 +420,7 @@ Extend [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplem
 
 | Mode | Catalog id | Rules spec | Engine | UI | Learn | A11y doc | History | Stats |
 |------|------------|------------|--------|-----|-------|----------|---------|-------|
-| Raid | `coop.raid` | Done | — | — | **Done** (preview) | — | — | — |
+| Raid | `coop.raid` | Done | **Done** | **Done** | **Done** | **Partial** | **Done** | Partial |
 | Cerberus | `coop.cerberus` | Done | — | — | Partial | — | — | — |
 | The Vault | `coop.theVault` | Done | — | — | Partial | — | — | — |
 | Clear the Board | `coop.clearTheBoard` | Done | — | — | Partial | — | — | — |
@@ -460,8 +461,9 @@ Extend [`SoloPracticeMatchSummarySupplement.md`](SoloPracticeMatchSummarySupplem
 
 | Field | Value |
 |-------|--------|
-| **Last verified** | 2026-06-12 |
-| **Commit** | (pending — Scope A browse polish) |
-| **Status** | Phase 0 done; Raid learn-rules preview on Modes tab; Phase 1 engine/UI not started |
-| **Code** | `GameModeCatalog.swift`, `GameRulesCatalog.swift`, `ModesRootView.swift`, `GameModeCatalogCard.swift`, `GameModeCatalogTests.swift`, `GameModeSectionTests.swift`, `GameRulesCatalogTests.swift` |
+| **Estimated release** | `1.4` |
+| **Last verified** | 2026-06-13 |
+| **Commit** | Raid ship + doc sync |
+| **Status** | Phase 0 done; **Raid playable** on `dev`; Phase 2 platform extraction + three co-op stubs remain |
+| **Code** | `RaidEngine.swift`, `Features/Play/Raid/`, `CoopBossChromeView.swift`, `MatchSummaryViewModel` (co-op branch), `GameModeCatalog.swift`, `ActivityModeFilter.swift`, `RaidEngineTests.swift`, `accessibility/wcag-2.1-aa/screens/raid-match.md` |
 | **Catalog ids** | `coop.raid`, `coop.cerberus`, `coop.theVault`, `coop.clearTheBoard` |
