@@ -214,6 +214,7 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 
 | Concern | Start here |
 |---------|------------|
+| **Agent build checklist (any iOS app, 0 → ship)** | [`docs/agent-build-checklist.md`](docs/agent-build-checklist.md) |
 | Branch strategy (`dev` vs `release/*`) | [`docs/release/branch-strategy.md`](docs/release/branch-strategy.md) |
 | Store release tags (per spec) | [`docs/release/release-tagging.md`](docs/release/release-tagging.md) · [`estimated-release-registry.md`](docs/release/estimated-release-registry.md) |
 | Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md) — coverage checklist §5, PR rules §4.1) |

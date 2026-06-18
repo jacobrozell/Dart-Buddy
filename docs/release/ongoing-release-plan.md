@@ -128,7 +128,7 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 | **App Intents** | Keep flag **off** | Already default |
 | **Turn-total TTS** | Default **off** in fresh install | No device QA |
 | **App Store update prompt** | Optional keep (low risk) or disable for 1.0 | Minor surface |
-| **Buy Developer a Coffee** | Your call — not a test risk | Owner decision in `todo.md` |
+| **Tip jar** | External link removed for 1.0 (3.1.1) | StoreKit plan: [`../plans/storekit-tip-jar-plan.md`](../plans/storekit-tip-jar-plan.md) |
 
 ### QA bar (must pass before submit)
 

@@ -142,7 +142,7 @@ Walk these files and confirm gates exist (fix any misses):
 
 | Field | 1.0 content guidance |
 |-------|----------------------|
-| **Subtitle** | Core scorekeeper — X01 & Cricket |
+| **Subtitle** | `X01 & Cricket Scorekeeper` (≤30 chars; no `free` / `no ads`) |
 | **Description** | Lead with shipped modes; do **not** list Baseball/Killer/Shanghai as available |
 | **Keywords** | darts, cricket, 501, 301, scorekeeper |
 | **What’s New (1.0)** | Initial release — no “coming soon” mode list |

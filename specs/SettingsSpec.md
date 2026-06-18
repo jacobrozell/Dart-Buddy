@@ -31,7 +31,7 @@ Define configurable app preferences and data management controls for MVP.
   - Bot Opponents (bot stagger, bot dart haptics — disabled when instant bot turns is on)
   - Data
   - Help & Feedback (support FAQ, send feedback mailto, rate app, privacy policy)
-  - About (view onboarding replay, dynamic version, optional tip link)
+  - About (view onboarding replay, dynamic version, optional **StoreKit tip jar** — post-1.0; see [`docs/plans/storekit-tip-jar-plan.md`](../docs/plans/storekit-tip-jar-plan.md); external tip URLs are not App Store compliant)
 
 ## Behavior
 - Preference changes apply immediately where safe.

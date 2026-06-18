@@ -271,7 +271,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Instant bot turns (app-wide) | Shipped | Settings → During Play; all modes & bot kinds | [`InstantBotTurnsSpec.md`](../specs/InstantBotTurnsSpec.md) |
 | Reset all data | Shipped | Destructive local wipe | same |
 | Replay onboarding | Shipped | From Settings | same |
-| Buy Developer a Coffee link | Shipped | External link | `AppLinks.swift` |
+| Tip jar (StoreKit consumables) | Planned | Optional IAP in Settings → About; replaces external coffee link (3.1.1) | [`storekit-tip-jar-plan.md`](plans/storekit-tip-jar-plan.md) |
 | Brand design system | Shipped | Tokens, scoreboard chrome | [`DesignSystemSpec.md`](../specs/DesignSystemSpec.md) |
 | Per-mode accent identity | Shipped | Badge + color per catalog id | `GameModeAccent.swift` |
 | Full voice caller (“180!”) | Planned | Beyond turn-total TTS | [`talk-mode.md`](../FutureIdeas/talk-mode.md) |

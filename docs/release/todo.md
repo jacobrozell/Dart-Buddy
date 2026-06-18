@@ -135,11 +135,11 @@ Work below is **blocked on your call** — not just time on device. Everything e
 |----------|-----------------|
 | **App icon** | Pick one from `assets/app-icons/` (5 concepts) → export into `Resources/Media.xcassets/AppIcon.appiconset/`. |
 | **Display name** | Default `Dart Buddy`; backups in `AppStoreConnectSpec.md` §3 if name taken. |
-| **Subtitle** | e.g. `Free X01 & Cricket Scoring` vs `No Ads Darts Scorekeeper` (≤30 chars). |
+| **Subtitle** | `X01 & Cricket Scorekeeper` (≤30 chars; no `free` / `no ads` in subtitle — Guideline 2.3.7). |
 | **Keywords & promo copy** | Starter set in spec §5 — finalize description + promotional text. |
 | **Screenshot set** | Framed iPhone set exists (`marketing-screenshots/framed/`); decide **order**, **light vs dark only**, and whether **iPad** uploads are in scope for 1.0. |
 | **Support & privacy URLs** | Code points to GitHub Pages (`Support/Navigation/AppLinks.swift`); confirm pages are live and copy is final before Connect upload. |
-| **Buy Developer a Coffee** | Link is on in Settings — keep, change URL, or remove for 1.0. |
+| **Tip jar** | **1.0:** remove external coffee link (`AppLinks.buyDeveloperCoffee = nil`) for Guideline 3.1.1. **Post-1.0:** StoreKit consumables — [`../plans/storekit-tip-jar-plan.md`](../plans/storekit-tip-jar-plan.md). |
 
 ### Privacy & compliance
 

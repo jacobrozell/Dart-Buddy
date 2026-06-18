@@ -10,5 +10,6 @@ Long-horizon architecture and implementation plans that span multiple releases. 
 | [`ui-screenshot-iteration-plan.md`](ui-screenshot-iteration-plan.md) | In progress | Screenshot audit fixes: layout, AXXXL, tokens, gameplay polish |
 | [`release-build-view-decomposition-plan.md`](release-build-view-decomposition-plan.md) | Implemented (2026-06-14) | Split oversized SwiftUI views so Release whole-module builds pass without `singlefile` workaround |
 | [`tier-1-scalability-refactor-plan.md`](tier-1-scalability-refactor-plan.md) | Not started · Phase 0 ready | Test fakes, lifecycle plugins, match VM core, setup config registry — reduce linear-growth hotspots |
+| [`storekit-tip-jar-plan.md`](storekit-tip-jar-plan.md) | Not started · post-1.0 | Optional consumable IAP tips in Settings → About (replaces rejected external coffee link) |
 
 Release-scoped plans: [`../release/README.md`](../release/README.md).

@@ -291,7 +291,7 @@ Reference: [`../../specs/AppStoreConnectSpec.md`](../../specs/AppStoreConnectSpe
 | Field | Draft / final value | Done |
 |-------|---------------------|------|
 | **Name** (≤30 chars) | `Dart Buddy` — check availability | [ ] |
-| **Subtitle** | e.g. `Free X01 & Cricket Scoring` | [ ] |
+| **Subtitle** | `X01 & Cricket Scorekeeper` (no pricing/monetization words — Guideline 2.3.7) | [ ] |
 | **Promotional text** (optional) | Short hook; updatable without review | [ ] |
 | **Description** | Value prop → features → no ads/local-first → accessibility | [ ] |
 | **Keywords** | darts, scoreboard, x01, cricket, scorekeeper, … | [ ] |
