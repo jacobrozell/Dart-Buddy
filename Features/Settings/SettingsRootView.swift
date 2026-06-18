@@ -419,20 +419,8 @@ struct SettingsRootView: View {
                 .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
                 .accessibilityLabel(AppSupport.versionLabel)
                 .accessibilityIdentifier("settings_aboutVersion")
-
-            if let buyDeveloperCoffeeURL = AppLinks.buyDeveloperCoffee {
-                Link(destination: buyDeveloperCoffeeURL) {
-                    Label(L10n.settingsBuyDeveloperCoffee, systemImage: "cup.and.saucer.fill")
-                }
-                .accessibilityLabel(L10n.settingsBuyDeveloperCoffeeAccessibility)
-                .accessibilityIdentifier("settings_buyDeveloperCoffeeLink")
-            }
         } header: {
             Text(L10n.aboutSection)
-        } footer: {
-            if AppLinks.buyDeveloperCoffee != nil {
-                settingsSectionFooter(L10n.settingsBuyDeveloperCoffeeFooter)
-            }
         }
         .brandFormRowBackground(when: usesBrand)
     }
