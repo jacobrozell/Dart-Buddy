@@ -323,9 +323,7 @@
 "settings.support.accessibility.accessibility" = "Open accessibility information in browser";
 "settings.support.feedbackEmailSubject" = "Dart Buddy Feedback";
 "settings.support.feedbackEmailBodyFormat" = "App version: %@\n\n";
-"settings.support.buyCoffee" = "Buy Developer a Coffee";
-"settings.support.buyCoffee.footer" = "Optional tip to support development. Opens in Safari.";
-"settings.support.buyCoffee.accessibility" = "Buy developer a coffee, opens in browser";
+
 "play.home.modeFormat" = "Mode: %@";
 "play.home.resumeButton.hint" = "Resume the current in-progress match.";
 "play.home.startNewMatch.hint" = "Open setup to configure a new match.";
