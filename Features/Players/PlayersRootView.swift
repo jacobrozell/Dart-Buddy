@@ -19,8 +19,6 @@ struct PlayersRootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [PlayersRoute] = []
-    @State private var selectedPlayerId: UUID?
-    @State private var iPadDetailPath: [PlayersRoute] = []
     @StateObject private var viewModel: PlayersListViewModel
     @State private var playerSheet: PlayerSheetPresentation?
     @State private var showsCustomBotSheet = false
@@ -41,13 +39,7 @@ struct PlayersRootView: View {
     }
 
     var body: some View {
-        Group {
-            if GameplayLayout.usesIPadMainShell() {
-                iPadPlayersShell
-            } else {
-                phonePlayersShell
-            }
-        }
+        phonePlayersShell
         .sheet(isPresented: $showsCustomBotSheet) {
             CustomBotCreationSheet { name, metrics in
                 actionTask?.cancel()
@@ -99,7 +91,7 @@ struct PlayersRootView: View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
                 playersListHeader
-                playersBody(selectedPlayerId: nil)
+                playersBody
             }
             .tabRootScreenBackground()
             .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
@@ -125,68 +117,6 @@ struct PlayersRootView: View {
             .navigationDestination(for: PlayersRoute.self) { route in
                 playersNavigationDestination(route)
             }
-        }
-    }
-
-    private var iPadPlayersShell: some View {
-        NavigationSplitView {
-            VStack(spacing: 0) {
-                playersListHeader
-                playersBody(selectedPlayerId: $selectedPlayerId)
-            }
-            .navigationSplitViewColumnWidth(
-                min: GameplayLayout.iPadMasterColumnMinWidth,
-                ideal: GameplayLayout.iPadMasterColumnIdealWidth,
-                max: 420
-            )
-            .tabRootScreenBackground()
-            .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
-            .task {
-                await viewModel.onAppear()
-                applyCustomBotSnapshotNavigationIfNeeded()
-            }
-        } detail: {
-            NavigationStack(path: $iPadDetailPath) {
-                iPadPlayerDetailPane
-                    .navigationDestination(for: PlayersRoute.self) { route in
-                        playersNavigationDestination(route)
-                    }
-            }
-            .tabRootScreenBackground()
-        }
-    }
-
-    @ViewBuilder
-    private var iPadPlayerDetailPane: some View {
-        if let playerId = selectedPlayerId {
-            PlayerDetailView(
-                player: viewModel.player(id: playerId),
-                existingNames: viewModel.players.map(\.name),
-                dependencies: dependencies,
-                onEdit: {
-                    guard let player = viewModel.player(id: playerId) else { return }
-                    playerSheet = .edit(player)
-                },
-                onArchiveToggle: {
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.archiveToggle(playerId) }
-                },
-                onSave: { player in
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.save(player) }
-                },
-                onExportResult: handleExportResult,
-                onSelectRecentMatch: { iPadDetailPath.append(.matchDetail(matchId: $0)) }
-            )
-        } else {
-            ContentUnavailableView(
-                L10n.playersEmptyTitle,
-                systemImage: "person.crop.circle",
-                description: Text(L10n.playersEmptyDescription)
-                    .foregroundStyle(Brand.textSecondary)
-            )
-            .brandScoreboardEmptyState()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -244,32 +174,21 @@ struct PlayersRootView: View {
     }
 
     private func appendMatchDetail(matchId: UUID) {
-        if GameplayLayout.usesIPadMainShell() {
-            iPadDetailPath.append(.matchDetail(matchId: matchId))
-        } else {
-            path.append(.matchDetail(matchId: matchId))
-        }
+        path.append(.matchDetail(matchId: matchId))
     }
 
     private func popMatchDetail() {
-        if GameplayLayout.usesIPadMainShell() {
-            if !iPadDetailPath.isEmpty { iPadDetailPath.removeLast() }
-        } else if !path.isEmpty {
+        if !path.isEmpty {
             path.removeLast()
         }
     }
 
     private func selectPlayer(_ playerId: UUID) {
-        if GameplayLayout.usesIPadMainShell() {
-            selectedPlayerId = playerId
-            iPadDetailPath.removeAll()
-        } else {
-            path.append(.detail(playerId: playerId))
-        }
+        path.append(.detail(playerId: playerId))
     }
 
     @ViewBuilder
-    private func playersBody(selectedPlayerId: Binding<UUID?>?) -> some View {
+    private var playersBody: some View {
         if viewModel.state == .loading {
             ProgressView()
                 .tint(Brand.green)
@@ -310,55 +229,42 @@ struct PlayersRootView: View {
                 .brandScoreboardEmptyState()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-        } else if let selection = selectedPlayerId {
-            List(selection: selection) {
-                playersListSections(selectedPlayerId: selection)
-            }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .tabRootScrollChrome()
-            .motionTabContentReveal(when: true)
-            .modifier(PlayersListWidthModifier(horizontalSizeClass: horizontalSizeClass))
         } else {
-            List {
-                playersListSections(selectedPlayerId: nil)
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    playersCardSections
+                }
+                .padding(.horizontal, DS.Spacing.s4)
+                .tabRootScrollChrome()
+                .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+                .frame(maxWidth: .infinity)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .tabRootScrollChrome()
             .motionTabContentReveal(when: true)
-            .modifier(PlayersListWidthModifier(horizontalSizeClass: horizontalSizeClass))
         }
     }
 
     @ViewBuilder
-    private func playersListSections(selectedPlayerId: Binding<UUID?>?) -> some View {
+    private var playersCardSections: some View {
         if !viewModel.filteredHumans.isEmpty {
-            Section(L10n.playersSectionTitle) {
-                ForEach(viewModel.filteredHumans) { player in
-                    if selectedPlayerId != nil {
-                        playerRow(player, selectedPlayerId: selectedPlayerId)
-                            .tag(Optional(player.id))
-                    } else {
-                        playerRow(player, selectedPlayerId: nil)
-                    }
-                }
+            sectionHeader(L10n.playersSectionTitle)
+            ForEach(viewModel.filteredHumans) { player in
+                playerCard(player)
             }
         }
         if !viewModel.filteredBots.isEmpty {
-            Section(L10n.botsSectionTitle) {
-                ForEach(viewModel.filteredBots) { bot in
-                    if selectedPlayerId != nil {
-                        playerRow(bot, selectedPlayerId: selectedPlayerId)
-                            .tag(Optional(bot.id))
-                    } else {
-                        playerRow(bot, selectedPlayerId: nil)
-                    }
-                }
+            sectionHeader(L10n.botsSectionTitle)
+            ForEach(viewModel.filteredBots) { bot in
+                playerCard(bot)
             }
         }
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.headline)
+            .foregroundStyle(Brand.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, DS.Spacing.s2)
     }
 
     private var playersListHeader: some View {
@@ -381,7 +287,7 @@ struct PlayersRootView: View {
             searchField
         }
         .padding(.horizontal, DS.Spacing.s4)
-        .modifier(PlayersListWidthModifier(horizontalSizeClass: horizontalSizeClass))
+        .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
         .frame(maxWidth: .infinity)
         .background(Brand.background)
     }
@@ -393,11 +299,7 @@ struct PlayersRootView: View {
             ?? viewModel.players.first(where: \.isCustomBot)
         guard let bot else { return }
         didApplyCustomBotSnapshotNavigation = true
-        if GameplayLayout.usesIPadMainShell() {
-            selectedPlayerId = bot.id
-        } else {
-            path = [.detail(playerId: bot.id)]
-        }
+        path = [.detail(playerId: bot.id)]
     }
 
     private var playersToolbarMenu: some View {
@@ -435,7 +337,7 @@ struct PlayersRootView: View {
         .accessibilityLabel(L10n.addPlayerTitle)
     }
 
-    private func playerRow(_ player: EditablePlayer, selectedPlayerId: Binding<UUID?>?) -> some View {
+    private func playerCard(_ player: EditablePlayer) -> some View {
         Button {
             selectPlayer(player.id)
         } label: {
@@ -475,26 +377,31 @@ struct PlayersRootView: View {
                 if player.isArchived {
                     Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
                 }
-                if selectedPlayerId == nil {
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Brand.textSecondary)
-                        .accessibilityHidden(true)
-                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
             }
-            .contentShape(Rectangle())
+            .padding(DS.Spacing.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            .contentShape(RoundedRectangle(cornerRadius: DS.Radius.md))
         }
-        .listRowBackground(Brand.background)
-        .listRowSeparatorTint(Brand.cardElevated)
+        .buttonStyle(.plain)
         .accessibilityLabel(playerRowAccessibilityLabel(player))
         .accessibilityIdentifier(player.botDifficulty == nil ? "player_row_\(player.name)" : "player_row_bot_\(player.id.uuidString)")
-        .swipeActions {
-            Button(player.isArchived ? "players.unarchive" : "players.archive") {
+        .contextMenu {
+            Button {
                 actionTask?.cancel()
                 actionTask = Task { await viewModel.archiveToggle(player.id) }
-            }.tint(.orange)
-            Button(L10n.delete, role: .destructive) {
+            } label: {
+                Label(
+                    player.isArchived ? L10n.string("players.unarchive") : L10n.string("players.archive"),
+                    systemImage: player.isArchived ? "tray.and.arrow.up" : "archivebox"
+                )
+            }
+            Button(role: .destructive) {
                 actionTask?.cancel()
                 actionTask = Task {
                     if !(await viewModel.delete(player.id)) {
@@ -504,6 +411,8 @@ struct PlayersRootView: View {
                         )
                     }
                 }
+            } label: {
+                Label(L10n.delete, systemImage: "trash")
             }
         }
     }
@@ -556,15 +465,4 @@ struct PlayersRootView: View {
     }
 }
 
-private struct PlayersListWidthModifier: ViewModifier {
-    let horizontalSizeClass: UserInterfaceSizeClass?
-
-    func body(content: Content) -> some View {
-        if GameplayLayout.usesIPadMainShell() {
-            content.frame(maxWidth: .infinity)
-        } else {
-            content.readableRootContentWidth(horizontalSizeClass)
-        }
-    }
-}
 

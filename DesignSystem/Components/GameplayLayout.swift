@@ -15,19 +15,11 @@ enum GameplayLayout {
     /// Readable column for setup, summary, and list-style screens on iPad (phone-style fallback).
     static let regularContentMaxWidth: CGFloat = 920
 
-    /// iPad main shell: persistent sidebar + detail column (not used for live match scoring).
+    /// iPad main shell flag — always false after unified tab bar migration.
+    /// Retained for test compatibility; will be removed in a future cleanup.
     static func usesIPadMainShell(isPad: Bool = defaultIsPad) -> Bool {
-        isPad
+        false
     }
-
-    /// Fixed width for mode/options column in the iPad Play setup dashboard.
-    static let iPadSetupModeColumnWidth: CGFloat = 360
-
-    /// Minimum width for master columns in iPad master-detail tabs.
-    static let iPadMasterColumnMinWidth: CGFloat = 320
-
-    /// Ideal width for master columns in iPad master-detail tabs.
-    static let iPadMasterColumnIdealWidth: CGFloat = 380
 
     /// Max readable width for onboarding hero content on iPad.
     static let iPadOnboardingContentMaxWidth: CGFloat = 720

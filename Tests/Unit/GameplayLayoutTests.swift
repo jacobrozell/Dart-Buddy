@@ -3,8 +3,8 @@ import Testing
 @testable import DartBuddy
 
 @Test(.tags(.unit, .regression))
-func gameplayLayoutUsesIPadMainShellOnPadIdiomOnly() {
-    #expect(GameplayLayout.usesIPadMainShell(isPad: true) == true)
+func gameplayLayoutUsesIPadMainShellAlwaysFalseAfterUnifiedTabBar() {
+    #expect(GameplayLayout.usesIPadMainShell(isPad: true) == false)
     #expect(GameplayLayout.usesIPadMainShell(isPad: false) == false)
 }
 

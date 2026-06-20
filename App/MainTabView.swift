@@ -46,31 +46,16 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        Group {
-            if GameplayLayout.usesIPadMainShell() {
-                IPadMainShell(
-                    selectedTab: $selectedTab,
-                    pendingPlayResume: $pendingPlayResume,
-                    playNavigationResetTrigger: playNavigationResetTrigger,
-                    activityRefreshToken: activityRefreshToken,
-                    showsActiveMatchBadge: showsActiveMatchBadge,
-                    dependencies: dependencies,
-                    preferences: preferences,
-                    onModeSelection: handleModeSelection
-                )
-            } else {
-                PhoneTabShell(
-                    selectedTab: $selectedTab,
-                    pendingPlayResume: $pendingPlayResume,
-                    playNavigationResetTrigger: playNavigationResetTrigger,
-                    activityRefreshToken: activityRefreshToken,
-                    showsActiveMatchBadge: showsActiveMatchBadge,
-                    dependencies: dependencies,
-                    preferences: preferences,
-                    onModeSelection: handleModeSelection
-                )
-            }
-        }
+        PhoneTabShell(
+            selectedTab: $selectedTab,
+            pendingPlayResume: $pendingPlayResume,
+            playNavigationResetTrigger: playNavigationResetTrigger,
+            activityRefreshToken: activityRefreshToken,
+            showsActiveMatchBadge: showsActiveMatchBadge,
+            dependencies: dependencies,
+            preferences: preferences,
+            onModeSelection: handleModeSelection
+        )
         .preferredColorScheme(preferences.preferredColorScheme)
         .tint(Brand.green)
         .alert(L10n.updateAvailableTitle, isPresented: appStoreUpdateAlertBinding) {
