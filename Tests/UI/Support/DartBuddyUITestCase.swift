@@ -55,7 +55,9 @@ class DartBuddyUITestCase: XCTestCase {
             app.launchEnvironment = environment
         }
         app.launch()
-        _ = app.tabBars.firstMatch.waitForExistence(timeout: 15)
+        if !app.tabBars.firstMatch.waitForExistence(timeout: 5) {
+            _ = app.buttons["tab_play"].waitForExistence(timeout: 10)
+        }
         return app
     }
 
