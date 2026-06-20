@@ -49,7 +49,11 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var contentMaxWidth: CGFloat {
-        horizontalSizeClass == .regular ? 560 : .infinity
+        if GameplayLayout.usesIPadMainShell() {
+            return GameplayLayout.iPadOnboardingContentMaxWidth
+        }
+        if horizontalSizeClass == .regular { return 560 }
+        return .infinity
     }
 
     private var scrollBottomPadding: CGFloat {

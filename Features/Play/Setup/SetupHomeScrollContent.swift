@@ -14,11 +14,39 @@ struct SetupHomeScrollContent: View {
     let onShowCustomBot: () -> Void
     let onShowAddPlayer: () -> Void
 
+    private var usesIPadDashboardLayout: Bool {
+        GameplayLayout.usesIPadMainShell()
+            && !GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
+    }
+
     private var usesWideSetupLayout: Bool {
-        GameplayLayout.usesWideSetupHomeLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            dynamicTypeSize: dynamicTypeSize
-        )
+        !usesIPadDashboardLayout
+            && GameplayLayout.usesWideSetupHomeLayout(
+                horizontalSizeClass: horizontalSizeClass,
+                dynamicTypeSize: dynamicTypeSize
+            )
+    }
+
+    private var contentWidthCap: CGFloat {
+        if usesIPadDashboardLayout { return .infinity }
+        return GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass)
+    }
+
+    var body: some View {
+        Group {
+            if usesIPadDashboardLayout {
+                iPadDashboardContent
+            } else if usesWideSetupLayout {
+                wideSetupContent
+            } else {
+                compactSetupContent
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, DS.Spacing.s4)
+        .padding(.bottom, setupScrollBottomPadding)
+        .frame(maxWidth: contentWidthCap)
+        .frame(maxWidth: .infinity)
     }
 
     private var setupScrollBottomPadding: CGFloat {
@@ -28,19 +56,20 @@ struct SetupHomeScrollContent: View {
         return setupViewModel.setupCategory == .party ? 96 : DS.Spacing.s4
     }
 
-    var body: some View {
-        Group {
-            if usesWideSetupLayout {
-                wideSetupContent
-            } else {
-                compactSetupContent
+    private var iPadDashboardContent: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s5) {
+            SetupHomeHeaderSection(homeViewModel: homeViewModel, onResumeMatch: onResumeMatch)
+            HStack(alignment: .top, spacing: DS.Spacing.s5) {
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    modeAndOptionsColumn
+                    setupValidationSection
+                }
+                .frame(width: GameplayLayout.iPadSetupModeColumnWidth, alignment: .topLeading)
+
+                rosterColumn
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, DS.Spacing.s4)
-        .padding(.bottom, setupScrollBottomPadding)
-        .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
-        .frame(maxWidth: .infinity)
     }
 
     private var compactSetupContent: some View {

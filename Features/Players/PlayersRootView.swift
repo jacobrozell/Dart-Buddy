@@ -19,6 +19,8 @@ struct PlayersRootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [PlayersRoute] = []
+    @State private var selectedPlayerId: UUID?
+    @State private var iPadDetailPath: [PlayersRoute] = []
     @StateObject private var viewModel: PlayersListViewModel
     @State private var playerSheet: PlayerSheetPresentation?
     @State private var showsCustomBotSheet = false
@@ -39,133 +41,235 @@ struct PlayersRootView: View {
     }
 
     var body: some View {
+        Group {
+            if GameplayLayout.usesIPadMainShell() {
+                iPadPlayersShell
+            } else {
+                phonePlayersShell
+            }
+        }
+        .sheet(isPresented: $showsCustomBotSheet) {
+            CustomBotCreationSheet { name, metrics in
+                actionTask?.cancel()
+                actionTask = Task { await viewModel.createCustomBot(name: name, metrics: metrics) }
+            }
+        }
+        .sheet(item: $playerSheet) { presentation in
+            PlayerEditSheet(
+                viewModel: PlayerEditViewModel(
+                    existingNames: viewModel.players.map(\.name),
+                    editing: presentation.editing,
+                    defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
+                ),
+                existing: presentation.editing,
+                onSave: { player in
+                    await viewModel.save(player)
+                }
+            )
+        }
+        .alert(L10n.actionBlockedTitle, isPresented: Binding(
+            get: { deleteBlockedMessage != nil },
+            set: { if !$0 { deleteBlockedMessage = nil } }
+        )) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(deleteBlockedMessage ?? "")
+        }
+        .alert(L10n.errorTitle, isPresented: Binding(
+            get: { exportErrorKey != nil },
+            set: { if !$0 { exportErrorKey = nil } }
+        )) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(LocalizedStringKey(exportErrorKey ?? "players.detail.export.error"))
+        }
+        .sheet(item: $exportShareItem) { item in
+            ActivityShareSheet(items: [item.url]) {
+                try? FileManager.default.removeItem(at: item.url)
+                exportShareItem = nil
+            }
+        }
+        .onDisappear {
+            actionTask?.cancel()
+            retryTask?.cancel()
+        }
+    }
+
+    private var phonePlayersShell: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
                 playersListHeader
-                playersBody
+                playersBody(selectedPlayerId: nil)
             }
             .tabRootScreenBackground()
-                .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
-                .navigationBarHidden(true)
-                .safeAreaInset(edge: .bottom) {
-                    if viewModel.state != .error && viewModel.players.isEmpty {
-                        Button {
-                            playerSheet = .add()
-                        } label: {
-                            Text(L10n.addPlayerTitle)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Brand.green)
-                        .controlSize(.large)
-                        .padding(.horizontal, DS.Spacing.s4)
-                        .padding(.vertical, DS.Spacing.s2)
+            .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
+            .navigationBarHidden(true)
+            .safeAreaInset(edge: .bottom) {
+                if viewModel.state != .error && viewModel.players.isEmpty {
+                    Button {
+                        playerSheet = .add()
+                    } label: {
+                        Text(L10n.addPlayerTitle)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Brand.green)
+                    .controlSize(.large)
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .padding(.vertical, DS.Spacing.s2)
                 }
-                .task {
-                    await viewModel.onAppear()
-                    applyCustomBotSnapshotNavigationIfNeeded()
-                }
+            }
+            .task {
+                await viewModel.onAppear()
+                applyCustomBotSnapshotNavigationIfNeeded()
+            }
             .navigationDestination(for: PlayersRoute.self) { route in
-                switch route {
-                case .list:
-                    EmptyView()
-                case let .detail(playerId):
-                    PlayerDetailView(
-                        player: viewModel.player(id: playerId),
-                        existingNames: viewModel.players.map(\.name),
-                        dependencies: dependencies,
-                        onEdit: {
-                            guard let player = viewModel.player(id: playerId) else { return }
-                            playerSheet = .edit(player)
-                        },
-                        onArchiveToggle: {
-                            actionTask?.cancel()
-                            actionTask = Task { await viewModel.archiveToggle(playerId) }
-                        },
-                        onSave: { player in
-                            actionTask?.cancel()
-                            actionTask = Task { await viewModel.save(player) }
-                        },
-                        onExportResult: handleExportResult,
-                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
-                    )
-                case let .edit(playerId):
-                    PlayerDetailView(
-                        player: playerId.flatMap { viewModel.player(id: $0) },
-                        existingNames: viewModel.players.map(\.name),
-                        dependencies: dependencies,
-                        onEdit: {
-                            guard let id = playerId, let player = viewModel.player(id: id) else { return }
-                            playerSheet = .edit(player)
-                        },
-                        onArchiveToggle: {},
-                        onSave: { player in
-                            actionTask?.cancel()
-                            actionTask = Task { await viewModel.save(player) }
-                        },
-                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
-                    )
-                case let .matchDetail(matchId):
-                    MatchHistoryDetailScreen(
-                        matchId: matchId,
-                        matchRepository: dependencies.matchRepository,
-                        statsRepository: dependencies.statsRepository,
-                        onDeleted: {
-                            if !path.isEmpty { path.removeLast() }
-                        }
-                    )
-                }
-            }
-            .sheet(isPresented: $showsCustomBotSheet) {
-                CustomBotCreationSheet { name, metrics in
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.createCustomBot(name: name, metrics: metrics) }
-                }
-            }
-            .sheet(item: $playerSheet) { presentation in
-                PlayerEditSheet(
-                    viewModel: PlayerEditViewModel(
-                        existingNames: viewModel.players.map(\.name),
-                        editing: presentation.editing,
-                        defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
-                    ),
-                    existing: presentation.editing,
-                    onSave: { player in
-                        await viewModel.save(player)
-                    }
-                )
-            }
-            .alert(L10n.actionBlockedTitle, isPresented: Binding(
-                get: { deleteBlockedMessage != nil },
-                set: { if !$0 { deleteBlockedMessage = nil } }
-            )) {
-                Button(L10n.ok, role: .cancel) {}
-            } message: {
-                Text(deleteBlockedMessage ?? "")
-            }
-            .alert(L10n.errorTitle, isPresented: Binding(
-                get: { exportErrorKey != nil },
-                set: { if !$0 { exportErrorKey = nil } }
-            )) {
-                Button(L10n.ok, role: .cancel) {}
-            } message: {
-                Text(LocalizedStringKey(exportErrorKey ?? "players.detail.export.error"))
-            }
-            .sheet(item: $exportShareItem) { item in
-                ActivityShareSheet(items: [item.url]) {
-                    try? FileManager.default.removeItem(at: item.url)
-                    exportShareItem = nil
-                }
-            }
-            .onDisappear {
-                actionTask?.cancel()
-                retryTask?.cancel()
+                playersNavigationDestination(route)
             }
         }
     }
 
+    private var iPadPlayersShell: some View {
+        NavigationSplitView {
+            VStack(spacing: 0) {
+                playersListHeader
+                playersBody(selectedPlayerId: $selectedPlayerId)
+            }
+            .navigationSplitViewColumnWidth(
+                min: GameplayLayout.iPadMasterColumnMinWidth,
+                ideal: GameplayLayout.iPadMasterColumnIdealWidth,
+                max: 420
+            )
+            .tabRootScreenBackground()
+            .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
+            .task {
+                await viewModel.onAppear()
+                applyCustomBotSnapshotNavigationIfNeeded()
+            }
+        } detail: {
+            NavigationStack(path: $iPadDetailPath) {
+                iPadPlayerDetailPane
+                    .navigationDestination(for: PlayersRoute.self) { route in
+                        playersNavigationDestination(route)
+                    }
+            }
+            .tabRootScreenBackground()
+        }
+    }
+
     @ViewBuilder
-    private var playersBody: some View {
+    private var iPadPlayerDetailPane: some View {
+        if let playerId = selectedPlayerId {
+            PlayerDetailView(
+                player: viewModel.player(id: playerId),
+                existingNames: viewModel.players.map(\.name),
+                dependencies: dependencies,
+                onEdit: {
+                    guard let player = viewModel.player(id: playerId) else { return }
+                    playerSheet = .edit(player)
+                },
+                onArchiveToggle: {
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.archiveToggle(playerId) }
+                },
+                onSave: { player in
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.save(player) }
+                },
+                onExportResult: handleExportResult,
+                onSelectRecentMatch: { iPadDetailPath.append(.matchDetail(matchId: $0)) }
+            )
+        } else {
+            ContentUnavailableView(
+                L10n.playersEmptyTitle,
+                systemImage: "person.crop.circle",
+                description: Text(L10n.playersEmptyDescription)
+                    .foregroundStyle(Brand.textSecondary)
+            )
+            .brandScoreboardEmptyState()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private func playersNavigationDestination(_ route: PlayersRoute) -> some View {
+        switch route {
+        case .list:
+            EmptyView()
+        case let .detail(playerId):
+            PlayerDetailView(
+                player: viewModel.player(id: playerId),
+                existingNames: viewModel.players.map(\.name),
+                dependencies: dependencies,
+                onEdit: {
+                    guard let player = viewModel.player(id: playerId) else { return }
+                    playerSheet = .edit(player)
+                },
+                onArchiveToggle: {
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.archiveToggle(playerId) }
+                },
+                onSave: { player in
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.save(player) }
+                },
+                onExportResult: handleExportResult,
+                onSelectRecentMatch: { appendMatchDetail(matchId: $0) }
+            )
+        case let .edit(playerId):
+            PlayerDetailView(
+                player: playerId.flatMap { viewModel.player(id: $0) },
+                existingNames: viewModel.players.map(\.name),
+                dependencies: dependencies,
+                onEdit: {
+                    guard let id = playerId, let player = viewModel.player(id: id) else { return }
+                    playerSheet = .edit(player)
+                },
+                onArchiveToggle: {},
+                onSave: { player in
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.save(player) }
+                },
+                onSelectRecentMatch: { appendMatchDetail(matchId: $0) }
+            )
+        case let .matchDetail(matchId):
+            MatchHistoryDetailScreen(
+                matchId: matchId,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                onDeleted: {
+                    popMatchDetail()
+                }
+            )
+        }
+    }
+
+    private func appendMatchDetail(matchId: UUID) {
+        if GameplayLayout.usesIPadMainShell() {
+            iPadDetailPath.append(.matchDetail(matchId: matchId))
+        } else {
+            path.append(.matchDetail(matchId: matchId))
+        }
+    }
+
+    private func popMatchDetail() {
+        if GameplayLayout.usesIPadMainShell() {
+            if !iPadDetailPath.isEmpty { iPadDetailPath.removeLast() }
+        } else if !path.isEmpty {
+            path.removeLast()
+        }
+    }
+
+    private func selectPlayer(_ playerId: UUID) {
+        if GameplayLayout.usesIPadMainShell() {
+            selectedPlayerId = playerId
+            iPadDetailPath.removeAll()
+        } else {
+            path.append(.detail(playerId: playerId))
+        }
+    }
+
+    @ViewBuilder
+    private func playersBody(selectedPlayerId: Binding<UUID?>?) -> some View {
         if viewModel.state == .loading {
             ProgressView()
                 .tint(Brand.green)
@@ -206,29 +310,54 @@ struct PlayersRootView: View {
                 .brandScoreboardEmptyState()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-        } else {
-            List {
-                if !viewModel.filteredHumans.isEmpty {
-                    Section(L10n.playersSectionTitle) {
-                        ForEach(viewModel.filteredHumans) { player in
-                            playerRow(player)
-                        }
-                    }
-                }
-                if !viewModel.filteredBots.isEmpty {
-                    Section(L10n.botsSectionTitle) {
-                        ForEach(viewModel.filteredBots) { bot in
-                            playerRow(bot)
-                        }
-                    }
-                }
+        } else if let selection = selectedPlayerId {
+            List(selection: selection) {
+                playersListSections(selectedPlayerId: selection)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .tabRootScrollChrome()
             .motionTabContentReveal(when: true)
-            .readableRootContentWidth(horizontalSizeClass)
+            .modifier(PlayersListWidthModifier(horizontalSizeClass: horizontalSizeClass))
+        } else {
+            List {
+                playersListSections(selectedPlayerId: nil)
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .tabRootScrollChrome()
+            .motionTabContentReveal(when: true)
+            .modifier(PlayersListWidthModifier(horizontalSizeClass: horizontalSizeClass))
+        }
+    }
+
+    @ViewBuilder
+    private func playersListSections(selectedPlayerId: Binding<UUID?>?) -> some View {
+        if !viewModel.filteredHumans.isEmpty {
+            Section(L10n.playersSectionTitle) {
+                ForEach(viewModel.filteredHumans) { player in
+                    if selectedPlayerId != nil {
+                        playerRow(player, selectedPlayerId: selectedPlayerId)
+                            .tag(Optional(player.id))
+                    } else {
+                        playerRow(player, selectedPlayerId: nil)
+                    }
+                }
+            }
+        }
+        if !viewModel.filteredBots.isEmpty {
+            Section(L10n.botsSectionTitle) {
+                ForEach(viewModel.filteredBots) { bot in
+                    if selectedPlayerId != nil {
+                        playerRow(bot, selectedPlayerId: selectedPlayerId)
+                            .tag(Optional(bot.id))
+                    } else {
+                        playerRow(bot, selectedPlayerId: nil)
+                    }
+                }
+            }
         }
     }
 
@@ -252,7 +381,7 @@ struct PlayersRootView: View {
             searchField
         }
         .padding(.horizontal, DS.Spacing.s4)
-        .readableRootContentWidth(horizontalSizeClass)
+        .modifier(PlayersListWidthModifier(horizontalSizeClass: horizontalSizeClass))
         .frame(maxWidth: .infinity)
         .background(Brand.background)
     }
@@ -264,7 +393,11 @@ struct PlayersRootView: View {
             ?? viewModel.players.first(where: \.isCustomBot)
         guard let bot else { return }
         didApplyCustomBotSnapshotNavigation = true
-        path = [.detail(playerId: bot.id)]
+        if GameplayLayout.usesIPadMainShell() {
+            selectedPlayerId = bot.id
+        } else {
+            path = [.detail(playerId: bot.id)]
+        }
     }
 
     private var playersToolbarMenu: some View {
@@ -302,9 +435,9 @@ struct PlayersRootView: View {
         .accessibilityLabel(L10n.addPlayerTitle)
     }
 
-    private func playerRow(_ player: EditablePlayer) -> some View {
+    private func playerRow(_ player: EditablePlayer, selectedPlayerId: Binding<UUID?>?) -> some View {
         Button {
-            path.append(.detail(playerId: player.id))
+            selectPlayer(player.id)
         } label: {
             HStack(spacing: DS.Spacing.s3) {
                 PlayerAvatarChip(player: player, size: 40)
@@ -342,11 +475,13 @@ struct PlayersRootView: View {
                 if player.isArchived {
                     Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Brand.textSecondary)
-                    .accessibilityHidden(true)
+                if selectedPlayerId == nil {
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                        .accessibilityHidden(true)
+                }
             }
             .contentShape(Rectangle())
         }
@@ -417,6 +552,18 @@ struct PlayersRootView: View {
             exportShareItem = ExportShareItem(url: url)
         case let .failure(error):
             exportErrorKey = (error as? AppError)?.userMessageKey ?? "players.detail.export.error"
+        }
+    }
+}
+
+private struct PlayersListWidthModifier: ViewModifier {
+    let horizontalSizeClass: UserInterfaceSizeClass?
+
+    func body(content: Content) -> some View {
+        if GameplayLayout.usesIPadMainShell() {
+            content.frame(maxWidth: .infinity)
+        } else {
+            content.readableRootContentWidth(horizontalSizeClass)
         }
     }
 }

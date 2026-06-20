@@ -6,6 +6,7 @@ struct SettingsRootView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject private var preferences: UserPreferencesStore
     @State private var path: [SettingsRoute] = []
+    @State private var selectedSection: SettingsSection? = .appearance
     @StateObject private var viewModel: SettingsViewModel
     @State private var retryTask: Task<Void, Never>?
     @State private var showsOnboarding = false
@@ -25,6 +26,34 @@ struct SettingsRootView: View {
     }
 
     var body: some View {
+        Group {
+            if GameplayLayout.usesIPadMainShell() {
+                iPadSettingsShell
+            } else {
+                phoneSettingsShell
+            }
+        }
+        .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
+            Button(L10n.cancel, role: .cancel) {
+                viewModel.dismissResetPrompt()
+            }
+            Button(L10n.resetConfirmAction, role: .destructive) {
+                viewModel.queueConfirmReset()
+            }
+        } message: {
+            Text(L10n.resetConfirmMessage)
+        }
+        .fullScreenCover(isPresented: $showsOnboarding) {
+            OnboardingFlowView(
+                mode: .replay,
+                dependencies: dependencies,
+                preferredColorScheme: preferences.preferredColorScheme,
+                onFinished: { showsOnboarding = false }
+            )
+        }
+    }
+
+    private var phoneSettingsShell: some View {
         NavigationStack(path: $path) {
             Group {
                 if let settings = viewModel.settings {
@@ -59,24 +88,75 @@ struct SettingsRootView: View {
                 .background(settingsRootBackground)
         }
         .brandSettingsScreenChrome(appearanceModeRaw: preferences.appearanceModeRaw)
-        .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
-            Button(L10n.cancel, role: .cancel) {
-                viewModel.dismissResetPrompt()
+    }
+
+    private var iPadSettingsShell: some View {
+        NavigationSplitView {
+            List(selection: $selectedSection) {
+                ForEach(SettingsSection.allCases) { section in
+                    Label(section.title, systemImage: section.systemImage)
+                        .tag(Optional(section))
+                }
             }
-            Button(L10n.resetConfirmAction, role: .destructive) {
-                viewModel.queueConfirmReset()
-            }
-        } message: {
-            Text(L10n.resetConfirmMessage)
-        }
-        .fullScreenCover(isPresented: $showsOnboarding) {
-            OnboardingFlowView(
-                mode: .replay,
-                dependencies: dependencies,
-                preferredColorScheme: preferences.preferredColorScheme,
-                onFinished: { showsOnboarding = false }
+            .listStyle(.sidebar)
+            .navigationTitle(L10n.settingsTitle)
+            .navigationSplitViewColumnWidth(
+                min: GameplayLayout.iPadMasterColumnMinWidth,
+                ideal: GameplayLayout.iPadMasterColumnIdealWidth,
+                max: 320
             )
+            .task { await viewModel.onAppear() }
+            .onDisappear {
+                retryTask?.cancel()
+                viewModel.cancelPendingWork()
+            }
+        } detail: {
+            Group {
+                if let settings = viewModel.settings, let section = selectedSection {
+                    iPadSettingsSectionDetail(settings: settings, section: section)
+                } else {
+                    settingsPlaceholderBody
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background {
+                settingsRootBackground
+                    .ignoresSafeArea()
+            }
         }
+        .brandSettingsScreenChrome(appearanceModeRaw: preferences.appearanceModeRaw)
+    }
+
+    @ViewBuilder
+    private func iPadSettingsSectionDetail(settings: SettingsSummary, section: SettingsSection) -> some View {
+        List {
+            switch section {
+            case .appearance:
+                appearanceSection(settings, usesBrand: usesBrandSettingsPalette)
+            case .startingMode:
+                startingModeSection(settings, usesBrand: usesBrandSettingsPalette)
+            case .matchDefaults:
+                matchDefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
+            case .x01Defaults:
+                x01DefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
+            case .duringPlay:
+                duringPlaySection(usesBrand: usesBrandSettingsPalette)
+            case .botOpponents:
+                botOpponentsSection(usesBrand: usesBrandSettingsPalette)
+            case .data:
+                dataSection(usesBrand: usesBrandSettingsPalette)
+            case .help:
+                helpAndFeedbackSection(usesBrand: usesBrandSettingsPalette)
+            case .about:
+                aboutSection(usesBrand: usesBrandSettingsPalette)
+            }
+        }
+        .listStyle(.insetGrouped)
+        .tint(Brand.green)
+        .navigationTitle(section.title)
+        .tabRootScrollChrome()
+        .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
+        .accessibilityIdentifier("settings_form")
     }
 
     private var settingsRootBackground: Color {

@@ -12,19 +12,41 @@ enum GameplayLayout {
         false
         #endif
     }
-    /// Readable column for setup, summary, and list-style screens on iPad.
+    /// Readable column for setup, summary, and list-style screens on iPad (phone-style fallback).
     static let regularContentMaxWidth: CGFloat = 920
 
-    static func contentMaxWidth(horizontalSizeClass: UserInterfaceSizeClass?) -> CGFloat {
-        horizontalSizeClass == .regular ? regularContentMaxWidth : .infinity
+    /// iPad main shell: persistent sidebar + detail column (not used for live match scoring).
+    static func usesIPadMainShell(isPad: Bool = defaultIsPad) -> Bool {
+        isPad
+    }
+
+    /// Fixed width for mode/options column in the iPad Play setup dashboard.
+    static let iPadSetupModeColumnWidth: CGFloat = 360
+
+    /// Minimum width for master columns in iPad master-detail tabs.
+    static let iPadMasterColumnMinWidth: CGFloat = 320
+
+    /// Ideal width for master columns in iPad master-detail tabs.
+    static let iPadMasterColumnIdealWidth: CGFloat = 380
+
+    /// Max readable width for onboarding hero content on iPad.
+    static let iPadOnboardingContentMaxWidth: CGFloat = 720
+
+    static func contentMaxWidth(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
+    ) -> CGFloat {
+        horizontalSizeClass == .regular && isPad ? regularContentMaxWidth : .infinity
     }
 
     /// Play setup uses a two-pane layout on iPad regular width.
     static func usesWideSetupHomeLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        dynamicTypeSize: DynamicTypeSize
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
         horizontalSizeClass == .regular
+            && isPad
             && !usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
     }
 

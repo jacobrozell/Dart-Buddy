@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SetupHomeRosterSection: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @ScaledMetric(relativeTo: .body) private var rosterRowHeight: CGFloat = 52
@@ -18,17 +19,24 @@ struct SetupHomeRosterSection: View {
         }
     }
 
+    private var usesWideSetupLayout: Bool {
+        GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
+
     var rosterControls: some View {
         Group {
-            if dynamicTypeSize.isAccessibilitySize {
+            if dynamicTypeSize.isAccessibilitySize || usesWideSetupLayout {
                 VStack(alignment: .leading, spacing: DS.Spacing.s3) {
                     randomOrderToggle
                     rosterActionButtons
                 }
             } else {
-                HStack {
+                HStack(alignment: .top, spacing: DS.Spacing.s3) {
                     randomOrderToggle
-                    Spacer()
+                    Spacer(minLength: DS.Spacing.s2)
                     rosterActionButtons
                 }
             }
@@ -126,8 +134,7 @@ struct SetupHomeRosterSection: View {
                 .accessibilityIdentifier("setup_addBot")
                 .rosterActionButtonChrome(
                     background: Brand.cardElevated,
-                    border: Brand.textSecondary.opacity(0.35),
-                    matchesSiblingHeight: true
+                    border: Brand.textSecondary.opacity(0.35)
                 )
             }
             Button(action: onShowAddPlayer) {
@@ -136,16 +143,13 @@ struct SetupHomeRosterSection: View {
             .buttonStyle(.plain)
             .accessibilityLabel(L10n.setupAddPlayers)
             .accessibilityIdentifier("setup_addPlayer")
-            .rosterActionButtonChrome(
-                background: Brand.green,
-                matchesSiblingHeight: true
-            )
+            .rosterActionButtonChrome(background: Brand.green)
         }
     }
 
     @ViewBuilder
     private func rosterActionButtonStack<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
+        if dynamicTypeSize.isAccessibilitySize || usesWideSetupLayout {
             VStack(spacing: DS.Spacing.s2, content: content)
         } else {
             HStack(alignment: .top, spacing: DS.Spacing.s2, content: content)
@@ -487,28 +491,14 @@ struct SetupHomeRosterSection: View {
     }
 }
 
-private struct RosterActionButtonSiblingHeight: ViewModifier {
-    let isEnabled: Bool
-
-    func body(content: Content) -> some View {
-        if isEnabled {
-            content.frame(maxHeight: .infinity, alignment: .topLeading)
-        } else {
-            content
-        }
-    }
-}
-
 private extension View {
     @ViewBuilder
     func rosterActionButtonChrome(
         background: Color,
-        border: Color? = nil,
-        matchesSiblingHeight: Bool
+        border: Color? = nil
     ) -> some View {
         let base = self
-            .frame(maxWidth: .infinity)
-            .modifier(RosterActionButtonSiblingHeight(isEnabled: matchesSiblingHeight))
+            .frame(maxWidth: .infinity, alignment: .topLeading)
             .background(background, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
 
         if let border {

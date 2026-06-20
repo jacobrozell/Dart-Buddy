@@ -29,6 +29,7 @@ struct ActivityRootView: View {
     @State private var period: ActivityPeriod = .all
     @State private var playerFilter: UUID?
     @State private var historyPath: [HistoryRoute] = []
+    @State private var selectedHistoryMatchId: UUID?
     @State private var filterTask: Task<Void, Never>?
     @State private var loadMoreTask: Task<Void, Never>?
     @State private var statsLoadTask: Task<Void, Never>?
@@ -62,70 +63,246 @@ struct ActivityRootView: View {
     }
 
     var body: some View {
+        Group {
+            if GameplayLayout.usesIPadMainShell() {
+                iPadActivityShell
+            } else {
+                phoneActivityShell
+            }
+        }
+    }
+
+    private var phoneActivityShell: some View {
         NavigationStack(path: $historyPath) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    BrandRootScreenTitle(title: L10n.activityTitle)
-
-                    BrandSegmented(
-                        options: ActivitySegment.allCases.map { ($0, $0.title) },
-                        selection: $segment,
-                        accessibilityIdentifiers: [
-                            .history: "activity_segment_history",
-                            .statistics: "activity_segment_statistics"
-                        ]
-                    )
-
-                    ActivityFilterBar(
-                        modeFilter: $modeFilter,
-                        period: $period,
-                        playerFilter: $playerFilter,
-                        playerOptions: currentPlayerOptions,
-                        selectedPlayerName: currentSelectedPlayerName
-                    )
-
-                    switch segment {
-                    case .history:
-                        historySegmentContent
-                    case .statistics:
-                        statisticsSegmentContent
-                    }
+            activityScrollContent
+                .background(Brand.background.ignoresSafeArea())
+                .navigationBarHidden(true)
+                .onAppear { scheduleSegmentRefresh() }
+                .onChange(of: refreshToken) { _, _ in scheduleSegmentRefresh() }
+                .onChange(of: segment) { _, _ in scheduleSegmentRefresh() }
+                .onChange(of: modeFilter) { _, _ in applySharedFilters() }
+                .onChange(of: period) { _, _ in applySharedFilters() }
+                .onChange(of: playerFilter) { _, _ in applySharedFilters() }
+                .onDisappear {
+                    filterTask?.cancel()
+                    loadMoreTask?.cancel()
+                    statsLoadTask?.cancel()
                 }
+                .navigationDestination(for: HistoryRoute.self) { route in
+                    historyNavigationDestination(route)
+                }
+        }
+    }
+
+    private var iPadActivityShell: some View {
+        NavigationSplitView {
+            activityMasterColumn
+                .navigationSplitViewColumnWidth(
+                    min: GameplayLayout.iPadMasterColumnMinWidth,
+                    ideal: GameplayLayout.iPadMasterColumnIdealWidth,
+                    max: 420
+                )
+                .background(Brand.background.ignoresSafeArea())
+                .onAppear { scheduleSegmentRefresh() }
+                .onChange(of: refreshToken) { _, _ in scheduleSegmentRefresh() }
+                .onChange(of: segment) { _, _ in
+                    selectedHistoryMatchId = nil
+                    scheduleSegmentRefresh()
+                }
+                .onChange(of: modeFilter) { _, _ in applySharedFilters() }
+                .onChange(of: period) { _, _ in applySharedFilters() }
+                .onChange(of: playerFilter) { _, _ in applySharedFilters() }
+                .onDisappear {
+                    filterTask?.cancel()
+                    loadMoreTask?.cancel()
+                    statsLoadTask?.cancel()
+                }
+        } detail: {
+            iPadActivityDetailPane
+                .background(Brand.background.ignoresSafeArea())
+        }
+    }
+
+    private var activityScrollContent: some View {
+        ScrollView {
+            activityMainColumn
                 .padding(.horizontal, DS.Spacing.s4)
                 .tabRootScrollChrome()
                 .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
                 .frame(maxWidth: .infinity)
-            }
-            .background(Brand.background.ignoresSafeArea())
-            .navigationBarHidden(true)
-            .onAppear { scheduleSegmentRefresh() }
-            .onChange(of: refreshToken) { _, _ in scheduleSegmentRefresh() }
-            .onChange(of: segment) { _, _ in scheduleSegmentRefresh() }
-            .onChange(of: modeFilter) { _, _ in applySharedFilters() }
-            .onChange(of: period) { _, _ in applySharedFilters() }
-            .onChange(of: playerFilter) { _, _ in applySharedFilters() }
-            .onDisappear {
-                filterTask?.cancel()
-                loadMoreTask?.cancel()
-                statsLoadTask?.cancel()
-            }
-            .navigationDestination(for: HistoryRoute.self) { route in
-                switch route {
-                case .list:
-                    EmptyView()
-                case let .detail(matchId):
-                    MatchHistoryDetailScreen(
-                        matchId: matchId,
-                        matchRepository: dependencies.matchRepository,
-                        statsRepository: dependencies.statsRepository,
-                        onDeleted: {
-                            if !historyPath.isEmpty { historyPath.removeLast() }
-                            filterTask?.cancel()
-                            filterTask = Task { await historyViewModel.applyFilters() }
-                        }
-                    )
+        }
+    }
+
+    private var activityMasterColumn: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                BrandRootScreenTitle(title: L10n.activityTitle)
+                activityChrome
+                if segment == .history {
+                    iPadHistoryMasterContent
+                } else {
+                    statisticsMasterHint
                 }
             }
+            .padding(.horizontal, DS.Spacing.s4)
+            .tabRootScrollChrome()
+        }
+    }
+
+    private var activityMainColumn: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            BrandRootScreenTitle(title: L10n.activityTitle)
+            activityChrome
+            switch segment {
+            case .history:
+                historySegmentContent
+            case .statistics:
+                statisticsSegmentContent
+            }
+        }
+    }
+
+    private var activityChrome: some View {
+        Group {
+            BrandSegmented(
+                options: ActivitySegment.allCases.map { ($0, $0.title) },
+                selection: $segment,
+                accessibilityIdentifiers: [
+                    .history: "activity_segment_history",
+                    .statistics: "activity_segment_statistics"
+                ]
+            )
+
+            ActivityFilterBar(
+                modeFilter: $modeFilter,
+                period: $period,
+                playerFilter: $playerFilter,
+                playerOptions: currentPlayerOptions,
+                selectedPlayerName: currentSelectedPlayerName
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var iPadHistoryMasterContent: some View {
+        if let activeMatch = historyViewModel.activeMatch {
+            historyResumeBanner(activeMatch)
+        }
+
+        if historyViewModel.state == .loading && historyViewModel.rows.isEmpty {
+            ProgressView()
+                .tint(Brand.green)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DS.Spacing.s6)
+                .accessibilityLabel(L10n.loading)
+        } else if historyViewModel.state == .error {
+            Text(LocalizedStringKey(historyViewModel.errorMessageKey ?? "error.repository.storage"))
+                .foregroundStyle(Brand.red)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DS.Spacing.s6)
+        } else if historyViewModel.rows.isEmpty {
+            historyEmptyState
+        } else {
+            List(selection: $selectedHistoryMatchId) {
+                ForEach(historyViewModel.rows) { row in
+                    Button { selectedHistoryMatchId = row.summary.id } label: {
+                        MatchHistoryCard(row: row)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(
+                        selectedHistoryMatchId == row.summary.id ? Brand.cardElevated : Brand.background
+                    )
+                    .listRowSeparatorTint(Brand.cardElevated)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(row.accessibilitySummary)
+                    .tag(Optional(row.summary.id))
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .frame(minHeight: 320)
+
+            if historyViewModel.hasMorePages {
+                Button {
+                    loadMoreTask?.cancel()
+                    loadMoreTask = Task { await historyViewModel.loadMore() }
+                } label: {
+                    Group {
+                        if historyViewModel.isLoadingMore {
+                            ProgressView().tint(Brand.green)
+                                .accessibilityLabel(L10n.loading)
+                        } else {
+                            Text(L10n.historyLoadMore)
+                                .font(.subheadline.weight(.semibold))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DS.Spacing.s3)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Brand.green)
+                .accessibilityIdentifier("historyLoadMoreButton")
+            }
+        }
+    }
+
+    private var statisticsMasterHint: some View {
+        Text(L10n.statsEmptyTitle)
+            .font(.subheadline)
+            .foregroundStyle(Brand.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, DS.Spacing.s4)
+    }
+
+    @ViewBuilder
+    private var iPadActivityDetailPane: some View {
+        ScrollView {
+            Group {
+                switch segment {
+                case .history:
+                    if let matchId = selectedHistoryMatchId {
+                        MatchHistoryDetailScreen(
+                            matchId: matchId,
+                            matchRepository: dependencies.matchRepository,
+                            statsRepository: dependencies.statsRepository,
+                            onDeleted: { selectedHistoryMatchId = nil }
+                        )
+                    } else {
+                        ContentUnavailableView(
+                            L10n.historyEmptyPrompt,
+                            systemImage: "clock.arrow.circlepath",
+                            description: Text(L10n.historyEmptyPrompt)
+                                .foregroundStyle(Brand.textSecondary)
+                        )
+                        .brandScoreboardEmptyState()
+                    }
+                case .statistics:
+                    statisticsSegmentContent
+                        .padding(.horizontal, DS.Spacing.s4)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .tabRootScrollChrome()
+            .padding(.vertical, DS.Spacing.s4)
+        }
+    }
+
+    @ViewBuilder
+    private func historyNavigationDestination(_ route: HistoryRoute) -> some View {
+        switch route {
+        case .list:
+            EmptyView()
+        case let .detail(matchId):
+            MatchHistoryDetailScreen(
+                matchId: matchId,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                onDeleted: {
+                    if !historyPath.isEmpty { historyPath.removeLast() }
+                    filterTask?.cancel()
+                    filterTask = Task { await historyViewModel.applyFilters() }
+                }
+            )
         }
     }
 
