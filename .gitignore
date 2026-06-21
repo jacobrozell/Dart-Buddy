@@ -27,3 +27,5 @@ DartBuddy.xcodeproj/
 
 # MCP screenshot / scratch output
 tmp/
+.cursor/mcp.json
+.xcodebuildmcp/
