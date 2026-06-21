@@ -246,13 +246,13 @@ struct PlayersRootView: View {
     @ViewBuilder
     private var playersCardSections: some View {
         if !viewModel.filteredHumans.isEmpty {
-            sectionHeader(L10n.playersSectionTitle)
+            sectionHeader(String(localized: "players.section.title"))
             ForEach(viewModel.filteredHumans) { player in
                 playerCard(player)
             }
         }
         if !viewModel.filteredBots.isEmpty {
-            sectionHeader(L10n.botsSectionTitle)
+            sectionHeader(String(localized: "players.bots.section.title"))
             ForEach(viewModel.filteredBots) { bot in
                 playerCard(bot)
             }
