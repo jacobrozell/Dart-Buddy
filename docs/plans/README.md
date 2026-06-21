@@ -1,6 +1,6 @@
 # Engineering plans
 
-Long-horizon architecture and implementation plans that span multiple releases. Authoritative **feature behavior** for custom bots lives in [`specs/CustomBotSpec.md`](../../specs/CustomBotSpec.md); these documents are the execution roadmap.
+Long-horizon architecture and implementation plans that span multiple releases. **Active index:** [`ongoing/README.md`](../../ongoing/README.md). Authoritative **feature behavior** for custom bots lives in [`specs/CustomBotSpec.md`](../../specs/CustomBotSpec.md); these documents are the execution roadmap.
 
 | Plan | Status | Summary |
 |------|--------|---------|
