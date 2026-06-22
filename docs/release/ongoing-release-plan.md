@@ -4,7 +4,9 @@ Strategy: ship a **small, well-tested core** first, then add surface area in ver
 
 **Companion docs:** [`feature-inventory.md`](../feature-inventory.md) (what exists) · [`todo.md`](todo.md) (current sprint) · [`release_checklist.md`](release_checklist.md) (device QA — **needs update** for Activity/Modes IA)
 
-**Last reviewed:** 2026-06-06
+**Last reviewed:** 2026-06-22
+
+**1.0 status:** **Shipped** — App Store **1.0.0 (7)**, released 2026-06-22. Git tag `1.0.0` on `7df4358` (2026-06-20). Next slice: **1.1 Party Pack**.
 
 ---
 
@@ -96,6 +98,8 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 ---
 
 ## 1.0 — Core Scorekeeper
+
+**Status:** **Shipped** — App Store **1.0.0 (7)** (2026-06-22). Tag `1.0.0` → commit `7df4358`.
 
 **Positioning:** Free, ad-free X01 & Cricket scorekeeper. Local-first. No party modes, no bot complexity, no mode catalog teaser.
 

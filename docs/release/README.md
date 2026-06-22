@@ -1,5 +1,7 @@
 # Release documentation
 
+**Current store version:** **1.0.0 (7)** — live on the App Store (2026-06-22). Git tag `1.0.0` → `7df4358`.
+
 | File | Role |
 |------|------|
 | [**`1.0.0-ship-checklist.md`**](1.0.0-ship-checklist.md) | **Master checklist** — everything before App Store submit (QA, a11y nutrition labels, Connect, hardening) |

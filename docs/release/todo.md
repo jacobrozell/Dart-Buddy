@@ -4,13 +4,15 @@ Goal: match the reference *Darts Scoreboard: Scorekeeper* app's functionality an
 
 Status legend: `[ ]` todo · `[~]` partial
 
+> **1.0.0 shipped:** App Store **1.0.0 (7)** — released 2026-06-22 (submitted 2026-06-20). Tag `1.0.0` on `7df4358`. Items below are post-ship backlog / 1.1 prep unless a hotfix is required.
+
 ---
 
-## 1.0 — Still needed
+## 1.0 — Post-ship backlog (not blockers)
 
-Ship blockers before App Store. **Scope:** lean 1.0 — X01 + Cricket only, 4 tabs, English, preset bots. See [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) for implementation tasks; [`ongoing-release-plan.md`](ongoing-release-plan.md) for release train.
+**1.0.0 is live.** **Scope shipped:** lean 1.0 — X01 + Cricket only, 4 tabs, English, preset + custom bots. See [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) for what landed; [`ongoing-release-plan.md`](ongoing-release-plan.md) for **1.1+**.
 
-Remaining work after lean trim lands: **evidence + store ops**.
+Deferred evidence + polish from the RC pass:
 
 **Master checklist:** [`1.0.0-ship-checklist.md`](1.0.0-ship-checklist.md) — everything before submit (start here).  
 **Expanded runbook:** [`release_checklist.md`](release_checklist.md) — device QA, App Store Connect, launch week, Reddit.
