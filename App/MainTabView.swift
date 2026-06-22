@@ -35,9 +35,11 @@ struct MainTabView: View {
     @State private var showsActiveMatchBadge = false
     @State private var appStoreUpdateOffer: AppStoreUpdateOffer?
     @State private var showsOnboarding = false
+    @State private var showsReleaseHighlights = false
     @Environment(\.openURL) private var openURL
 
     private let onboardingStore = OnboardingStore()
+    private let releaseHighlightsStore = ReleaseHighlightsStore()
 
     init(dependencies: AppDependencies, pendingDeepLink: PendingAppDestination) {
         self.dependencies = dependencies
@@ -134,11 +136,22 @@ struct MainTabView: View {
                     showsOnboarding = false
                     selectedTab = .play
                     Task {
-                        await checkForAppStoreUpdate()
+                        await presentMarketingSurfacesIfNeeded()
                         await consumePendingDeepLink()
                     }
                 }
             )
+        }
+        .sheet(isPresented: $showsReleaseHighlights) {
+            if let highlight = ReleaseHighlights.current {
+                ReleaseHighlightsSheet(
+                    highlight: highlight,
+                    onTryNewModes: { dismissReleaseHighlights(highlight: highlight, tryNewModes: true) },
+                    onDismiss: { dismissReleaseHighlights(highlight: highlight, tryNewModes: false) }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
         }
         .task {
             configureIntentRouting()
@@ -152,7 +165,7 @@ struct MainTabView: View {
             if onboardingStore.shouldPresentOnLaunch, !showsOnboarding {
                 showsOnboarding = true
             } else if !onboardingStore.shouldPresentOnLaunch {
-                await checkForAppStoreUpdate()
+                await presentMarketingSurfacesIfNeeded()
             }
             await consumePendingDeepLink()
         }
@@ -167,8 +180,40 @@ struct MainTabView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: LocalAppStateReset.didResetNotification)) { _ in
             appStoreUpdateOffer = nil
+            showsReleaseHighlights = false
             if onboardingStore.shouldPresentOnLaunch {
                 showsOnboarding = true
+            }
+        }
+    }
+
+    private func presentMarketingSurfacesIfNeeded() async {
+        if let highlight = ReleaseHighlights.current,
+           releaseHighlightsStore.shouldPresent(highlight: highlight) {
+            showsReleaseHighlights = true
+            return
+        }
+        await checkForAppStoreUpdate()
+    }
+
+    private func dismissReleaseHighlights(highlight: ReleaseHighlight, tryNewModes: Bool) {
+        releaseHighlightsStore.markDismissed(version: highlight.version)
+        showsReleaseHighlights = false
+        if tryNewModes {
+            dependencies.pendingMatchPlayerSelections.enqueueModeSelection(
+                PendingModeSelection(
+                    setupCategory: .party,
+                    mode: nil,
+                    partyGame: .baseball,
+                    matchType: .baseball
+                )
+            )
+            selectedTab = .play
+        }
+        Task {
+            await checkForAppStoreUpdate()
+            if tryNewModes {
+                await consumePendingDeepLink()
             }
         }
     }

@@ -24,6 +24,19 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         launchAppWithLeanProductSurface(extraArguments)
     }
 
+    private func launchPartyPackAppShowingHighlights(_ extraArguments: [String] = []) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-ui_test_reset",
+            "-disable_firebase_analytics",
+            "-enable_lean_product_surface",
+        ] + extraArguments
+        applyDefaultLaunchEnvironment(to: app)
+        app.launch()
+        waitForAppBootstrapReady(in: app, timeout: 30)
+        return app
+    }
+
     func testPartyPackShellShowsFourTabsWithoutModes() {
         let app = launchPartyPackApp(["-seed_players"])
 
@@ -313,5 +326,13 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
             app.buttons["startMatchButton"].waitForExistence(timeout: timeout),
             "Play setup should remain available when resume is blocked"
         )
+    }
+
+    func testReleaseHighlightsSheetCanBeDismissed() {
+        let app = launchPartyPackAppShowingHighlights(["-seed_players", "-skip_onboarding"])
+        let sheet = app.otherElements["release_highlights_sheet"]
+        XCTAssertTrue(sheet.waitForExistence(timeout: timeout), "Party Pack upgrade should show What's New once")
+        app.buttons["release_highlights_gotIt"].tap()
+        XCTAssertFalse(sheet.waitForExistence(timeout: 2), "Got It should dismiss the highlights sheet")
     }
 }

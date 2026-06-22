@@ -23,6 +23,7 @@ enum LocalDataResetInventory {
     static func clearAuxiliaryUserDefaults(userDefaults: UserDefaults = .standard) {
         OnboardingStore(userDefaults: userDefaults).clearPersistedState()
         AppStoreUpdateChecker.clearPersistedState(userDefaults: userDefaults)
+        ReleaseHighlightsStore.clearPersistedState(userDefaults: userDefaults)
     }
 
     /// Deletes every row for each model on the active release schema, then saves.

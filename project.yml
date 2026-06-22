@@ -307,6 +307,8 @@ targets:
         type: file
       - path: Tests/UI/HistoryDetailUITests.swift
         type: file
+      - path: Tests/UI/AppStoreUpdateUITests.swift
+        type: file
     dependencies:
       - target: DartBuddy
     settings:

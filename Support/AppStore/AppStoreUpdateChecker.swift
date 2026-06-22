@@ -7,6 +7,8 @@ struct AppStoreUpdateOffer: Sendable, Equatable {
 
 struct AppStoreUpdateChecker: @unchecked Sendable {
     private static let dismissedStoreVersionKey = "app_store_update_dismissed_version"
+    static let enableLaunchArgument = "-enable_app_store_update_check"
+    static let installedVersionOverrideFlag = "-app_store_update_installed_version"
     // Verified literal URL.
     // swiftlint:disable:next force_unwrapping
     private static let lookupURL = URL(string: "https://itunes.apple.com/lookup")!
@@ -20,8 +22,7 @@ struct AppStoreUpdateChecker: @unchecked Sendable {
 
     init(
         bundleIdentifier: String = Bundle.main.bundleIdentifier ?? "com.jacobrozell.DartBuddy",
-        installedVersion: String = Bundle.main
-            .infoDictionary?["CFBundleShortVersionString"] as? String ?? "0",
+        installedVersion: String = AppStoreUpdateChecker.resolvedInstalledVersion(),
         appStoreFallbackURL: URL = AppLinks.appStore,
         userDefaults: UserDefaults = .standard,
         urlSession: URLSession = .shared,
@@ -36,11 +37,24 @@ struct AppStoreUpdateChecker: @unchecked Sendable {
     }
 
     static var defaultIsEnabled: Bool {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains(enableLaunchArgument) {
+            return true
+        }
         #if DEBUG
         return false
         #else
-        !ProcessInfo.processInfo.arguments.contains("-ui_test_reset")
+        return !arguments.contains("-ui_test_reset")
         #endif
+    }
+
+    /// Launch arg `-app_store_update_installed_version 0.9.0` simulates an older build for manual QA.
+    static func resolvedInstalledVersion(arguments: [String] = ProcessInfo.processInfo.arguments) -> String {
+        if let index = arguments.firstIndex(of: installedVersionOverrideFlag),
+           arguments.indices.contains(index + 1) {
+            return arguments[index + 1]
+        }
+        return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
     }
 
     func checkForUpdate() async -> AppStoreUpdateOffer? {

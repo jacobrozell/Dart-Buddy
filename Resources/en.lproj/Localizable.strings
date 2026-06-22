@@ -798,6 +798,12 @@
 "app.update.message" = "A new version of Dart Buddy is on the App Store.";
 "app.update.update" = "Update";
 "app.update.notNow" = "Not Now";
+"release.highlights.badge" = "What's New";
+"release.highlights.partyPack.title" = "Party Pack";
+"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai, and Around the Clock are ready in Play setup.";
+"release.highlights.tryModes" = "Try New Modes";
+"release.highlights.gotIt" = "Got It";
+"release.highlights.accessibility" = "What's new in Dart Buddy";
 "intent.openPlay.title" = "Open Play";
 "intent.openPlay.description" = "Opens the Play tab in Dart Buddy.";
 "intent.resumeActiveMatch.title" = "Resume Active Match";
