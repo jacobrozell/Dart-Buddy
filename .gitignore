@@ -27,3 +27,6 @@ DartBuddy.xcodeproj/
 
 # MCP screenshot / scratch output
 tmp/
+
+# Cursor MCP config (local machine paths; never commit)
+.cursor/mcp.json
