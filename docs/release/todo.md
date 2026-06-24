@@ -6,6 +6,39 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ---
 
+## 1.1 — Party Pack (current)
+
+**Branch:** `release/1.1.0` · **Version:** `1.1.0` (build 4 in `project.yml`) · **1.0.0 live** on App Store (build 7).
+
+**Master checklists:** [`1.1.0-ship-checklist.md`](1.1.0-ship-checklist.md) · RC runbook [`1.1.0-testflight-rc-plan.md`](1.1.0-testflight-rc-plan.md)  
+**Store copy draft:** [`1.1.0-app-store-copy.md`](1.1.0-app-store-copy.md)
+
+### Engineering (mostly done)
+
+- [x] `ProductSurface.party1_1` allowlist — six modes (X01, Cricket, Baseball, Killer, Shanghai, Around the Clock)
+- [x] `PartyPack1_1SmokeUITests` + `ProductSurfaceTests`
+- [x] Release highlights sheet (`ReleaseHighlights` / `ReleaseHighlightsStore`)
+- [x] CI on `release/**` pushes ([`ci.yml`](../../.github/workflows/ci.yml))
+- [x] `estimated-releases.json` — `practice.aroundTheClock` → `1.1`
+- [ ] Merge latest `master` hotfixes into `release/1.1.0` before RC cut
+- [ ] `CURRENT_PROJECT_VERSION` bump when cutting a **new** RC after QA failure
+
+### RC / TestFlight
+
+- [ ] Local `DartBuddyCI` + `DartBuddyUILean` green on RC commit
+- [ ] Optional local Release archive smoke (signing + Crashlytics dSYM)
+- [ ] Trigger TestFlight — GHA **Trigger TestFlight** → `release/1.1.0`
+- [ ] Fill RC record in ship checklist (commit SHA, build #, tester, device)
+- [ ] Close [`roadmap/release/QA-Signoff-1.1.md`](../../roadmap/release/QA-Signoff-1.1.md) — no P0 rows left Pending
+
+### App Store (after RC Go)
+
+- [ ] Capture 1.1 screenshots — [`marketing-screenshots/1.1/README.md`](../../marketing-screenshots/1.1/README.md)
+- [ ] Finalize listing copy — [`1.1.0-app-store-copy.md`](1.1.0-app-store-copy.md)
+- [ ] Submit build · tag `v1.1.0` after approval · merge `release/1.1.0` → `master`
+
+---
+
 ## 1.0 — Still needed
 
 Ship blockers before App Store. **Scope:** lean 1.0 — X01 + Cricket only, 4 tabs, English, preset bots. See [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) for implementation tasks; [`ongoing-release-plan.md`](ongoing-release-plan.md) for release train.

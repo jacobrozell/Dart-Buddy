@@ -54,7 +54,7 @@ Aligned with [`ongoing-release-plan.md`](ongoing-release-plan.md); per-feature a
 | Store release | User-facing theme | Typical contents |
 |---------------|-------------------|------------------|
 | **1.0** | Core scorekeeper | X01 + Cricket · 4 tabs · preset + custom bots · English · core Activity/Players/Settings |
-| **1.1** | Party Pack I | Baseball · Killer · Shanghai (+ party setup or partial Modes exposure) |
+| **1.1** | Party Pack I | Baseball · Killer · Shanghai · Around the Clock (Play setup, 4 tabs) |
 | **1.2** | Smart opponents + i18n | Training Partner · player export · **de/es/nl/fr** store listings |
 | **1.3** | Catalog + Party Pack II | Modes tab · expose remaining **shipped** party/standard modes (American Cricket, Knockout, Golf, …) after device QA |
 | **1.4** | Platform hooks + practice | App Intents/widgets · Raid/Fleet co-op · practice drills (ATC, Nine Lives, …) |

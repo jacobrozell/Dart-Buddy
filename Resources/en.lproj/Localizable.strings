@@ -1196,6 +1196,10 @@
 "play.raid.phase.enrage" = "Enrage";
 "play.raid.legend.shield" = "Close 20–16 for 8 damage each";
 "play.raid.legend.expose" = "Doubles deal 2 · Triples deal 3";
+"play.raid.closeDamageFormat" = "Closed %@ — 8 damage!";
+"play.raid.shieldProgress.title" = "Shield targets";
+"play.raid.shieldProgress.closedFormat" = "Segment %@ closed";
+"play.raid.shieldProgress.damageBadge" = "+8";
 "play.raid.enrageStrikeAnnouncement" = "Boss enrage strike";
 "play.raid.victory" = "Boss defeated!";
 "play.raid.defeat" = "Raid failed";

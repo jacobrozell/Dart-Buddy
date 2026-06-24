@@ -14,6 +14,7 @@ final class RaidMatchViewModel: ObservableObject {
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
     @Published var session: MatchLifecycleSession?
+    @Published private(set) var shieldCloseSignal: Int?
 
     let matchId: UUID
     private let store: ActiveMatchStore
@@ -142,7 +143,7 @@ final class RaidMatchViewModel: ObservableObject {
                 if case let .raidVisit(visit) = envelope.payload { return visit }
                 return nil
             }) {
-                announceVisitIfNeeded(event: event)
+                announceVisitIfNeeded(event: event, previousState: current.runtime.raidState)
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted
@@ -191,7 +192,19 @@ final class RaidMatchViewModel: ObservableObject {
         }
     }
 
-    private func announceVisitIfNeeded(event: RaidVisitEvent) {
+    func acknowledgeShieldCloseAnnouncement() {
+        shieldCloseSignal = nil
+    }
+
+    private func announceVisitIfNeeded(event: RaidVisitEvent, previousState: RaidState?) {
+        if let previous = previousState,
+           let afterClosed = session?.runtime.raidState?.closedShieldSegments {
+            let newSegments = afterClosed.subtracting(previous.closedShieldSegments)
+            if let segment = newSegments.sorted(by: >).first {
+                shieldCloseSignal = segment
+            }
+        }
+
         if event.phaseBefore != event.phaseAfter {
             AccessibilityNotification.Announcement(
                 event.phaseAfter == .shield

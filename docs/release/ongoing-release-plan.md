@@ -158,23 +158,25 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 
 ## 1.1 — Party Pack
 
-**Positioning:** “Now with Baseball, Killer & Shanghai.”
+**Positioning:** “Now with Baseball, Killer, Shanghai — plus solo Around the Clock.”
 
 ### In scope
 
 | Area | Include |
 |------|---------|
-| **Game modes** | Baseball · Killer · Shanghai (all three together) |
-| **Setup** | Party category in Play **or** restore Modes tab filtered to shipped party modes only |
-| **Bots** | Preset bots where mode allows (Killer remains humans-only per product rule) |
-| **History/stats** | Baseball line score; per-mode filters for party modes |
-| **QA** | New § in release checklist: one full device match per party mode + undo + summary |
+| **Game modes** | Baseball · Killer · Shanghai · **Around the Clock** (solo practice) |
+| **Setup** | Party + practice reachable from Play **Change mode** (6 modes total); **no Modes tab** |
+| **Bots** | Preset + custom bots where mode allows (Killer remains humans-only per product rule) |
+| **History/stats** | Baseball line score; per-mode filters for all six shipped modes |
+| **Promo** | In-app What's New sheet on first launch after upgrade |
+| **QA** | [`1.1.0-ship-checklist.md`](1.1.0-ship-checklist.md) — one full device match per new mode + undo + summary |
 
 ### Out of scope
 
-- Training Partner / Custom bots
-- Full 29-mode catalog / Practice section stubs
-- App Intents
+- Training Partner bots (hidden)
+- Full 29-mode catalog / Modes tab
+- Other practice modes (180 ATC, Chase the Dragon, …)
+- App Intents · bundled de/es/nl/fr
 
 ### QA bar
 
@@ -300,7 +302,7 @@ Per-feature tags: [`estimated-release-registry.md`](estimated-release-registry.m
 | Version | Modes (user-facing) | Tabs | Bots | Discovery |
 |---------|---------------------|------|------|-----------|
 | **1.0** | X01, Cricket | 4 (no Modes) | Preset + custom | Play setup Standard |
-| **1.1** | + Baseball, Killer, Shanghai | 4 or 5 | Preset + custom | Party setup |
+| **1.1** | + Baseball, Killer, Shanghai, Around the Clock | 4 (no Modes) | Preset + custom | Play setup (6 modes) |
 | **1.2** | Same | 4–5 | + Training Partner | + export · localized listings |
 | **1.3** | + American Cricket, Knockout, Golf, … (party wave II) | 5 | Same | Modes catalog |
 | **1.4** | + Raid, Fleet, practice drills | 5 | Same | + Siri/widgets |
@@ -326,4 +328,4 @@ Per-feature tags: [`estimated-release-registry.md`](estimated-release-registry.m
 | | Locales: en-only vs en/de/es/nl | **en-only** (files stay in repo; re-bundle 1.2+) |
 | | Analytics on vs off for 1.0 | **On** (Analytics + Crashlytics) |
 | | Keep or hide App Store update prompt | |
-| | 1.1 date / party modes together | |
+| | 1.1 date / party modes together | **Lean 1.1** — Baseball, Killer, Shanghai, Around the Clock only; Raid + Training Partner deferred to 1.2/1.4 (2026-06-23) |

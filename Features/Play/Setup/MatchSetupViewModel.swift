@@ -439,8 +439,7 @@ final class MatchSetupViewModel: ObservableObject {
         if selection.setupCategory == .party, !productSurfaceConfiguration.showsPartyModes { return }
         if let matchType = selection.matchType,
            let entry = GameModeCatalog.entry(for: matchType),
-           entry.section == .coop,
-           !productSurfaceConfiguration.showsCoopModes {
+           !ProductSurface.isCatalogEntryReachable(entry) {
             return
         }
         selectedCatalogMatchType = selection.matchType
@@ -480,8 +479,7 @@ final class MatchSetupViewModel: ObservableObject {
                 mode = .x01
                 selectedCatalogMatchType = nil
             } else if let entry = GameModeCatalog.entry(for: catalogType),
-                      entry.section == .coop,
-                      !productSurfaceConfiguration.showsCoopModes {
+                      !ProductSurface.isCatalogEntryReachable(entry) {
                 setupCategory = .standard
                 mode = .x01
                 selectedCatalogMatchType = nil
@@ -507,14 +505,15 @@ final class MatchSetupViewModel: ObservableObject {
         catalogType: MatchType,
         entry: GameModeCatalogEntry
     ) -> [String] {
-        if entry.section == .party, !productSurfaceConfiguration.showsPartyModes {
-            return ["setup.validation.partyComingSoon"]
-        }
-        if entry.section == .coop, !productSurfaceConfiguration.showsCoopModes {
-            return ["setup.validation.coopComingSoon"]
-        }
-        if !entry.isAvailable {
-            return ["setup.validation.partyComingSoon"]
+        if !ProductSurface.isCatalogEntryReachable(entry) {
+            switch entry.section {
+            case .coop:
+                return ["setup.validation.coopComingSoon"]
+            case .party:
+                return ["setup.validation.partyComingSoon"]
+            case .standard, .practice:
+                return ["setup.validation.partyComingSoon"]
+            }
         }
         if selectedParticipantCount < entry.minimumPlayers {
             let key = catalogType == .killer

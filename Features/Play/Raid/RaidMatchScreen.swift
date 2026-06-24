@@ -11,12 +11,14 @@ struct RaidMatchScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showExitConfirmation = false
     @State private var actionTask: Task<Void, Never>?
+    @State private var shieldCloseBannerSegment: Int?
 
     var body: some View {
         VStack(spacing: 0) {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 VStack(alignment: .leading, spacing: 2) {
                     BrandMatchScreenTitle(title: "play.raid.navTitle")
+                        .accessibilityIdentifier("raid_match_header")
                     Text(viewModel.headerText)
                         .font(.caption)
                         .foregroundStyle(Brand.textSecondary)
@@ -48,7 +50,18 @@ struct RaidMatchScreen: View {
                             enrageActive: raidState.enrageActive,
                             heroes: viewModel.coopChromeHeroes
                         )
+                        if let segment = shieldCloseBannerSegment {
+                            MatchFeedbackBanner(
+                                text: LocalizedStringKey(L10n.format("play.raid.closeDamageFormat", segment)),
+                                style: .cricketClosure
+                            )
+                            .accessibilityIdentifier("raid_shield_close_banner")
+                        }
                         if raidState.phase == .shield {
+                            RaidShieldProgressView(
+                                teamMarks: raidState.teamCricketMarks,
+                                closedSegments: raidState.closedShieldSegments
+                            )
                             raidShieldLegend
                         } else {
                             raidExposeLegend
@@ -102,6 +115,24 @@ struct RaidMatchScreen: View {
             if case .matchCompleted = newValue {
                 audio.playMatchFinished()
                 onShowSummary()
+            }
+        }
+        .onChange(of: viewModel.shieldCloseSignal) { _, segment in
+            guard let segment else { return }
+            shieldCloseBannerSegment = segment
+            if feedbackPreferences.hapticsEnabled { haptics.playSuccess() }
+            audio.playHit()
+            AccessibilityNotification.Announcement(
+                L10n.format("play.raid.closeDamageFormat", segment)
+            ).post()
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                await MainActor.run {
+                    if shieldCloseBannerSegment == segment {
+                        shieldCloseBannerSegment = nil
+                    }
+                    viewModel.acknowledgeShieldCloseAnnouncement()
+                }
             }
         }
         .task { await viewModel.onAppear() }
