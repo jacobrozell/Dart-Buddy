@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # History Specification
 
 ## 1. Purpose
@@ -90,6 +92,7 @@ Define how completed matches are listed, filtered, inspected, and retained for l
 ## 9. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | `917043e` |
 | **Code** | `ActivityRootView.swift`, `HistoryRootView.swift`, `MatchHistoryDetailScreen.swift`, `MatchHistoryCardBuilder.swift`, `SwiftDataMatchRepository.swift` |

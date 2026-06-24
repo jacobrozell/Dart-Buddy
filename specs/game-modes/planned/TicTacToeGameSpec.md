@@ -4,6 +4,7 @@
 Define Tic-Tac-Toe (Noughts and Crosses) darts — claim a 3×3 grid of board targets — for future implementation.
 
 **Status:** Planned (`party.ticTacToe`).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Noughts and Crosses](https://darts501.com/Games.html).
 
@@ -81,6 +82,7 @@ Replay restores grid claims.
 |---|---|
 | **Key prefix** | `play.rules.ticTacToe.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.ticTacToe.overview.title` |

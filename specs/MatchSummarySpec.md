@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Match Summary Specification
 
 ## 1. Purpose
@@ -105,6 +107,7 @@ Undo does not appear for abandoned matches (never reach summary).
 ## 11. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `MatchSummaryScreen.swift`, `MatchSummaryViewModel.swift` |

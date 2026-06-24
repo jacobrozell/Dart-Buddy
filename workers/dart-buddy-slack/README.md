@@ -1,5 +1,7 @@
 # Dart Buddy Slack Worker
 
+> **Status:** Code in repo; **not deployed** for 1.0. Post-release setup checklist: [`docs/release/slack-integration.md`](../../docs/release/slack-integration.md).
+
 Cloudflare Worker backing `/dart-buddy` slash commands. Bridges Slack to GitHub Actions — no App Store Connect credentials in Slack.
 
 ## Commands

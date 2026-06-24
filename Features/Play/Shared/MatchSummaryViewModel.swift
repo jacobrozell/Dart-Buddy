@@ -13,6 +13,7 @@ final class MatchSummaryViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isUndoing = false
     @Published private(set) var undoErrorKey: String?
+    @Published private(set) var achievementPresentations: [AchievementUnlockPresentation] = []
 
     let matchId: UUID
     private let store: ActiveMatchStore
@@ -37,9 +38,13 @@ final class MatchSummaryViewModel: ObservableObject {
     }
 
     func loadIfNeeded() async {
-        if session != nil { return }
+        if session != nil {
+            await reloadAchievementPresentations()
+            return
+        }
         if let existing = store.session(for: matchId) {
             session = existing
+            await reloadAchievementPresentations()
             return
         }
 
@@ -56,9 +61,18 @@ final class MatchSummaryViewModel: ObservableObject {
             }
             store.save(rehydrated)
             session = rehydrated
+            await reloadAchievementPresentations()
         } catch {
             return
         }
+    }
+
+    func reloadAchievementPresentations() async {
+        guard let service = AchievementHooks.service else {
+            achievementPresentations = []
+            return
+        }
+        achievementPresentations = await service.sessionPresentations(for: matchId)
     }
 
     var hasResult: Bool { session != nil }
@@ -136,6 +150,7 @@ final class MatchSummaryViewModel: ObservableObject {
                 matchRepository: matchRepository
             )
             session = result.session
+            await reloadAchievementPresentations()
             return result.restoredDarts
         } catch {
             undoErrorKey = MatchTurnSupport.errorMessageKey(for: error, fallback: "play.summary.undoFailed")

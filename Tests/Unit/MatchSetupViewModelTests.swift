@@ -200,6 +200,34 @@ func applyPendingModeSelectionPrefillsPartyKiller() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
+func applyPendingModeSelectionPrefillsCatalogPartyMickeyMouse() async {
+    guard ProductSurface.showsPartyModes else { return }
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.killer)
+
+    vm.applyPendingModeSelection(
+        PendingModeSelection(
+            setupCategory: .standard,
+            mode: nil,
+            partyGame: nil,
+            matchType: .mickeyMouse
+        )
+    )
+
+    #expect(vm.setupCategory == .standard)
+    #expect(vm.partyGame == .killer)
+    #expect(vm.selectedCatalogMatchType == .mickeyMouse)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
 func onAppearDoesNotResetCatalogModeSelection() async {
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),

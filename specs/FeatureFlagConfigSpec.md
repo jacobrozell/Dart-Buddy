@@ -46,8 +46,10 @@ Define how runtime feature flags and environment configuration are modeled so ph
 - `enableAdvancedDiagnostics` (default `false`)
 - `enableAppIntents` (default `false`; enable locally with `-enable_app_intents` — see [`AppIntentsSpec.md`](AppIntentsSpec.md))
 - `enableAchievements` (default `false`; `-enable_achievements` — see [`AchievementsSpec.md`](AchievementsSpec.md))
-- `enableCampaign` (default `false`; `-enable_campaign` — see [`CampaignSpec.md`](CampaignSpec.md))
-- `enableDailyChallenge` (default `false`; `-enable_daily_challenge` — see [`DailyChallengeSpec.md`](DailyChallengeSpec.md))
+- `enableCampaign` (default `false`; `-enable_campaign` — stub until `Features/Campaign/` ships)
+- `enableDailyChallenge` (default `false`; `-enable_daily_challenge` — stub until service ships)
+- `enableLocalTournaments` (default `false`; `-enable_local_tournaments` — stub until hub ships)
+- `enableOnlineTournaments` (default `false`; `-enable_online_tournaments` — stub; requires `enableOnlinePlay`)
 
 ### Product surface (lean 1.0)
 

@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Settings Specification
 
 ## 1. Purpose
@@ -94,6 +96,7 @@ Summary: **Reset All Local Data** requires destructive confirmation, clears all 
 ## 10. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `SettingsRootView.swift`, `SettingsViewModel.swift` |

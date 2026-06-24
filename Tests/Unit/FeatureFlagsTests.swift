@@ -81,12 +81,29 @@ func visualDartboardInputEnabledWithLaunchArgument() {
 
 @Test(.tags(.unit, .regression))
 func achievementsDisabledByDefault() {
-    let provider = LocalFeatureFlagsProvider(arguments: [])
+    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
     #expect(!provider.isEnabled(.enableAchievements))
+
+    #if DEBUG
+    let devProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(devProvider.isEnabled(.enableAchievements))
+    #else
+    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!releaseProvider.isEnabled(.enableAchievements))
+    #endif
 }
 
 @Test(.tags(.unit, .regression))
 func achievementsEnabledWithLaunchArgument() {
     let provider = LocalFeatureFlagsProvider(arguments: ["-enable_achievements"])
     #expect(provider.isEnabled(.enableAchievements))
+}
+
+@Test(.tags(.unit, .regression))
+func plannedFeatureFlagsDisabledByDefault() {
+    let provider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!provider.isEnabled(.enableCampaign))
+    #expect(!provider.isEnabled(.enableDailyChallenge))
+    #expect(!provider.isEnabled(.enableLocalTournaments))
+    #expect(!provider.isEnabled(.enableOnlineTournaments))
 }

@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Match Specification
 
 ## 1. Purpose
@@ -175,6 +177,7 @@ See [`MatchSummarySpec.md`](MatchSummarySpec.md) for the dedicated post-match sc
 ## 12. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `MatchLifecycleService.swift`, `MatchTurnSupport.swift` |

@@ -4,6 +4,7 @@
 Define Loop (Loopy) — Follow the Leader with wire loops and split segments — for future implementation.
 
 **Status:** Planned (`party.loop`).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Loop](https://darts501.com/Games.html).
 
@@ -79,6 +80,7 @@ Event replay.
 |---|---|
 | **Key prefix** | `play.rules.loop.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.loop.overview.title` |

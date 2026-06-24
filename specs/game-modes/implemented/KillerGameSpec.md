@@ -1,3 +1,5 @@
+**Estimated release:** `1.1`
+
 # Killer Game Specification
 
 ## 1. Purpose
@@ -85,6 +87,7 @@ Replay from events restores assigned numbers, lives, killer flags, elimination, 
 |---|---|
 | **Key prefix** | `play.rules.killer.` |
 | **Shipped in app** | Yes (`GameRulesCatalog.killer`) |
+| **Estimated release** | `1.1` |
 
 ### Overview
 | **Title key** | `play.rules.killer.overview.title` |

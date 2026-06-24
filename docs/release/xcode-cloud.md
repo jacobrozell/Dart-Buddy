@@ -8,8 +8,8 @@ No automatic builds on push or tag. Start a release build via:
 
 | Trigger | How |
 |---------|-----|
-| **Slack** (primary) | `/dart-buddy release` — see [Slack worker setup](#slack-dart-buddy-release) |
-| **GitHub Actions** | Actions → **Trigger TestFlight** → Run workflow |
+| **GitHub Actions** (primary until Worker is deployed) | Actions → **Trigger TestFlight** → Run workflow |
+| **Slack** (post-1.0) | `/dart-buddy release` — see [`slack-integration.md`](slack-integration.md) |
 | **App Store Connect** | Xcode Cloud → **Release** workflow → Start Build |
 
 Completion notifications post to `#dart-buddy-releases` via Xcode Cloud **Notify** (Apple native Slack integration).
@@ -96,7 +96,7 @@ base64 -i Resources/GoogleService-Info.plist | pbcopy
 2. Connect Slack in App Store Connect when configuring the **Notify** post-action
 3. Optional: add `SLACK_WEBHOOK_RELEASE` in GitHub for custom notifications (not required when using ASC Notify)
 
-See also [`workers/dart-buddy-slack/README.md`](../../workers/dart-buddy-slack/README.md) for the `/dart-buddy release` worker.
+Post-1.0 slash commands: [`slack-integration.md`](slack-integration.md) · deploy runbook: [`workers/dart-buddy-slack/README.md`](../../workers/dart-buddy-slack/README.md).
 
 ---
 
@@ -115,7 +115,7 @@ See also [`workers/dart-buddy-slack/README.md`](../../workers/dart-buddy-slack/R
 
 1. Merge to `main`; wait for GitHub CI green
 2. Bump `MARKETING_VERSION` in [`project.yml`](../../project.yml) when shipping a new version (build number handled by Xcode Cloud)
-3. Run `/dart-buddy release` in Slack, or **Trigger TestFlight** in GitHub Actions
+3. **Trigger TestFlight** in GitHub Actions (or `/dart-buddy release` in Slack after Worker deploy — see [`slack-integration.md`](slack-integration.md))
 4. Xcode Cloud archives → uploads to TestFlight internal
 5. ASC Notify posts to `#dart-buddy-releases`
 6. Install on a physical device from TestFlight; complete device QA in [`release_checklist.md`](release_checklist.md)
@@ -123,16 +123,9 @@ See also [`workers/dart-buddy-slack/README.md`](../../workers/dart-buddy-slack/R
 
 ---
 
-## Slack `/dart-buddy release`
+## Slack (post-1.0)
 
-Implemented in [`workers/dart-buddy-slack/`](../../workers/dart-buddy-slack/). The Worker calls GitHub `workflow_dispatch` on `trigger-testflight.yml` — it holds a GitHub PAT, not ASC credentials.
-
-| Command | Action |
-|---------|--------|
-| `/dart-buddy release` | Start Release build on `main` |
-| `/dart-buddy release branch:feature/foo` | Start build on named branch |
-
-**Interim (before Worker deploy):** GitHub → Actions → **Trigger TestFlight** → Run workflow.
+Slash-command integration is documented in [`slack-integration.md`](slack-integration.md). Source: [`workers/dart-buddy-slack/`](../../workers/dart-buddy-slack/). Until deployed, use GitHub → Actions → **Trigger TestFlight**.
 
 ---
 

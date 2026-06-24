@@ -16,6 +16,7 @@ Forfeit fills the gap: *"We didn't finish, but I want credit for the darts we th
 **Related specs:** [`MatchSpec.md`](MatchSpec.md), [`HistorySpec.md`](HistorySpec.md), [`StatsSpec.md`](StatsSpec.md), [`MatchSummarySpec.md`](MatchSummarySpec.md), [`NavigationSpec.md`](NavigationSpec.md), [`ScoringInputSpec.md`](ScoringInputSpec.md), [`AccessibilitySpec.md`](AccessibilitySpec.md).
 
 **Status:** **Required for 1.0.0 ship.** No feature flag. Lean 1.0 surfaces forfeit on **X01 + Cricket** only (party modes gated by `ProductSurface`); implementation must still land on **all five shipped engines** so full-surface and post-1.0 builds work without a second pass.
+**Estimated release:** `1.3`
 
 ---
 

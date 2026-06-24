@@ -1,3 +1,5 @@
+**Estimated release:** `1.0`
+
 # Play Home Specification
 
 ## 1. Purpose
@@ -120,6 +122,7 @@ At accessibility Dynamic Type sizes, `GameplayLayout.usesAccessibilitySetupHomeL
 ## 12. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | 2026-06-04 |
 | **Commit** | `0c25396` |
 | **Code** | `PlayHomeViewModel.swift`, `SetupHomeView.swift` |

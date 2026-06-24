@@ -14,6 +14,7 @@ final class PlayerDetailViewModel: ObservableObject {
     @Published private(set) var isCreatingTrainingBot = false
     @Published var trainingBotErrorKey: String?
     @Published private(set) var isExporting = false
+    @Published private(set) var achievementProgress: [PlayerAchievementProgress] = []
 
     private let playerId: UUID
     private let playerName: String
@@ -77,12 +78,14 @@ final class PlayerDetailViewModel: ObservableObject {
             if let cricket {
                 cricketEligibility = TrainingBotEligibilityService.eligibility(breakdown: cricket, mode: .cricket)
             }
+            achievementProgress = try await AchievementHooks.service?.fetchGalleryProgress(playerId: playerId) ?? []
         } catch {
             x01 = nil
             x01TrendPoints = []
             cricket = nil
             recentMatches = []
             lastPlayedAt = nil
+            achievementProgress = []
         }
     }
 

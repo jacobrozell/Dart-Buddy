@@ -1,3 +1,5 @@
+**Estimated release:** `1.2`
+
 # Player Export / Import Specification (DBPE)
 
 ## 1. Purpose
@@ -138,6 +140,7 @@ Documented for format design; not implemented in the export-only pass:
 ## 11. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.2` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | `340f788` |
 | **Code** | `PlayerExportService.swift`, `PlayerDetailView.swift` |

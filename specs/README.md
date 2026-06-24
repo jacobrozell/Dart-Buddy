@@ -5,7 +5,7 @@ Catalog of all product and system specifications. For **audit coverage** (spec +
 ## MVP Baselines (Locked)
 - Landscape and portrait are both required in MVP.
 - Accessibility target is WCAG 2.1 AA.
-- UI strings ship in `en`, `de`, `es`, and `nl` (system locale; see `LocalizationSpec.md`).
+- UI strings ship in `en`, `de`, `es`, `nl`, and `fr` (system locale; see `LocalizationSpec.md`).
 - CI runs unit + accessibility via `DartBuddyCI` on PR; UI smoke runs nightly (`nightly-ui.yml`) and locally via `DartBuddy` scheme.
 - App naming direction avoids "Lite" branding.
 
@@ -66,8 +66,8 @@ Split by **implementation status** (not moved to `docs/` — specs remain author
 
 | Folder | Modes |
 |--------|-------|
-| **[`game-modes/implemented/`](game-modes/implemented/)** | X01, Cricket, Baseball, Killer, Shanghai |
-| **[`game-modes/planned/`](game-modes/planned/)** | 25 traditional stubs + Call & Hit + Guided Practice + **17 custom** modes (see [`game-modes/README.md`](game-modes/README.md) § Custom) |
+| **[`game-modes/implemented/`](game-modes/implemented/)** | 22 shipped modes (Standard, Party, Co-op, Practice) |
+| **[`game-modes/planned/`](game-modes/planned/)** | 12 catalog stubs + Call & Hit + Guided Practice + **17 custom** modes (see [`game-modes/README.md`](game-modes/README.md) § Custom) |
 
 | Implemented spec | Covers |
 |------------------|--------|

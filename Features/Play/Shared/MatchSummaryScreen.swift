@@ -63,6 +63,7 @@ struct MatchSummaryScreen: View {
         .task {
             await viewModel.loadIfNeeded()
             viewModel.refresh()
+            await viewModel.reloadAchievementPresentations()
             if reduceMotion {
                 celebrate = true
             } else {
@@ -93,6 +94,7 @@ struct MatchSummaryScreen: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(maxHeight: max(0, geometry.size.height - 64))
+                    achievementsSection
                 } else {
                     Text(L10n.summaryResult)
                         .font(.title.weight(.heavy))
@@ -140,6 +142,7 @@ struct MatchSummaryScreen: View {
             } else if viewModel.hasResult {
                 celebrationHeader(trophyPointSize: trophySize)
                 playerResultsGrid(axis: .vertical)
+                achievementsSection
             } else {
                 Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(Brand.textPrimary)
             }
@@ -276,6 +279,23 @@ struct MatchSummaryScreen: View {
         ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
             playerCard(row, layout: .fitsWidth)
                 .motionStaggeredReveal(index: index, when: celebrate)
+        }
+    }
+
+    @ViewBuilder
+    private var achievementsSection: some View {
+        if !viewModel.achievementPresentations.isEmpty {
+            VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+                Text(L10n.string("achievements.summary.title"))
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
+                ForEach(viewModel.achievementPresentations) { presentation in
+                    AchievementUnlockRow(presentation: presentation)
+                }
+            }
+            .padding(DS.Spacing.s3)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            .accessibilityIdentifier("matchSummaryAchievements")
         }
     }
 

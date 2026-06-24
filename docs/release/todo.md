@@ -73,6 +73,8 @@ Full audit via XcodeBuildMCP + iOS Simulator MCP. **40/40** `WCAGAccessibilityUI
 
 ## 1.0 — Skip (post-1.0 or explicitly deferred)
 
+- [ ] **Slack release ops** — ASC Notify → `#dart-buddy-releases`; optional `/dart-buddy` Worker deploy. Checklist: [`slack-integration.md`](slack-integration.md).
+
 Do not block 1.0 on these.
 
 ### Deferred product

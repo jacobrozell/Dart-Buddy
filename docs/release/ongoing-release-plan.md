@@ -2,7 +2,7 @@
 
 Strategy: ship a **small, well-tested core** first, then add surface area in versioned slices. Each release has explicit **in / out / hide** boundaries, a **QA bar**, and **exit criteria** before the next slice ships.
 
-**Companion docs:** [`feature-inventory.md`](../feature-inventory.md) (what exists) · [`todo.md`](todo.md) (current sprint) · [`release_checklist.md`](release_checklist.md) (device QA — **needs update** for Activity/Modes IA)
+**Companion docs:** [`feature-inventory.md`](../feature-inventory.md) (what exists) · [`branch-strategy.md`](branch-strategy.md) (`dev` vs `release/*`) · [`release-tagging.md`](release-tagging.md) (store release tags) · [`estimated-release-registry.md`](estimated-release-registry.md) (per-feature train) · [`todo.md`](todo.md) (current sprint) · [`release_checklist.md`](release_checklist.md) (device QA — **needs update** for Activity/Modes IA)
 
 **Last reviewed:** 2026-06-22
 
@@ -299,14 +299,16 @@ Already planned / assessed — no code in binary today:
 
 ## Version ↔ feature map (quick reference)
 
-| Version | Modes | Tabs | Bots | Discovery |
-|---------|-------|------|------|-----------|
-| **1.0** | X01, Cricket | 4 (no Modes) | Preset | Play setup Standard |
-| **1.1** | + Baseball, Killer, Shanghai | 4 or 5 | Preset | Party setup or Modes |
-| **1.2** | Same | 4–5 | + Training, Custom | Same |
-| **1.3** | Same 8 playable | 5 | Same | Full catalog UI |
-| **1.4** | Same | 5 | Same | + Siri/widgets |
-| **2.0** | +1 batch or platform | 5+ | Same | TBD |
+Per-feature tags: [`estimated-release-registry.md`](estimated-release-registry.md). **Code on `dev` may ship earlier than the store tag.**
+
+| Version | Modes (user-facing) | Tabs | Bots | Discovery |
+|---------|---------------------|------|------|-----------|
+| **1.0** | X01, Cricket | 4 (no Modes) | Preset + custom | Play setup Standard |
+| **1.1** | + Baseball, Killer, Shanghai | 4 or 5 | Preset + custom | Party setup |
+| **1.2** | Same | 4–5 | + Training Partner | + export · localized listings |
+| **1.3** | + American Cricket, Knockout, Golf, … (party wave II) | 5 | Same | Modes catalog |
+| **1.4** | + Raid, Fleet, practice drills | 5 | Same | + Siri/widgets |
+| **2.0** | Growth bet | 5+ | Same | Achievements UI, etc. |
 
 ---
 

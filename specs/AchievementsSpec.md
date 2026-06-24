@@ -6,7 +6,8 @@ Define **local, profile-attributed achievements** for Dart Buddy: eligibility ru
 
 **Related specs:** Profile presentation — [`BadgesSpec.md`](BadgesSpec.md). Post-match surface — [`MatchSummarySpec.md`](MatchSummarySpec.md). Stats inputs — [`StatsSpec.md`](StatsSpec.md). Campaign (separate reward layer) — [`CampaignSpec.md`](CampaignSpec.md). Future Game Center catalog — [`FutureIdeas/achievements.md`](../FutureIdeas/achievements.md). Reset — [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md).
 
-**Status:** Post-1.0 R&D — feature-flagged until implementation. Product rules below are **directional** until implementation locks them; Game Center reporting is **out of scope** for the first ship.
+**Status:** Post-1.0 R&D — **domain layer landed** (evaluator, service, repository); feature-flagged until hooks, summary UI, and unit tests ship.
+**Estimated release:** `2.0`
 
 ---
 
@@ -262,6 +263,7 @@ Allowlisted events (add to [`FirebaseBackendAnalyticsSpec.md`](FirebaseBackendAn
 
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `2.0` |
 | **Last verified** | 2026-06-11 |
 | **Commit** | (spec authoring — no implementation yet) |
 | **Code** | (planned) `Domain/Achievements/`, `MatchSummaryScreen.swift` |

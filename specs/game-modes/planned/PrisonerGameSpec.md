@@ -4,6 +4,7 @@
 Define Prisoner — around-the-clock with captive darts in the inner board — for future implementation.
 
 **Status:** Planned (`party.prisoner`).
+**Estimated release:** `TBD`
 
 References: [darts501.com — Prisoner](https://darts501.com/Games.html), [Darts Corner](https://www.dartscorner.com/blogs/how-to/what-darts-games-can-you-play).
 
@@ -82,6 +83,7 @@ Replay restores progress, prisoners, pools.
 |---|---|
 | **Key prefix** | `play.rules.prisoner.` |
 | **Shipped in app** | Planned |
+| **Estimated release** | `TBD` |
 
 ### Overview
 | **Title key** | `play.rules.prisoner.overview.title` |

@@ -1,0 +1,28 @@
+{
+  "localizable": [
+    "app.brandTitle",
+    "customBot.advanced.x01Section",
+    "history.lineScore.emptyCell",
+    "history.timeline.fleetDartFormat",
+    "modes.catalog.standard.x01.name",
+    "play.baseball.playoffRoundFormat",
+    "play.baseball.setup.inningsValue",
+    "play.baseball.thisInningFormat",
+    "play.baseball.totalRunsFormat",
+    "play.fleet.placement.shipsPlacedFormat",
+    "play.shanghai.thisRoundFormat",
+    "play.x01.checkout.optionIndexFormat",
+    "play.x01.title",
+    "players.detail.identity.accessibilityFormat",
+    "players.row.accessibilityFormat",
+    "scoring.checkout.doubleFormat",
+    "scoring.checkout.tripleFormat",
+    "scoring.dart.single.accessibility",
+    "settings.mode.x01"
+  ],
+  "gameplayModes": [
+    "play.aroundTheClock180.runningTotalFormat",
+    "play.golf.scorecard.totalFormat",
+    "play.suddenDeath.thisRoundFormat"
+  ]
+}

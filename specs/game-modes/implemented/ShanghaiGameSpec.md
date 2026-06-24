@@ -1,3 +1,5 @@
+**Estimated release:** `1.1`
+
 # Shanghai Game Specification
 
 ## 1. Purpose
@@ -88,6 +90,7 @@ Replay from `ShanghaiTurnEvent` list restores round, scratch totals, cumulative 
 |---|---|
 | **Key prefix** | `play.rules.shanghai.` |
 | **Shipped in app** | Yes (`GameRulesCatalog.shanghai`) |
+| **Estimated release** | `1.1` |
 
 ### Overview
 | **Title key** | `play.rules.shanghai.overview.title` |

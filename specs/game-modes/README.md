@@ -18,7 +18,8 @@ When a planned mode ships:
 3. Update [`docs/feature-inventory.md`](../../docs/feature-inventory.md) and [`specs/README.md`](../README.md).
 4. Register `GameRulesCatalog` + `play.rules.{mode}.*` keys per spec § Localization.
 5. If the mode persists setup chips: register reset per [`DeleteAllDataSpec.md`](../DeleteAllDataSpec.md) §6.2 and §7.
-6. **Match forfeit (automatic via shared chrome):** per [`MatchForfeitSpec.md`](../MatchForfeitSpec.md) §6.7 — add `MatchForfeitStandingsRegistry` case, `MatchPlaySessionHost` on ViewModel, `.matchLifecycleChrome` on screen; run `everyShippedMatchTypeHasForfeitStandingsRegistered`.
+6. Set **Estimated release** in [`estimated-releases.json`](../../docs/release/estimated-releases.json) and run `Scripts/sync_estimated_release_tags.py`.
+7. **Match forfeit (automatic via shared chrome):** per [`MatchForfeitSpec.md`](../MatchForfeitSpec.md) §6.7 — add `MatchForfeitStandingsRegistry` case, `MatchPlaySessionHost` on ViewModel, `.matchLifecycleChrome` on screen; run `everyShippedMatchTypeHasForfeitStandingsRegistered`.
 
 Catalog source: [`Features/Modes/GameModeCatalog.swift`](../../Features/Modes/GameModeCatalog.swift).
 
@@ -29,17 +30,34 @@ Catalog source: [`Features/Modes/GameModeCatalog.swift`](../../Features/Modes/Ga
 | [`CoopPvEModesSpec.md`](../CoopPvEModesSpec.md) | Cross-mode contract + **§13 progress**; UI §7, Learn §8, a11y §9, light/dark §7.5 |
 | [`InVisitSequenceProgressionSupplement.md`](InVisitSequenceProgressionSupplement.md) | Multi-target visits (Around the Clock, Nine Lives, Hare and Hounds, Chase the Dragon) — engine + `DartNumberPad` projection |
 
-## Implemented (5)
+## Implemented (22)
 
 - [`X01GameSpec.md`](implemented/X01GameSpec.md)
 - [`CricketSpec.md`](implemented/CricketSpec.md)
+- [`AmericanCricketGameSpec.md`](implemented/AmericanCricketGameSpec.md)
 - [`BaseballGameSpec.md`](implemented/BaseballGameSpec.md) · [`BaseballModeDeferredWorkPlan.md`](implemented/BaseballModeDeferredWorkPlan.md)
 - [`KillerGameSpec.md`](implemented/KillerGameSpec.md)
 - [`ShanghaiGameSpec.md`](implemented/ShanghaiGameSpec.md)
+- [`MickeyMouseGameSpec.md`](implemented/MickeyMouseGameSpec.md)
+- [`MulliganGameSpec.md`](implemented/MulliganGameSpec.md)
+- [`EnglishCricketGameSpec.md`](implemented/EnglishCricketGameSpec.md)
+- [`KnockoutGameSpec.md`](implemented/KnockoutGameSpec.md)
+- [`SuddenDeathGameSpec.md`](implemented/SuddenDeathGameSpec.md)
+- [`FiftyOneByFivesGameSpec.md`](implemented/FiftyOneByFivesGameSpec.md)
+- [`GolfGameSpec.md`](implemented/GolfGameSpec.md)
+- [`FootballGameSpec.md`](implemented/FootballGameSpec.md)
+- [`GrandNationalGameSpec.md`](implemented/GrandNationalGameSpec.md)
+- [`HareAndHoundsGameSpec.md`](implemented/HareAndHoundsGameSpec.md)
+- [`FleetGameSpec.md`](implemented/FleetGameSpec.md)
+- [`RaidGameSpec.md`](implemented/RaidGameSpec.md)
+- [`AroundTheClockGameSpec.md`](implemented/AroundTheClockGameSpec.md)
+- [`AroundTheClock180GameSpec.md`](implemented/AroundTheClock180GameSpec.md)
+- [`ChaseTheDragonGameSpec.md`](implemented/ChaseTheDragonGameSpec.md)
+- [`NineLivesGameSpec.md`](implemented/NineLivesGameSpec.md)
 
-## Planned (42)
+## Planned (12 catalog stubs + R&D)
 
-See [`planned/`](planned/) — traditional catalog stubs, Call & Hit, Guided Practice, and **17 custom modes** below.
+See [`planned/`](planned/) — 12 catalog stubs (Blind Killer, Follow the Leader, Loop, Prisoner, Scam, Snooker, Tic-Tac-Toe, Cerberus, The Vault, Clear the Board, Bob's 27, Halve-It), Call & Hit, Guided Practice, and **17 custom** modes below.
 
 ### Custom / co-op (brainstorm → spec)
 
@@ -47,8 +65,8 @@ See [`planned/`](planned/) — traditional catalog stubs, Call & Hit, Guided Pra
 |-----|--------|
 | [`FutureIdeas/custom-games-brainstorm.md`](../../FutureIdeas/custom-games-brainstorm.md) | R&D index; trim pass + core roster |
 | **Flagship (specced)** | |
-| [`RaidGameSpec.md`](planned/RaidGameSpec.md) | Co-op PvE boss — Shield → Expose → Enrage |
-| [`FleetGameSpec.md`](planned/FleetGameSpec.md) | Battleship — hidden fleet, call-and-throw hunt |
+| [`RaidGameSpec.md`](implemented/RaidGameSpec.md) | Co-op PvE boss — Shield → Expose → Enrage |
+| [`FleetGameSpec.md`](implemented/FleetGameSpec.md) | Battleship — hidden fleet, call-and-throw hunt |
 | [`ClearTheBoardGameSpec.md`](planned/ClearTheBoardGameSpec.md) | Ring-cell sweep — co-op + Team vs Team |
 | **Tier S — brand** | |
 | [`EchoGameSpec.md`](planned/EchoGameSpec.md) | Voice-only duel — Hit/Miss verify, lives |

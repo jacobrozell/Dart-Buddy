@@ -132,6 +132,7 @@ Full table with QA gates: [`README.md`](../README.md#documentation-map).
 4. **New Analytics/Crashlytics event** → §12 catalog + allowlist + tests (same PR).
 5. **Schema change** → `SwiftData.md` + `DataSchemaSpec.md` + affected feature specs (no full field dumps in feature specs).
 6. **Shipped / partial / planned status change** → [`docs/feature-inventory.md`](../docs/feature-inventory.md) row for that feature (same PR when behavior ships or is gated).
+7. **Store release tag change** → [`docs/release/estimated-releases.json`](../docs/release/estimated-releases.json) + `Scripts/sync_estimated_release_tags.py` + registry table in same PR.
 
 ---
 
@@ -147,11 +148,14 @@ Every feature spec ends with:
 ## N. Verification
 | Field | Value |
 |-------|--------|
+| **Estimated release** | `1.0` |
 | **Last verified** | YYYY-MM-DD |
 | **Commit** | `abc1234` |
 | **Code** | `PrimaryFile.swift`, … |
 | **Catalog id** | `party.shanghai` (game mode specs only) |
 ```
+
+**Estimated release** = target App Store semver when users first get the feature (not the same as shipped-on-`dev`). Allowed values and policy: [`docs/release/release-tagging.md`](../docs/release/release-tagging.md). Source of truth: [`docs/release/estimated-releases.json`](../docs/release/estimated-releases.json) — run `Scripts/sync_estimated_release_tags.py` after edits.
 
 Bump **Last verified** and **Commit** when behavior in that spec changes.
 
@@ -159,7 +163,7 @@ Bump **Last verified** and **Commit** when behavior in that spec changes.
 |--------------|------|-------------------|
 | Play home | `PlayHomeSpec.md` | `PlayHomeViewModel`, `SetupHomeView` |
 | Match setup | `SetupFlowSpec.md` | `MatchSetupViewModel`, setup chip extensions |
-| Quick add player | `QuickAddPlayerSpec.md` | `QuickAddPlayerScreen`, `PendingMatchPlayerSelections` |
+| Quick add player | `QuickAddPlayerSpec.md` | `PlayerEditSheet`, `MatchSetupViewModel`, `PendingMatchPlayerSelections` |
 | Scoring input | `ScoringInputSpec.md` | `DartNumberPad`, shared gameplay chrome |
 | Visual dartboard input | `VisualDartboardInputSpec.md` | `VisualDartboardInput`, `BoardHitResolver` |
 | Match lifecycle | `MatchSpec.md` | `MatchLifecycleService`, repositories |
@@ -168,9 +172,9 @@ Bump **Last verified** and **Commit** when behavior in that spec changes.
 | Cricket | `game-modes/implemented/CricketSpec.md` | `CricketEngine`, `CricketMatchViewModel` |
 | Shanghai | `game-modes/implemented/ShanghaiGameSpec.md` | `ShanghaiEngine`, `Features/Play/Shanghai/` |
 | Baseball / Killer (party) | `game-modes/implemented/BaseballGameSpec.md`, `KillerGameSpec.md` | Party engines |
-| Planned modes (24) | `specs/game-modes/planned/` | `GameModeCatalog` stubs only |
+| Planned modes (12) | `specs/game-modes/planned/` | `GameModeCatalog` stubs only |
 | Modes tab | `ModesTabSpec.md` | `ModesRootView`, `GameModeCatalog` |
-| Co-op platform | `CoopPvEModesSpec.md` | `GameModeCatalog` (§ `.coop`); Raid engine TBD |
+| Co-op platform | `CoopPvEModesSpec.md` | `RaidEngine`, `Features/Play/Raid/`, `GameModeCatalog` |
 | Preset bots | `BotOpponentSpec.md` | `DartBotEngine`, `BotDifficulty` |
 | Training bots | `TrainingBotSpec.md` | `TrainingBotSkillResolver`, Player Detail |
 | Custom bots | `CustomBotSpec.md` | `CustomBotDetailView`, `CustomBotCreationSheet` |
@@ -185,8 +189,8 @@ Bump **Last verified** and **Commit** when behavior in that spec changes.
 | App Intents | `AppIntentsSpec.md` | `IntentRoutingBridge`, `Intents/` |
 | App shell | `AppShellSpec.md` | `DartBuddyApp`, `MainTabView` |
 | Telemetry | `FirebaseBackendAnalyticsSpec.md` §12 | `Firebase*EventMapping.swift` |
-| Local achievements | `AchievementsSpec.md` | (planned) `AchievementEvaluator`, `MatchSummaryScreen` |
-| Profile badges UI | `BadgesSpec.md` | (planned) `BadgeMedal`, `PlayerDetailView` |
+| Local achievements | `AchievementsSpec.md` | `AchievementEvaluator`, `DefaultAchievementService`, `AchievementHooks` |
+| Profile badges UI | `BadgesSpec.md` | `BadgeMedal`, `PlayerAchievementGallerySection` |
 | Campaign / Journey | `CampaignSpec.md` | (planned) `Features/Campaign/` |
 | Daily challenge | `DailyChallengeSpec.md` | (planned) `DailyChallengeService` |
 
