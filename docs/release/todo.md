@@ -27,7 +27,7 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ### RC / TestFlight
 
-- [ ] Local `DartBuddyCI` + `DartBuddyUILean` green on RC commit
+- [x] Local `DartBuddyCI` + `DartBuddyUILean` green on RC commit
 - [ ] Optional local Release archive smoke (signing + Crashlytics dSYM)
 - [ ] Trigger TestFlight — GHA **Trigger TestFlight** → `release/1.1.0`
 - [ ] Fill RC record in ship checklist (commit SHA, build #, tester, device)
