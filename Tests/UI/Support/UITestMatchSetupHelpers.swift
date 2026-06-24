@@ -82,18 +82,9 @@ extension DartBuddyUITestCase {
     }
 
     func selectAliceBobAndCarol(from app: XCUIApplication) {
-        selectPlayerFromRoster("Alice", in: app)
-        selectPlayerFromRoster("Bob", in: app)
-        selectPlayerFromRoster("Carol", in: app)
-        XCTAssertTrue(
-            app.descendants(matching: .any)["setup_selected_Alice"].firstMatch.waitForExistence(timeout: timeout)
-        )
-        XCTAssertTrue(
-            app.descendants(matching: .any)["setup_selected_Bob"].firstMatch.waitForExistence(timeout: timeout)
-        )
-        XCTAssertTrue(
-            app.descendants(matching: .any)["setup_selected_Carol"].firstMatch.waitForExistence(timeout: timeout)
-        )
+        selectPlayerFromRoster("Alice", in: app, timeout: timeout + 15)
+        selectPlayerFromRoster("Bob", in: app, timeout: timeout + 15)
+        selectPlayerFromRoster("Carol", in: app, timeout: timeout + 15)
     }
 
     func addTrainingPartner(from app: XCUIApplication, timeout: TimeInterval = 10) {

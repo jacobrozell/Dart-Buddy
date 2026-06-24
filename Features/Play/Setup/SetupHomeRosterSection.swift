@@ -221,35 +221,7 @@ struct SetupHomeRosterSection: View {
                 if setupViewModel.randomOrder {
                     BrandHelperText(message: L10n.setupTurnOrderRandomHint, icon: "shuffle")
                 }
-                if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
-                    accessibilityTurnOrderList
-                } else {
-                    List {
-                        ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
-                            selectedRosterRow(player: player, position: index + 1)
-                                .listRowBackground(Brand.cardElevated)
-                                .listRowSeparatorTint(Brand.card)
-                                .listRowInsets(
-                                    EdgeInsets(
-                                        top: turnOrderRowVerticalInset,
-                                        leading: DS.Spacing.s1,
-                                        bottom: turnOrderRowVerticalInset,
-                                        trailing: DS.Spacing.s1
-                                    )
-                                )
-                        }
-                        .onMove { source, destination in
-                            setupViewModel.moveSelectedPlayers(from: source, to: destination)
-                        }
-                    }
-                    .listStyle(.plain)
-                    .listRowSpacing(DS.Spacing.s1)
-                    .scrollContentBackground(.hidden)
-                    .scrollDisabled(true)
-                    .environment(\.editMode, .constant(turnOrderEditMode))
-                    .frame(height: turnOrderListHeight)
-                    .accessibilityIdentifier("setup_turnOrderList")
-                }
+                accessibilityTurnOrderList
             }
         }
     }
@@ -275,15 +247,6 @@ struct SetupHomeRosterSection: View {
                 }
             }
         }
-    }
-
-    private var turnOrderEditMode: EditMode {
-        if voiceOverEnabled
-            || GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
-        {
-            return .inactive
-        }
-        return .active
     }
 
     private var accessibilityTurnOrderList: some View {
@@ -485,15 +448,6 @@ struct SetupHomeRosterSection: View {
             return L10n.format("players.bots.roster.accessibilityFormat", player.name, difficulty.displayName)
         }
         return player.name
-    }
-
-    private var turnOrderListHeight: CGFloat {
-        let count = setupViewModel.selectedPlayers.count
-        guard count > 0 else { return 0 }
-        let contentHeight = max(rosterRowHeight, 44)
-        let rowHeight = contentHeight + (turnOrderRowVerticalInset * 2)
-        let spacing = DS.Spacing.s1 * CGFloat(max(0, count - 1))
-        return CGFloat(count) * rowHeight + spacing
     }
 }
 

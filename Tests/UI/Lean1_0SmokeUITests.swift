@@ -169,8 +169,8 @@ final class Lean1_0SmokeUITests: DartBuddyUITestCase {
         let app = launchLeanApp(["-seed_players"])
         ensureSettingsTab(app, timeout: timeout)
 
-        XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Starting Mode"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["settings_themePicker"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.descendants(matching: .any)["settings_defaultModePicker"].waitForExistence(timeout: timeout))
         scrollToFeedbackSwitches(app)
         XCTAssertTrue(app.switches["settings_soundToggle"].waitForExistence(timeout: timeout))
     }

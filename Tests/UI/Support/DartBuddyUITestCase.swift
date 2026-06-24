@@ -50,6 +50,7 @@ class DartBuddyUITestCase: XCTestCase {
             "-ui_test_reset",
             "-disable_firebase_analytics",
             "-skip_release_highlights",
+            "-skip_onboarding",
         ] + extraArguments
         applyDefaultLaunchEnvironment(to: app)
         if let localeLanguage, let localeIdentifier {

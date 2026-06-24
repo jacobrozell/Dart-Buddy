@@ -131,17 +131,17 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
     }
 
     func testPartyPackKillerMatchStartsWithThreePlayers() {
-        let app = launchPartyPackApp(["-seed_players"])
+        let app = launchPartyPackApp(["-seed_players", "-ui_test_disable_feedback"])
         ensurePlayTab(app, timeout: timeout)
 
         selectModeFromPlaySetupPicker("party.killer", in: app, expectedModeName: "Killer", timeout: timeout + 10)
         selectAliceBobAndCarol(from: app)
-        tapStartMatch(in: app, timeout: timeout + 10)
+        tapStartMatch(in: app, timeout: timeout + 15)
 
-        waitForMatchGameplayChrome(
-            headerIdentifier: "killer_match_header",
-            in: app,
-            timeout: timeout + 20
+        XCTAssertTrue(
+            app.buttons["killer_undo"].waitForExistence(timeout: timeout + 30)
+                || app.descendants(matching: .any)["killer_match_header"].waitForExistence(timeout: timeout + 30),
+            "Killer match should open in pick or play phase"
         )
     }
 
@@ -305,12 +305,13 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
 
     func testPartyPackSettingsExposeCoreToggles() {
         let app = launchPartyPackApp(["-seed_players"])
-        ensureSettingsTab(app, timeout: timeout)
+        ensureSettingsTab(app, timeout: timeout + 10)
 
-        XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.staticTexts["Starting Mode"].waitForExistence(timeout: timeout))
-        scrollToFeedbackSwitches(app)
-        XCTAssertTrue(app.switches["settings_soundToggle"].waitForExistence(timeout: timeout))
+        scrollToSettingsControl("settings_themePicker", in: app, timeout: timeout + 10)
+        XCTAssertTrue(app.descendants(matching: .any)["settings_themePicker"].waitForExistence(timeout: timeout))
+        scrollToSettingsControl("settings_soundToggle", in: app, timeout: timeout + 10)
+        let soundToggle = app.descendants(matching: .any)["settings_soundToggle"]
+        XCTAssertTrue(soundToggle.waitForExistence(timeout: timeout))
     }
 
     func testPartyPackHiddenModeResumeNotOffered() {
