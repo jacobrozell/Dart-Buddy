@@ -25,6 +25,9 @@ public struct DefaultRedactionPolicy: RedactionPolicy {
 
     public func redact(metadata: [String: String]) -> [String: String] {
         metadata.reduce(into: [:]) { partialResult, pair in
+            guard !AnalyticsMetadataKeys.isBlockedPersonalDataKey(pair.key) else {
+                return
+            }
             let lowercasedKey = pair.key.lowercased()
             guard allowedMetadataKeys.contains(pair.key) else {
                 return

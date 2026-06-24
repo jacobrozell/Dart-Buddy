@@ -40,110 +40,31 @@ struct PlayersRootView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            VStack(spacing: DS.Spacing.s3) {
-                HStack(alignment: .center) {
-                    BrandRootScreenTitle(title: L10n.playersTitle)
-                    Spacer(minLength: DS.Spacing.s2)
-                    if viewModel.state == .error {
-                        Button(L10n.retry) {
-                            retryTask?.cancel()
-                            retryTask = Task { await viewModel.onAppear() }
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .tint(Brand.green)
-                    } else {
-                        playersToolbarMenu
-                    }
-                }
-                .padding(.horizontal, DS.Spacing.s4)
-                .readableRootContentWidth(horizontalSizeClass)
-
-                searchField
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .readableRootContentWidth(horizontalSizeClass)
-
-                Group {
-                    if viewModel.state == .loading {
-                        ProgressView()
-                            .tint(Brand.green)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DS.Spacing.s6)
-                            .accessibilityLabel(L10n.loading)
-                    } else if viewModel.state == .error {
-                        ContentUnavailableView(
-                            L10n.errorTitle,
-                            systemImage: "exclamationmark.triangle",
-                            description: Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
-                                .foregroundStyle(Brand.textSecondary)
-                        )
-                        .brandScoreboardEmptyState()
-                    } else if viewModel.filteredHumans.isEmpty && viewModel.filteredBots.isEmpty {
-                        if horizontalSizeClass == .regular {
-                            VStack {
-                                ContentUnavailableView(
-                                    L10n.playersEmptyTitle,
-                                    systemImage: "person.2",
-                                    description: Text(L10n.playersEmptyDescription)
-                                        .foregroundStyle(Brand.textSecondary)
-                                )
-                                .brandScoreboardEmptyState()
-                            }
-                            .frame(maxWidth: 560)
-                            .padding(.vertical, DS.Spacing.s6)
-                            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-                        } else {
-                            ContentUnavailableView(
-                                L10n.playersEmptyTitle,
-                                systemImage: "person.2",
-                                description: Text(L10n.playersEmptyDescription)
-                                    .foregroundStyle(Brand.textSecondary)
-                            )
-                            .brandScoreboardEmptyState()
-                        }
-                    } else {
-                        List {
-                            if !viewModel.filteredHumans.isEmpty {
-                                Section(L10n.playersSectionTitle) {
-                                    ForEach(viewModel.filteredHumans) { player in
-                                        playerRow(player)
-                                    }
-                                }
-                            }
-                            Section(L10n.botsSectionTitle) {
-                                ForEach(viewModel.filteredBots) { bot in
-                                    playerRow(bot)
-                                }
-                            }
-                        }
-                        .listStyle(.plain)
-                        .scrollContentBackground(.hidden)
-                        .tabRootScrollChrome()
-                    }
-                }
-                .motionTabContentReveal(when: viewModel.state != .loading)
-                .readableRootContentWidth(horizontalSizeClass)
+            VStack(spacing: 0) {
+                playersListHeader
+                playersBody
             }
             .tabRootScreenBackground()
-            .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
-            .navigationBarHidden(true)
-            .safeAreaInset(edge: .bottom) {
-                if viewModel.state != .error && viewModel.players.isEmpty {
-                    Button {
-                        playerSheet = .add()
-                    } label: {
-                        Text(L10n.addPlayerTitle)
+                .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
+                .navigationBarHidden(true)
+                .safeAreaInset(edge: .bottom) {
+                    if viewModel.state != .error && viewModel.players.isEmpty {
+                        Button {
+                            playerSheet = .add()
+                        } label: {
+                            Text(L10n.addPlayerTitle)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Brand.green)
+                        .controlSize(.large)
+                        .padding(.horizontal, DS.Spacing.s4)
+                        .padding(.vertical, DS.Spacing.s2)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Brand.green)
-                    .controlSize(.large)
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.vertical, DS.Spacing.s2)
                 }
-            }
-            .task {
-                await viewModel.onAppear()
-                applyCustomBotSnapshotNavigationIfNeeded()
-            }
+                .task {
+                    await viewModel.onAppear()
+                    applyCustomBotSnapshotNavigationIfNeeded()
+                }
             .navigationDestination(for: PlayersRoute.self) { route in
                 switch route {
                 case .list:
@@ -241,6 +162,99 @@ struct PlayersRootView: View {
                 retryTask?.cancel()
             }
         }
+    }
+
+    @ViewBuilder
+    private var playersBody: some View {
+        if viewModel.state == .loading {
+            ProgressView()
+                .tint(Brand.green)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.vertical, DS.Spacing.s6)
+                .accessibilityLabel(L10n.loading)
+        } else if viewModel.state == .error {
+            ContentUnavailableView(
+                L10n.errorTitle,
+                systemImage: "exclamationmark.triangle",
+                description: Text(LocalizedStringKey(viewModel.errorMessageKey ?? "error.repository.storage"))
+                    .foregroundStyle(Brand.textSecondary)
+            )
+            .brandScoreboardEmptyState()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if viewModel.filteredHumans.isEmpty && viewModel.filteredBots.isEmpty {
+            if horizontalSizeClass == .regular {
+                VStack {
+                    ContentUnavailableView(
+                        L10n.playersEmptyTitle,
+                        systemImage: "person.2",
+                        description: Text(L10n.playersEmptyDescription)
+                            .foregroundStyle(Brand.textSecondary)
+                    )
+                    .brandScoreboardEmptyState()
+                }
+                .frame(maxWidth: 560)
+                .padding(.vertical, DS.Spacing.s6)
+                .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ContentUnavailableView(
+                    L10n.playersEmptyTitle,
+                    systemImage: "person.2",
+                    description: Text(L10n.playersEmptyDescription)
+                        .foregroundStyle(Brand.textSecondary)
+                )
+                .brandScoreboardEmptyState()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        } else {
+            List {
+                if !viewModel.filteredHumans.isEmpty {
+                    Section(L10n.playersSectionTitle) {
+                        ForEach(viewModel.filteredHumans) { player in
+                            playerRow(player)
+                        }
+                    }
+                }
+                if !viewModel.filteredBots.isEmpty {
+                    Section(L10n.botsSectionTitle) {
+                        ForEach(viewModel.filteredBots) { bot in
+                            playerRow(bot)
+                        }
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .tabRootScrollChrome()
+            .motionTabContentReveal(when: true)
+            .readableRootContentWidth(horizontalSizeClass)
+        }
+    }
+
+    private var playersListHeader: some View {
+        VStack(spacing: DS.Spacing.s3) {
+            HStack(alignment: .center) {
+                BrandRootScreenTitle(title: L10n.playersTitle)
+                Spacer(minLength: DS.Spacing.s2)
+                if viewModel.state == .error {
+                    Button(L10n.retry) {
+                        retryTask?.cancel()
+                        retryTask = Task { await viewModel.onAppear() }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .tint(Brand.green)
+                } else {
+                    playersToolbarMenu
+                }
+            }
+
+            searchField
+        }
+        .padding(.horizontal, DS.Spacing.s4)
+        .readableRootContentWidth(horizontalSizeClass)
+        .frame(maxWidth: .infinity)
+        .background(Brand.background)
     }
 
     private func applyCustomBotSnapshotNavigationIfNeeded() {

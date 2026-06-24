@@ -78,11 +78,11 @@ Highlights from the current development arc:
 | **Tabs** | Play · Players · Activity · Settings | Modes catalog |
 | **Bots** | Preset + custom | Training Partner |
 | **Locale** | English only (`de`/`es`/`nl` files stay in repo) | In-app language picker |
-| **Other** | Onboarding, rules sheet, migration recovery | Player export, App Intents |
+| **Other** | Onboarding, rules sheet | Player export, App Intents |
 
 **Telemetry:** Firebase Analytics + Crashlytics in Release builds with a real plist (allowlisted events only; off in Debug/CI unless opted in).
 
-**Remaining for App Store:** Device QA on lean matrix, accessibility evidence, migration recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md) · [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md).
+**Remaining for App Store:** Device QA on lean matrix, accessibility evidence, bootstrap store recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md) · [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md).
 
 ---
 

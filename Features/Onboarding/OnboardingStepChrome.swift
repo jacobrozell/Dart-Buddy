@@ -71,9 +71,7 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
                             .frame(maxWidth: contentMaxWidth)
                             .frame(maxWidth: .infinity)
                             .frame(
-                                minHeight: horizontalSizeClass == .regular
-                                    ? max(0, geometry.size.height - footerReservedHeight)
-                                    : nil,
+                                minHeight: max(0, geometry.size.height - footerReservedHeight),
                                 alignment: .center
                             )
                             .padding(.horizontal, DS.Spacing.s4)

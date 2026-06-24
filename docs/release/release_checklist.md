@@ -199,21 +199,20 @@ Spec reference: [`../../specs/SmokeTestChecklist.md`](../../specs/SmokeTestCheck
 - [ ] Reset → confirm → relaunch: empty players/history, Play home clean, no ghost active match
 - [ ] Log in [`../../roadmap/reports/Phase06-Security-Privacy-Checklist.md`](../../roadmap/reports/Phase06-Security-Privacy-Checklist.md)
 
-### Migration recovery (manual smoke)
+### Bootstrap store recovery (manual smoke)
 
-Architecture ready; **device proof** still required — [`../../roadmap/reports/Phase06-Migration-Safety-Report.md`](../../roadmap/reports/Phase06-Migration-Safety-Report.md).
+Automatic recovery via `BootstrapStoreRecovery` — **device proof** still required — [`../../roadmap/reports/Phase06-Migration-Safety-Report.md`](../../roadmap/reports/Phase06-Migration-Safety-Report.md).
 
-**Trigger recovery UI (pick one):**
+**Trigger (pick one):**
 
-1. **Forced failure:** Create data → quit app → delete/truncate `Application Support/DartBuddy.sqlite` (+ `-shm`/`-wal`) → relaunch → recovery screen.
-2. **Upgrade path:** Install prior TestFlight/RC with data → install 1.0 RC → verify intact OR recovery if failure injected.
+1. **Forced failure:** Create data → quit app → delete/truncate `Application Support/DartBuddy.sqlite` (+ `-shm`/`-wal`) → relaunch → app opens with empty store (no crash, no blocking screen).
+2. **Upgrade path:** Install prior TestFlight/RC with data → install 1.0 RC → verify data intact.
 
-**On recovery screen:**
+**On relaunch after forced failure:**
 
-- [ ] **Retry** — succeeds or fails gracefully (no crash)
-- [ ] **Export diagnostics** — file produced; share sheet works
-- [ ] **Reset local data** — destructive confirm → clean bootstrap
-- [ ] VoiceOver: retry, export, reset ([`../../accessibility/Manual_todo.md`](../../accessibility/Manual_todo.md) § Migration recovery)
+- [ ] App reaches main tabs without crash
+- [ ] Play home is usable (fresh store)
+- [ ] Optional: confirm backup file logged (`bootstrap_store_backed_up` in device logs)
 
 **First-ship note:** If schema unchanged since last beta, real-user migration may be N/A — still run (1) or mark **Blocked** with reason in Phase06 report.
 
@@ -240,7 +239,6 @@ Architecture ready; **device proof** still required — [`../../roadmap/reports/
 - [ ] Play → setup → **Cricket (Cut Throat)** → at least one submitted turn
 - [ ] Resume banner / active match when present
 - [ ] Settings reset confirmation (destructive)
-- [ ] Migration recovery (if triggered in §5)
 
 ### VoiceOver — high-risk spot checks
 

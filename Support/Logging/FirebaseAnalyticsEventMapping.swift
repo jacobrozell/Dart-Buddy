@@ -18,6 +18,9 @@ public enum FirebaseAnalyticsEventMapping {
         "play_home_active_match",
         "match_setup_start",
         "match_started",
+        "game_mode_played",
+        "game_mode_completed",
+        "match_resumed",
         "match_setup_baseball",
         "match_screen_appeared",
         "match_completed",
@@ -29,7 +32,7 @@ public enum FirebaseAnalyticsEventMapping {
         "match_forfeit_failed",
         "match_start_failed",
         "turn_persist_failed",
-        "app_bootstrap_migration_failure",
+        "bootstrap_store_open_failed",
         "deep_link_received",
         "deep_link_applied",
         "deep_link_deferred",
@@ -64,11 +67,6 @@ public enum FirebaseAnalyticsEventMapping {
     }
 
     private static func sanitizedParameters(from metadata: [String: String]) -> [String: String] {
-        metadata.reduce(into: [:]) { result, pair in
-            guard allowlistedParameterKeys.contains(pair.key) else { return }
-            let value = String(pair.value.prefix(100))
-            guard !value.isEmpty else { return }
-            result[pair.key] = value
-        }
+        FirebaseMetadataSanitizer.sanitize(metadata, allowedKeys: allowlistedParameterKeys)
     }
 }

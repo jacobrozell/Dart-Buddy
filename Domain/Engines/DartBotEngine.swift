@@ -404,7 +404,30 @@ public enum DartBotEngine {
             return punishTarget
         }
 
+        if state.config.pointsEnabled,
+           state.config.scoringMode == .standard,
+           let scoringTarget = standardScoringTargets(
+               state: state,
+               playerIndex: playerIndex,
+               marksSnapshot: marksSnapshot
+           ).max(by: { $0.points < $1.points }) {
+            return scoringTarget
+        }
+
         return CricketTarget.allCases.randomElement(using: &rng)
+    }
+
+    private static func standardScoringTargets(
+        state: CricketState,
+        playerIndex: Int,
+        marksSnapshot: [String: Int]
+    ) -> [CricketTarget] {
+        CricketTarget.allCases.filter { target in
+            guard (marksSnapshot[target.rawValue] ?? 0) >= 3 else { return false }
+            return state.players.enumerated().contains { index, player in
+                index != playerIndex && (player.marks[target.rawValue] ?? 0) < 3
+            }
+        }
     }
 
     private static func cutThroatPunishTargets(

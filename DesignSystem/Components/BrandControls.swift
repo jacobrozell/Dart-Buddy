@@ -26,18 +26,15 @@ struct BrandSegmented<T: Hashable>: View {
                 }
                 .padding(4)
             } else if usesAccessibilitySegmentLabels && options.count == 4 {
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: 0),
-                        GridItem(.flexible(), spacing: 0)
-                    ],
-                    spacing: 0
-                ) {
-                    ForEach(options.indices, id: \.self) { index in
-                        segmentButton(at: index, expands: true)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 0) {
+                        ForEach(options.indices, id: \.self) { index in
+                            segmentButton(at: index, expands: false)
+                        }
                     }
+                    .padding(4)
                 }
-                .padding(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
             } else if usesScrollingSegments {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 0) {

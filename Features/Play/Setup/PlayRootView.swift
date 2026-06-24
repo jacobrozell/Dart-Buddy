@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PlayRootView: View {
     let dependencies: AppDependencies
-    @Binding var pendingResumeMatch: MatchSummary?
+    @Binding var pendingResumeMatch: PendingMatchResume?
     var navigationResetTrigger: Int = 0
     var onChangeMode: () -> Void = {}
     @State private var path: [PlayRoute] = []
@@ -12,7 +12,7 @@ struct PlayRootView: View {
 
     init(
         dependencies: AppDependencies,
-        pendingResumeMatch: Binding<MatchSummary?> = .constant(nil),
+        pendingResumeMatch: Binding<PendingMatchResume?> = .constant(nil),
         navigationResetTrigger: Int = 0,
         onChangeMode: @escaping () -> Void = {}
     ) {
@@ -47,6 +47,12 @@ struct PlayRootView: View {
                 pendingMatchPlayerSelections: dependencies.pendingMatchPlayerSelections,
                 onResumeMatch: { match in
                     guard ProductSurface.isMatchTypeReachable(match.type) else { return }
+                    MatchAnalytics.logResumed(
+                        logger: dependencies.logger,
+                        match: match,
+                        startSource: .resume,
+                        session: dependencies.activeMatchStore.session(for: match.id)
+                    )
                     path.append(match.type.playRoute(matchId: match.id))
                 },
                 onStartRoute: { next in path.append(next) },
@@ -62,30 +68,35 @@ struct PlayRootView: View {
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .cricketMatch(matchId):
                     CricketMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .baseballMatch(matchId):
                     BaseballMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .killerMatch(matchId):
                     KillerMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .shanghaiMatch(matchId):
                     ShanghaiMatchRouteView(
                         matchId: matchId,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(matchId)
                 case let .americanCricketMatch(matchId),
                      let .mickeyMouseMatch(matchId),
                      let .mulliganMatch(matchId),
@@ -108,6 +119,7 @@ struct PlayRootView: View {
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
+                    .id(route)
                 case .blindKillerMatch,
                      .followTheLeaderMatch,
                      .loopMatch,
@@ -128,6 +140,7 @@ struct PlayRootView: View {
                         ),
                         onRematch: { runtime in
                             if let route = await setupViewModel.startRematchRoute(from: runtime) {
+                                dependencies.activeMatchStore.remove(matchId: runtime.matchId)
                                 path = [route]
                                 return nil
                             }
@@ -175,12 +188,18 @@ struct PlayRootView: View {
                     }
                 }
             }
-            .onChange(of: pendingResumeMatch) { _, match in
-                guard let match, ProductSurface.isMatchTypeReachable(match.type) else {
+            .onChange(of: pendingResumeMatch) { _, pending in
+                guard let pending, ProductSurface.isMatchTypeReachable(pending.match.type) else {
                     pendingResumeMatch = nil
                     return
                 }
-                path = [match.type.playRoute(matchId: match.id)]
+                MatchAnalytics.logResumed(
+                    logger: dependencies.logger,
+                    match: pending.match,
+                    startSource: pending.startSource,
+                    session: dependencies.activeMatchStore.session(for: pending.match.id)
+                )
+                path = [pending.match.type.playRoute(matchId: pending.match.id)]
                 pendingResumeMatch = nil
             }
             .onChange(of: navigationResetTrigger) { _, _ in

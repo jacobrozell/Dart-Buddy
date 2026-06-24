@@ -28,9 +28,9 @@ struct SettingsRootView: View {
         NavigationStack(path: $path) {
             Group {
                 if let settings = viewModel.settings {
-                    settingsContent(settings)
+                    settingsForm(settings)
                 } else {
-                    settingsPlaceholderContent
+                    settingsPlaceholderBody
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -50,6 +50,13 @@ struct SettingsRootView: View {
                 retryTask?.cancel()
                 viewModel.cancelPendingWork()
             }
+        }
+        .safeAreaInset(edge: .top, spacing: DS.Spacing.s2) {
+            settingsScreenTitle
+                .padding(.horizontal, DS.Spacing.s4)
+                .readableRootContentWidth(horizontalSizeClass)
+                .frame(maxWidth: .infinity)
+                .background(settingsRootBackground)
         }
         .brandSettingsScreenChrome(appearanceModeRaw: preferences.appearanceModeRaw)
         .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
@@ -94,70 +101,63 @@ struct SettingsRootView: View {
     }
 
     @ViewBuilder
-    private var settingsPlaceholderContent: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-            settingsScreenTitle
-                .padding(.horizontal, DS.Spacing.s4)
-                .readableRootContentWidth(horizontalSizeClass)
+    private func settingsSectionFooter(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(.footnote)
+            .foregroundStyle(usesBrandSettingsPalette ? Brand.textSecondary : Color.secondary)
+    }
 
-            switch viewModel.state {
-            case let .error(messageKey):
-                ContentUnavailableView(
-                    L10n.errorTitle,
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(LocalizedStringKey(messageKey))
-                        .foregroundStyle(
-                            usesBrandSettingsPalette ? Brand.textSecondary : DS.ColorRole.textSecondary
-                        )
-                )
-                .brandScoreboardEmptyState(when: usesBrandSettingsPalette)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(alignment: .bottom) {
-                    Button(L10n.retry) {
-                        retryTask?.cancel()
-                        retryTask = Task { await viewModel.onAppear() }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Brand.green)
-                    .accessibilityIdentifier("settings_retryButton")
-                    .tabRootScrollChrome()
+    @ViewBuilder
+    private var settingsPlaceholderBody: some View {
+        switch viewModel.state {
+        case let .error(messageKey):
+            ContentUnavailableView(
+                L10n.errorTitle,
+                systemImage: "exclamationmark.triangle",
+                description: Text(LocalizedStringKey(messageKey))
+                    .foregroundStyle(
+                        usesBrandSettingsPalette ? Brand.textSecondary : DS.ColorRole.textSecondary
+                    )
+            )
+            .brandScoreboardEmptyState(when: usesBrandSettingsPalette)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .bottom) {
+                Button(L10n.retry) {
+                    retryTask?.cancel()
+                    retryTask = Task { await viewModel.onAppear() }
                 }
-            default:
-                ProgressView(L10n.settingsLoading)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityIdentifier("settings_loading")
-                    .accessibilityLabel(L10n.settingsLoading)
+                .buttonStyle(.borderedProminent)
+                .tint(Brand.green)
+                .accessibilityIdentifier("settings_retryButton")
+                .tabRootScrollChrome()
             }
+        default:
+            ProgressView(L10n.settingsLoading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityIdentifier("settings_loading")
+                .accessibilityLabel(L10n.settingsLoading)
         }
     }
 
     @ViewBuilder
-    private func settingsContent(_ settings: SettingsSummary) -> some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            settingsScreenTitle
-                .padding(.horizontal, DS.Spacing.s4)
-                .readableRootContentWidth(horizontalSizeClass)
-
-            Form {
-                appearanceSection(settings, usesBrand: usesBrandSettingsPalette)
-                startingModeSection(settings, usesBrand: usesBrandSettingsPalette)
-                matchDefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
-                x01DefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
-                duringPlaySection(usesBrand: usesBrandSettingsPalette)
-                botOpponentsSection(usesBrand: usesBrandSettingsPalette)
-                dataSection(usesBrand: usesBrandSettingsPalette)
-                helpAndFeedbackSection(usesBrand: usesBrandSettingsPalette)
-                aboutSection(usesBrand: usesBrandSettingsPalette)
-            }
-            .tint(Brand.green)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .readableRootContentWidth(horizontalSizeClass)
-            .tabRootScrollChrome()
-            .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
+    private func settingsForm(_ settings: SettingsSummary) -> some View {
+        List {
+            appearanceSection(settings, usesBrand: usesBrandSettingsPalette)
+            startingModeSection(settings, usesBrand: usesBrandSettingsPalette)
+            matchDefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
+            x01DefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
+            duringPlaySection(usesBrand: usesBrandSettingsPalette)
+            botOpponentsSection(usesBrand: usesBrandSettingsPalette)
+            dataSection(usesBrand: usesBrandSettingsPalette)
+            helpAndFeedbackSection(usesBrand: usesBrandSettingsPalette)
+            aboutSection(usesBrand: usesBrandSettingsPalette)
         }
+        .listStyle(.insetGrouped)
+        .tint(Brand.green)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(L10n.settingsTitle)
+        .readableRootContentWidth(horizontalSizeClass)
+        .tabRootScrollChrome()
+        .brandSettingsFormChrome(appearanceModeRaw: preferences.appearanceModeRaw)
         .accessibilityIdentifier("settings_form")
     }
 
@@ -192,7 +192,7 @@ struct SettingsRootView: View {
             Text(L10n.appearanceSection)
         } footer: {
             if settings.appearanceModeRaw != "dark" {
-                Text("settings.theme.footer")
+                settingsSectionFooter("settings.theme.footer")
             }
         }
         .brandFormRowBackground(when: usesBrand)
@@ -211,7 +211,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsStartingModeSection)
         } footer: {
-            Text(L10n.settingsStartingModeFooter)
+            settingsSectionFooter(L10n.settingsStartingModeFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -247,7 +247,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsMatchDefaultsSection)
         } footer: {
-            Text(L10n.settingsMatchDefaultsFooter)
+            settingsSectionFooter(L10n.settingsMatchDefaultsFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -286,7 +286,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.x01DefaultsSection)
         } footer: {
-            Text(L10n.x01DefaultsFooter)
+            settingsSectionFooter(L10n.x01DefaultsFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -329,7 +329,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsDuringPlaySection)
         } footer: {
-            Text(L10n.settingsDuringPlayFooter)
+            settingsSectionFooter(L10n.settingsDuringPlayFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -350,7 +350,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsBotOpponentsSection)
         } footer: {
-            Text(L10n.settingsBotOpponentsFooter)
+            settingsSectionFooter(L10n.settingsBotOpponentsFooter)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -431,7 +431,7 @@ struct SettingsRootView: View {
             Text(L10n.aboutSection)
         } footer: {
             if AppLinks.buyDeveloperCoffee != nil {
-                Text(L10n.settingsBuyDeveloperCoffeeFooter)
+                settingsSectionFooter(L10n.settingsBuyDeveloperCoffeeFooter)
             }
         }
         .brandFormRowBackground(when: usesBrand)

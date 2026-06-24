@@ -19,15 +19,23 @@ struct AnalyticsMetadataKeysTests {
 
     @Test
     func firebaseParametersIncludeMatchLifecycleFields() {
-        for key in ["matchType", "participantCount", "path", "intentName", "errorCode"] {
+        for key in ["matchType", "participantCount", "path", "intentName", "errorCode", "gameModeId", "gameModeSection", "botDifficulty", "hasBot", "startSource", "configCheckoutMode", "bot_tier", "skipped"] {
             #expect(AnalyticsMetadataKeys.firebaseParameters.contains(key))
         }
     }
 
     @Test
-    func defaultRedactionIncludesSensitiveIdentifiers() {
-        for key in ["matchId", "playerId", "correlationId", "settingsId"] {
+    func crashlyticsParametersAreSubsetOfDefaultRedactionAllowlist() {
+        for key in AnalyticsMetadataKeys.crashlyticsParameters {
             #expect(AnalyticsMetadataKeys.defaultRedactionAllowed.contains(key))
         }
+    }
+
+    @Test
+    func defaultRedactionIncludesSensitiveIdentifiers() {
+        for key in ["matchId", "correlationId", "settingsId"] {
+            #expect(AnalyticsMetadataKeys.defaultRedactionAllowed.contains(key))
+        }
+        #expect(AnalyticsMetadataKeys.isBlockedPersonalDataKey("playerId"))
     }
 }

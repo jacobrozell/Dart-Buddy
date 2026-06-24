@@ -161,7 +161,7 @@ func gameplayLayoutSplitsLandscapeIPhoneAndIPadFormFactors() {
             verticalSizeClass: .compact,
             playerCount: 3,
             isPad: true
-        ) == true
+        ) == false
     )
     #expect(
         GameplayLayout.usesCricketBoardFillsAvailableHeight(
@@ -212,7 +212,7 @@ func gameplayLayoutPinsCricketLandscapeWhenStackedNotSidebar() {
             isPad: true
         ) == true
     )
-    // Dense iPad landscape keeps the sidebar shell.
+    // Dense iPad landscape uses the stacked shell with a full-width pad.
     #expect(
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .regular,
@@ -220,7 +220,7 @@ func gameplayLayoutPinsCricketLandscapeWhenStackedNotSidebar() {
             playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
-        ) == false
+        ) == true
     )
     // Portrait keeps the stacked board-over-pad layout.
     #expect(
@@ -291,7 +291,7 @@ func gameplayLayoutUsesFullWidthCricketPadInStackedLandscape() {
             playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
-        ) == false
+        ) == true
     )
 }
 
@@ -318,7 +318,7 @@ func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
         ) == false
     )
 
-    // Dense iPad landscape: fill-height full board, NOT the stacked pinned layout.
+    // Dense iPad landscape: stacked board + full-width pad, not the fill-height sidebar board.
     #expect(
         GameplayLayout.usesCricketLandscapePinnedLayout(
             horizontalSizeClass: .regular,
@@ -326,7 +326,7 @@ func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
             playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
-        ) == false
+        ) == true
     )
     #expect(
         GameplayLayout.usesCricketBoardFillsAvailableHeight(
@@ -334,7 +334,7 @@ func gameplayLayoutCricketLandscapeMatrixIsMutuallyExclusive() {
             verticalSizeClass: .compact,
             playerCount: 3,
             isPad: true
-        ) == true
+        ) == false
     )
 
     // Portrait uses neither landscape branch.
@@ -410,7 +410,7 @@ func gameplayLayoutCricketSideBySideRequiresPadAndEnoughPlayers() {
             playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
-        ) == true
+        ) == false
     )
     #expect(
         GameplayLayout.usesCricketSideBySideMatchScoringLayout(
@@ -419,7 +419,7 @@ func gameplayLayoutCricketSideBySideRequiresPadAndEnoughPlayers() {
             playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
-        ) == true
+        ) == false
     )
 }
 
@@ -541,7 +541,7 @@ func gameplayLayoutUsesBottomDockedScoringPadOutsideAccessibilitySizes() {
 }
 
 @Test(.tags(.unit, .regression))
-func gameplayLayoutSideBySideBottomScoringRegionRequiresPadAndEnoughPlayers() {
+func gameplayLayoutSideBySideBottomScoringRegionIsDisabled() {
     #expect(
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: .compact,
@@ -564,7 +564,7 @@ func gameplayLayoutSideBySideBottomScoringRegionRequiresPadAndEnoughPlayers() {
             verticalSizeClass: .regular,
             playerCount: 3,
             isPad: true
-        ) == true
+        ) == false
     )
     #expect(
         GameplayLayout.usesSideBySideBottomScoringRegion(
@@ -577,24 +577,8 @@ func gameplayLayoutSideBySideBottomScoringRegionRequiresPadAndEnoughPlayers() {
     #expect(
         GameplayLayout.usesSideBySideBottomScoringRegion(
             horizontalSizeClass: .regular,
-            verticalSizeClass: .regular,
-            playerCount: 3,
-            isPad: false
-        ) == false
-    )
-    #expect(
-        GameplayLayout.usesSideBySideBottomScoringRegion(
-            horizontalSizeClass: .regular,
             verticalSizeClass: .compact,
             playerCount: 3,
-            isPad: true
-        ) == true
-    )
-    #expect(
-        GameplayLayout.usesSideBySideBottomScoringRegion(
-            horizontalSizeClass: .regular,
-            verticalSizeClass: .compact,
-            playerCount: 2,
             isPad: true
         ) == false
     )
@@ -710,7 +694,14 @@ func gameplayLayoutPinsActiveX01CardForThreePlusPlayersInPortrait() {
             playerCount: 4,
             dynamicTypeSize: .accessibility3,
             verticalSizeClass: .regular
-        ) == false
+        ) == true
+    )
+    #expect(
+        GameplayLayout.usesPinnedActiveX01PlayerCard(
+            playerCount: 1,
+            dynamicTypeSize: .accessibility3,
+            verticalSizeClass: .regular
+        ) == true
     )
 }
 
@@ -739,7 +730,7 @@ func gameplayLayoutPinsActiveX01CardInLandscape() {
             playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
-        ) == true
+        ) == false
     )
 }
 
@@ -752,7 +743,7 @@ func gameplayLayoutUsesX01SideBySideOnDenseIPadLandscapeNotPhoneLandscape() {
             playerCount: 3,
             dynamicTypeSize: .large,
             isPad: true
-        ) == true
+        ) == false
     )
     #expect(
         GameplayLayout.usesX01SideBySideMatchScoringLayout(
@@ -788,13 +779,16 @@ func gameplayLayoutX01AndCricketSideBySideMatchOnIPadFormFactors() {
                 playerCount: 3,
                 dynamicTypeSize: .large,
                 isPad: true
-            ) == GameplayLayout.usesCricketSideBySideMatchScoringLayout(
+            ) == false
+        )
+        #expect(
+            GameplayLayout.usesCricketSideBySideMatchScoringLayout(
                 horizontalSizeClass: horizontal,
                 verticalSizeClass: vertical,
                 playerCount: 3,
                 dynamicTypeSize: .large,
                 isPad: true
-            )
+            ) == false
         )
     }
     #expect(

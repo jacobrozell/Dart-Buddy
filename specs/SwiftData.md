@@ -43,7 +43,7 @@ Define a long-term, low-risk SwiftData versioning and migration strategy from v1
 
 ### Compatibility Rules
 - New app must migrate from any previously supported schema listed in migration plan.
-- App must fail fast (with recovery UI path) if store version is newer than bundled schema.
+- App must fail fast if store version is newer than bundled schema (no automatic downgrade).
 - Never remove migration stages that are still needed by supported upgrade paths.
 
 ### Deprecation Window
@@ -184,19 +184,22 @@ Rules:
 
 ## 9. Container Boot and Failure Handling
 
-Startup sequence:
+Startup sequence (`AppBootstrapper` → `BootstrapStoreRecovery`):
+
 1. Build container with migration plan.
 2. Attempt migration on launch in foreground-safe path.
-3. On success, run lightweight post-migration validation checks.
-4. On failure:
-   - capture structured error telemetry
-   - present recovery options:
-     - retry migration
-     - export diagnostic bundle
-     - reset local data (last resort, explicit confirmation)
+3. On success, run lightweight post-migration validation checks (event index repair).
+4. On open/migration failure:
+   - log structured fault telemetry (`bootstrap_store_open_failed`, `bootstrap_store_recreated`, etc.)
+   - backup SQLite store when possible (`bootstrap_store_backed_up`)
+   - recreate store and continue bootstrap — **no blocking recovery UI**
+5. If recreation fails, fall back to in-memory container so the app remains launchable.
 
-Hard rule:
-- Never silently wipe a store after migration failure.
+Hard rules:
+- Never silently wipe a store without logging and backup attempt.
+- User-initiated full wipe is Settings → **Reset All Local Data** only — see [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md).
+
+Implementation: `Persistence/BootstrapStoreRecovery.swift`.
 
 ---
 

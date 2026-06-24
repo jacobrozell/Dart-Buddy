@@ -913,7 +913,8 @@ func setupStartRematchRouteStartsNewMatchWithSameRoster() async throws {
 
     let route = await vm.startRematchRoute(from: completed.runtime)
 
-    if case .x01Match = route {
+    if case let .x01Match(newMatchId) = route {
+        #expect(newMatchId != completed.runtime.matchId)
         #expect(vm.selectedPlayerIds == [players[0].id, players[1].id])
         #expect(vm.x01StartScore == 101)
     } else {

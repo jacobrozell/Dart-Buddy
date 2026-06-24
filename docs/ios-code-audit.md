@@ -36,7 +36,7 @@ Conventions are written down in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
 ## What is working well
 
-1. **Bootstrap & recovery** — `DartBuddyApp` gates on `AppBootstrapper`; migration failure routes to `MigrationRecoveryView` without silent data loss.
+1. **Bootstrap & recovery** — `DartBuddyApp` gates on `AppBootstrapper`; store open failures auto-repair via `BootstrapStoreRecovery` (logged faults, no blocking UI).
 2. **Dependency injection** — `AppDependencies` wired once; features receive protocols, not concrete SwiftData types in views.
 3. **Domain purity** — `X01Engine`, `CricketEngine`, `MatchLifecycleService` stay framework-agnostic; ViewModels orchestrate IO.
 4. **Product surface gating** — `ProductSurface` centralizes lean 1.0 vs full catalog; `ProductSurfaceTests` + `Lean1_0SmokeUITests` guard the default build.
@@ -68,7 +68,6 @@ Conventions are written down in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 | B7 | Duplicate turn-submit flows | Done — `MatchTurnSupport` + `MatchTurnSubmitter` |
 | B8 | Monolithic repository | Done — `SwiftData*Repository` + `SwiftDataRepositorySupport` |
 | B5 | Settings tab bar bleed | Verify on physical device; `.safeAreaPadding(.bottom)` already applied |
-| B6 | Migration recovery styling | Done — `Brand` + `DS.Spacing` |
 
 ### P3 — Housekeeping (post-1.0)
 
@@ -110,9 +109,6 @@ Settings
 
 System navigation (iOS 26+)
   → SystemNavigationPolicy — do not override tab/nav materials
-
-Recovery / rare native-only surfaces
-  → Brand background + DS spacing (MigrationRecoveryView)
 ```
 
 Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibility/dark-light-mode.md).
@@ -139,7 +135,7 @@ Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibili
 
 | Date | Change |
 |------|--------|
-| 2026-06-02 | Initial audit; consolidated dark/light tracker; DesignSystem README; removed `ThemeTokens`; aligned `MigrationRecoveryView` styling |
+| 2026-06-02 | Initial audit; consolidated dark/light tracker; DesignSystem README; removed `ThemeTokens` |
 | 2026-06-03 | Refinement pass: `CONTRIBUTING.md`; removed force-unwrap in `SettingsViewModel`; split `SetupHomeView`, `PlayersRootView`, `X01MatchScreen` |
 | 2026-06-03 | B7/B8 done: `MatchTurnSupport` + per-model SwiftData repositories |
 | 2026-06-06 | One-type-per-file pass on History/Players view models |

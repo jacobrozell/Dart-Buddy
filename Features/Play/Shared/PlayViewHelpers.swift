@@ -10,6 +10,26 @@ func postAccessibilityAnnouncement(_ text: String) {
     AccessibilityNotification.Announcement(text).post()
 }
 
+/// Hit/miss audio and optional haptics when a bot appends a dart to the visit preview.
+func playBotDartEntryFeedback(
+    darts: [DartInput],
+    previousCount: Int,
+    isBotPlaying: Bool,
+    audio: any AudioFeedbackService,
+    haptics: any HapticsService,
+    botDartHapticsEnabled: Bool
+) {
+    guard isBotPlaying, darts.count > previousCount, let dart = darts.last else { return }
+    if dart.isMiss {
+        audio.playMiss()
+    } else {
+        audio.playHit()
+    }
+    if botDartHapticsEnabled {
+        haptics.playImpact()
+    }
+}
+
 private struct MatchHeaderChromeButtonSizeKey: EnvironmentKey {
     static let defaultValue: CGFloat = 44
 }

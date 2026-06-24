@@ -35,7 +35,6 @@ Progress log for scoreboard theming (`Brand.*`), Settings appearance policy, and
 | Settings (theme = Dark / System) | Brand dark | [x] | [~] | System + light device = dark Settings |
 | Player edit sheet | Mixed | [~] | [ ] | Native `Form`; pickers use `Brand` |
 | Quick add player | Native | [~] | [ ] | No brand chrome |
-| Migration recovery | Brand + DS spacing | [x] | [ ] | Aligned 2026-06-02 code audit |
 
 ---
 
@@ -86,4 +85,4 @@ Progress log for scoreboard theming (`Brand.*`), Settings appearance policy, and
 | 2026-06-02 | Initial tracker from light-mode code audit |
 | 2026-06-02 | P1–P3 code fixes: tokens, banners, Players/Settings chrome, footer copy |
 | 2026-06-02 | P4: contrast log, 4-way matrix script + captures, light marketing raw set |
-| 2026-06-02 | Moved to `accessibility/dark-light-mode.md`; migration recovery uses Brand |
+| 2026-06-02 | Moved to `accessibility/dark-light-mode.md` |

@@ -64,7 +64,7 @@ struct VisualDartboardInput: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: min(visitSlotMinHeight, 30))
-                    .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
+                    .scoringPadVisitSlotStyle(minHeight: min(visitSlotMinHeight, 30))
             }
         }
         .accessibilityHidden(true)

@@ -136,10 +136,15 @@ struct X01MatchScreen: View {
                 }
             }
         }
-        .onChange(of: viewModel.enteredDarts.count) { oldCount, newCount in
-            guard viewModel.isBotPlaying, newCount > oldCount else { return }
-            guard feedbackPreferences.botDartHapticsEnabled else { return }
-            haptics.playImpact()
+        .onChange(of: viewModel.enteredDarts) { old, darts in
+            playBotDartEntryFeedback(
+                darts: darts,
+                previousCount: old.count,
+                isBotPlaying: viewModel.isBotPlaying,
+                audio: audio,
+                haptics: haptics,
+                botDartHapticsEnabled: feedbackPreferences.botDartHapticsEnabled
+            )
         }
         .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in
             guard let signal else { return }
@@ -322,6 +327,7 @@ struct X01MatchScreen: View {
         .padding(.horizontal, landscape ? 0 : DS.Spacing.s1)
         .padding(.bottom, landscape ? 0 : DS.Spacing.s1)
         .onChange(of: viewModel.enteredDarts) { old, darts in
+            guard viewModel.canHumanInput else { return }
             if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
             autoSubmitIfNeeded(darts: darts, state: state)
         }

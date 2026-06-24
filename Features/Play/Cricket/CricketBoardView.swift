@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum CricketBoardMetrics {
-    static let targetColumnWidth: CGFloat = 28
+    static let targetColumnWidth: CGFloat = 32
     static let playerColumnWidth: CGFloat = 84
     static let scrollIndicatorPlayerThreshold = 3
     static let markRowHeight: CGFloat = DS.Spacing.s2 * 4

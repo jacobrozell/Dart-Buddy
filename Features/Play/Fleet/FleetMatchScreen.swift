@@ -101,6 +101,16 @@ struct FleetMatchScreen: View {
         .onChange(of: scenePhase) { _, phase in
             viewModel.onScenePhaseChanged(phase)
         }
+        .onChange(of: viewModel.enteredDarts) { old, darts in
+            playBotDartEntryFeedback(
+                darts: darts,
+                previousCount: old.count,
+                isBotPlaying: viewModel.isBotPlaying,
+                audio: audio,
+                haptics: haptics,
+                botDartHapticsEnabled: feedbackPreferences.botDartHapticsEnabled
+            )
+        }
         .task { await viewModel.onAppear() }
         .onDisappear {
             actionTask?.cancel()

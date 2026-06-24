@@ -72,7 +72,7 @@ enum GameplayLayout {
         guard usesAccessibilityTabListLayout(dynamicTypeSize: dynamicTypeSize) else {
             return DS.Spacing.s6
         }
-        let tabBarClearance = 72 * DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
+        let tabBarClearance = 88 * DynamicTypeLayout.accessibilityScale(for: dynamicTypeSize)
         return DS.Spacing.s6 + tabBarClearance
     }
 
@@ -289,26 +289,19 @@ enum GameplayLayout {
         !usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
-    /// iPad with 3+ players: inactive scoreboard scrolls beside a fixed-width pad column below the active band.
-    /// iPhone and sparse iPad matches stack scoreboard, banners, and pad full width.
+    /// iPad stacks the scoring pad full width below the scoreboard. iPhone uses the same shell.
+    /// Dense sidebar layouts are reserved for future use — match pads always span the screen width on iPad.
     static func usesSideBySideBottomScoringRegion(
         horizontalSizeClass: UserInterfaceSizeClass?,
         verticalSizeClass: UserInterfaceSizeClass?,
         playerCount: Int,
         isPad: Bool = defaultIsPad
     ) -> Bool {
-        guard playerCount >= sideBySidePlayerCountThreshold else { return false }
-        if isPad && usesIPadPortraitMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
-        ) {
-            return true
-        }
-        return usesLandscapeIPadMatchScoringLayout(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass,
-            isPad: isPad
-        )
+        _ = horizontalSizeClass
+        _ = verticalSizeClass
+        _ = playerCount
+        _ = isPad
+        return false
     }
 
     /// Deprecated: pads no longer fill a full-height iPad sidebar.
@@ -403,13 +396,14 @@ enum GameplayLayout {
     }
 
     /// Pins the active X01 card at the top in landscape; portrait scroll pins at 3+ players.
+    /// At accessibility text sizes, always pin so the score-first AX shell keeps remaining score visible.
     static func usesPinnedActiveX01PlayerCard(
         playerCount: Int,
         dynamicTypeSize: DynamicTypeSize,
         verticalSizeClass: UserInterfaceSizeClass? = nil
     ) -> Bool {
         if usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize) {
-            return playerCount == 2
+            return true
         }
         if usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass) {
             return true

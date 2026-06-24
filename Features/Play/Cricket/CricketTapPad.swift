@@ -12,8 +12,6 @@ struct CricketTapPad: View {
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.matchLayoutPlayerCount) private var matchLayoutPlayerCount
     @ScaledMetric(relativeTo: .body) private var keyMinHeight: CGFloat = 52
     @ScaledMetric(relativeTo: .caption) private var visitSlotMinHeight: CGFloat = 34
 
@@ -21,42 +19,17 @@ struct CricketTapPad: View {
         GameplayLayout.usesAccessibilityMatchScoringLayout(dynamicTypeSize: dynamicTypeSize)
     }
 
-    private var usesLandscapeCompactLayout: Bool {
+    private var usesLandscapeLayout: Bool {
         !usesAccessibilityLayout
-            && (
-                GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
-                    || GameplayLayout.usesSideBySideBottomScoringRegion(
-                        horizontalSizeClass: horizontalSizeClass,
-                        verticalSizeClass: verticalSizeClass,
-                        playerCount: matchLayoutPlayerCount
-                    )
-            )
-    }
-
-    /// iPhone landscape: pad spans the full width below the board, so keys lay out wide and
-    /// short. iPad landscape keeps the narrow sidebar pad (`usesLandscapeCompactLayout`).
-    private var usesLandscapeWideLayout: Bool {
-        GameplayLayout.usesCricketFullWidthLandscapePad(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass,
-            playerCount: matchLayoutPlayerCount,
-            dynamicTypeSize: dynamicTypeSize
-        )
-    }
-
-    private var usesIPadSideBySidePad: Bool {
-        false
+            && GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
     }
 
     private var padSpacing: CGFloat {
         if usesAccessibilityLayout {
             return ScoringPadStyle.accessibilitySpacing
         }
-        if usesIPadSideBySidePad {
-            return GameplayLayout.iPadSideBySidePadSpacing
-        }
-        if usesLandscapeCompactLayout {
-            return usesLandscapeWideLayout ? 6 : 4
+        if usesLandscapeLayout {
+            return 6
         }
         return ScoringPadStyle.compactSpacing
     }
@@ -65,27 +38,18 @@ struct CricketTapPad: View {
         if usesAccessibilityLayout {
             return min(keyMinHeight, 56)
         }
-        if usesIPadSideBySidePad {
-            return GameplayLayout.iPadSideBySidePadKeyMinHeight
-        }
-        if usesLandscapeWideLayout {
+        if usesLandscapeLayout {
             return 44
-        }
-        if usesLandscapeCompactLayout {
-            return 40
         }
         return min(keyMinHeight, 48)
     }
 
     private var displayBullMissKeyMinHeight: CGFloat {
-        if usesAccessibilityLayout || usesIPadSideBySidePad {
+        if usesAccessibilityLayout {
             return displayKeyMinHeight
         }
-        if usesLandscapeWideLayout {
+        if usesLandscapeLayout {
             return 44
-        }
-        if usesLandscapeCompactLayout {
-            return 36
         }
         return 44
     }
@@ -94,11 +58,8 @@ struct CricketTapPad: View {
         if usesAccessibilityLayout {
             return min(visitSlotMinHeight, 40)
         }
-        if usesIPadSideBySidePad {
-            return 40
-        }
-        if usesLandscapeCompactLayout {
-            return usesLandscapeWideLayout ? 30 : 28
+        if usesLandscapeLayout {
+            return 30
         }
         return min(visitSlotMinHeight, 30)
     }
@@ -113,17 +74,15 @@ struct CricketTapPad: View {
     var body: some View {
         if usesAccessibilityLayout {
             accessibilityPad
-        } else if usesLandscapeWideLayout {
+        } else if usesLandscapeLayout {
             landscapeWidePad
-        } else if usesLandscapeCompactLayout {
-            landscapeCompactPad
         } else {
             compactPad
         }
     }
 
-    /// iPhone landscape full-width pad: one row of segments + bull/miss, then modifiers + enter.
-    /// Laying keys out wide keeps the pad short so the board stays visible above it.
+    /// Landscape: one row of segments + bull/miss, then modifiers + enter.
+    /// Keeps the pad short so the transposed board stays visible above it.
     private var landscapeWidePad: some View {
         VStack(spacing: padSpacing) {
             visitPreview
@@ -149,47 +108,6 @@ struct CricketTapPad: View {
         }
     }
 
-    private var iPadSideBySidePad: some View {
-        GeometryReader { geometry in
-            landscapeCompactPad(keyHeight: iPadSideBySideKeyHeight(for: geometry.size.height))
-                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-        }
-    }
-
-    private func iPadSideBySideKeyHeight(for availableHeight: CGFloat) -> CGFloat {
-        let gridRows = 4
-        let visitHeight = displayVisitSlotMinHeight
-        let controlHeight = GameplayLayout.iPadSideBySidePadKeyMinHeight
-        let bullMissHeight = displayBullMissKeyMinHeight
-        let spacingBudget = padSpacing * CGFloat(gridRows + 3)
-        let overhead = visitHeight + bullMissHeight + controlHeight + controlHeight + spacingBudget
-        let distributable = max(0, availableHeight - overhead)
-        let grown = GameplayLayout.iPadSideBySidePadKeyMinHeight + (distributable / CGFloat(gridRows))
-        return min(grown, GameplayLayout.iPadSideBySidePadKeyMaxHeight)
-    }
-
-    private func landscapeCompactPad(keyHeight: CGFloat? = nil) -> some View {
-        let columns = [
-            GridItem(.flexible(), spacing: padSpacing),
-            GridItem(.flexible(), spacing: padSpacing)
-        ]
-        return VStack(spacing: padSpacing) {
-            visitPreview
-            LazyVGrid(columns: columns, spacing: padSpacing) {
-                ForEach(accessibilitySegments, id: \.self) { segment in
-                    numberKey(segment, title: String(segment), minHeight: keyHeight)
-                }
-            }
-            bullMissRow(showSpacer: false, minHeight: keyHeight)
-            controlRow(minHeight: keyHeight)
-            enterButton(minHeight: keyHeight)
-        }
-    }
-
-    private var landscapeCompactPad: some View {
-        landscapeCompactPad(keyHeight: nil)
-    }
-
     private var compactPad: some View {
         VStack(spacing: padSpacing) {
             visitPreview
@@ -200,7 +118,7 @@ struct CricketTapPad: View {
                     }
                 }
             }
-            bullMissRow(showSpacer: true)
+            bullMissRow(showSpacer: false)
             controlRow()
             enterButton()
         }
@@ -227,9 +145,7 @@ struct CricketTapPad: View {
     private func numberKey(_ segment: Int, title: String, minHeight: CGFloat? = nil) -> some View {
         ScoringPadKey(
             title: title,
-            font: usesAccessibilityLayout || usesIPadSideBySidePad
-                ? .title3.weight(.semibold)
-                : .body.weight(.semibold),
+            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
             minHeight: minHeight ?? displayKeyMinHeight,
             accessibilityLabel: DartInput.padKeyAccessibilityLabel(
                 segmentValue: segment,
@@ -256,9 +172,7 @@ struct CricketTapPad: View {
     private func bullKey(minHeight: CGFloat? = nil) -> some View {
         ScoringPadKey(
             title: L10n.string("scoring.pad.bullLabel"),
-            font: usesAccessibilityLayout || usesIPadSideBySidePad
-                ? .title3.weight(.semibold)
-                : .body.weight(.semibold),
+            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
             minHeight: minHeight ?? displayBullMissKeyMinHeight,
             accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 25, armedMultiplier: selectedMultiplier),
             identifier: "cricket_bull",
@@ -269,9 +183,7 @@ struct CricketTapPad: View {
     private func missKey(minHeight: CGFloat? = nil) -> some View {
         ScoringPadKey(
             title: L10n.string("scoring.pad.missLabel"),
-            font: usesAccessibilityLayout || usesIPadSideBySidePad
-                ? .title3.weight(.semibold)
-                : .body.weight(.semibold),
+            font: usesAccessibilityLayout ? .title3.weight(.semibold) : .body.weight(.semibold),
             minHeight: minHeight ?? displayBullMissKeyMinHeight,
             accessibilityLabel: DartInput.padKeyAccessibilityLabel(segmentValue: 0, armedMultiplier: .single),
             identifier: "cricket_miss",
@@ -298,9 +210,7 @@ struct CricketTapPad: View {
         let keyHeight = minHeight ?? displayKeyMinHeight
         return Button(action: onSubmit) {
             Text(L10n.scoringEnter)
-                .font(usesAccessibilityLayout || usesIPadSideBySidePad
-                    ? .title3.weight(.bold)
-                    : .headline.weight(.bold))
+                .font(usesAccessibilityLayout ? .title3.weight(.bold) : .headline.weight(.bold))
                 .foregroundStyle(canSubmit ? Brand.inkOnBright : Brand.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -321,8 +231,7 @@ struct CricketTapPad: View {
                     .foregroundStyle(Brand.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: displayVisitSlotMinHeight)
-                    .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
+                    .scoringPadVisitSlotStyle(minHeight: displayVisitSlotMinHeight)
             }
         }
         .accessibilityHidden(true)
@@ -353,9 +262,7 @@ struct CricketTapPad: View {
             title: title,
             background: background,
             foreground: foreground,
-            font: usesAccessibilityLayout || usesIPadSideBySidePad
-                ? .title3.weight(.bold)
-                : .body.weight(.bold),
+            font: usesAccessibilityLayout ? .title3.weight(.bold) : .body.weight(.bold),
             minHeight: keyHeight,
             accessibilityLabel: multiplierAccessibilityLabel(multiplier),
             accessibilityHint: modifierHint(multiplier, isSelected: isSelected),
@@ -425,16 +332,6 @@ struct CricketTapPad: View {
 
     private func dartLabel(_ dart: DartInput) -> String {
         if dart.isMiss { return "—" }
-        switch dart.segment {
-        case let .oneToTwenty(value):
-            switch dart.multiplier {
-            case .single: return "\(value)"
-            case .double: return "D\(value)"
-            case .triple: return "T\(value)"
-            }
-        case .outerBull: return "B"
-        case .innerBull: return "BB"
-        case .miss: return "—"
-        }
+        return dart.compactDisplayLabel
     }
 }

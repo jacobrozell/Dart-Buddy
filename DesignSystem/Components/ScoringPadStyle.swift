@@ -11,6 +11,27 @@ enum ScoringPadStyle {
     static var visitSlotShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: DS.Radius.xs)
     }
+
+    static var visitSlotStroke: Color {
+        Brand.textSecondary.opacity(0.35)
+    }
+}
+
+extension View {
+    /// Empty and filled dart visit slots on scoring pads and score cards.
+    func scoringPadVisitSlotStyle(minHeight: CGFloat? = nil, minWidth: CGFloat? = nil) -> some View {
+        frame(
+            minWidth: minWidth,
+            maxWidth: minWidth == nil ? .infinity : minWidth,
+            minHeight: minHeight,
+            maxHeight: minHeight
+        )
+        .background(Brand.dartBox, in: ScoringPadStyle.visitSlotShape)
+        .overlay {
+            ScoringPadStyle.visitSlotShape
+                .stroke(ScoringPadStyle.visitSlotStroke, lineWidth: 1)
+        }
+    }
 }
 
 struct ScoringPadKey: View {

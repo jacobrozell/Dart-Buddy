@@ -43,7 +43,7 @@ Derived from commit history + `Tests/` coverage. This is why the plan splits the
 | Localization de/es/nl | Parity unit | 3 smoke UI each | Optional listing QA | **Medium** (strings) |
 | iPad layouts | Layout unit | Screenshot scripts | Optional | **Medium** |
 | Turn-total TTS caller | Unit | None | Not in checklist | **Low** |
-| Migration recovery | CI migration test | None on device | Open todo | **Low** |
+| Bootstrap store recovery | CI migration test | Corrupt-store relaunch on device | Open todo | **Low** |
 | Firebase Analytics/Crashlytics | Config tests | N/A | Privacy checklist | **Medium** (ops) |
 
 **Recent high-churn areas** (commits since ~Baseball merge): Activity/Modes tab restructure, deep links, Liquid Glass nav, party mode polish, Training Partner — all landed **after** the original 1.0 QA matrix was written.
@@ -135,7 +135,7 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 - [ ] Update [`release_checklist.md`](release_checklist.md) for **Play · Players · Activity · Settings** IA
 - [ ] Device matrix: X01 + Cricket Normal + **Cut Throat** full match each; resume; undo; history detail; stats filter
 - [ ] Onboarding cold start + replay
-- [ ] Migration recovery smoke (open todo)
+- [ ] Bootstrap store recovery smoke (open todo)
 - [ ] AXXXL spot check on setup + X01 match (accept or fix — owner decision)
 - [ ] App Store assets match **actual** 1.0 surface (no party mode screenshots)
 

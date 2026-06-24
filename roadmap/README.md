@@ -17,7 +17,7 @@
 
 ## Scope (shipped in 1.0)
 
-Local-first iOS app: X01 + Cricket (Normal and Cut Throat, including bot matches with Points On), Training Partner bots, players, **Statistics**, history, settings, migration recovery, UI localization (`en` / `de` / `es` / `nl` via system locale), Release-only Firebase Analytics + Crashlytics (see `specs/FirebaseBackendAnalyticsSpec.md`).
+Local-first iOS app: X01 + Cricket (Normal and Cut Throat, including bot matches with Points On), Training Partner bots, players, **Statistics**, history, settings, bootstrap store recovery, UI localization (`en` / `de` / `es` / `nl` via system locale), Release-only Firebase Analytics + Crashlytics (see `specs/FirebaseBackendAnalyticsSpec.md`).
 
 **Deferred post-1.0:** online play, Apple Watch companion, vision auto-scoring, Firebase Auth/Firestore, full UI automation matrix.
 

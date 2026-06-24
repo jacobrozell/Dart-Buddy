@@ -137,15 +137,6 @@ Expected:
 2. Add partner from Play setup Add Bot menu; start short X01 match.
 3. Cricket setup → Cut Throat + Points On + bot → start; confirm bot throws ([`BotOpponentSpec.md`](BotOpponentSpec.md)).
 
-## F3. Migration recovery (manual, pre-submit)
-
-1. Follow [`MigrationRecoverySpec.md`](MigrationRecoverySpec.md) and `docs/release/todo.md` migration smoke.
-
-Expected:
-
-- Tab loads without error state.
-- Filters respond; table remains readable on iPhone and iPad widths.
-
 ## G. Settings Persistence
 
 1. In `Settings`, change:

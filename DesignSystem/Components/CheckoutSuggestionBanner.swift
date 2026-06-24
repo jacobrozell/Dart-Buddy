@@ -4,12 +4,17 @@ import SwiftUI
 /// fewest-dart routes exist.
 struct CheckoutSuggestionBanner: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let routes: [[String]]
     @Binding var selectedIndex: Int
 
     private var usesCompactLayout: Bool {
         verticalSizeClass == .compact
+    }
+
+    private var usesAccessibilityLayout: Bool {
+        dynamicTypeSize.isAccessibilitySize
     }
 
     private var clampedIndex: Int {
@@ -108,7 +113,7 @@ struct CheckoutSuggestionBanner: View {
 
     @ViewBuilder
     private func routeRow(labels: [String]) -> some View {
-        HStack(spacing: DS.Spacing.s2) {
+        let pills = HStack(spacing: DS.Spacing.s2) {
             ForEach(Array(labels.enumerated()), id: \.offset) { index, label in
                 if index > 0 {
                     Image(systemName: "chevron.right")
@@ -117,25 +122,52 @@ struct CheckoutSuggestionBanner: View {
                         .accessibilityHidden(true)
                 }
 
-                Text(label)
-                    .font(usesCompactLayout ? .subheadline.weight(.bold) : .title3.weight(.bold))
-                    .monospacedDigit()
-                    .foregroundStyle(index == labels.count - 1 ? Brand.green : Brand.textPrimary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                    .padding(.horizontal, usesCompactLayout ? DS.Spacing.s2 : DS.Spacing.s3)
-                    .padding(.vertical, usesCompactLayout ? DS.Spacing.s1 : DS.Spacing.s2)
-                    .frame(minWidth: usesCompactLayout ? 44 : 52)
-                    .background(
-                        index == labels.count - 1
-                            ? Brand.green.opacity(0.14)
-                            : Brand.cardElevated,
-                        in: RoundedRectangle(cornerRadius: DS.Radius.sm)
-                    )
-                    .accessibilityHidden(true)
+                routePill(label: label, isNextDart: index == 0)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+
+        if usesAccessibilityLayout {
+            ScrollView(.horizontal, showsIndicators: false) {
+                pills
+            }
+        } else {
+            pills
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func routePill(label: String, isNextDart: Bool) -> some View {
+        Text(label)
+            .font(routePillFont)
+            .monospacedDigit()
+            .foregroundStyle(isNextDart ? Brand.green : Brand.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(usesAccessibilityLayout ? 0.85 : 0.75)
+            .padding(.horizontal, routePillHorizontalPadding)
+            .padding(.vertical, routePillVerticalPadding)
+            .frame(minWidth: usesCompactLayout ? 44 : 52)
+            .background(
+                isNextDart ? Brand.green.opacity(0.14) : Brand.cardElevated,
+                in: RoundedRectangle(cornerRadius: DS.Radius.sm)
+            )
+            .accessibilityHidden(true)
+    }
+
+    private var routePillFont: Font {
+        if usesAccessibilityLayout {
+            return .body.weight(.bold)
+        }
+        return usesCompactLayout ? .subheadline.weight(.bold) : .title3.weight(.bold)
+    }
+
+    private var routePillHorizontalPadding: CGFloat {
+        if usesAccessibilityLayout { return DS.Spacing.s2 }
+        return usesCompactLayout ? DS.Spacing.s2 : DS.Spacing.s3
+    }
+
+    private var routePillVerticalPadding: CGFloat {
+        if usesAccessibilityLayout { return DS.Spacing.s2 }
+        return usesCompactLayout ? DS.Spacing.s1 : DS.Spacing.s2
     }
 
     private func combinedAccessibilityLabel(labels: [String], optionCount: Int) -> String {

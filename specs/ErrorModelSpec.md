@@ -74,7 +74,7 @@ Logging implementation references:
 ## 7. UI Recovery Patterns
 - Validation errors -> inline field messaging
 - Recoverable operation failures -> retry affordance
-- Migration/storage boot failures -> dedicated recovery screen
+- Migration/storage boot failures -> automatic store repair via `BootstrapStoreRecovery` (logged faults; no blocking screen)
 - Unknown fatal states -> safe fallback + diagnostics capture path
 
 ---

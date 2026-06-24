@@ -210,6 +210,141 @@ func mapsIntentFailedEvent() {
 }
 
 @Test(.tags(.unit, .logging, .regression))
+func mapsGameModePlayedAndCompletedEvents() {
+    let played = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "game_mode_played",
+        message: "Started.",
+        metadata: [
+            "matchType": "x01",
+            "gameModeId": "standard.x01",
+            "gameModeSection": "standard",
+            "uiTemplate": "checkoutScore",
+            "statKind": "checkout",
+            "participantCount": "2",
+            "hasBot": "true",
+            "botCount": "1",
+            "humanCount": "1",
+            "botDifficulty": "medium",
+            "botKind": "preset",
+            "startSource": "setup",
+            "configStartScore": "501",
+            "configCheckoutMode": "doubleOut",
+            "matchId": "secret"
+        ],
+        correlationId: nil
+    )
+    let completed = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .appLifecycle,
+        eventName: "game_mode_completed",
+        message: "Finished.",
+        metadata: [
+            "matchType": "cricket",
+            "gameModeId": "standard.cricket",
+            "status": "completed"
+        ],
+        correlationId: nil
+    )
+
+    let playedEvent = FirebaseAnalyticsEventMapping.map(played, appVersion: "1.0.0")
+    #expect(playedEvent?.name == "game_mode_played")
+    #expect(playedEvent?.parameters["gameModeId"] == "standard.x01")
+    #expect(playedEvent?.parameters["gameModeSection"] == "standard")
+    #expect(playedEvent?.parameters["botDifficulty"] == "medium")
+    #expect(playedEvent?.parameters["botKind"] == "preset")
+    #expect(playedEvent?.parameters["startSource"] == "setup")
+    #expect(playedEvent?.parameters["configStartScore"] == "501")
+    #expect(playedEvent?.parameters["matchId"] == nil)
+
+    let completedEvent = FirebaseAnalyticsEventMapping.map(completed, appVersion: nil)
+    #expect(completedEvent?.name == "game_mode_completed")
+    #expect(completedEvent?.parameters["gameModeId"] == "standard.cricket")
+    #expect(completedEvent?.parameters["status"] == "completed")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsMatchResumedAndOnboardingCompletedEvents() {
+    let resumed = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .ui,
+        eventName: "match_resumed",
+        message: "Resumed.",
+        metadata: [
+            "matchType": "cricket",
+            "gameModeId": "standard.cricket",
+            "startSource": "resume",
+            "status": "inProgress",
+            "matchId": "secret"
+        ],
+        correlationId: nil
+    )
+    let onboarding = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .ui,
+        eventName: "onboarding_completed",
+        message: "Finished.",
+        metadata: [
+            "skipped": "false",
+            "bot_tier": "medium",
+            "created_player": "true"
+        ],
+        correlationId: nil
+    )
+
+    let resumedEvent = FirebaseAnalyticsEventMapping.map(resumed, appVersion: nil)
+    #expect(resumedEvent?.name == "match_resumed")
+    #expect(resumedEvent?.parameters["startSource"] == "resume")
+    #expect(resumedEvent?.parameters["matchId"] == nil)
+
+    let onboardingEvent = FirebaseAnalyticsEventMapping.map(onboarding, appVersion: "1.0.0")
+    #expect(onboardingEvent?.name == "onboarding_completed")
+    #expect(onboardingEvent?.parameters["bot_tier"] == "medium")
+    #expect(onboardingEvent?.parameters["skipped"] == "false")
+}
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsMatchAbandonedAndDartUndoneEvents() {
+    let abandoned = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .appLifecycle,
+        eventName: "match_abandoned",
+        message: "Abandoned.",
+        metadata: [
+            "matchType": "x01",
+            "gameModeId": "standard.x01",
+            "configStartScore": "501",
+            "botDifficulty": "easy",
+            "eventCount": "3",
+            "matchId": "secret"
+        ],
+        correlationId: nil
+    )
+    let dartUndone = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "dart_undone",
+        message: "Dart removed.",
+        metadata: ["matchType": "x01"],
+        correlationId: nil
+    )
+
+    let abandonedEvent = FirebaseAnalyticsEventMapping.map(abandoned, appVersion: nil)
+    #expect(abandonedEvent?.name == "match_abandoned")
+    #expect(abandonedEvent?.parameters["configStartScore"] == "501")
+    #expect(abandonedEvent?.parameters["botDifficulty"] == "easy")
+    #expect(abandonedEvent?.parameters["matchId"] == nil)
+    #expect(FirebaseAnalyticsEventMapping.map(dartUndone, appVersion: nil)?.name == "undo_used")
+}
+
+@Test(.tags(.unit, .logging, .regression))
 func mapsMatchCompletedAndTurnSubmittedEvents() {
     let completed = LogEntry(
         timestamp: Date(),
@@ -237,31 +372,6 @@ func mapsMatchCompletedAndTurnSubmittedEvents() {
 }
 
 @Test(.tags(.unit, .logging, .regression))
-func mapsMatchAbandonedAndDartUndoneEvents() {
-    let abandoned = LogEntry(
-        timestamp: Date(),
-        level: .info,
-        category: .scoring,
-        eventName: "match_abandoned",
-        message: "Abandoned.",
-        metadata: ["matchType": "x01", "source": "setup"],
-        correlationId: nil
-    )
-    let dartUndone = LogEntry(
-        timestamp: Date(),
-        level: .info,
-        category: .scoring,
-        eventName: "dart_undone",
-        message: "Dart removed.",
-        metadata: ["matchType": "x01"],
-        correlationId: nil
-    )
-
-    #expect(FirebaseAnalyticsEventMapping.map(abandoned, appVersion: nil)?.name == "match_abandoned")
-    #expect(FirebaseAnalyticsEventMapping.map(dartUndone, appVersion: nil)?.name == "undo_used")
-}
-
-@Test(.tags(.unit, .logging, .regression))
 func mapsMatchForfeitedAndForfeitFailedEvents() {
     let forfeited = LogEntry(
         timestamp: Date(),
@@ -270,8 +380,9 @@ func mapsMatchForfeitedAndForfeitFailedEvents() {
         eventName: "match_forfeited",
         message: "Match forfeited by user.",
         metadata: [
-            "event_count": "2",
-            "participant_count": "2",
+            "eventCount": "2",
+            "participantCount": "2",
+            "durationSeconds": "90",
             "resolution": "automatic"
         ],
         correlationId: nil
@@ -288,7 +399,8 @@ func mapsMatchForfeitedAndForfeitFailedEvents() {
 
     let forfeitedEvent = FirebaseAnalyticsEventMapping.map(forfeited, appVersion: "1.0.0")
     #expect(forfeitedEvent?.name == "match_forfeited")
-    #expect(forfeitedEvent?.parameters["event_count"] == "2")
+    #expect(forfeitedEvent?.parameters["eventCount"] == "2")
+    #expect(forfeitedEvent?.parameters["durationSeconds"] == "90")
     #expect(forfeitedEvent?.parameters["resolution"] == "automatic")
 
     let failedEvent = FirebaseAnalyticsEventMapping.map(failed, appVersion: nil)
@@ -345,5 +457,35 @@ func dropsEmptyAllowlistedParameterValues() {
     let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)
     #expect(event?.parameters["matchType"] == nil)
     #expect(event?.parameters["participantCount"] == "2")
+}
+
+@Test(.tags(.unit, .logging, .regression, .critical))
+func dropsPersonalDataKeysFromFirebaseParameters() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .scoring,
+        eventName: "match_started",
+        message: "Started.",
+        metadata: [
+            "matchType": "x01",
+            "participantCount": "2",
+            "displayName": "Jacob",
+            "playerName": "Jacob",
+            "botName": "Medium Bot",
+            "forfeited_by_player_id": UUID().uuidString,
+            "botDifficulty": "medium"
+        ],
+        correlationId: nil
+    )
+
+    let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)
+
+    #expect(event?.parameters["matchType"] == "x01")
+    #expect(event?.parameters["botDifficulty"] == "medium")
+    #expect(event?.parameters["displayName"] == nil)
+    #expect(event?.parameters["playerName"] == nil)
+    #expect(event?.parameters["botName"] == nil)
+    #expect(event?.parameters["forfeited_by_player_id"] == nil)
 }
 

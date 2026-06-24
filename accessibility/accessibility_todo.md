@@ -151,7 +151,6 @@ Linked `docs/release/todo.md` items — complete before signing P-1.3.4 / P-1.4.
 | Player detail | Stat tiles + recent matches VO | `player-detail.md` — [x] labels; manual VO open |
 | Player edit | TextField label; 44pt color swatches | `player-edit.md` — [x] labels; manual VO open |
 | Settings | Reset destructive flow VO | `settings.md` — [x] reset ID/label + AX spot-check; manual audio in `core-flow-settings-reset.md` |
-| Migration recovery | Recovery CTAs VO | `migration-recovery.md` — [x] IDs/labels; manual VO open |
 | Play home | Resume / start VO | `play-home.md` — [x] labels; manual VO open |
 | Match setup | Chip labels; AXXXL roster | `match-setup.md` — [x] chips/roster; manual VO open |
 

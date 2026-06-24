@@ -247,7 +247,7 @@ Run **only** the lean matrix before submit.
 | 8 | Activity: History segment + Statistics segment + filters | [ ] |
 | 9 | Settings: toggle sound → relaunch persisted; reset all data | [ ] |
 | 10 | AXXXL spot check: setup + X01 in-match | [ ] |
-| 11 | Migration recovery smoke (if feasible) | [ ] |
+| 11 | Bootstrap store recovery smoke (if feasible) | [ ] |
 | 12 | Release archive: Firebase + dSYM upload | [ ] |
 | 13 | Confirm **no** Modes tab, party setup, export, training partner | [ ] |
 | 14 | Device language de/fr/es → UI still English | [ ] |

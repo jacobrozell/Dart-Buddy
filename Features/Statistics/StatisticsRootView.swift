@@ -390,8 +390,8 @@ struct StatTable: View {
                         .fixedSize(horizontal: true, vertical: false)
                 }
             }
-            .font(.caption)
-            .foregroundStyle(Brand.textSecondary)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Brand.textBodyOnCard)
             .padding(.horizontal, DS.Spacing.s3)
             .padding(.vertical, DS.Spacing.s2)
             .accessibilityHidden(true)

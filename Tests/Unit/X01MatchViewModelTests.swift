@@ -925,6 +925,29 @@ func x01ViewModelReconcileAfterSummaryUndoOnAppear() async throws {
 
 @MainActor
 @Test(.tags(.integration, .x01, .match, .regression))
+func x01ViewModelStaleMatchCompletedInstanceCannotResumeFreshMatch() async throws {
+    let (vm, completedMatchId, store) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
+    vm.inputMode = .totalEntry
+    vm.totalEntryText = "40"
+    await vm.submitTurn()
+    #expect(vm.state == .matchCompleted)
+
+    let rematchSession = try MatchLifecycleService.createMatch(
+        type: .x01,
+        config: .x01(MatchConfigX01(startScore: 101, legsToWin: 1, setsEnabled: false, setsToWin: nil, checkoutMode: .singleOut)),
+        participants: vm.session!.runtime.participants
+    )
+    store.save(rematchSession)
+
+    await vm.onAppear()
+
+    #expect(vm.state == .matchCompleted)
+    #expect(vm.matchId == completedMatchId)
+    #expect(store.session(for: rematchSession.runtime.matchId)?.runtime.status == .inProgress)
+}
+
+@MainActor
+@Test(.tags(.integration, .x01, .match, .regression))
 func x01ViewModelCheckoutRoutesEmptyWhenMatchCompleted() async throws {
     let (vm, _, _) = try makeX01ViewModel(totals: x01TotalsPlayer0OnForty)
     vm.inputMode = .totalEntry

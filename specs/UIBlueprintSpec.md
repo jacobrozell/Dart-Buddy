@@ -54,7 +54,7 @@ Each tab maintains its own navigation stack.
 - `PlayerDetailScreen`
 - `PlayerEditSheet` (create/edit)
 - `SettingsScreen`
-- `MigrationRecoveryScreen` (global error route)
+- `SettingsScreen` (global preferences + destructive reset)
 
 ---
 
@@ -402,27 +402,6 @@ Behavior:
 - Safe preference changes apply immediately.
 - Reset flow requires explicit destructive confirmation.
 
-## 4.12 Migration Recovery Screen
-Purpose:
-- Protect user trust when persistence migration fails.
-
-Wireframe:
-```text
-+--------------------------------------------------+
-| Data Recovery Required                           |
-|--------------------------------------------------|
-| We couldn't complete local data migration.        |
-|--------------------------------------------------|
-| [Retry Migration]                                 |
-| [Export Diagnostic Bundle]                        |
-| [Reset Local Data] (destructive, last resort)     |
-+--------------------------------------------------+
-```
-
-Behavior:
-- Never silently wipe store.
-- Always provide recoverable options and transparent copy.
-
 ---
 
 ## 5. Function Behavior and Data Flow Charts
@@ -617,11 +596,6 @@ Each screen must define:
 - **UI states:** default values loaded, edited values, destructive confirmation visible.
 - **ViewModel events:** `setAppearance`, `toggleHaptics`, `toggleSound`, `updateDefaults`, `tapResetAllData`.
 - **Future UI automation tasks:** immediate preference application, reset confirm/cancel/execute flow.
-
-## 9.12 Migration Recovery Checklist
-- **UI states:** migration error details available, retry-in-progress, retry-failed.
-- **ViewModel events:** `tapRetry`, `tapExportDiagnostics`, `tapResetLocalData`.
-- **Future UI automation tasks:** each recovery action path is reachable and clearly labeled.
 
 ---
 
