@@ -34,7 +34,7 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 | **Game engines** | 22 shipped modes (Standard, Party, Co-op, Practice) — see [`docs/feature-inventory.md`](docs/feature-inventory.md) | X01 + Cricket only |
 | **App shell** | 5-tab shell (Play · Modes · Players · Activity · Settings) | 4 tabs (Modes hidden) |
 | **Bots** | Preset ladder, Training Partner, custom bots (tunable X01 avg / Cricket MPR) | Preset + custom |
-| **Players & data** | CRUD, archive guards, DBPE export bundle, bootstrap store recovery | Export hidden |
+| **Players & data** | CRUD, archive guards, DBPE export bundle, migration recovery UI | Export hidden |
 | **Activity** | History + Statistics with shared filters, per-mode stat kinds (34 declared) | Shipped |
 | **Platform hooks** | Deep links (`dartbuddy://v1/...`), App Intents (flagged off), Firebase Analytics + Crashlytics | Deep links internal only |
 | **Catalog** | 34 modes in `GameModeCatalog` — 22 playable on `dev`, 12 stubs | Not exposed (lean picker: X01 + Cricket) |
