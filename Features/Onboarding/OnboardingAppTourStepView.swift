@@ -28,31 +28,66 @@ struct OnboardingAppTourStepView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .multilineTextAlignment(.center)
 
-                VStack(spacing: DS.Spacing.s3) {
-                    tourCard(
-                        symbolName: "play.circle.fill",
-                        titleKey: "onboarding.tour.play.title",
-                        bodyKey: "onboarding.tour.play.body",
-                        identifier: "onboarding_tour_play"
-                    )
-                    tourCard(
-                        symbolName: "person.2.fill",
-                        titleKey: "onboarding.tour.players.title",
-                        bodyKey: "onboarding.tour.players.body",
-                        identifier: "onboarding_tour_players"
-                    )
-                    tourCard(
-                        symbolName: "chart.bar.fill",
-                        titleKey: "onboarding.tour.activity.title",
-                        bodyKey: "onboarding.tour.activity.body",
-                        identifier: "onboarding_tour_activity"
-                    )
-                    tourCard(
-                        symbolName: "gearshape.fill",
-                        titleKey: "onboarding.tour.settings.title",
-                        bodyKey: "onboarding.tour.settings.body",
-                        identifier: "onboarding_tour_settings"
-                    )
+                if GameplayLayout.usesIPadMainShell() {
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: DS.Spacing.s3),
+                            GridItem(.flexible(), spacing: DS.Spacing.s3)
+                        ],
+                        spacing: DS.Spacing.s3
+                    ) {
+                        tourCard(
+                            symbolName: "play.circle.fill",
+                            titleKey: "onboarding.tour.play.title",
+                            bodyKey: "onboarding.tour.play.body",
+                            identifier: "onboarding_tour_play"
+                        )
+                        tourCard(
+                            symbolName: "person.2.fill",
+                            titleKey: "onboarding.tour.players.title",
+                            bodyKey: "onboarding.tour.players.body",
+                            identifier: "onboarding_tour_players"
+                        )
+                        tourCard(
+                            symbolName: "chart.bar.fill",
+                            titleKey: "onboarding.tour.activity.title",
+                            bodyKey: "onboarding.tour.activity.body",
+                            identifier: "onboarding_tour_activity"
+                        )
+                        tourCard(
+                            symbolName: "gearshape.fill",
+                            titleKey: "onboarding.tour.settings.title",
+                            bodyKey: "onboarding.tour.settings.body",
+                            identifier: "onboarding_tour_settings"
+                        )
+                    }
+                } else {
+                    VStack(spacing: DS.Spacing.s3) {
+                        tourCard(
+                            symbolName: "play.circle.fill",
+                            titleKey: "onboarding.tour.play.title",
+                            bodyKey: "onboarding.tour.play.body",
+                            identifier: "onboarding_tour_play"
+                        )
+                        tourCard(
+                            symbolName: "person.2.fill",
+                            titleKey: "onboarding.tour.players.title",
+                            bodyKey: "onboarding.tour.players.body",
+                            identifier: "onboarding_tour_players"
+                        )
+                        tourCard(
+                            symbolName: "chart.bar.fill",
+                            titleKey: "onboarding.tour.activity.title",
+                            bodyKey: "onboarding.tour.activity.body",
+                            identifier: "onboarding_tour_activity"
+                        )
+                        tourCard(
+                            symbolName: "gearshape.fill",
+                            titleKey: "onboarding.tour.settings.title",
+                            bodyKey: "onboarding.tour.settings.body",
+                            identifier: "onboarding_tour_settings"
+                        )
+                    }
                 }
 
                 Text(L10n.onboardingTourRoadmap)

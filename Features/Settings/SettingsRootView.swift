@@ -25,6 +25,28 @@ struct SettingsRootView: View {
     }
 
     var body: some View {
+        phoneSettingsShell
+        .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
+            Button(L10n.cancel, role: .cancel) {
+                viewModel.dismissResetPrompt()
+            }
+            Button(L10n.resetConfirmAction, role: .destructive) {
+                viewModel.queueConfirmReset()
+            }
+        } message: {
+            Text(L10n.resetConfirmMessage)
+        }
+        .fullScreenCover(isPresented: $showsOnboarding) {
+            OnboardingFlowView(
+                mode: .replay,
+                dependencies: dependencies,
+                preferredColorScheme: preferences.preferredColorScheme,
+                onFinished: { showsOnboarding = false }
+            )
+        }
+    }
+
+    private var phoneSettingsShell: some View {
         NavigationStack(path: $path) {
             Group {
                 if let settings = viewModel.settings {
@@ -59,24 +81,6 @@ struct SettingsRootView: View {
                 .background(settingsRootBackground)
         }
         .brandSettingsScreenChrome(appearanceModeRaw: preferences.appearanceModeRaw)
-        .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
-            Button(L10n.cancel, role: .cancel) {
-                viewModel.dismissResetPrompt()
-            }
-            Button(L10n.resetConfirmAction, role: .destructive) {
-                viewModel.queueConfirmReset()
-            }
-        } message: {
-            Text(L10n.resetConfirmMessage)
-        }
-        .fullScreenCover(isPresented: $showsOnboarding) {
-            OnboardingFlowView(
-                mode: .replay,
-                dependencies: dependencies,
-                preferredColorScheme: preferences.preferredColorScheme,
-                onFinished: { showsOnboarding = false }
-            )
-        }
     }
 
     private var settingsRootBackground: Color {

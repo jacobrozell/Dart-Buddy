@@ -62,70 +62,91 @@ struct ActivityRootView: View {
     }
 
     var body: some View {
+        phoneActivityShell
+    }
+
+    private var phoneActivityShell: some View {
         NavigationStack(path: $historyPath) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
-                    BrandRootScreenTitle(title: L10n.activityTitle)
-
-                    BrandSegmented(
-                        options: ActivitySegment.allCases.map { ($0, $0.title) },
-                        selection: $segment,
-                        accessibilityIdentifiers: [
-                            .history: "activity_segment_history",
-                            .statistics: "activity_segment_statistics"
-                        ]
-                    )
-
-                    ActivityFilterBar(
-                        modeFilter: $modeFilter,
-                        period: $period,
-                        playerFilter: $playerFilter,
-                        playerOptions: currentPlayerOptions,
-                        selectedPlayerName: currentSelectedPlayerName
-                    )
-
-                    switch segment {
-                    case .history:
-                        historySegmentContent
-                    case .statistics:
-                        statisticsSegmentContent
-                    }
+            activityScrollContent
+                .background(Brand.background.ignoresSafeArea())
+                .navigationBarHidden(true)
+                .onAppear { scheduleSegmentRefresh() }
+                .onChange(of: refreshToken) { _, _ in scheduleSegmentRefresh() }
+                .onChange(of: segment) { _, _ in scheduleSegmentRefresh() }
+                .onChange(of: modeFilter) { _, _ in applySharedFilters() }
+                .onChange(of: period) { _, _ in applySharedFilters() }
+                .onChange(of: playerFilter) { _, _ in applySharedFilters() }
+                .onDisappear {
+                    filterTask?.cancel()
+                    loadMoreTask?.cancel()
+                    statsLoadTask?.cancel()
                 }
+                .navigationDestination(for: HistoryRoute.self) { route in
+                    historyNavigationDestination(route)
+                }
+        }
+    }
+
+    private var activityScrollContent: some View {
+        ScrollView {
+            activityMainColumn
                 .padding(.horizontal, DS.Spacing.s4)
                 .tabRootScrollChrome()
                 .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
                 .frame(maxWidth: .infinity)
+        }
+    }
+
+    private var activityMainColumn: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+            BrandRootScreenTitle(title: L10n.activityTitle)
+            activityChrome
+            switch segment {
+            case .history:
+                historySegmentContent
+            case .statistics:
+                statisticsSegmentContent
             }
-            .background(Brand.background.ignoresSafeArea())
-            .navigationBarHidden(true)
-            .onAppear { scheduleSegmentRefresh() }
-            .onChange(of: refreshToken) { _, _ in scheduleSegmentRefresh() }
-            .onChange(of: segment) { _, _ in scheduleSegmentRefresh() }
-            .onChange(of: modeFilter) { _, _ in applySharedFilters() }
-            .onChange(of: period) { _, _ in applySharedFilters() }
-            .onChange(of: playerFilter) { _, _ in applySharedFilters() }
-            .onDisappear {
-                filterTask?.cancel()
-                loadMoreTask?.cancel()
-                statsLoadTask?.cancel()
-            }
-            .navigationDestination(for: HistoryRoute.self) { route in
-                switch route {
-                case .list:
-                    EmptyView()
-                case let .detail(matchId):
-                    MatchHistoryDetailScreen(
-                        matchId: matchId,
-                        matchRepository: dependencies.matchRepository,
-                        statsRepository: dependencies.statsRepository,
-                        onDeleted: {
-                            if !historyPath.isEmpty { historyPath.removeLast() }
-                            filterTask?.cancel()
-                            filterTask = Task { await historyViewModel.applyFilters() }
-                        }
-                    )
+        }
+    }
+
+    private var activityChrome: some View {
+        Group {
+            BrandSegmented(
+                options: ActivitySegment.allCases.map { ($0, $0.title) },
+                selection: $segment,
+                accessibilityIdentifiers: [
+                    .history: "activity_segment_history",
+                    .statistics: "activity_segment_statistics"
+                ]
+            )
+
+            ActivityFilterBar(
+                modeFilter: $modeFilter,
+                period: $period,
+                playerFilter: $playerFilter,
+                playerOptions: currentPlayerOptions,
+                selectedPlayerName: currentSelectedPlayerName
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func historyNavigationDestination(_ route: HistoryRoute) -> some View {
+        switch route {
+        case .list:
+            EmptyView()
+        case let .detail(matchId):
+            MatchHistoryDetailScreen(
+                matchId: matchId,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                onDeleted: {
+                    if !historyPath.isEmpty { historyPath.removeLast() }
+                    filterTask?.cancel()
+                    filterTask = Task { await historyViewModel.applyFilters() }
                 }
-            }
+            )
         }
     }
 

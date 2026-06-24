@@ -32,43 +32,45 @@ struct SetupHomeModeSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            Text(L10n.string("play.setup.selectedMode"))
-                .font(.headline)
-                .foregroundStyle(Brand.textPrimary)
-                .accessibilityHidden(true)
+            HStack(alignment: .firstTextBaseline) {
+                Text(L10n.string("play.setup.selectedMode"))
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
+                    .accessibilityHidden(true)
+                Spacer(minLength: DS.Spacing.s2)
+                if learnToPlayMatchType != nil {
+                    learnToPlayButton
+                }
+            }
 
             if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
                 accessibilitySelectedModeCard
             } else {
                 compactSelectedModeCard
             }
+        }
+    }
 
-            if learnToPlayMatchType != nil {
-                learnToPlayButton
-            }
-
-            if hasModeOptionChips {
-                HStack {
-                    Spacer(minLength: 0)
-                    Button {
-                        showsEditOptions.toggle()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(L10n.string(showsEditOptions ? "play.setup.hideOptions" : "play.setup.editOptions"))
-                                .font(.subheadline.weight(.semibold))
-                            Image(systemName: showsEditOptions ? "chevron.up" : "chevron.down")
-                                .font(.caption.weight(.semibold))
-                                .accessibilityHidden(true)
-                        }
-                        .foregroundStyle(Brand.green)
-                        .padding(.horizontal, DS.Spacing.s2)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("setup_editOptionsButton")
+    @ViewBuilder
+    private var editOptionsButton: some View {
+        if hasModeOptionChips {
+            Button {
+                showsEditOptions.toggle()
+            } label: {
+                HStack(spacing: 4) {
+                    Text(L10n.string(showsEditOptions ? "play.setup.hideOptions" : "play.setup.editOptions"))
+                        .font(.subheadline.weight(.semibold))
+                    Image(systemName: showsEditOptions ? "chevron.up" : "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .accessibilityHidden(true)
                 }
+                .foregroundStyle(Brand.green)
+                .padding(.horizontal, DS.Spacing.s2)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("setup_editOptionsButton")
         }
     }
 
@@ -80,8 +82,7 @@ struct SetupHomeModeSection: View {
                     .font(.subheadline.weight(.semibold))
             }
             .foregroundStyle(Brand.green)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(minHeight: 44, alignment: .leading)
+            .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -124,10 +125,18 @@ struct SetupHomeModeSection: View {
     }
 
     private var compactSelectedModeCard: some View {
-        HStack(alignment: .top, spacing: DS.Spacing.s3) {
-            selectedModeSummaryBlock
-            Spacer(minLength: DS.Spacing.s2)
-            changeModeButton
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            HStack(alignment: .top, spacing: DS.Spacing.s3) {
+                selectedModeSummaryBlock
+                Spacer(minLength: DS.Spacing.s2)
+                changeModeButton
+            }
+            if hasModeOptionChips {
+                HStack {
+                    Spacer(minLength: 0)
+                    editOptionsButton
+                }
+            }
         }
         .padding(DS.Spacing.s3)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
@@ -138,7 +147,10 @@ struct SetupHomeModeSection: View {
             selectedModeSummaryBlock
             HStack {
                 Spacer(minLength: 0)
-                changeModeButton
+                VStack(alignment: .trailing, spacing: DS.Spacing.s1) {
+                    changeModeButton
+                    editOptionsButton
+                }
             }
         }
         .padding(DS.Spacing.s3)

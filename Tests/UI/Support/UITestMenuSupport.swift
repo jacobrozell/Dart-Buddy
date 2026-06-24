@@ -289,21 +289,13 @@ extension XCTestCase {
     }
 
     func ensureActivityTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
-        if activityTabContentIsVisible(in: app) {
-            return
-        }
-        tapTabBarItem(named: "Activity", identifier: "tab_activity", in: app, timeout: timeout)
-
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             if activityTabContentIsVisible(in: app) {
                 return
             }
-            // Retry tab selection when launch/bootstrap left us on Play.
-            if app.descendants(matching: .any)["brand_app_title"].exists {
-                tapTabBarItem(named: "Activity", identifier: "tab_activity", in: app, timeout: 1)
-            }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+            tapTabBarItem(named: "Activity", identifier: "tab_activity", in: app, timeout: 2)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.25))
         }
 
         XCTAssertTrue(
@@ -313,6 +305,9 @@ extension XCTestCase {
     }
 
     private func activityTabContentIsVisible(in app: XCUIApplication) -> Bool {
+        if app.descendants(matching: .any)["activity_root_title"].exists {
+            return true
+        }
         if app.buttons["activity_segment_history"].exists
             || app.buttons["activity_segment_statistics"].exists {
             return true
@@ -321,8 +316,14 @@ extension XCTestCase {
             || app.buttons["activityPlayerFilterMenu"].exists {
             return true
         }
-        return app.staticTexts["Activity"].exists
-            || app.staticTexts.matching(NSPredicate(format: "label == %@", "Activity")).firstMatch.exists
+        if app.buttons["historyResumeMatchButton"].exists
+            || app.buttons["historyLoadMoreButton"].exists {
+            return true
+        }
+        if app.staticTexts["FINISHED"].exists || app.staticTexts["FORFEIT"].exists {
+            return true
+        }
+        return app.staticTexts["Games"].exists
     }
 
     func waitForSeededActivityHistoryContent(_ app: XCUIApplication, timeout: TimeInterval = 20) {
@@ -392,6 +393,19 @@ extension XCTestCase {
         if !statsSegment.isSelected {
             statsSegment.tap()
         }
+    }
+
+    func ensureSettingsSection(
+        _ sectionRawValue: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10
+    ) {
+        let sectionButton = app.buttons["settings_section_\(sectionRawValue)"]
+        guard sectionButton.waitForExistence(timeout: 1) else { return }
+        if sectionButton.isSelected { return }
+        sectionButton.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        _ = sectionButton.waitForExistence(timeout: timeout)
     }
 
     func ensureSettingsTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {

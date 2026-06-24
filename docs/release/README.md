@@ -1,5 +1,7 @@
 # Release documentation
 
+**Current store version:** **1.0.0 (7)** — live on the App Store (2026-06-22). Git tag `1.0.0` → `7df4358`.
+
 | File | Role |
 |------|------|
 | [**`1.1.0-testflight-rc-plan.md`**](1.1.0-testflight-rc-plan.md) | **1.1 RC runbook** — `release/1.1.0` → TestFlight internal (engineering, CI, Xcode Cloud) |

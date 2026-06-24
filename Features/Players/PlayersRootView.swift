@@ -39,129 +39,152 @@ struct PlayersRootView: View {
     }
 
     var body: some View {
+        phonePlayersShell
+        .sheet(isPresented: $showsCustomBotSheet) {
+            CustomBotCreationSheet { name, metrics in
+                actionTask?.cancel()
+                actionTask = Task { await viewModel.createCustomBot(name: name, metrics: metrics) }
+            }
+        }
+        .sheet(item: $playerSheet) { presentation in
+            PlayerEditSheet(
+                viewModel: PlayerEditViewModel(
+                    existingNames: viewModel.players.map(\.name),
+                    editing: presentation.editing,
+                    defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
+                ),
+                existing: presentation.editing,
+                onSave: { player in
+                    await viewModel.save(player)
+                }
+            )
+        }
+        .alert(L10n.actionBlockedTitle, isPresented: Binding(
+            get: { deleteBlockedMessage != nil },
+            set: { if !$0 { deleteBlockedMessage = nil } }
+        )) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(deleteBlockedMessage ?? "")
+        }
+        .alert(L10n.errorTitle, isPresented: Binding(
+            get: { exportErrorKey != nil },
+            set: { if !$0 { exportErrorKey = nil } }
+        )) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(LocalizedStringKey(exportErrorKey ?? "players.detail.export.error"))
+        }
+        .sheet(item: $exportShareItem) { item in
+            ActivityShareSheet(items: [item.url]) {
+                try? FileManager.default.removeItem(at: item.url)
+                exportShareItem = nil
+            }
+        }
+        .onDisappear {
+            actionTask?.cancel()
+            retryTask?.cancel()
+        }
+    }
+
+    private var phonePlayersShell: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
                 playersListHeader
                 playersBody
             }
             .tabRootScreenBackground()
-                .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
-                .navigationBarHidden(true)
-                .safeAreaInset(edge: .bottom) {
-                    if viewModel.state != .error && viewModel.players.isEmpty {
-                        Button {
-                            playerSheet = .add()
-                        } label: {
-                            Text(L10n.addPlayerTitle)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Brand.green)
-                        .controlSize(.large)
-                        .padding(.horizontal, DS.Spacing.s4)
-                        .padding(.vertical, DS.Spacing.s2)
+            .onChange(of: viewModel.searchText) { _, _ in viewModel.applySearch() }
+            .navigationBarHidden(true)
+            .safeAreaInset(edge: .bottom) {
+                if viewModel.state != .error && viewModel.players.isEmpty {
+                    Button {
+                        playerSheet = .add()
+                    } label: {
+                        Text(L10n.addPlayerTitle)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Brand.green)
+                    .controlSize(.large)
+                    .padding(.horizontal, DS.Spacing.s4)
+                    .padding(.vertical, DS.Spacing.s2)
                 }
-                .task {
-                    await viewModel.onAppear()
-                    applyCustomBotSnapshotNavigationIfNeeded()
-                }
+            }
+            .task {
+                await viewModel.onAppear()
+                applyCustomBotSnapshotNavigationIfNeeded()
+            }
             .navigationDestination(for: PlayersRoute.self) { route in
-                switch route {
-                case .list:
-                    EmptyView()
-                case let .detail(playerId):
-                    PlayerDetailView(
-                        player: viewModel.player(id: playerId),
-                        existingNames: viewModel.players.map(\.name),
-                        dependencies: dependencies,
-                        onEdit: {
-                            guard let player = viewModel.player(id: playerId) else { return }
-                            playerSheet = .edit(player)
-                        },
-                        onArchiveToggle: {
-                            actionTask?.cancel()
-                            actionTask = Task { await viewModel.archiveToggle(playerId) }
-                        },
-                        onSave: { player in
-                            actionTask?.cancel()
-                            actionTask = Task { await viewModel.save(player) }
-                        },
-                        onExportResult: handleExportResult,
-                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
-                    )
-                case let .edit(playerId):
-                    PlayerDetailView(
-                        player: playerId.flatMap { viewModel.player(id: $0) },
-                        existingNames: viewModel.players.map(\.name),
-                        dependencies: dependencies,
-                        onEdit: {
-                            guard let id = playerId, let player = viewModel.player(id: id) else { return }
-                            playerSheet = .edit(player)
-                        },
-                        onArchiveToggle: {},
-                        onSave: { player in
-                            actionTask?.cancel()
-                            actionTask = Task { await viewModel.save(player) }
-                        },
-                        onSelectRecentMatch: { path.append(.matchDetail(matchId: $0)) }
-                    )
-                case let .matchDetail(matchId):
-                    MatchHistoryDetailScreen(
-                        matchId: matchId,
-                        matchRepository: dependencies.matchRepository,
-                        statsRepository: dependencies.statsRepository,
-                        onDeleted: {
-                            if !path.isEmpty { path.removeLast() }
-                        }
-                    )
-                }
-            }
-            .sheet(isPresented: $showsCustomBotSheet) {
-                CustomBotCreationSheet { name, metrics in
-                    actionTask?.cancel()
-                    actionTask = Task { await viewModel.createCustomBot(name: name, metrics: metrics) }
-                }
-            }
-            .sheet(item: $playerSheet) { presentation in
-                PlayerEditSheet(
-                    viewModel: PlayerEditViewModel(
-                        existingNames: viewModel.players.map(\.name),
-                        editing: presentation.editing,
-                        defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
-                    ),
-                    existing: presentation.editing,
-                    onSave: { player in
-                        await viewModel.save(player)
-                    }
-                )
-            }
-            .alert(L10n.actionBlockedTitle, isPresented: Binding(
-                get: { deleteBlockedMessage != nil },
-                set: { if !$0 { deleteBlockedMessage = nil } }
-            )) {
-                Button(L10n.ok, role: .cancel) {}
-            } message: {
-                Text(deleteBlockedMessage ?? "")
-            }
-            .alert(L10n.errorTitle, isPresented: Binding(
-                get: { exportErrorKey != nil },
-                set: { if !$0 { exportErrorKey = nil } }
-            )) {
-                Button(L10n.ok, role: .cancel) {}
-            } message: {
-                Text(LocalizedStringKey(exportErrorKey ?? "players.detail.export.error"))
-            }
-            .sheet(item: $exportShareItem) { item in
-                ActivityShareSheet(items: [item.url]) {
-                    try? FileManager.default.removeItem(at: item.url)
-                    exportShareItem = nil
-                }
-            }
-            .onDisappear {
-                actionTask?.cancel()
-                retryTask?.cancel()
+                playersNavigationDestination(route)
             }
         }
+    }
+
+    @ViewBuilder
+    private func playersNavigationDestination(_ route: PlayersRoute) -> some View {
+        switch route {
+        case .list:
+            EmptyView()
+        case let .detail(playerId):
+            PlayerDetailView(
+                player: viewModel.player(id: playerId),
+                existingNames: viewModel.players.map(\.name),
+                dependencies: dependencies,
+                onEdit: {
+                    guard let player = viewModel.player(id: playerId) else { return }
+                    playerSheet = .edit(player)
+                },
+                onArchiveToggle: {
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.archiveToggle(playerId) }
+                },
+                onSave: { player in
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.save(player) }
+                },
+                onExportResult: handleExportResult,
+                onSelectRecentMatch: { appendMatchDetail(matchId: $0) }
+            )
+        case let .edit(playerId):
+            PlayerDetailView(
+                player: playerId.flatMap { viewModel.player(id: $0) },
+                existingNames: viewModel.players.map(\.name),
+                dependencies: dependencies,
+                onEdit: {
+                    guard let id = playerId, let player = viewModel.player(id: id) else { return }
+                    playerSheet = .edit(player)
+                },
+                onArchiveToggle: {},
+                onSave: { player in
+                    actionTask?.cancel()
+                    actionTask = Task { await viewModel.save(player) }
+                },
+                onSelectRecentMatch: { appendMatchDetail(matchId: $0) }
+            )
+        case let .matchDetail(matchId):
+            MatchHistoryDetailScreen(
+                matchId: matchId,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                onDeleted: {
+                    popMatchDetail()
+                }
+            )
+        }
+    }
+
+    private func appendMatchDetail(matchId: UUID) {
+        path.append(.matchDetail(matchId: matchId))
+    }
+
+    private func popMatchDetail() {
+        if !path.isEmpty {
+            path.removeLast()
+        }
+    }
+
+    private func selectPlayer(_ playerId: UUID) {
+        path.append(.detail(playerId: playerId))
     }
 
     @ViewBuilder
@@ -208,29 +231,41 @@ struct PlayersRootView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         } else {
-            List {
-                if !viewModel.filteredHumans.isEmpty {
-                    Section(L10n.playersSectionTitle) {
-                        ForEach(viewModel.filteredHumans) { player in
-                            playerRow(player)
-                        }
-                    }
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    playersCardSections
                 }
-                if !viewModel.filteredBots.isEmpty {
-                    Section(L10n.botsSectionTitle) {
-                        ForEach(viewModel.filteredBots) { bot in
-                            playerRow(bot)
-                        }
-                    }
-                }
+                .padding(.horizontal, DS.Spacing.s4)
+                .tabRootScrollChrome()
+                .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
+                .frame(maxWidth: .infinity)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .tabRootScrollChrome()
             .motionTabContentReveal(when: true)
-            .readableRootContentWidth(horizontalSizeClass)
         }
+    }
+
+    @ViewBuilder
+    private var playersCardSections: some View {
+        if !viewModel.filteredHumans.isEmpty {
+            sectionHeader(String(localized: "players.section.title"))
+            ForEach(viewModel.filteredHumans) { player in
+                playerCard(player)
+            }
+        }
+        if !viewModel.filteredBots.isEmpty {
+            sectionHeader(String(localized: "players.bots.section.title"))
+            ForEach(viewModel.filteredBots) { bot in
+                playerCard(bot)
+            }
+        }
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.headline)
+            .foregroundStyle(Brand.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, DS.Spacing.s2)
     }
 
     private var playersListHeader: some View {
@@ -253,7 +288,7 @@ struct PlayersRootView: View {
             searchField
         }
         .padding(.horizontal, DS.Spacing.s4)
-        .readableRootContentWidth(horizontalSizeClass)
+        .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
         .frame(maxWidth: .infinity)
         .background(Brand.background)
     }
@@ -303,9 +338,9 @@ struct PlayersRootView: View {
         .accessibilityLabel(L10n.addPlayerTitle)
     }
 
-    private func playerRow(_ player: EditablePlayer) -> some View {
+    private func playerCard(_ player: EditablePlayer) -> some View {
         Button {
-            path.append(.detail(playerId: player.id))
+            selectPlayer(player.id)
         } label: {
             HStack(spacing: DS.Spacing.s3) {
                 PlayerAvatarChip(player: player, size: 40)
@@ -349,18 +384,25 @@ struct PlayersRootView: View {
                     .foregroundStyle(Brand.textSecondary)
                     .accessibilityHidden(true)
             }
-            .contentShape(Rectangle())
+            .padding(DS.Spacing.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            .contentShape(RoundedRectangle(cornerRadius: DS.Radius.md))
         }
-        .listRowBackground(Brand.background)
-        .listRowSeparatorTint(Brand.cardElevated)
+        .buttonStyle(.plain)
         .accessibilityLabel(playerRowAccessibilityLabel(player))
         .accessibilityIdentifier(player.botDifficulty == nil ? "player_row_\(player.name)" : "player_row_bot_\(player.id.uuidString)")
-        .swipeActions {
-            Button(player.isArchived ? "players.unarchive" : "players.archive") {
+        .contextMenu {
+            Button {
                 actionTask?.cancel()
                 actionTask = Task { await viewModel.archiveToggle(player.id) }
-            }.tint(.orange)
-            Button(L10n.delete, role: .destructive) {
+            } label: {
+                Label(
+                    player.isArchived ? L10n.string("players.unarchive") : L10n.string("players.archive"),
+                    systemImage: player.isArchived ? "tray.and.arrow.up" : "archivebox"
+                )
+            }
+            Button(role: .destructive) {
                 actionTask?.cancel()
                 actionTask = Task {
                     if !(await viewModel.delete(player.id)) {
@@ -370,6 +412,8 @@ struct PlayersRootView: View {
                         )
                     }
                 }
+            } label: {
+                Label(L10n.delete, systemImage: "trash")
             }
         }
     }
@@ -421,4 +465,5 @@ struct PlayersRootView: View {
         }
     }
 }
+
 

@@ -177,9 +177,7 @@ enum L10n {
     static let settingsSupportRateAccessibility: LocalizedStringKey = "settings.support.rate.accessibility"
     static let settingsSupportPrivacyAccessibility: LocalizedStringKey = "settings.support.privacy.accessibility"
     static let settingsSupportAccessibilityLabel: LocalizedStringKey = "settings.support.accessibility.accessibility"
-    static let settingsBuyDeveloperCoffee: LocalizedStringKey = "settings.support.buyCoffee"
-    static let settingsBuyDeveloperCoffeeFooter: LocalizedStringKey = "settings.support.buyCoffee.footer"
-    static let settingsBuyDeveloperCoffeeAccessibility: LocalizedStringKey = "settings.support.buyCoffee.accessibility"
+
     static let resetAllData: LocalizedStringKey = "settings.resetAllData"
     static let resetConfirmTitle: LocalizedStringKey = "settings.reset.confirmTitle"
     static let resetConfirmMessage: LocalizedStringKey = "settings.reset.confirmMessage"

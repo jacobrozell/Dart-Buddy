@@ -1,0 +1,198 @@
+{
+  "captureCount" : 4,
+  "generatedAt" : "2026-06-13T20:08:19Z",
+  "modes" : [
+    {
+      "catalogId" : "standard.x01",
+      "displayName" : "X01",
+      "folder" : "x01",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "standard.cricket",
+      "displayName" : "Cricket",
+      "folder" : "cricket",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "standard.americanCricket",
+      "displayName" : "American Cricket",
+      "folder" : "americanCricket",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.baseball",
+      "displayName" : "Baseball",
+      "folder" : "baseball",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.killer",
+      "displayName" : "Killer",
+      "folder" : "killer",
+      "screenshots" : [
+        {
+          "path" : "killer\/portrait.png",
+          "variant" : "portrait"
+        },
+        {
+          "path" : "killer\/landscape.png",
+          "variant" : "landscape"
+        },
+        {
+          "path" : "killer\/massive-text-portrait.png",
+          "variant" : "massive-text-portrait"
+        },
+        {
+          "path" : "killer\/massive-text-landscape.png",
+          "variant" : "massive-text-landscape"
+        }
+      ]
+    },
+    {
+      "catalogId" : "party.shanghai",
+      "displayName" : "Shanghai",
+      "folder" : "shanghai",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.mickeyMouse",
+      "displayName" : "Mickey Mouse",
+      "folder" : "mickeyMouse",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.mulligan",
+      "displayName" : "Mulligan",
+      "folder" : "mulligan",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.englishCricket",
+      "displayName" : "English Cricket",
+      "folder" : "englishCricket",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.knockout",
+      "displayName" : "Knockout",
+      "folder" : "knockout",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.suddenDeath",
+      "displayName" : "Sudden Death",
+      "folder" : "suddenDeath",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.fiftyOneByFives",
+      "displayName" : "51 by 5's",
+      "folder" : "fiftyOneByFives",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.golf",
+      "displayName" : "Golf",
+      "folder" : "golf",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.football",
+      "displayName" : "Football",
+      "folder" : "football",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.grandNational",
+      "displayName" : "Grand National",
+      "folder" : "grandNational",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.hareAndHounds",
+      "displayName" : "Hare and Hounds",
+      "folder" : "hareAndHounds",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "party.fleet",
+      "displayName" : "Fleet",
+      "folder" : "fleet",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "coop.raid",
+      "displayName" : "Raid",
+      "folder" : "raid",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "practice.aroundTheClock",
+      "displayName" : "Around the Clock",
+      "folder" : "aroundTheClock",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "practice.aroundTheClock180",
+      "displayName" : "180 Around the Clock",
+      "folder" : "aroundTheClock180",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "practice.chaseTheDragon",
+      "displayName" : "Chase the Dragon",
+      "folder" : "chaseTheDragon",
+      "screenshots" : [
+
+      ]
+    },
+    {
+      "catalogId" : "practice.nineLives",
+      "displayName" : "Nine Lives",
+      "folder" : "nineLives",
+      "screenshots" : [
+
+      ]
+    }
+  ],
+  "simulatorName" : "Clone 1 of iPhone 17 Pro Max"
+}

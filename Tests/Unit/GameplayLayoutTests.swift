@@ -3,8 +3,15 @@ import Testing
 @testable import DartBuddy
 
 @Test(.tags(.unit, .regression))
+func gameplayLayoutUsesIPadMainShellAlwaysFalseAfterUnifiedTabBar() {
+    #expect(GameplayLayout.usesIPadMainShell(isPad: true) == false)
+    #expect(GameplayLayout.usesIPadMainShell(isPad: false) == false)
+}
+
+@Test(.tags(.unit, .regression))
 func gameplayLayoutUsesWideMaxOnRegularSizeClass() {
-    #expect(GameplayLayout.contentMaxWidth(horizontalSizeClass: .regular) == 920)
+    #expect(GameplayLayout.contentMaxWidth(horizontalSizeClass: .regular, isPad: true) == 920)
+    #expect(GameplayLayout.contentMaxWidth(horizontalSizeClass: .regular, isPad: false) == .infinity)
 }
 
 @Test(.tags(.unit, .regression))
