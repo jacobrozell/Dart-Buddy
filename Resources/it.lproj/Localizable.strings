@@ -35,6 +35,8 @@
 "setup.validation.invalidSets.short" = "Il numero di set deve essere almeno 1.";
 "setup.validation.partyComingSoon" = "Questo party game non è ancora disponibile.";
 "setup.validation.partyComingSoon.short" = "In arrivo.";
+"setup.validation.coopComingSoon" = "Questa modalità cooperativa non è ancora disponibile.";
+"setup.validation.coopComingSoon.short" = "In arrivo.";
 "setup.validation.partyMinimumPlayers" = "Seleziona almeno due giocatori per questo gioco.";
 "setup.validation.partyMinimumPlayers.short" = "Servono almeno due giocatori.";
 "setup.validation.partyKillerMinimumPlayers" = "Killer richiede almeno tre giocatori.";
@@ -1251,6 +1253,11 @@
 "achievements.locked.accessibility" = "Obiettivo bloccato";
 "achievements.inProgress.accessibility" = "Obiettivo in corso, %1$d percento";
 "achievements.unlocked.accessibility" = "Obiettivo sbloccato";
+"achievements.newBadge" = "NUOVO";
+"achievements.progressCountFormat" = "%1$d / %2$d";
+"achievements.detail.title" = "Obiettivo";
+"achievements.detail.unlockedOn" = "Sbloccato il %@";
+"achievements.detail.lockedHint" = "Gioca partite per sbloccare questo obiettivo.";
 "achievement.db_play_first.name" = "Prima partita";
 "achievement.db_play_first.description" = "Completa la tua prima partita.";
 "achievement.db_win_first.name" = "Prima vittoria";

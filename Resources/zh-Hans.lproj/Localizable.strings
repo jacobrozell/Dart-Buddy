@@ -35,6 +35,8 @@
 "setup.validation.invalidSets.short" = "盘数至少为 1。";
 "setup.validation.partyComingSoon" = "此派对游戏尚未推出。";
 "setup.validation.partyComingSoon.short" = "敬请期待。";
+"setup.validation.coopComingSoon" = "此合作模式尚未推出。";
+"setup.validation.coopComingSoon.short" = "敬请期待。";
 "setup.validation.partyMinimumPlayers" = "此游戏至少需要两名玩家。";
 "setup.validation.partyMinimumPlayers.short" = "至少需要两名玩家。";
 "setup.validation.partyKillerMinimumPlayers" = "杀手模式至少需要三名玩家。";
@@ -1251,6 +1253,11 @@
 "achievements.locked.accessibility" = "已锁定成就";
 "achievements.inProgress.accessibility" = "进行中成就，%1$d 百分比";
 "achievements.unlocked.accessibility" = "已解锁成就";
+"achievements.newBadge" = "新";
+"achievements.progressCountFormat" = "%1$d / %2$d";
+"achievements.detail.title" = "成就";
+"achievements.detail.unlockedOn" = "解锁于 %@";
+"achievements.detail.lockedHint" = "进行比赛以解锁此成就。";
 "achievement.db_play_first.name" = "首场比赛";
 "achievement.db_play_first.description" = "完成你的第一场比赛。";
 "achievement.db_win_first.name" = "首次胜利";

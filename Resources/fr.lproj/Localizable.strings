@@ -35,6 +35,8 @@
 "setup.validation.invalidSets.short" = "Le nombre de sets doit être au moins 1.";
 "setup.validation.partyComingSoon" = "Ce jeu de soirée n'est pas encore disponible.";
 "setup.validation.partyComingSoon.short" = "Bientôt disponible.";
+"setup.validation.coopComingSoon" = "Ce mode coopératif n'est pas encore disponible.";
+"setup.validation.coopComingSoon.short" = "Bientôt disponible.";
 "setup.validation.partyMinimumPlayers" = "Sélectionne au moins deux joueurs pour ce jeu.";
 "setup.validation.partyMinimumPlayers.short" = "Au moins deux joueurs requis.";
 "setup.validation.partyKillerMinimumPlayers" = "Killer demande au moins trois joueurs.";
@@ -1251,6 +1253,11 @@
 "achievements.locked.accessibility" = "Succès verrouillé";
 "achievements.inProgress.accessibility" = "Succès en cours, %1$d pour cent";
 "achievements.unlocked.accessibility" = "Succès débloqué";
+"achievements.newBadge" = "NOUVEAU";
+"achievements.progressCountFormat" = "%1$d / %2$d";
+"achievements.detail.title" = "Succès";
+"achievements.detail.unlockedOn" = "Débloqué le %@";
+"achievements.detail.lockedHint" = "Jouez des parties pour débloquer ce succès.";
 "achievement.db_play_first.name" = "Premier match";
 "achievement.db_play_first.description" = "Terminer ta première partie.";
 "achievement.db_win_first.name" = "Première victoire";

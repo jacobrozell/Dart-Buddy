@@ -55,10 +55,13 @@ On `dev`, engineers dogfood the full catalog:
 | Argument | Use |
 |----------|-----|
 | `-enable_full_product_surface` | CI UI tests on lean-default Release builds; dogfood full catalog |
+| `-enable_lean_product_surface` | Force lean surface on Debug / internal builds |
 | `-enable_achievements` | Debug / UI tests for achievement hooks |
 | `-ui_test_reset` | Clean in-memory store for UI tests |
 
-Do **not** ship App Store builds with `-enable_full_product_surface`.
+**Internal TestFlight (`dev` branch):** Release archives set `DART_BUDDY_INTERNAL_BUILD` in `project.yml` — full `ProductSurface`, achievements, App Intents, and visual dartboard on by default. Runbook: [`dev-internal-testflight-runbook.md`](dev-internal-testflight-runbook.md). Store release branches omit this flag.
+
+Do **not** ship App Store builds with `-enable_full_product_surface` or `DART_BUDDY_INTERNAL_BUILD`.
 
 ---
 

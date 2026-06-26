@@ -78,7 +78,11 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             if arguments.contains("-enable_app_intents") {
                 return true
             }
+            #if DART_BUDDY_INTERNAL_BUILD
+            return true
+            #else
             return false
+            #endif
         case .enableAchievements:
             if arguments.contains("-enable_achievements") {
                 return true
@@ -86,7 +90,7 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             if arguments.contains("-ui_test_reset") {
                 return false
             }
-            #if DEBUG
+            #if DEBUG || DART_BUDDY_INTERNAL_BUILD
             return true
             #else
             return false
@@ -95,7 +99,11 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             if arguments.contains("-enable_visual_dartboard") {
                 return true
             }
+            #if DART_BUDDY_INTERNAL_BUILD
+            return true
+            #else
             return false
+            #endif
         }
     }
 }

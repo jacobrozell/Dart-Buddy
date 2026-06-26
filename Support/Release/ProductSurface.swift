@@ -3,8 +3,9 @@ import Foundation
 /// Controls which product areas are reachable in this build.
 ///
 /// **Debug / `dev`:** defaults to the full catalog (all tabs, party modes, locales).
-/// **Release / App Store:** defaults to lean 1.0 (X01 + Cricket picker, 4 tabs, English bundle).
-/// Launch args override either default — see `docs/release/branch-strategy.md`.
+/// **`dev` Release + `DART_BUDDY_INTERNAL_BUILD`:** same full catalog for internal TestFlight.
+/// **Store release branches:** lean / party slices per `docs/release/branch-strategy.md`.
+/// Launch args override either default.
 enum ProductSurface {
     struct Configuration: Sendable, Equatable {
         var showsModesTab: Bool
@@ -59,7 +60,7 @@ enum ProductSurface {
         if arguments.contains(fullProductSurfaceLaunchArgument) {
             return true
         }
-        #if DEBUG
+        #if DEBUG || DART_BUDDY_INTERNAL_BUILD
         return true
         #else
         return false
