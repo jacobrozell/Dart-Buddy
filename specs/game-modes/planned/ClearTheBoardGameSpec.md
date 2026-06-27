@@ -116,7 +116,7 @@ Each variant uses the same ring-cell resolution; co-op shares one scoreboard, Te
 | `maxCollapses` | Int | `3` (Decay only) |
 | `teamAssignment` | `[PlayerId: TeamSide]` | — (Team vs Team setup) |
 
-`TeamSide`: `teamA` \| `teamB` — display names from roster colors at match start.
+`TeamSide`: `teamA` \| `teamB` — roster assignment and turn order: [`TeamPlaySpec.md`](../../TeamPlaySpec.md). Display names from roster colors at match start.
 
 ### 5.2 Ring cells (`BoardRingCell`)
 

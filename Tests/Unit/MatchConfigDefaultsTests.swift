@@ -20,6 +20,8 @@ struct MatchConfigDefaultsTests {
                  (.football, .football), (.grandNational, .grandNational), (.hareAndHounds, .hareAndHounds),
                  (.aroundTheClock, .aroundTheClock), (.aroundTheClock180, .aroundTheClock180),
                  (.chaseTheDragon, .chaseTheDragon), (.nineLives, .nineLives),
+                 (.bobs27, .bobs27), (.halveIt, .halveIt), (.scam, .scam), (.snooker, .snooker),
+                 (.ticTacToe, .ticTacToe), (.blindKiller, .blindKiller), (.followTheLeader, .followTheLeader), (.loop, .loop), (.prisoner, .prisoner),
                  (.fleet, .fleet), (.raid, .raid):
                 break
             default:

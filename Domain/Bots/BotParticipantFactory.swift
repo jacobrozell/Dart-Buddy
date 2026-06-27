@@ -12,7 +12,6 @@ struct BotParticipantBuildInput: Sendable {
     let colorTokenRaw: String
     let matchType: MatchType
     let uiTemplate: GameplayUITemplate
-    let partyUsesPresetBotsOnly: Bool
 
     init(
         playerId: UUID,
@@ -25,8 +24,7 @@ struct BotParticipantBuildInput: Sendable {
         linkedPlayerId: UUID?,
         colorTokenRaw: String,
         matchType: MatchType,
-        uiTemplate: GameplayUITemplate,
-        partyUsesPresetBotsOnly: Bool
+        uiTemplate: GameplayUITemplate
     ) {
         self.playerId = playerId
         self.displayName = displayName
@@ -39,7 +37,6 @@ struct BotParticipantBuildInput: Sendable {
         self.colorTokenRaw = colorTokenRaw
         self.matchType = matchType
         self.uiTemplate = uiTemplate
-        self.partyUsesPresetBotsOnly = partyUsesPresetBotsOnly
     }
 }
 
@@ -54,11 +51,7 @@ enum BotParticipantFactory {
 
         let context = BotPlayContext(matchType: input.matchType, uiTemplate: input.uiTemplate)
 
-        if input.partyUsesPresetBotsOnly {
-            if input.botDifficulty != nil {
-                botKindRaw = BotKind.preset.rawValue
-            }
-        } else if input.isTrainingBot {
+        if input.isTrainingBot {
             let profile = try await resolveTrainingSkill(input.playerId, input.matchType)
             let descriptor = TrainingBotDescriptor(linkedPlayerId: input.linkedPlayerId ?? input.playerId)
             botSkillProfilePayload = try descriptor.skillSnapshotPayload(profile: profile, context: context)
@@ -85,9 +78,7 @@ enum BotParticipantFactory {
                 botKindRaw: botKindRaw,
                 botDifficultyRaw: botDifficultyRaw,
                 customConfiguration: input.customConfiguration,
-                isTrainingBot: input.isTrainingBot,
-                partyUsesPresetBotsOnly: input.partyUsesPresetBotsOnly,
-                presetDifficulty: input.botDifficulty
+                isTrainingBot: input.isTrainingBot
             ),
             preferredColorTokenAtMatchStart: input.colorTokenRaw
         )

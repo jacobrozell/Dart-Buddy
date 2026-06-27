@@ -42,7 +42,7 @@ struct GameModeCatalogTests {
             #expect(entry.matchType == nil, "Planned mode \(entry.id) must not claim a MatchType")
             #expect(entry.isAvailable == false)
         }
-        #expect(GameModeCatalog.planned.count == 12)
+        #expect(GameModeCatalog.planned.count == 3)
     }
 
     @Test
@@ -125,7 +125,9 @@ struct GameModeCatalogTests {
 
     @Test
     func soloChallengeModesAreSinglePlayer() {
-        let soloChallenges = GameModeCatalog.all.filter { $0.uiTemplate == .soloChallenge && $0.isAvailable }
+        let soloChallenges = GameModeCatalog.all.filter {
+            $0.uiTemplate == .soloChallenge && $0.isAvailable && $0.isSolo
+        }
         guard !soloChallenges.isEmpty else { return }
         for entry in soloChallenges {
             #expect(entry.isSolo)

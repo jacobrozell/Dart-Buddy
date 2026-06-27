@@ -43,9 +43,7 @@ extension DartBotEngine {
         if Double.random(in: 0 ... 1, using: &rng) < profile.x01.offBoardMissChance {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
-        let adjacent = Bool.random(using: &rng)
-            ? max(1, segment - 1)
-            : min(20, segment + 1)
+        let adjacent = adjacentClockSegment(to: segment, rng: &rng)
         return DartInput(multiplier: .single, segment: .oneToTwenty(adjacent))
     }
 }

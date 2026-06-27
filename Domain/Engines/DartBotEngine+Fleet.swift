@@ -23,25 +23,25 @@ extension DartBotEngine {
         profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
-        let roll = Double.random(in: 0 ... 1, using: &rng)
-        let chances = profile.cricket.hitChances
-        if roll < chances.triple * profile.cricket.tripleOnOpenChance {
-            return DartInput(multiplier: .triple, segment: .oneToTwenty(segmentValue))
+        let tier = profile.x01.scoringBehaviorTier
+        let intended: DartInput
+        if tier == .veryEasy || tier == .easy {
+            intended = DartInput(multiplier: .single, segment: .oneToTwenty(segmentValue))
+            return resolveSingleOnSegment(segment: segmentValue, profile: profile, rng: &rng)
         }
-        if roll < chances.triple * profile.cricket.tripleOnOpenChance + chances.double * profile.cricket.doubleOnOpenChance {
-            return DartInput(multiplier: .double, segment: .oneToTwenty(segmentValue))
+        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.tripleOnOpenChance {
+            intended = DartInput(multiplier: .triple, segment: .oneToTwenty(segmentValue))
+        } else if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.doubleOnOpenChance {
+            intended = DartInput(multiplier: .double, segment: .oneToTwenty(segmentValue))
+        } else {
+            intended = DartInput(multiplier: .single, segment: .oneToTwenty(segmentValue))
         }
-        if roll < chances.single {
-            return DartInput(multiplier: .single, segment: .oneToTwenty(segmentValue))
-        }
-        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.wrongBedChance {
-            let wrong = ([15, 16, 17, 18, 19, 20].filter { $0 != segmentValue }.randomElement(using: &rng)) ?? 20
-            return DartInput(multiplier: .single, segment: .oneToTwenty(wrong))
-        }
-        if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.offBoardMissChance {
-            return DartInput(multiplier: .single, segment: .miss, isMiss: true)
-        }
-        return DartInput(multiplier: .single, segment: .oneToTwenty(segmentValue))
+        return resolveMultiplierOnSegment(
+            intended: intended,
+            targetSegment: segmentValue,
+            profile: profile,
+            rng: &rng
+        )
     }
 
     private static func resolveFleetBullDart(

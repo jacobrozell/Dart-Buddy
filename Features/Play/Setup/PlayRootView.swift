@@ -113,23 +113,22 @@ struct PlayRootView: View {
                      let .chaseTheDragonMatch(matchId),
                      let .nineLivesMatch(matchId),
                      let .fleetMatch(matchId),
-                     let .raidMatch(matchId):
+                     let .raidMatch(matchId),
+                     let .bobs27Match(matchId),
+                     let .halveItMatch(matchId),
+                     let .scamMatch(matchId),
+                     let .snookerMatch(matchId),
+                     let .ticTacToeMatch(matchId),
+                     let .blindKillerMatch(matchId),
+                     let .followTheLeaderMatch(matchId),
+                     let .loopMatch(matchId),
+                     let .prisonerMatch(matchId):
                     PlayMatchRouteView(
                         route: route,
                         dependencies: dependencies,
                         onShowSummary: { path.append(.matchSummary(matchId: matchId)) }
                     )
                     .id(route)
-                case .blindKillerMatch,
-                     .followTheLeaderMatch,
-                     .loopMatch,
-                     .prisonerMatch,
-                     .scamMatch,
-                     .snookerMatch,
-                     .ticTacToeMatch,
-                     .bobs27Match,
-                     .halveItMatch:
-                    EmptyView()
                 case let .matchSummary(matchId):
                     MatchSummaryScreen(
                         viewModel: MatchSummaryViewModel(

@@ -27,6 +27,15 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case fleetSonar(FleetSonarEvent)
     case fleetDart(FleetDartEvent)
     case raidVisit(RaidVisitEvent)
+    case bobs27Round(Bobs27RoundEvent)
+    case halveItRound(HalveItRoundEvent)
+    case scamVisit(ScamVisitEvent)
+    case snookerDart(SnookerDartEvent)
+    case ticTacToeVisit(TicTacToeVisitEvent)
+    case blindKillerTurn(BlindKillerTurnEvent)
+    case followTheLeaderVisit(FollowTheLeaderVisitEvent)
+    case loopVisit(LoopVisitEvent)
+    case prisonerVisit(PrisonerVisitEvent)
 
     private enum CodingKeys: String, CodingKey {
         case kind
@@ -56,6 +65,15 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetSonar
         case fleetDart
         case raidVisit
+        case bobs27Round
+        case halveItRound
+        case scamVisit
+        case snookerDart
+        case ticTacToeVisit
+        case blindKiller
+        case followTheLeader
+        case loop
+        case prisoner
     }
 
     private enum Kind: String, Codable {
@@ -85,6 +103,15 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetSonar
         case fleetDart
         case raidVisit
+        case bobs27Round
+        case halveItRound
+        case scamVisit
+        case snookerDart
+        case ticTacToeVisit
+        case blindKillerTurn
+        case followTheLeaderVisit
+        case loopVisit
+        case prisonerVisit
     }
 
     public init(from decoder: any Decoder) throws {
@@ -143,6 +170,24 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .fleetDart(try container.decode(FleetDartEvent.self, forKey: .fleetDart))
         case .raidVisit:
             self = .raidVisit(try container.decode(RaidVisitEvent.self, forKey: .raidVisit))
+        case .bobs27Round:
+            self = .bobs27Round(try container.decode(Bobs27RoundEvent.self, forKey: .bobs27Round))
+        case .halveItRound:
+            self = .halveItRound(try container.decode(HalveItRoundEvent.self, forKey: .halveItRound))
+        case .scamVisit:
+            self = .scamVisit(try container.decode(ScamVisitEvent.self, forKey: .scamVisit))
+        case .snookerDart:
+            self = .snookerDart(try container.decode(SnookerDartEvent.self, forKey: .snookerDart))
+        case .ticTacToeVisit:
+            self = .ticTacToeVisit(try container.decode(TicTacToeVisitEvent.self, forKey: .ticTacToeVisit))
+        case .blindKillerTurn:
+            self = .blindKillerTurn(try container.decode(BlindKillerTurnEvent.self, forKey: .blindKiller))
+        case .followTheLeaderVisit:
+            self = .followTheLeaderVisit(try container.decode(FollowTheLeaderVisitEvent.self, forKey: .followTheLeader))
+        case .loopVisit:
+            self = .loopVisit(try container.decode(LoopVisitEvent.self, forKey: .loop))
+        case .prisonerVisit:
+            self = .prisonerVisit(try container.decode(PrisonerVisitEvent.self, forKey: .prisoner))
         }
     }
 
@@ -227,6 +272,33 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .raidVisit(event):
             try container.encode(Kind.raidVisit, forKey: .kind)
             try container.encode(event, forKey: .raidVisit)
+        case let .bobs27Round(event):
+            try container.encode(Kind.bobs27Round, forKey: .kind)
+            try container.encode(event, forKey: .bobs27Round)
+        case let .halveItRound(event):
+            try container.encode(Kind.halveItRound, forKey: .kind)
+            try container.encode(event, forKey: .halveItRound)
+        case let .scamVisit(event):
+            try container.encode(Kind.scamVisit, forKey: .kind)
+            try container.encode(event, forKey: .scamVisit)
+        case let .snookerDart(event):
+            try container.encode(Kind.snookerDart, forKey: .kind)
+            try container.encode(event, forKey: .snookerDart)
+        case let .ticTacToeVisit(event):
+            try container.encode(Kind.ticTacToeVisit, forKey: .kind)
+            try container.encode(event, forKey: .ticTacToeVisit)
+        case let .blindKillerTurn(event):
+            try container.encode(Kind.blindKillerTurn, forKey: .kind)
+            try container.encode(event, forKey: .blindKiller)
+        case let .followTheLeaderVisit(event):
+            try container.encode(Kind.followTheLeaderVisit, forKey: .kind)
+            try container.encode(event, forKey: .followTheLeader)
+        case let .loopVisit(event):
+            try container.encode(Kind.loopVisit, forKey: .kind)
+            try container.encode(event, forKey: .loop)
+        case let .prisonerVisit(event):
+            try container.encode(Kind.prisonerVisit, forKey: .kind)
+            try container.encode(event, forKey: .prisoner)
         }
     }
 }
@@ -281,6 +353,15 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var nineLivesState: NineLivesState?
     public var fleetState: FleetState?
     public var raidState: RaidState?
+    public var bobs27State: Bobs27State?
+    public var halveItState: HalveItState?
+    public var scamState: ScamState?
+    public var snookerState: SnookerState?
+    public var ticTacToeState: TicTacToeState?
+    public var blindKillerState: BlindKillerState?
+    public var followTheLeaderState: FollowTheLeaderState?
+    public var loopState: LoopState?
+    public var prisonerState: PrisonerState?
 }
 
 public struct MatchLifecycleSession: Sendable {
@@ -311,10 +392,16 @@ public enum MatchLifecycleService {
         }
         let ordered = participants.sorted(by: { $0.turnOrder < $1.turnOrder })
         let playerIds = ordered.map { $0.playerId ?? $0.id }
+        let effectiveConfig: MatchConfigPayload
+        if case let (.blindKiller, .blindKiller(cfg)) = (type, config) {
+            effectiveConfig = .blindKiller(BlindKillerEngine.resolvedConfig(cfg, playerIds: playerIds))
+        } else {
+            effectiveConfig = config
+        }
         var runtime = MatchRuntimeState(
             matchId: matchId,
             type: type,
-            config: config,
+            config: effectiveConfig,
             participants: ordered,
             status: .inProgress,
             startedAt: startedAt,
@@ -346,7 +433,16 @@ public enum MatchLifecycleService {
             chaseTheDragonState: nil,
             nineLivesState: nil,
             fleetState: nil,
-            raidState: nil
+            raidState: nil,
+            bobs27State: nil,
+            halveItState: nil,
+            scamState: nil,
+            snookerState: nil,
+            ticTacToeState: nil,
+            blindKillerState: nil,
+            followTheLeaderState: nil,
+            loopState: nil,
+            prisonerState: nil
         )
 
         switch (type, config) {
@@ -394,6 +490,24 @@ public enum MatchLifecycleService {
             runtime.fleetState = try FleetEngine.makeInitialState(config: cfg, playerIds: playerIds)
         case let (.raid, .raid(cfg)):
             runtime.raidState = try RaidEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.bobs27, .bobs27(cfg)):
+            runtime.bobs27State = try Bobs27Engine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.halveIt, .halveIt(cfg)):
+            runtime.halveItState = try HalveItEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.scam, .scam(cfg)):
+            runtime.scamState = try ScamEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.snooker, .snooker(cfg)):
+            runtime.snookerState = try SnookerEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.ticTacToe, .ticTacToe(cfg)):
+            runtime.ticTacToeState = try TicTacToeEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.blindKiller, .blindKiller(cfg)):
+            runtime.blindKillerState = try BlindKillerEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.followTheLeader, .followTheLeader(cfg)):
+            runtime.followTheLeaderState = try FollowTheLeaderEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.loop, .loop(cfg)):
+            runtime.loopState = try LoopEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.prisoner, .prisoner(cfg)):
+            runtime.prisonerState = try PrisonerEngine.makeInitialState(config: cfg, playerIds: playerIds)
         default:
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
@@ -911,6 +1025,276 @@ public enum MatchLifecycleService {
         }
     }
 
+    public static func submitBobs27Turn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.bobs27State else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.bobs27Unavailable")
+        }
+        let outcome = try Bobs27Engine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .bobs27Round(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.bobs27State = state
+        }
+    }
+
+    public static func submitHalveItTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.halveItState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.halveItUnavailable")
+        }
+        let outcome = try HalveItEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .halveItRound(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.halveItState = state
+        }
+    }
+
+    public static func submitScamVisit(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.scamState else {
+            throw AppError(code: .invalidGameState, layer: .domain, severity: .error, isRecoverable: true, userMessageKey: "error.match.mode.scamUnavailable")
+        }
+        let outcome = try ScamEngine.submitVisit(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .scamVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.scamState = state
+        }
+    }
+
+    public static func submitSnookerDart(
+        session: MatchLifecycleSession,
+        dart: DartInput,
+        nominatedColour: SnookerColour? = nil,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.snookerState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.snookerUnavailable"
+            )
+        }
+        if case .awaitingNomination = state.phase, let colour = nominatedColour {
+            state = try SnookerEngine.nominateColour(state: state, colour: colour)
+        }
+        let outcome = try SnookerEngine.submitDart(state: state, dart: dart, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .snookerDart(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.snookerState = state
+        }
+    }
+
+    public static func submitTicTacToeVisit(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.ticTacToeState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.ticTacToeUnavailable"
+            )
+        }
+        let outcome = try TicTacToeEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .ticTacToeVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.ticTacToeState = state
+        }
+    }
+
+    public static func submitBlindKillerTurn(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.blindKillerState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.blindKillerUnavailable"
+            )
+        }
+        let outcome = try BlindKillerEngine.submitTurn(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .blindKillerTurn(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.blindKillerState = state
+        }
+    }
+
+    public static func submitFollowTheLeaderVisit(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.followTheLeaderState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.followTheLeaderUnavailable"
+            )
+        }
+        let outcome = try FollowTheLeaderEngine.submitVisit(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .followTheLeaderVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.followTheLeaderState = state
+        }
+    }
+
+    public static func submitFollowTheLeaderPass(
+        session: MatchLifecycleSession,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.followTheLeaderState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.followTheLeaderUnavailable"
+            )
+        }
+        let outcome = try FollowTheLeaderEngine.submitPass(state: state, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .followTheLeaderVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.followTheLeaderState = state
+        }
+    }
+
+    public static func submitLoopVisit(
+        session: MatchLifecycleSession,
+        darts: [LoopSubmittedDart],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.loopState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.loopUnavailable"
+            )
+        }
+        let outcome = try LoopEngine.submitVisit(state: state, darts: darts, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .loopVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.loopState = state
+        }
+    }
+
+    public static func submitLoopPass(
+        session: MatchLifecycleSession,
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.loopState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.loopUnavailable"
+            )
+        }
+        let outcome = try LoopEngine.submitPass(state: state, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .loopVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.loopState = state
+        }
+    }
+
+    public static func submitPrisonerVisit(
+        session: MatchLifecycleSession,
+        hits: [PrisonerDartHit],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        guard var state = session.runtime.prisonerState else {
+            throw AppError(
+                code: .invalidGameState,
+                layer: .domain,
+                severity: .error,
+                isRecoverable: true,
+                userMessageKey: "error.match.mode.prisonerUnavailable"
+            )
+        }
+        let outcome = try PrisonerEngine.submitVisit(state: state, hits: hits, timestamp: timestamp)
+        state = outcome.updatedState
+        let envelope = MatchEventEnvelope(
+            eventIndex: session.runtime.eventCount,
+            payload: .prisonerVisit(outcome.event),
+            timestamp: timestamp
+        )
+        return try appendAndProject(session: session, newEvent: envelope, timestamp: timestamp) { runtime in
+            runtime.prisonerState = state
+        }
+    }
+
     public static func submitRaidVisit(
         session: MatchLifecycleSession,
         darts: [DartInput],
@@ -1154,7 +1538,7 @@ public enum MatchLifecycleService {
             guard !turn.darts.isEmpty else { return nil }
             return turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
         case .suddenDeathTurn, .fiftyOneByFivesTurn, .grandNationalTurn, .hareAndHoundsTurn,
-             .aroundTheClockTurn, .nineLivesTurn, .raidVisit, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
+             .aroundTheClockTurn, .nineLivesTurn, .bobs27Round, .halveItRound, .scamVisit, .snookerDart, .ticTacToeVisit, .blindKillerTurn, .followTheLeaderVisit, .loopVisit, .prisonerVisit, .raidVisit, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
              .fleetDart:
             return nil
         }
@@ -1265,6 +1649,45 @@ public enum MatchLifecycleService {
             return try submitChaseTheDragonTurn(session: session, darts: darts, timestamp: event.timestamp)
         case let .nineLivesTurn(turn):
             return try submitNineLivesTurn(session: session, darts: nineLivesReplayDarts(for: turn), timestamp: event.timestamp)
+        case let .bobs27Round(round):
+            return try submitBobs27Turn(session: session, darts: bobs27ReplayDarts(for: round), timestamp: event.timestamp)
+        case let .halveItRound(round):
+            return try submitHalveItTurn(session: session, darts: halveItReplayDarts(for: round), timestamp: event.timestamp)
+        case let .scamVisit(visit):
+            return try submitScamVisit(session: session, darts: scamReplayDarts(for: visit), timestamp: event.timestamp)
+        case let .snookerDart(dartEvent):
+            let replay = snookerReplaySubmission(for: dartEvent)
+            return try submitSnookerDart(
+                session: session,
+                dart: replay.dart,
+                nominatedColour: replay.nominatedColour,
+                timestamp: dartEvent.timestamp
+            )
+        case let .ticTacToeVisit(visit):
+            let cells = session.runtime.ticTacToeState?.config.cells
+                ?? MatchConfigTicTacToe().cells
+            return try submitTicTacToeVisit(
+                session: session,
+                darts: ticTacToeReplayDarts(for: visit, cells: cells),
+                timestamp: event.timestamp
+            )
+        case let .blindKillerTurn(turn):
+            let darts = turn.darts.map(BlindKillerEngine.dartInput(from:))
+            return try submitBlindKillerTurn(session: session, darts: darts, timestamp: event.timestamp)
+        case let .followTheLeaderVisit(visit):
+            if visit.passed {
+                return try submitFollowTheLeaderPass(session: session, timestamp: event.timestamp)
+            }
+            let darts = visit.darts.map(FollowTheLeaderEngine.dartInput(from:))
+            return try submitFollowTheLeaderVisit(session: session, darts: darts, timestamp: event.timestamp)
+        case let .loopVisit(visit):
+            if visit.passed {
+                return try submitLoopPass(session: session, timestamp: event.timestamp)
+            }
+            let darts = visit.darts.map(LoopEngine.submittedDart(from:))
+            return try submitLoopVisit(session: session, darts: darts, timestamp: event.timestamp)
+        case let .prisonerVisit(visit):
+            return try submitPrisonerVisit(session: session, hits: visit.hits, timestamp: event.timestamp)
         case let .raidVisit(visit):
             let darts = visit.darts.map(RaidEngine.dartInput(from:))
             return try submitRaidVisit(session: session, darts: darts, timestamp: event.timestamp)
@@ -1398,6 +1821,150 @@ public enum MatchLifecycleService {
             return [DartInput(multiplier: .single, segment: .oneToTwenty(min(20, max(1, target))), isMiss: false)]
         }
         return [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
+    }
+
+    private static func bobs27ReplayDarts(for round: Bobs27RoundEvent) -> [DartInput] {
+        let target = Bobs27Engine.target(forRoundIndex: round.roundIndex)
+        var darts: [DartInput] = []
+        for _ in 0 ..< round.hitCount {
+            darts.append(bobs27HitDart(for: target))
+        }
+        while darts.count < 3 {
+            darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
+        }
+        return Array(darts.prefix(3))
+    }
+
+    private static func bobs27HitDart(for target: Bobs27Target) -> DartInput {
+        switch target {
+        case let .double(segment):
+            return DartInput(multiplier: .double, segment: .oneToTwenty(segment), isMiss: false)
+        case .bull:
+            return DartInput(multiplier: .single, segment: .innerBull, isMiss: false)
+        }
+    }
+
+    private static func halveItReplayDarts(for round: HalveItRoundEvent) -> [DartInput] {
+        if round.halved || round.visitScore == 0 {
+            return Array(
+                repeating: DartInput(multiplier: .single, segment: .miss, isMiss: true),
+                count: 3
+            )
+        }
+        var remaining = round.visitScore
+        let target = round.target
+        var darts: [DartInput] = []
+        for multiplier in [DartMultiplier.triple, .double, .single] {
+            let perDart = target * multiplier.markValue
+            guard perDart > 0 else { continue }
+            while remaining >= perDart, darts.count < 3 {
+                darts.append(
+                    DartInput(multiplier: multiplier, segment: .oneToTwenty(target), isMiss: false)
+                )
+                remaining -= perDart
+            }
+        }
+        while darts.count < 3 {
+            darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
+        }
+        return Array(darts.prefix(3))
+    }
+
+    private static func scamReplayDarts(for visit: ScamVisitEvent) -> [DartInput] {
+        switch visit.role {
+        case .stopper:
+            var darts = visit.segmentsClosedThisVisit.map {
+                DartInput(multiplier: .single, segment: .oneToTwenty($0), isMiss: false)
+            }
+            while darts.count < 3 {
+                darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
+            }
+            return Array(darts.prefix(3))
+        case .scorer:
+            guard let target = visit.highestOpenSegmentAtVisitStart, visit.pointsAdded > 0 else {
+                return Array(
+                    repeating: DartInput(multiplier: .single, segment: .miss, isMiss: true),
+                    count: 3
+                )
+            }
+            var remaining = visit.pointsAdded
+            var darts: [DartInput] = []
+            for multiplier in [DartMultiplier.triple, .double, .single] {
+                let perDart = target * multiplier.markValue
+                guard perDart > 0 else { continue }
+                while remaining >= perDart, darts.count < 3 {
+                    darts.append(
+                        DartInput(multiplier: multiplier, segment: .oneToTwenty(target), isMiss: false)
+                    )
+                    remaining -= perDart
+                }
+            }
+            while darts.count < 3 {
+                darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
+            }
+            return Array(darts.prefix(3))
+        }
+    }
+
+    private static func ticTacToeReplayDarts(
+        for visit: TicTacToeVisitEvent,
+        cells: [TicTacToeCellTarget]
+    ) -> [DartInput] {
+        var darts = visit.claimsThisVisit.map { claim in
+            representativeDart(for: cells[claim.cellIndex])
+        }
+        while darts.count < 3 {
+            darts.append(DartInput(multiplier: .single, segment: .miss, isMiss: true))
+        }
+        return Array(darts.prefix(3))
+    }
+
+    private static func representativeDart(for target: TicTacToeCellTarget) -> DartInput {
+        switch target {
+        case .innerBull:
+            return DartInput(multiplier: .single, segment: .innerBull, isMiss: false)
+        case .outerBull:
+            return DartInput(multiplier: .single, segment: .outerBull, isMiss: false)
+        case .anyBull:
+            return DartInput(multiplier: .single, segment: .innerBull, isMiss: false)
+        case let .single(segment):
+            return DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false)
+        case let .double(segment):
+            return DartInput(multiplier: .double, segment: .oneToTwenty(segment), isMiss: false)
+        case let .triple(segment):
+            return DartInput(multiplier: .triple, segment: .oneToTwenty(segment), isMiss: false)
+        case let .anySegment(segment):
+            return DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false)
+        }
+    }
+
+    private static func snookerReplaySubmission(for event: SnookerDartEvent) -> (dart: DartInput, nominatedColour: SnookerColour?) {
+        switch event.ballType {
+        case .red:
+            if let segment = event.segmentPocketed {
+                return (
+                    DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false),
+                    nil
+                )
+            }
+            return (DartInput(multiplier: .single, segment: .miss, isMiss: true), nil)
+        case .colour:
+            let colour = event.nominatedColour ?? .yellow
+            guard event.points > 0 else {
+                return (DartInput(multiplier: .single, segment: .miss, isMiss: true), colour)
+            }
+            if colour == .black {
+                return (
+                    DartInput(multiplier: .double, segment: .innerBull, isMiss: false),
+                    colour
+                )
+            }
+            let segment = event.segmentPocketed ?? colour.targetSegment ?? 16
+            return (
+                DartInput(multiplier: .single, segment: .oneToTwenty(segment), isMiss: false),
+                colour
+            )
+        }
     }
 
     private static func fleetReplayDart(for event: FleetDartEvent) -> DartInput {

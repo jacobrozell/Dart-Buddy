@@ -284,8 +284,91 @@ enum MatchForfeitStandingsRegistry {
                 prefersLowerScore: true
             )
 
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
-            throw invalidForfeitState()
+        case .bobs27:
+            guard let state = session.runtime.bobs27State,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return pointsStanding(playerId: playerId, score: player.score, turnOrder: turnOrder)
+
+        case .halveIt:
+            guard let state = session.runtime.halveItState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return pointsStanding(playerId: playerId, score: player.total, turnOrder: turnOrder)
+
+        case .scam:
+            guard let state = session.runtime.scamState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return pointsStanding(playerId: playerId, score: player.totalScore, turnOrder: turnOrder)
+
+        case .snooker:
+            guard let state = session.runtime.snookerState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return pointsStanding(playerId: playerId, score: player.frameScore, turnOrder: turnOrder)
+
+        case .ticTacToe:
+            guard let state = session.runtime.ticTacToeState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            let claims = state.grid.enumerated().filter { $0.element == player.side }.count
+            return pointsStanding(playerId: playerId, score: claims, turnOrder: turnOrder)
+
+        case .blindKiller:
+            guard let state = session.runtime.blindKillerState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            let aliveScore = player.isEliminated ? 0 : 1
+            return MatchForfeitStanding(
+                playerId: playerId,
+                primaryScore: aliveScore,
+                tieBreakKey: aliveScore * 1_000 - turnOrder,
+                summaryKey: "play.match.forfeit.standingFormat.killer",
+                summaryValue: aliveScore,
+                prefersLowerScore: false
+            )
+
+        case .followTheLeader:
+            guard let state = session.runtime.followTheLeaderState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return MatchForfeitStanding(
+                playerId: playerId,
+                primaryScore: player.lives,
+                tieBreakKey: -(player.lives * 100) + turnOrder,
+                summaryKey: "play.match.forfeit.standingFormat.killer",
+                summaryValue: player.lives,
+                prefersLowerScore: false
+            )
+
+        case .loop:
+            guard let state = session.runtime.loopState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return MatchForfeitStanding(
+                playerId: playerId,
+                primaryScore: player.lives,
+                tieBreakKey: -(player.lives * 100) + turnOrder,
+                summaryKey: "play.match.forfeit.standingFormat.killer",
+                summaryValue: player.lives,
+                prefersLowerScore: false
+            )
+
+        case .prisoner:
+            guard let state = session.runtime.prisonerState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return pointsStanding(playerId: playerId, score: player.progressIndex, turnOrder: turnOrder)
         }
     }
 
@@ -350,14 +433,60 @@ enum MatchForfeitStandingsRegistry {
                 MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0)
             ]
             config = MatchConfigDefaults.config(for: type)
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
-            throw AppError(
-                code: .invalidGameState,
-                layer: .domain,
-                severity: .error,
-                isRecoverable: false,
-                userMessageKey: "error.match.forfeit.invalid"
-            )
+        case .bobs27:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .halveIt:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .scam:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .snooker:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .ticTacToe:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .blindKiller:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1),
+                MatchParticipant(playerId: p3, displayNameAtMatchStart: "C", turnOrder: 2)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .followTheLeader:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .loop:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+            config = MatchConfigDefaults.config(for: type)
+        case .prisoner:
+            participants = [
+                MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: p2, displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+            config = MatchConfigDefaults.config(for: type)
         }
         var session = try MatchLifecycleService.createMatch(type: type, config: config, participants: participants)
         session = try submitFixtureTurn(for: type, session: session)
@@ -424,8 +553,29 @@ enum MatchForfeitStandingsRegistry {
             return try MatchLifecycleService.submitFleetPlacementLock(session: updated, playerId: playerId)
         case .raid:
             return try MatchLifecycleService.submitRaidVisit(session: session, darts: [miss, miss, miss])
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
-            return session
+        case .bobs27:
+            return try MatchLifecycleService.submitBobs27Turn(session: session, darts: [miss, miss, miss])
+        case .halveIt:
+            return try MatchLifecycleService.submitHalveItTurn(session: session, darts: [miss, miss, miss])
+        case .scam:
+            return try MatchLifecycleService.submitScamVisit(session: session, darts: [miss, miss, miss])
+        case .snooker:
+            return try MatchLifecycleService.submitSnookerDart(session: session, dart: miss)
+        case .ticTacToe:
+            return try MatchLifecycleService.submitTicTacToeVisit(session: session, darts: [miss, miss, miss])
+        case .blindKiller:
+            return try MatchLifecycleService.submitBlindKillerTurn(session: session, darts: [miss, miss, miss])
+        case .followTheLeader:
+            let opener = DartInput(multiplier: .double, segment: .oneToTwenty(5), isMiss: false)
+            return try MatchLifecycleService.submitFollowTheLeaderVisit(session: session, darts: [opener])
+        case .loop:
+            let opener = LoopSubmittedDart(
+                dart: DartInput(multiplier: .single, segment: .oneToTwenty(6), isMiss: false),
+                wireTarget: LoopWireTargetArea(segment: 6, kind: .lowerLoop)
+            )
+            return try MatchLifecycleService.submitLoopVisit(session: session, darts: [opener])
+        case .prisoner:
+            return try MatchLifecycleService.submitPrisonerVisit(session: session, hits: [.outsideDouble])
         }
     }
 

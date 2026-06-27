@@ -46,20 +46,7 @@ extension DartBotEngine {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
         // Land on an adjacent segment (non-scoring for this number).
-        let adjacent = adjacentSegment(to: targetSegment, rng: &rng)
+        let adjacent = adjacentClockSegment(to: targetSegment, rng: &rng)
         return DartInput(multiplier: .single, segment: .oneToTwenty(adjacent))
-    }
-
-    /// Returns a neighbouring segment value (1-20, not equal to `segment`).
-    private static func adjacentSegment(
-        to segment: Int,
-        rng: inout some RandomNumberGenerator
-    ) -> Int {
-        // Clockwise order around the board.
-        let clockwise = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
-        guard let idx = clockwise.firstIndex(of: segment) else { return segment == 1 ? 2 : segment - 1 }
-        let offset = Bool.random(using: &rng) ? 1 : -1
-        let neighbour = clockwise[(idx + offset + clockwise.count) % clockwise.count]
-        return neighbour
     }
 }

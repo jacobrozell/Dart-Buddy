@@ -75,14 +75,12 @@ struct MatchStartService {
         }
         let catalogEntry = GameModeCatalog.entry(for: plan.matchType)
         let uiTemplate = catalogEntry?.uiTemplate ?? (plan.matchType == .cricket ? .markBoard : .checkoutScore)
-        let partyUsesPresetBotsOnly = [.baseball, .killer, .shanghai].contains(plan.matchType)
         let orderedRoster = plan.randomOrder ? plan.roster.shuffled() : plan.roster
         do {
             let participants = try await makeParticipants(
                 orderedRoster: orderedRoster,
                 matchType: plan.matchType,
-                uiTemplate: uiTemplate,
-                partyUsesPresetBotsOnly: partyUsesPresetBotsOnly
+                uiTemplate: uiTemplate
             )
             let configPayload = try CodablePayloadCoder.encode(plan.config)
             let avatarByPlayerId = Dictionary(
@@ -165,8 +163,7 @@ struct MatchStartService {
     private func makeParticipants(
         orderedRoster: [MatchStartPlan.RosterEntry],
         matchType: MatchType,
-        uiTemplate: GameplayUITemplate,
-        partyUsesPresetBotsOnly: Bool
+        uiTemplate: GameplayUITemplate
     ) async throws -> [MatchParticipant] {
         let repository = playerRepository
         return try await withThrowingTaskGroup(of: (Int, MatchParticipant).self) { group in
@@ -184,8 +181,7 @@ struct MatchStartService {
                             linkedPlayerId: entry.linkedPlayerId,
                             colorTokenRaw: entry.colorTokenRaw,
                             matchType: matchType,
-                            uiTemplate: uiTemplate,
-                            partyUsesPresetBotsOnly: partyUsesPresetBotsOnly
+                            uiTemplate: uiTemplate
                         ),
                         resolveTrainingSkill: { botId, mode in
                             try await repository.resolveTrainingBotSkill(for: botId, mode: mode)

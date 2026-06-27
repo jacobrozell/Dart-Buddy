@@ -145,6 +145,9 @@ Sections:
   rendering that mode's `statKind` card set (per-mode bests, win rate, trend).
   Heterogeneous metrics live here rather than being forced into the shared
   Statistics tables. Model and `statKind` contract: [`StatsSpec.md`](StatsSpec.md) §12.
+- **Throw map** (X01 + Cricket, post-1.0) — consolidated dartboard scatter with **mode**
+  (All / X01 / Cricket) and **period** (default 30d) filters; sector bars below board.
+  Per-mode stat blocks keep `SectorHitsChart`. [`ThrowHistoryHeatmapSpec.md`](ThrowHistoryHeatmapSpec.md).
 - Recent matches (last N)
 - Management actions:
   - Edit

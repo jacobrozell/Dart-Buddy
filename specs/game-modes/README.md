@@ -88,6 +88,7 @@ See [`planned/`](planned/) — 12 catalog stubs (Blind Killer, Follow the Leader
 | [`ContractKillerGameSpec.md`](planned/ContractKillerGameSpec.md) | Killer + hidden contracts |
 | [`DoubleBluffGameSpec.md`](planned/DoubleBluffGameSpec.md) | Simultaneous commit — match or clash |
 | [`PressGameSpec.md`](planned/PressGameSpec.md) | Push-your-luck ladder on one segment |
+| [`RollTwentyGameSpec.md`](planned/RollTwentyGameSpec.md) | D20 roll → hit that segment — party dice target |
 
 ### Call & Hit spec bundle
 | Doc | Covers |

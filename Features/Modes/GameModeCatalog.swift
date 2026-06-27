@@ -102,7 +102,7 @@ struct GameModeCatalogEntry: Identifiable, Hashable {
     var isSelectableInPlaySetup: Bool { pendingModeSelection != nil }
 
     /// Solo modes skip the roster step in setup — they cap at a single player.
-    /// X01 has a minimum of one but is multiplayer-capable, so it is *not* solo.
+    /// X01 and practice drills accept 1+ players unless `maximumPlayers` is 1.
     var isSolo: Bool { maximumPlayers <= 1 }
 
     /// Whether the rules sheet covers this mode (`GameRulesCatalog`), including preview guides on planned co-op cards.
@@ -176,8 +176,8 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.blindKiller", name: "Blind Killer", blurb: "Killer with hidden numbers",
-            section: .party, status: .planned, minimumPlayers: 3,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .shipped, minimumPlayers: 3,
+            matchType: .blindKiller, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "eye.slash.fill"
         ),
         GameModeCatalogEntry(
@@ -224,32 +224,32 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.followTheLeader", name: "Follow the Leader", blurb: "Match the leader's hit or lose a life",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .followTheLeader, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "arrow.turn.down.right"
         ),
         GameModeCatalogEntry(
-            id: "party.loop", name: "Loop", blurb: "Beat the prior dart or drop a life",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .livesElimination, statKind: .lives,
+            id: "party.loop", name: "Loop", blurb: "Match wire loops and splits or lose a life",
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .loop, uiTemplate: .livesElimination, statKind: .lives,
             iconSystemName: "arrow.triangle.2.circlepath"
         ),
         GameModeCatalogEntry(
             id: "party.prisoner", name: "Prisoner", blurb: "Trap darts in missed segments",
-            section: .party, status: .planned, minimumPlayers: 2,
-            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
+            section: .party, status: .shipped, minimumPlayers: 2,
+            matchType: .prisoner, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "lock.fill"
         ),
         GameModeCatalogEntry(
             id: "party.scam", name: "Scam", blurb: "Stopper blocks, scorer scores",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .scam, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "theatermasks.fill"
         ),
         GameModeCatalogEntry(
             id: "party.snooker", name: "Snooker", blurb: "Reds and colours on the board",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .roleSplit, statKind: .roleScore,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .snooker, uiTemplate: .roleSplit, statKind: .roleScore,
             iconSystemName: "circle.fill"
         ),
         GameModeCatalogEntry(
@@ -260,8 +260,8 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "party.ticTacToe", name: "Tic-Tac-Toe", blurb: "Claim three segments in a row",
-            section: .party, status: .planned, minimumPlayers: 2, maximumPlayers: 2,
-            matchType: nil, uiTemplate: .boardState, statKind: .boardClaim,
+            section: .party, status: .shipped, minimumPlayers: 2, maximumPlayers: 2,
+            matchType: .ticTacToe, uiTemplate: .boardState, statKind: .boardClaim,
             iconSystemName: "number.square.fill"
         ),
 
@@ -318,14 +318,14 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "practice.bobs27", name: "Bob's 27", blurb: "Doubles checkout drill",
-            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .bobs27, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "scope"
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
+            section: .practice, status: .shipped, minimumPlayers: 1,
+            matchType: .halveIt, uiTemplate: .inningPoints, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
     ]

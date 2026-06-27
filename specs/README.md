@@ -95,6 +95,8 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 | [`HistorySpec.md`](HistorySpec.md) | Activity tab History segment — list, filters, detail |
 | [`StatsSpec.md`](StatsSpec.md) | Formulas, aggregates, recompute policy |
 | [`StatisticsTabSpec.md`](StatisticsTabSpec.md) | Activity tab Statistics segment — charts, filters |
+| [`ThrowHistoryHeatmapSpec.md`](ThrowHistoryHeatmapSpec.md) | Player Detail throw map — board scatter, period filter, sector bars |
+| [`TeamPlaySpec.md`](TeamPlaySpec.md) | Shared team roster, turn order, persistence for team-capable modes |
 | [`SettingsSpec.md`](SettingsSpec.md) | Preferences, defaults, data reset entry point |
 | [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md) | Reset inventory, scaling checklist, regression tests |
 

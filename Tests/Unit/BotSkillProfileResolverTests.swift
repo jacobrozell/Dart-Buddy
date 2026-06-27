@@ -19,13 +19,32 @@ func templateResolverSameConfigAllShippedTemplatesSucceeds() {
 }
 
 @Test(.tags(.unit, .regression))
-func templateResolverReturnsCanonicalProfileForX01AndCricket() {
-    let configuration = CustomBotConfiguration(x01Average: 60, cricketMPR: 2.0)
-    let canonical = configuration.resolvedCanonicalProfile()
-    let x01Context = BotPlayContext(matchType: .x01, uiTemplate: .checkoutScore)
-    let cricketContext = BotPlayContext(matchType: .cricket, uiTemplate: .markBoard)
-    #expect(BotSkillProfileResolver.profile(configuration: configuration, context: x01Context) == canonical)
-    #expect(BotSkillProfileResolver.profile(configuration: configuration, context: cricketContext) == canonical)
+func templateResolverUsesX01AverageForCheckoutTemplate() {
+    let configuration = CustomBotConfiguration(x01Average: 30, cricketMPR: 3.0)
+    let checkout = BotSkillProfileResolver.profile(
+        configuration: configuration,
+        context: BotPlayContext(matchType: .x01, uiTemplate: .checkoutScore)
+    )
+    #expect(checkout.x01.scoringBehaviorTier == .veryEasy)
+}
+
+@Test(.tags(.unit, .regression))
+func templateResolverUsesCricketMPRForMarkBoardTemplate() {
+    let configuration = CustomBotConfiguration(x01Average: 30, cricketMPR: 3.0)
+    let markBoard = BotSkillProfileResolver.profile(
+        configuration: configuration,
+        context: BotPlayContext(matchType: .cricket, uiTemplate: .markBoard)
+    )
+    #expect(markBoard.x01.scoringBehaviorTier != .veryEasy)
+}
+
+@Test(.tags(.unit, .regression))
+func templateResolverCompatibleTemplatesAreUniqueAndSorted() {
+    let templates = BotSkillProfileResolver.compatibleTemplates()
+    #expect(templates == templates.sorted { $0.rawValue < $1.rawValue })
+    #expect(templates.count == Set(templates).count)
+    #expect(templates.contains(.checkoutScore))
+    #expect(templates.contains(.markBoard))
 }
 
 @Test(.tags(.unit, .regression))

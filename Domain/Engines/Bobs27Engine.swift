@@ -2,9 +2,9 @@ import Foundation
 
 /// Serialisable configuration for a Bob's 27 match.
 ///
-/// Bob's 27 is a solo doubles-practice drill. The starting score is fixed at 27;
-/// per the spec the only knobs are the bull-miss penalty (defaults to 27) and
-/// whether a non-positive running score ends the game early.
+/// Bob's 27 is a doubles-practice drill starting at 27 points. Groups take turns on
+/// the same round target; per the spec the only knobs are the bull-miss penalty
+/// (defaults to 27) and whether a non-positive running score eliminates a player.
 public struct MatchConfigBobs27: Codable, Equatable, Sendable {
     public static let currentPayloadVersion = 1
 
@@ -92,14 +92,29 @@ public struct Bobs27RoundEvent: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+/// Per-player Bob's 27 progress.
+public struct Bobs27PlayerState: Codable, Equatable, Sendable {
+    public let playerId: UUID
+    public var score: Int
+    public var bustOut: Bool
+
+    public init(playerId: UUID, score: Int = 27, bustOut: Bool = false) {
+        self.playerId = playerId
+        self.score = score
+        self.bustOut = bustOut
+    }
+
+    public var isActive: Bool { !bustOut }
+}
+
 /// Mutable game state for a Bob's 27 match.
 public struct Bobs27State: Codable, Equatable, Sendable {
     public let config: MatchConfigBobs27
-    public let playerId: UUID
+    public var players: [Bobs27PlayerState]
+    public var currentPlayerIndex: Int
     public var roundIndex: Int
-    public var score: Int
+    public var winnerPlayerId: UUID?
     public var isComplete: Bool
-    public var bustOut: Bool
 
     /// Total number of rounds in a Bob's 27 match: D1…D20 + bull = 21.
     public static let totalRounds: Int = 21
@@ -108,20 +123,24 @@ public struct Bobs27State: Codable, Equatable, Sendable {
         Bobs27Engine.target(forRoundIndex: roundIndex)
     }
 
+    public var currentPlayerId: UUID {
+        players[currentPlayerIndex].playerId
+    }
+
     public init(
         config: MatchConfigBobs27,
-        playerId: UUID,
+        players: [Bobs27PlayerState],
+        currentPlayerIndex: Int = 0,
         roundIndex: Int = 0,
-        score: Int = 27,
-        isComplete: Bool = false,
-        bustOut: Bool = false
+        winnerPlayerId: UUID? = nil,
+        isComplete: Bool = false
     ) {
         self.config = config
-        self.playerId = playerId
+        self.players = players
+        self.currentPlayerIndex = currentPlayerIndex
         self.roundIndex = roundIndex
-        self.score = score
+        self.winnerPlayerId = winnerPlayerId
         self.isComplete = isComplete
-        self.bustOut = bustOut
     }
 }
 
@@ -140,16 +159,17 @@ public enum Bobs27Engine {
         config: MatchConfigBobs27,
         playerIds: [UUID]
     ) throws -> Bobs27State {
-        guard playerIds.count == 1 else {
+        guard !playerIds.isEmpty else {
             throw AppError(
                 code: .validationFailed,
                 layer: .domain,
                 severity: .warning,
                 isRecoverable: true,
-                userMessageKey: "setup.validation.bobs27SoloOnly"
+                userMessageKey: "error.match.players.minimum"
             )
         }
-        return Bobs27State(config: config, playerId: playerIds[0])
+        let players = playerIds.map { Bobs27PlayerState(playerId: $0) }
+        return Bobs27State(config: config, players: players)
     }
 
     public static func submitTurn(
@@ -177,7 +197,9 @@ public enum Bobs27Engine {
         }
 
         var updated = state
-        let target = state.currentTarget
+        let playerIndex = updated.currentPlayerIndex
+        let playerId = updated.players[playerIndex].playerId
+        let target = updated.currentTarget
         let hits = darts.filter { dartHitsTarget($0, target: target) }.count
 
         let delta: Int = {
@@ -186,19 +208,33 @@ public enum Bobs27Engine {
                 let value = n * 2
                 return hits > 0 ? hits * value : -value
             case .bull:
-                // Inner bull only counts as a hit for the bull round; each = 50.
-                return hits > 0 ? hits * 50 : -state.config.bullSubtract
+                return hits > 0 ? hits * 50 : -updated.config.bullSubtract
             }
         }()
 
-        updated.score += delta
-        let bustOut = state.config.gameOverAtZero && updated.score <= 0
-        updated.bustOut = bustOut
-        updated.roundIndex += 1
+        updated.players[playerIndex].score += delta
+        let bustOut = updated.config.gameOverAtZero && updated.players[playerIndex].score <= 0
+        updated.players[playerIndex].bustOut = bustOut
 
-        let isFinalRound = updated.roundIndex >= Bobs27State.totalRounds
-        let matchCompleted = bustOut || isFinalRound
-        updated.isComplete = matchCompleted
+        var matchCompleted = false
+        if let nextIndex = nextActivePlayerIndex(after: playerIndex, in: updated.players) {
+            updated.currentPlayerIndex = nextIndex
+            if nextIndex == 0 {
+                updated.roundIndex += 1
+            }
+        } else {
+            matchCompleted = true
+        }
+        if updated.roundIndex >= Bobs27State.totalRounds {
+            matchCompleted = true
+        }
+
+        if matchCompleted {
+            finalize(&updated)
+        } else {
+            updated.isComplete = false
+            updated.winnerPlayerId = nil
+        }
 
         let targetRoundNumber: Int = {
             switch target {
@@ -208,13 +244,13 @@ public enum Bobs27Engine {
         }()
 
         let event = Bobs27RoundEvent(
-            playerId: state.playerId,
+            playerId: playerId,
             roundIndex: state.roundIndex,
             targetRoundNumber: targetRoundNumber,
             hitCount: hits,
             delta: delta,
-            scoreAfter: updated.score,
-            matchCompleted: matchCompleted,
+            scoreAfter: updated.players[playerIndex].score,
+            matchCompleted: updated.isComplete,
             bustOut: bustOut,
             timestamp: timestamp
         )
@@ -228,10 +264,20 @@ public enum Bobs27Engine {
     ) throws -> Bobs27State {
         var state = try makeInitialState(config: config, playerIds: playerIds)
         for event in events {
-            state.score = event.scoreAfter
-            state.roundIndex = event.roundIndex + 1
-            state.bustOut = event.bustOut
-            state.isComplete = event.matchCompleted
+            guard let idx = state.players.firstIndex(where: { $0.playerId == event.playerId }) else {
+                continue
+            }
+            state.players[idx].score = event.scoreAfter
+            state.players[idx].bustOut = event.bustOut
+            if let nextIndex = nextActivePlayerIndex(after: idx, in: state.players) {
+                state.currentPlayerIndex = nextIndex
+                if nextIndex == 0 {
+                    state.roundIndex += 1
+                }
+            }
+            if event.matchCompleted {
+                finalize(&state)
+            }
         }
         return state
     }
@@ -245,9 +291,6 @@ public enum Bobs27Engine {
     }
 
     /// Whether the dart counts as a hit on the round's target.
-    /// - Double rounds: requires the matching segment with a `.double` multiplier.
-    /// - Bull round: requires `.innerBull` (50). Outer bull does not count for
-    ///   Bob's 27 — the perfect score of 1437 depends on inner-bull-only.
     static func dartHitsTarget(_ dart: DartInput, target: Bobs27Target) -> Bool {
         guard !dart.isMiss else { return false }
         switch target {
@@ -259,5 +302,32 @@ public enum Bobs27Engine {
             if case .innerBull = dart.segment { return true }
             return false
         }
+    }
+
+    private static func activePlayers(in players: [Bobs27PlayerState]) -> [Bobs27PlayerState] {
+        players.filter(\.isActive)
+    }
+
+    private static func nextActivePlayerIndex(
+        after index: Int,
+        in players: [Bobs27PlayerState]
+    ) -> Int? {
+        guard !players.isEmpty else { return nil }
+        var cursor = index
+        for _ in 0 ..< players.count {
+            cursor = (cursor + 1) % players.count
+            if players[cursor].isActive {
+                return cursor
+            }
+        }
+        return nil
+    }
+
+    private static func finalize(_ state: inout Bobs27State) {
+        state.isComplete = true
+        let active = activePlayers(in: state.players)
+        let maxScore = active.map(\.score).max() ?? state.players.map(\.score).max() ?? 0
+        let leaders = active.filter { $0.score == maxScore }
+        state.winnerPlayerId = leaders.count == 1 ? leaders[0].playerId : nil
     }
 }

@@ -113,6 +113,39 @@ import Testing
     #expect(darts.count == 3)
 }
 
+@Test func dartBotEngine_baseballNonScoringMissesLandNearTarget() {
+    let clockwise = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
+    func isClockNeighbor(_ target: Int, _ landed: Int) -> Bool {
+        guard let index = clockwise.firstIndex(of: target) else { return false }
+        let left = clockwise[(index - 1 + clockwise.count) % clockwise.count]
+        let right = clockwise[(index + 1) % clockwise.count]
+        return landed == left || landed == right
+    }
+
+    for seed in 0 ..< 200 {
+        for target in 1 ... 20 {
+            var rng = SeededRandomNumberGenerator(seed: UInt64(seed * 40 + target))
+            let darts = DartBotEngine.generateBaseballTurn(
+                targetSegment: target,
+                phase: .innings,
+                stretchGateOpen: true,
+                seventhInningStretch: false,
+                profile: BotDifficulty.veryEasy.skillProfile,
+                rng: &rng
+            )
+            for dart in darts where dart.isMiss == false {
+                guard case let .oneToTwenty(value) = dart.segment else { continue }
+                if value != target {
+                    #expect(
+                        isClockNeighbor(target, value),
+                        "Non-scoring dart landed on \(value) during inning \(target)"
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Test func dartBotEngine_generatesShanghaiTurn() {
     var rng = SeededRandomNumberGenerator(seed: 13)
     let darts = DartBotEngine.generateShanghaiTurn(
@@ -270,6 +303,304 @@ import Testing
     }
 
     #expect(mediumRuns > easyRuns)
+}
+
+@Test func dartBotEngine_generatesHalveItTurn() {
+    var rng = SeededRandomNumberGenerator(seed: 21)
+    let darts = DartBotEngine.generateHalveItTurn(
+        targetSegment: 16,
+        profile: BotDifficulty.medium.skillProfile,
+        rng: &rng
+    )
+    #expect(darts.count == 3)
+}
+
+@Test func dartBotEngine_halveItMediumBotScoresMoreThanVeryEasy() throws {
+    var veryEasyTotal = 0
+    var mediumTotal = 0
+    let samples = 80
+
+    for seed in 0 ..< samples {
+        for target in [20, 19, 18, 17, 16, 15] {
+            var veryEasyRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + target))
+            var mediumRNG = SeededRandomNumberGenerator(seed: UInt64(seed * 10 + target + 900))
+
+            let veryEasyDarts = DartBotEngine.generateHalveItTurn(
+                targetSegment: target,
+                profile: BotDifficulty.veryEasy.skillProfile,
+                rng: &veryEasyRNG
+            )
+            let mediumDarts = DartBotEngine.generateHalveItTurn(
+                targetSegment: target,
+                profile: BotDifficulty.medium.skillProfile,
+                rng: &mediumRNG
+            )
+
+            veryEasyTotal += veryEasyDarts.reduce(0) {
+                $0 + HalveItEngine.scoreContribution($1, target: target)
+            }
+            mediumTotal += mediumDarts.reduce(0) {
+                $0 + HalveItEngine.scoreContribution($1, target: target)
+            }
+        }
+    }
+
+    #expect(mediumTotal > veryEasyTotal)
+}
+
+@Test func dartBotEngine_scamStopperPrioritizesHighestOpenSegments() {
+    let profile = killerPickTestProfile()
+    var rng = SeededRandomNumberGenerator(seed: 31)
+    let darts = DartBotEngine.generateScamStopperTurn(
+        closedSegments: [],
+        profile: profile,
+        rng: &rng
+    )
+    let closed = darts.compactMap { ScamEngine.stopperSegment(from: $0) }
+    #expect(closed == [20, 19, 18])
+}
+
+@Test func dartBotEngine_scamStopperSkipsAlreadyClosedSegments() {
+    let profile = killerPickTestProfile()
+    var rng = SeededRandomNumberGenerator(seed: 32)
+    let darts = DartBotEngine.generateScamStopperTurn(
+        closedSegments: [20, 19],
+        profile: profile,
+        rng: &rng
+    )
+    let closed = darts.compactMap { ScamEngine.stopperSegment(from: $0) }
+    #expect(closed == [18, 17, 16])
+}
+
+@Test func dartBotEngine_snookerRedBotPrefersHighestAvailableRed() {
+    let profile = killerPickTestProfile()
+    var state = try! SnookerEngine.makeInitialState(
+        config: MatchConfigSnooker(),
+        playerIds: [UUID(), UUID()]
+    )
+    state.availableReds = [3, 11, 15]
+    var rng = SeededRandomNumberGenerator(seed: 44)
+    let dart = DartBotEngine.generateSnookerDart(
+        state: state,
+        profile: profile,
+        nominatedColour: nil,
+        rng: &rng
+    )
+    guard case let .oneToTwenty(value) = dart.segment else {
+        Issue.record("Expected numeric snooker red dart")
+        return
+    }
+    #expect(value == 15)
+}
+
+@Test func dartBotEngine_snookerNominationAfterRedDefaultsToBlack() {
+    let profile = BotDifficulty.medium.skillProfile
+    var state = try! SnookerEngine.makeInitialState(
+        config: MatchConfigSnooker(),
+        playerIds: [UUID(), UUID()]
+    )
+    var rng = SeededRandomNumberGenerator(seed: 45)
+    #expect(
+        DartBotEngine.generateSnookerNomination(state: state, profile: profile, rng: &rng) == .black
+    )
+}
+
+@Test func dartBotEngine_ticTacToeBotBlocksOpponentWin() {
+    let profile = killerPickTestProfile()
+    var grid: [TicTacToeSide?] = [
+        .x, .x, nil,
+        .o, nil, nil,
+        nil, nil, nil,
+    ]
+    var rng = SeededRandomNumberGenerator(seed: 46)
+    let cell = DartBotEngine.preferredTicTacToeCellIndex(
+        grid: grid,
+        side: .o,
+        profile: profile,
+        rng: &rng
+    )
+    #expect(cell == 2)
+}
+
+@Test func dartBotEngine_bobs27DoubleBotAimsAtRoundDouble() {
+    let profile = killerPickTestProfile()
+    var rng = SeededRandomNumberGenerator(seed: 47)
+    let darts = DartBotEngine.generateBobs27Turn(
+        target: .double(12),
+        profile: profile,
+        rng: &rng
+    )
+    #expect(darts.count == 3)
+    for dart in darts {
+        #expect(dart.multiplier == .double)
+        guard case let .oneToTwenty(value) = dart.segment else {
+            Issue.record("Expected double segment dart")
+            return
+        }
+        #expect(value == 12)
+    }
+}
+
+@Test func dartBotEngine_followTheLeaderOpeningVeryEasySetsSingleTwenty() {
+    let players = [UUID(), UUID()]
+    let state = try! FollowTheLeaderEngine.makeInitialState(
+        config: MatchConfigFollowTheLeader(),
+        playerIds: players
+    )
+    var rng = SeededRandomNumberGenerator(seed: 48)
+    let darts = DartBotEngine.generateFollowTheLeaderVisit(
+        state: state,
+        profile: BotDifficulty.veryEasy.skillProfile,
+        rng: &rng
+    )
+    #expect(darts.count == 1)
+    guard let area = FollowTheLeaderEngine.targetArea(from: darts[0]) else {
+        Issue.record("Expected scoring opening dart")
+        return
+    }
+    #expect(area.segment == 20)
+    #expect(area.ring == .single)
+}
+
+@Test func dartBotEngine_followTheLeaderMatchingVisitAimsAtTarget() {
+    let players = [UUID(), UUID()]
+    var state = try! FollowTheLeaderEngine.makeInitialState(
+        config: MatchConfigFollowTheLeader(),
+        playerIds: players
+    )
+    state = try! FollowTheLeaderEngine.submitVisit(state: state, darts: [
+        DartInput(multiplier: .double, segment: .oneToTwenty(12))
+    ]).updatedState
+
+    var matchAttempts = 0
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed + 500))
+        let darts = DartBotEngine.generateFollowTheLeaderVisit(
+            state: state,
+            profile: BotDifficulty.pro.skillProfile,
+            rng: &rng
+        )
+        if darts.contains(where: { FollowTheLeaderEngine.dartMatchesTarget($0, target: state.target!) }) {
+            matchAttempts += 1
+        }
+    }
+    #expect(matchAttempts > 0)
+}
+
+@Test func dartBotEngine_followTheLeaderProMatchesMoreThanVeryEasy() {
+    let players = [UUID(), UUID()]
+    var state = try! FollowTheLeaderEngine.makeInitialState(
+        config: MatchConfigFollowTheLeader(),
+        playerIds: players
+    )
+    state = try! FollowTheLeaderEngine.submitVisit(state: state, darts: [
+        DartInput(multiplier: .double, segment: .oneToTwenty(16))
+    ]).updatedState
+
+    var veryEasyMatches = 0
+    var proMatches = 0
+    for seed in 0 ..< 80 {
+        var veryEasyRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        var proRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        let veryEasy = DartBotEngine.generateFollowTheLeaderVisit(
+            state: state,
+            profile: BotDifficulty.veryEasy.skillProfile,
+            rng: &veryEasyRNG
+        )
+        let pro = DartBotEngine.generateFollowTheLeaderVisit(
+            state: state,
+            profile: BotDifficulty.pro.skillProfile,
+            rng: &proRNG
+        )
+        if veryEasy.contains(where: { FollowTheLeaderEngine.dartMatchesTarget($0, target: state.target!) }) {
+            veryEasyMatches += 1
+        }
+        if pro.contains(where: { FollowTheLeaderEngine.dartMatchesTarget($0, target: state.target!) }) {
+            proMatches += 1
+        }
+    }
+    #expect(proMatches > veryEasyMatches)
+}
+
+@Test func dartBotEngine_blindKillerBotAvoidsOwnSecretWhenFinishingOthers() throws {
+    let players = [UUID(), UUID(), UUID()]
+    let config = BlindKillerEngine.resolvedConfig(
+        MatchConfigBlindKiller(hitsToEliminate: 2, assignmentSeed: 42),
+        playerIds: players
+    )
+    var state = try BlindKillerEngine.makeInitialState(config: config, playerIds: players)
+    let botId = players[0]
+    guard let ownNumber = state.secretNumber(for: botId) else {
+        Issue.record("Missing secret number")
+        return
+    }
+    let victimNumber = ownNumber == 20 ? 19 : 20
+    state.segmentHitCounts[victimNumber] = 1
+    state.currentPlayerIndex = 0
+
+    var aimedAtVictim = 0
+    for seed in 0 ..< 64 {
+        var rng = SeededRandomNumberGenerator(seed: UInt64(seed + 700))
+        let darts = DartBotEngine.generateBlindKillerTurn(
+            state: state,
+            playerId: botId,
+            profile: BotDifficulty.pro.skillProfile,
+            rng: &rng
+        )
+        if darts.contains(where: {
+            $0.multiplier == .double && $0.segment == .oneToTwenty(victimNumber)
+        }) {
+            aimedAtVictim += 1
+        }
+    }
+    #expect(aimedAtVictim > 0)
+}
+
+@Test func dartBotEngine_blindKillerProHitsDoublesMoreThanVeryEasy() {
+    let players = [UUID(), UUID(), UUID()]
+    let config = BlindKillerEngine.resolvedConfig(MatchConfigBlindKiller(assignmentSeed: 42), playerIds: players)
+    let state = try! BlindKillerEngine.makeInitialState(config: config, playerIds: players)
+    let botId = players[0]
+
+    var veryEasyDoubles = 0
+    var proDoubles = 0
+    for seed in 0 ..< 80 {
+        var veryEasyRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        var proRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        veryEasyDoubles += DartBotEngine.generateBlindKillerTurn(
+            state: state,
+            playerId: botId,
+            profile: BotDifficulty.veryEasy.skillProfile,
+            rng: &veryEasyRNG
+        ).filter { $0.multiplier == .double && !$0.isMiss }.count
+        proDoubles += DartBotEngine.generateBlindKillerTurn(
+            state: state,
+            playerId: botId,
+            profile: BotDifficulty.pro.skillProfile,
+            rng: &proRNG
+        ).filter { $0.multiplier == .double && !$0.isMiss }.count
+    }
+    #expect(proDoubles > veryEasyDoubles)
+}
+
+@Test func dartBotEngine_knockoutProScoresHigherThanVeryEasy() {
+    var veryEasyTotal = 0
+    var proTotal = 0
+    for seed in 0 ..< 80 {
+        var veryEasyRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        var proRNG = SeededRandomNumberGenerator(seed: UInt64(seed))
+        veryEasyTotal += DartBotEngine.generateKnockoutTurn(
+            currentHigh: 0,
+            profile: BotDifficulty.veryEasy.skillProfile,
+            rng: &veryEasyRNG
+        ).reduce(0) { $0 + $1.points }
+        proTotal += DartBotEngine.generateKnockoutTurn(
+            currentHigh: 0,
+            profile: BotDifficulty.pro.skillProfile,
+            rng: &proRNG
+        ).reduce(0) { $0 + $1.points }
+    }
+    #expect(proTotal > veryEasyTotal)
 }
 
 @Test func dartBotEngine_generatesCricketTurn() {

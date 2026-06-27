@@ -34,7 +34,7 @@ private enum ShippedModeLifecycleSupport {
         case .cricket, .baseball, .shanghai, .americanCricket, .mickeyMouse, .mulligan,
              .englishCricket, .knockout, .suddenDeath, .fiftyOneByFives, .football,
              .grandNational, .hareAndHounds, .aroundTheClock, .aroundTheClock180,
-             .chaseTheDragon, .nineLives:
+             .chaseTheDragon, .nineLives, .bobs27, .halveIt, .scam, .snooker, .ticTacToe, .blindKiller, .followTheLeader, .loop, .prisoner:
             return try submitMissTurn(session: session)
         case .fleet:
             return try submitFleetTurn(session: session)
@@ -48,7 +48,7 @@ private enum ShippedModeLifecycleSupport {
                 session: session,
                 input: GolfTurnInput(darts: [miss()])
             )
-        case .killer, .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+        case .killer:
             return session
         }
     }
@@ -141,6 +141,38 @@ private enum ShippedModeLifecycleSupport {
             return try MatchLifecycleService.submitChaseTheDragonTurn(session: session, darts: [miss()])
         case .nineLives:
             return try MatchLifecycleService.submitNineLivesTurn(session: session, darts: [miss()])
+        case .bobs27:
+            return try MatchLifecycleService.submitBobs27Turn(session: session, darts: [miss(), miss(), miss()])
+        case .halveIt:
+            return try MatchLifecycleService.submitHalveItTurn(session: session, darts: [miss(), miss(), miss()])
+        case .scam:
+            return try MatchLifecycleService.submitScamVisit(session: session, darts: [miss(), miss(), miss()])
+        case .snooker:
+            return try MatchLifecycleService.submitSnookerDart(session: session, dart: miss())
+        case .ticTacToe:
+            return try MatchLifecycleService.submitTicTacToeVisit(session: session, darts: [miss(), miss(), miss()])
+        case .blindKiller:
+            return try MatchLifecycleService.submitBlindKillerTurn(session: session, darts: [miss(), miss(), miss()])
+        case .followTheLeader:
+            if session.runtime.followTheLeaderState?.needsOpeningTarget == true {
+                let opener = DartInput(multiplier: .double, segment: .oneToTwenty(5), isMiss: false)
+                return try MatchLifecycleService.submitFollowTheLeaderVisit(session: session, darts: [opener])
+            }
+            return try MatchLifecycleService.submitFollowTheLeaderVisit(session: session, darts: [miss(), miss(), miss()])
+        case .loop:
+            if session.runtime.loopState?.needsOpeningTarget == true {
+                let opener = LoopSubmittedDart(
+                    dart: DartInput(multiplier: .single, segment: .oneToTwenty(6), isMiss: false),
+                    wireTarget: LoopWireTargetArea(segment: 6, kind: .lowerLoop)
+                )
+                return try MatchLifecycleService.submitLoopVisit(session: session, darts: [opener])
+            }
+            return try MatchLifecycleService.submitLoopVisit(
+                session: session,
+                darts: [LoopEngine.missSubmittedDart(miss()), LoopEngine.missSubmittedDart(miss()), LoopEngine.missSubmittedDart(miss())]
+            )
+        case .prisoner:
+            return try MatchLifecycleService.submitPrisonerVisit(session: session, hits: [.outsideDouble])
         default:
             return session
         }

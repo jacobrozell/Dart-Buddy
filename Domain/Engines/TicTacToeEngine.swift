@@ -44,6 +44,27 @@ public enum TicTacToeCellTarget: Codable, Equatable, Hashable, Sendable {
             return value == n
         }
     }
+
+    public var localizationKey: String {
+        switch self {
+        case .innerBull: return "play.ticTacToe.target.innerBull"
+        case .outerBull: return "play.ticTacToe.target.outerBull"
+        case .anyBull: return "play.ticTacToe.target.anyBull"
+        case .single: return "play.ticTacToe.target.singleFormat"
+        case .double: return "play.ticTacToe.target.doubleFormat"
+        case .triple: return "play.ticTacToe.target.tripleFormat"
+        case .anySegment: return "play.ticTacToe.target.anySegmentFormat"
+        }
+    }
+
+    public var localizationFormatArgument: Int? {
+        switch self {
+        case let .single(n), let .double(n), let .triple(n), let .anySegment(n):
+            return n
+        case .innerBull, .outerBull, .anyBull:
+            return nil
+        }
+    }
 }
 
 // MARK: - Sides and config
@@ -51,6 +72,20 @@ public enum TicTacToeCellTarget: Codable, Equatable, Hashable, Sendable {
 public enum TicTacToeSide: String, Codable, CaseIterable, Sendable {
     case x
     case o
+
+    public var localizationKey: String {
+        switch self {
+        case .x: return "play.ticTacToe.side.x"
+        case .o: return "play.ticTacToe.side.o"
+        }
+    }
+
+    public var marker: String {
+        switch self {
+        case .x: return "X"
+        case .o: return "O"
+        }
+    }
 }
 
 /// Difficulty preset chosen at setup. Selects the cell layout; both sides play

@@ -14,11 +14,15 @@ Define preset computer opponents, shared bot turn generation (`DartBotEngine`), 
 - On-demand creation of preset bot `PlayerRecord` rows from Play setup (Add Bot menu)
 - X01 bot turns for all checkout and check-in modes supported by `X01Engine`
 - Cricket bot turns when **Points On** and scoring mode is **Normal** or **Cut Throat**
+- Mode-specific bot turn generation for all **shipped** solo and party modes (see §5.1)
+- Setup gating via `BotModePlaySupport` (see §6.1)
 - Staggered dart reveal pacing (Settings → bot pacing toggle)
 - Bot participants in 2..N player matches; at least one human required
 
 ### Out of Scope (1.0.0)
 - Cricket bots with **Points Off**
+- Bots on co-op PvE hero rosters (Raid)
+- Training Partner or custom bots on Baseball, Shanghai, or Killer (preset tiers only)
 - In-match bot difficulty changes
 - Custom user-defined preset tiers
 
@@ -77,11 +81,41 @@ Pure, deterministic given RNG seed. View models call engine → persist via `Mat
 - Intended dart → hit/miss resolution using profile hit tables + boosts
 - Outputs `[DartInput]` consumed by mode engines like human input
 
+### 5.1 Shipped mode coverage
+
+Authoritative setup policy: `Domain/Bots/BotModePlaySupport.swift`. Engine entry points: `Domain/Engines/DartBotEngine*.swift`.
+
+| Setup policy | Modes |
+|--------------|-------|
+| **Full** (preset + training + custom) | X01, Cricket (Points On), American Cricket, English Cricket, Around the Clock, Around the Clock 180, Chase the Dragon, Grand National, Nine Lives, Hare & Hounds, Sudden Death, 51×5, Golf, Football, Mickey Mouse, Mulligan, Follow the Leader, Loop, Blind Killer, Knockout, Fleet, Prisoner, Scam, Snooker, Tic-Tac-Toe, Bob's 27, Halve-It |
+| **Preset only** | Baseball, Shanghai, Killer |
+| **None** | Raid (co-op PvE) |
+
+Cricket **Points Off** remains blocked separately (`setup.validation.cricketBotUnsupported`); `BotModePlaySupport` does not override scoring options.
+
 ---
 
 ## 6. UI Specification
 
-## Play Setup — Add Bot
+### 6.1 Play Setup — Add Bot (`BotModePlaySupport`)
+
+`MatchSetupViewModel.botPlaySupport` resolves from the active `MatchType` (catalog selection, legacy party game, or standard X01/Cricket).
+
+| Policy | Add Bot menu | Training / custom sections |
+|--------|--------------|---------------------------|
+| `.full` | Shown | Shown when `ProductSurface` flags allow |
+| `.presetOnly` | Shown (preset tiers only) | Hidden |
+| `.none` | Hidden | Hidden |
+
+Validation keys (centralized in `botRosterValidationErrors`):
+
+| Condition | Key |
+|-----------|-----|
+| Any bot on `.none` mode (Raid) | `setup.validation.coopHumansOnly` |
+| Any bot on other unsupported mode | `setup.validation.botUnsupportedForMode` |
+| Training/custom on `.presetOnly` | Mode-specific: `setup.validation.baseballBotsPresetOnly`, `shanghaiBotsPresetOnly`, `killerBotsPresetOnly` |
+
+### 6.2 Play Setup — roster rules
 - Section lists preset tiers (creates + selects bot player)
 - Training Partner section when eligible bots exist (`TrainingBotSpec.md`)
 - Validation: `setup.validation.cricketBotUnsupported` when any bot selected and Cricket Points Off
@@ -128,13 +162,15 @@ Bot detail UI renders `BotDifficultyDisplayProfile` (hit %, visit range, checkou
 ## 9. Testing
 
 ## Unit
-- `DartBotEngineTests` — X01 checkout/check-in, Cricket normal/cut-throat targeting and punish scoring, Killer pick/play targeting
+- `DartBotEngineTests` — X01 checkout/check-in, Cricket normal/cut-throat targeting and punish scoring, Killer pick/play targeting, party/solo mode smoke
+- `BotDifficultyOrderingTests` — monotonic Very Easy → Pro separation per shipped bot mode (seeded RNG pairs)
+- `BotModePlaySupportTests` — setup policy registry and validation keys
 - `BotPlayerTests` — roster naming, creation
 - `BotLongTermSimulationTests` (performance target, not CI scheme)
 
 ## UI
 - `CricketMatchUITests.testCutThroatCricketBotMatchStartsAndBotThrows`
-- Setup flows with bot add in `MatchSetupViewModelTests`
+- Setup flows with bot add in `MatchSetupViewModelTests` (party preset-only, catalog full/none)
 
 ---
 
@@ -148,9 +184,9 @@ Bot detail UI renders `BotDifficultyDisplayProfile` (hit %, visit range, checkou
 | Field | Value |
 |-------|--------|
 | **Estimated release** | `1.0` |
-| **Last verified** | 2026-06-04 |
-| **Commit** | `0c25396` |
-| **Code** | `DartBotEngine.swift`, `BotDifficulty` |
+| **Last verified** | 2026-06-26 |
+| **Commit** | (pending) |
+| **Code** | `DartBotEngine*.swift`, `BotModePlaySupport.swift`, `BotDifficulty` |
 
 ---
 

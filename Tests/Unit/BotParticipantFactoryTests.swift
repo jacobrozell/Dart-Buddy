@@ -18,8 +18,7 @@ func botParticipantFactoryBuildsCustomBotSnapshot() async throws {
             linkedPlayerId: nil,
             colorTokenRaw: PlayerColorToken.green.rawValue,
             matchType: .x01,
-            uiTemplate: .checkoutScore,
-            partyUsesPresetBotsOnly: false
+            uiTemplate: .checkoutScore
         ),
         resolveTrainingSkill: { _, _ in BotDifficulty.medium.skillProfile }
     )
@@ -29,7 +28,11 @@ func botParticipantFactoryBuildsCustomBotSnapshot() async throws {
     let snapshot = try CustomBotSkillSnapshot.decode(from: payload)
     #expect(snapshot.x01Average == 42)
     #expect(snapshot.cricketMPR == 1.6)
-    #expect(snapshot.profile == configuration.resolvedCanonicalProfile())
+    let expectedProfile = BotSkillProfileResolver.profile(
+        configuration: configuration,
+        context: BotPlayContext(matchType: .x01, uiTemplate: .checkoutScore)
+    )
+    #expect(snapshot.profile == expectedProfile)
 }
 
 @Test(.tags(.unit, .regression))
@@ -46,8 +49,7 @@ func botParticipantFactoryBuildsPresetBotWithoutPayload() async throws {
             linkedPlayerId: nil,
             colorTokenRaw: PlayerColorToken.blue.rawValue,
             matchType: .cricket,
-            uiTemplate: .markBoard,
-            partyUsesPresetBotsOnly: false
+            uiTemplate: .markBoard
         ),
         resolveTrainingSkill: { _, _ in BotDifficulty.medium.skillProfile }
     )
@@ -57,24 +59,24 @@ func botParticipantFactoryBuildsPresetBotWithoutPayload() async throws {
 }
 
 @Test(.tags(.unit, .regression))
-func botParticipantFactorySkipsCustomPayloadForPartyPresetOnly() async throws {
+func botParticipantFactoryBuildsCustomBotSnapshotForKiller() async throws {
+    let configuration = CustomBotConfiguration(x01Average: 40, cricketMPR: 1.5)
     let participant = try await BotParticipantFactory.makeParticipant(
         input: BotParticipantBuildInput(
             playerId: UUID(),
             displayName: "Custom",
             turnOrder: 0,
-            botDifficulty: .medium,
+            botDifficulty: nil,
             isTrainingBot: false,
             isCustomBot: true,
-            customConfiguration: CustomBotConfiguration(x01Average: 40, cricketMPR: 1.5),
+            customConfiguration: configuration,
             linkedPlayerId: nil,
             colorTokenRaw: PlayerColorToken.green.rawValue,
             matchType: .killer,
-            uiTemplate: .livesElimination,
-            partyUsesPresetBotsOnly: true
+            uiTemplate: .livesElimination
         ),
         resolveTrainingSkill: { _, _ in BotDifficulty.medium.skillProfile }
     )
-    #expect(participant.botKindRaw == BotKind.preset.rawValue)
-    #expect(participant.botSkillProfilePayload == nil)
+    #expect(participant.botKindRaw == BotKind.custom.rawValue)
+    #expect(participant.botSkillProfilePayload != nil)
 }

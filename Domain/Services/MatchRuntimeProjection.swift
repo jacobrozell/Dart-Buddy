@@ -206,6 +206,102 @@ enum MatchRuntimeProjection {
             )
             return
         }
+        if let state = runtime.bobs27State {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.currentPlayerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.halveItState {
+            let currentPlayerId = state.isComplete
+                ? nil
+                : state.players[state.currentPlayerIndex].playerId
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: currentPlayerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.scamState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.currentPlayerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.snookerState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.currentBreakerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.ticTacToeState {
+            let currentPlayerId = state.isComplete
+                ? nil
+                : state.players[state.currentPlayerIndex].playerId
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: currentPlayerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.blindKillerState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.currentPlayerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.followTheLeaderState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.currentPlayerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.loopState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.currentPlayerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.prisonerState {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.currentPlayer.playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
         if let state = runtime.raidState {
             let currentHero = state.heroes.indices.contains(state.currentHeroIndex)
                 ? state.heroes[state.currentHeroIndex].playerId

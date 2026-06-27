@@ -48,6 +48,10 @@ extension DartBotEngine {
     ) -> DartInput {
         switch activeTarget {
         case let .number(value):
+            let tier = profile.x01.scoringBehaviorTier
+            if tier == .veryEasy || tier == .easy {
+                return DartInput(multiplier: .single, segment: .oneToTwenty(value))
+            }
             // Choose multiplier to efficiently close the remaining marks.
             let multiplier: DartMultiplier
             if remainingMarks >= 3,
@@ -90,11 +94,15 @@ extension DartBotEngine {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
         if missRoll < profile.cricket.offBoardMissChance + profile.cricket.wrongBedChance {
-            // Wrong bed within the cricket range.
             let wrongFace = Int.random(in: 1 ... 14, using: &rng)
             return DartInput(multiplier: .single, segment: .oneToTwenty(wrongFace))
         }
-        // Partial miss — land on a neighbouring segment of the active target.
+        if case let .number(value) = activeTarget {
+            return DartInput(
+                multiplier: .single,
+                segment: .oneToTwenty(adjacentClockSegment(to: value, rng: &rng))
+            )
+        }
         let wrongFace = Int.random(in: 1 ... 14, using: &rng)
         return DartInput(multiplier: .single, segment: .oneToTwenty(wrongFace))
     }

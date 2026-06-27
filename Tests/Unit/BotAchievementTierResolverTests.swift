@@ -63,8 +63,7 @@ func botParticipantFactoryStoresEffectiveTierForPresetBot() async throws {
             linkedPlayerId: nil,
             colorTokenRaw: PlayerColorToken.blue.rawValue,
             matchType: .x01,
-            uiTemplate: .checkoutScore,
-            partyUsesPresetBotsOnly: false
+            uiTemplate: .checkoutScore
         ),
         resolveTrainingSkill: { _, _ in BotDifficulty.medium.skillProfile }
     )
@@ -85,8 +84,7 @@ func botParticipantFactoryStoresEffectiveTierForCustomBot() async throws {
             linkedPlayerId: nil,
             colorTokenRaw: PlayerColorToken.green.rawValue,
             matchType: .x01,
-            uiTemplate: .checkoutScore,
-            partyUsesPresetBotsOnly: false
+            uiTemplate: .checkoutScore
         ),
         resolveTrainingSkill: { _, _ in BotDifficulty.medium.skillProfile }
     )
@@ -107,8 +105,7 @@ func botParticipantFactoryLeavesTrainingBotTierNil() async throws {
             linkedPlayerId: UUID(),
             colorTokenRaw: PlayerColorToken.blue.rawValue,
             matchType: .x01,
-            uiTemplate: .checkoutScore,
-            partyUsesPresetBotsOnly: false
+            uiTemplate: .checkoutScore
         ),
         resolveTrainingSkill: { _, _ in BotDifficulty.medium.skillProfile }
     )

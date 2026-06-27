@@ -70,6 +70,19 @@ extension DartBotEngine {
         rng: inout some RandomNumberGenerator
     ) -> DartInput {
         let hitChances = profile.cricket.hitChances
+        let tier = profile.x01.scoringBehaviorTier
+
+        if tier == .veryEasy || tier == .easy {
+            if Double.random(in: 0 ... 1, using: &rng) < hitChances.single {
+                return DartInput(multiplier: .single, segment: .oneToTwenty(segmentValue))
+            }
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.offBoardMissChance {
+                return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+            }
+            let adjacent = adjacentClockSegment(to: segmentValue, rng: &rng)
+            return DartInput(multiplier: .single, segment: .oneToTwenty(adjacent))
+        }
+
         let roll = Double.random(in: 0 ... 1, using: &rng)
 
         // After close, prefer triples to maximise scoring; before close prefer triples to close fast.
@@ -89,9 +102,7 @@ extension DartBotEngine {
             if offBoard {
                 return DartInput(multiplier: .single, segment: .miss, isMiss: true)
             }
-            let adjacent = Bool.random(using: &rng)
-                ? max(1, segmentValue - 1)
-                : min(20, segmentValue + 1)
+            let adjacent = adjacentClockSegment(to: segmentValue, rng: &rng)
             return DartInput(multiplier: .single, segment: .oneToTwenty(adjacent))
         }
     }

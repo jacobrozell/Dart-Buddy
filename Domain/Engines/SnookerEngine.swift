@@ -45,6 +45,19 @@ public enum SnookerColour: String, Codable, CaseIterable, Sendable {
             return dart.segment == .innerBull || dart.segment == .outerBull
         }
     }
+
+    public var targetSegment: Int? {
+        switch self {
+        case .yellow: return 16
+        case .green: return 17
+        case .brown: return 18
+        case .blue: return 19
+        case .pink: return 20
+        case .black: return nil
+        }
+    }
+
+    public var localizationKey: String { "play.snooker.colour.\(rawValue)" }
 }
 
 // MARK: - Config

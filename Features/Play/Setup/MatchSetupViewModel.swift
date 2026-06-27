@@ -390,6 +390,8 @@ final class MatchSetupViewModel: ObservableObject {
             raidBossTier = config.bossTier
             raidHeroHearts = config.heroHearts
             raidEnrageEnabled = config.enrageEnabled
+        case .bobs27, .halveIt, .scam, .snooker, .ticTacToe, .blindKiller, .followTheLeader, .loop, .prisoner:
+            break
         }
 
         normalizeForProductSurface()
@@ -501,21 +503,25 @@ final class MatchSetupViewModel: ObservableObject {
                 : "setup.validation.minimumPlayers"
             return [key]
         }
+        if selectedParticipantCount > entry.maximumPlayers {
+            return ["setup.validation.maximumPlayers"]
+        }
         if selectedPlayers.allSatisfy(\.isBot) {
             return ["setup.validation.requiresHuman"]
         }
         if catalogType == .fleet, selectedParticipantCount != 2 {
             return ["setup.validation.fleetExactTwoPlayers"]
         }
-        if entry.section == .coop {
-            if selectedParticipantCount > 3 {
-                return ["setup.validation.raidHeroCount"]
-            }
-            if selectedPlayers.contains(where: \.isBot) {
-                return ["setup.validation.coopHumansOnly"]
-            }
+        if catalogType == .snooker, selectedParticipantCount != 2 {
+            return ["setup.validation.snookerExactTwoPlayers"]
         }
-        return []
+        if catalogType == .ticTacToe, selectedParticipantCount != 2 {
+            return ["setup.validation.ticTacToeExactTwoPlayers"]
+        }
+        if entry.section == .coop, selectedParticipantCount > 3 {
+            return ["setup.validation.raidHeroCount"]
+        }
+        return botRosterValidationErrors(for: catalogType)
     }
 
     private func partySelectionValidationErrors() -> [String] {
@@ -534,19 +540,26 @@ final class MatchSetupViewModel: ObservableObject {
         if selected.allSatisfy(\.isBot) {
             errors.append("setup.validation.requiresHuman")
         }
-        if partyGame == .baseball,
-           selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
-            errors.append("setup.validation.baseballBotsPresetOnly")
-        }
-        if partyGame == .shanghai,
-           selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
-            errors.append("setup.validation.shanghaiBotsPresetOnly")
-        }
-        if partyGame == .killer,
-           selected.contains(where: \.isCustomBot) || selected.contains(where: \.isTrainingBot) {
-            errors.append("setup.validation.killerBotsPresetOnly")
-        }
+        errors.append(contentsOf: botRosterValidationErrors(for: currentMatchType))
         return errors
+    }
+
+    private func botRosterValidationErrors(for matchType: MatchType) -> [String] {
+        let selected = selectedPlayers
+        return botPlaySupport(for: matchType).validationErrors(
+            matchType: matchType,
+            hasBot: selected.contains(where: \.isBot),
+            hasTrainingOrCustomBot: selected.contains(where: \.isCustomBot)
+                || selected.contains(where: \.isTrainingBot)
+        )
+    }
+
+    var botPlaySupport: BotModePlaySupport {
+        botPlaySupport(for: currentMatchType)
+    }
+
+    private func botPlaySupport(for matchType: MatchType) -> BotModePlaySupport {
+        BotModePlaySupport.support(for: matchType)
     }
 
     private func defaultRosterValidationErrors() -> [String] {
@@ -562,10 +575,12 @@ final class MatchSetupViewModel: ObservableObject {
         if selectedParticipantCount < 2 {
             return ["setup.validation.minimumPlayers"]
         }
+        var errors: [String] = []
         if selectedPlayers.allSatisfy(\.isBot) {
-            return ["setup.validation.requiresHuman"]
+            errors.append("setup.validation.requiresHuman")
         }
-        return []
+        errors.append(contentsOf: botRosterValidationErrors(for: currentMatchType))
+        return errors
     }
 
     private func standardModeConfigValidationErrors() -> [String] {
@@ -589,10 +604,6 @@ final class MatchSetupViewModel: ObservableObject {
             }
             if cricketSetsEnabled, cricketSetsToWin <= 0 {
                 errors.append("setup.validation.invalidSets")
-            }
-            let hasBot = selectedPlayers.contains(where: \.isBot)
-            if hasBot, !cricketPointsEnabled {
-                errors.append("setup.validation.cricketBotUnsupported")
             }
             return errors
         }
@@ -810,8 +821,24 @@ final class MatchSetupViewModel: ObservableObject {
                     enrageEnabled: raidEnrageEnabled
                 )
             )
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
-            return MatchConfigDefaults.config(for: .x01)
+        case .bobs27:
+            return .bobs27(MatchConfigBobs27())
+        case .halveIt:
+            return .halveIt(MatchConfigHalveIt())
+        case .scam:
+            return .scam(MatchConfigScam())
+        case .snooker:
+            return .snooker(MatchConfigSnooker())
+        case .ticTacToe:
+            return .ticTacToe(MatchConfigTicTacToe())
+        case .blindKiller:
+            return MatchConfigDefaults.config(for: .blindKiller)
+        case .followTheLeader:
+            return MatchConfigDefaults.config(for: .followTheLeader)
+        case .loop:
+            return MatchConfigDefaults.config(for: .loop)
+        case .prisoner:
+            return MatchConfigDefaults.config(for: .prisoner)
         }
     }
 

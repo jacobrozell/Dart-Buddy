@@ -27,19 +27,20 @@ private func outerBull() -> DartInput {
 // MARK: - Setup
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))
-func bobs27RequiresExactlyOnePlayer() {
+func bobs27RequiresAtLeastOnePlayer() {
     #expect(throws: AppError.self) {
-        _ = try Bobs27Engine.makeInitialState(
-            config: MatchConfigBobs27(),
-            playerIds: [UUID(), UUID()]
-        )
+        _ = try Bobs27Engine.makeInitialState(config: MatchConfigBobs27(), playerIds: [])
     }
-    #expect(throws: AppError.self) {
-        _ = try Bobs27Engine.makeInitialState(
-            config: MatchConfigBobs27(),
-            playerIds: []
-        )
-    }
+}
+
+@Test(.tags(.unit, .match, .critical, .offline, .regression))
+func bobs27SupportsMultiplePlayers() throws {
+    let state = try Bobs27Engine.makeInitialState(
+        config: MatchConfigBobs27(),
+        playerIds: [UUID(), UUID()]
+    )
+    #expect(state.players.count == 2)
+    #expect(state.players.allSatisfy { $0.score == 27 })
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))
@@ -48,7 +49,7 @@ func bobs27InitialStateStartsAtTwentySevenOnDoubleOne() throws {
         config: MatchConfigBobs27(),
         playerIds: [UUID()]
     )
-    #expect(state.score == 27)
+    #expect(state.players[0].score == 27)
     #expect(state.roundIndex == 0)
     #expect(state.currentTarget == .double(1))
     #expect(state.isComplete == false)
@@ -62,14 +63,13 @@ func bobs27HitOnTargetAddsHitCountTimesValue() throws {
         config: MatchConfigBobs27(),
         playerIds: [UUID()]
     )
-    // Round 0 = D1 (value 2). Two hits → +4.
     let outcome = try Bobs27Engine.submitTurn(
         state: state,
         darts: [double(1), double(1), miss()]
     )
     #expect(outcome.event.hitCount == 2)
     #expect(outcome.event.delta == 4)
-    #expect(outcome.updatedState.score == 31)
+    #expect(outcome.updatedState.players[0].score == 31)
     #expect(outcome.updatedState.roundIndex == 1)
     #expect(outcome.updatedState.currentTarget == .double(2))
 }
@@ -80,14 +80,13 @@ func bobs27MissAllSubtractsTargetValue() throws {
         config: MatchConfigBobs27(),
         playerIds: [UUID()]
     )
-    // D1 missed three times → -2.
     let outcome = try Bobs27Engine.submitTurn(
         state: state,
         darts: [single(1), miss(), miss()]
     )
     #expect(outcome.event.hitCount == 0)
     #expect(outcome.event.delta == -2)
-    #expect(outcome.updatedState.score == 25)
+    #expect(outcome.updatedState.players[0].score == 25)
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))
@@ -112,9 +111,8 @@ func bobs27BullRoundOnlyInnerBullCounts() throws {
         config: MatchConfigBobs27(),
         playerIds: [UUID()]
     )
-    // Fast-forward to round 20 (the bull round).
     state.roundIndex = 20
-    state.score = 100
+    state.players[0].score = 100
     #expect(state.currentTarget == .bull)
 
     let outcome = try Bobs27Engine.submitTurn(
@@ -123,7 +121,7 @@ func bobs27BullRoundOnlyInnerBullCounts() throws {
     )
     #expect(outcome.event.hitCount == 1)
     #expect(outcome.event.delta == 50)
-    #expect(outcome.updatedState.score == 150)
+    #expect(outcome.updatedState.players[0].score == 150)
     #expect(outcome.updatedState.isComplete == true)
 }
 
@@ -134,13 +132,13 @@ func bobs27BullRoundMissSubtractsBullPenalty() throws {
         playerIds: [UUID()]
     )
     state.roundIndex = 20
-    state.score = 100
+    state.players[0].score = 100
     let outcome = try Bobs27Engine.submitTurn(
         state: state,
         darts: [outerBull(), miss(), miss()]
     )
     #expect(outcome.event.delta == -27)
-    #expect(outcome.updatedState.score == 73)
+    #expect(outcome.updatedState.players[0].score == 73)
     #expect(outcome.updatedState.isComplete == true)
 }
 
@@ -152,16 +150,15 @@ func bobs27BustOutWhenScoreHitsZero() throws {
         config: MatchConfigBobs27(),
         playerIds: [UUID()]
     )
-    // Manufacture a state where one miss zeroes the score.
-    state.roundIndex = 4  // D5, value 10
-    state.score = 10
+    state.roundIndex = 4
+    state.players[0].score = 10
     let outcome = try Bobs27Engine.submitTurn(
         state: state,
         darts: [miss(), miss(), miss()]
     )
     #expect(outcome.event.delta == -10)
-    #expect(outcome.updatedState.score == 0)
-    #expect(outcome.updatedState.bustOut == true)
+    #expect(outcome.updatedState.players[0].score == 0)
+    #expect(outcome.updatedState.players[0].bustOut == true)
     #expect(outcome.updatedState.isComplete == true)
     #expect(outcome.event.matchCompleted == true)
 }
@@ -184,9 +181,9 @@ func bobs27PerfectGameScoresFourteenThirtySeven() throws {
         state: state,
         darts: [innerBull(), innerBull(), innerBull()]
     )
-    #expect(finalOutcome.updatedState.score == 1437)
+    #expect(finalOutcome.updatedState.players[0].score == 1437)
     #expect(finalOutcome.updatedState.isComplete == true)
-    #expect(finalOutcome.updatedState.bustOut == false)
+    #expect(finalOutcome.updatedState.players[0].bustOut == false)
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))
@@ -213,9 +210,9 @@ func bobs27ReplayReconstructsTerminalState() throws {
     var state = initial
     var events: [Bobs27RoundEvent] = []
     let visits: [[DartInput]] = [
-        [double(1), miss(), miss()],         // +2
-        [miss(), miss(), miss()],            // -4
-        [double(3), double(3), double(3)],   // +18
+        [double(1), miss(), miss()],
+        [miss(), miss(), miss()],
+        [double(3), double(3), double(3)],
     ]
     for visit in visits {
         let outcome = try Bobs27Engine.submitTurn(state: state, darts: visit)
@@ -227,6 +224,6 @@ func bobs27ReplayReconstructsTerminalState() throws {
         playerIds: [playerId],
         events: events
     )
-    #expect(replayed.score == state.score)
+    #expect(replayed.players[0].score == state.players[0].score)
     #expect(replayed.roundIndex == state.roundIndex)
 }

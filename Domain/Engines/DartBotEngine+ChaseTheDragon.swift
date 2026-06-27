@@ -71,11 +71,12 @@ extension DartBotEngine {
 
         switch step {
         case let .treble(number):
-            let wrongFace = Int.random(in: 1 ... 20, using: &rng)
-            let face = wrongFace == number ? number % 20 + 1 : wrongFace
-            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+            return DartInput(
+                multiplier: .single,
+                segment: .oneToTwenty(adjacentClockSegment(to: number, rng: &rng))
+            )
         case .outerBull, .innerBull:
-            let face = Int.random(in: 1 ... 20, using: &rng)
+            let face = [16, 17, 18, 19, 20].randomElement(using: &rng) ?? 20
             return DartInput(multiplier: .single, segment: .oneToTwenty(face))
         }
     }

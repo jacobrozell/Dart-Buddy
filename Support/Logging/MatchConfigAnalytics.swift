@@ -94,6 +94,30 @@ enum MatchConfigAnalytics {
                 "configHeroHearts": String(cfg.heroHearts),
                 "configEnrageEnabled": bool(cfg.enrageEnabled)
             ]
+        case let .bobs27(cfg):
+            return [
+                "configBullSubtract": String(cfg.bullSubtract),
+                "configGameOverAtZero": bool(cfg.gameOverAtZero)
+            ]
+        case let .halveIt(cfg):
+            return [
+                "configStartingScore": String(cfg.startingScore),
+                "configTargetSequence": cfg.sequenceRaw
+            ]
+        case .scam:
+            return [:]
+        case .snooker:
+            return [:]
+        case let .ticTacToe(cfg):
+            return ["configHandicapPreset": cfg.presetRaw]
+        case let .blindKiller(cfg):
+            return ["configHitsToEliminate": String(cfg.hitsToEliminate)]
+        case let .followTheLeader(cfg):
+            return ["configStartingLives": String(cfg.startingLives)]
+        case let .loop(cfg):
+            return ["configStartingLives": String(cfg.startingLives)]
+        case .prisoner:
+            return [:]
         case .mickeyMouse, .mulligan:
             return [:]
         }

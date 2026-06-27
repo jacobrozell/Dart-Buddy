@@ -61,14 +61,9 @@ public enum BotAchievementTierResolver {
         botKindRaw: String?,
         botDifficultyRaw: String?,
         customConfiguration: CustomBotConfiguration?,
-        isTrainingBot: Bool,
-        partyUsesPresetBotsOnly: Bool,
-        presetDifficulty: BotDifficulty?
+        isTrainingBot: Bool
     ) -> String? {
-        if partyUsesPresetBotsOnly {
-            return presetDifficulty?.rawValue
-        }
-        return effectiveTier(
+        effectiveTier(
             botKindRaw: botKindRaw,
             botDifficultyRaw: botDifficultyRaw,
             customConfiguration: customConfiguration,

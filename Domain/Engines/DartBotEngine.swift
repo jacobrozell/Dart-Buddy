@@ -571,6 +571,19 @@ public enum DartBotEngine {
         return DartInput(multiplier: .single, segment: .oneToTwenty(segment))
     }
 
+    /// Clockwise segment order on a standard dartboard (20 at the top).
+    static func adjacentClockSegment(
+        to segment: Int,
+        rng: inout some RandomNumberGenerator
+    ) -> Int {
+        let clockwise = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
+        guard let index = clockwise.firstIndex(of: segment) else {
+            return segment == 1 ? 2 : segment - 1
+        }
+        let offset = Bool.random(using: &rng) ? 1 : -1
+        return clockwise[(index + offset + clockwise.count) % clockwise.count]
+    }
+
     private static func resolveBaseballDart(
         intended: DartInput,
         targetSegment: Int,
@@ -590,18 +603,67 @@ public enum DartBotEngine {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
 
-        if phase == .bullPlayoff {
-            let face = Int.random(in: 1 ... 20, using: &rng)
-            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        if case let .oneToTwenty(value) = intended.segment, value == targetSegment,
+           let partial = baseballPartialHitOnTarget(intended: intended, profile: profile, rng: &rng) {
+            return partial
         }
 
-        var wrongFace = Int.random(in: 1 ... 20, using: &rng)
-        if wrongFace == targetSegment {
-            // A missed inning throw must not land on the very segment it was aiming
-            // for; nudge to an adjacent face so the miss actually scores no runs.
-            wrongFace = targetSegment % 20 + 1
+        if phase == .bullPlayoff || intended.segment == .innerBull || intended.segment == .outerBull {
+            return baseballBullMissDart(intended: intended, profile: profile, rng: &rng)
         }
-        return DartInput(multiplier: .single, segment: .oneToTwenty(wrongFace))
+
+        let adjacent = adjacentClockSegment(to: targetSegment, rng: &rng)
+        return DartInput(multiplier: .single, segment: .oneToTwenty(adjacent))
+    }
+
+    /// Downgrade multiplier on the same inning segment when the bot nearly hits.
+    static func baseballPartialHitOnTarget(
+        intended: DartInput,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput? {
+        guard case let .oneToTwenty(value) = intended.segment else { return nil }
+        switch intended.multiplier {
+        case .triple:
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.hitChances.double {
+                return DartInput(multiplier: .double, segment: .oneToTwenty(value))
+            }
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.hitChances.single {
+                return DartInput(multiplier: .single, segment: .oneToTwenty(value))
+            }
+        case .double:
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.hitChances.single {
+                return DartInput(multiplier: .single, segment: .oneToTwenty(value))
+            }
+        case .single:
+            break
+        }
+        return nil
+    }
+
+    private static func baseballBullMissDart(
+        intended: DartInput,
+        profile: BotSkillProfile,
+        rng: inout some RandomNumberGenerator
+    ) -> DartInput {
+        switch intended.segment {
+        case .innerBull:
+            if Double.random(in: 0 ... 1, using: &rng) < profile.cricket.hitChances.single {
+                return DartInput(multiplier: .single, segment: .outerBull)
+            }
+            let face = [16, 17, 18, 19, 20].randomElement(using: &rng) ?? 20
+            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        case .outerBull:
+            let face = [16, 17, 18, 19, 20].randomElement(using: &rng) ?? 20
+            return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        case let .oneToTwenty(value):
+            return DartInput(
+                multiplier: .single,
+                segment: .oneToTwenty(adjacentClockSegment(to: value, rng: &rng))
+            )
+        case .miss:
+            return intended
+        }
     }
 
     private static func resolveDart(

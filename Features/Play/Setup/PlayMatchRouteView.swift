@@ -6,6 +6,17 @@ struct PlayMatchRouteView: View {
     let onShowSummary: () -> Void
 
     var body: some View {
+        if let matchType = route.inProgressRulesMatchType {
+            MatchInProgressRulesAccess(matchType: matchType) {
+                routeBody
+            }
+        } else {
+            routeBody
+        }
+    }
+
+    @ViewBuilder
+    private var routeBody: some View {
         switch route {
         case let .americanCricketMatch(matchId):
             AmericanCricketMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
@@ -41,6 +52,24 @@ struct PlayMatchRouteView: View {
             FleetMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
         case let .raidMatch(matchId):
             RaidMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .bobs27Match(matchId):
+            Bobs27MatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .halveItMatch(matchId):
+            HalveItMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .scamMatch(matchId):
+            ScamMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .snookerMatch(matchId):
+            SnookerMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .ticTacToeMatch(matchId):
+            TicTacToeMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .blindKillerMatch(matchId):
+            BlindKillerMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .followTheLeaderMatch(matchId):
+            FollowTheLeaderMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .loopMatch(matchId):
+            LoopMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
+        case let .prisonerMatch(matchId):
+            PrisonerMatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)
         default:
             EmptyView()
         }
@@ -599,6 +628,302 @@ private struct RaidMatchRouteView: View {
 
     var body: some View {
         RaidMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct Bobs27MatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: Bobs27MatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: Bobs27MatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        Bobs27MatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService
+        )
+    }
+}
+
+private struct HalveItMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: HalveItMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: HalveItMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        HalveItMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct ScamMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: ScamMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: ScamMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        ScamMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct SnookerMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: SnookerMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: SnookerMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        SnookerMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct TicTacToeMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: TicTacToeMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: TicTacToeMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        TicTacToeMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct BlindKillerMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: BlindKillerMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: BlindKillerMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        BlindKillerMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct FollowTheLeaderMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: FollowTheLeaderMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: FollowTheLeaderMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        FollowTheLeaderMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct LoopMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: LoopMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: LoopMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        LoopMatchScreen(
+            viewModel: viewModel,
+            onShowSummary: onShowSummary,
+            audio: dependencies.audioFeedbackService,
+            haptics: dependencies.hapticsService,
+            feedbackPreferences: dependencies.userPreferencesStore.feedback
+        )
+    }
+}
+
+private struct PrisonerMatchRouteView: View {
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+    @StateObject private var viewModel: PrisonerMatchViewModel
+
+    init(matchId: UUID, dependencies: AppDependencies, onShowSummary: @escaping () -> Void) {
+        self.matchId = matchId
+        self.dependencies = dependencies
+        self.onShowSummary = onShowSummary
+        _viewModel = StateObject(
+            wrappedValue: PrisonerMatchViewModel(
+                matchId: matchId,
+                store: dependencies.activeMatchStore,
+                logger: dependencies.logger,
+                matchRepository: dependencies.matchRepository,
+                statsRepository: dependencies.statsRepository,
+                feedbackPreferences: dependencies.userPreferencesStore.feedback
+            )
+        )
+    }
+
+    var body: some View {
+        PrisonerMatchScreen(
             viewModel: viewModel,
             onShowSummary: onShowSummary,
             audio: dependencies.audioFeedbackService,

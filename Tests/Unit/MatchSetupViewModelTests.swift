@@ -247,6 +247,61 @@ func onAppearDoesNotResetCatalogModeSelection() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
+func setupCatalogMickeyMouseAllowsPresetBot() async {
+    let human = makePlayer("Human")
+    let bot = PlayerSummary(
+        id: UUID(),
+        name: "Bot",
+        isArchived: false,
+        isBot: true,
+        botDifficultyRaw: BotDifficulty.medium.rawValue,
+        botKindRaw: BotKind.preset.rawValue,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let guest = makePlayer("Guest")
+    let vm = makeSetupViewModel(players: [human, bot, guest])
+    vm.applyPendingModeSelection(
+        PendingModeSelection(setupCategory: .standard, mode: nil, partyGame: nil, matchType: .mickeyMouse)
+    )
+    vm.selectedPlayerIds = [human.id, bot.id, guest.id]
+    vm.revalidate()
+
+    #expect(vm.botPlaySupport == .full)
+    #expect(vm.canStart)
+    #expect(vm.validationErrors.isEmpty)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func setupCatalogRaidBlocksBots() async {
+    guard ProductSurface.showsCoopModes else { return }
+    let human = makePlayer("Human")
+    let bot = PlayerSummary(
+        id: UUID(),
+        name: "Bot",
+        isArchived: false,
+        isBot: true,
+        botDifficultyRaw: BotDifficulty.easy.rawValue,
+        botKindRaw: BotKind.preset.rawValue,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let hero = makePlayer("Hero")
+    let vm = makeSetupViewModel(players: [human, bot, hero])
+    vm.applyPendingModeSelection(
+        PendingModeSelection(setupCategory: .standard, mode: nil, partyGame: nil, matchType: .raid)
+    )
+    vm.selectedPlayerIds = [human.id, bot.id, hero.id]
+    vm.revalidate()
+
+    #expect(vm.botPlaySupport == .none)
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.coopHumansOnly"))
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
 func setupPartyKillerAllowsPresetBot() async {
     guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
@@ -280,7 +335,7 @@ func setupPartyKillerAllowsPresetBot() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func setupPartyKillerBlocksCustomTrainingBots() async {
+func setupPartyKillerAllowsCustomBot() async {
     guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
     let custom = makeCustomBot("Custom")
@@ -298,13 +353,13 @@ func setupPartyKillerBlocksCustomTrainingBots() async {
     vm.selectedPlayerIds = [human.id, custom.id, third.id]
     vm.revalidate()
 
-    #expect(!vm.canStart)
-    #expect(vm.validationErrors.contains("setup.validation.killerBotsPresetOnly"))
+    #expect(vm.canStart)
+    #expect(vm.validationErrors.isEmpty)
 }
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func setupPartyBaseballBlocksCustomTrainingBots() async {
+func setupPartyBaseballAllowsCustomBot() async {
     guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
     let custom = makeCustomBot("Custom")
@@ -321,8 +376,8 @@ func setupPartyBaseballBlocksCustomTrainingBots() async {
     vm.selectedPlayerIds = [human.id, custom.id]
     vm.revalidate()
 
-    #expect(!vm.canStart)
-    #expect(vm.validationErrors.contains("setup.validation.baseballBotsPresetOnly"))
+    #expect(vm.canStart)
+    #expect(vm.validationErrors.isEmpty)
 }
 
 @MainActor
@@ -625,7 +680,7 @@ func setupAllowsCutThroatCricketWithBot() async {
 
 @MainActor
 @Test(.tags(.integration, .setupFlow, .regression))
-func setupBlocksCricketBotWhenPointsOff() async {
+func setupAllowsCricketBotWhenPointsOff() async {
     let human = makePlayer("Alice")
     let vm = makeSetupViewModel(players: [human])
     await vm.onAppear()
@@ -634,8 +689,8 @@ func setupBlocksCricketBotWhenPointsOff() async {
     vm.togglePlayer(human.id)
     await vm.addBot(.easy)
 
-    #expect(!vm.canStart)
-    #expect(vm.validationErrors.contains("setup.validation.cricketBotUnsupported"))
+    #expect(vm.canStart)
+    #expect(vm.validationErrors.isEmpty)
 }
 
 @MainActor

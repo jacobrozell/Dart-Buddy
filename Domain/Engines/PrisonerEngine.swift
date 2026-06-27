@@ -105,6 +105,7 @@ public struct PrisonerVisitEvent: Codable, Equatable, Identifiable, Sendable {
     public let prisonersCaptured: [Int]
     public let dartsLost: Int
     public let poolAfter: Int
+    public let hits: [PrisonerDartHit]
     public let matchCompleted: Bool
     public let timestamp: Date
 
@@ -119,6 +120,7 @@ public struct PrisonerVisitEvent: Codable, Equatable, Identifiable, Sendable {
         prisonersCaptured: [Int],
         dartsLost: Int,
         poolAfter: Int,
+        hits: [PrisonerDartHit],
         matchCompleted: Bool,
         timestamp: Date
     ) {
@@ -132,6 +134,7 @@ public struct PrisonerVisitEvent: Codable, Equatable, Identifiable, Sendable {
         self.prisonersCaptured = prisonersCaptured
         self.dartsLost = dartsLost
         self.poolAfter = poolAfter
+        self.hits = hits
         self.matchCompleted = matchCompleted
         self.timestamp = timestamp
     }
@@ -299,6 +302,7 @@ public enum PrisonerEngine {
             prisonersCaptured: prisonersCaptured,
             dartsLost: dartsLost,
             poolAfter: poolAfter,
+            hits: hits,
             matchCompleted: matchCompleted,
             timestamp: timestamp
         )
@@ -312,28 +316,7 @@ public enum PrisonerEngine {
     ) throws -> PrisonerState {
         var state = try makeInitialState(config: config, playerIds: playerIds)
         for event in events {
-            guard let idx = state.players.firstIndex(where: { $0.playerId == event.playerId }) else {
-                continue
-            }
-            state.players[idx].progressIndex = event.progressIndexAfter
-            state.players[idx].pool = event.poolAfter
-            state.players[idx].stuckOnBoard = event.dartsLost
-            // Apply prisoner ledger.
-            for segment in event.prisonersCreated {
-                state.prisoners.append(PrisonerOnBoard(segment: segment, ownerPlayerId: event.playerId))
-            }
-            for segment in event.prisonersCaptured {
-                if let pIdx = state.prisoners.firstIndex(where: { $0.segment == segment }) {
-                    state.prisoners.remove(at: pIdx)
-                }
-            }
-            state.turnIndex += 1
-            if event.matchCompleted {
-                state.isComplete = true
-                state.winnerPlayerId = event.playerId
-            } else {
-                state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.count
-            }
+            state = try submitVisit(state: state, hits: event.hits, timestamp: event.timestamp).updatedState
         }
         return state
     }

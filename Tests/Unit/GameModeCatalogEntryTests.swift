@@ -92,15 +92,15 @@ struct GameModeCatalogEntryTests {
     @Test
     func plannedModesUseSectionAccentFallback() {
         let plannedParty = GameModeCatalog.planned.first { $0.section == .party }
-        let plannedPractice = GameModeCatalog.planned.first { $0.section == .practice }
+        let plannedCoop = GameModeCatalog.planned.first { $0.section == .coop }
         #expect(plannedParty != nil)
-        #expect(plannedPractice != nil)
+        #expect(plannedCoop != nil)
+        // Practice drills may all be shipped; accent fallback is still covered by party/coop stubs.
     }
 
     @Test
     func soloModesUseSoloPlayerCountLabel() {
         let soloModes = GameModeCatalog.all.filter(\.isSolo)
-        #expect(!soloModes.isEmpty)
         for entry in soloModes {
             #expect(entry.playerCountLabel == L10n.string("modes.playerCount.solo"))
         }
@@ -130,10 +130,17 @@ struct GameModeCatalogEntryTests {
     }
 
     @Test
-    func onlySoloChallengeDrillsAreSinglePlayerCapped() {
-        // The roster-skip fork is reserved for true solo drills (max one player).
-        for entry in GameModeCatalog.all where entry.isSolo {
-            #expect(entry.uiTemplate == .soloChallenge)
+    func practiceModesAllowOneOrMorePlayers() {
+        let practice = GameModeCatalog.entries(in: .practice).filter(\.isAvailable)
+        for entry in practice {
+            #expect(entry.isSolo == false)
+            if entry.matchType == .nineLives {
+                #expect(entry.minimumPlayers == 2)
+                #expect(entry.playerCountLabel == L10n.format("modes.playerCount.minimumFormat", 2))
+            } else {
+                #expect(entry.minimumPlayers == 1)
+                #expect(entry.playerCountLabel == L10n.format("modes.playerCount.minimumFormat", 1))
+            }
         }
     }
 

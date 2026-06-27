@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate de/es/nl/fr/zh-Hans GameplayModes.strings from en.lproj/GameplayModes.strings."""
+"""Generate localized GameplayModes.strings from en.lproj/GameplayModes.strings + locale JSON."""
 
 from __future__ import annotations
 
@@ -658,7 +658,10 @@ LOCALE_HEADERS = {
     "nl": "/* Gameplay mode strings — Dutch */",
     "fr": "/* Gameplay mode strings — French */",
     "zh-Hans": "/* Gameplay mode strings — Simplified Chinese */",
+    "it": "/* Gameplay mode strings — Italian */",
 }
+
+SUPPORTED_LOCALES = tuple(LOCALE_HEADERS)
 
 
 def parse_strings(path: Path) -> list[tuple[str, str]]:
@@ -705,8 +708,18 @@ def write_locale(locale: str, index: int) -> None:
 
 
 def main() -> None:
+    import sys
+
+    locales = SUPPORTED_LOCALES
+    if len(sys.argv) > 1:
+        requested = sys.argv[1:]
+        unknown = set(requested) - set(SUPPORTED_LOCALES)
+        if unknown:
+            raise SystemExit(f"Unknown locale(s): {', '.join(sorted(unknown))}")
+        locales = tuple(requested)
+
     entries = parse_strings(EN_PATH)
-    for locale in ("de", "es", "nl", "fr", "zh-Hans"):
+    for locale in locales:
         write_locale_from_json(locale)
     # Legacy tuple table retained for reference; JSON is source of truth.
     en_keys = {key for key, _ in entries}

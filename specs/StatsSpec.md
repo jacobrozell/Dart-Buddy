@@ -117,6 +117,8 @@ Recommended aggregate tables:
   - win rate trend
   - checkout efficiency by mode
   - Cricket closure pace and points per round
+- **Throw history heatmap** on Player Detail — board scatter + sector bars;
+  authoritative UX in [`ThrowHistoryHeatmapSpec.md`](ThrowHistoryHeatmapSpec.md)
 - Percentile comparisons across local player pool
 - Forecast-style trend smoothing
 

@@ -92,8 +92,13 @@ extension DartBotEngine {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
 
-        let face = Int.random(in: 1 ... 20, using: &rng)
-        return DartInput(multiplier: .single, segment: .oneToTwenty(face))
+        if case let .oneToTwenty(value) = intended.segment {
+            return DartInput(
+                multiplier: .single,
+                segment: .oneToTwenty(adjacentClockSegment(to: value, rng: &rng))
+            )
+        }
+        return DartInput(multiplier: .single, segment: .miss, isMiss: true)
     }
 
     // MARK: - Bowler

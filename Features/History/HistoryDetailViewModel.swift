@@ -131,6 +131,75 @@ final class HistoryDetailViewModel: ObservableObject {
                     return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
                 case let .nineLivesTurn(turn):
                     return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
+                case let .blindKillerTurn(turn):
+                    let name = participantNames[turn.playerId] ?? String(turn.playerId.uuidString.prefix(6))
+                    let hits = turn.darts.compactMap(\.doubleHitSegment).count
+                    return L10n.format("history.timeline.blindKillerTurnFormat", name, hits)
+                case let .followTheLeaderVisit(visit):
+                    let name = participantNames[visit.playerId] ?? String(visit.playerId.uuidString.prefix(6))
+                    if visit.passed {
+                        return L10n.format("history.timeline.followTheLeaderPassFormat", name)
+                    }
+                    let outcomeKey = visit.matched
+                        ? "history.timeline.followTheLeaderMatched"
+                        : "history.timeline.followTheLeaderMissed"
+                    return L10n.format("history.timeline.followTheLeaderVisitFormat", name, L10n.string(outcomeKey))
+                case let .loopVisit(visit):
+                    let name = participantNames[visit.playerId] ?? String(visit.playerId.uuidString.prefix(6))
+                    if visit.passed {
+                        return L10n.format("history.timeline.loopPassFormat", name)
+                    }
+                    let targetLabel = visit.targetAfter?.displayLabel ?? "—"
+                    return L10n.format("history.timeline.loopVisitFormat", name, targetLabel)
+                case let .prisonerVisit(visit):
+                    let name = participantNames[visit.playerId] ?? String(visit.playerId.uuidString.prefix(6))
+                    return L10n.format("history.timeline.prisonerVisitFormat", name, visit.hits.count)
+                case let .bobs27Round(round):
+                    let name = participantNames[round.playerId] ?? String(round.playerId.uuidString.prefix(6))
+                    return L10n.format(
+                        "history.timeline.bobs27RoundFormat",
+                        round.roundIndex + 1,
+                        name,
+                        round.scoreAfter
+                    )
+                case let .halveItRound(round):
+                    let name = participantNames[round.playerId] ?? String(round.playerId.uuidString.prefix(6))
+                    return L10n.format(
+                        "history.timeline.halveItRoundFormat",
+                        round.roundIndex + 1,
+                        name,
+                        round.totalAfter
+                    )
+                case let .scamVisit(visit):
+                    let name = participantNames[visit.playerId] ?? String(visit.playerId.uuidString.prefix(6))
+                    let roleKey = visit.role == .stopper ? "play.scam.role.stopper" : "play.scam.role.scorer"
+                    return L10n.format(
+                        "history.timeline.scamVisitFormat",
+                        visit.halfIndex + 1,
+                        name,
+                        L10n.string(roleKey),
+                        visit.pointsAdded
+                    )
+                case let .snookerDart(dart):
+                    let name = participantNames[dart.playerId] ?? String(dart.playerId.uuidString.prefix(6))
+                    let ballKey = dart.ballType == .red
+                        ? "play.snooker.ball.red"
+                        : (dart.nominatedColour.map(\.localizationKey) ?? "play.snooker.ball.colour")
+                    return L10n.format(
+                        "history.timeline.snookerDartFormat",
+                        name,
+                        L10n.string(ballKey),
+                        dart.points
+                    )
+                case let .ticTacToeVisit(visit):
+                    let name = participantNames[visit.playerId] ?? String(visit.playerId.uuidString.prefix(6))
+                    let claims = visit.claimsThisVisit.count
+                    return L10n.format(
+                        "history.timeline.ticTacToeVisitFormat",
+                        name,
+                        L10n.string(visit.side.localizationKey),
+                        claims
+                    )
                 case let .raidVisit(visit):
                     return Self.genericTurnTimeline(turnIndex: visit.turnIndex, playerId: visit.playerId, names: participantNames)
                 case let .fleetDart(dart):
@@ -283,7 +352,7 @@ final class HistoryDetailViewModel: ObservableObject {
                          .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
                          .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
                          .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
-                         .chaseTheDragonTurn, .nineLivesTurn, .raidVisit, .fleetDart:
+                         .chaseTheDragonTurn, .nineLivesTurn, .bobs27Round, .halveItRound, .scamVisit, .snookerDart, .ticTacToeVisit, .blindKillerTurn, .followTheLeaderVisit, .loopVisit, .prisonerVisit, .raidVisit, .fleetDart:
                         true
                     case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
                         false
@@ -461,6 +530,27 @@ final class HistoryDetailViewModel: ObservableObject {
                 throwsByPlayer[turn.playerId, default: 0] += 3
             case let .nineLivesTurn(turn):
                 throwsByPlayer[turn.playerId, default: 0] += 3
+            case let .bobs27Round(round):
+                throwsByPlayer[round.playerId, default: 0] += 3
+            case let .halveItRound(round):
+                throwsByPlayer[round.playerId, default: 0] += 3
+            case let .scamVisit(visit):
+                throwsByPlayer[visit.playerId, default: 0] += 3
+            case let .snookerDart(dart):
+                throwsByPlayer[dart.playerId, default: 0] += 1
+            case let .ticTacToeVisit(visit):
+                throwsByPlayer[visit.playerId, default: 0] += 3
+            case let .blindKillerTurn(turn):
+                throwsByPlayer[turn.playerId, default: 0] += turn.darts.count
+                for dart in turn.darts where dart.doubleHitSegment != nil {
+                    doublesByPlayer[turn.playerId, default: 0] += 1
+                }
+            case let .followTheLeaderVisit(visit):
+                throwsByPlayer[visit.playerId, default: 0] += visit.darts.count
+            case let .loopVisit(visit):
+                throwsByPlayer[visit.playerId, default: 0] += visit.darts.count
+            case let .prisonerVisit(visit):
+                throwsByPlayer[visit.playerId, default: 0] += visit.hits.count
             case let .raidVisit(visit):
                 throwsByPlayer[visit.playerId, default: 0] += visit.darts.count
             case let .fleetDart(dart):

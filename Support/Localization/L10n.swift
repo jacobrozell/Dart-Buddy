@@ -118,6 +118,8 @@ enum L10n {
     static let customBotAdvancedX01Section: LocalizedStringKey = "customBot.advanced.x01Section"
     static let customBotAdvancedCricketSection: LocalizedStringKey = "customBot.advanced.cricketSection"
     static let customBotAdvancedAimSection: LocalizedStringKey = "customBot.advanced.aimSection"
+    static let customBotCompatibleTemplatesTitle: LocalizedStringKey = "customBot.compatible.title"
+    static let customBotCompatibleTemplatesFooter: LocalizedStringKey = "customBot.compatible.footer"
     static let playersEmptyTitle: LocalizedStringKey = "players.empty.title"
     static let playersEmptyDescription: LocalizedStringKey = "players.empty.description"
     static let archived: LocalizedStringKey = "players.archived"

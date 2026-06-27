@@ -45,6 +45,7 @@ extension EnvironmentValues {
 /// Shared top chrome for in-progress match screens (exit, title, optional trailing action).
 struct MatchGameplayHeader<Title: View, Trailing: View>: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.presentMatchRules) private var presentMatchRules
     let onExit: () -> Void
     let exitAccessibilityLabel: LocalizedStringKey
     @ViewBuilder let title: () -> Title
@@ -80,6 +81,17 @@ struct MatchGameplayHeader<Title: View, Trailing: View>: View {
             Spacer(minLength: DS.Spacing.s2)
             title()
             Spacer(minLength: DS.Spacing.s2)
+            if let presentMatchRules {
+                Button(action: presentMatchRules) {
+                    Image(systemName: "book.pages")
+                        .font((usesCompactHeight ? Font.subheadline : Font.headline).weight(.bold))
+                        .foregroundStyle(Brand.green)
+                        .frame(width: chromeButtonSize, height: chromeButtonSize)
+                        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                }
+                .accessibilityLabel(L10n.gameRulesLearnButton)
+                .accessibilityIdentifier("match_learnToPlay")
+            }
             trailing()
                 // Min bounds (not fixed) so screens can dock more than one chrome button.
                 .frame(minWidth: chromeButtonSize, minHeight: chromeButtonSize)

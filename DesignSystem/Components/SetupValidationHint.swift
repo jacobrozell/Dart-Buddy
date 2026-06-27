@@ -43,6 +43,9 @@ enum SetupValidationMessages {
         case "setup.validation.killerBotsPresetOnly": return "setup.validation.killerBotsPresetOnly.short"
         case "setup.validation.baseballBotsPresetOnly": return "setup.validation.baseballBotsPresetOnly.short"
         case "setup.validation.shanghaiBotsPresetOnly": return "setup.validation.shanghaiBotsPresetOnly.short"
+        case "setup.validation.presetBotsOnly": return "setup.validation.presetBotsOnly.short"
+        case "setup.validation.botUnsupportedForMode": return "setup.validation.botUnsupportedForMode.short"
+        case "setup.validation.coopHumansOnly": return "setup.validation.coopHumansOnly.short"
         default: return messageKey
         }
     }

@@ -53,6 +53,18 @@ struct SetupValidationMessagesTests {
             SetupValidationMessages.displayKey(for: "setup.validation.shanghaiBotsPresetOnly")
                 == "setup.validation.shanghaiBotsPresetOnly.short"
         )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.presetBotsOnly")
+                == "setup.validation.presetBotsOnly.short"
+        )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.botUnsupportedForMode")
+                == "setup.validation.botUnsupportedForMode.short"
+        )
+        #expect(
+            SetupValidationMessages.displayKey(for: "setup.validation.coopHumansOnly")
+                == "setup.validation.coopHumansOnly.short"
+        )
     }
 
     @Test

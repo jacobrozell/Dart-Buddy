@@ -24,6 +24,9 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 | Idea | Notes |
 |------|--------|
+| **Throw history heatmap** | Player Detail dartboard scatter (synthetic placement from segment/multiplier), period filter, most-hit bars. Spec: [`specs/ThrowHistoryHeatmapSpec.md`](../specs/ThrowHistoryHeatmapSpec.md). |
+| **Roll Twenty (D20 target)** | Roll 1–20 each visit; hit that segment for points. Spec: [`specs/game-modes/planned/RollTwentyGameSpec.md`](../specs/game-modes/planned/RollTwentyGameSpec.md). |
+| **Team play setup** | Split roster into teams for supported modes (Clear the Board, Roll Twenty, future Tag Out). Platform: [`specs/TeamPlaySpec.md`](../specs/TeamPlaySpec.md). |
 | ~~**More colors and symbols (Edit Player)**~~ | _Shipped._ Avatar set expanded to 16 symbols and the color palette to 18 tokens (`PlayerAvatarStyle` / `PlayerColorToken`), surfaced on the Edit Player pickers and localized across `en`/`de`/`es`/`nl`. |
 | **Random bot names with clear difficulty** | Bots get varied display names while difficulty (Very Easy, Easy, Medium, …) stays obvious. Tier colors are fixed today (`PlayerVisualViews.botDifficultyColor`); numbered default names ship (`BotNaming`). Remaining: more varied name pools per tier. |
 | ~~**Custom bot with user-defined metrics**~~ | _Shipped._ `CustomBotMetrics`, `createCustomBot`, setup roster + Players list UI, `CustomBotBadge`. |

@@ -201,6 +201,8 @@ struct CustomBotDetailView: View {
 
                 BotDifficultyStatsSection(profile: displayProfile)
 
+                CustomBotCompatibleTemplatesSection()
+
                 customizationSection
                 PlayerDetailStatsContent(
                     viewModel: statsViewModel,
@@ -295,6 +297,40 @@ struct CustomBotDetailView: View {
             .padding(DS.Spacing.s4)
             .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         }
+    }
+}
+
+struct CustomBotCompatibleTemplatesSection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
+            Text(L10n.customBotCompatibleTemplatesTitle)
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+            Text(L10n.customBotCompatibleTemplatesFooter)
+                .font(.footnote)
+                .foregroundStyle(Brand.textSecondary)
+
+            VStack(spacing: DS.Spacing.s2) {
+                ForEach(BotSkillProfileResolver.compatibleTemplates(), id: \.self) { template in
+                    HStack(alignment: .top, spacing: DS.Spacing.s3) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(LocalizedStringKey(template.displayTitleKey))
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Brand.textPrimary)
+                            Text(LocalizedStringKey(template.customBotPrimaryMetricKey))
+                                .font(.caption)
+                                .foregroundStyle(Brand.textSecondary)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, DS.Spacing.s3)
+                    .padding(.vertical, DS.Spacing.s2)
+                    .background(Brand.background, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+                }
+            }
+        }
+        .padding(DS.Spacing.s4)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 }
 

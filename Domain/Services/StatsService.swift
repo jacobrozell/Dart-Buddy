@@ -253,7 +253,7 @@ public enum StatsService {
                 case .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
                      .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
                      .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
-                     .chaseTheDragonTurn, .nineLivesTurn, .raidVisit, .fleetPlacement, .fleetPlacementUI,
+                     .chaseTheDragonTurn, .nineLivesTurn, .bobs27Round, .halveItRound, .scamVisit, .snookerDart, .ticTacToeVisit, .blindKillerTurn, .followTheLeaderVisit, .loopVisit, .prisonerVisit, .raidVisit, .fleetPlacement, .fleetPlacementUI,
                      .fleetSonar, .fleetDart:
                     break
                 }
@@ -365,6 +365,30 @@ public enum StatsService {
             applySegmentDartBreakdown(playerId: turn.playerId, darts: turn.darts, nameById: nameById, byPlayer: &byPlayer)
         case let .nineLivesTurn(turn):
             applyFixedDartBreakdown(playerId: turn.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
+        case let .bobs27Round(round):
+            applyFixedDartBreakdown(playerId: round.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
+        case let .halveItRound(round):
+            applyFixedDartBreakdown(playerId: round.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
+        case let .scamVisit(visit):
+            applyFixedDartBreakdown(playerId: visit.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
+        case let .snookerDart(dart):
+            applyFixedDartBreakdown(
+                playerId: dart.playerId,
+                pointsAdded: dart.points,
+                dartCount: 1,
+                nameById: nameById,
+                byPlayer: &byPlayer
+            )
+        case let .ticTacToeVisit(visit):
+            applyFixedDartBreakdown(playerId: visit.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
+        case let .blindKillerTurn(turn):
+            applyFixedDartBreakdown(playerId: turn.playerId, dartCount: turn.darts.count, nameById: nameById, byPlayer: &byPlayer)
+        case let .followTheLeaderVisit(visit):
+            applyFixedDartBreakdown(playerId: visit.playerId, dartCount: visit.darts.count, nameById: nameById, byPlayer: &byPlayer)
+        case let .loopVisit(visit):
+            applyFixedDartBreakdown(playerId: visit.playerId, dartCount: visit.darts.count, nameById: nameById, byPlayer: &byPlayer)
+        case let .prisonerVisit(visit):
+            applyFixedDartBreakdown(playerId: visit.playerId, dartCount: visit.hits.count, nameById: nameById, byPlayer: &byPlayer)
         case let .raidVisit(visit):
             applyRaidVisitBreakdown(visit, nameById: nameById, byPlayer: &byPlayer)
         case let .fleetDart(dart):

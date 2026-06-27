@@ -3,29 +3,18 @@ import Foundation
 extension DartBotEngine {
     /// Generates three darts for a 51 By 5's bot turn.
     ///
-    /// Strategy: the bot aims to produce a 3-dart total that is divisible by 5.
-    /// It targets segments whose face values sum cleanly to multiples of 5.
-    /// Harder bots aim for higher-value multiples (e.g. triple-20 combos → 180 → 36 pts);
-    /// easier bots aim for low reliable totals (e.g. 5 or 15).
-    /// Actual dart placement is resolved through the standard X01 hit-chance model,
-    /// so misses and wrong-bed results naturally arise from the skill profile.
+    /// All tiers aim at the same scoring segment so difficulty shows up in multiplier
+    /// choice and hit resolution rather than different target numbers.
     public static func generateFiftyOneByFivesTurn(
         state: FiftyOneByFivesState,
         playerIndex: Int,
         profile: BotSkillProfile,
         rng: inout some RandomNumberGenerator
     ) -> [DartInput] {
-        // Choose an intended segment whose single value contributes to a divisible-by-5 total.
-        // We aim for three darts at multiples-of-5 segments: 5, 10, 15, 20.
-        // Higher tiers prefer 20 (triple-20 territory); lower tiers prefer 5.
+        _ = state
+        _ = playerIndex
         let tier = profile.x01.scoringBehaviorTier
-        let targetSegment: Int
-        switch tier {
-        case .veryEasy: targetSegment = 5
-        case .easy:     targetSegment = 10
-        case .medium:   targetSegment = 15
-        case .hard, .pro: targetSegment = 20
-        }
+        let targetSegment = 20
 
         var darts: [DartInput] = []
         while darts.count < 3 {
@@ -60,22 +49,39 @@ extension DartBotEngine {
         guard !intended.isMiss else { return intended }
 
         let roll = Double.random(in: 0 ... 1, using: &rng)
-        let hitChance = min(0.90, profile.cricketHitChance(intendedMultiplier: intended.multiplier))
+        let hitChance = fiftyOneByFiveHitChance(intended: intended, profile: profile)
         if roll < hitChance {
             return intended
         }
 
-        // Miss: board-off or wrong-bed.
         let missRoll = Double.random(in: 0 ... 1, using: &rng)
         if missRoll < profile.cricket.offBoardMissChance {
             return DartInput(multiplier: .single, segment: .miss, isMiss: true)
         }
-        // Land on an adjacent segment (±1–3, clamped to 1…20).
         if case let .oneToTwenty(value) = intended.segment {
-            let offset = Int.random(in: 1 ... 3, using: &rng) * (Bool.random(using: &rng) ? 1 : -1)
-            let adjacent = max(1, min(20, value + offset))
-            return DartInput(multiplier: .single, segment: .oneToTwenty(adjacent))
+            return DartInput(
+                multiplier: .single,
+                segment: .oneToTwenty(adjacentClockSegment(to: value, rng: &rng))
+            )
         }
         return DartInput(multiplier: .single, segment: .miss, isMiss: true)
+    }
+
+    private static func fiftyOneByFiveHitChance(
+        intended: DartInput,
+        profile: BotSkillProfile
+    ) -> Double {
+        let base: Double
+        switch intended.multiplier {
+        case .single:
+            base = profile.x01.hitChances.single
+        case .double:
+            base = profile.x01.hitChances.double
+        case .triple:
+            base = profile.x01.hitChances.triple
+        default:
+            base = profile.cricket.hitChances.single
+        }
+        return boostedCricketHitChance(base: base, profile: profile)
     }
 }

@@ -215,6 +215,15 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
     case nineLives(MatchConfigNineLives)
     case fleet(MatchConfigFleet)
     case raid(MatchConfigRaid)
+    case bobs27(MatchConfigBobs27)
+    case halveIt(MatchConfigHalveIt)
+    case scam(MatchConfigScam)
+    case snooker(MatchConfigSnooker)
+    case ticTacToe(MatchConfigTicTacToe)
+    case blindKiller(MatchConfigBlindKiller)
+    case followTheLeader(MatchConfigFollowTheLeader)
+    case loop(MatchConfigLoop)
+    case prisoner(MatchConfigPrisoner)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -240,6 +249,15 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case nineLives
         case fleet
         case raid
+        case bobs27
+        case halveIt
+        case scam
+        case snooker
+        case ticTacToe
+        case blindKiller
+        case followTheLeader
+        case loop
+        case prisoner
     }
 
     private enum PayloadType: String, Codable {
@@ -265,6 +283,15 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case nineLives
         case fleet
         case raid
+        case bobs27
+        case halveIt
+        case scam
+        case snooker
+        case ticTacToe
+        case blindKiller
+        case followTheLeader
+        case loop
+        case prisoner
     }
 
     public init(from decoder: any Decoder) throws {
@@ -315,6 +342,24 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
             self = .fleet(try container.decode(MatchConfigFleet.self, forKey: .fleet))
         case .raid:
             self = .raid(try container.decode(MatchConfigRaid.self, forKey: .raid))
+        case .bobs27:
+            self = .bobs27(try container.decode(MatchConfigBobs27.self, forKey: .bobs27))
+        case .halveIt:
+            self = .halveIt(try container.decode(MatchConfigHalveIt.self, forKey: .halveIt))
+        case .scam:
+            self = .scam(try container.decode(MatchConfigScam.self, forKey: .scam))
+        case .snooker:
+            self = .snooker(try container.decode(MatchConfigSnooker.self, forKey: .snooker))
+        case .ticTacToe:
+            self = .ticTacToe(try container.decode(MatchConfigTicTacToe.self, forKey: .ticTacToe))
+        case .blindKiller:
+            self = .blindKiller(try container.decode(MatchConfigBlindKiller.self, forKey: .blindKiller))
+        case .followTheLeader:
+            self = .followTheLeader(try container.decode(MatchConfigFollowTheLeader.self, forKey: .followTheLeader))
+        case .loop:
+            self = .loop(try container.decode(MatchConfigLoop.self, forKey: .loop))
+        case .prisoner:
+            self = .prisoner(try container.decode(MatchConfigPrisoner.self, forKey: .prisoner))
         }
     }
 
@@ -387,6 +432,33 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case let .raid(config):
             try container.encode(PayloadType.raid, forKey: .type)
             try container.encode(config, forKey: .raid)
+        case let .bobs27(config):
+            try container.encode(PayloadType.bobs27, forKey: .type)
+            try container.encode(config, forKey: .bobs27)
+        case let .halveIt(config):
+            try container.encode(PayloadType.halveIt, forKey: .type)
+            try container.encode(config, forKey: .halveIt)
+        case let .scam(config):
+            try container.encode(PayloadType.scam, forKey: .type)
+            try container.encode(config, forKey: .scam)
+        case let .snooker(config):
+            try container.encode(PayloadType.snooker, forKey: .type)
+            try container.encode(config, forKey: .snooker)
+        case let .ticTacToe(config):
+            try container.encode(PayloadType.ticTacToe, forKey: .type)
+            try container.encode(config, forKey: .ticTacToe)
+        case let .blindKiller(config):
+            try container.encode(PayloadType.blindKiller, forKey: .type)
+            try container.encode(config, forKey: .blindKiller)
+        case let .followTheLeader(config):
+            try container.encode(PayloadType.followTheLeader, forKey: .type)
+            try container.encode(config, forKey: .followTheLeader)
+        case let .loop(config):
+            try container.encode(PayloadType.loop, forKey: .type)
+            try container.encode(config, forKey: .loop)
+        case let .prisoner(config):
+            try container.encode(PayloadType.prisoner, forKey: .type)
+            try container.encode(config, forKey: .prisoner)
         }
     }
 }

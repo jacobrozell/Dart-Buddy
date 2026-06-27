@@ -14,12 +14,14 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 ### In Scope (1.0.0)
 - Combined setup surface on Play home (`SetupHomeView` + `MatchSetupViewModel`)
 - **Standard** category: X01 or Cricket
-- **Party** category: Baseball (v1); Killer/Shanghai coming soon
-- Roster: 2..N players, ordered throw order, optional random order at start
+- **Party** category: legacy Baseball / Killer / Shanghai picker when `ProductSurface.showsPartyModes`
+- **Catalog-routed modes**: Modes tab → Play setup via `selectedCatalogMatchType` (Mickey Mouse, Golf, Raid, etc.)
+- Roster: 2..N players (or solo where catalog allows), ordered throw order, optional random order at start
 - X01 options: start score (101–601), legs, sets, leg format (first-to / best-of), checkout (straight / double / master out), check-in (straight / double / master in)
 - Cricket options: points on/off, normal / cut throat, legs, sets, leg format
 - Baseball options (party): innings, tie-breaker, 7th-inning stretch (`BaseballSetupPreferences`)
-- Add preset bot from difficulty menu; add existing Training Partner or custom bots (standard category only; baseball allows preset bots only)
+- Add preset bot from difficulty menu; training partner and custom bots when `BotModePlaySupport` is `.full`
+- Bot menu visibility and validation driven by `BotModePlaySupport` for the resolved `MatchType`
 - Quick-add player when roster empty
 - Prefill from `SettingsRecord` + `CricketSetupPreferences` + `BaseballSetupPreferences`
 - Persist last successful setup to settings / cricket prefs
@@ -39,13 +41,14 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 - Party: game picker (`PartyGamePickerView`) + baseball option chips when Baseball selected
 - Option chips grid (mode-specific) — see `SetupHomeView+OptionChips`, `SetupHomeView+CricketOptionChips`, `SetupHomeView+BaseballOptionChips`
 - Available players list + selected roster with reorder
-- Add Bot menu (preset tiers + training section)
+- Add Bot menu when `MatchSetupViewModel.botPlaySupport.allowsBots` — preset tiers; training/custom when `.allowsTrainingAndCustomBots` (see [`BotOpponentSpec.md`](BotOpponentSpec.md) §6.1)
 - Sticky **Start Match** CTA (`safeAreaInset` bottom)
 - Inline validation keys below chips (accessibility layout) or via `displayValidationErrors`
 
 ## Roster
 - Toggle player in/out of `selectedPlayerIds` (ordered)
 - Drag reorder on selected list
+- **Team assignment** (when mode supports it): split roster into Team A / Team B — [`TeamPlaySpec.md`](TeamPlaySpec.md)
 - Full add-player sheet (`PlayerEditSheet`) from setup **Add Players**; returns new id via `PendingMatchPlayerSelections`
 - At least one **human** required (`setup.validation.requiresHuman`)
 - Per-mode **minimum / maximum** participants come from [`GameModeCatalog`](../Features/Modes/GameModeCatalog.swift) (`minimumPlayers`, `maximumPlayers`); each `*GameSpec.md` § Player count documents solo eligibility and rationale. App-wide default max is **8** unless a mode sets lower (e.g. Football, Scam = 2). Solo-only modes (`maximumPlayers: 1`, e.g. Bob's 27) skip roster per `GameModeCatalogEntry.isSolo`.
@@ -59,12 +62,20 @@ Play tab chrome (resume banner, recents) is in [`PlayHomeSpec.md`](PlayHomeSpec.
 
 | Rule | Key |
 |------|-----|
-| Minimum 2 participants | `setup.validation.minimumPlayers` |
+| Minimum 2 participants (when mode requires) | `setup.validation.minimumPlayers` |
 | Not all bots | `setup.validation.requiresHuman` |
 | X01 start score in allowed set | `setup.validation.invalidStartScore` |
 | Legs / sets > 0 when enabled | `setup.validation.invalidLegs`, `setup.validation.invalidSets` |
 | Cricket + any bot + Points Off | `setup.validation.cricketBotUnsupported` |
+| Bot on unsupported mode | `setup.validation.botUnsupportedForMode` |
+| Bot on co-op PvE (Raid) | `setup.validation.coopHumansOnly` |
 | Baseball + training/custom bot | `setup.validation.baseballBotsPresetOnly` |
+| Shanghai + training/custom bot | `setup.validation.shanghaiBotsPresetOnly` |
+| Killer + training/custom bot | `setup.validation.killerBotsPresetOnly` |
+| Other preset-only + training/custom | `setup.validation.presetBotsOnly` |
+| Teams enabled + validation failed | `setup.validation.team*` keys — [`TeamPlaySpec.md`](TeamPlaySpec.md) §6.3 |
+
+`botRosterValidationErrors(for:)` in `MatchSetupViewModel` applies bot rules for catalog, party, and standard rosters using `BotModePlaySupport.support(for:)`.
 
 Minimum-player message hidden while roster completely empty (UX polish).
 
@@ -122,7 +133,8 @@ Authoritative schema: [`SwiftData.md`](SwiftData.md), [`DataSchemaSpec.md`](Data
 ## 8. Testing
 
 ## Unit
-- `MatchSetupViewModelTests` — validation, cut throat + bot, conflict, config payload
+- `MatchSetupViewModelTests` — validation, cut throat + bot, conflict, config payload, catalog bot gating
+- `BotModePlaySupportTests` — mode policy registry
 - Prefill and mode switch tests
 
 ## UI
@@ -143,9 +155,9 @@ Authoritative schema: [`SwiftData.md`](SwiftData.md), [`DataSchemaSpec.md`](Data
 | Field | Value |
 |-------|--------|
 | **Estimated release** | `1.0` |
-| **Last verified** | 2026-06-04 |
-| **Commit** | `0c25396` |
-| **Code** | `MatchSetupViewModel.swift`, `SetupHomeView*.swift` |
+| **Last verified** | 2026-06-26 |
+| **Commit** | (pending) |
+| **Code** | `MatchSetupViewModel.swift`, `SetupHomeView*.swift`, `BotModePlaySupport.swift` |
 
 ---
 

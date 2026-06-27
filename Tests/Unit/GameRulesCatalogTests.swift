@@ -54,7 +54,9 @@ struct GameRulesCatalogTests {
         #expect(GameRulesCatalog.hasGuide(for: .x01))
         #expect(GameRulesCatalog.hasGuide(for: .cricket))
         #expect(GameRulesCatalog.hasGuide(for: .golf))
-        #expect(!GameRulesCatalog.hasGuide(for: .blindKiller))
+        #expect(GameRulesCatalog.hasGuide(for: .followTheLeader))
+        #expect(GameRulesCatalog.hasGuide(for: .loop))
+        #expect(GameRulesCatalog.hasGuide(for: .prisoner))
     }
 
     @Test("Setup mode maps to match type")

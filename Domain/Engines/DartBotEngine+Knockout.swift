@@ -77,8 +77,10 @@ extension DartBotEngine {
 
         // Board glance — land on a nearby segment.
         if case let .oneToTwenty(value) = intended.segment {
-            let neighbor = max(1, min(20, value + Int.random(in: -3 ... 3, using: &rng)))
-            return DartInput(multiplier: .single, segment: .oneToTwenty(neighbor))
+            return DartInput(
+                multiplier: .single,
+                segment: .oneToTwenty(adjacentClockSegment(to: value, rng: &rng))
+            )
         }
         return DartInput(multiplier: .single, segment: .oneToTwenty(Int.random(in: 1 ... 20, using: &rng)))
     }
@@ -98,8 +100,10 @@ extension DartBotEngine {
             case .double:
                 return DartInput(multiplier: .single, segment: .oneToTwenty(value))
             case .single:
-                let neighbor = max(1, min(20, value + Int.random(in: -2 ... 2, using: &rng)))
-                return DartInput(multiplier: .single, segment: .oneToTwenty(neighbor))
+                return DartInput(
+                    multiplier: .single,
+                    segment: .oneToTwenty(adjacentClockSegment(to: value, rng: &rng))
+                )
             }
         default:
             return DartInput(multiplier: .single, segment: .oneToTwenty(Int.random(in: 1 ... 20, using: &rng)))

@@ -63,7 +63,7 @@ enum GameRulesCatalog {
         x01, cricket, americanCricket,
         baseball, killer, shanghai, mickeyMouse, mulligan, englishCricket,
         knockout, suddenDeath, fiftyOneByFives, golf, football, grandNational, hareAndHounds,
-        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives, fleet, raid
+        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives, bobs27, halveIt, scam, snooker, ticTacToe, blindKiller, followTheLeader, loop, prisoner, fleet, raid
     ]
 
     private static func makeGuide(
@@ -235,6 +235,69 @@ enum GameRulesCatalog {
         ("enrage", "play.rules.raid.enrage.title", "play.rules.raid.enrage.body"),
         ("hearts", "play.rules.raid.hearts.title", "play.rules.raid.hearts.body"),
         ("winning", "play.rules.raid.winning.title", "play.rules.raid.winning.body")
+    ])
+
+    private static let bobs27 = makeGuide(id: "bobs27", matchType: .bobs27, [
+        ("overview", "play.rules.bobs27.overview.title", "play.rules.bobs27.overview.body"),
+        ("hit", "play.rules.bobs27.hit.title", "play.rules.bobs27.hit.body"),
+        ("miss", "play.rules.bobs27.miss.title", "play.rules.bobs27.miss.body"),
+        ("gameOver", "play.rules.bobs27.gameOver.title", "play.rules.bobs27.gameOver.body")
+    ])
+
+    private static let halveIt = makeGuide(id: "halveIt", matchType: .halveIt, [
+        ("overview", "play.rules.halveIt.overview.title", "play.rules.halveIt.overview.body"),
+        ("start", "play.rules.halveIt.start.title", "play.rules.halveIt.start.body"),
+        ("round", "play.rules.halveIt.round.title", "play.rules.halveIt.round.body"),
+        ("winning", "play.rules.halveIt.winning.title", "play.rules.halveIt.winning.body")
+    ])
+
+    private static let scam = makeGuide(id: "scam", matchType: .scam, [
+        ("overview", "play.rules.scam.overview.title", "play.rules.scam.overview.body"),
+        ("stopper", "play.rules.scam.stopper.title", "play.rules.scam.stopper.body"),
+        ("scorer", "play.rules.scam.scorer.title", "play.rules.scam.scorer.body"),
+        ("halves", "play.rules.scam.halves.title", "play.rules.scam.halves.body")
+    ])
+
+    private static let snooker = makeGuide(id: "snooker", matchType: .snooker, [
+        ("overview", "play.rules.snooker.overview.title", "play.rules.snooker.overview.body"),
+        ("reds", "play.rules.snooker.reds.title", "play.rules.snooker.reds.body"),
+        ("colours", "play.rules.snooker.colours.title", "play.rules.snooker.colours.body"),
+        ("breaks", "play.rules.snooker.breaks.title", "play.rules.snooker.breaks.body")
+    ])
+
+    private static let ticTacToe = makeGuide(id: "ticTacToe", matchType: .ticTacToe, [
+        ("overview", "play.rules.ticTacToe.overview.title", "play.rules.ticTacToe.overview.body"),
+        ("grid", "play.rules.ticTacToe.grid.title", "play.rules.ticTacToe.grid.body"),
+        ("turns", "play.rules.ticTacToe.turns.title", "play.rules.ticTacToe.turns.body"),
+        ("winning", "play.rules.ticTacToe.winning.title", "play.rules.ticTacToe.winning.body")
+    ])
+
+    private static let blindKiller = makeGuide(id: "blindKiller", matchType: .blindKiller, [
+        ("overview", "play.rules.blindKiller.overview.title", "play.rules.blindKiller.overview.body"),
+        ("secret", "play.rules.blindKiller.secret.title", "play.rules.blindKiller.secret.body"),
+        ("throwing", "play.rules.blindKiller.throwing.title", "play.rules.blindKiller.throwing.body"),
+        ("elimination", "play.rules.blindKiller.elimination.title", "play.rules.blindKiller.elimination.body")
+    ])
+
+    private static let followTheLeader = makeGuide(id: "followTheLeader", matchType: .followTheLeader, [
+        ("overview", "play.rules.followTheLeader.overview.title", "play.rules.followTheLeader.overview.body"),
+        ("target", "play.rules.followTheLeader.target.title", "play.rules.followTheLeader.target.body"),
+        ("match", "play.rules.followTheLeader.match.title", "play.rules.followTheLeader.match.body"),
+        ("pass", "play.rules.followTheLeader.pass.title", "play.rules.followTheLeader.pass.body")
+    ])
+
+    private static let loop = makeGuide(id: "loop", matchType: .loop, [
+        ("overview", "play.rules.loop.overview.title", "play.rules.loop.overview.body"),
+        ("targets", "play.rules.loop.targets.title", "play.rules.loop.targets.body"),
+        ("play", "play.rules.loop.play.title", "play.rules.loop.play.body"),
+        ("wires", "play.rules.loop.wires.title", "play.rules.loop.wires.body")
+    ])
+
+    private static let prisoner = makeGuide(id: "prisoner", matchType: .prisoner, [
+        ("overview", "play.rules.prisoner.overview.title", "play.rules.prisoner.overview.body"),
+        ("progress", "play.rules.prisoner.progress.title", "play.rules.prisoner.progress.body"),
+        ("lost", "play.rules.prisoner.lost.title", "play.rules.prisoner.lost.body"),
+        ("capture", "play.rules.prisoner.capture.title", "play.rules.prisoner.capture.body")
     ])
 
     private static let previewAll: [GameRulesPreviewGuide] = [

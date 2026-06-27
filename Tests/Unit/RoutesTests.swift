@@ -45,4 +45,23 @@ struct RoutesTests {
         #expect(PlayersRoute.matchDetail(matchId: matchId) == PlayersRoute.matchDetail(matchId: matchId))
         #expect(SettingsRoute.root == SettingsRoute.root)
     }
+
+    @Test
+    func inProgressRoutesExposeRulesMatchType() {
+        let matchId = UUID()
+        for entry in GameModeCatalog.available {
+            guard let matchType = entry.matchType else { continue }
+            let route = matchType.playRoute(matchId: matchId)
+            #expect(route.inProgressRulesMatchType == matchType)
+            #expect(GameRulesCatalog.hasGuide(for: matchType))
+        }
+    }
+
+    @Test
+    func nonMatchRoutesDoNotExposeRulesMatchType() {
+        let matchId = UUID()
+        #expect(PlayRoute.setup.inProgressRulesMatchType == nil)
+        #expect(PlayRoute.matchSummary(matchId: matchId).inProgressRulesMatchType == nil)
+        #expect(PlayRoute.historyDetail(matchId: matchId).inProgressRulesMatchType == nil)
+    }
 }
