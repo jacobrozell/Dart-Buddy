@@ -192,7 +192,7 @@ Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, T
 | `Persistence/` | Schema, migrations, container factory |
 | `DesignSystem/` | Tokens, shared components, gameplay layout |
 | `Resources/` | Asset catalog, `en.lproj/Localizable.strings` (1.0 bundle); `de`/`es`/`nl` in repo for future releases, Firebase plist template |
-| `Scripts/` | CI helpers, locale generator (`generate_localizable.py`) |
+| `Scripts/` | CI helpers, unified locale CLI ([`l10n.py`](Scripts/l10n.py) · [`README-l10n.md`](Scripts/README-l10n.md)) |
 | `Support/` | Localization, logging, preferences, utilities |
 | `Tests/` | `Unit/`, `Accessibility/`, and `UI/` test sources (three Xcode targets) |
 | `docs/release/` | **Ship checklist** (`1.0.0-ship-checklist.md`), backlog (`todo.md`), expanded runbook (`release_checklist.md`) |
@@ -217,7 +217,7 @@ Each concern has one authoritative doc. Link to it rather than restating its con
 | Branch strategy (`dev` vs `release/*`) | [`docs/release/branch-strategy.md`](docs/release/branch-strategy.md) |
 | Store release tags (per spec) | [`docs/release/release-tagging.md`](docs/release/release-tagging.md) · [`estimated-release-registry.md`](docs/release/estimated-release-registry.md) |
 | Product & system requirements | [`specs/README.md`](specs/README.md) (governed by [`SpecGovernance.md`](specs/SpecGovernance.md) — coverage checklist §5, PR rules §4.1) |
-| Localization | [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md) |
+| Localization | [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md) · scripts: [`Scripts/README-l10n.md`](Scripts/README-l10n.md) |
 | Feature specs (full index) | [`specs/README.md`](specs/README.md) § Feature Specs |
 | Active release work | [`docs/release/todo.md`](docs/release/todo.md) |
 | Lean 1.0 scope & tasks | [`docs/release/lean-1.0-implementation-plan.md`](docs/release/lean-1.0-implementation-plan.md) |

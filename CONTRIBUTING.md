@@ -91,10 +91,10 @@ in [`specs/AccessibilitySpec.md`](specs/AccessibilitySpec.md).
 User-facing strings go through `L10n` and `Resources/*.lproj/Localizable.strings` — no
 hard-coded display text in views.
 
-- **Source of truth:** `Resources/en.lproj/Localizable.strings`
+- **Source of truth:** `Resources/en.lproj/Localizable.strings` (app UI) and `Resources/en.lproj/GameplayModes.strings` (play/setup mode UI); shipped translations live in `Scripts/locale_data/{locale}.json` and `{locale}_gameplay_modes.json`
 - **Shipped locales:** `de`, `es`, `nl`, `fr`, `zh-Hans`, `it` (system locale only; no in-app language picker)
 - **PR rule:** new keys must update all seven locale files; `LocalizationParityTests` enforces key and format-specifier parity in CI
-- **Generators (optional):** after adding keys to `en.lproj`, update `Scripts/locale_data/{de,es,nl,fr,zh-Hans,it}.json`, then run `python3 Scripts/generate_localizable.py all`. To import edits made directly in `.lproj` files back into JSON, run `python3 Scripts/sync_locale_data.py`.
+- **Tooling:** `python3 Scripts/l10n.py generate all` after editing JSON; `python3 Scripts/l10n.py export all` to pull `.strings` edits back into JSON. Full command reference and “add a key” checklist: [`Scripts/README-l10n.md`](Scripts/README-l10n.md)
 
 See [`specs/LocalizationSpec.md`](specs/LocalizationSpec.md).
 

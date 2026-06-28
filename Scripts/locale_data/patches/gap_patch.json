@@ -1,0 +1,189 @@
+{
+  "mode_title_keys": {
+    "americanCricket": "play.americanCricket.navTitle",
+    "aroundTheClock": "play.aroundTheClock.navTitle",
+    "aroundTheClock180": "play.aroundTheClock180.navTitle",
+    "chaseTheDragon": "play.chaseTheDragon.title",
+    "englishCricket": "play.englishCricket.navTitle",
+    "fiftyOneByFives": "play.fiftyOneByFives.navTitle",
+    "football": "play.football.title",
+    "golf": "play.golf.title",
+    "grandNational": "play.grandNational.navTitle",
+    "hareAndHounds": "play.hareAndHounds.navTitle",
+    "knockout": "play.knockout.title",
+    "mickeyMouse": "play.mickeyMouse.title",
+    "mulligan": "play.mulligan.navTitle",
+    "nineLives": "play.nineLives.navTitle",
+    "suddenDeath": "play.suddenDeath.navTitle"
+  },
+  "mode_error_templates": {
+    "en": {
+      "sessionMissing": "Could not load the current {mode} session.",
+      "invalidTurn": "That turn entry is not valid for {mode}.",
+      "undoFailed": "Could not undo the last {mode} turn."
+    },
+    "de": {
+      "sessionMissing": "Aktuelle {mode}-Sitzung konnte nicht geladen werden.",
+      "invalidTurn": "Dieser Wurf ist für {mode} nicht gültig.",
+      "undoFailed": "Letzter {mode}-Wurf konnte nicht rückgängig gemacht werden."
+    },
+    "es": {
+      "sessionMissing": "No se pudo cargar la sesión actual de {mode}.",
+      "invalidTurn": "Esa entrada de turno no es válida para {mode}.",
+      "undoFailed": "No se pudo deshacer el último turno de {mode}."
+    },
+    "fr": {
+      "sessionMissing": "Impossible de charger la session {mode} en cours.",
+      "invalidTurn": "Cette saisie de tour n'est pas valide pour {mode}.",
+      "undoFailed": "Impossible d'annuler le dernier tour de {mode}."
+    },
+    "it": {
+      "sessionMissing": "Impossibile caricare la sessione {mode} corrente.",
+      "invalidTurn": "Quel turno non è valido per {mode}.",
+      "undoFailed": "Impossibile annullare l'ultimo turno di {mode}."
+    },
+    "nl": {
+      "sessionMissing": "Kon de huidige {mode}-sessie niet laden.",
+      "invalidTurn": "Die worp is niet geldig voor {mode}.",
+      "undoFailed": "Kon de laatste {mode}-beurt niet ongedaan maken."
+    },
+    "zh-Hans": {
+      "sessionMissing": "无法加载当前 {mode} 会话。",
+      "invalidTurn": "该回合输入对 {mode} 无效。",
+      "undoFailed": "无法撤销上一 {mode} 回合。"
+    }
+  },
+  "localizable_backfill": {
+    "de": {
+      "customBot.compatible.title": "Kompatible Spielvorlagen",
+      "customBot.compatible.footer": "Dein Bot funktioniert in jedem veröffentlichten Modus mit diesen Engine-Vorlagen. Der primäre Regler pro Vorlage steht unten.",
+      "customBot.compatible.x01Primary": "Primär: X01-Durchschnitt",
+      "customBot.compatible.mprPrimary": "Primär: Cricket-MPR",
+      "customBot.compatible.bothPrimary": "Primär: X01-Durchschnitt + Cricket-MPR",
+      "gameplayTemplate.checkoutScore.title": "Checkout-Punktestand",
+      "gameplayTemplate.markBoard.title": "Markierungsbrett",
+      "gameplayTemplate.inningPoints.title": "Inning-Punkte",
+      "gameplayTemplate.livesElimination.title": "Leben & Ausscheiden",
+      "gameplayTemplate.sequenceProgress.title": "Sequenz-Fortschritt",
+      "gameplayTemplate.soloChallenge.title": "Solo-Herausforderung",
+      "gameplayTemplate.phaseRace.title": "Phasen-Rennen",
+      "gameplayTemplate.boardState.title": "Brettzustand",
+      "gameplayTemplate.roleSplit.title": "Rollenaufteilung",
+      "setup.validation.botUnsupportedForMode": "Dieser Spielmodus unterstützt keine Bots.",
+      "setup.validation.botUnsupportedForMode.short": "Keine Bots.",
+      "setup.validation.presetBotsOnly": "Dieser Modus unterstützt nur voreingestellte Bot-Schwierigkeiten.",
+      "setup.validation.presetBotsOnly.short": "Nur Preset-Bots.",
+      "setup.validation.coopHumansOnly.short": "Nur Menschen."
+    },
+    "es": {
+      "customBot.compatible.title": "Plantillas de juego compatibles",
+      "customBot.compatible.footer": "Tu bot funciona en cada modo publicado que comparte estas plantillas de motor. El control principal de cada plantilla aparece abajo.",
+      "customBot.compatible.x01Primary": "Principal: promedio X01",
+      "customBot.compatible.mprPrimary": "Principal: MPR de Cricket",
+      "customBot.compatible.bothPrimary": "Principal: promedio X01 + MPR de Cricket",
+      "gameplayTemplate.checkoutScore.title": "Puntuación de cierre",
+      "gameplayTemplate.markBoard.title": "Tablero de marcas",
+      "gameplayTemplate.inningPoints.title": "Puntos por entrada",
+      "gameplayTemplate.livesElimination.title": "Vidas y eliminación",
+      "gameplayTemplate.sequenceProgress.title": "Progreso de secuencia",
+      "gameplayTemplate.soloChallenge.title": "Desafío en solitario",
+      "gameplayTemplate.phaseRace.title": "Carrera por fases",
+      "gameplayTemplate.boardState.title": "Estado del tablero",
+      "gameplayTemplate.roleSplit.title": "División de roles",
+      "setup.validation.botUnsupportedForMode": "Este modo de juego no admite bots.",
+      "setup.validation.botUnsupportedForMode.short": "Sin bots.",
+      "setup.validation.presetBotsOnly": "Este modo solo admite bots de dificultad predefinida.",
+      "setup.validation.presetBotsOnly.short": "Solo bots predefinidos.",
+      "setup.validation.coopHumansOnly.short": "Solo humanos."
+    },
+    "fr": {
+      "customBot.compatible.title": "Modèles de jeu compatibles",
+      "customBot.compatible.footer": "Ton bot fonctionne dans chaque mode publié qui partage ces modèles moteur. Le curseur principal de chaque modèle est indiqué ci-dessous.",
+      "customBot.compatible.x01Primary": "Principal : moyenne X01",
+      "customBot.compatible.mprPrimary": "Principal : MPR Cricket",
+      "customBot.compatible.bothPrimary": "Principal : moyenne X01 + MPR Cricket",
+      "gameplayTemplate.checkoutScore.title": "Score de checkout",
+      "gameplayTemplate.markBoard.title": "Tableau de marques",
+      "gameplayTemplate.inningPoints.title": "Points par manche",
+      "gameplayTemplate.livesElimination.title": "Vies et élimination",
+      "gameplayTemplate.sequenceProgress.title": "Progression de séquence",
+      "gameplayTemplate.soloChallenge.title": "Défi solo",
+      "gameplayTemplate.phaseRace.title": "Course par phases",
+      "gameplayTemplate.boardState.title": "État du plateau",
+      "gameplayTemplate.roleSplit.title": "Répartition des rôles",
+      "setup.validation.botUnsupportedForMode": "Ce mode de jeu ne prend pas en charge les bots.",
+      "setup.validation.botUnsupportedForMode.short": "Pas de bots.",
+      "setup.validation.presetBotsOnly": "Ce mode ne prend en charge que les bots de difficulté prédéfinie.",
+      "setup.validation.presetBotsOnly.short": "Bots prédéfinis seulement.",
+      "setup.validation.coopHumansOnly.short": "Humains seulement."
+    },
+    "it": {
+      "customBot.compatible.title": "Modelli di gioco compatibili",
+      "customBot.compatible.footer": "Il tuo bot funziona in ogni modalità pubblicata che condividono questi modelli motore. Il controllo principale per ogni modello è mostrato sotto.",
+      "customBot.compatible.x01Primary": "Principale: media X01",
+      "customBot.compatible.mprPrimary": "Principale: MPR Cricket",
+      "customBot.compatible.bothPrimary": "Principale: media X01 + MPR Cricket",
+      "gameplayTemplate.checkoutScore.title": "Punteggio checkout",
+      "gameplayTemplate.markBoard.title": "Tabellone segni",
+      "gameplayTemplate.inningPoints.title": "Punti per inning",
+      "gameplayTemplate.livesElimination.title": "Vite ed eliminazione",
+      "gameplayTemplate.sequenceProgress.title": "Progressione sequenza",
+      "gameplayTemplate.soloChallenge.title": "Sfida solitaria",
+      "gameplayTemplate.phaseRace.title": "Gara a fasi",
+      "gameplayTemplate.boardState.title": "Stato del tabellone",
+      "gameplayTemplate.roleSplit.title": "Divisione ruoli",
+      "setup.validation.botUnsupportedForMode": "Questa modalità di gioco non supporta i bot.",
+      "setup.validation.botUnsupportedForMode.short": "Nessun bot.",
+      "setup.validation.presetBotsOnly": "Questa modalità supporta solo bot con difficoltà preimpostata.",
+      "setup.validation.presetBotsOnly.short": "Solo bot preimpostati.",
+      "setup.validation.coopHumansOnly.short": "Solo umani."
+    },
+    "nl": {
+      "customBot.compatible.title": "Compatibele spelsjablonen",
+      "customBot.compatible.footer": "Je bot werkt in elke uitgebrachte modus die deze engine-sjablonen deelt. De primaire schuifregelaar per sjabloon staat hieronder.",
+      "customBot.compatible.x01Primary": "Primair: X01-gemiddelde",
+      "customBot.compatible.mprPrimary": "Primair: Cricket MPR",
+      "customBot.compatible.bothPrimary": "Primair: X01-gemiddelde + Cricket MPR",
+      "gameplayTemplate.checkoutScore.title": "Checkoutscore",
+      "gameplayTemplate.markBoard.title": "Markbord",
+      "gameplayTemplate.inningPoints.title": "Inningpunten",
+      "gameplayTemplate.livesElimination.title": "Levens & eliminatie",
+      "gameplayTemplate.sequenceProgress.title": "Sequentievoortgang",
+      "gameplayTemplate.soloChallenge.title": "Solo-uitdaging",
+      "gameplayTemplate.phaseRace.title": "Fasenrace",
+      "gameplayTemplate.boardState.title": "Bordstatus",
+      "gameplayTemplate.roleSplit.title": "Rolverdeling",
+      "setup.validation.botUnsupportedForMode": "Deze spelmodus ondersteunt geen bots.",
+      "setup.validation.botUnsupportedForMode.short": "Geen bots.",
+      "setup.validation.presetBotsOnly": "Deze modus ondersteunt alleen voorinstelling-botmoeilijkheden.",
+      "setup.validation.presetBotsOnly.short": "Alleen preset-bots.",
+      "setup.validation.coopHumansOnly.short": "Alleen mensen."
+    },
+    "zh-Hans": {
+      "customBot.compatible.title": "兼容的游戏模板",
+      "customBot.compatible.footer": "你的机器人在每个共享这些引擎模板的已发布模式中都可用。每个模板的主要滑块如下所示。",
+      "customBot.compatible.x01Primary": "主要：X01 平均分",
+      "customBot.compatible.mprPrimary": "主要：Cricket MPR",
+      "customBot.compatible.bothPrimary": "主要：X01 平均分 + Cricket MPR",
+      "gameplayTemplate.checkoutScore.title": "结镖得分",
+      "gameplayTemplate.markBoard.title": "标记板",
+      "gameplayTemplate.inningPoints.title": "局分",
+      "gameplayTemplate.livesElimination.title": "生命与淘汰",
+      "gameplayTemplate.sequenceProgress.title": "序列进度",
+      "gameplayTemplate.soloChallenge.title": "单人挑战",
+      "gameplayTemplate.phaseRace.title": "阶段竞赛",
+      "gameplayTemplate.boardState.title": "盘面状态",
+      "gameplayTemplate.roleSplit.title": "角色分工",
+      "setup.validation.botUnsupportedForMode": "此游戏模式不支持机器人。",
+      "setup.validation.botUnsupportedForMode.short": "不支持机器人。",
+      "setup.validation.presetBotsOnly": "此模式仅支持预设难度机器人。",
+      "setup.validation.presetBotsOnly.short": "仅预设机器人。",
+      "setup.validation.coopHumansOnly.short": "仅真人玩家。"
+    }
+  },
+  "gameplay_overrides": {
+    "zh-Hans": {
+      "play.snooker.navTitle": "斯诺克"
+    }
+  }
+}

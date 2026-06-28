@@ -1,0 +1,42 @@
+{
+  "de": {
+    "error.match.followTheLeader.openingRequiresScoringDart": "Der Eröffnungswurf muss die Scheibe treffen.",
+    "error.match.loop.openingRequiresScoringDart": "Der Eröffnungswurf muss die Scheibe treffen.",
+    "modes.catalog.party.scam.name": "Betrug"
+  },
+  "es": {
+    "error.match.blindKiller.assignmentsMissing": "No se pudieron asignar los números secretos de Killer ciego.",
+    "error.match.mode.blindKillerUnavailable": "El estado de Killer ciego no está disponible para esta partida.",
+    "error.match.mode.followTheLeaderUnavailable": "El estado de Sigue al líder no está disponible para esta partida.",
+    "error.match.mode.loopUnavailable": "El estado de Bucle no está disponible para esta partida.",
+    "error.match.mode.prisonerUnavailable": "El estado de Prisionero no está disponible para esta partida.",
+    "modes.catalog.party.blindKiller.name": "Killer ciego",
+    "modes.catalog.party.followTheLeader.name": "Sigue al líder",
+    "modes.catalog.party.loop.name": "Bucle",
+    "modes.catalog.party.prisoner.name": "Prisionero",
+    "modes.catalog.party.ticTacToe.name": "Tres en raya",
+    "setup.validation.blindKillerMinimumPlayers": "Killer ciego necesita al menos tres jugadores.",
+    "setup.validation.followTheLeaderMinimumPlayers": "Sigue al líder necesita al menos dos jugadores.",
+    "setup.validation.loopMinimumPlayers": "Bucle necesita al menos dos jugadores.",
+    "setup.validation.prisonerMinimumPlayers": "Prisionero necesita al menos dos jugadores.",
+    "setup.validation.ticTacToeExactTwoPlayers": "Tres en raya requiere exactamente dos jugadores.",
+    "modes.catalog.party.scam.name": "Estafa"
+  },
+  "nl": {
+    "error.match.blindKiller.assignmentsMissing": "Geheime nummers voor Blinde killer konden niet worden toegewezen.",
+    "error.match.mode.blindKillerUnavailable": "Blinde-killer-status is niet beschikbaar voor deze wedstrijd.",
+    "error.match.mode.followTheLeaderUnavailable": "Volg-de-leider-status is niet beschikbaar voor deze wedstrijd.",
+    "error.match.mode.loopUnavailable": "Loop-status is niet beschikbaar voor deze wedstrijd.",
+    "error.match.mode.prisonerUnavailable": "Gevangene-status is niet beschikbaar voor deze wedstrijd.",
+    "modes.catalog.party.blindKiller.name": "Blinde killer",
+    "modes.catalog.party.followTheLeader.name": "Volg de leider",
+    "modes.catalog.party.prisoner.name": "Gevangene",
+    "setup.validation.blindKillerMinimumPlayers": "Blinde killer heeft minstens drie spelers nodig.",
+    "setup.validation.followTheLeaderMinimumPlayers": "Volg de leider heeft minstens twee spelers nodig.",
+    "setup.validation.loopMinimumPlayers": "Loop heeft minstens twee spelers nodig.",
+    "setup.validation.prisonerMinimumPlayers": "Gevangene heeft minstens twee spelers nodig."
+  },
+  "it": {
+    "modes.catalog.party.ticTacToe.name": "Tris"
+  }
+}

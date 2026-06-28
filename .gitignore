@@ -30,3 +30,6 @@ tmp/
 
 # Local Cursor MCP config (machine-specific)
 .cursor/mcp.json
+
+# Google Analytics MCP OAuth client (GCP Console → Desktop app; do not commit)
+analytics-mcp-client-secret.json

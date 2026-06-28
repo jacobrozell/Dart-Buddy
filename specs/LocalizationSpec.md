@@ -69,10 +69,10 @@ Key rule:
 
 ## 7. Engineering Rules
 - PRs adding user-facing text must include localization keys and English value.
-- PRs adding keys must update **all** shipped locale files (`en` + `de` + `es` + `nl` + `fr` + `zh-Hans` + `it`) and regenerate via `Scripts/generate_localizable.py all` + `Scripts/generate_gameplay_modes_l10n.py`.
-- `Scripts/locale_data/*.json` is the source of truth per locale; backfill shards (`*_backfill.json`) merge via `Scripts/merge_locale_backfill.py`.
+- PRs adding keys must update **all** shipped locale files (`en` + `de` + `es` + `nl` + `fr` + `zh-Hans` + `it`) and regenerate via `python3 Scripts/l10n.py generate all`.
+- `Scripts/locale_data/*.json` is the source of truth per shipped locale; backfill shards (`*_backfill.json`) merge via `python3 Scripts/l10n.py merge-backfill all`.
 - `Scripts/locale_neutral_keys.json` documents keys intentionally identical to English (brand, X01, dart notation).
-- `Scripts/audit_locale_completeness.py` reports key parity, rules coverage, and English leakage across shipped locales.
+- `python3 Scripts/l10n.py audit` reports key parity, rules coverage, and English leakage across shipped locales. Command reference and workflows: [`Scripts/README-l10n.md`](../Scripts/README-l10n.md).
 - `LocalizationParityTests` enforces identical key sets and format-specifier parity (CI).
 - Error messages returned from domain/data layers should map to localized keys.
 
