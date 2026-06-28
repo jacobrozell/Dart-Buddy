@@ -10,7 +10,8 @@ How Dart Buddy separates **full integration** on `dev` from **trimmed App Store 
 |--------|-----------------|---------|
 | **`dev`** | Full (`ProductSurface.full` or `-enable_full_product_surface` not required) | Daily integration: all 22 shipped modes, 5 tabs, all bundled locales, feature flags per Debug defaults |
 | **`release/1.0`** | Lean 1.0 (`ProductSurface.lean1_0`) | App Store 1.0 — X01 + Cricket picker, 4 tabs, English bundle policy |
-| **`release/1.1`**, **`release/1.2`**, … | Per [`ongoing-release-plan.md`](ongoing-release-plan.md) | Widen surface slice-by-slice; merge fixes back to `dev` |
+| **`release/1.1.0`** | Party Pack + Raid (`ProductSurface.party1_1`) | App Store 1.1 — shipped on `master` (tag `1.1.0`) |
+| **`release/1.2.0`** | Smart Opponents (`ProductSurface.smart1_2`) | App Store 1.2 — Training Partner, export, de/es/nl/fr |
 
 **Rule:** Never delete shipped code to “trim” a release. Release branches change **reachability** via `ProductSurface` (and optionally `project.yml` locale lists), not engine removal.
 

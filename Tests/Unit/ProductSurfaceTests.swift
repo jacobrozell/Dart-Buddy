@@ -3,64 +3,61 @@ import Testing
 
 @Suite("Product surface", .tags(.unit, .regression))
 struct ProductSurfaceTests {
-    @Test("Lean 1.0 defaults hide extended product areas")
-    func leanDefaultsHideExtendedAreas() {
-        guard !ProductSurface.isFullProductSurfaceEnabled else {
-            return
-        }
+    private static let smartReleaseArguments = [ProductSurface.leanProductSurfaceLaunchArgument]
 
-        #expect(!ProductSurface.showsModesTab)
-        #expect(!ProductSurface.showsPartyModes)
-        #expect(!ProductSurface.showsCoopModes)
-        #expect(!ProductSurface.showsTrainingBots)
-        #expect(ProductSurface.showsCustomBots)
-        #expect(!ProductSurface.showsPlayerExport)
-        #expect(ProductSurface.showsAccessibilityMarketing)
-        #expect(ProductSurface.bundledLocaleCodes == ["en"])
+    @Test("Smart 1.2 defaults expose training and export")
+    func smartDefaultsExposeTrainingAndExport() {
+        let args = Self.smartReleaseArguments
+        let config = ProductSurface.configuration(for: args)
+
+        #expect(!ProductSurface.isFullProductSurfaceEnabled(arguments: args))
+        #expect(config == .smart1_2)
+        #expect(!config.showsModesTab)
+        #expect(config.showsPartyModes)
+        #expect(!config.showsCoopModes)
+        #expect(config.showsTrainingBots)
+        #expect(config.showsCustomBots)
+        #expect(config.showsPlayerExport)
+        #expect(config.showsAccessibilityMarketing)
+        #expect(config.bundledLocaleCodes == ["en", "de", "es", "nl", "fr"])
+    }
+
+    @Test("Smart 1.2 allowlist matches 1.1 gameplay modes")
+    func smartAllowlistMatchesPartyPack() {
+        let args = Self.smartReleaseArguments
+
+        for entry in GameModeCatalog.available {
+            guard let matchType = entry.matchType else { continue }
+            let reachable = ProductSurface.isMatchTypeReachable(matchType, arguments: args)
+            let expected = ProductSurface.partyPack1_1CatalogIDs.contains(entry.id)
+            #expect(reachable == expected, "Unexpected reachability for \(entry.id)")
+        }
     }
 
     @Test("Full product surface restores hidden areas")
     func fullSurfaceLaunchArgumentEnablesExtendedAreas() {
-        guard ProductSurface.isFullProductSurfaceEnabled else {
-            return
-        }
+        let args = [ProductSurface.fullProductSurfaceLaunchArgument]
+        let config = ProductSurface.configuration(for: args)
 
-        #expect(ProductSurface.showsModesTab)
-        #expect(ProductSurface.showsPartyModes)
-        #expect(ProductSurface.showsCoopModes)
-        #expect(ProductSurface.showsTrainingBots)
-        #expect(ProductSurface.showsCustomBots)
-        #expect(ProductSurface.showsPlayerExport)
-        #expect(ProductSurface.showsAccessibilityMarketing)
-        #expect(ProductSurface.bundledLocaleCodes == ["en", "de", "es", "nl", "fr", "zh-Hans", "it"])
-    }
-
-    @Test("Lean 1.0 only exposes X01 and Cricket gameplay")
-    func leanMatchTypeReachability() {
-        guard !ProductSurface.isFullProductSurfaceEnabled else {
-            return
-        }
-
-        #expect(ProductSurface.isMatchTypeReachable(.x01))
-        #expect(ProductSurface.isMatchTypeReachable(.cricket))
-        #expect(!ProductSurface.isMatchTypeReachable(.baseball))
-        #expect(!ProductSurface.isMatchTypeReachable(.killer))
-        #expect(!ProductSurface.isMatchTypeReachable(.shanghai))
-        #expect(!ProductSurface.isMatchTypeReachable(.golf))
-        #expect(!ProductSurface.isMatchTypeReachable(.fleet))
-        #expect(!ProductSurface.isMatchTypeReachable(.raid))
-        #expect(!ProductSurface.isMatchTypeReachable(.aroundTheClock))
+        #expect(ProductSurface.isFullProductSurfaceEnabled(arguments: args))
+        #expect(config == .full)
+        #expect(config.showsModesTab)
+        #expect(config.showsPartyModes)
+        #expect(config.showsCoopModes)
+        #expect(config.showsTrainingBots)
+        #expect(config.showsCustomBots)
+        #expect(config.showsPlayerExport)
+        #expect(config.showsAccessibilityMarketing)
+        #expect(config.bundledLocaleCodes == ["en", "de", "es", "nl", "fr", "zh-Hans", "it"])
     }
 
     @Test("Full product surface exposes shipped catalog modes")
     func fullSurfaceMatchTypeReachability() {
-        guard ProductSurface.isFullProductSurfaceEnabled else {
-            return
-        }
+        let args = [ProductSurface.fullProductSurfaceLaunchArgument]
 
         for entry in GameModeCatalog.available {
             guard let matchType = entry.matchType else { continue }
-            #expect(ProductSurface.isMatchTypeReachable(matchType))
+            #expect(ProductSurface.isMatchTypeReachable(matchType, arguments: args))
         }
     }
 }

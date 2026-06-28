@@ -2,10 +2,10 @@ import Foundation
 
 /// Controls which product areas are reachable in this build.
 ///
-/// **Debug / `dev`:** defaults to the full catalog (all tabs, party modes, locales).
-/// **`dev` Release + `DART_BUDDY_INTERNAL_BUILD`:** same full catalog for internal TestFlight.
-/// **Store release branches:** lean / party slices per `docs/release/branch-strategy.md`.
-/// Launch args override either default.
+/// **Debug and Release** default to the shipping slice (`smart1_2` on 1.2 — seven modes,
+/// Training Partner, player export, de/es/nl/fr bundled).
+/// Pass `-enable_full_product_surface` to dogfood the full catalog (Modes tab, all shipped modes, locales).
+/// See `docs/release/branch-strategy.md`.
 enum ProductSurface {
     struct Configuration: Sendable, Equatable {
         var showsModesTab: Bool
@@ -38,6 +38,30 @@ enum ProductSurface {
             showsAccessibilityMarketing: true,
             bundledLocaleCodes: ["en"]
         )
+
+        /// 1.1 — lean shell plus party modes, Raid co-op, and Around the Clock practice.
+        static let party1_1 = Configuration(
+            showsModesTab: false,
+            showsPartyModes: true,
+            showsCoopModes: false,
+            showsTrainingBots: false,
+            showsCustomBots: true,
+            showsPlayerExport: false,
+            showsAccessibilityMarketing: true,
+            bundledLocaleCodes: ["en"]
+        )
+
+        /// 1.2 — 1.1 gameplay plus Training Partner, player export, and localized store bundles.
+        static let smart1_2 = Configuration(
+            showsModesTab: false,
+            showsPartyModes: true,
+            showsCoopModes: false,
+            showsTrainingBots: true,
+            showsCustomBots: true,
+            showsPlayerExport: true,
+            showsAccessibilityMarketing: true,
+            bundledLocaleCodes: ["en", "de", "es", "nl", "fr"]
+        )
     }
 
     static let fullProductSurfaceLaunchArgument = "-enable_full_product_surface"
@@ -58,41 +82,76 @@ enum ProductSurface {
     }
 
     static var isFullProductSurfaceEnabled: Bool {
-        let arguments = ProcessInfo.processInfo.arguments
+        isFullProductSurfaceEnabled(arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isFullProductSurfaceEnabled(arguments: [String]) -> Bool {
         if arguments.contains(leanProductSurfaceLaunchArgument) {
             return false
         }
         if arguments.contains(fullProductSurfaceLaunchArgument) {
             return true
         }
-        #if DEBUG || DART_BUDDY_INTERNAL_BUILD
-        return true
-        #else
         return false
-        #endif
     }
 
     private static var active: Configuration {
-        isFullProductSurfaceEnabled ? .full : .lean1_0
+        configuration(for: ProcessInfo.processInfo.arguments)
     }
+
+    static func configuration(for arguments: [String]) -> Configuration {
+        isFullProductSurfaceEnabled(arguments: arguments) ? .full : .smart1_2
+    }
+
+    /// Catalog IDs shipped in the default Release 1.1+ gameplay surface (unchanged in 1.2).
+    static let partyPack1_1CatalogIDs: Set<String> = [
+        "standard.x01",
+        "standard.cricket",
+        "party.baseball",
+        "party.killer",
+        "party.shanghai",
+        "coop.raid",
+        "practice.aroundTheClock"
+    ]
 
     /// Whether gameplay for this match type is reachable in the current product surface.
     static func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
-        switch matchType {
-        case .x01, .cricket:
-            return true
-        default:
-            guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
-                return false
+        isMatchTypeReachable(matchType, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isMatchTypeReachable(_ matchType: MatchType, arguments: [String]) -> Bool {
+        guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
+            return false
+        }
+        return isCatalogEntryReachable(entry, arguments: arguments)
+    }
+
+    /// Whether a shipped catalog entry is reachable in the current product surface.
+    static func isCatalogEntryReachable(_ entry: GameModeCatalogEntry) -> Bool {
+        isCatalogEntryReachable(entry, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isCatalogEntryReachable(_ entry: GameModeCatalogEntry, arguments: [String]) -> Bool {
+        guard entry.isAvailable, entry.matchType != nil else { return false }
+
+        let config = configuration(for: arguments)
+        if isFullProductSurfaceEnabled(arguments: arguments) {
+            switch entry.matchType {
+            case .x01, .cricket:
+                return true
+            default:
+                break
             }
             switch entry.section {
             case .party:
-                return showsPartyModes
+                return config.showsPartyModes
             case .coop:
-                return showsCoopModes
+                return config.showsCoopModes
             case .standard, .practice:
-                return showsModesTab
+                return config.showsModesTab
             }
         }
+
+        return partyPack1_1CatalogIDs.contains(entry.id)
     }
 }
