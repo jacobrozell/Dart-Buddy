@@ -57,10 +57,11 @@ struct MatchStartService {
             .scoring,
             eventName: "match_setup_start",
             message: "Starting match from setup.",
-            metadata: [
-                "matchType": plan.matchType.rawValue,
-                "participantCount": String(plan.roster.count)
-            ]
+            metadata: GameModeAnalytics.metadata(
+                for: plan.matchType,
+                participantCount: plan.roster.count,
+                extra: ["startSource": plan.startSource.rawValue]
+            )
         )
         if plan.matchType == .baseball {
             logger.info(
@@ -135,10 +136,9 @@ struct MatchStartService {
                 ]) { _, new in new },
                 correlationId: persisted.id.uuidString
             )
-            logger.info(
-                .scoring,
-                eventName: GameModeAnalytics.playedEventName,
-                message: "User started playing a game mode.",
+            MatchAnalytics.logGameModePlayed(
+                logger: logger,
+                matchType: plan.matchType,
                 metadata: matchMetadata,
                 correlationId: persisted.id.uuidString
             )

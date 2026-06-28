@@ -63,6 +63,11 @@ enum ProductSurface {
     static var showsAccessibilityMarketing: Bool { active.showsAccessibilityMarketing }
     static var bundledLocaleCodes: [String] { active.bundledLocaleCodes }
 
+    /// Coarse build slice label for analytics (`full` vs `lean`).
+    static var analyticsLabel: String {
+        isFullProductSurfaceEnabled ? "full" : "lean"
+    }
+
     static var isFullProductSurfaceEnabled: Bool {
         isFullProductSurfaceEnabled(arguments: ProcessInfo.processInfo.arguments)
     }

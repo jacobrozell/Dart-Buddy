@@ -34,5 +34,6 @@ public final class UserPreferencesStore: ObservableObject {
         feedback.botStaggerEnabled = settings.botStaggerEnabled
         feedback.botDartHapticsEnabled = settings.botDartHapticsEnabled
         feedback.instantBotTurnsEnabled = settings.instantBotTurnsEnabled
+        AnalyticsUserContext.syncAfterSettingsApply(settings)
     }
 }

@@ -14,6 +14,7 @@ public enum FirebaseCrashlyticsEventMapping {
         "turn_undo_failed",
         "x01_abandon_failed",
         "cricket_abandon_failed",
+        "match_forfeit_failed",
         "settings_reset_failed"
     ]
 
@@ -29,7 +30,8 @@ public enum FirebaseCrashlyticsEventMapping {
         "turn_undo_failed": 1008,
         "x01_abandon_failed": 1009,
         "cricket_abandon_failed": 1010,
-        "settings_reset_failed": 1011
+        "settings_reset_failed": 1011,
+        "match_forfeit_failed": 1012
     ]
 
     private static let allowlistedParameterKeys: Set<String> = AnalyticsMetadataKeys.crashlyticsParameters

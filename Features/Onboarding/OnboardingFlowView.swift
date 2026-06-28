@@ -168,6 +168,10 @@ struct OnboardingFlowView: View {
                 message: "First-launch onboarding finished.",
                 metadata: metadata
             )
+            AnalyticsUserContext.syncOnboardingCompleted(
+                settings: try? await dependencies.settingsRepository.fetchSettings(),
+                preferences: dependencies.userPreferencesStore
+            )
         }
         onFinished()
     }

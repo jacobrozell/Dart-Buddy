@@ -13,6 +13,11 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
     public let isScreenCaptured: Bool
     public let isExternalDisplayConnected: Bool
     public let interfaceOrientation: String
+    /// `standard` or `accessibility` dynamic type bucket.
+    public let contentSizeCategory: String
+    /// Active UI style: `light`, `dark`, or `unspecified`.
+    public let colorScheme: String
+    public let isLowPowerModeEnabled: Bool
 
     public init(
         deviceClass: String,
@@ -22,7 +27,10 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
         isReduceMotionEnabled: Bool,
         isScreenCaptured: Bool,
         isExternalDisplayConnected: Bool,
-        interfaceOrientation: String
+        interfaceOrientation: String,
+        contentSizeCategory: String = "unknown",
+        colorScheme: String = "unspecified",
+        isLowPowerModeEnabled: Bool = false
     ) {
         self.deviceClass = deviceClass
         self.isVoiceOverRunning = isVoiceOverRunning
@@ -32,6 +40,9 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
         self.isScreenCaptured = isScreenCaptured
         self.isExternalDisplayConnected = isExternalDisplayConnected
         self.interfaceOrientation = interfaceOrientation
+        self.contentSizeCategory = contentSizeCategory
+        self.colorScheme = colorScheme
+        self.isLowPowerModeEnabled = isLowPowerModeEnabled
     }
 
     public var analyticsMetadata: [String: String] {
@@ -43,7 +54,10 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
             "isReduceMotionEnabled": Self.boolString(isReduceMotionEnabled),
             "isScreenCaptured": Self.boolString(isScreenCaptured),
             "isExternalDisplayConnected": Self.boolString(isExternalDisplayConnected),
-            "interfaceOrientation": interfaceOrientation
+            "interfaceOrientation": interfaceOrientation,
+            "contentSizeCategory": contentSizeCategory,
+            "colorScheme": colorScheme,
+            "isLowPowerModeEnabled": Self.boolString(isLowPowerModeEnabled)
         ]
     }
 
@@ -61,6 +75,9 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
         if previous.isExternalDisplayConnected != current.isExternalDisplayConnected { changes.append("display") }
         if previous.deviceClass != current.deviceClass { changes.append("deviceClass") }
         if previous.interfaceOrientation != current.interfaceOrientation { changes.append("orientation") }
+        if previous.contentSizeCategory != current.contentSizeCategory { changes.append("contentSize") }
+        if previous.colorScheme != current.colorScheme { changes.append("colorScheme") }
+        if previous.isLowPowerModeEnabled != current.isLowPowerModeEnabled { changes.append("lowPowerMode") }
         return changes.joined(separator: ",")
     }
 
@@ -81,7 +98,10 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
             isReduceMotionEnabled: false,
             isScreenCaptured: false,
             isExternalDisplayConnected: false,
-            interfaceOrientation: "unknown"
+            interfaceOrientation: "unknown",
+            contentSizeCategory: "unknown",
+            colorScheme: "unspecified",
+            isLowPowerModeEnabled: false
         )
         #endif
     }
@@ -100,8 +120,33 @@ public struct ClientEnvironmentSnapshot: Equatable, Sendable {
             isReduceMotionEnabled: UIAccessibility.isReduceMotionEnabled,
             isScreenCaptured: UIScreen.main.isCaptured,
             isExternalDisplayConnected: hasExternalDisplayConnected(),
-            interfaceOrientation: currentInterfaceOrientation()
+            interfaceOrientation: currentInterfaceOrientation(),
+            contentSizeCategory: contentSizeBucket(from: UIApplication.shared.preferredContentSizeCategory),
+            colorScheme: colorSchemeLabel(from: activeTraitCollection()),
+            isLowPowerModeEnabled: ProcessInfo.processInfo.isLowPowerModeEnabled
         )
+    }
+
+    private static func contentSizeBucket(from category: UIContentSizeCategory) -> String {
+        category.isAccessibilityCategory ? "accessibility" : "standard"
+    }
+
+    private static func colorSchemeLabel(from traits: UITraitCollection) -> String {
+        switch traits.userInterfaceStyle {
+        case .dark: "dark"
+        case .light: "light"
+        default: "unspecified"
+        }
+    }
+
+    private static func activeTraitCollection() -> UITraitCollection {
+        if let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive || $0.activationState == .foregroundInactive }),
+            let window = scene.windows.first(where: \.isKeyWindow) {
+            return window.traitCollection
+        }
+        return UITraitCollection.current
     }
 
     private static func deviceClass(from idiom: UIUserInterfaceIdiom) -> String {

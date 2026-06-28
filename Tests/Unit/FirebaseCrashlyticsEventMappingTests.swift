@@ -121,3 +121,29 @@ func crashlyticsOmitsEmptyAppVersion() {
     #expect(withVersion?.userInfo["app_version"] as? String == "1.0.0")
     #expect(withoutVersion?.userInfo["app_version"] == nil)
 }
+
+@Test(.tags(.unit, .logging, .regression))
+func mapsMatchForfeitFailedToCrashlyticsWithGameModeMetadata() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .error,
+        category: .appLifecycle,
+        eventName: "match_forfeit_failed",
+        message: "Forfeit persist failed.",
+        metadata: [
+            "matchType": "cricket",
+            "gameModeId": "standard.cricket",
+            "resolution": "user_picked",
+            "errorCode": "storage",
+            "layer": "repository"
+        ],
+        correlationId: nil
+    )
+
+    let error = FirebaseCrashlyticsEventMapping.nonFatalError(for: entry, appVersion: "1.0.0")
+
+    #expect(error?.code == 1012)
+    #expect(error?.userInfo["gameModeId"] as? String == "standard.cricket")
+    #expect(error?.userInfo["resolution"] as? String == "user_picked")
+    #expect(error?.userInfo["errorCode"] as? String == "storage")
+}

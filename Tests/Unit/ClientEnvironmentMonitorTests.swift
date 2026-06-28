@@ -46,10 +46,12 @@ struct ClientEnvironmentMonitorTests {
             UIAccessibility.switchControlStatusDidChangeNotification,
             UIAccessibility.boldTextStatusDidChangeNotification,
             UIAccessibility.reduceMotionStatusDidChangeNotification,
+            UIContentSizeCategory.didChangeNotification,
             UIScreen.capturedDidChangeNotification,
             UIDevice.orientationDidChangeNotification,
             UIScene.willConnectNotification,
-            UIScene.didDisconnectNotification
+            UIScene.didDisconnectNotification,
+            Notification.Name.NSProcessInfoPowerStateDidChange
         ]
         for name in names {
             center.post(name: name, object: nil)

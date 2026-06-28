@@ -12,6 +12,9 @@ public enum AnalyticsMetadataKeys {
         "isScreenCaptured",
         "isExternalDisplayConnected",
         "interfaceOrientation",
+        "contentSizeCategory",
+        "colorScheme",
+        "isLowPowerModeEnabled",
         "trigger",
         "changedSignals"
     ]
@@ -187,10 +190,15 @@ public enum AnalyticsMetadataKeys {
 
     public static let crashlyticsParameters: Set<String> = [
         "matchType",
+        "gameModeId",
+        "gameModeSection",
         "errorCode",
         "layer",
         "status",
         "participantCount",
+        "eventCount",
+        "durationSeconds",
+        "resolution",
         "operation",
         "schemaVersion",
         "fromSchema",

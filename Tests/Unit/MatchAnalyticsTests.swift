@@ -254,4 +254,31 @@ struct MatchAnalyticsTests {
         #expect(metadata["eventCount"] == "0")
         #expect(metadata["participantCount"] == "2")
     }
+
+    @Test
+    func sessionMetadataIncludesGameModeOnProgressFields() throws {
+        let session = try MatchLifecycleService.createMatch(
+            type: .x01,
+            config: .x01(
+                MatchConfigX01(
+                    startScore: 501,
+                    legsToWin: 1,
+                    setsEnabled: false,
+                    setsToWin: nil,
+                    checkoutMode: .doubleOut
+                )
+            ),
+            participants: [
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "A", turnOrder: 0),
+                MatchParticipant(playerId: UUID(), displayNameAtMatchStart: "B", turnOrder: 1)
+            ]
+        )
+
+        let metadata = MatchAnalytics.metadata(for: session)
+
+        #expect(metadata["gameModeId"] == "standard.x01")
+        #expect(metadata["configStartScore"] == "501")
+        #expect(metadata["eventCount"] == "0")
+        #expect(metadata["legIndex"] == "0")
+    }
 }

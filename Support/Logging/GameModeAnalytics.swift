@@ -7,6 +7,7 @@ import Foundation
 enum GameModeAnalytics {
     static let playedEventName = "game_mode_played"
     static let completedEventName = "game_mode_completed"
+    static let forfeitedEventName = "game_mode_forfeited"
 
     static func metadata(
         for matchType: MatchType,

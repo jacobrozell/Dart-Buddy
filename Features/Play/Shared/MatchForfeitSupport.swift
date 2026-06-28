@@ -45,6 +45,14 @@ enum MatchForfeitSupport {
             message: "Match forfeited by user.",
             metadata: metadata
         )
+        logger.matchInfo(
+            matchId: matchId,
+            matchType: matchType,
+            category: .appLifecycle,
+            eventName: GameModeAnalytics.forfeitedEventName,
+            message: "User forfeited a game mode match.",
+            metadata: metadata
+        )
         return forfeited
     }
 }

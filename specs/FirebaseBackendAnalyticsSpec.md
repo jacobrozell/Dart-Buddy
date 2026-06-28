@@ -142,9 +142,11 @@ Source of truth in code:
 | Log `eventName` | Firebase name | Typical feature | Notes |
 |-----------------|---------------|-----------------|-------|
 | `app_bootstrap_ready` | `app_open` | App shell | Successful launch |
+| `match_setup_start` | `match_setup_start` | Setup | User tapped start; includes catalog mode metadata |
 | `match_started` | `match_started` | Setup / match | After persist + route; includes catalog `gameModeId` metadata |
 | `game_mode_played` | `game_mode_played` | Setup / match | Dedicated mode-popularity signal (X01 vs Cricket, etc.) |
 | `game_mode_completed` | `game_mode_completed` | All shipped modes | Natural match completion with catalog metadata |
+| `game_mode_forfeited` | `game_mode_forfeited` | All shipped modes | User-initiated forfeit with catalog metadata |
 | `match_resumed` | `match_resumed` | Play home / deep link | Resume in-progress match (`startSource`: `resume`, `deepLink`, `intent`) |
 | `match_setup_baseball` | `match_setup_baseball` | Party setup | Baseball start from setup |
 | `match_completed` | `match_completed` | X01 / Cricket / Baseball | Engine reports complete |
@@ -188,6 +190,7 @@ Allowlisted metadata keys: `matchType`, `gameModeId`, `gameModeSection`, `uiTemp
 | `turn_undo_failed` | Undo |
 | `x01_abandon_failed` | X01 abandon |
 | `cricket_abandon_failed` | Cricket abandon |
+| `match_forfeit_failed` | Forfeit persist (includes `gameModeId`, `resolution`) |
 | `settings_reset_failed` | Settings → Reset All Local Data |
 
 ### Log-only (not Analytics allowlist yet)
@@ -199,7 +202,6 @@ Use `AppLogger` for debugging; add to Analytics allowlist only with product appr
 | `settings_reset_all_data` | `SettingsSpec.md` — successful reset; log-only (no Analytics) |
 | `play_home_active_match`, `play_home_ready` | `PlayHomeSpec.md` |
 | `active_match_conflict`, `active_match_replaced` | `SetupFlowSpec.md` |
-| `match_setup_start` | `SetupFlowSpec.md` |
 | `match_setup_baseball` | `BaseballGameSpec.md`, `SetupFlowSpec.md` |
 | `match_screen_appeared`, `bot_turn_started` | `BotOpponentSpec.md`, `game-modes/implemented/X01GameSpec.md`, `game-modes/implemented/CricketSpec.md` |
 | `turn_submit_rejected`, `turn_bust` | `game-modes/implemented/X01GameSpec.md` |
@@ -211,9 +213,79 @@ Feature specs link here for analytics subsections; do not duplicate full tables.
 
 ---
 
-## 13. Verification (§12 telemetry audit)
+## 14. GA4 reporting setup (dartbuddy-98b79)
+
+Property ID: `539946189` (`properties/539946189`).
+
+The app already sends mode metadata on lifecycle events (`matchType`, `gameModeId`, `gameModeSection`, `uiTemplate`, `statKind`, config keys, bot roster keys, `startSource`). **GA4 cannot break reports down by those parameters until they are registered** as custom dimensions / user-scoped custom dimensions in Firebase Console → Analytics → Custom definitions.
+
+Register these **event-scoped** custom dimensions (parameter name → display name):
+
+| Event parameter | Suggested display name | Priority events |
+|-----------------|------------------------|-----------------|
+| `matchType` | Match type | `turn_submitted`, `match_started`, `game_mode_played`, `match_completed` |
+| `gameModeId` | Game mode ID | same |
+| `gameModeSection` | Game mode section | same |
+| `startSource` | Match start source | `match_started`, `game_mode_played`, `match_resumed` |
+| `hasBot` | Has bot opponent | lifecycle + `turn_submitted` |
+| `botDifficulty` | Bot difficulty | lifecycle |
+| `configStartScore` | X01 start score | X01 starts / turns |
+| `configCheckoutMode` | Checkout mode | X01 starts / turns |
+| `participantCount` | Participant count | lifecycle |
+| `status` | Match status | `turn_submitted`, completion events |
+| `durationSeconds` | Match duration (s) | `match_completed`, `match_forfeited`, `game_mode_forfeited` |
+| `resolution` | Forfeit winner resolution | `match_forfeited`, `game_mode_forfeited` (`automatic`, `user_picked`) |
+
+Register these **user-scoped** custom dimensions (set via `Analytics.setUserProperty` in `AnalyticsUserIdentity.syncLastGameMode` and `AnalyticsUserContext`):
+
+| User property | Suggested display name |
+|---------------|------------------------|
+| `last_match_type` | Last match type |
+| `last_game_mode_id` | Last game mode ID |
+| `last_game_mode_section` | Last game mode section |
+| `onboarding_complete` | Onboarding complete |
+| `app_locale` | App locale |
+| `product_surface` | Product surface (`full` / `lean`) |
+| `build_number` | Build number |
+| `appearance_mode` | Appearance mode |
+| `haptics_enabled` | Haptics enabled |
+| `sound_enabled` | Sound enabled |
+| `turn_caller_enabled` | Turn caller enabled |
+| `bot_stagger_enabled` | Bot stagger enabled |
+| `bot_dart_haptics_enabled` | Bot dart haptics enabled |
+| `dart_entry_default` | Default dart entry UI |
+| `default_match_type` | Default match type |
+| `voiceover_enabled` | VoiceOver enabled |
+| `switch_control_enabled` | Switch Control enabled |
+| `content_size_category` | Dynamic type bucket (`standard` / `accessibility`) |
+| `reduce_motion_enabled` | Reduce Motion enabled |
+| `bold_text_enabled` | Bold Text enabled |
+
+Register these additional **event-scoped** dimensions from `ClientEnvironmentSnapshot`:
+
+| Event parameter | Suggested display name |
+|-----------------|------------------------|
+| `contentSizeCategory` | Dynamic type bucket |
+| `colorScheme` | Color scheme |
+| `isLowPowerModeEnabled` | Low power mode |
+
+**Auto-collected by GA4 (do not duplicate in app code):** `operatingSystemVersion`, `operatingSystem`, `mobileDeviceModel`, `deviceCategory`, `appVersion`, `language`, `country`.
+
+After registration, allow 24–48h for dimensions to populate. Use Explorations or the analytics MCP `run_report` with `customEvent:<parameter>` dimensions (once registered) to slice high-volume events like `turn_submitted` by mode.
+
+**Recommended funnels (once dimensions exist):**
+
+1. Setup → play → complete: `match_setup_start` → `game_mode_played` → `match_completed`
+2. Mode popularity: `game_mode_played` broken down by `gameModeId`
+3. Bot adoption: `match_started` filtered `hasBot = true`, by `gameModeId`
+4. Forfeit rate by mode: `game_mode_forfeited` / `game_mode_played` by `gameModeId`
+5. Forfeit vs crash: Crashlytics non-fatal `match_forfeit_failed` (code 1012) keyed by `gameModeId`; compare timing with `game_mode_forfeited` in GA4
+
+---
+
+## 15. Verification (§12 telemetry audit)
 | Field | Value |
 |-------|--------|
-| **Last verified** | 2026-06-11 |
-| **Commit** | `340f788` |
-| **Code** | `FirebaseAnalyticsEventMapping.swift`, `FirebaseCrashlyticsEventMapping.swift` |
+| **Last verified** | 2026-06-27 |
+| **Commit** | (pending) |
+| **Code** | `FirebaseAnalyticsEventMapping.swift`, `FirebaseCrashlyticsEventMapping.swift`, `AnalyticsUserIdentity.swift` |
