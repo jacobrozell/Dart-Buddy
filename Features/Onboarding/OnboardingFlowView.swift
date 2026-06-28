@@ -239,6 +239,7 @@ struct OnboardingFlowView: View {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: current.botStaggerEnabled,
                 botDartHapticsEnabled: current.botDartHapticsEnabled,
+                instantBotTurnsEnabled: current.instantBotTurnsEnabled,
                 defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: current.updatedAt
             )

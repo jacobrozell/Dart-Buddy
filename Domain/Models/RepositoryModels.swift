@@ -279,6 +279,7 @@ public struct SettingsSummary: Identifiable, Equatable, Sendable {
     public let defaultSetsEnabled: Bool
     public let botStaggerEnabled: Bool
     public let botDartHapticsEnabled: Bool
+    public let instantBotTurnsEnabled: Bool
     /// `DartEntryPresentation` raw value applied to new matches (in-match switch is per-session).
     public let defaultDartEntryPresentationRaw: String
     public let updatedAt: Date

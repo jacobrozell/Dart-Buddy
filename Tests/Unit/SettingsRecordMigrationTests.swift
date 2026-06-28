@@ -3,10 +3,25 @@ import Testing
 @testable import DartBuddy
 
 @Test(.tags(.unit, .settings, .swiftdata, .regression))
+func legacySettingsWithoutInstantBotTurnsDefaultToDisabled() async throws {
+    let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
+    let context = ModelContext(container)
+    let record = SchemaV2.SettingsRecord()
+    record.instantBotTurnsEnabled = nil
+    context.insert(record)
+    try context.save()
+
+    let repository = SwiftDataSettingsRepository(container: container)
+    let settings = try await repository.fetchSettings()
+
+    #expect(settings.instantBotTurnsEnabled == false)
+}
+
+@Test(.tags(.unit, .settings, .swiftdata, .regression))
 func legacySettingsWithoutBotColumnsDefaultToEnabled() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let context = ModelContext(container)
-    let record = SchemaV1.SettingsRecord()
+    let record = SchemaV2.SettingsRecord()
     record.botStaggerEnabled = nil
     record.botDartHapticsEnabled = nil
     context.insert(record)
@@ -23,7 +38,7 @@ func legacySettingsWithoutBotColumnsDefaultToEnabled() async throws {
 func legacySettingsWithoutDartEntryPresentationDefaultToNumberPad() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let context = ModelContext(container)
-    let record = SchemaV1.SettingsRecord()
+    let record = SchemaV2.SettingsRecord()
     record.defaultDartEntryPresentationRaw = nil
     context.insert(record)
     try context.save()

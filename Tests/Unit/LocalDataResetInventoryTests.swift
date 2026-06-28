@@ -30,6 +30,7 @@ struct LocalDataResetInventoryTests {
         OnboardingStore(userDefaults: defaults, isEnabled: true).markCompleted()
         defaults.set(BotDifficulty.easy.rawValue, forKey: OnboardingStore.experienceTierKey)
         defaults.set("9.9.9", forKey: "app_store_update_dismissed_version")
+        defaults.set("1.1.0", forKey: ReleaseHighlightsStore.dismissedVersionKey)
 
         BaseballSetupPreferences.save(
             inningCount: 7,
@@ -54,6 +55,7 @@ struct LocalDataResetInventoryTests {
         #expect(!defaults.bool(forKey: OnboardingStore.completedKey))
         #expect(defaults.string(forKey: OnboardingStore.experienceTierKey) == nil)
         #expect(defaults.string(forKey: "app_store_update_dismissed_version") == nil)
+        #expect(defaults.string(forKey: ReleaseHighlightsStore.dismissedVersionKey) == nil)
 
         let baseball = BaseballSetupPreferences.load(userDefaults: defaults)
         #expect(baseball.inningCount == 9)

@@ -21,6 +21,7 @@ func userPreferencesStoreAppliesBotPacingFromSettings() {
         defaultSetsEnabled: false,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "visualBoard",
         updatedAt: Date()
     )

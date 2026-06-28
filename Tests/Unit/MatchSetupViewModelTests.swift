@@ -20,6 +20,7 @@ func setupOnAppearAppliesSettingsDefaults() async {
         defaultSetsEnabled: true,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
@@ -60,6 +61,7 @@ func setupOnAppearFallsBackTo501WhenStartScoreUnsupported() async {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
@@ -106,6 +108,7 @@ func setupOnAppearResyncsDefaultModeFromSettings() async {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     ))
@@ -1328,6 +1331,7 @@ private actor FakeSettingsRepository: SettingsRepository {
             defaultSetsEnabled: false,
             botStaggerEnabled: true,
             botDartHapticsEnabled: true,
+            instantBotTurnsEnabled: false,
             defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )

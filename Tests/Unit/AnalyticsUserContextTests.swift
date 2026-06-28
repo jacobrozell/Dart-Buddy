@@ -22,6 +22,7 @@ struct AnalyticsUserContextTests {
             defaultSetsEnabled: false,
             botStaggerEnabled: true,
             botDartHapticsEnabled: false,
+            instantBotTurnsEnabled: false,
             defaultDartEntryPresentationRaw: DartEntryPresentation.visualBoard.rawValue,
             updatedAt: Date()
         )
@@ -63,6 +64,7 @@ struct AnalyticsUserContextTests {
                 defaultSetsEnabled: false,
                 botStaggerEnabled: false,
                 botDartHapticsEnabled: true,
+                instantBotTurnsEnabled: false,
                 defaultDartEntryPresentationRaw: DartEntryPresentation.numberPad.rawValue,
                 updatedAt: Date()
             )

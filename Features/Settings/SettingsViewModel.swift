@@ -71,6 +71,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -138,6 +139,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: setsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -253,6 +255,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -278,6 +281,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: stagger ?? current.botStaggerEnabled,
             botDartHapticsEnabled: dartHaptics ?? current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )
@@ -303,6 +307,7 @@ final class SettingsViewModel: ObservableObject {
             defaultSetsEnabled: current.defaultSetsEnabled,
             botStaggerEnabled: current.botStaggerEnabled,
             botDartHapticsEnabled: current.botDartHapticsEnabled,
+            instantBotTurnsEnabled: current.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: DartEntryPresentation(rawValueOrDefault: value).rawValue,
             updatedAt: Date()
         )

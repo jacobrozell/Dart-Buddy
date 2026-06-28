@@ -940,6 +940,7 @@ final class MatchSetupViewModel: ObservableObject {
             defaultSetsEnabled: setsEnabled,
             botStaggerEnabled: settings.botStaggerEnabled,
             botDartHapticsEnabled: settings.botDartHapticsEnabled,
+            instantBotTurnsEnabled: settings.instantBotTurnsEnabled,
             defaultDartEntryPresentationRaw: settings.defaultDartEntryPresentationRaw,
             updatedAt: Date()
         )

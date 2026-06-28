@@ -9,7 +9,7 @@ func historyMatchPredicate(
     completedRaw: String,
     forfeitedRaw: String,
     restrictedToMatchIds matchIds: [UUID]?
-) -> Predicate<SchemaV1.MatchRecord> {
+) -> Predicate<SchemaV2.MatchRecord> {
     let allowedTypeRaws: [String]?
     if let matchType = filter.matchType {
         allowedTypeRaws = [matchType.rawValue]
@@ -23,47 +23,47 @@ func historyMatchPredicate(
 
     switch (allowedTypeRaws, startedAfter, matchIds) {
     case (nil, nil, nil):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             $0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw
         }
     case (nil, nil, let ids?):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && ids.contains($0.id)
         }
     case (nil, let startedAfter?, nil):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && $0.startedAt >= startedAfter
         }
     case (nil, let startedAfter?, let ids?):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && $0.startedAt >= startedAfter && ids.contains($0.id)
         }
     case (let typeRaws?, nil, nil):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw)
         }
     case (let typeRaws?, nil, let ids?):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw) && ids.contains($0.id)
         }
     case (let typeRaws?, let startedAfter?, nil):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw) && $0.startedAt >= startedAfter
         }
     case (let typeRaws?, let startedAfter?, let ids?):
-        return #Predicate<SchemaV1.MatchRecord> {
+        return #Predicate<SchemaV2.MatchRecord> {
             ($0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw) && typeRaws.contains($0.typeRaw) && $0.startedAt >= startedAfter && ids.contains($0.id)
         }
     }
 }
 
-func finishedHistoryPredicate(completedRaw: String, forfeitedRaw: String) -> Predicate<SchemaV1.MatchRecord> {
-    #Predicate<SchemaV1.MatchRecord> {
+func finishedHistoryPredicate(completedRaw: String, forfeitedRaw: String) -> Predicate<SchemaV2.MatchRecord> {
+    #Predicate<SchemaV2.MatchRecord> {
         $0.statusRaw == completedRaw || $0.statusRaw == forfeitedRaw
     }
 }
 
-func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
+func mapPlayer(_ record: SchemaV2.PlayerRecord) -> PlayerSummary {
     let isBot = record.isBot ?? false
     let botKind: String?
     if let rawKind = record.botKindRaw {
@@ -92,7 +92,7 @@ func mapPlayer(_ record: SchemaV1.PlayerRecord) -> PlayerSummary {
     )
 }
 
-func mapMatch(_ record: SchemaV1.MatchRecord) -> MatchSummary {
+func mapMatch(_ record: SchemaV2.MatchRecord) -> MatchSummary {
     MatchSummary(
         id: record.id,
         type: MatchType(rawValue: record.typeRaw) ?? .x01,
@@ -112,7 +112,7 @@ func mapMatch(_ record: SchemaV1.MatchRecord) -> MatchSummary {
     )
 }
 
-func mapEvent(_ record: SchemaV1.MatchEventRecord) -> MatchEventSummary {
+func mapEvent(_ record: SchemaV2.MatchEventRecord) -> MatchEventSummary {
     MatchEventSummary(
         id: record.id,
         matchId: record.matchId,
@@ -123,7 +123,7 @@ func mapEvent(_ record: SchemaV1.MatchEventRecord) -> MatchEventSummary {
     )
 }
 
-func mapSnapshot(_ record: SchemaV1.MatchSnapshotRecord) -> MatchSnapshotSummary {
+func mapSnapshot(_ record: SchemaV2.MatchSnapshotRecord) -> MatchSnapshotSummary {
     MatchSnapshotSummary(
         id: record.id,
         matchId: record.matchId,
@@ -133,7 +133,7 @@ func mapSnapshot(_ record: SchemaV1.MatchSnapshotRecord) -> MatchSnapshotSummary
     )
 }
 
-func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
+func mapSettings(_ record: SchemaV2.SettingsRecord) -> SettingsSummary {
     SettingsSummary(
         id: record.id,
         appearanceModeRaw: record.appearanceModeRaw,
@@ -149,12 +149,13 @@ func mapSettings(_ record: SchemaV1.SettingsRecord) -> SettingsSummary {
         defaultSetsEnabled: record.defaultSetsEnabled,
         botStaggerEnabled: record.botStaggerEnabled ?? true,
         botDartHapticsEnabled: record.botDartHapticsEnabled ?? true,
+        instantBotTurnsEnabled: record.instantBotTurnsEnabled ?? false,
         defaultDartEntryPresentationRaw: record.defaultDartEntryPresentationRaw ?? "numberPad",
         updatedAt: record.updatedAt
     )
 }
 
-func mapParticipant(_ record: SchemaV1.MatchParticipantRecord) -> MatchParticipantSummary {
+func mapParticipant(_ record: SchemaV2.MatchParticipantRecord) -> MatchParticipantSummary {
     MatchParticipantSummary(
         id: record.id,
         matchId: record.matchId,

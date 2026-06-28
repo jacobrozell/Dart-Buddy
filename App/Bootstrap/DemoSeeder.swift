@@ -634,6 +634,7 @@ enum DemoSeeder {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: current.botStaggerEnabled,
                 botDartHapticsEnabled: current.botDartHapticsEnabled,
+                instantBotTurnsEnabled: current.instantBotTurnsEnabled,
                 defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )
@@ -666,6 +667,7 @@ enum DemoSeeder {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: false,
                 botDartHapticsEnabled: false,
+                instantBotTurnsEnabled: current.instantBotTurnsEnabled,
                 defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )

@@ -824,6 +824,12 @@
 "onboarding.startMatch" = "Spiel starten";
 "settings.onboarding.viewTour" = "Onboarding anzeigen";
 "settings.onboarding.viewTour.accessibility" = "Onboarding anzeigen";
+"release.highlights.badge" = "Neu";
+"release.highlights.partyPack.title" = "Party Pack";
+"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai und Around the Clock findest du jetzt unter Spielen.";
+"release.highlights.tryModes" = "Neue Modi ausprobieren";
+"release.highlights.gotIt" = "Verstanden";
+"release.highlights.accessibility" = "Neu in Dart Buddy";
 "app.brandTitle" = "Dart Buddy";
 "app.update.title" = "Update verfügbar";
 "app.update.message" = "Eine neue Version von Dart Buddy ist im App Store.";

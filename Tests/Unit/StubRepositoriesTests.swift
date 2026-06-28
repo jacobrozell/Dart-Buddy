@@ -91,6 +91,7 @@ struct StubRepositoriesTests {
             defaultSetsEnabled: true,
             botStaggerEnabled: false,
             botDartHapticsEnabled: false,
+            instantBotTurnsEnabled: false,
             defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )
@@ -125,6 +126,7 @@ struct StubRepositoriesTests {
             defaultSetsEnabled: true,
             botStaggerEnabled: false,
             botDartHapticsEnabled: false,
+            instantBotTurnsEnabled: false,
             defaultDartEntryPresentationRaw: "numberPad",
             updatedAt: Date()
         )

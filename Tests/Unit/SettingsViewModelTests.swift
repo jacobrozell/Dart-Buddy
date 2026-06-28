@@ -389,6 +389,7 @@ private func makeSettings(
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
+        instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
