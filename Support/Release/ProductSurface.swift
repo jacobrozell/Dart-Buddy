@@ -114,8 +114,9 @@ enum ProductSurface {
         "practice.aroundTheClock"
     ]
 
-    /// Catalog IDs shipped in Release 1.2 — 1.1 gameplay plus Practice Pack (Bob's 27, Halve-It).
+    /// Catalog IDs shipped in Release 1.2 — 1.1 gameplay plus Practice Pack and Golf.
     static let smart1_2ReleaseCatalogIDs: Set<String> = partyPack1_1CatalogIDs.union([
+        "party.golf",
         "practice.bobs27",
         "practice.halveIt"
     ])

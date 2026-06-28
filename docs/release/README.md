@@ -4,7 +4,7 @@
 
 | File | Role |
 |------|------|
-| [**`1.2.0-ship-checklist.md`**](1.2.0-ship-checklist.md) | **1.2** — 9 modes + German + Training Partner |
+| [**`1.2.0-ship-checklist.md`**](1.2.0-ship-checklist.md) | **1.2** — 10 modes + German + Training Partner |
 | [**`1.2.0-training-partner-plan.md`**](1.2.0-training-partner-plan.md) | Training Partner test & polish runbook |
 | [**`1.2.0-app-store-copy.md`**](1.2.0-app-store-copy.md) | English + Deutsch listing draft |
 | [**`1.1.0-ship-checklist.md`**](1.1.0-ship-checklist.md) | 1.1 Party Pack — shipped (tag `1.1.0`) |

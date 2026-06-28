@@ -22,11 +22,11 @@ struct ProductSurfaceTests {
         #expect(config.bundledLocaleCodes == ["en", "de"])
     }
 
-    @Test("Smart 1.2 allowlist ships nine modes including Practice Pack")
+    @Test("Smart 1.2 allowlist ships ten modes including Practice Pack and Golf")
     func smartAllowlistMatchesReleaseCatalog() {
         let args = Self.smartReleaseArguments
 
-        #expect(ProductSurface.smart1_2ReleaseCatalogIDs.count == 9)
+        #expect(ProductSurface.smart1_2ReleaseCatalogIDs.count == 10)
         #expect(ProductSurface.smart1_2ReleaseCatalogIDs.isSuperset(of: ProductSurface.partyPack1_1CatalogIDs))
 
         for entry in GameModeCatalog.available {
@@ -37,15 +37,16 @@ struct ProductSurfaceTests {
         }
     }
 
-    @Test("Practice Pack modes are reachable on smart 1.2")
-    func practicePackModesReachable() {
+    @Test("Practice Pack and Golf are reachable on smart 1.2")
+    func practicePackAndGolfReachable() {
         let args = Self.smartReleaseArguments
 
+        #expect(ProductSurface.isMatchTypeReachable(.golf, arguments: args))
         #expect(ProductSurface.isMatchTypeReachable(.bobs27, arguments: args))
         #expect(ProductSurface.isMatchTypeReachable(.halveIt, arguments: args))
         #expect(ProductSurface.isMatchTypeReachable(.aroundTheClock, arguments: args))
         #expect(!ProductSurface.isMatchTypeReachable(.chaseTheDragon, arguments: args))
-        #expect(!ProductSurface.isMatchTypeReachable(.aroundTheClock180, arguments: args))
+        #expect(!ProductSurface.isMatchTypeReachable(.football, arguments: args))
     }
 
     @Test("Full product surface restores hidden areas")

@@ -27,7 +27,8 @@ struct GameModeCatalogTests {
             #expect(mappedTypes.contains(.golf))
         } else if ProductSurface.showsPartyModes {
             #expect(mappedTypes.contains(.baseball))
-            #expect(!mappedTypes.contains(.golf))
+            #expect(mappedTypes.contains(.golf))
+            #expect(!mappedTypes.contains(.football))
             #expect(mappedTypes.contains(.bobs27))
             #expect(mappedTypes.contains(.halveIt))
         } else {

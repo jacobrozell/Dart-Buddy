@@ -16,7 +16,7 @@ How Dart Buddy separates **daily integration** on `dev`, **App Store RC work** o
 |----------------|-----------------|---------------|
 | **`release/1.0`** | Lean 1.0 (`ProductSurface.lean1_0`) | 1.0 — X01 + Cricket, English |
 | **`release/1.1.0`** | Party Pack + Raid (`ProductSurface.party1_1`) | 1.1 — shipped (tag `1.1.0` on `master`) |
-| **`release/1.2.0`** | Smart Opponents (`ProductSurface.smart1_2`) | 1.2 — Training Partner, export, **German**, **Practice Pack** (9 modes) |
+| **`release/1.2.0`** | Smart Opponents (`ProductSurface.smart1_2`) | 1.2 — Training Partner, export, **German**, **10 modes** |
 
 **Rule:** Never delete shipped code to “trim” a release. Release branches change **reachability** via `ProductSurface` (and optionally `project.yml` locale lists), not engine removal.
 
