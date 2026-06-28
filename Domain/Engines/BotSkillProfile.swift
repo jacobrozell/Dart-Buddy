@@ -48,8 +48,9 @@ public struct BotSkillProfile: Codable, Equatable, Sendable {
     public let x01: X01
     public let cricket: Cricket
 
-    public var displayProfile: BotDifficultyDisplayProfile {
+    public func displayProfile(summary: BotModeSummaryMetrics? = nil) -> BotDifficultyDisplayProfile {
         BotDifficultyDisplayProfile(
+            summary: summary,
             x01: .init(
                 scoringVisitMin: x01.scoringVisitMin,
                 scoringVisitMax: x01.scoringVisitMax,

@@ -164,8 +164,14 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// Approximate custom-bot slider targets that match this preset tier.
+    public var referenceMetrics: BotModeSummaryMetrics {
+        .preset(self)
+    }
+
     public var displayProfile: BotDifficultyDisplayProfile {
         BotDifficultyDisplayProfile(
+            summary: referenceMetrics,
             x01: .init(
                 scoringVisitMin: scoringVisitRange.lowerBound,
                 scoringVisitMax: scoringVisitRange.upperBound,
@@ -195,7 +201,45 @@ public enum BotDifficulty: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// Player-facing skill targets shown alongside engine tuning details.
+public struct BotModeSummaryMetrics: Equatable, Sendable {
+    public let x01Average: Double?
+    public let cricketMPR: Double?
+
+    public init(x01Average: Double?, cricketMPR: Double?) {
+        self.x01Average = x01Average
+        self.cricketMPR = cricketMPR
+    }
+
+    public static func preset(_ difficulty: BotDifficulty) -> BotModeSummaryMetrics {
+        BotModeSummaryMetrics(
+            x01Average: BotSkillProfileInterpolator.referenceX01Average(for: difficulty),
+            cricketMPR: BotSkillProfileInterpolator.referenceCricketMPR(for: difficulty)
+        )
+    }
+
+    public static func custom(_ metrics: CustomBotMetrics) -> BotModeSummaryMetrics {
+        BotModeSummaryMetrics(x01Average: metrics.x01Average, cricketMPR: metrics.cricketMPR)
+    }
+
+    public var hasValues: Bool {
+        x01Average != nil || cricketMPR != nil
+    }
+
+    public var customBotMetrics: CustomBotMetrics? {
+        guard let x01Average, let cricketMPR else { return nil }
+        return CustomBotMetrics(x01Average: x01Average, cricketMPR: cricketMPR)
+    }
+
+    public func formattedBadge() -> String? {
+        guard let x01Average, let cricketMPR else { return nil }
+        return L10n.format("customBot.badge.format", x01Average, cricketMPR)
+    }
+}
+
 public struct BotDifficultyDisplayProfile: Equatable, Sendable {
+    public let summary: BotModeSummaryMetrics?
+
     public struct HitChances: Equatable, Sendable {
         public let single: Double
         public let double: Double
@@ -223,6 +267,12 @@ public struct BotDifficultyDisplayProfile: Equatable, Sendable {
 
     public let x01: X01
     public let cricket: Cricket
+
+    public init(summary: BotModeSummaryMetrics? = nil, x01: X01, cricket: Cricket) {
+        self.summary = summary
+        self.x01 = x01
+        self.cricket = cricket
+    }
 
     public static func percent(_ value: Double, signed: Bool = false) -> String {
         let formatted = String(format: "%.0f%%", value * 100)
