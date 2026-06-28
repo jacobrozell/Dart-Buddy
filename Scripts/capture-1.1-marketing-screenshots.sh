@@ -1,20 +1,16 @@
 #!/usr/bin/env bash
-# Capture App Store marketing screenshots from the iOS Simulator.
+# Capture App Store marketing screenshots for Dart Buddy 1.1 Party Pack modes.
 #
 # Usage:
-#   ./Scripts/capture-marketing-screenshots.sh              # dark, iPhone 17 Pro, portrait + landscape
-#   APPEARANCE=light ./Scripts/capture-marketing-screenshots.sh
-#   SIM_NAME="iPhone 17 Pro Max" ./Scripts/capture-marketing-screenshots.sh
-#   ORIENTATIONS=portrait ./Scripts/capture-marketing-screenshots.sh   # portrait only
+#   ./Scripts/capture-1.1-marketing-screenshots.sh
+#   APPEARANCE=light ./Scripts/capture-1.1-marketing-screenshots.sh
+#   SIM_NAME="iPhone 17 Pro Max" ./Scripts/capture-1.1-marketing-screenshots.sh
+#   ORIENTATIONS=portrait ./Scripts/capture-1.1-marketing-screenshots.sh
 #
-# Output: marketing-screenshots/raw/*.png (resized for App Store Connect by default)
-# Landscape files use a -landscape suffix before .png (e.g. …-dark-landscape.png).
-# Custom bot detail captures all four light/dark × portrait/landscape frames:
-#   {device}-06b-custom-bot-{light|dark}[-landscape].png
-# Then run: ./Scripts/frame-marketing-screenshots.sh
+# Output: marketing-screenshots/1.1/raw/*.png (resized for App Store Connect by default)
+# Uses `-enable_lean_product_surface` so captures match the shipping 1.1 allowlist.
 #
-# App Store 6.5" slot requires 1284×2778 or 1242×2688 (portrait) and matching landscape sizes.
-# iPhone 17 Pro captures 1206×2622 portrait; set APP_STORE_RESIZE=0 to keep native pixels.
+# Then run: FRAME_INPUT_DIR=marketing-screenshots/1.1/raw FRAME_OUTPUT_DIR=marketing-screenshots/1.1/framed ./Scripts/frame-marketing-screenshots.sh
 
 set -euo pipefail
 
@@ -24,19 +20,25 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/app-store-screenshot-size.sh"
 # shellcheck source=simulator-orientation.sh
 source "$SCRIPT_DIR/simulator-orientation.sh"
-SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
+SIM_NAME="${SIM_NAME:-iPhone 17 Pro Max}"
 APPEARANCE="${APPEARANCE:-dark}"
 ORIENTATIONS="${ORIENTATIONS:-portrait landscape}"
-OUT_DIR="${OUT_DIR:-$ROOT/marketing-screenshots/raw}"
+OUT_DIR="${OUT_DIR:-$ROOT/marketing-screenshots/1.1/raw}"
 BUNDLE_ID="com.jacobrozell.DartBuddy"
 SCHEME="DartBuddy"
 PROJECT="$ROOT/DartBuddy.xcodeproj"
-DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/marketing-screenshots}"
+DERIVED_DATA="${DERIVED_DATA:-$ROOT/.derivedData/marketing-screenshots-1.1}"
 LAUNCH_DELAY="${LAUNCH_DELAY:-5}"
 ORIENTATION_SETTLE_SEC="${ORIENTATION_SETTLE_SEC:-1.5}"
 APP_STORE_RESIZE="${APP_STORE_RESIZE:-1}"
 
-COMMON_ARGS=(-ui_test_reset -ui_test_disable_feedback -disable_firebase_analytics -skip_release_highlights)
+COMMON_ARGS=(
+  -enable_lean_product_surface
+  -ui_test_reset
+  -ui_test_disable_feedback
+  -disable_firebase_analytics
+  -skip_release_highlights
+)
 
 slugify() {
   echo "$1" | tr ' ' '-' | tr -d '()' | tr '[:upper:]' '[:lower:]'
@@ -44,6 +46,7 @@ slugify() {
 
 echo "→ Project: $ROOT"
 echo "→ Simulator: $SIM_NAME ($APPEARANCE)"
+echo "→ Product surface: Party Pack 1.1 (lean)"
 echo "→ Orientations: $ORIENTATIONS"
 echo "→ Output: $OUT_DIR"
 
@@ -53,7 +56,7 @@ if [[ ! -d "$PROJECT" ]]; then
 fi
 
 mkdir -p "$OUT_DIR"
-CAPTURE_TMP="${TMPDIR:-/tmp}/dartbuddy-marketing-capture-$$"
+CAPTURE_TMP="${TMPDIR:-/tmp}/dartbuddy-1.1-marketing-capture-$$"
 mkdir -p "$CAPTURE_TMP"
 trap 'rm -rf "$CAPTURE_TMP"' EXIT
 
@@ -160,75 +163,44 @@ capture_frame() {
   cp "$capture_path" "$OUT_DIR/$filename"
   normalize_screenshot_for_orientation "$OUT_DIR/$filename" "$orientation"
   verify_screenshot_orientation "$OUT_DIR/$filename" "$orientation"
-  if [[ "$APP_STORE_RESIZE" == 1 ]]; then
+  if [[ "$APP_STORE_RESIZE" == "1" ]]; then
     app_store_resize_png_for_orientation "$OUT_DIR/$filename" "$orientation"
   fi
 }
 
-capture_custom_bot_matrix() {
-  echo "→ Custom bot detail matrix (light/dark × ${ORIENTATIONS})…"
-  local -a snapshot_args=(
-    "${COMMON_ARGS[@]}"
-    -seed_demo
-    -snapshot_tab
-    players
-    -snapshot_custom_bot
-  )
-  for appearance in light dark; do
-    xcrun simctl ui "$SIM_UDID" appearance "$appearance"
-    for orientation in $ORIENTATIONS; do
-      local suffix=""
-      if [[ "$orientation" == "landscape" ]]; then
-        suffix="-landscape"
-      fi
-      local filename="${DEVICE_SLUG}-06b-custom-bot-${appearance}${suffix}.png"
-      capture_frame "$filename" "$orientation" "${snapshot_args[@]}"
-    done
-  done
-  xcrun simctl ui "$SIM_UDID" appearance "$APPEARANCE"
-}
-
 DEVICE_SLUG="$(slugify "$SIM_NAME")"
 
-# App Store priority order (specs/AppStoreConnectSpec.md §8)
-capture "01-x01-match" \
-  "${COMMON_ARGS[@]}" -snapshot_match_x01
+# 1.1 Party Pack — in-match captures (App Store priority)
+capture "10-raid-match" \
+  "${COMMON_ARGS[@]}" -snapshot_match_raid
 
-capture "02-cricket-match" \
-  "${COMMON_ARGS[@]}" -snapshot_match_cricket
+capture "11-baseball-match" \
+  "${COMMON_ARGS[@]}" -snapshot_match_baseball
 
-capture "03-match-setup" \
+capture "12-killer-match" \
+  "${COMMON_ARGS[@]}" -snapshot_match_killer
+
+capture "13-shanghai-match" \
+  "${COMMON_ARGS[@]}" -snapshot_match_shanghai
+
+capture "14-around-the-clock-match" \
+  "${COMMON_ARGS[@]}" -snapshot_match_aroundTheClock
+
+# Play setup with demo roster (shows lean Play home; no Modes tab)
+capture "15-play-setup" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_play_setup
 
-capture "04-activity-history" \
+# Activity history includes completed Baseball from demo seed
+capture "16-activity-history" \
   "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity
-
-# Lean 1.0 hides the Modes tab — skip catalog shots (see docs/release/1.0.0-ship-checklist.md).
-
-capture "05-match-summary" \
-  "${COMMON_ARGS[@]}" -snapshot_match_summary
-
-capture "06-players" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab players
-
-capture_custom_bot_matrix
-
-capture "07-activity-statistics" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab activity -snapshot_activity_segment statistics
-
-capture "08-onboarding-welcome" \
-  "${COMMON_ARGS[@]}" -ui_test_onboarding
-
-capture "10-settings" \
-  "${COMMON_ARGS[@]}" -seed_demo -snapshot_tab settings
 
 echo ""
 first_png="$(ls -1 "$OUT_DIR"/*.png | head -1)"
-echo "Done. Raw screenshots ($(magick identify -format '%wx%h' "$first_png")):"
+echo "Done. 1.1 marketing screenshots ($(magick identify -format '%wx%h' "$first_png")):"
 ls -1 "$OUT_DIR"/*.png
-if [[ "$APP_STORE_RESIZE" == 1 ]]; then
+if [[ "$APP_STORE_RESIZE" == "1" ]]; then
   echo "App Store export (portrait): ${APP_STORE_WIDTH}×${APP_STORE_HEIGHT}"
   echo "App Store export (landscape): ${APP_STORE_HEIGHT}×${APP_STORE_WIDTH}"
 fi
 echo ""
-echo "Next: ./Scripts/frame-marketing-screenshots.sh"
+echo "Next: RAW_DIR=marketing-screenshots/1.1/raw FRAMED_DIR=marketing-screenshots/1.1/framed ./Scripts/frame-marketing-screenshots.sh"

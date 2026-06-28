@@ -110,6 +110,11 @@ APP_STORE_WIDTH=1242 APP_STORE_HEIGHT=2688 ./Scripts/capture-marketing-screensho
 | X01 in progress | `-snapshot_match_x01` |
 | X01 in progress (8 players) | `-snapshot_match_x01_8player` |
 | Cricket in progress | `-snapshot_match_cricket` |
+| Baseball in progress | `-snapshot_match_baseball` |
+| Killer in progress | `-snapshot_match_killer` |
+| Shanghai in progress | `-snapshot_match_shanghai` |
+| Around the Clock in progress | `-snapshot_match_aroundTheClock` |
+| Raid in progress | `-snapshot_match_raid` |
 | Demo data | `-seed_demo` |
 | Match summary | `-snapshot_match_summary` |
 | Tab | `-snapshot_tab play` / `modes` / `players` / `activity` / `settings` |
