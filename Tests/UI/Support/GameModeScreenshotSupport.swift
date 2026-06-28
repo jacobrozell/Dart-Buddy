@@ -275,7 +275,7 @@ extension DartBuddyUITestCase {
             )
             return
         case .raid:
-            break
+            _ = app.descendants(matching: .any)["raid_match_header"].waitForExistence(timeout: wait)
         }
         XCTAssertTrue(
             exit.waitForExistence(timeout: wait),

@@ -169,7 +169,7 @@ Future kinds (e.g. campaign) add new `BotDescriptor` conformers; they do not for
 | Metrics encode/decode | `CustomBotTests.swift` |
 | Interpolator / resolver | `BotSkillProfileInterpolatorTests`, plan Phase A suite |
 | Setup roster | `MatchSetupViewModelTests` |
-| Lean UI smoke | `Lean1_0SmokeUITests` |
+| Lean UI smoke | `PartyPack1_1SmokeUITests` |
 | Device | `release_checklist.md` §3 custom bot rows |
 
 ---

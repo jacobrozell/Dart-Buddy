@@ -84,6 +84,7 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 | Spec | Covers |
 |------|--------|
 | [`BotOpponentSpec.md`](BotOpponentSpec.md) | Preset difficulty bots, `DartBotEngine`, pacing |
+| [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) | App-wide instant bot throw playback (all modes, all bot kinds) |
 | [`TrainingBotSpec.md`](TrainingBotSpec.md) | Training Partner bots, eligibility, skill calibration |
 | [`CustomBotSpec.md`](CustomBotSpec.md) | User-defined custom bots, configuration, template resolution, UI phases |
 
@@ -98,6 +99,7 @@ Each game spec includes **§ Player count**, **§ How to Play**, and **§ Locali
 | [`ThrowHistoryHeatmapSpec.md`](ThrowHistoryHeatmapSpec.md) | Player Detail throw map — board scatter, period filter, sector bars |
 | [`TeamPlaySpec.md`](TeamPlaySpec.md) | Shared team roster, turn order, persistence for team-capable modes |
 | [`SettingsSpec.md`](SettingsSpec.md) | Preferences, defaults, data reset entry point |
+| [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) | App-wide instant bot throw playback (Settings → During Play) |
 | [`DeleteAllDataSpec.md`](DeleteAllDataSpec.md) | Reset inventory, scaling checklist, regression tests |
 
 ### Gamification (post-1.0 R&D)

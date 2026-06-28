@@ -39,7 +39,7 @@ Conventions are written down in [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 1. **Bootstrap & recovery** — `DartBuddyApp` gates on `AppBootstrapper`; store open failures auto-repair via `BootstrapStoreRecovery` (logged faults, no blocking UI).
 2. **Dependency injection** — `AppDependencies` wired once; features receive protocols, not concrete SwiftData types in views.
 3. **Domain purity** — `X01Engine`, `CricketEngine`, `MatchLifecycleService` stay framework-agnostic; ViewModels orchestrate IO.
-4. **Product surface gating** — `ProductSurface` centralizes lean 1.0 vs full catalog; `ProductSurfaceTests` + `Lean1_0SmokeUITests` guard the default build.
+4. **Product surface gating** — `ProductSurface` centralizes lean release slices vs full catalog; `ProductSurfaceTests` + `PartyPack1_1SmokeUITests` guard the 1.1 default build.
 5. **Appearance policy** — `AppAppearancePolicy` + `SystemNavigationPolicy` (iOS 26 Liquid Glass nav); `BrandChrome` modifiers avoid copy-paste.
 6. **Telemetry** — `AppLogger` → allowlisted Firebase Analytics + Crashlytics sinks; feature flags disable telemetry in Debug/CI/UI tests.
 7. **Accessibility IDs** — Gameplay and settings flows expose stable identifiers consumed by `WCAGAccessibilityUITests` and the X01/Cricket UI test plan.
@@ -121,7 +121,7 @@ Dark/light progress tracker: [`accessibility/dark-light-mode.md`](../accessibili
 |-------|----------|------|
 | Unit | `Tests/Unit/` | Engines, VMs, repos, policy, simulations, identifier contracts |
 | Accessibility | `Tests/Accessibility/` | WCAG contrast + label contracts |
-| Lean smoke | `Tests/UI/Lean1_0SmokeUITests.swift` | 4-tab shell, X01/Cricket start, reset, resume |
+| Lean smoke | `Tests/UI/PartyPack1_1SmokeUITests.swift` | 4-tab shell, 7-mode picker, party + Raid + practice starts, reset, resume |
 | Mode UI | `Tests/UI/X01MatchUITests.swift`, `CricketMatchUITests.swift` | Gameplay pad flows |
 | Regression UI | `Tests/UI/RegressionUITests.swift` | Bot undo, exit Stay, bust, landscape |
 | WCAG UI | `Tests/UI/WCAGAccessibilityUITests.swift` | Automated audits + ID contracts |

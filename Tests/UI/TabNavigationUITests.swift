@@ -20,6 +20,7 @@ final class TabNavigationUITests: DartBuddyUITestCase {
 
         ensureSettingsTab(app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: timeout))
+        ensureSettingsSection("startingMode", in: app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["Starting Mode"].waitForExistence(timeout: timeout))
     }
 

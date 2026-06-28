@@ -62,24 +62,38 @@ enum ActivityModeFilter: String, CaseIterable, Identifiable, Hashable {
 
     /// Filters shown in Activity UI for the current product surface.
     static var visibleCases: [ActivityModeFilter] {
+        visibleCases(arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func visibleCases(arguments: [String]) -> [ActivityModeFilter] {
         allCases.filter { filter in
             guard let matchType = filter.matchType else { return true }
-            return ProductSurface.isMatchTypeReachable(matchType)
+            return ProductSurface.isMatchTypeReachable(matchType, arguments: arguments)
         }
     }
 
     /// Match types included when this filter is "All games" on the current product surface.
     /// `nil` means no extra restriction (full product surface).
     static var includedMatchTypesForAllFilter: [MatchType]? {
-        guard !ProductSurface.isFullProductSurfaceEnabled else { return nil }
-        let reachable = allCases.compactMap(\.matchType).filter { ProductSurface.isMatchTypeReachable($0) }
+        includedMatchTypesForAllFilter(arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func includedMatchTypesForAllFilter(arguments: [String]) -> [MatchType]? {
+        guard !ProductSurface.isFullProductSurfaceEnabled(arguments: arguments) else { return nil }
+        let reachable = allCases.compactMap(\.matchType).filter {
+            ProductSurface.isMatchTypeReachable($0, arguments: arguments)
+        }
         return reachable.isEmpty ? nil : reachable
     }
 
     /// History/stats query constraint for the current filter selection.
     var historyQueryTypes: (matchType: MatchType?, includedMatchTypes: [MatchType]?) {
+        historyQueryTypes(arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    func historyQueryTypes(arguments: [String]) -> (matchType: MatchType?, includedMatchTypes: [MatchType]?) {
         if let matchType { return (matchType, nil) }
-        return (nil, Self.includedMatchTypesForAllFilter)
+        return (nil, Self.includedMatchTypesForAllFilter(arguments: arguments))
     }
 }
 

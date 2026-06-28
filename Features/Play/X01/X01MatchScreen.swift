@@ -143,7 +143,7 @@ struct X01MatchScreen: View {
                 isBotPlaying: viewModel.isBotPlaying,
                 audio: audio,
                 haptics: haptics,
-                botDartHapticsEnabled: feedbackPreferences.botDartHapticsEnabled
+                feedbackPreferences: feedbackPreferences
             )
         }
         .onChange(of: viewModel.turnTotalCallerSignal) { _, signal in

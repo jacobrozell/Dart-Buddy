@@ -35,6 +35,10 @@ enum DemoSeeder {
             await seedPlayersOnly(dependencies)
         }
 
+        if arguments.contains("-seed_unreachable_active_match") {
+            await seedUnreachableActiveMatch(dependencies)
+        }
+
         if arguments.contains("-seed_training_locked") {
             await seedTrainingPartnerState(dependencies, completedX01Games: 3, createBot: false)
         }
@@ -602,6 +606,39 @@ enum DemoSeeder {
         }
     }
 
+    /// Seeds an in-progress match for a mode hidden on the party-pack surface (e.g. Golf).
+    /// UI tests assert Play home does not offer Resume when the active match is unreachable.
+    private static func seedUnreachableActiveMatch(_ dependencies: AppDependencies) async {
+        do {
+            var players = try await dependencies.playerRepository.fetchPlayers(includeArchived: false)
+            if players.count < 2 {
+                if players.isEmpty {
+                    let alice = try await dependencies.playerRepository.createPlayer(name: "Alice")
+                    let bob = try await dependencies.playerRepository.createPlayer(name: "Bob")
+                    players = [alice, bob]
+                } else {
+                    let extra = try await dependencies.playerRepository.createPlayer(name: "Bob")
+                    players.append(extra)
+                }
+            }
+            let first = players[0]
+            let second = players[1]
+            let session = try await createPersistedMatchSession(
+                dependencies: dependencies,
+                type: .golf,
+                payload: MatchConfigPayload.golf(MatchConfigGolf()),
+                players: [(first, first.name), (second, second.name)]
+            )
+            await MainActor.run { dependencies.activeMatchStore.save(session) }
+        } catch {
+            dependencies.logger.error(
+                .appLifecycle,
+                eventName: "seed_unreachable_active_match_failed",
+                message: "Unreachable active match seed failed: \(error)"
+            )
+        }
+    }
+
     private static func launchAppearanceMode(from arguments: [String]) -> String? {
         guard let index = arguments.firstIndex(of: "-appearance_mode"),
               arguments.indices.contains(index + 1) else {
@@ -634,7 +671,7 @@ enum DemoSeeder {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: current.botStaggerEnabled,
                 botDartHapticsEnabled: current.botDartHapticsEnabled,
-                instantBotTurnsEnabled: current.instantBotTurnsEnabled,
+            instantBotTurnsEnabled: false,
                 defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )
@@ -667,7 +704,7 @@ enum DemoSeeder {
                 defaultSetsEnabled: current.defaultSetsEnabled,
                 botStaggerEnabled: false,
                 botDartHapticsEnabled: false,
-                instantBotTurnsEnabled: current.instantBotTurnsEnabled,
+            instantBotTurnsEnabled: false,
                 defaultDartEntryPresentationRaw: current.defaultDartEntryPresentationRaw,
                 updatedAt: Date()
             )

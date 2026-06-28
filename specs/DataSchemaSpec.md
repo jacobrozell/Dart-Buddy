@@ -16,7 +16,7 @@ This spec complements `specs/SwiftData.md` (versioning/migration policy).
 - `MatchParticipantRecord` — bot fields: `botKindRaw`, `botSkillProfilePayload`
 - `MatchSnapshotRecord`
 - `MatchEventRecord`
-- `SettingsRecord` — bot prefs: `botStaggerEnabled?`, `botDartHapticsEnabled?`
+- `SettingsRecord` — bot prefs: `botStaggerEnabled?`, `botDartHapticsEnabled?`, `instantBotTurnsEnabled?` ([`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md))
 
 **Post-1.0 only** (not in 1.0 schema):
 

@@ -4,7 +4,7 @@
 Define Around the Clock — hit segments 1 through 20 in order — for future implementation.
 
 **Status:** Shipped (`practice.aroundTheClock`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
-**Estimated release:** `1.4`
+**Estimated release:** `1.1`
 
 **In-visit progression:** [`InVisitSequenceProgressionSupplement.md`](../InVisitSequenceProgressionSupplement.md) (reference implementation).
 
@@ -86,7 +86,7 @@ Replay restores indices.
 |---|---|
 | **Key prefix** | `play.rules.aroundTheClock.` |
 | **Shipped in app** | Yes |
-| **Estimated release** | `1.4` |
+| **Estimated release** | `1.1` |
 
 ### Overview
 | **Title key** | `play.rules.aroundTheClock.overview.title` |

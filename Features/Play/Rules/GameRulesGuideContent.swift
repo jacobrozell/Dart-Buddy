@@ -37,15 +37,37 @@ struct GameRulesGuideContent: View {
                 .frame(maxWidth: .infinity)
             }
 
+            if let entry = headerCatalogEntry {
+                modeHeader(entry)
+            }
+
             ForEach(currentSections) { section in
-                ruleCard(section)
+                ruleCard(section, accent: headerMatchType.map { GameModeAccent.color(for: $0) } ?? Brand.green)
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: selectedMode)
         .onAppear {
             if let initialMode {
                 selectedMode = initialMode
             }
         }
+    }
+
+    private var headerCatalogEntry: GameModeCatalogEntry? {
+        if let catalogPreviewId {
+            return GameModeCatalog.entry(for: catalogPreviewId)
+        }
+        return headerMatchType.flatMap { GameModeCatalog.entry(for: $0) }
+    }
+
+    private var headerMatchType: MatchType? {
+        if let catalogPreviewId {
+            return GameModeCatalog.entry(for: catalogPreviewId)?.matchType
+        }
+        if showsModePicker {
+            return selectedMode
+        }
+        return initialMode
     }
 
     private var currentSections: [GameRulesSection] {
@@ -56,19 +78,60 @@ struct GameRulesGuideContent: View {
         return GameRulesCatalog.guide(for: mode).sections
     }
 
-    private func ruleCard(_ section: GameRulesSection) -> some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            Text(L10n.string(section.titleKey))
-                .font(.headline)
-                .foregroundStyle(Brand.textPrimary)
-            Text(L10n.string(section.bodyKey))
-                .font(.subheadline)
-                .foregroundStyle(Brand.textBodyOnCard)
-                .fixedSize(horizontal: false, vertical: true)
+    private func modeHeader(_ entry: GameModeCatalogEntry) -> some View {
+        HStack(alignment: .top, spacing: DS.Spacing.s3) {
+            if let matchType = entry.matchType {
+                GameModeBadge(type: matchType, size: 44)
+            }
+
+            VStack(alignment: .leading, spacing: DS.Spacing.s1) {
+                Text(entry.localizedName)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Brand.textPrimary)
+                Text(entry.localizedBlurb)
+                    .font(.subheadline)
+                    .foregroundStyle(Brand.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(DS.Spacing.s4)
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+        .background(
+            RoundedRectangle(cornerRadius: DS.Radius.md)
+                .fill(Brand.card)
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.Radius.md)
+                        .strokeBorder(
+                            (entry.matchType.map { GameModeAccent.color(for: $0) } ?? Brand.green).opacity(0.22),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("gameRulesModeHeader")
+    }
+
+    private func ruleCard(_ section: GameRulesSection, accent: Color) -> some View {
+        HStack(alignment: .top, spacing: DS.Spacing.s3) {
+            Image(systemName: section.symbolName)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(accent)
+                .symbolRenderingMode(.hierarchical)
+                .frame(width: 36, height: 36)
+                .background(accent.opacity(0.14), in: RoundedRectangle(cornerRadius: DS.Radius.xs))
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+                Text(LocalizedStringKey(section.titleKey))
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
+                GameRulesBodyText(bodyKey: section.bodyKey)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(DS.Spacing.s4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("gameRulesSection_\(section.id)")
     }

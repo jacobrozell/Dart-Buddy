@@ -8,7 +8,7 @@ struct MatchTurnSubmitterTests {
     @Test
     func submitTurnReturnsSucceededWhenEngineAndPersistenceSucceed() async throws {
         let fixture = try makeSubmitterFixture(afterTotals: [60])
-        let repo = TurnSubmitterFakeMatchRepository()
+        let repo = FakeMatchRepositoryBuilder.turnSubmitter()
         let store = ActiveMatchStore()
         store.save(fixture.session)
         let submitter = makeSubmitter(matchId: fixture.matchId, repository: repo, store: store)
@@ -38,7 +38,7 @@ struct MatchTurnSubmitterTests {
     @Test
     func submitTurnReturnsRejectedWhenEngineThrows() async throws {
         let fixture = try makeSubmitterFixture(afterTotals: [])
-        let submitter = makeSubmitter(matchId: fixture.matchId, repository: TurnSubmitterFakeMatchRepository(), store: ActiveMatchStore())
+        let submitter = makeSubmitter(matchId: fixture.matchId, repository: FakeMatchRepositoryBuilder.turnSubmitter(), store: ActiveMatchStore())
         let appError = AppError(
             code: .validationFailed,
             layer: .domain,
@@ -65,7 +65,7 @@ struct MatchTurnSubmitterTests {
     @Test
     func submitTurnReturnsPersistFailedWhenRepositoryAppendFails() async throws {
         let fixture = try makeSubmitterFixture(afterTotals: [])
-        let repo = TurnSubmitterFakeMatchRepository(failAppend: true)
+        let repo = FakeMatchRepositoryBuilder.turnSubmitter(failAppend: true)
         let submitter = makeSubmitter(matchId: fixture.matchId, repository: repo, store: ActiveMatchStore())
 
         let outcome = await submitter.submitTurn(
@@ -90,7 +90,7 @@ struct MatchTurnSubmitterTests {
     @Test
     func persistProgressUpdatesMatchWhileStillInProgress() async throws {
         let fixture = try makeSubmitterFixture(afterTotals: [])
-        let repo = TurnSubmitterFakeMatchRepository()
+        let repo = FakeMatchRepositoryBuilder.turnSubmitter()
         let submitter = makeSubmitter(matchId: fixture.matchId, repository: repo, store: ActiveMatchStore())
         let updated = try MatchLifecycleService.submitX01Turn(
             session: fixture.session,
@@ -110,7 +110,7 @@ struct MatchTurnSubmitterTests {
     @Test
     func persistProgressCompletesMatchWhenRuntimeIsCompleted() async throws {
         let fixture = try makeSubmitterFixture(afterTotals: [180, 0, 81, 0])
-        let repo = TurnSubmitterFakeMatchRepository()
+        let repo = FakeMatchRepositoryBuilder.turnSubmitter()
         let submitter = makeSubmitter(matchId: fixture.matchId, repository: repo, store: ActiveMatchStore())
         let completed = try MatchLifecycleService.submitX01Turn(
             session: fixture.session,
@@ -129,7 +129,7 @@ struct MatchTurnSubmitterTests {
     @Test
     func persistProgressEvaluatesAchievementsWhenHookRegistered() async throws {
         let fixture = try makeSubmitterFixture(afterTotals: [])
-        let repo = TurnSubmitterFakeMatchRepository()
+        let repo = FakeMatchRepositoryBuilder.turnSubmitter()
         let submitter = makeSubmitter(matchId: fixture.matchId, repository: repo, store: ActiveMatchStore())
         let counting = HookCountingAchievementService()
         AchievementHooks.register(service: counting)
@@ -165,7 +165,7 @@ struct MatchTurnSubmitterTests {
         )
         session = try MatchLifecycleService.submitX01Turn(session: session, enteredTotal: 60, darts: nil)
         let matchId = session.runtime.matchId
-        let repo = TurnSubmitterFakeMatchRepository()
+        let repo = FakeMatchRepositoryBuilder.turnSubmitter()
         let store = ActiveMatchStore()
         store.save(session)
 
@@ -251,7 +251,7 @@ struct MatchTurnSubmitterTests {
             darts: [dart(.triple, 20), dart(.triple, 20), dart(.single, 20)]
         )
         let matchId = session.runtime.matchId
-        let repo = TurnSubmitterFakeMatchRepository()
+        let repo = FakeMatchRepositoryBuilder.turnSubmitter()
         let store = ActiveMatchStore()
         store.save(session)
 
@@ -271,7 +271,7 @@ struct MatchTurnSubmitterTests {
 @MainActor
 private func makeSubmitter(
     matchId: UUID,
-    repository: TurnSubmitterFakeMatchRepository,
+    repository: FakeMatchRepository,
     store: ActiveMatchStore
 ) -> MatchTurnSubmitter {
     MatchTurnSubmitter(
@@ -279,7 +279,7 @@ private func makeSubmitter(
         matchType: .x01,
         eventTypeRaw: "x01Turn",
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: TurnSubmitterSilentLogSink()),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
         matchRepository: repository
     )
 }
@@ -310,65 +310,6 @@ private func makeSubmitterFixture(afterTotals: [Int]) throws -> SubmitterFixture
     return SubmitterFixture(matchId: session.runtime.matchId, session: session)
 }
 
-private actor TurnSubmitterFakeMatchRepository: MatchRepository {
-    private(set) var appendCount = 0
-    private(set) var updateCount = 0
-    private(set) var completeCount = 0
-    private(set) var saveSnapshotCount = 0
-    let failAppend: Bool
-
-    init(failAppend: Bool = false) {
-        self.failAppend = failAppend
-    }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws { updateCount += 1 }
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        completeCount += 1
-        return makeSummary(type: .x01, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        if failAppend {
-            throw AppError(
-                code: .storageUnavailable,
-                layer: .data,
-                severity: .error,
-                isRecoverable: true,
-                userMessageKey: "error.repository.storage"
-            )
-        }
-        appendCount += 1
-        return MatchEventSummary(
-            id: UUID(),
-            matchId: matchId,
-            eventIndex: appendCount - 1,
-            eventTypeRaw: eventTypeRaw,
-            eventPayload: eventPayload,
-            createdAt: Date()
-        )
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        saveSnapshotCount += 1
-        return MatchSnapshotSummary(
-            id: UUID(),
-            matchId: matchId,
-            snapshotVersion: snapshotVersion,
-            snapshotPayload: snapshotPayload,
-            updatedAt: Date()
-        )
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-}
-
 private actor HookCountingAchievementService: AchievementService {
     private(set) var turnEvaluationCount = 0
     private(set) var undoEvaluationCount = 0
@@ -390,8 +331,4 @@ private actor HookCountingAchievementService: AchievementService {
     func fetchGalleryProgress(playerId _: UUID) async throws -> [PlayerAchievementProgress] { [] }
 
     func sessionPresentations(for _: UUID) async -> [AchievementUnlockPresentation] { [] }
-}
-
-private final class TurnSubmitterSilentLogSink: LogSink, @unchecked Sendable {
-    func write(_: LogEntry) {}
 }

@@ -41,9 +41,52 @@ flowchart LR
 3. On the release branch: set `ProductSurface` default, trim `project.yml` locales if needed, run **`DartBuddyUILean`**, device QA.
 4. **Submit** from the release branch (TestFlight → App Review).
 5. **Ship:** merge `release/X.Y.Z` → **`master`**, tag (e.g. `1.2.0`).
-6. **Back-merge** release → `dev` (and any `master` hotfixes) so integration stays current.
+6. **Back-merge** **`master` → `dev`** the same day (and any RC-only fixes from the release branch if they did not land on `dev` yet).
 
 Do **not** treat `master` as the branch where ongoing feature work happens — that is **`dev`**.
+
+---
+
+## Release reconcile gate (before RC)
+
+**When:** Before cutting a new release branch, or before the first TestFlight RC on an existing one.
+
+**Why:** After each App Store ship, `master` holds RC hardening (Schema migrations, lean UI fixes, build numbers) that may never have been merged back to `dev`. If you cut `release/X.Y.Z` from stale `dev`, you re-learn the same conflicts and miss ship-critical fixes (e.g. SchemaV2 after 1.1).
+
+**You do not merge each old `release/*` branch into `dev` separately.** `master` is the cumulative ship hub (`1.0.0`, `1.1.0`, … tags). One back-merge brings all prior ship baselines forward.
+
+### Before first RC
+
+```bash
+git checkout dev
+git merge master          # resolve conflicts once on integration
+# CI green on dev
+
+git checkout release/X.Y.Z
+git merge dev             # or: cut fresh release/X.Y.Z from updated dev
+# set ProductSurface, locale bundle, run DartBuddyUILean
+```
+
+| Step | Branch | Result |
+|------|--------|--------|
+| 1 | `master` → `dev` | `dev` has every shipped fix + all in-progress features |
+| 2 | `dev` → `release/X.Y.Z` | RC branch sits on correct baseline + train-specific trim |
+| 3 | RC fixes | Prefer `release/X.Y.Z` → `dev` as you go (keeps integration current) |
+
+Resolve locale / `project.yml` / marketing conflicts on **`dev`** (full catalog, all `.lproj` in repo). On the **release** branch, re-apply the store bundle trim (`en` only, or `en` + `de`, etc.) after merging `dev`.
+
+### After App Store ship (mandatory)
+
+```bash
+git checkout master
+git merge release/X.Y.Z
+git tag X.Y.Z
+
+git checkout dev
+git merge master          # do not skip — prevents the next release fork
+```
+
+**Failure mode (1.2):** `dev` and `master` diverged after 1.1 ship; `release/1.2.0` was cut from `dev` without step 1, so 1.1 RC fixes had to be cherry-picked from `master`. Fix: run the gate above before RC.
 
 ---
 

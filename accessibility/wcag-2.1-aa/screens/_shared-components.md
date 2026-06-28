@@ -8,7 +8,7 @@ Cross-screen UI that affects multiple WCAG rows. Update here when fixing pad, bo
 | `CricketBoardView` / `CricketMarkCell` | `Features/Play/Cricket/CricketBoardView.swift` | `cricket-match` |
 | `CricketTapPad` | `Features/Play/Cricket/CricketBoardView.swift` | `cricket-match` |
 | `BrandSegmented` | `DesignSystem/Components/BrandControls.swift` | setup, history, statistics |
-| `StatTable` | `Features/Statistics/StatisticsRootView.swift` | statistics, history-detail |
+| `StatTable` | `Features/Statistics/StatTable.swift` | statistics, history-detail |
 | `SectorHitsChart` / trend charts | `Features/Statistics/StatsChartViews.swift` | history-detail, statistics, player-detail |
 | `Brand` tokens | `DesignSystem/Tokens/BrandTheme.swift` | all dark gameplay surfaces |
 

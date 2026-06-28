@@ -44,9 +44,9 @@ private func makeKnockoutViewModel(
     let vm = KnockoutMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: KnockoutSilentLogSink()),
-        matchRepository: KnockoutFakeMatchRepository(),
-        statsRepository: KnockoutFakeStatsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .knockout),
+        statsRepository: FakeStatsRepository(),
         feedbackPreferences: {
             let prefs = FeedbackPreferences()
             prefs.botStaggerEnabled = false
@@ -175,9 +175,9 @@ func knockoutViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws
     let vm = KnockoutMatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: KnockoutSilentLogSink()),
-        matchRepository: KnockoutRehydratingFakeMatchRepository(snapshot: snapshotSummary),
-        statsRepository: KnockoutRehydratingFakeStatsRepository(events: eventSummaries),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.rehydrating(snapshot: snapshotSummary, completedType: .knockout),
+        statsRepository: FakeStatsRepository(events: eventSummaries),
         feedbackPreferences: FeedbackPreferences()
     )
 
@@ -186,89 +186,4 @@ func knockoutViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws
 
     #expect(vm.session?.events.count == 1)
     #expect(store.session(for: matchId) != nil)
-}
-
-// MARK: - Fakes
-
-private struct KnockoutSilentLogSink: LogSink {
-    func write(_: LogEntry) {}
-}
-
-private actor KnockoutFakeMatchRepository: MatchRepository {
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .knockout, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
-}
-
-private actor KnockoutFakeStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
-private actor KnockoutRehydratingFakeMatchRepository: MatchRepository {
-    let snapshot: MatchSnapshotSummary
-    init(snapshot: MatchSnapshotSummary) { self.snapshot = snapshot }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .knockout, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        snapshot.matchId == matchId ? snapshot : nil
-    }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-    private func makeSummary(type: MatchType, status: MatchStatus) -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: status, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
-}
-
-private actor KnockoutRehydratingFakeStatsRepository: StatsRepository {
-    let events: [MatchEventSummary]
-    init(events: [MatchEventSummary]) { self.events = events }
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { events }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
 }

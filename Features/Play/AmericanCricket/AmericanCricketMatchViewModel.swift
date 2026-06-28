@@ -14,10 +14,10 @@ final class AmericanCricketMatchViewModel: ObservableObject {
     @Published private(set) var state: State = .readyTurn
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
 
-    private let matchId: UUID
+    let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
@@ -152,38 +152,6 @@ final class AmericanCricketMatchViewModel: ObservableObject {
         )
     }
 
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-            logger.matchInfo(
-                matchId: matchId,
-                matchType: .americanCricket,
-                category: .appLifecycle,
-                eventName: "match_abandoned",
-                message: "American Cricket match abandoned by user.",
-                metadata: MatchAnalytics.metadata(for: abandoned)
-            )
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .americanCricket,
-                category: .appLifecycle,
-                eventName: "americanCricket_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
-    }
 
     // MARK: - Private
 
@@ -220,7 +188,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
@@ -231,7 +199,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
         }
 
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }
@@ -279,7 +247,7 @@ final class AmericanCricketMatchViewModel: ObservableObject {
                 let didAdvance = activeTargetBefore != activeTargetAfter
                 if didAdvance {
                     state = .targetAdvanced
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds())
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.cricketClosureDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
                 state = .readyTurn
                 if !fromBotPlayback {
@@ -382,51 +350,34 @@ final class AmericanCricketMatchViewModel: ObservableObject {
         }
     }
 
-    private func loadSessionIfNeeded() async {
+    func loadSessionIfNeeded() async {
         if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-            logger.matchInfo(
-                matchId: matchId,
-                matchType: .americanCricket,
-                eventName: "match_session_rehydrated",
-                message: "Rehydrated session from snapshot.",
-                metadata: ["eventCount": String(rehydrated.runtime.eventCount)]
-            )
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .americanCricket,
-                eventName: "match_session_load_failed",
-                message: "Failed to load match session.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "americanCricket.error.sessionMissing"))
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .americanCricket,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "americanCricket.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
         }
     }
 
     private func participant(for playerId: UUID) -> MatchParticipant? {
         session?.runtime.participants.first { ($0.playerId ?? $0.id) == playerId }
     }
+}
+extension AmericanCricketMatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { isBotPlaying || state == .submittingTurn }
+    var hostMatchRepository: any MatchRepository { matchRepository }
+    var hostMatchStore: ActiveMatchStore { store }
+    var hostMatchLogger: any AppLogger { logger }
+    var hostMatchType: MatchType { .americanCricket }
 }

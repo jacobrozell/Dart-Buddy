@@ -108,7 +108,7 @@ struct TicTacToeMatchScreen: View {
                 isBotPlaying: viewModel.isBotPlaying,
                 audio: audio,
                 haptics: haptics,
-                botDartHapticsEnabled: feedbackPreferences.botDartHapticsEnabled
+                feedbackPreferences: feedbackPreferences
             )
         }
         .task { await viewModel.onAppear() }

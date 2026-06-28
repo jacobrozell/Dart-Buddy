@@ -70,4 +70,76 @@ import Testing
         #expect(outcome.updatedState.teamVictory)
         #expect(outcome.updatedState.winnerPlayerId == nil)
     }
+
+    @Test func tripleInExposePhaseDealsThreeDamage() throws {
+        var state = try RaidEngine.makeInitialState(
+            config: MatchConfigRaid(bossTier: .challenger, heroHearts: 3),
+            playerIds: [hero]
+        )
+        state.bossHP = 40
+        state.phase = .expose
+        let outcome = try RaidEngine.submitVisit(
+            state: state,
+            darts: [
+                DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+                DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+                DartInput(multiplier: .single, segment: .oneToTwenty(20))
+            ]
+        )
+        #expect(outcome.event.bossHPBefore - outcome.event.bossHPAfter == 3)
+    }
+
+    @Test func bossHPDropTransitionsFromShieldToExpose() throws {
+        var state = try RaidEngine.makeInitialState(
+            config: MatchConfigRaid(bossTier: .challenger, heroHearts: 3, enrageEnabled: false),
+            playerIds: [hero]
+        )
+        state.bossHP = 45
+        let outcome = try RaidEngine.submitVisit(
+            state: state,
+            darts: [
+                DartInput(multiplier: .triple, segment: .oneToTwenty(20)),
+                DartInput(multiplier: .single, segment: .oneToTwenty(20)),
+                DartInput(multiplier: .single, segment: .oneToTwenty(20))
+            ]
+        )
+        #expect(outcome.updatedState.phase == .expose)
+        #expect(outcome.updatedState.bossHP == 37)
+        #expect(outcome.updatedState.closedShieldSegments.contains(20))
+    }
+
+    @Test func soloEnrageStrikesWhenVisitBelowThreshold() throws {
+        var state = try RaidEngine.makeInitialState(
+            config: MatchConfigRaid(bossTier: .challenger, heroHearts: 3, enrageEnabled: true),
+            playerIds: [hero]
+        )
+        state.bossHP = 15
+        state.phase = .expose
+        state.enrageActive = true
+        let miss = DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        let outcome = try RaidEngine.submitVisit(
+            state: state,
+            darts: [miss, miss, miss]
+        )
+        #expect(outcome.event.enrageVictims.contains(hero))
+        #expect(outcome.updatedState.heroes[0].hearts == 2)
+    }
+
+    @Test func allHeroesDownTriggersTeamDefeat() throws {
+        var state = try RaidEngine.makeInitialState(
+            config: MatchConfigRaid(bossTier: .challenger, heroHearts: 1, enrageEnabled: true),
+            playerIds: [hero]
+        )
+        state.bossHP = 15
+        state.phase = .expose
+        state.enrageActive = true
+        let miss = DartInput(multiplier: .single, segment: .miss, isMiss: true)
+        let outcome = try RaidEngine.submitVisit(
+            state: state,
+            darts: [miss, miss, miss]
+        )
+        #expect(outcome.updatedState.isComplete)
+        #expect(!outcome.updatedState.teamVictory)
+        #expect(outcome.updatedState.winnerPlayerId != nil)
+    }
 }

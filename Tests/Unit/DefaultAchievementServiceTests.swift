@@ -11,8 +11,8 @@ struct DefaultAchievementServiceTests {
         let achievementRepository = RecordingAchievementRepository()
         let service = DefaultAchievementService(
             achievementRepository: achievementRepository,
-            matchRepository: EmptyHistoryMatchRepository(),
-            statsRepository: EmptyStatsRepository(),
+            matchRepository: FakeMatchRepository(),
+            statsRepository: FakeStatsRepositoryBuilder.empty(),
             featureFlags: StubFeatureFlags(flags: [.enableAchievements: false])
         )
 
@@ -46,8 +46,8 @@ struct DefaultAchievementServiceTests {
         let achievementRepository = RecordingAchievementRepository()
         let service = DefaultAchievementService(
             achievementRepository: achievementRepository,
-            matchRepository: EmptyHistoryMatchRepository(),
-            statsRepository: EmptyStatsRepository(),
+            matchRepository: FakeMatchRepository(),
+            statsRepository: FakeStatsRepositoryBuilder.empty(),
             featureFlags: StubFeatureFlags(flags: [.enableAchievements: true])
         )
 
@@ -69,8 +69,8 @@ struct DefaultAchievementServiceTests {
         let achievementRepository = RecordingAchievementRepository()
         let service = DefaultAchievementService(
             achievementRepository: achievementRepository,
-            matchRepository: EmptyHistoryMatchRepository(),
-            statsRepository: EmptyStatsRepository(),
+            matchRepository: FakeMatchRepository(),
+            statsRepository: FakeStatsRepositoryBuilder.empty(),
             featureFlags: StubFeatureFlags(flags: [.enableAchievements: true])
         )
 
@@ -116,48 +116,6 @@ private actor RecordingAchievementRepository: AchievementRepository {
             .filter { $0.kind == .unlock }
             .map { AchievementUnlockPresentation(playerId: $0.playerId, achievementId: $0.achievementId, isNewUnlock: true) }
     }
-}
-
-private actor EmptyHistoryMatchRepository: MatchRepository {
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(
-            id: UUID(),
-            type: type,
-            status: .inProgress,
-            startedAt: Date(),
-            endedAt: nil,
-            winnerPlayerId: nil,
-            forfeitedByPlayerId: nil,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 0,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        fatalError("Not used in achievement service tests")
-    }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        fatalError("Not used in achievement service tests")
-    }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
-        fatalError("Not used in achievement service tests")
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor EmptyStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
 }
 
 private struct StubFeatureFlags: FeatureFlagsProvider {

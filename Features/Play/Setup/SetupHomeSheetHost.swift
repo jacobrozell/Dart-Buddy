@@ -33,7 +33,13 @@ struct SetupHomeSheetHost: View {
     @State private var startTask: Task<Void, Never>?
 
     var body: some View {
-        SetupHomeChrome(setupViewModel: setupViewModel, onStart: startMatchTapped) {
+        SetupHomeChrome(
+            setupViewModel: setupViewModel,
+            startTask: $startTask,
+            onStart: startMatchTapped,
+            onShowCustomBot: { activeSheet = .customBot },
+            onShowAddPlayer: { activeSheet = .addPlayer }
+        ) {
             SetupHomeScrollContent(
                 homeViewModel: homeViewModel,
                 setupViewModel: setupViewModel,
@@ -48,7 +54,12 @@ struct SetupHomeSheetHost: View {
             )
         }
         .onAppear {
-            Task { await setupViewModel.onAppear() }
+            Task {
+                if let selection = pendingMatchPlayerSelections.consumeModeSelection() {
+                    setupViewModel.applyPendingModeSelection(selection)
+                }
+                await setupViewModel.onAppear()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .settingsDidUpdate)) { _ in
             Task { await setupViewModel.onAppear() }

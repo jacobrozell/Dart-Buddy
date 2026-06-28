@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Screen ID | `statistics` |
-| Primary source | `Features/Statistics/StatisticsRootView.swift`, `StatsChartViews.swift` |
+| Primary source | `Features/Activity/ActivityRootView.swift`, `Features/Statistics/StatTable.swift`, `StatsChartViews.swift` |
 | Core flow | No (tab) |
 | Last verified | 2026-06-06 |
 | Screen status | `Partial` |

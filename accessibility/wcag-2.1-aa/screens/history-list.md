@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Screen ID | `history-list` |
-| Primary source | `Features/History/HistoryRootView.swift` |
+| Primary source | `Features/Activity/ActivityRootView.swift`, `Features/History/MatchHistoryCard.swift` |
 | Core flow | No (tab) |
 | Last verified | 2026-06-06 |
 | Screen status | `Partial` |

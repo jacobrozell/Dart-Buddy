@@ -15,6 +15,27 @@ struct BrandTitleTests {
         let text = try String(contentsOf: url, encoding: .utf8)
         #expect(text.contains("\"play.home.appTitle\"") == false)
     }
+
+    @Test("Party Pack gameplay nav titles resolve from string tables")
+    func partyPackGameplayNavTitlesResolve() {
+        let keys = [
+            "play.baseball.title",
+            "play.killer.title",
+            "play.shanghai.title",
+            "play.aroundTheClock.navTitle",
+            "play.golf.navTitle"
+        ]
+        for key in keys {
+            let title = L10n.string(key)
+            #expect(!title.isEmpty)
+            #expect(title != key)
+        }
+    }
+
+    @Test("Golf nav title resolves from GameplayModes table", .tags(.regression))
+    func golfNavTitleResolvesFromGameplayModes() {
+        #expect(L10n.string("play.golf.navTitle") == "Golf")
+    }
 }
 
 /// Test-only access to localization file paths shared with parity tests.

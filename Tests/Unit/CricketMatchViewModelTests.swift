@@ -24,9 +24,11 @@ private func makeCricketViewModel(
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketFakeMatchRepository(failAppend: failAppend),
-        statsRepository: CricketFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: failAppend
+            ? FakeMatchRepositoryBuilder.matchViewModelFailingAppend(completedType: .cricket)
+            : FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket),
+        statsRepository: FakeStatsRepository()
     )
     return (vm, store)
 }
@@ -68,9 +70,9 @@ func cricketViewModelRehydratesSessionFromSnapshotWhenStoreEmpty() async throws 
     let vm = CricketMatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketRehydratingFakeMatchRepository(snapshot: snapshotSummary),
-        statsRepository: CricketRehydratingFakeStatsRepository(events: eventSummaries)
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.rehydrating(snapshot: snapshotSummary, completedType: .cricket),
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: eventSummaries)
     )
 
     #expect(vm.session == nil)
@@ -173,9 +175,9 @@ func cricketViewModelBoardColumnsCarryParticipantColor() async throws {
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketFakeMatchRepository(),
-        statsRepository: CricketFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket),
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
 
@@ -211,9 +213,9 @@ func cricketViewModelBoardColumnsFallbackColorForLegacyParticipants() async thro
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketFakeMatchRepository(),
-        statsRepository: CricketFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket),
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
 
@@ -233,9 +235,9 @@ func cricketViewModelBoardColumnsHideLegsForSingleLegMatch() async throws {
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketFakeMatchRepository(),
-        statsRepository: CricketFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket),
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
 
@@ -255,9 +257,9 @@ func cricketViewModelBoardColumnsOmitLegsLabelForMultiLegMatch() async throws {
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketFakeMatchRepository(),
-        statsRepository: CricketFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket),
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
 
@@ -407,9 +409,9 @@ func cricketViewModelMatchSubtitleReflectsConfig() async throws {
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketFakeMatchRepository(),
-        statsRepository: CricketFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket),
+        statsRepository: FakeStatsRepository()
     )
     await vm.onAppear()
 
@@ -421,13 +423,13 @@ func cricketViewModelMatchSubtitleReflectsConfig() async throws {
 func cricketViewModelAbandonMatchMarksAbandonedAndClearsStore() async throws {
     let (vm, store) = try makeCricketViewModel()
     let matchId = vm.session!.runtime.matchId
-    let repo = CricketAbandonCapturingMatchRepository()
+    let repo = FakeMatchRepositoryBuilder.abandonCapturing(completedType: .cricket)
     let abandoningVM = CricketMatchViewModel(
         matchId: matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
         matchRepository: repo,
-        statsRepository: CricketFakeStatsRepository()
+        statsRepository: FakeStatsRepository()
     )
     await abandoningVM.onAppear()
 
@@ -446,9 +448,9 @@ func cricketViewModelSurfacesErrorWhenSnapshotPayloadInvalid() async throws {
     let vm = CricketMatchViewModel(
         matchId: matchId,
         store: ActiveMatchStore(),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
         matchRepository: CricketCorruptSnapshotMatchRepository(matchId: matchId),
-        statsRepository: CricketFakeStatsRepository()
+        statsRepository: FakeStatsRepository()
     )
 
     await vm.onAppear()
@@ -475,7 +477,7 @@ func cricketViewModelReconcileAfterSummaryUndoOnAppear() async throws {
         [CricketTestDarts.miss(), CricketTestDarts.miss(), CricketTestDarts.miss()]
     ])
     let matchId = vm.session!.runtime.matchId
-    let matchRepo = CricketFakeMatchRepository()
+    let matchRepo = FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket)
     vm.enteredDarts = [CricketTestDarts.innerBull, CricketTestDarts.outerBull]
     await vm.submitTurn()
     #expect(vm.state == .matchCompleted)
@@ -530,9 +532,9 @@ func cricketViewModelCountsActiveBotVisitDartsWhileBotIsUp() async throws {
     let vm = CricketMatchViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: CricketSilentLogSink()),
-        matchRepository: CricketFakeMatchRepository(),
-        statsRepository: CricketFakeStatsRepository()
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        matchRepository: FakeMatchRepositoryBuilder.matchViewModel(completedType: .cricket),
+        statsRepository: FakeStatsRepository()
     )
     vm.enteredDarts = [CricketTestDarts.triple(20), CricketTestDarts.miss()]
 
@@ -543,10 +545,6 @@ func cricketViewModelCountsActiveBotVisitDartsWhileBotIsUp() async throws {
 }
 
 // MARK: - Fakes
-
-private final class CricketSilentLogSink: LogSink, @unchecked Sendable {
-    func write(_: LogEntry) {}
-}
 
 private actor CricketCorruptSnapshotMatchRepository: MatchRepository {
     let matchId: UUID
@@ -569,112 +567,4 @@ private actor CricketCorruptSnapshotMatchRepository: MatchRepository {
     func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor CricketRehydratingFakeStatsRepository: StatsRepository {
-    let events: [MatchEventSummary]
-
-    init(events: [MatchEventSummary]) { self.events = events }
-
-    func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary] {
-        events.filter { $0.matchId == matchId }
-    }
-
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
-private actor CricketRehydratingFakeMatchRepository: MatchRepository {
-    let snapshot: MatchSnapshotSummary
-
-    init(snapshot: MatchSnapshotSummary) { self.snapshot = snapshot }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .cricket, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        snapshot.matchId == matchId ? snapshot : nil
-    }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
-}
-
-private actor CricketFakeStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
-private actor CricketAbandonCapturingMatchRepository: MatchRepository {
-    private(set) var lastStatus: MatchStatus?
-    private(set) var snapshotSaved = false
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(
-            id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil,
-            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
-            eventCount: 0, createdAt: Date(), updatedAt: Date()
-        )
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_ match: MatchSummary) async throws { lastStatus = match.status }
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        snapshotSaved = true
-        return MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor CricketFakeMatchRepository: MatchRepository {
-    let failAppend: Bool
-    init(failAppend: Bool = false) { self.failAppend = failAppend }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        makeSummary(type: type, status: .inProgress)
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        makeSummary(type: .cricket, status: .completed)
-    }
-    func appendEvent(matchId: UUID, eventTypeRaw: String, eventPayload: Data) async throws -> MatchEventSummary {
-        if failAppend {
-            throw AppError(code: .storageUnavailable, layer: .data, severity: .error, isRecoverable: true, userMessageKey: "error.repository.storage")
-        }
-        return MatchEventSummary(id: UUID(), matchId: matchId, eventIndex: 0, eventTypeRaw: eventTypeRaw, eventPayload: eventPayload, createdAt: Date())
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-
 }

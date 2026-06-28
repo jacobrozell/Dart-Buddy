@@ -121,11 +121,11 @@ private func resetIntentBridge() {
 private func makeIntentPerformDependencies(activeMatch: MatchSummary?) throws -> AppDependencies {
     AppDependencies(
         modelContainer: try ModelContainerFactory.makeContainer(mode: .inMemory),
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: IntentPerformSilentLogSink()),
-        playerRepository: IntentPerformFakePlayerRepository(),
-        matchRepository: IntentPerformFakeMatchRepository(activeMatch: activeMatch),
-        statsRepository: IntentPerformFakeStatsRepository(),
-        settingsRepository: IntentPerformFakeSettingsRepository(),
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink()),
+        playerRepository: FakePlayerRepositoryBuilder.emptyThrowing(),
+        matchRepository: FakeMatchRepositoryBuilder.withActiveMatch( activeMatch),
+        statsRepository: FakeStatsRepository(),
+        settingsRepository: FakeSettingsRepository(),
         hapticsService: NoopHapticsService(),
         audioFeedbackService: NoopAudioFeedbackService(),
         turnTotalCallerService: NoopTurnTotalCallerService(),
@@ -150,69 +150,4 @@ private func makeIntentActiveMatch() -> MatchSummary {
         createdAt: Date(),
         updatedAt: Date()
     )
-}
-
-private struct IntentPerformSilentLogSink: LogSink {
-    func write(_: LogEntry) {}
-}
-
-private actor IntentPerformFakePlayerRepository: PlayerRepository {
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { [] }
-    func createPlayer(name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-}
-
-private actor IntentPerformFakeMatchRepository: MatchRepository {
-    let activeMatch: MatchSummary?
-    init(activeMatch: MatchSummary?) { self.activeMatch = activeMatch }
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func fetchActiveMatch() async throws -> MatchSummary? { activeMatch }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error") }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor IntentPerformFakeStatsRepository: StatsRepository {
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { [] }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
-}
-
-private actor IntentPerformFakeSettingsRepository: SettingsRepository {
-    func fetchSettings() async throws -> SettingsSummary {
-        SettingsSummary(
-            id: UUID(),
-            appearanceModeRaw: "system",
-            hapticsEnabled: true,
-            soundEnabled: true,
-            turnTotalCallerEnabled: false,
-            defaultMatchTypeRaw: "x01",
-            defaultX01StartScore: 501,
-            defaultCheckoutModeRaw: "doubleOut",
-            defaultCheckInModeRaw: "straightIn",
-            defaultLegFormatRaw: "firstTo",
-            defaultLegsToWin: 3,
-            defaultSetsEnabled: false,
-            botStaggerEnabled: true,
-            botDartHapticsEnabled: true,
-            instantBotTurnsEnabled: false,
-            defaultDartEntryPresentationRaw: "numberPad",
-            updatedAt: Date()
-        )
-    }
-    func seedDefaultsIfNeeded() async throws -> SettingsSummary { try await fetchSettings() }
-    func updateSettings(_ settings: SettingsSummary) async throws -> SettingsSummary { settings }
-    func resetPreferencesToDefaults() async throws {}
-    func resetAllLocalData() async throws {}
 }

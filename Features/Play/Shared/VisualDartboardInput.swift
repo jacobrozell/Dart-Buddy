@@ -78,13 +78,15 @@ struct VisualDartboardInput: View {
             .frame(maxWidth: .infinity)
             .overlay {
                 GeometryReader { geometry in
+                    let side = min(geometry.size.width, geometry.size.height)
                     ZStack {
                         DartboardFace(scoringSegments: scoringSegments)
-                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .frame(width: side, height: side)
                         if let hitFlash {
                             hitFlashLabel(hitFlash)
                         }
                     }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
                     .contentShape(Rectangle())
                     .gesture(
                         SpatialTapGesture().onEnded { value in

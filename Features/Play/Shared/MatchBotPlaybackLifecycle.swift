@@ -67,23 +67,32 @@ enum BotVisitPlayback {
 
     /// Reveals a bot visit dart by dart with the configured stagger delay, then
     /// pauses before submission. Returns `false` when cancelled mid-playback.
+    /// `applyRevealedDarts` receives the cumulative darts revealed in this call (not prior visit prefix).
     @MainActor
     static func revealVisit(
         _ darts: [DartInput],
         feedbackPreferences: FeedbackPreferences,
-        append: (DartInput) -> Void
+        applyRevealedDarts: ([DartInput]) -> Void
     ) async -> Bool {
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        if BotTurnPacing.instantBotsActive(feedbackPreferences) {
+            guard !darts.isEmpty else { return true }
+            applyRevealedDarts(darts)
+            return true
+        }
+
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
+        var revealed: [DartInput] = []
         for dart in darts {
             do {
                 try await Task.sleep(nanoseconds: dartDelay)
             } catch {
                 return false
             }
-            append(dart)
+            revealed.append(dart)
+            applyRevealedDarts(revealed)
         }
         do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
+            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(feedbackPreferences: feedbackPreferences))
         } catch {
             return false
         }

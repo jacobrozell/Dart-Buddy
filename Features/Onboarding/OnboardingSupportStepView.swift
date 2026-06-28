@@ -18,7 +18,7 @@ struct OnboardingSupportStepView: View {
                 OnboardingHeroStepContent(
                     symbolName: "lifepreserver",
                     titleKey: "onboarding.support.title",
-                    bodyKey: "onboarding.support.body"
+                    bodyKey: OnboardingCopy.hero.supportBodyKey
                 )
 
                 VStack(spacing: DS.Spacing.s3) {

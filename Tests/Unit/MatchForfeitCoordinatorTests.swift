@@ -63,9 +63,9 @@ private func makeForfeitCoordinator(
     store.save(session)
     let host = ForfeitCoordinatorTestHost(
         session: session,
-        matchRepository: ForfeitCoordinatorFakeMatchRepository(),
+        matchRepository: FakeMatchRepository(),
         store: store,
-        logger: DefaultAppLogger(minimumLevel: .fault, sink: ForfeitCoordinatorSilentLogSink())
+        logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
     )
     let coordinator = MatchForfeitCoordinator(
         store: store,
@@ -211,7 +211,7 @@ struct MatchForfeitCoordinatorTests {
     func confirmForfeitPersistsAndResetsFlow() async throws {
         let p1 = UUID()
         let p2 = UUID()
-        let repository = ForfeitCoordinatorPersistingMatchRepository()
+        let repository = FakeMatchRepositoryBuilder.forfeitCapturing()
         let store = ActiveMatchStore()
         var session = try MatchLifecycleService.createMatch(
             type: .x01,
@@ -227,7 +227,7 @@ struct MatchForfeitCoordinatorTests {
             session: session,
             matchRepository: repository,
             store: store,
-            logger: DefaultAppLogger(minimumLevel: .fault, sink: ForfeitCoordinatorSilentLogSink())
+            logger: DefaultAppLogger(minimumLevel: .fault, sink: TestNoopLogSink())
         )
         let coordinator = MatchForfeitCoordinator(
             store: store,
@@ -244,78 +244,5 @@ struct MatchForfeitCoordinatorTests {
         #expect(completed)
         #expect(store.session(for: session.runtime.matchId) == nil)
         #expect(await repository.forfeitCallCount == 1)
-    }
-}
-
-private struct ForfeitCoordinatorSilentLogSink: LogSink {
-    func write(_: LogEntry) {}
-}
-
-private actor ForfeitCoordinatorPersistingMatchRepository: MatchRepository {
-    private(set) var forfeitCallCount = 0
-
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-    func forfeitMatch(matchId: UUID, endedAt _: Date, winnerPlayerId: UUID?, forfeitedByPlayerId: UUID) async throws -> MatchSummary {
-        forfeitCallCount += 1
-        return MatchSummary(
-            id: matchId,
-            type: .x01,
-            status: .forfeited,
-            startedAt: Date(),
-            endedAt: Date(),
-            winnerPlayerId: winnerPlayerId,
-            forfeitedByPlayerId: forfeitedByPlayerId,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 1,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-}
-
-private actor ForfeitCoordinatorFakeMatchRepository: MatchRepository {
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-    func forfeitMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?, forfeitedByPlayerId _: UUID) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
     }
 }

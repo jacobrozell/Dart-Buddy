@@ -254,7 +254,7 @@ final class SnookerMatchViewModel: ObservableObject {
             nominatedColour: nominatedColour,
             rng: &rng
         )
-        do { try await Task.sleep(nanoseconds: BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)) } catch { return false }
+        do { try await Task.sleep(nanoseconds: BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)) } catch { return false }
 
         await submitDartAsync(dart: dart, nominatedColour: nominatedColour, fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }

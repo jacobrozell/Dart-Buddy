@@ -176,6 +176,7 @@ Bump **Last verified** and **Commit** when behavior in that spec changes.
 | Modes tab | `ModesTabSpec.md` | `ModesRootView`, `GameModeCatalog` |
 | Co-op platform | `CoopPvEModesSpec.md` | `RaidEngine`, `Features/Play/Raid/`, `GameModeCatalog` |
 | Preset bots | `BotOpponentSpec.md` | `DartBotEngine`, `BotDifficulty` |
+| Instant bot turns | `InstantBotTurnsSpec.md` | `BotTurnPacing`, `BotVisitPlayback`, `FeedbackPreferences` |
 | Training bots | `TrainingBotSpec.md` | `TrainingBotSkillResolver`, Player Detail |
 | Custom bots | `CustomBotSpec.md` | `CustomBotDetailView`, `CustomBotCreationSheet` |
 | Players | `PlayerSpec.md` | `PlayersRootView`, `PlayerDetailView` |

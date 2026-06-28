@@ -12,19 +12,33 @@ enum GameplayLayout {
         false
         #endif
     }
-    /// Readable column for setup, summary, and list-style screens on iPad.
+    /// Readable column for setup, summary, and list-style screens on iPad (phone-style fallback).
     static let regularContentMaxWidth: CGFloat = 920
 
-    static func contentMaxWidth(horizontalSizeClass: UserInterfaceSizeClass?) -> CGFloat {
-        horizontalSizeClass == .regular ? regularContentMaxWidth : .infinity
+    /// iPad main shell flag — always false after unified tab bar migration.
+    /// Retained for test compatibility; will be removed in a future cleanup.
+    static func usesIPadMainShell(isPad: Bool = defaultIsPad) -> Bool {
+        false
+    }
+
+    /// Max readable width for onboarding hero content on iPad.
+    static let iPadOnboardingContentMaxWidth: CGFloat = 720
+
+    static func contentMaxWidth(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        isPad: Bool = defaultIsPad
+    ) -> CGFloat {
+        horizontalSizeClass == .regular && isPad ? regularContentMaxWidth : .infinity
     }
 
     /// Play setup uses a two-pane layout on iPad regular width.
     static func usesWideSetupHomeLayout(
         horizontalSizeClass: UserInterfaceSizeClass?,
-        dynamicTypeSize: DynamicTypeSize
+        dynamicTypeSize: DynamicTypeSize,
+        isPad: Bool = defaultIsPad
     ) -> Bool {
         horizontalSizeClass == .regular
+            && isPad
             && !usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
     }
 

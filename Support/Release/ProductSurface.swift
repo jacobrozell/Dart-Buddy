@@ -2,7 +2,7 @@ import Foundation
 
 /// Controls which product areas are reachable in this build.
 ///
-/// **Debug and Release** default to the shipping slice (`smart1_2` on 1.2 — seven modes,
+/// **Debug and Release** default to the shipping slice (`smart1_2` on 1.2 — ten modes,
 /// Training Partner, player export, **English + German** bundled).
 /// Pass `-enable_full_product_surface` to dogfood the full catalog (Modes tab, all shipped modes, locales).
 /// See `docs/release/branch-strategy.md`.
@@ -40,6 +40,7 @@ enum ProductSurface {
         )
 
         /// 1.1 — lean shell plus party modes, Raid co-op, and Around the Clock practice.
+        /// Raid reachability uses `partyPack1_1CatalogIDs`, not `showsCoopModes` (full-surface only).
         static let party1_1 = Configuration(
             showsModesTab: false,
             showsPartyModes: true,
@@ -103,7 +104,7 @@ enum ProductSurface {
         isFullProductSurfaceEnabled(arguments: arguments) ? .full : .smart1_2
     }
 
-    /// Catalog IDs shipped in the default Release 1.1 gameplay surface.
+    /// Catalog IDs shipped in the default Release 1.1 surface.
     static let partyPack1_1CatalogIDs: Set<String> = [
         "standard.x01",
         "standard.cricket",

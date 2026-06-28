@@ -365,11 +365,17 @@ enum GameModeCatalog {
             return [(.standard, standard)]
         }
 
-        return GameModeSection.allCases.compactMap { section in
-            if section == .coop, !ProductSurface.showsCoopModes { return nil }
-            let sectionEntries = entries(in: section).filter { entry in
-                entry.isAvailable && entry.matchType != nil && ProductSurface.isCatalogEntryReachable(entry)
+        if ProductSurface.isFullProductSurfaceEnabled {
+            return GameModeSection.allCases.compactMap { section in
+                if section == .coop, !ProductSurface.showsCoopModes { return nil }
+                let sectionEntries = available.filter { $0.section == section }
+                guard !sectionEntries.isEmpty else { return nil }
+                return (section, sectionEntries)
             }
+        }
+
+        return GameModeSection.allCases.compactMap { section in
+            let sectionEntries = available.filter { $0.section == section }
             guard !sectionEntries.isEmpty else { return nil }
             return (section, sectionEntries)
         }
@@ -380,9 +386,10 @@ enum GameModeCatalog {
         in section: GameModeSection,
         displayedCount: Int
     ) -> Int {
+        guard ProductSurface.isFullProductSurfaceEnabled else { return 0 }
         guard ProductSurface.showsPartyModes else { return 0 }
-        if !ProductSurface.isFullProductSurfaceEnabled { return 0 }
-        return max(0, entries(in: section).count - displayedCount)
+        let reachableInSection = available.filter { $0.section == section }.count
+        return max(0, reachableInSection - displayedCount)
     }
 
     /// Catalog entry backing a routable match type, if any.
@@ -437,9 +444,7 @@ extension GameModeCatalogEntry {
     /// Prefill payload when the user taps an available catalog card.
     var pendingModeSelection: PendingModeSelection? {
         guard isAvailable, let matchType else { return nil }
-        guard ProductSurface.isCatalogEntryReachable(self) else { return nil }
-        if section == .party, !ProductSurface.showsPartyModes { return nil }
-        if section == .coop, !ProductSurface.showsCoopModes { return nil }
+        guard ProductSurface.isMatchTypeReachable(matchType) else { return nil }
         switch section {
         case .standard:
             let mode: MatchSetupViewModel.SetupMode? = switch matchType {

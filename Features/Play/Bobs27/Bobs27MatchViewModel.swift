@@ -222,7 +222,9 @@ final class Bobs27MatchViewModel: ObservableObject {
         guard await BotVisitPlayback.revealVisit(
             plannedDarts,
             feedbackPreferences: feedbackPreferences,
-            append: { enteredDarts.append($0) }
+            applyRevealedDarts: { revealed in
+                enteredDarts = revealed
+            }
         ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }

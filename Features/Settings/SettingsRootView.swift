@@ -25,6 +25,28 @@ struct SettingsRootView: View {
     }
 
     var body: some View {
+        phoneSettingsShell
+        .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
+            Button(L10n.cancel, role: .cancel) {
+                viewModel.dismissResetPrompt()
+            }
+            Button(L10n.resetConfirmAction, role: .destructive) {
+                viewModel.queueConfirmReset()
+            }
+        } message: {
+            Text(L10n.resetConfirmMessage)
+        }
+        .fullScreenCover(isPresented: $showsOnboarding) {
+            OnboardingFlowView(
+                mode: .replay,
+                dependencies: dependencies,
+                preferredColorScheme: preferences.preferredColorScheme,
+                onFinished: { showsOnboarding = false }
+            )
+        }
+    }
+
+    private var phoneSettingsShell: some View {
         NavigationStack(path: $path) {
             Group {
                 if let settings = viewModel.settings {
@@ -59,24 +81,6 @@ struct SettingsRootView: View {
                 .background(settingsRootBackground)
         }
         .brandSettingsScreenChrome(appearanceModeRaw: preferences.appearanceModeRaw)
-        .alert(L10n.resetConfirmTitle, isPresented: resetConfirmationBinding) {
-            Button(L10n.cancel, role: .cancel) {
-                viewModel.dismissResetPrompt()
-            }
-            Button(L10n.resetConfirmAction, role: .destructive) {
-                viewModel.queueConfirmReset()
-            }
-        } message: {
-            Text(L10n.resetConfirmMessage)
-        }
-        .fullScreenCover(isPresented: $showsOnboarding) {
-            OnboardingFlowView(
-                mode: .replay,
-                dependencies: dependencies,
-                preferredColorScheme: preferences.preferredColorScheme,
-                onFinished: { showsOnboarding = false }
-            )
-        }
     }
 
     private var settingsRootBackground: Color {
@@ -326,6 +330,12 @@ struct SettingsRootView: View {
             ))
             .accessibilityIdentifier("settings_turnTotalCallerToggle")
             .accessibilityHint(L10n.string("settings.feedback.turnTotalCaller.hint"))
+            Toggle("settings.feedback.instantBotTurns", isOn: Binding(
+                get: { viewModel.settings?.instantBotTurnsEnabled ?? false },
+                set: { viewModel.queueFeedbackUpdate(instantBotTurns: $0) }
+            ))
+            .accessibilityIdentifier("settings_instantBotTurnsToggle")
+            .accessibilityHint(L10n.string("settings.feedback.instantBotTurns.accessibilityHint"))
         } header: {
             Text(L10n.settingsDuringPlaySection)
         } footer: {
@@ -335,22 +345,29 @@ struct SettingsRootView: View {
     }
 
     private func botOpponentsSection(usesBrand: Bool) -> some View {
-        Section {
+        let instantBotTurnsOn = viewModel.settings?.instantBotTurnsEnabled ?? false
+        return Section {
             Toggle("settings.feedback.botStagger", isOn: Binding(
                 get: { viewModel.settings?.botStaggerEnabled ?? true },
                 set: { viewModel.queueBotPacingUpdate(stagger: $0) }
             ))
             .accessibilityIdentifier("settings_botStaggerToggle")
+            .disabled(instantBotTurnsOn)
             Toggle("settings.feedback.botDartHaptics", isOn: Binding(
                 get: { viewModel.settings?.botDartHapticsEnabled ?? true },
                 set: { viewModel.queueBotPacingUpdate(dartHaptics: $0) }
             ))
             .accessibilityIdentifier("settings_botDartHapticsToggle")
             .accessibilityHint(L10n.string("settings.feedback.botDartHaptics.hint"))
+            .disabled(instantBotTurnsOn)
         } header: {
             Text(L10n.settingsBotOpponentsSection)
         } footer: {
-            settingsSectionFooter(L10n.settingsBotOpponentsFooter)
+            settingsSectionFooter(
+                instantBotTurnsOn
+                    ? L10n.settingsBotOpponentsInstantOverridesFooter
+                    : L10n.settingsBotOpponentsFooter
+            )
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -419,20 +436,8 @@ struct SettingsRootView: View {
                 .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
                 .accessibilityLabel(AppSupport.versionLabel)
                 .accessibilityIdentifier("settings_aboutVersion")
-
-            if let buyDeveloperCoffeeURL = AppLinks.buyDeveloperCoffee {
-                Link(destination: buyDeveloperCoffeeURL) {
-                    Label(L10n.settingsBuyDeveloperCoffee, systemImage: "cup.and.saucer.fill")
-                }
-                .accessibilityLabel(L10n.settingsBuyDeveloperCoffeeAccessibility)
-                .accessibilityIdentifier("settings_buyDeveloperCoffeeLink")
-            }
         } header: {
             Text(L10n.aboutSection)
-        } footer: {
-            if AppLinks.buyDeveloperCoffee != nil {
-                settingsSectionFooter(L10n.settingsBuyDeveloperCoffeeFooter)
-            }
         }
         .brandFormRowBackground(when: usesBrand)
     }

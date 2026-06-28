@@ -21,13 +21,6 @@ struct SetupHomeScrollContent: View {
         )
     }
 
-    private var setupScrollBottomPadding: CGFloat {
-        if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
-            return 120
-        }
-        return setupViewModel.setupCategory == .party ? 96 : DS.Spacing.s4
-    }
-
     var body: some View {
         Group {
             if usesWideSetupLayout {
@@ -41,6 +34,13 @@ struct SetupHomeScrollContent: View {
         .padding(.bottom, setupScrollBottomPadding)
         .frame(maxWidth: GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass))
         .frame(maxWidth: .infinity)
+    }
+
+    private var setupScrollBottomPadding: CGFloat {
+        if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
+            return 120
+        }
+        return setupViewModel.setupCategory == .party ? 96 : DS.Spacing.s4
     }
 
     private var compactSetupContent: some View {
@@ -60,9 +60,11 @@ struct SetupHomeScrollContent: View {
                     modeAndOptionsColumn
                     setupValidationSection
                 }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                rosterColumn
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .topLeading)
+                VStack(alignment: .leading, spacing: DS.Spacing.s4) {
+                    rosterColumn
+                }
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .topLeading)
             }
         }
     }

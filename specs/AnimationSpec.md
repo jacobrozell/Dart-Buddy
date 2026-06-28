@@ -68,6 +68,8 @@ All custom animation must respect **`accessibilityReduceMotion`** (view layer) o
 
 `ClientEnvironmentMonitor` already reports `reduceMotion` changes for diagnostics — no extra analytics required for MVP.
 
+**Bot throw pacing** is separate from UI motion policy. System Reduce Motion may optionally force instant bot turns per [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) §5; it does not today affect `BotTurnPacing` without that spec implemented.
+
 ### 5.2 Reduce Transparency (required for glass/backdrops)
 
 Decorative backgrounds (`DartboardWedgeBackdrop`, future ambient layers) must also respect **`accessibilityReduceTransparency`**. When on, omit translucent/decorative layers entirely (see `LaunchSplashView`).
@@ -186,7 +188,7 @@ Prioritized by **value ÷ (risk × effort)**. Implement top-down; each item is i
 | Particle/confetti | High maintenance; contrast risk in light mode |
 | Slot-machine / flip reveals | Planned party modes — spec per game (`RemixNightGameSpec`, etc.) |
 | Chart draw animations (Statistics) | Low traffic; verify performance on long series first |
-| Bot avatar motion | `BotTurnPacing` owns timing; visual motion is redundant |
+| Bot avatar motion | `BotTurnPacing` owns timing; visual motion is redundant — see [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) for app-wide instant bot playback |
 | Navigation push customization | System transitions are adequate |
 
 ---

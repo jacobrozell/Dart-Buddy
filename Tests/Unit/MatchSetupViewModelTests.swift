@@ -20,7 +20,7 @@ func setupOnAppearAppliesSettingsDefaults() async {
         defaultSetsEnabled: true,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
-        instantBotTurnsEnabled: false,
+            instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
@@ -61,7 +61,7 @@ func setupOnAppearFallsBackTo501WhenStartScoreUnsupported() async {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
-        instantBotTurnsEnabled: false,
+            instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     )
@@ -108,7 +108,7 @@ func setupOnAppearResyncsDefaultModeFromSettings() async {
         defaultSetsEnabled: false,
         botStaggerEnabled: true,
         botDartHapticsEnabled: true,
-        instantBotTurnsEnabled: false,
+            instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: Date()
     ))
@@ -204,7 +204,7 @@ func applyPendingModeSelectionPrefillsPartyKiller() async {
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
 func applyPendingModeSelectionPrefillsCatalogPartyMickeyMouse() async {
-    guard ProductSurface.showsPartyModes else { return }
+    guard ProductSurface.isFullProductSurfaceEnabled else { return }
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
         settingsRepository: FakeSettingsRepository(),
@@ -231,7 +231,9 @@ func applyPendingModeSelectionPrefillsCatalogPartyMickeyMouse() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func onAppearDoesNotResetCatalogModeSelection() async {
+func onAppearDoesNotResetCatalogModeSelectionOnFullSurface() async {
+    guard ProductSurface.isFullProductSurfaceEnabled else { return }
+
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B")]),
         settingsRepository: FakeSettingsRepository(),
@@ -301,6 +303,37 @@ func setupCatalogRaidBlocksBots() async {
     #expect(vm.botPlaySupport == .none)
     #expect(!vm.canStart)
     #expect(vm.validationErrors.contains("setup.validation.coopHumansOnly"))
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func applyPendingModeSelectionIgnoresUnreachableModesOnPartyPack() async {
+    let args = [ProductSurface.leanProductSurfaceLaunchArgument]
+    guard !ProductSurface.isFullProductSurfaceEnabled(arguments: args) else { return }
+
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [makePlayer("A"), makePlayer("B"), makePlayer("C")]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections(),
+        productSurfaceArguments: args
+    )
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.killer)
+
+    vm.applyPendingModeSelection(
+        PendingModeSelection(
+            setupCategory: .party,
+            mode: nil,
+            partyGame: nil,
+            matchType: .mickeyMouse
+        )
+    )
+
+    #expect(vm.setupCategory == .party)
+    #expect(vm.partyGame == .killer)
+    #expect(vm.selectedCatalogMatchType == nil)
 }
 
 @MainActor
@@ -444,7 +477,7 @@ func setupOnAppearSelectsPendingPlayersWhenPresent() async {
 @MainActor
 @Test(.tags(.integration, .setupFlow, .navigation, .smoke, .regression))
 func setupCreateHumanPlayerAutoSelectsNewPlayer() async {
-    let repository = HumanCreatingPlayerRepository()
+    let repository = FakePlayerRepository.humanCreating()
     let pending = PendingMatchPlayerSelections()
     let vm = MatchSetupViewModel(
         playerRepository: repository,
@@ -611,7 +644,7 @@ func setupTogglePlayerRemovesFromTurnOrderWhenAlreadySelected() async {
 @Test(.tags(.integration, .setupFlow, .regression))
 func setupStartMatchUsesManualTurnOrder() async {
     let players = [makePlayer("A"), makePlayer("B")]
-    let repo = TurnOrderCapturingMatchRepository()
+    let repo = FakeMatchRepository.turnOrderCapturing()
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
         settingsRepository: FakeSettingsRepository(),
@@ -753,7 +786,7 @@ func setupStartMatchRouteSurfacesErrorWhenActiveLookupFails() async {
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
         settingsRepository: FakeSettingsRepository(),
-        matchRepository: ThrowingActiveLookupMatchRepository(),
+        matchRepository: FakeMatchRepositoryBuilder.throwingActiveLookup(),
         activeMatchStore: ActiveMatchStore(),
         pendingMatchPlayerSelections: PendingMatchPlayerSelections()
     )
@@ -770,7 +803,7 @@ func setupStartMatchRouteSurfacesErrorWhenActiveLookupFails() async {
 @Test(.tags(.integration, .setupFlow, .navigation, .regression))
 func setupStartPromptsWhenAnotherMatchIsActive() async {
     let players = [makePlayer("A"), makePlayer("B")]
-    let repo = ActiveConflictMatchRepository(hasActive: true)
+    let repo = FakeMatchRepository.activeConflict(hasActive: true)
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
         settingsRepository: FakeSettingsRepository(),
@@ -808,7 +841,7 @@ func setupConfirmReplaceAbandonsWithoutSnapshotWhenStoreEmpty() async {
         createdAt: Date(),
         updatedAt: Date()
     )
-    let repo = NoSnapshotActiveConflictRepository(active: active)
+    let repo = FakeMatchRepositoryBuilder.noSnapshotActiveConflict(active: active)
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
         settingsRepository: FakeSettingsRepository(),
@@ -860,7 +893,7 @@ func setupConfirmReplaceAbandonsViaSnapshotWhenStoreEmpty() async throws {
         snapshotPayload: session.latestSnapshot.payload,
         updatedAt: Date()
     )
-    let repo = SnapshotOnlyActiveConflictRepository(active: active, snapshot: snapshotSummary)
+    let repo = FakeMatchRepositoryBuilder.snapshotOnlyActiveConflict(active: active, snapshot: snapshotSummary)
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
         settingsRepository: FakeSettingsRepository(),
@@ -882,7 +915,7 @@ func setupConfirmReplaceAbandonsViaSnapshotWhenStoreEmpty() async throws {
 @Test(.tags(.integration, .setupFlow, .navigation, .regression))
 func setupConfirmReplaceAbandonsActiveMatchThenStarts() async {
     let players = [makePlayer("A"), makePlayer("B")]
-    let repo = ActiveConflictMatchRepository(hasActive: true)
+    let repo = FakeMatchRepository.activeConflict(hasActive: true)
     let vm = MatchSetupViewModel(
         playerRepository: FakePlayerRepository(players: players),
         settingsRepository: FakeSettingsRepository(),
@@ -997,11 +1030,11 @@ func setupStartMatchSnapshotsTrainingBotSkill() async throws {
         updatedAt: Date()
     )
     let profile = BotDifficulty.medium.skillProfile
-    let playerRepo = TrainingSkillPlayerRepository(
+    let playerRepo = FakePlayerRepository.trainingSkill(
         players: [human, trainingBot],
         skillByBotId: [trainingBotId: profile]
     )
-    let matchRepo = ParticipantCapturingMatchRepository()
+    let matchRepo = FakeMatchRepository.participantCapturing()
     let vm = MatchSetupViewModel(
         playerRepository: playerRepo,
         settingsRepository: FakeSettingsRepository(),
@@ -1135,7 +1168,7 @@ func setupApplyPendingModeSelectionPrefillsStandardX01() async {
 @Test(.tags(.unit, .setupFlow, .regression))
 func setupAddCustomBotCreatesAndSelectsBot() async {
     let human = makePlayer("Human")
-    let repo = CustomBotCreatingPlayerRepository(existing: [human])
+    let repo = FakePlayerRepository.customBotCreating(existing: [human])
     let vm = MatchSetupViewModel(
         playerRepository: repo,
         settingsRepository: FakeSettingsRepository(),
@@ -1149,501 +1182,4 @@ func setupAddCustomBotCreatesAndSelectsBot() async {
 
     #expect(vm.selectedPlayerIds.count == 2)
     #expect(vm.availablePlayers.contains(where: { $0.name == "Ace" && $0.isCustomBot }))
-}
-
-@MainActor
-private func makeSetupViewModel(players: [PlayerSummary]) -> MatchSetupViewModel {
-    MatchSetupViewModel(
-        playerRepository: FakePlayerRepository(players: players),
-        settingsRepository: FakeSettingsRepository(),
-        matchRepository: FakeMatchRepository(),
-        activeMatchStore: ActiveMatchStore(),
-        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
-    )
-}
-
-@MainActor
-private func selectAll(_ players: [PlayerSummary], in vm: MatchSetupViewModel) {
-    for player in players {
-        vm.togglePlayer(player.id)
-    }
-}
-
-private func makePlayer(_ name: String) -> PlayerSummary {
-    PlayerSummary(id: UUID(), name: name, isArchived: false, createdAt: Date(), updatedAt: Date())
-}
-
-private func makeCustomBot(_ name: String) -> PlayerSummary {
-    let metrics = CustomBotMetrics(x01Average: 45, cricketMPR: 2.0)
-    return PlayerSummary(
-        id: UUID(),
-        name: name,
-        isArchived: false,
-        isBot: true,
-        botDifficultyRaw: metrics.encode(),
-        botKindRaw: BotKind.custom.rawValue,
-        createdAt: Date(),
-        updatedAt: Date()
-    )
-}
-
-private actor HumanCreatingPlayerRepository: PlayerRepository {
-    private var players: [PlayerSummary] = []
-
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
-    func createPlayer(name: String) async throws -> PlayerSummary {
-        let created = PlayerSummary(id: UUID(), name: name, isArchived: false, createdAt: Date(), updatedAt: Date())
-        players.append(created)
-        return created
-    }
-    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
-        PlayerSummary(
-            id: UUID(),
-            name: BotNaming.nextDefaultName(difficulty: difficulty, existingNames: players.map(\.name)),
-            isArchived: false,
-            isBot: true,
-            botDifficultyRaw: difficulty.rawValue,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-    func updatePlayerName(playerId: UUID, name: String) async throws -> PlayerSummary {
-        try await updatePlayerProfile(
-            playerId: playerId,
-            name: name,
-            avatarStyle: .dart,
-            colorToken: .blue,
-            notes: ""
-        )
-    }
-    func updatePlayerProfile(
-        playerId: UUID,
-        name: String,
-        avatarStyle: PlayerAvatarStyle,
-        colorToken: PlayerColorToken,
-        notes: String
-    ) async throws -> PlayerSummary {
-        guard let index = players.firstIndex(where: { $0.id == playerId }) else {
-            throw AppError(code: .notFound, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.player.notFound")
-        }
-        let existing = players[index]
-        let updated = PlayerSummary(
-            id: existing.id,
-            name: name,
-            isArchived: existing.isArchived,
-            avatarStyleRaw: avatarStyle.rawValue,
-            preferredColorToken: colorToken.rawValue,
-            notes: notes.isEmpty ? nil : notes,
-            createdAt: existing.createdAt,
-            updatedAt: Date()
-        )
-        players[index] = updated
-        return updated
-    }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-}
-
-private actor FakePlayerRepository: PlayerRepository {
-    let players: [PlayerSummary]
-    init(players: [PlayerSummary]) { self.players = players }
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
-    func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
-    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
-        PlayerSummary(
-            id: UUID(),
-            name: BotNaming.nextDefaultName(difficulty: difficulty, existingNames: players.map(\.name)),
-            isArchived: false,
-            isBot: true,
-            botDifficultyRaw: difficulty.rawValue,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-}
-
-private actor CustomBotCreatingPlayerRepository: PlayerRepository {
-    var players: [PlayerSummary]
-
-    init(existing: [PlayerSummary]) {
-        players = existing
-    }
-
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
-    func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
-    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
-        PlayerSummary(
-            id: UUID(),
-            name: "Bot",
-            isArchived: false,
-            isBot: true,
-            botDifficultyRaw: difficulty.rawValue,
-            botKindRaw: BotKind.preset.rawValue,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-
-    func createCustomBot(name: String, metrics: CustomBotMetrics) async throws -> PlayerSummary {
-        let created = PlayerSummary(
-            id: UUID(),
-            name: name,
-            isArchived: false,
-            isBot: true,
-            botDifficultyRaw: metrics.encode(),
-            botKindRaw: BotKind.custom.rawValue,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-        players.append(created)
-        return created
-    }
-
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-}
-
-private actor FakeSettingsRepository: SettingsRepository {
-    var settings: SettingsSummary
-
-    init(settings: SettingsSummary? = nil) {
-        self.settings = settings ?? SettingsSummary(
-            id: UUID(),
-            appearanceModeRaw: "system",
-            hapticsEnabled: true,
-            soundEnabled: true,
-            turnTotalCallerEnabled: false,
-            defaultMatchTypeRaw: "x01",
-            defaultX01StartScore: 501,
-            defaultCheckoutModeRaw: "doubleOut",
-            defaultCheckInModeRaw: "straightIn",
-            defaultLegFormatRaw: "firstTo",
-            defaultLegsToWin: 3,
-            defaultSetsEnabled: false,
-            botStaggerEnabled: true,
-            botDartHapticsEnabled: true,
-            instantBotTurnsEnabled: false,
-            defaultDartEntryPresentationRaw: "numberPad",
-            updatedAt: Date()
-        )
-    }
-
-    func fetchSettings() async throws -> SettingsSummary {
-        settings
-    }
-
-    func seedDefaultsIfNeeded() async throws -> SettingsSummary {
-        settings
-    }
-
-    func replaceSettings(_ next: SettingsSummary) {
-        settings = next
-    }
-
-    func updateSettings(_ settings: SettingsSummary) async throws -> SettingsSummary {
-        settings
-    }
-
-    func resetPreferencesToDefaults() async throws {}
-
-    func resetAllLocalData() async throws {}
-}
-
-private actor TrainingSkillPlayerRepository: PlayerRepository {
-    let players: [PlayerSummary]
-    let skillByBotId: [UUID: BotSkillProfile]
-
-    init(players: [PlayerSummary], skillByBotId: [UUID: BotSkillProfile]) {
-        self.players = players
-        self.skillByBotId = skillByBotId
-    }
-
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { players }
-    func createPlayer(name _: String) async throws -> PlayerSummary { players[0] }
-    func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
-        PlayerSummary(
-            id: UUID(),
-            name: "Bot",
-            isArchived: false,
-            isBot: true,
-            botDifficultyRaw: difficulty.rawValue,
-            botKindRaw: BotKind.preset.rawValue,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { players[0] }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { players[0] }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
-    func fetchTrainingBot(linkedTo _: UUID) async throws -> PlayerSummary? { nil }
-    func createTrainingBot(for _: UUID) async throws -> PlayerSummary { players[0] }
-
-    func resolveTrainingBotSkill(for botId: UUID, mode _: MatchType) async throws -> BotSkillProfile {
-        guard let profile = skillByBotId[botId] else {
-            throw AppError(code: .notFound, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "trainingBot.error.notTrainingBot")
-        }
-        return profile
-    }
-}
-
-private actor ParticipantCapturingMatchRepository: MatchRepository {
-    private(set) var lastParticipants: [MatchParticipantSummary] = []
-
-    func createMatch(type: MatchType, configPayload _: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary {
-        lastParticipants = participants
-        return MatchSummary(
-            id: UUID(),
-            type: type,
-            status: .inProgress,
-            startedAt: Date(),
-            endedAt: nil,
-            winnerPlayerId: nil,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 0,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented")
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor TurnOrderCapturingMatchRepository: MatchRepository {
-    private(set) var lastParticipantNames: [String] = []
-
-    func createMatch(type: MatchType, configPayload _: Data, participants: [MatchParticipantSummary]) async throws -> MatchSummary {
-        lastParticipantNames = participants.sorted { $0.turnOrder < $1.turnOrder }.map(\.displayNameAtMatchStart)
-        return MatchSummary(
-            id: UUID(),
-            type: type,
-            status: .inProgress,
-            startedAt: Date(),
-            endedAt: nil,
-            winnerPlayerId: nil,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 0,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor FakeMatchRepository: MatchRepository {
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(
-            id: UUID(),
-            type: type,
-            status: .inProgress,
-            startedAt: Date(),
-            endedAt: nil,
-            winnerPlayerId: nil,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 0,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(
-            id: UUID(),
-            matchId: matchId,
-            snapshotVersion: snapshotVersion,
-            snapshotPayload: snapshotPayload,
-            updatedAt: Date()
-        )
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor ThrowingActiveLookupMatchRepository: MatchRepository {
-    func fetchActiveMatch() async throws -> MatchSummary? {
-        throw AppError(code: .storageUnavailable, layer: .data, severity: .error, isRecoverable: true, userMessageKey: "setup.error.start")
-    }
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fatalError() }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fatalError() }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { fatalError() }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { fatalError() }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-/// Active match with no snapshot and no in-memory store entry.
-private actor NoSnapshotActiveConflictRepository: MatchRepository {
-    let active: MatchSummary
-    private(set) var abandonedCount = 0
-    private(set) var snapshotSaved = false
-
-    init(active: MatchSummary) { self.active = active }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { active }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func updateMatch(_ match: MatchSummary) async throws {
-        if match.status == .abandoned { abandonedCount += 1 }
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        snapshotSaved = true
-        return MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil, winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0, eventCount: 0, createdAt: Date(), updatedAt: Date())
-    }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fatalError() }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { fatalError() }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-/// Active match with a persisted snapshot but no in-memory store entry.
-private actor SnapshotOnlyActiveConflictRepository: MatchRepository {
-    let active: MatchSummary
-    let snapshot: MatchSnapshotSummary
-    private(set) var abandonedCount = 0
-    private(set) var snapshotSaved = false
-
-    init(active: MatchSummary, snapshot: MatchSnapshotSummary) {
-        self.active = active
-        self.snapshot = snapshot
-    }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { active }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        matchId == active.id ? snapshot : nil
-    }
-    func updateMatch(_ match: MatchSummary) async throws {
-        if match.status == .abandoned { abandonedCount += 1 }
-    }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        snapshotSaved = true
-        return MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil, winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0, eventCount: 0, createdAt: Date(), updatedAt: Date())
-    }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fatalError() }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { fatalError() }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-/// Reports an in-progress match so the setup flow must prompt before starting,
-/// and records abandon vs delete operations from the "Game in Progress" confirmation.
-private actor ActiveConflictMatchRepository: MatchRepository {
-    private var hasActive: Bool
-    private(set) var deletedCount = 0
-    private(set) var abandonedCount = 0
-
-    init(hasActive: Bool) { self.hasActive = hasActive }
-
-    private func activeSummary() -> MatchSummary {
-        MatchSummary(
-            id: UUID(),
-            type: .x01,
-            status: .inProgress,
-            startedAt: Date(),
-            endedAt: nil,
-            winnerPlayerId: nil,
-            currentTurnPlayerId: nil,
-            currentLegIndex: 0,
-            currentSetIndex: 0,
-            eventCount: 0,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-    }
-
-    func createMatch(type: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        MatchSummary(id: UUID(), type: type, status: .inProgress, startedAt: Date(), endedAt: nil, winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0, eventCount: 0, createdAt: Date(), updatedAt: Date())
-    }
-
-    func fetchActiveMatch() async throws -> MatchSummary? { hasActive ? activeSummary() : nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_ match: MatchSummary) async throws {
-        if match.status == .abandoned {
-            abandonedCount += 1
-            hasActive = false
-        }
-    }
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func saveSnapshot(matchId: UUID, snapshotVersion: Int, snapshotPayload: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: matchId, snapshotVersion: snapshotVersion, snapshotPayload: snapshotPayload, updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {
-        deletedCount += 1
-        hasActive = false
-    }
 }
