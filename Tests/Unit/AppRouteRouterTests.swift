@@ -85,6 +85,7 @@ struct AppRouteRouterTests {
     @Test
     func resumeUnreachableGolfMatchFailsWhenPartyVisible() async throws {
         guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+        guard !ProductSurface.isMatchTypeReachable(.golf) else { return }
 
         let activeMatch = MatchSummary(
             id: UUID(),

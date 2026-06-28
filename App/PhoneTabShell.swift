@@ -5,6 +5,7 @@ struct PhoneTabShell: View {
     @Binding var selectedTab: MainTabView.RootTab
     @Binding var pendingPlayResume: PendingMatchResume?
     var playNavigationResetTrigger: Int
+    var onboardingCompletedToken: Int = 0
     var activityRefreshToken: Int
     var showsActiveMatchBadge: Bool
     let dependencies: AppDependencies
@@ -17,6 +18,7 @@ struct PhoneTabShell: View {
                 dependencies: dependencies,
                 pendingResumeMatch: $pendingPlayResume,
                 navigationResetTrigger: playNavigationResetTrigger,
+                onboardingCompletedToken: onboardingCompletedToken,
                 onChangeMode: {
                     if ProductSurface.showsModesTab {
                         selectedTab = .modes

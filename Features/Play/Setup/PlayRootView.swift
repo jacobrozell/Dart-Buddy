@@ -4,6 +4,7 @@ struct PlayRootView: View {
     let dependencies: AppDependencies
     @Binding var pendingResumeMatch: PendingMatchResume?
     var navigationResetTrigger: Int = 0
+    var onboardingCompletedToken: Int = 0
     var onChangeMode: () -> Void = {}
     @State private var path: [PlayRoute] = []
     @State private var hasAppliedSnapshotRoute = false
@@ -14,10 +15,12 @@ struct PlayRootView: View {
         dependencies: AppDependencies,
         pendingResumeMatch: Binding<PendingMatchResume?> = .constant(nil),
         navigationResetTrigger: Int = 0,
+        onboardingCompletedToken: Int = 0,
         onChangeMode: @escaping () -> Void = {}
     ) {
         self.dependencies = dependencies
         self.navigationResetTrigger = navigationResetTrigger
+        self.onboardingCompletedToken = onboardingCompletedToken
         self.onChangeMode = onChangeMode
         _pendingResumeMatch = pendingResumeMatch
         _viewModel = StateObject(
@@ -135,7 +138,10 @@ struct PlayRootView: View {
                     )
                 }
             }
-            .task {
+            .task(id: onboardingCompletedToken) {
+                PlaySetupStagingRefresh.refreshHandler = {
+                    await setupViewModel.onAppear()
+                }
                 await viewModel.onAppear()
                 await setupViewModel.onAppear()
                 if hasAppliedSnapshotRoute == false {
@@ -148,6 +154,9 @@ struct PlayRootView: View {
                         path = [snapshotRoute]
                     }
                 }
+            }
+            .onDisappear {
+                PlaySetupStagingRefresh.refreshHandler = nil
             }
             .onChange(of: path) { _, newValue in
                 if newValue.isEmpty {
@@ -173,6 +182,23 @@ struct PlayRootView: View {
             }
             .onChange(of: navigationResetTrigger) { _, _ in
                 path.removeAll()
+                Task {
+                    await viewModel.onAppear()
+                    await setupViewModel.onAppear()
+                }
+            }
+            .onChange(of: onboardingCompletedToken) { _, _ in
+                Task {
+                    await PlaySetupStagingRefresh.applyPendingSelections(dependencies)
+                    await viewModel.onAppear()
+                    await setupViewModel.onAppear()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: PendingMatchPlayerSelections.shouldRefreshSetupNotification)) { _ in
+                Task {
+                    await viewModel.onAppear()
+                    await setupViewModel.onAppear()
+                }
             }
         }
     }

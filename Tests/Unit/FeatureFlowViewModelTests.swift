@@ -546,6 +546,9 @@ func historyFiltersByPartyPackModes() async {
 @Test(.tags(.integration, .history, .match, .regression))
 func historyAllGamesFilterExcludesUnreachableModesOnPartyPack() async {
     guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+    guard let hiddenType = [MatchType.golf, .chaseTheDragon, .football].first(
+        where: { !ProductSurface.isMatchTypeReachable($0) }
+    ) else { return }
 
     let now = Date()
     let reachable = MatchSummary(
@@ -554,7 +557,7 @@ func historyAllGamesFilterExcludesUnreachableModesOnPartyPack() async {
         eventCount: 1, createdAt: now, updatedAt: now
     )
     let hidden = MatchSummary(
-        id: UUID(), type: .golf, status: .completed, startedAt: now, endedAt: now,
+        id: UUID(), type: hiddenType, status: .completed, startedAt: now, endedAt: now,
         winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
         eventCount: 1, createdAt: now, updatedAt: now
     )
@@ -574,6 +577,7 @@ func historyAllGamesFilterExcludesUnreachableModesOnPartyPack() async {
 @Test(.tags(.integration, .history, .match, .regression))
 func historyIgnoresUnreachableGolfActiveMatch() async {
     guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+    guard !ProductSurface.isMatchTypeReachable(.golf) else { return }
 
     let activeMatch = MatchSummary(
         id: UUID(),

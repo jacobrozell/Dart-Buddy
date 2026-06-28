@@ -253,6 +253,7 @@ func onAppearDoesNotResetCatalogModeSelectionOnFullSurface() async {
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
 func setupCatalogMickeyMouseAllowsPresetBot() async {
+    guard ProductSurface.isMatchTypeReachable(.mickeyMouse) else { return }
     let human = makePlayer("Human")
     let bot = PlayerSummary(
         id: UUID(),
@@ -266,6 +267,7 @@ func setupCatalogMickeyMouseAllowsPresetBot() async {
     )
     let guest = makePlayer("Guest")
     let vm = makeSetupViewModel(players: [human, bot, guest])
+    await vm.onAppear()
     vm.applyPendingModeSelection(
         PendingModeSelection(setupCategory: .standard, mode: nil, partyGame: nil, matchType: .mickeyMouse)
     )

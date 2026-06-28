@@ -1367,3 +1367,10 @@
 "achievement.db_play_250.description" = "Completa 250 partidas.";
 "achievement.db_play_500.name" = "Salón de la fama";
 "achievement.db_play_500.description" = "Completa 500 partidas.";
+
+"release.highlights.badge" = "What's New";
+"release.highlights.partyPack.title" = "Party Pack";
+"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai, and Around the Clock are ready in Play setup.";
+"release.highlights.tryModes" = "Try New Modes";
+"release.highlights.gotIt" = "Got It";
+"release.highlights.accessibility" = "What's new in Dart Buddy";

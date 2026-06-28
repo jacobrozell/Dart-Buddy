@@ -80,10 +80,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         app.buttons["onboarding_preferences_continue"].tap()
         advanceThroughSharedFinale(in: app)
 
-        XCTAssertTrue(
-            app.descendants(matching: .any)["setup_selected_\(playerName)"].waitForExistence(timeout: timeout + 10),
-            "Onboarding should stage the new human on Play setup"
-        )
+        waitForStagedPlayer(playerName, in: app)
         assertStagedBot(in: app, nameContains: "Medium Bot")
     }
 
@@ -96,9 +93,7 @@ final class OnboardingUITests: DartBuddyUITestCase {
         app.buttons["onboarding_learn_continue"].tap()
         advanceThroughSharedFinale(in: app)
 
-        XCTAssertTrue(
-            app.descendants(matching: .any)["setup_selected_\(playerName)"].waitForExistence(timeout: timeout + 10)
-        )
+        waitForStagedPlayer(playerName, in: app)
         assertStagedBot(in: app, nameContains: "Very Easy Bot")
     }
 

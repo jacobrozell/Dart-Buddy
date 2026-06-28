@@ -95,11 +95,9 @@ struct GameModeCatalogEntryTests {
 
     @Test
     func plannedModesUseSectionAccentFallback() {
-        let plannedParty = GameModeCatalog.planned.first { $0.section == .party }
         let plannedCoop = GameModeCatalog.planned.first { $0.section == .coop }
-        #expect(plannedParty != nil)
         #expect(plannedCoop != nil)
-        // Practice drills may all be shipped; accent fallback is still covered by party/coop stubs.
+        // All party catalog entries ship on current trains; coop stubs still cover accent fallback.
     }
 
     @Test

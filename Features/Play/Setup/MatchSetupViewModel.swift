@@ -122,9 +122,18 @@ final class MatchSetupViewModel: ObservableObject {
         do {
             availablePlayers = try await playerRepository.fetchPlayers(includeArchived: false)
             let loadedIds = Set(availablePlayers.map(\.id))
-            selectedPlayerIds.removeAll { !loadedIds.contains($0) }
-            for id in pendingMatchPlayerSelections.dequeueIdsPresent(in: loadedIds) {
-                appendToSelection(id)
+            if !loadedIds.isEmpty {
+                selectedPlayerIds.removeAll { !loadedIds.contains($0) }
+                for id in pendingMatchPlayerSelections.dequeueIdsPresent(in: loadedIds) {
+                    appendToSelection(id)
+                }
+                let backupIds = OnboardingSetupStaging.peekPendingPlayerIds()
+                for id in backupIds where loadedIds.contains(id) {
+                    appendToSelection(id)
+                }
+                if !backupIds.isEmpty, backupIds.allSatisfy({ selectedPlayerIds.contains($0) }) {
+                    OnboardingSetupStaging.clearPendingPlayerIds()
+                }
             }
             let settings = try await settingsRepository.seedDefaultsIfNeeded()
             x01StartScore = X01StartScores.all.contains(settings.defaultX01StartScore) ? settings.defaultX01StartScore : 501

@@ -4,12 +4,14 @@ import Testing
 
 @Suite("Release highlights", .tags(.unit, .regression))
 struct ReleaseHighlightsStoreTests {
-    @Test("Party pack highlight is active only on party1_1 surface")
-    func currentHighlightMatchesPartyPackSurface() {
-        let partyArgs = [ProductSurface.leanProductSurfaceLaunchArgument]
+    @Test("Release highlights suppressed on smart1_2 store surface")
+    func currentHighlightNilOnSmart12Surface() {
+        let storeArgs: [String] = []
+        let leanArgs = [ProductSurface.leanProductSurfaceLaunchArgument]
         let fullArgs = [ProductSurface.fullProductSurfaceLaunchArgument]
 
-        #expect(ReleaseHighlights.current(arguments: partyArgs)?.version == "1.1.0")
+        #expect(ReleaseHighlights.current(arguments: storeArgs) == nil)
+        #expect(ReleaseHighlights.current(arguments: leanArgs) == nil)
         #expect(ReleaseHighlights.current(arguments: fullArgs) == nil)
     }
 

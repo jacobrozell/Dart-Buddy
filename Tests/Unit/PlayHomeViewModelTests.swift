@@ -97,6 +97,7 @@ func playHomeIgnoresActivePartyMatchWhenPartyHidden() async {
 @Test(.tags(.integration, .navigation, .match, .regression))
 func playHomeIgnoresActiveGolfMatchWhenGolfNotReachable() async {
     guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+    guard !ProductSurface.isMatchTypeReachable(.golf) else { return }
 
     let activeMatch = MatchSummary(
         id: UUID(),

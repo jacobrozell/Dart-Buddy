@@ -70,6 +70,9 @@ struct SetupHomeSheetHost: View {
             }
             Task { await setupViewModel.onAppear() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: PendingMatchPlayerSelections.shouldRefreshSetupNotification)) { _ in
+            Task { await setupViewModel.onAppear() }
+        }
         .alert("play.setup.activeConflict.title", isPresented: $setupViewModel.showActiveMatchConflict) {
             Button("common.cancel", role: .cancel) {}
             Button("play.setup.activeConflict.confirm", role: .destructive) {

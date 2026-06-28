@@ -6,7 +6,12 @@ extension DartBuddyUITestCase {
         extraArguments: [String] = []
     ) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ui_test_reset", "-disable_firebase_analytics", "-ui_test_onboarding"] + extraArguments
+        app.launchArguments = [
+            "-ui_test_reset",
+            "-disable_firebase_analytics",
+            "-skip_release_highlights",
+            "-ui_test_onboarding",
+        ] + extraArguments
         applyDefaultLaunchEnvironment(to: app)
         if let experienceTierIndex {
             var environment = app.launchEnvironment
@@ -113,7 +118,33 @@ extension DartBuddyUITestCase {
         )
         getStarted.tap()
 
+        waitForAppBootstrapReady(in: app, timeout: (timeout ?? self.timeout) + 20)
         assertBrandAppTitleVisible(in: app, timeout: wait)
+
+        let turnOrder = app.descendants(matching: .any)["setup_turnOrderList"]
+        let deadline = Date().addingTimeInterval(wait + 20)
+        while Date() < deadline {
+            if turnOrder.exists { return }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+        }
+    }
+
+    func waitForStagedPlayer(_ name: String, in app: XCUIApplication, timeout: TimeInterval? = nil) {
+        let wait = timeout ?? self.timeout
+        ensurePlayTab(app, timeout: wait)
+        let staged = app.descendants(matching: .any)["setup_selected_\(name)"]
+        let deadline = Date().addingTimeInterval(wait + 20)
+        while Date() < deadline {
+            if staged.exists { return }
+            app.swipeUp()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+        }
+        ensurePlayersTab(app, timeout: 4)
+        let created = app.buttons["player_row_\(name)"].exists
+        XCTAssertTrue(
+            staged.waitForExistence(timeout: 2),
+            "Expected staged player '\(name)' on Play setup (created=\(created))"
+        )
     }
 
     func skipOnboardingFromWelcomeAndFinish(in app: XCUIApplication, timeout: TimeInterval? = nil) {

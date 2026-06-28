@@ -172,6 +172,7 @@ struct OnboardingFlowView: View {
                 settings: try? await dependencies.settingsRepository.fetchSettings(),
                 preferences: dependencies.userPreferencesStore
             )
+            await PlaySetupStagingRefresh.applyPendingSelections(dependencies)
         }
         onFinished()
     }
@@ -198,6 +199,7 @@ struct OnboardingFlowView: View {
         do {
             let human = try await dependencies.playerRepository.createHumanPlayer(from: editable)
             let bot = try await dependencies.playerRepository.createBot(difficulty: draft.botDifficulty)
+            OnboardingSetupStaging.savePendingPlayerIds([human.id, bot.id])
             dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(human.id)
             dependencies.pendingMatchPlayerSelections.enqueueForNextMatchSetup(bot.id)
             if draft.botDifficulty.showsOnboardingRulesIntro {

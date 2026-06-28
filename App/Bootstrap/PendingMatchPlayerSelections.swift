@@ -12,7 +12,9 @@ struct PendingModeSelection: Equatable {
 /// Remembers player IDs created outside match setup so `MatchSetupViewModel` can include them once those players appear in the roster.
 @MainActor
 public final class PendingMatchPlayerSelections: ObservableObject {
-    @Published public private(set) var changeCount = 0
+    static let shouldRefreshSetupNotification = Notification.Name("dartBuddy.matchSetupShouldRefresh")
+
+    @Published private(set) var changeCount = 0
     @Published public private(set) var preferredMatchType: MatchType?
     @Published private(set) var pendingModeSelection: PendingModeSelection?
     private var pending: Set<UUID> = []
@@ -22,6 +24,7 @@ public final class PendingMatchPlayerSelections: ObservableObject {
     public func enqueueForNextMatchSetup(_ playerId: UUID) {
         pending.insert(playerId)
         changeCount += 1
+        NotificationCenter.default.post(name: Self.shouldRefreshSetupNotification, object: nil)
     }
 
     public func enqueuePractice(humanId: UUID, trainingBotId: UUID, mode: MatchType) {
@@ -51,6 +54,16 @@ public final class PendingMatchPlayerSelections: ObservableObject {
         let matched = pending.intersection(loadedPlayerIds)
         pending.subtract(matched)
         return matched
+    }
+
+    public var hasPendingSetupPlayers: Bool {
+        !pending.isEmpty
+    }
+
+    /// Re-notifies Play setup after onboarding dismisses so staged roster IDs apply once the tab is visible.
+    public func bumpForSetupRefresh() {
+        guard !pending.isEmpty else { return }
+        changeCount += 1
     }
 
     public func clearAll() {

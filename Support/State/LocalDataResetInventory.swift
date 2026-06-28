@@ -22,6 +22,7 @@ enum LocalDataResetInventory {
     /// Non-setup auxiliary keys cleared on reset (onboarding, marketing dismissals, etc.).
     static func clearAuxiliaryUserDefaults(userDefaults: UserDefaults = .standard) {
         OnboardingStore(userDefaults: userDefaults).clearPersistedState()
+        OnboardingSetupStaging.clearPendingPlayerIds()
         AppStoreUpdateChecker.clearPersistedState(userDefaults: userDefaults)
         ReleaseHighlightsStore.clearPersistedState(userDefaults: userDefaults)
     }

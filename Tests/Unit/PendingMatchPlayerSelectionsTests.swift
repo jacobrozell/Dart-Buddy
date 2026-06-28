@@ -54,6 +54,20 @@ struct PendingMatchPlayerSelectionsTests {
     }
 
     @Test
+    func bumpForSetupRefreshReNotifiesWhenPendingPlayersRemain() {
+        let store = PendingMatchPlayerSelections()
+        let player = UUID()
+
+        store.enqueueForNextMatchSetup(player)
+        let countAfterEnqueue = store.changeCount
+
+        store.bumpForSetupRefresh()
+        #expect(store.changeCount == countAfterEnqueue + 1)
+        #expect(store.hasPendingSetupPlayers)
+        #expect(store.dequeueIdsPresent(in: [player]) == [player])
+    }
+
+    @Test
     func clearAllResetsPendingState() {
         let store = PendingMatchPlayerSelections()
         let player = UUID()

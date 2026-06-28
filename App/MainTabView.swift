@@ -36,6 +36,7 @@ struct MainTabView: View {
     @State private var appStoreUpdateOffer: AppStoreUpdateOffer?
     @State private var showsOnboarding = false
     @State private var showsReleaseHighlights = false
+    @State private var onboardingCompletedToken = 0
     @Environment(\.openURL) private var openURL
 
     private let onboardingStore = OnboardingStore()
@@ -52,6 +53,7 @@ struct MainTabView: View {
             selectedTab: $selectedTab,
             pendingPlayResume: $pendingPlayResume,
             playNavigationResetTrigger: playNavigationResetTrigger,
+            onboardingCompletedToken: onboardingCompletedToken,
             activityRefreshToken: activityRefreshToken,
             showsActiveMatchBadge: showsActiveMatchBadge,
             dependencies: dependencies,
@@ -89,7 +91,7 @@ struct MainTabView: View {
         } message: {
             Text(L10n.updateAvailableMessage)
         }
-        .fullScreenCover(isPresented: $showsOnboarding) {
+        .fullScreenCover(isPresented: $showsOnboarding, onDismiss: finishFirstLaunchOnboardingAfterDismiss) {
             OnboardingFlowView(
                 mode: .firstLaunch,
                 dependencies: dependencies,
@@ -97,9 +99,11 @@ struct MainTabView: View {
                 logger: dependencies.logger,
                 preferredColorScheme: preferences.preferredColorScheme,
                 onFinished: {
-                    showsOnboarding = false
                     selectedTab = .play
-                    Task {
+                    playNavigationResetTrigger += 1
+                    onboardingCompletedToken += 1
+                    showsOnboarding = false
+                    Task { @MainActor in
                         await presentMarketingSurfacesIfNeeded()
                         await consumePendingDeepLink()
                     }
@@ -134,6 +138,12 @@ struct MainTabView: View {
             await consumePendingDeepLink()
         }
         .onChange(of: selectedTab) { _, tab in
+            if tab == .play {
+                NotificationCenter.default.post(
+                    name: PendingMatchPlayerSelections.shouldRefreshSetupNotification,
+                    object: nil
+                )
+            }
             if tab == .activity {
                 activityRefreshToken += 1
             }
@@ -148,6 +158,12 @@ struct MainTabView: View {
             if onboardingStore.shouldPresentOnLaunch {
                 showsOnboarding = true
             }
+        }
+    }
+
+    private func finishFirstLaunchOnboardingAfterDismiss() {
+        Task { @MainActor in
+            await PlaySetupStagingRefresh.applyPendingSelections(dependencies)
         }
     }
 

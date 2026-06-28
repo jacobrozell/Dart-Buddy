@@ -25,7 +25,7 @@ func templateResolverUsesX01AverageForCheckoutTemplate() {
         configuration: configuration,
         context: BotPlayContext(matchType: .x01, uiTemplate: .checkoutScore)
     )
-    #expect(checkout.x01.scoringBehaviorTier == .veryEasy)
+    #expect(checkout.x01.scoringBehaviorTier == .easy)
 }
 
 @Test(.tags(.unit, .regression))

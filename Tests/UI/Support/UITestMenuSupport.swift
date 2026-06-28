@@ -102,6 +102,22 @@ extension XCTestCase {
         }
     }
 
+    func waitForAppBootstrapReady(in app: XCUIApplication, timeout: TimeInterval = 30) {
+        let marker = app.descendants(matching: .any)["app_bootstrap_ready"]
+        let tabBar = app.tabBars.firstMatch
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if marker.exists || tabBar.exists {
+                return
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        XCTAssertTrue(
+            marker.exists || tabBar.exists,
+            "App should finish bootstrap before UI tests interact"
+        )
+    }
+
     func activeX01ScoreCard(in app: XCUIApplication) -> XCUIElement {
         app.otherElements["scoreCard_active"]
     }
@@ -359,6 +375,19 @@ extension XCTestCase {
         if !statsSegment.isSelected {
             statsSegment.tap()
         }
+    }
+
+    func ensureSettingsSection(
+        _ sectionRawValue: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10
+    ) {
+        let sectionButton = app.buttons["settings_section_\(sectionRawValue)"]
+        guard sectionButton.waitForExistence(timeout: 1) else { return }
+        if sectionButton.isSelected { return }
+        sectionButton.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        _ = sectionButton.waitForExistence(timeout: timeout)
     }
 
     func ensureSettingsTab(_ app: XCUIApplication, timeout: TimeInterval = 10) {
