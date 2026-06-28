@@ -9,7 +9,7 @@ struct GameRulesCatalogTests {
             let guide = GameRulesCatalog.guide(for: mode)
             #expect(guide.matchType == mode)
             #expect(!guide.sections.isEmpty)
-            #expect(guide.sections.allSatisfy { !$0.titleKey.isEmpty && !$0.bodyKey.isEmpty })
+            #expect(guide.sections.allSatisfy { !$0.titleKey.isEmpty && !$0.bodyKey.isEmpty && !$0.symbolName.isEmpty })
         }
     }
 
