@@ -113,7 +113,7 @@ struct OnboardingRosterSetupStepView: View {
                         .foregroundStyle(Brand.textSecondary)
                         .accessibilityIdentifier("onboarding_bot_summary")
 
-                    BotDifficultyBadge(difficulty: selectedDifficulty)
+                    BotDifficultyBadge(difficulty: selectedDifficulty, showsReferenceMetrics: true)
                         .accessibilityIdentifier("onboarding_bot_tier_\(selectedDifficulty.rawValue)")
 
                     BotDifficultyStatsSection(profile: selectedDifficulty.displayProfile, showsHeader: false)

@@ -9,6 +9,7 @@ struct PlayerDetailView: View {
     let onSave: (EditablePlayer) -> Void
     let onExportResult: (Result<URL, Error>) -> Void
     let onSelectRecentMatch: (UUID) -> Void
+    var onCreateCustomBot: ((String, CustomBotMetrics) async -> Void)? = nil
 
     init(
         player: EditablePlayer?,
@@ -18,7 +19,8 @@ struct PlayerDetailView: View {
         onArchiveToggle: @escaping () -> Void,
         onSave: @escaping (EditablePlayer) -> Void,
         onExportResult: @escaping (Result<URL, Error>) -> Void = { _ in },
-        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in },
+        onCreateCustomBot: ((String, CustomBotMetrics) async -> Void)? = nil
     ) {
         self.player = player
         self.existingNames = existingNames
@@ -28,6 +30,7 @@ struct PlayerDetailView: View {
         self.onSave = onSave
         self.onExportResult = onExportResult
         self.onSelectRecentMatch = onSelectRecentMatch
+        self.onCreateCustomBot = onCreateCustomBot
     }
 
     var body: some View {
@@ -48,7 +51,8 @@ struct PlayerDetailView: View {
                         existingNames: existingNames,
                         dependencies: dependencies,
                         onSave: onSave,
-                        onSelectRecentMatch: onSelectRecentMatch
+                        onSelectRecentMatch: onSelectRecentMatch,
+                        onCreateCustomBot: onCreateCustomBot
                     )
                 } else if player.isBot {
                     TrainingBotDetailView(

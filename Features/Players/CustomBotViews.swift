@@ -79,11 +79,22 @@ struct CustomBotMetricsEditor: View {
 }
 
 struct CustomBotCreationSheet: View {
+    let initialMetrics: CustomBotMetrics?
     let onCreate: (String, CustomBotMetrics) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var x01Average = CustomBotMetrics.defaultX01Average
     @State private var cricketMPR = CustomBotMetrics.defaultCricketMPR
+
+    init(
+        initialMetrics: CustomBotMetrics? = nil,
+        onCreate: @escaping (String, CustomBotMetrics) -> Void
+    ) {
+        self.initialMetrics = initialMetrics
+        self.onCreate = onCreate
+        _x01Average = State(initialValue: initialMetrics?.x01Average ?? CustomBotMetrics.defaultX01Average)
+        _cricketMPR = State(initialValue: initialMetrics?.cricketMPR ?? CustomBotMetrics.defaultCricketMPR)
+    }
 
     var body: some View {
         NavigationStack {
@@ -169,7 +180,9 @@ struct CustomBotDetailView: View {
     }
 
     private var displayProfile: BotDifficultyDisplayProfile {
-        configuration.resolvedCanonicalProfile().displayProfile
+        configuration.resolvedCanonicalProfile().displayProfile(
+            summary: .custom(configuration.metrics)
+        )
     }
 
     var body: some View {

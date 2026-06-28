@@ -47,6 +47,7 @@ enum PlayerVisualViews {
 struct BotDifficultyBadge: View {
     let difficulty: BotDifficulty
     var prominence: Prominence = .standard
+    var showsReferenceMetrics: Bool = false
 
     enum Prominence {
         case standard
@@ -58,11 +59,18 @@ struct BotDifficultyBadge: View {
     }
 
     var body: some View {
-        HStack(spacing: prominence == .compact ? 4 : 6) {
-            Image(systemName: "cpu.fill")
-                .font(prominence == .compact ? .caption2.weight(.semibold) : .caption.weight(.semibold))
-            Text(difficulty.displayName)
-                .font(prominence == .compact ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: prominence == .compact ? 4 : 6) {
+                Image(systemName: "cpu.fill")
+                    .font(prominence == .compact ? .caption2.weight(.semibold) : .caption.weight(.semibold))
+                Text(difficulty.displayName)
+                    .font(prominence == .compact ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
+            }
+            if showsReferenceMetrics, let formatted = difficulty.referenceMetrics.formattedBadge() {
+                Text(formatted)
+                    .font(prominence == .compact ? .caption2 : .caption)
+                    .monospacedDigit()
+            }
         }
         .foregroundStyle(difficultyColor)
         .padding(.horizontal, prominence == .compact ? DS.Spacing.s2 : DS.Spacing.s3)
@@ -70,7 +78,15 @@ struct BotDifficultyBadge: View {
         .background(difficultyColor.opacity(0.15), in: Capsule())
         .overlay(Capsule().strokeBorder(difficultyColor.opacity(0.35), lineWidth: 1))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(L10n.format("players.bots.difficulty.accessibilityFormat", difficulty.displayName))
+        .accessibilityLabel(accessibilityText)
+    }
+
+    private var accessibilityText: String {
+        if showsReferenceMetrics,
+           let metrics = difficulty.referenceMetrics.formattedBadge() {
+            return L10n.format("players.bots.difficulty.withMetrics.accessibilityFormat", difficulty.displayName, metrics)
+        }
+        return L10n.format("players.bots.difficulty.accessibilityFormat", difficulty.displayName)
     }
 }
 
@@ -124,6 +140,7 @@ struct PlayerAvatarChip: View {
 struct BotDifficultyStatsSection: View {
     let profile: BotDifficultyDisplayProfile
     var showsHeader: Bool = true
+    @State private var showsEngineDetails = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s3) {
@@ -133,6 +150,28 @@ struct BotDifficultyStatsSection: View {
                     .foregroundStyle(Brand.textPrimary)
             }
 
+            if let summary = profile.summary, summary.hasValues {
+                summaryCard(summary)
+            }
+
+            DisclosureGroup(isExpanded: $showsEngineDetails) {
+                engineDetailsContent
+            } label: {
+                Text(L10n.botStatsEngineDetails)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.textPrimary)
+            }
+            .accessibilityIdentifier("botStats_engineDetails")
+
+            Text(L10n.botStatsFooter)
+                .font(.caption)
+                .foregroundStyle(Brand.textSecondary)
+        }
+    }
+
+    @ViewBuilder
+    private var engineDetailsContent: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s3) {
             modeCard(title: L10n.x01Title) {
                 BotStatRow(
                     labelKey: "players.bots.stats.scoringVisitRange",
@@ -187,11 +226,43 @@ struct BotDifficultyStatsSection: View {
                     value: BotDifficultyDisplayProfile.percent(profile.cricket.wrongBedChance)
                 )
             }
+        }
+        .padding(.top, DS.Spacing.s2)
+    }
 
-            Text(L10n.botStatsFooter)
+    @ViewBuilder
+    private func summaryCard(_ summary: BotModeSummaryMetrics) -> some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            Text(L10n.botStatsSummarySection)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Brand.textSecondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 0) {
+                if let x01Average = summary.x01Average {
+                    BotStatRow(
+                        labelKey: "customBot.x01Average.label",
+                        value: String(format: "%.0f", x01Average)
+                    )
+                }
+                if summary.x01Average != nil, summary.cricketMPR != nil {
+                    statDivider
+                }
+                if let cricketMPR = summary.cricketMPR {
+                    BotStatRow(
+                        labelKey: "customBot.cricketMPR.label",
+                        value: String(format: "%.2f", cricketMPR)
+                    )
+                }
+            }
+            .padding(.horizontal, DS.Spacing.s3)
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+
+            Text(L10n.botStatsSummaryHint)
                 .font(.caption)
                 .foregroundStyle(Brand.textSecondary)
         }
+        .accessibilityIdentifier("botStats_summary")
     }
 
     @ViewBuilder
@@ -296,7 +367,7 @@ struct BotIdentityCard: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Brand.textSecondary)
                         .textCase(.uppercase)
-                    BotDifficultyBadge(difficulty: difficulty)
+                    BotDifficultyBadge(difficulty: difficulty, showsReferenceMetrics: true)
                 }
             } else if let customMetrics {
                 VStack(alignment: .leading, spacing: DS.Spacing.s2) {

@@ -7,10 +7,12 @@ struct BotDetailView: View {
     let dependencies: AppDependencies
     let onSave: (EditablePlayer) -> Void
     let onSelectRecentMatch: (UUID) -> Void
+    var onCreateCustomBot: ((String, CustomBotMetrics) async -> Void)? = nil
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @StateObject private var editViewModel: PlayerEditViewModel
     @StateObject private var statsViewModel: PlayerDetailViewModel
+    @State private var showsCustomizeSheet = false
 
     init(
         player: EditablePlayer,
@@ -18,7 +20,8 @@ struct BotDetailView: View {
         existingNames: [String],
         dependencies: AppDependencies,
         onSave: @escaping (EditablePlayer) -> Void,
-        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in }
+        onSelectRecentMatch: @escaping (UUID) -> Void = { _ in },
+        onCreateCustomBot: ((String, CustomBotMetrics) async -> Void)? = nil
     ) {
         self.player = player
         self.difficulty = difficulty
@@ -26,6 +29,7 @@ struct BotDetailView: View {
         self.dependencies = dependencies
         self.onSave = onSave
         self.onSelectRecentMatch = onSelectRecentMatch
+        self.onCreateCustomBot = onCreateCustomBot
         _editViewModel = StateObject(wrappedValue: PlayerEditViewModel(existingNames: existingNames, editing: player))
         _statsViewModel = StateObject(wrappedValue: PlayerDetailViewModel(
             playerId: player.id,
@@ -48,6 +52,12 @@ struct BotDetailView: View {
                 )
 
                 BotDifficultyStatsSection(profile: difficulty.displayProfile)
+
+                if ProductSurface.showsCustomBots, onCreateCustomBot != nil {
+                    PresetBotCustomizeSection(difficulty: difficulty) {
+                        showsCustomizeSheet = true
+                    }
+                }
 
                 customizationSection
 
@@ -72,6 +82,14 @@ struct BotDetailView: View {
             }
         }
         .task { await statsViewModel.load() }
+        .sheet(isPresented: $showsCustomizeSheet) {
+            CustomBotCreationSheet(initialMetrics: difficulty.referenceMetrics.customBotMetrics) { name, metrics in
+                showsCustomizeSheet = false
+                Task {
+                    await onCreateCustomBot?(name, metrics)
+                }
+            }
+        }
     }
 
     private var customizationSection: some View {
@@ -161,7 +179,7 @@ struct TrainingBotDetailView: View {
                 )
 
                 if let profile = resolvedProfile {
-                    BotDifficultyStatsSection(profile: profile.displayProfile)
+                    BotDifficultyStatsSection(profile: profile.displayProfile())
                     Text(L10n.format("trainingBot.calibrated.footer", linkedHumanName))
                         .font(.footnote)
                         .foregroundStyle(Brand.textSecondary)

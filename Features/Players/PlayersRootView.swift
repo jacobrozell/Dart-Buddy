@@ -143,7 +143,10 @@ struct PlayersRootView: View {
                     actionTask = Task { await viewModel.save(player) }
                 },
                 onExportResult: handleExportResult,
-                onSelectRecentMatch: { appendMatchDetail(matchId: $0) }
+                onSelectRecentMatch: { appendMatchDetail(matchId: $0) },
+                onCreateCustomBot: { name, metrics in
+                    await viewModel.createCustomBot(name: name, metrics: metrics)
+                }
             )
         case let .edit(playerId):
             PlayerDetailView(
