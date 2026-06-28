@@ -184,7 +184,10 @@
 "players.bots.difficulty.label" = "Schwierigkeit";
 "players.bots.customization.section" = "Erscheinungsbild";
 "players.bots.stats.section" = "Fähigkeitsprofil";
-"players.bots.stats.footer" = "Engine-Parameter, die bestimmen, wie dieser Bot in X01 und Cricket wirft.";
+"players.bots.stats.summary.section" = "Spielmodus-Ziele";
+"players.bots.stats.summary.hint" = "Das sind die verständlichen Ziele für X01 und Cricket — dieselbe Skala wie bei Custom-Bots. Andere Spielmodi leiten die Stärke daraus ab.";
+"players.bots.stats.engineDetails" = "Engine-Details";
+"players.bots.stats.footer" = "Engine-Details öffnen für Trefferquoten und weitere Wurfparameter. Die Werte gelten für alle Modi mit denselben Bot-Engine-Vorlagen.";
 "players.bots.stats.scoringVisitRange" = "Ziel für Score-Wurf";
 "players.bots.stats.hitChanceSingle" = "Single-Trefferquote";
 "players.bots.stats.hitChanceDouble" = "Doppel-Trefferquote";
@@ -198,6 +201,7 @@
 "players.bots.stats.masterInTriple" = "Master-in-Triple-Eröffner";
 "players.bots.stats.wrongBed" = "Falsches Feld";
 "players.bots.difficulty.accessibilityFormat" = "Schwierigkeit: %@";
+"players.bots.difficulty.withMetrics.accessibilityFormat" = "Schwierigkeit: %@, %@";
 "players.bots.identity.accessibilityFormat" = "%@, Farbe %@, Schwierigkeit %@";
 "players.bots.roster.accessibilityFormat" = "%@, Bot %@";
 "players.bots.save.accessibility" = "Bot speichern";
@@ -720,6 +724,9 @@
 "customBot.advanced.aimSection" = "Zielen (Baseball, Killer, Shanghai…)";
 "customBot.advanced.visitMinFormat" = "Min. Aufnahme %.0f";
 "customBot.advanced.visitMaxFormat" = "Max. Aufnahme %.0f";
+"presetBot.customize.title" = "Weiter anpassen";
+"presetBot.customize.bodyFormat" = "Preset-Bots haben feste Stufen. Starte mit %@-Zielen und passe jeden Wert mit einem Custom-Bot an.";
+"presetBot.customize.action" = "Custom-Bot aus dieser Stufe erstellen";
 "bot.namePrefixFormat" = "%@ Bot ";
 "play.rules.learnButton" = "Spielanleitung";
 "play.rules.sheet.title" = "So wird gespielt";

@@ -184,7 +184,10 @@
 "players.bots.difficulty.label" = "Difficoltà";
 "players.bots.customization.section" = "Aspetto";
 "players.bots.stats.section" = "Profilo abilità";
-"players.bots.stats.footer" = "Parametri del motore che determinano come questo bot tira in X01 e Cricket.";
+"players.bots.stats.summary.section" = "Obiettivi per modalità";
+"players.bots.stats.summary.hint" = "Obiettivi comprensibili per X01 e Cricket — la stessa scala dei bot personalizzati. Le altre modalità derivano il livello da questi valori.";
+"players.bots.stats.engineDetails" = "Dettagli motore";
+"players.bots.stats.footer" = "Apri i dettagli motore per probabilità di colpo e altri parametri. I valori valgono per tutte le modalità che condividono gli stessi template del motore.";
 "players.bots.stats.scoringVisitRange" = "Obiettivo punteggio per visita";
 "players.bots.stats.hitChanceSingle" = "Probabilità di colpire singolo";
 "players.bots.stats.hitChanceDouble" = "Probabilità di colpire doppio";
@@ -198,6 +201,7 @@
 "players.bots.stats.masterInTriple" = "Apertura Master-In triplo";
 "players.bots.stats.wrongBed" = "Errore settore sbagliato";
 "players.bots.difficulty.accessibilityFormat" = "Difficoltà: %@";
+"players.bots.difficulty.withMetrics.accessibilityFormat" = "Difficoltà: %@, %@";
 "players.bots.identity.accessibilityFormat" = "%@, colore %@, difficoltà %@";
 "players.bots.roster.accessibilityFormat" = "%@, bot %@";
 "players.bots.save.accessibility" = "Salva bot";
@@ -720,6 +724,9 @@
 "customBot.advanced.aimSection" = "Mira (Baseball, Killer, Shanghai…)";
 "customBot.advanced.visitMinFormat" = "Visita min %.0f";
 "customBot.advanced.visitMaxFormat" = "Visita max %.0f";
+"presetBot.customize.title" = "Personalizza ulteriormente";
+"presetBot.customize.bodyFormat" = "I bot preimpostati hanno livelli fissi. Parti dagli obiettivi %@ e regola ogni stat con un bot personalizzato.";
+"presetBot.customize.action" = "Crea bot personalizzato da questo livello";
 "bot.namePrefixFormat" = "Bot %@ ";
 "play.rules.learnButton" = "Impara a giocare";
 "play.rules.sheet.title" = "Come si gioca";

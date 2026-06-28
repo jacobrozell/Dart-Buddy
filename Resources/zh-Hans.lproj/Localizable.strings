@@ -184,7 +184,10 @@
 "players.bots.difficulty.label" = "难度";
 "players.bots.customization.section" = "外观";
 "players.bots.stats.section" = "技能档案";
-"players.bots.stats.footer" = "用于驱动该机器人在 X01 与板球中投掷行为的引擎参数。";
+"players.bots.stats.summary.section" = "游戏模式目标";
+"players.bots.stats.summary.hint" = "X01 与板球的可读目标——与自定义机器人使用相同刻度。其他模式由此推导实力。";
+"players.bots.stats.engineDetails" = "引擎详情";
+"players.bots.stats.footer" = "展开引擎详情可查看命中率等投掷参数。数值适用于共享同一引擎模板的所有模式。";
 "players.bots.stats.scoringVisitRange" = "计分回合目标";
 "players.bots.stats.hitChanceSingle" = "单倍命中率";
 "players.bots.stats.hitChanceDouble" = "双倍命中率";
@@ -198,6 +201,7 @@
 "players.bots.stats.masterInTriple" = "大师开局三倍";
 "players.bots.stats.wrongBed" = "错位失误";
 "players.bots.difficulty.accessibilityFormat" = "难度:%@";
+"players.bots.difficulty.withMetrics.accessibilityFormat" = "难度：%@，%@";
 "players.bots.identity.accessibilityFormat" = "%@,%@ 颜色,%@ 难度";
 "players.bots.roster.accessibilityFormat" = "%@,%@ 机器人";
 "players.bots.save.accessibility" = "保存机器人";
@@ -720,6 +724,9 @@
 "customBot.advanced.aimSection" = "瞄准(棒球、杀手、上海…)";
 "customBot.advanced.visitMinFormat" = "最低回合 %.0f";
 "customBot.advanced.visitMaxFormat" = "最高回合 %.0f";
+"presetBot.customize.title" = "进一步自定义";
+"presetBot.customize.bodyFormat" = "预设机器人使用固定等级。从 %@ 目标出发，用自定义机器人微调各项参数。";
+"presetBot.customize.action" = "从此等级创建自定义机器人";
 "bot.namePrefixFormat" = "%@ 机器人 ";
 "play.rules.learnButton" = "学习玩法";
 "play.rules.sheet.title" = "玩法说明";

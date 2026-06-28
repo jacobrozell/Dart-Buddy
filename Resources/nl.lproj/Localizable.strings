@@ -184,7 +184,10 @@
 "players.bots.difficulty.label" = "Moeilijkheidsgraad";
 "players.bots.customization.section" = "Uiterlijk";
 "players.bots.stats.section" = "Vaardigheidsprofiel";
-"players.bots.stats.footer" = "Engineparameters die bepalen hoe deze bot gooit in X01 en Cricket.";
+"players.bots.stats.summary.section" = "Modusdoelen";
+"players.bots.stats.summary.hint" = "Begrijpelijke doelen voor X01 en Cricket — dezelfde schaal als custom bots. Andere modi halen hun niveau hieruit.";
+"players.bots.stats.engineDetails" = "Engine-details";
+"players.bots.stats.footer" = "Open engine-details voor trefferkansen en andere parameters. Waarden gelden voor alle modi met dezelfde bot-engine-templates.";
 "players.bots.stats.scoringVisitRange" = "Doel voor scorebeurt";
 "players.bots.stats.hitChanceSingle" = "Kans op single";
 "players.bots.stats.hitChanceDouble" = "Kans op double";
@@ -198,6 +201,7 @@
 "players.bots.stats.masterInTriple" = "Master-in triple-opener";
 "players.bots.stats.wrongBed" = "Verkeerd vak";
 "players.bots.difficulty.accessibilityFormat" = "Moeilijkheidsgraad: %@";
+"players.bots.difficulty.withMetrics.accessibilityFormat" = "Moeilijkheidsgraad: %@, %@";
 "players.bots.identity.accessibilityFormat" = "%@, %@ kleur, %@ moeilijkheidsgraad";
 "players.bots.roster.accessibilityFormat" = "%@, %@-bot";
 "players.bots.save.accessibility" = "Bot opslaan";
@@ -720,6 +724,9 @@
 "customBot.advanced.aimSection" = "Richten (Baseball, Killer, Shanghai…)";
 "customBot.advanced.visitMinFormat" = "Min. beurt %.0f";
 "customBot.advanced.visitMaxFormat" = "Max. beurt %.0f";
+"presetBot.customize.title" = "Verder aanpassen";
+"presetBot.customize.bodyFormat" = "Preset-bots hebben vaste niveaus. Start met %@-doelen en stel elke stat bij met een custom bot.";
+"presetBot.customize.action" = "Custom bot maken van dit niveau";
 "bot.namePrefixFormat" = "%@-bot ";
 "play.rules.learnButton" = "Leer spelen";
 "play.rules.sheet.title" = "Speluitleg";
