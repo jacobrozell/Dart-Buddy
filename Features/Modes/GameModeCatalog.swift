@@ -367,7 +367,9 @@ enum GameModeCatalog {
 
         return GameModeSection.allCases.compactMap { section in
             if section == .coop, !ProductSurface.showsCoopModes { return nil }
-            let sectionEntries = entries(in: section)
+            let sectionEntries = entries(in: section).filter { entry in
+                entry.isAvailable && entry.matchType != nil && ProductSurface.isCatalogEntryReachable(entry)
+            }
             guard !sectionEntries.isEmpty else { return nil }
             return (section, sectionEntries)
         }
@@ -379,6 +381,7 @@ enum GameModeCatalog {
         displayedCount: Int
     ) -> Int {
         guard ProductSurface.showsPartyModes else { return 0 }
+        if !ProductSurface.isFullProductSurfaceEnabled { return 0 }
         return max(0, entries(in: section).count - displayedCount)
     }
 
@@ -434,6 +437,7 @@ extension GameModeCatalogEntry {
     /// Prefill payload when the user taps an available catalog card.
     var pendingModeSelection: PendingModeSelection? {
         guard isAvailable, let matchType else { return nil }
+        guard ProductSurface.isCatalogEntryReachable(self) else { return nil }
         if section == .party, !ProductSurface.showsPartyModes { return nil }
         if section == .coop, !ProductSurface.showsCoopModes { return nil }
         switch section {

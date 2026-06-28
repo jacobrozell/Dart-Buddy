@@ -103,7 +103,7 @@ enum ProductSurface {
         isFullProductSurfaceEnabled(arguments: arguments) ? .full : .smart1_2
     }
 
-    /// Catalog IDs shipped in the default Release 1.1+ gameplay surface (unchanged in 1.2).
+    /// Catalog IDs shipped in the default Release 1.1 gameplay surface.
     static let partyPack1_1CatalogIDs: Set<String> = [
         "standard.x01",
         "standard.cricket",
@@ -113,6 +113,12 @@ enum ProductSurface {
         "coop.raid",
         "practice.aroundTheClock"
     ]
+
+    /// Catalog IDs shipped in Release 1.2 — 1.1 gameplay plus Practice Pack (Bob's 27, Halve-It).
+    static let smart1_2ReleaseCatalogIDs: Set<String> = partyPack1_1CatalogIDs.union([
+        "practice.bobs27",
+        "practice.halveIt"
+    ])
 
     /// Whether gameplay for this match type is reachable in the current product surface.
     static func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
@@ -152,6 +158,6 @@ enum ProductSurface {
             }
         }
 
-        return partyPack1_1CatalogIDs.contains(entry.id)
+        return smart1_2ReleaseCatalogIDs.contains(entry.id)
     }
 }

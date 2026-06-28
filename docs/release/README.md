@@ -1,10 +1,11 @@
 # Release documentation
 
-**Current store version:** **1.0.0 (7)** live · **1.1.0** tagged on `master` · **1.2.0** draft on `release/1.2.0`.
+**Current store version:** **1.0.0 (7)** live · **1.1.0** tagged on `master` · **1.2.0** scope locked on `release/1.2.0`.
 
 | File | Role |
 |------|------|
-| [**`1.2.0-ship-checklist.md`**](1.2.0-ship-checklist.md) | **1.2 draft** — Smart Opponents + **German** RC |
+| [**`1.2.0-ship-checklist.md`**](1.2.0-ship-checklist.md) | **1.2** — 9 modes + German + Training Partner |
+| [**`1.2.0-training-partner-plan.md`**](1.2.0-training-partner-plan.md) | Training Partner test & polish runbook |
 | [**`1.2.0-app-store-copy.md`**](1.2.0-app-store-copy.md) | English + Deutsch listing draft |
 | [**`1.1.0-ship-checklist.md`**](1.1.0-ship-checklist.md) | 1.1 Party Pack — shipped (tag `1.1.0`) |
 | [`todo.md`](todo.md) | Active sprint, 1.0 blockers, post-1.0 deferrals |

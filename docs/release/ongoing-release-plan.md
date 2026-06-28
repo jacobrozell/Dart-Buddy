@@ -199,6 +199,7 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 | Area | Include |
 |------|---------|
 | **German UI** | `en` + `de` in App Store bundle; Deutsch App Store listing + screenshots |
+| **Practice Pack** | Bob's 27 + Halve-It in store allowlist (Around the Clock from 1.1) |
 | **Training Partner** | Eligibility, create/link, setup roster |
 | **Custom bots** | User-defined X01 avg / Cricket MPR |
 | **Stats** | Fix bot-with-zero-games averaging UX (P1 in `todo.md`) |
@@ -303,7 +304,7 @@ Per-feature tags: [`estimated-release-registry.md`](estimated-release-registry.m
 |---------|---------------------|------|------|-----------|
 | **1.0** | X01, Cricket | 4 (no Modes) | Preset + custom | Play setup Standard |
 | **1.1** | + Baseball, Killer, Shanghai | 4 or 5 | Preset + custom | Party setup |
-| **1.2** | Same | 4–5 | + Training Partner | + export · localized listings |
+| **1.2** | Same + Practice Pack | 4 | + Training Partner | + export · **German** · Bob's 27 · Halve-It |
 | **1.3** | + American Cricket, Knockout, Golf, … (party wave II) | 5 | Same | Modes catalog |
 | **1.4** | + Raid, Fleet, practice drills | 5 | Same | + Siri/widgets |
 | **2.0** | Growth bet | 5+ | Same | Achievements UI, etc. |

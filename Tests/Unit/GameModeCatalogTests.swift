@@ -23,9 +23,13 @@ struct GameModeCatalogTests {
         #expect(available.allSatisfy { $0.isAvailable })
         #expect(mappedTypes == Set(available.compactMap(\.matchType)))
 
-        if ProductSurface.showsPartyModes {
-            #expect(mappedTypes.contains(.baseball))
+        if ProductSurface.isFullProductSurfaceEnabled {
             #expect(mappedTypes.contains(.golf))
+        } else if ProductSurface.showsPartyModes {
+            #expect(mappedTypes.contains(.baseball))
+            #expect(!mappedTypes.contains(.golf))
+            #expect(mappedTypes.contains(.bobs27))
+            #expect(mappedTypes.contains(.halveIt))
         } else {
             #expect(!mappedTypes.contains(.baseball))
             #expect(!mappedTypes.contains(.golf))
@@ -96,10 +100,20 @@ struct GameModeCatalogTests {
         guard ProductSurface.showsPartyModes else { return }
 
         let sections = GameModeCatalog.playSetupPickerSections()
-        #expect(sections.map(\.0) == GameModeSection.allCases)
-        let practiceDisplayed = sections.first { $0.0 == .practice }?.1.count ?? 0
-        #expect(practiceDisplayed == GameModeCatalog.entries(in: .practice).count)
-        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: practiceDisplayed) == 0)
+        #expect(sections.contains { $0.0 == .standard })
+        #expect(sections.contains { $0.0 == .party })
+        #expect(sections.contains { $0.0 == .practice })
+        if ProductSurface.showsCoopModes {
+            #expect(sections.contains { $0.0 == .coop })
+        } else {
+            #expect(!sections.contains { $0.0 == .coop })
+        }
+        let practiceDisplayed = sections.first { $0.0 == .practice }?.1 ?? []
+        let expectedPractice = GameModeCatalog.entries(in: .practice).filter {
+            $0.isAvailable && $0.matchType != nil && ProductSurface.isCatalogEntryReachable($0)
+        }
+        #expect(practiceDisplayed.map(\.id) == expectedPractice.map(\.id))
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: practiceDisplayed.count) == 0)
     }
 
     @Test

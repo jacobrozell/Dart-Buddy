@@ -22,16 +22,30 @@ struct ProductSurfaceTests {
         #expect(config.bundledLocaleCodes == ["en", "de"])
     }
 
-    @Test("Smart 1.2 allowlist matches 1.1 gameplay modes")
-    func smartAllowlistMatchesPartyPack() {
+    @Test("Smart 1.2 allowlist ships nine modes including Practice Pack")
+    func smartAllowlistMatchesReleaseCatalog() {
         let args = Self.smartReleaseArguments
+
+        #expect(ProductSurface.smart1_2ReleaseCatalogIDs.count == 9)
+        #expect(ProductSurface.smart1_2ReleaseCatalogIDs.isSuperset(of: ProductSurface.partyPack1_1CatalogIDs))
 
         for entry in GameModeCatalog.available {
             guard let matchType = entry.matchType else { continue }
             let reachable = ProductSurface.isMatchTypeReachable(matchType, arguments: args)
-            let expected = ProductSurface.partyPack1_1CatalogIDs.contains(entry.id)
+            let expected = ProductSurface.smart1_2ReleaseCatalogIDs.contains(entry.id)
             #expect(reachable == expected, "Unexpected reachability for \(entry.id)")
         }
+    }
+
+    @Test("Practice Pack modes are reachable on smart 1.2")
+    func practicePackModesReachable() {
+        let args = Self.smartReleaseArguments
+
+        #expect(ProductSurface.isMatchTypeReachable(.bobs27, arguments: args))
+        #expect(ProductSurface.isMatchTypeReachable(.halveIt, arguments: args))
+        #expect(ProductSurface.isMatchTypeReachable(.aroundTheClock, arguments: args))
+        #expect(!ProductSurface.isMatchTypeReachable(.chaseTheDragon, arguments: args))
+        #expect(!ProductSurface.isMatchTypeReachable(.aroundTheClock180, arguments: args))
     }
 
     @Test("Full product surface restores hidden areas")
