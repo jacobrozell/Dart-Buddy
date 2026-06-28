@@ -36,13 +36,14 @@ private extension View {
         chartPlotStyle { plotArea in
             plotArea
                 .padding(.horizontal, DS.Spacing.s1)
-                .padding(.vertical, DS.Spacing.s2)
+                .padding(.top, DS.Spacing.s2)
+                .padding(.bottom, DS.Spacing.s3)
         }
     }
 
-    func statsValueAxis() -> some View {
+    func statsValueAxis(desiredCount: Int = 4) -> some View {
         chartYAxis {
-            AxisMarks { _ in
+            AxisMarks(position: .leading, values: .automatic(desiredCount: desiredCount)) { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 4]))
                     .foregroundStyle(Brand.textSecondary.opacity(StatsChartStyle.gridOpacity))
                 AxisValueLabel()
@@ -51,16 +52,12 @@ private extension View {
         }
     }
 
-    func statsCategoryAxis(verticalLabels: Bool = false) -> some View {
+    func statsSectorCategoryAxis() -> some View {
         chartXAxis {
             AxisMarks { _ in
-                if verticalLabels {
-                    AxisValueLabel(orientation: .vertical)
-                        .foregroundStyle(Brand.textSecondary)
-                } else {
-                    AxisValueLabel()
-                        .foregroundStyle(Brand.textSecondary)
-                }
+                AxisValueLabel(centered: true)
+                    .font(.caption2)
+                    .foregroundStyle(Brand.textSecondary)
             }
         }
     }
@@ -81,7 +78,8 @@ private extension View {
 struct SectorHitsChart: View {
     let hitsBySector: [String: Int]
     let mode: MatchType
-    var height: CGFloat = 200
+    /// Optional override for the bar plot area (excluding the x-axis label band).
+    var plotHeight: CGFloat?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var hits: [SectorHit] {
@@ -95,6 +93,14 @@ struct SectorHitsChart: View {
             .sorted { StatsSectorOrder.rank($0.sector, mode: mode) < StatsSectorOrder.rank($1.sector, mode: mode) }
     }
 
+    private var maxHit: Int {
+        hits.map(\.count).max() ?? 0
+    }
+
+    private var yUpperBound: Double {
+        max(Double(maxHit) * 1.28 + 0.5, 1)
+    }
+
     var body: some View {
         Group {
             if hits.isEmpty {
@@ -104,7 +110,9 @@ struct SectorHitsChart: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, DS.Spacing.s4)
             } else {
-                let chartHeight = resolvedHeight
+                let barPlotHeight = resolvedPlotHeight
+                let labelBandHeight = resolvedLabelBandHeight
+                let chartWidth = max(CGFloat(hits.count) * sectorSlotWidth + DS.Spacing.s6, 280)
                 ScrollView(.horizontal, showsIndicators: false) {
                     Chart(hits) { hit in
                         BarMark(
@@ -122,12 +130,13 @@ struct SectorHitsChart: View {
                             }
                         }
                     }
-                    .statsCategoryAxis(verticalLabels: true)
+                    .chartYScale(domain: 0...yUpperBound)
+                    .statsSectorCategoryAxis()
                     .statsValueAxis()
                     .statsChartPlotStyle()
-                    .frame(width: max(CGFloat(hits.count) * sectorBarWidth, 280), height: chartHeight)
+                    .frame(width: chartWidth, height: barPlotHeight + labelBandHeight)
                 }
-                .frame(height: chartHeight)
+                .frame(height: barPlotHeight + labelBandHeight)
                 .padding(StatsChartStyle.cardPadding)
                 .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
                 .accessibilityElement(children: .ignore)
@@ -141,13 +150,20 @@ struct SectorHitsChart: View {
         hits.map { "\(StatsSectorOrder.label($0.sector, mode: mode)): \($0.count)" }.joined(separator: ", ")
     }
 
-    private var sectorBarWidth: CGFloat {
-        dynamicTypeSize.isAccessibilitySize ? 36 : 30
+    private var sectorSlotWidth: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? 46 : 40
     }
 
-    private var resolvedHeight: CGFloat {
-        let base = max(height, 200)
-        return dynamicTypeSize.isAccessibilitySize ? base * 1.15 : base
+    private var resolvedPlotHeight: CGFloat {
+        if let plotHeight {
+            return plotHeight
+        }
+        let base: CGFloat = 152
+        return dynamicTypeSize.isAccessibilitySize ? base * 1.12 : base
+    }
+
+    private var resolvedLabelBandHeight: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? 42 : 34
     }
 }
 
@@ -165,8 +181,7 @@ struct PerPlayerSectorHitsSection: View {
                         .accessibilityAddTraits(.isHeader)
                     SectorHitsChart(
                         hitsBySector: row.hitsBySector,
-                        mode: mode,
-                        height: min(180, CGFloat(max(row.hitsBySector.count, 4)) * 28)
+                        mode: mode
                     )
                     .accessibilityIdentifier("gameDetail_sectorChart_\(row.playerId.uuidString)")
                 }
