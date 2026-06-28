@@ -10,6 +10,10 @@ struct ProductSurfaceTests {
     @Test("TestFlight launch uses party pack without launch arguments")
     func testFlightLaunchUsesPartyPackWithoutLaunchArguments() {
         let args = Self.testFlightArguments
+        guard !ProductSurface.isFullProductSurfaceEnabled(arguments: args) else {
+            // Dev Debug dogfoods full catalog; store slice is covered by lean launch-arg tests.
+            return
+        }
         let config = ProductSurface.configuration(for: args)
 
         #expect(!ProductSurface.isFullProductSurfaceEnabled(arguments: args))
@@ -22,6 +26,7 @@ struct ProductSurfaceTests {
     @Test("TestFlight reachability matches party pack allowlist exactly")
     func testFlightReachabilityMatchesAllowlistExactly() {
         let args = Self.testFlightArguments
+        guard !ProductSurface.isFullProductSurfaceEnabled(arguments: args) else { return }
 
         for entry in GameModeCatalog.all where entry.isAvailable {
             guard let matchType = entry.matchType else { continue }

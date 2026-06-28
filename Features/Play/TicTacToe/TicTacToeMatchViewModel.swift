@@ -214,7 +214,7 @@ final class TicTacToeMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
+        let dartDelay = BotTurnPacing.dartDelayNanoseconds(feedbackPreferences: feedbackPreferences)
         for dart in plannedDarts {
             do { try await Task.sleep(nanoseconds: dartDelay) } catch { return false }
             enteredDarts.append(dart)
@@ -223,7 +223,7 @@ final class TicTacToeMatchViewModel: ObservableObject {
         do {
             try await Task.sleep(
                 nanoseconds: BotTurnPacing.submitDelayNanoseconds(
-                    staggerEnabled: feedbackPreferences.botStaggerEnabled
+                    feedbackPreferences: feedbackPreferences
                 )
             )
         } catch { return false }
