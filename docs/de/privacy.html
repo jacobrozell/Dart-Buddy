@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Datenschutzerklärung — Dart Buddy</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="alternate" hreflang="en" href="https://jacobrozell.github.io/Dart-Buddy/privacy.html">
+  <link rel="alternate" hreflang="de" href="https://jacobrozell.github.io/Dart-Buddy/de/privacy.html">
+</head>
+<body data-page="privacy" data-locale="de">
+  <main>
+    <header>
+      <div class="header-top">
+        <div>
+          <h1>Datenschutzerklärung</h1>
+          <p class="subtitle">Dart Buddy</p>
+        </div>
+        <div class="lang-switcher">
+          <select id="lang-select" aria-label="Sprache"></select>
+        </div>
+      </div>
+      <nav>
+        <a href="index.html">Start</a>
+        <a href="support.html">Support</a>
+        <a href="accessibility.html">Barrierefreiheit</a>
+      </nav>
+      <p class="meta">Zuletzt aktualisiert: 11. Juni 2026</p>
+    </header>
+
+    <p>Diese Datenschutzerklärung beschreibt, wie <strong>Dart Buddy</strong> („die App“) mit Informationen umgeht, wenn Sie unsere iOS-Anwendung nutzen. Die App wird von Jacob Rozell entwickelt.</p>
+
+    <p>Dart Buddy ist <strong>lokal ausgerichtet</strong>: Ihre Spiele und Spieler bleiben auf Ihrem Gerät. Wir verkaufen keine Daten, zeigen keine Werbung und nutzen kein geräteübergreifendes Tracking.</p>
+
+    <h2>1. Kurzüberblick</h2>
+    <ul>
+      <li><strong>Auf Ihrem Gerät:</strong> Spielverlauf, Spielernamen, Spieleinstellungen und Statistiken.</li>
+      <li><strong>Nur aus App-Store-Versionen (Release):</strong> begrenzte anonyme Nutzungsanalysen und Absturz-/Diagnoseberichte über Google Firebase.</li>
+      <li><strong>Nicht erhoben:</strong> Werbe-IDs, genauer Standort, Kontakte, Fotos oder ein In-App-Konto.</li>
+      <li><strong>Ihre Kontrolle:</strong> Alle lokalen Daten jederzeit unter Einstellungen → Alle lokalen Daten zurücksetzen löschen.</li>
+    </ul>
+
+    <h2>2. Auf dem Gerät gespeicherte Informationen</h2>
+    <p>Die App speichert Folgendes lokal auf Ihrem iPhone oder iPad mit Apples Speicher auf dem Gerät (SwiftData):</p>
+    <ul>
+      <li><strong>Spielerprofile</strong> — von Ihnen eingegebene Anzeigenamen, optionale Notizen, Avatar-/Farbwahl und Bot-Einstellungen.</li>
+      <li><strong>Spieldaten</strong> — Punkte, Aufnahmen, Spielmodus, Konfiguration, Zeitstempel und zugehörige Statistiken.</li>
+      <li><strong>App-Einstellungen</strong> — Design, Ton, Haptik, Standard-Spieloptionen und ähnliche Präferenzen.</li>
+      <li><strong>Exportierte Sicherungen (optional)</strong> — wenn Sie Spieler exportieren, wird die Datei dort gespeichert, wo Sie sie ablegen (Dateien, AirDrop usw.); wir erhalten sie nicht.</li>
+    </ul>
+    <p>Diese Daten bleiben auf Ihrem Gerät, bis Sie sie löschen (Abschnitt 7) oder die App entfernen. Wir betreiben keinen Cloud-Backup- oder Sync-Dienst.</p>
+
+    <h2>3. An Dritte übermittelte Informationen</h2>
+    <p>In <strong>Release-Versionen aus dem App Store</strong> (nicht in typischen Debug- oder Entwickler-Builds) kann die App begrenzte Diagnose- und Nutzungsdaten an <strong>Google Firebase</strong> (Google LLC) senden:</p>
+
+    <h3>3.1 Firebase Analytics (Nutzungsereignisse)</h3>
+    <p>Wir erfassen eine kleine, freigegebene Menge an anonymen Ereignissen zur Produktstabilität. Dazu können gehören:</p>
+    <ul>
+      <li><code>app_open</code> — App-Start abgeschlossen</li>
+      <li><code>match_started</code>, <code>match_completed</code>, <code>match_abandoned</code></li>
+      <li><code>turn_submitted</code>, <code>undo_used</code></li>
+      <li>Fehlersignale wie <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>bootstrap_store_open_failed</code></li>
+      <li><code>client_environment_changed</code> — bei Änderungen von Anzeige- oder Barrierefreiheitskontext (z. B. Ausrichtung, VoiceOver, Bewegung reduzieren, Fetter Text oder Bildschirmaufnahme). Parameter sind nur boolesche Flags und Geräteklasse — keine Spielernamen oder Spielinhalte.</li>
+    </ul>
+    <p>Ereignisparameter sind auf nicht identifizierenden technischen Kontext beschränkt, z. B. Spielmodus, App-Version, Fehlercodes und Barrierefreiheits-Flags. Wir senden <strong>keine</strong> Spielernamen, Freitextnotizen oder vollständige Spielpayloads an Analytics.</p>
+
+    <h3>3.2 Firebase Crashlytics (Abstürze &amp; Fehler)</h3>
+    <p>Bei Abstürzen oder bestimmten freigegebenen Fehlerzuständen kann Crashlytics erhalten:</p>
+    <ul>
+      <li>Absturz-Stacktraces und Gerätestatus zur Fehlerdiagnose</li>
+      <li>App- und OS-Version</li>
+      <li>Anonyme Installations-IDs von Firebase</li>
+      <li>Nicht-fatale Fehlerberichte bei Persistenz-, Spielablauf- oder Reset-Fehlern (gleiche Metadaten wie oben — keine Spielernamen)</li>
+    </ul>
+
+    <h3>3.3 Wann Firebase deaktiviert ist</h3>
+    <p>Firebase Analytics und Crashlytics sind <strong>nicht</strong> aktiv, wenn:</p>
+    <ul>
+      <li>Sie einen Debug-Build aus Xcode starten (sofern nicht explizit für Entwicklung aktiviert)</li>
+      <li>Die App ohne gültige produktive Firebase-Konfiguration gebaut wurde</li>
+      <li>Automatisierte Tests mit deaktivierter Telemetrie laufen</li>
+    </ul>
+    <p>Googles Datenschutzpraktiken: <a href="https://firebase.google.com/support/privacy" rel="noopener noreferrer">firebase.google.com/support/privacy</a> und <a href="https://policies.google.com/privacy" rel="noopener noreferrer">policies.google.com/privacy</a>.</p>
+
+    <h2>4. Was wir nicht erheben</h2>
+    <ul>
+      <li>Keine Werbe- oder Ad-Network-SDKs</li>
+      <li>Kein „Tracking“ über Apps oder Websites anderer Anbieter (kein App Tracking Transparency / IDFA für Werbung)</li>
+      <li>Kein Verkauf oder Verleih personenbezogener Daten</li>
+      <li>Keine Pflicht zur Kontoerstellung</li>
+      <li>Kein Zugriff auf Kontakte, Fotos, Mikrofon oder genauen Standort für Scoring-Funktionen</li>
+    </ul>
+
+    <h2>5. Rechtsgrundlagen &amp; Zwecke (wo anwendbar)</h2>
+    <p>Wir verarbeiten Gerätedaten, um den von Ihnen gewünschten Zähldienst bereitzustellen. Begrenzte Firebase-Daten verarbeiten wir in berechtigtem Interesse an Stabilität und Fehlerbehebung. Wir nutzen Ihre Informationen nicht für automatisierte Entscheidungen oder Profiling.</p>
+
+    <h2>6. Datenschutz von Kindern</h2>
+    <p>Dart Buddy richtet sich an ein allgemeines Publikum und erhebt wissentlich keine personenbezogenen Daten von Kindern unter 13 Jahren über das hinaus, was Nutzer freiwillig als Spielernamen auf dem eigenen Gerät eingeben. Wenn Sie glauben, ein Kind habe uns über Support-Kanäle personenbezogene Daten mitgeteilt, kontaktieren Sie uns — wir löschen diese.</p>
+
+    <h2>7. Ihre Wahlmöglichkeiten &amp; Aufbewahrung</h2>
+    <ul>
+      <li><strong>Lokale Daten löschen:</strong> Einstellungen → <strong>Alle lokalen Daten zurücksetzen</strong> entfernt Spieler, Verlauf und Einstellungen auf dem Gerät.</li>
+      <li><strong>App entfernen:</strong> Beim Löschen der App werden lokale App-Daten gemäß iOS-Verhalten entfernt.</li>
+      <li><strong>Firebase-Daten:</strong> Von Google aufbewahrte Analytics- und Absturzdaten unterliegen Googles Richtlinien und Firebase-Projekteinstellungen. Sie sind nicht mit von Ihnen eingegebenen Spielernamen verknüpft.</li>
+    </ul>
+
+    <h2>8. Datensicherheit</h2>
+    <p>Lokale Daten nutzen die iOS-App-Sandbox und Dateischutz. Netzwerkübertragung an Firebase erfolgt verschlüsselt (HTTPS/TLS). Keine Methode ist perfekt; geben Sie keine sensiblen personenbezogenen Daten als Spielernamen ein.</p>
+
+    <h2>9. Nutzer außerhalb der USA</h2>
+    <p>Wenn Sie die App außerhalb der Vereinigten Staaten nutzen, können begrenzte Firebase-Daten in Ländern verarbeitet werden, in denen Google Infrastruktur betreibt, einschließlich der USA.</p>
+
+    <h2>10. Änderungen dieser Erklärung</h2>
+    <p>Wir können diese Erklärung bei App-Änderungen aktualisieren (z. B. bei Online-Spiel oder neuen Firebase-Diensten). Wir aktualisieren das Datum „Zuletzt aktualisiert“ und geben bei Bedarf weiteren Hinweis. Fortgesetzte Nutzung nach Änderungen gilt als Zustimmung.</p>
+
+    <h2>11. Kontakt</h2>
+    <p>Fragen zu dieser Erklärung oder Ihren Daten:</p>
+    <ul>
+      <li><strong>E-Mail:</strong> <a href="mailto:jacob.rozell83@gmail.com">jacob.rozell83@gmail.com</a></li>
+      <li><a href="https://github.com/jacobrozell/Dart-Buddy/issues">GitHub Issues — jacobrozell/Dart-Buddy</a></li>
+      <li><a href="support.html">Support-Seite</a></li>
+    </ul>
+
+    <footer>
+      <p>Diese Erklärung gilt für Dart Buddy ab Version 1.0, sofern nicht ersetzt.</p>
+    </footer>
+  </main>
+  <script src="../assets/site.js"></script>
+</body>
+</html>

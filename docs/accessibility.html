@@ -5,12 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Accessibility — Dart Buddy</title>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="alternate" hreflang="en" href="https://jacobrozell.github.io/Dart-Buddy/accessibility.html">
+  <link rel="alternate" hreflang="de" href="https://jacobrozell.github.io/Dart-Buddy/de/accessibility.html">
 </head>
-<body>
+<body data-page="accessibility" data-locale="en">
   <main>
     <header>
-      <h1>Accessibility</h1>
-      <p class="subtitle">Dart Buddy</p>
+      <div class="header-top">
+        <div>
+          <h1>Accessibility</h1>
+          <p class="subtitle">Dart Buddy</p>
+        </div>
+        <div class="lang-switcher">
+          <select id="lang-select" aria-label="Language"></select>
+        </div>
+      </div>
       <nav>
         <a href="index.html">Home</a>
         <a href="support.html">Support</a>
@@ -19,7 +28,7 @@
       <p class="meta">Last updated: June 14, 2026</p>
     </header>
 
-    <p>Dart Buddy is a darts scorekeeper for <strong>X01</strong> and <strong>Cricket</strong>. We design for clarity during play: high-contrast scores, large tap targets on the scoring pad, and support for common iOS accessibility settings.</p>
+    <p>Dart Buddy is a darts scorekeeper for multiple game modes. We design for clarity during play: high-contrast scores, large tap targets on the scoring pad, and support for common iOS accessibility settings.</p>
 
     <p>This page describes the accessibility features Dart Buddy currently declares on the App Store. We continue to improve coverage with each release.</p>
 
@@ -79,5 +88,6 @@
       <p>Dart Buddy targets <a href="https://www.w3.org/WAI/WCAG21/quickref/">WCAG 2.1 Level AA</a> for core flows. Technical details for contributors are in the <a href="https://github.com/jacobrozell/Dart-Buddy/tree/main/specs/AccessibilitySpec.md">project accessibility specification</a>.</p>
     </footer>
   </main>
+  <script src="assets/site.js"></script>
 </body>
 </html>

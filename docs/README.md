@@ -11,24 +11,29 @@ Static pages for App Store **Privacy Policy URL**, **Support URL**, and **Access
 
 ## URLs (after Pages is enabled)
 
-| Page | URL |
-|------|-----|
-| Home | `https://jacobrozell.github.io/Dart-Buddy/` |
-| Privacy Policy | `https://jacobrozell.github.io/Dart-Buddy/privacy.html` |
-| Support | `https://jacobrozell.github.io/Dart-Buddy/support.html` |
-| Accessibility | `https://jacobrozell.github.io/Dart-Buddy/accessibility.html` |
+| Page | English | Deutsch |
+|------|---------|---------|
+| Home | `https://jacobrozell.github.io/Dart-Buddy/` | `https://jacobrozell.github.io/Dart-Buddy/de/` |
+| Privacy Policy | `…/privacy.html` | `…/de/privacy.html` |
+| Support | `…/support.html` | `…/de/support.html` |
+| Accessibility | `…/accessibility.html` | `…/de/accessibility.html` |
 
-Use the **Privacy Policy** and **Support** URLs in App Store Connect. Add the **Accessibility** URL under App → App Accessibility (optional; also linked in-app from Settings).
+**App Store Connect:** keep English URLs on the primary listing; set **German** Privacy + Support URLs on the **Deutsch** localization to the `/de/…` paths.
+
+**In-app:** Settings → Help & Feedback opens the localized URL when the device language is German and `de` is in the store bundle (`AppLinks.hostedPage`).
+
+Each page has a **language switcher** (English / Deutsch) in the header.
 
 ## Local preview
-
-Open `docs/privacy.html` in a browser, or:
 
 ```bash
 python3 -m http.server 8080 --directory docs
 # http://localhost:8080/privacy.html
+# http://localhost:8080/de/privacy.html
 ```
 
 ## Updates
 
-Edit the HTML files, commit, push — Pages redeploys automatically. Bump the “Last updated” date when practices change (especially Firebase or online features).
+Edit the HTML files, commit, push — Pages redeploys automatically. When English legal copy changes, update the matching `/de/` page and bump both “Last updated” dates.
+
+Future store locales: add `docs/<code>/` using the same pattern (see release plan discussion).

@@ -43,6 +43,28 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.header-top > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.lang-switcher select {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+
 h1 {
   font-size: 1.75rem;
   line-height: 1.25;

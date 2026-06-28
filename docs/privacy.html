@@ -5,12 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy Policy — Dart Buddy</title>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="alternate" hreflang="en" href="https://jacobrozell.github.io/Dart-Buddy/privacy.html">
+  <link rel="alternate" hreflang="de" href="https://jacobrozell.github.io/Dart-Buddy/de/privacy.html">
 </head>
-<body>
+<body data-page="privacy" data-locale="en">
   <main>
     <header>
-      <h1>Privacy Policy</h1>
-      <p class="subtitle">Dart Buddy</p>
+      <div class="header-top">
+        <div>
+          <h1>Privacy Policy</h1>
+          <p class="subtitle">Dart Buddy</p>
+        </div>
+        <div class="lang-switcher">
+          <select id="lang-select" aria-label="Language"></select>
+        </div>
+      </div>
       <nav>
         <a href="index.html">Home</a>
         <a href="support.html">Support</a>
@@ -35,10 +44,11 @@
     <p>The app stores the following locally on your iPhone or iPad using Apple’s on-device storage (SwiftData):</p>
     <ul>
       <li><strong>Player profiles</strong> — display names you enter, optional notes, avatar/color choices, and bot settings.</li>
-      <li><strong>Match data</strong> — scores, turns, game mode (X01 or Cricket), configuration, timestamps, and related statistics.</li>
+      <li><strong>Match data</strong> — scores, turns, game mode, configuration, timestamps, and related statistics.</li>
       <li><strong>App settings</strong> — theme, sound, haptics, default game options, and similar preferences.</li>
+      <li><strong>Exported backups (optional)</strong> — if you use player export, the file is written where you save it (Files, AirDrop, etc.); we do not receive it.</li>
     </ul>
-    <p>This data remains on your device unless you delete it (see Section 7) or remove the app. We do not operate a cloud backup or sync service in version 1.0.</p>
+    <p>This data remains on your device unless you delete it (see Section 7) or remove the app. We do not operate a cloud backup or sync service.</p>
 
     <h2>3. Information sent to third parties</h2>
     <p>In <strong>Release builds installed from the App Store</strong> (not typical Debug or developer builds), the app may send limited diagnostic and usage data to <strong>Google Firebase</strong>, operated by Google LLC:</p>
@@ -52,7 +62,7 @@
       <li>Failure signals such as <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>bootstrap_store_open_failed</code></li>
       <li><code>client_environment_changed</code> — when display or accessibility context changes (for example orientation, VoiceOver, Reduce Motion, Bold Text, or screen capture). Parameters are boolean flags and device class only — not player names or match content.</li>
     </ul>
-    <p>Event parameters are restricted to non-identifying technical context, such as game mode (X01/Cricket), app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
+    <p>Event parameters are restricted to non-identifying technical context, such as game mode, app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
 
     <h3>3.2 Firebase Crashlytics (crashes &amp; errors)</h3>
     <p>If the app crashes or records certain allowlisted error conditions, Crashlytics may receive:</p>
@@ -115,5 +125,6 @@
       <p>This policy applies to Dart Buddy version 1.0 and later unless superseded.</p>
     </footer>
   </main>
+  <script src="assets/site.js"></script>
 </body>
 </html>
