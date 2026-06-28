@@ -187,7 +187,15 @@ struct SetupHomeRosterSection: View {
             startTask = Task { await setupViewModel.addBot(difficulty) }
         } label: {
             Label {
-                Text(title)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                    if let formatted = difficulty.referenceMetrics.formattedBadge() {
+                        Text(formatted)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
             } icon: {
                 Circle().fill(color).frame(width: 10, height: 10)
             }
