@@ -3,7 +3,7 @@ import Foundation
 /// Controls which product areas are reachable in this build.
 ///
 /// **Debug and Release** default to the shipping slice (`smart1_2` on 1.2 — seven modes,
-/// Training Partner, player export, de/es/nl/fr bundled).
+/// Training Partner, player export, **English + German** bundled).
 /// Pass `-enable_full_product_surface` to dogfood the full catalog (Modes tab, all shipped modes, locales).
 /// See `docs/release/branch-strategy.md`.
 enum ProductSurface {
@@ -51,7 +51,7 @@ enum ProductSurface {
             bundledLocaleCodes: ["en"]
         )
 
-        /// 1.2 — 1.1 gameplay plus Training Partner, player export, and localized store bundles.
+        /// 1.2 — 1.1 gameplay plus Training Partner, player export, and German UI in the store bundle.
         static let smart1_2 = Configuration(
             showsModesTab: false,
             showsPartyModes: true,
@@ -60,7 +60,7 @@ enum ProductSurface {
             showsCustomBots: true,
             showsPlayerExport: true,
             showsAccessibilityMarketing: true,
-            bundledLocaleCodes: ["en", "de", "es", "nl", "fr"]
+            bundledLocaleCodes: ["en", "de"]
         )
     }
 

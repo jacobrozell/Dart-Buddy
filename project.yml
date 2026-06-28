@@ -48,6 +48,8 @@ targets:
         excludes:
           - "**/README.md"
       - path: Resources/Media.xcassets
+      # 1.2.0 store bundle: English + German only. Other locale files stay in repo for `dev`;
+      # re-add es/nl/fr/zh-Hans/it paths when those locales ship (see docs/release/1.2.0-ship-checklist.md).
       - path: Resources/en.lproj/Localizable.strings
         type: file
         buildPhase: resources
@@ -58,36 +60,6 @@ targets:
         type: file
         buildPhase: resources
       - path: Resources/de.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/es.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/es.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/nl.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/nl.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/fr.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/fr.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/zh-Hans.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/zh-Hans.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/it.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/it.lproj/GameplayModes.strings
         type: file
         buildPhase: resources
       - path: Resources/GoogleService-Info.plist
@@ -149,20 +121,12 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 1.2.0
-      configs:
-        Release:
-          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DART_BUDDY_INTERNAL_BUILD $(inherited)
     info:
       path: App/DartBuddy-Info.plist
       properties:
         CFBundleLocalizations:
           - en
           - de
-          - es
-          - nl
-          - fr
-          - zh-Hans
-          - it
         CFBundleURLTypes:
           - CFBundleURLName: com.jacobrozell.DartBuddy.deeplink
             CFBundleURLSchemes:

@@ -4,7 +4,8 @@
 
 | File | Role |
 |------|------|
-| [**`1.2.0-ship-checklist.md`**](1.2.0-ship-checklist.md) | **1.2 draft** — Smart Opponents RC + submit |
+| [**`1.2.0-ship-checklist.md`**](1.2.0-ship-checklist.md) | **1.2 draft** — Smart Opponents + **German** RC |
+| [**`1.2.0-app-store-copy.md`**](1.2.0-app-store-copy.md) | English + Deutsch listing draft |
 | [**`1.1.0-ship-checklist.md`**](1.1.0-ship-checklist.md) | 1.1 Party Pack — shipped (tag `1.1.0`) |
 | [`todo.md`](todo.md) | Active sprint, 1.0 blockers, post-1.0 deferrals |
 | [`ongoing-release-plan.md`](ongoing-release-plan.md) | Versioned release train — what ships when, scoped by test confidence |

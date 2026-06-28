@@ -19,7 +19,7 @@ struct ProductSurfaceTests {
         #expect(config.showsCustomBots)
         #expect(config.showsPlayerExport)
         #expect(config.showsAccessibilityMarketing)
-        #expect(config.bundledLocaleCodes == ["en", "de", "es", "nl", "fr"])
+        #expect(config.bundledLocaleCodes == ["en", "de"])
     }
 
     @Test("Smart 1.2 allowlist matches 1.1 gameplay modes")
