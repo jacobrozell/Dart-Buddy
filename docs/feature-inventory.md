@@ -171,7 +171,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | French (`fr`) | Shipped | Wave 4 | `Resources/fr.lproj/Localizable.strings` |
 | `L10n` helper + namespaced keys | Shipped | No hardcoded UI strings policy | `Support/Localization/L10n.swift` |
 | Mode catalog strings (all 34 modes) | Shipped | `modes.catalog.*` keys | [`LocalizationSpec.md`](../specs/LocalizationSpec.md) |
-| Locale generator script | Shipped | Key parity helper | `Scripts/generate_localizable.py` |
+| Locale generator script | Shipped | Key parity helper | `Scripts/l10n.py` |
 | Localization parity unit tests | Shipped | en/de/es/nl/fr | `Tests/Unit/LocalizationParityTests.swift` |
 | Localized smoke UI tests | Shipped | de / es / nl / fr tab smoke | `Tests/UI/*LocalizationSmokeUITests.swift` |
 | In-app language picker | Planned | Settings locale override | [`LocalizationSpec.md`](../specs/LocalizationSpec.md) §6 |

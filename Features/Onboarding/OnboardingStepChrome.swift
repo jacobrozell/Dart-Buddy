@@ -205,14 +205,14 @@ struct OnboardingHeroStepContent: View {
                 .symbolRenderingMode(.hierarchical)
                 .accessibilityHidden(true)
 
-            Text(LocalizedStringKey(titleKey))
+            Text(L10n.string(titleKey))
                 .font(.title.bold())
                 .foregroundStyle(Brand.textPrimary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .accessibilityAddTraits(.isHeader)
 
-            Text(LocalizedStringKey(bodyKey))
+            Text(L10n.string(bodyKey))
                 .font(.body)
                 .foregroundStyle(Brand.textSecondary)
                 .multilineTextAlignment(.center)

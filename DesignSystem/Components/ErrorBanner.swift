@@ -4,7 +4,7 @@ struct ErrorBanner: View {
     let messageKey: String
 
     var body: some View {
-        Text(LocalizedStringKey(messageKey))
+        Text(L10n.string(messageKey))
             .font(.footnote.weight(.semibold))
             .foregroundStyle(Brand.textOnAccent)
             .multilineTextAlignment(.leading)

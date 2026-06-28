@@ -6,7 +6,7 @@ struct SnookerColourNominationView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            Text("play.snooker.nominateColour")
+            Text(L10n.string("play.snooker.nominateColour"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Brand.textSecondary)
             ScrollView(.horizontal, showsIndicators: false) {
@@ -37,7 +37,7 @@ struct SnookerColourNominationView: View {
                     }
                 }
             }
-            Text("play.snooker.pad.nominationHint")
+            Text(L10n.string("play.snooker.pad.nominationHint"))
                 .font(.caption2)
                 .foregroundStyle(Brand.textSecondary)
         }

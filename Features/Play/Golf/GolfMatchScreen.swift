@@ -74,7 +74,6 @@ struct GolfMatchScreen: View {
                 .onChange(of: viewModel.enteredDarts) { old, darts in
                     guard viewModel.canHumanInput else { return }
                     if darts.count > old.count, let dart = darts.last { playDartFeedback(dart) }
-                    if darts.count == 3 { submitFull() }
                 }
             } else {
                 Spacer()
@@ -193,19 +192,22 @@ struct GolfMatchScreen: View {
                     : L10n.string("play.golf.pad.disabledWhileBot")
             )
 
-            // End turn early button — visible only when 1–2 darts entered by human
-            if viewModel.canSubmitEarly {
+            // End turn — player confirms which dart counts (always the last one thrown).
+            if viewModel.canEndTurn {
                 Button {
-                    submitEarly()
+                    submitTurn()
                 } label: {
-                    Label(L10n.string("play.golf.endTurnEarly"), systemImage: "flag.fill")
+                    Label(
+                        L10n.string(viewModel.endTurnEarly ? "play.golf.endTurnEarly" : "play.golf.endTurn"),
+                        systemImage: "flag.fill"
+                    )
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Brand.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, DS.Spacing.s3)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
                 }
-                .accessibilityIdentifier("golf_end_turn_early")
+                .accessibilityIdentifier("golf_end_turn")
             }
         }
     }
@@ -222,13 +224,8 @@ struct GolfMatchScreen: View {
         haptics.playImpact()
     }
 
-    private func submitFull() {
+    private func submitTurn() {
         actionTask?.cancel()
-        actionTask = Task { await viewModel.submitTurn(endedEarly: false) }
-    }
-
-    private func submitEarly() {
-        actionTask?.cancel()
-        actionTask = Task { await viewModel.submitTurn(endedEarly: true) }
+        actionTask = Task { await viewModel.submitTurn(endedEarly: viewModel.endTurnEarly) }
     }
 }

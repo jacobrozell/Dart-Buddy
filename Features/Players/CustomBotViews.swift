@@ -314,10 +314,10 @@ struct CustomBotCompatibleTemplatesSection: View {
                 ForEach(BotSkillProfileResolver.compatibleTemplates(), id: \.self) { template in
                     HStack(alignment: .top, spacing: DS.Spacing.s3) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(LocalizedStringKey(template.displayTitleKey))
+                            Text(L10n.string(template.displayTitleKey))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(Brand.textPrimary)
-                            Text(LocalizedStringKey(template.customBotPrimaryMetricKey))
+                            Text(L10n.string(template.customBotPrimaryMetricKey))
                                 .font(.caption)
                                 .foregroundStyle(Brand.textSecondary)
                         }

@@ -39,10 +39,7 @@ struct Bobs27MatchScreen: View {
 
             if let gameState = viewModel.bobs27State {
                 SideBySideMatchBody(playerCount: gameState.players.count) {
-                    Bobs27ScoreboardView(
-                        rows: viewModel.scoreboardRows,
-                        headerText: viewModel.headerText
-                    )
+                    Bobs27ScoreboardView(rows: viewModel.scoreboardRows)
                 } padChrome: {
                     stateBanner
                 } controls: {
@@ -104,7 +101,16 @@ struct Bobs27MatchScreen: View {
         case let .entryInvalid(messageKey), let .error(messageKey):
             ErrorBanner(messageKey: messageKey)
         default:
-            EmptyView()
+            if let statusKey = viewModel.statusBannerKey {
+                MatchFeedbackBanner(
+                    text: LocalizedStringKey(L10n.string(statusKey)),
+                    style: .legWin,
+                    animate: false
+                )
+                .accessibilityIdentifier("bobs27_status_banner")
+            } else {
+                EmptyView()
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 func playLocalizedText(_ key: String) -> Text {
-    Text(LocalizedStringKey(key))
+    Text(L10n.string(key))
 }
 
 /// Posts a VoiceOver announcement for gameplay events; no-op for empty strings.

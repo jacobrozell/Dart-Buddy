@@ -55,9 +55,13 @@ final class GolfMatchViewModel: ObservableObject {
 
     var golfState: GolfState? { session?.runtime.golfState }
 
-    /// The player may submit after 1 dart (with endedEarly=true) or all 3, but only if human.
-    var canSubmitEarly: Bool {
-        enteredDarts.count >= 1 && enteredDarts.count < 3 && canHumanInput
+    /// The player may end the turn after 1–3 darts; only the last dart thrown counts.
+    var canEndTurn: Bool {
+        !enteredDarts.isEmpty && enteredDarts.count <= 3 && canHumanInput
+    }
+
+    var endTurnEarly: Bool {
+        enteredDarts.count < 3
     }
 
     var canSubmitFull: Bool {

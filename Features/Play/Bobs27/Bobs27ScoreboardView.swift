@@ -12,14 +12,9 @@ struct Bobs27ScoreboardView: View {
     }
 
     let rows: [Row]
-    let headerText: String
 
     var body: some View {
         VStack(spacing: DS.Spacing.s2) {
-            Text(headerText)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Brand.amber)
-                .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(rows) { row in
                 HStack {
                     Circle()
@@ -28,6 +23,7 @@ struct Bobs27ScoreboardView: View {
                     Text(row.name)
                         .font(.subheadline.weight(row.isActive ? .bold : .regular))
                         .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                         .foregroundStyle(row.isEliminated ? Brand.textSecondary.opacity(0.5) : Brand.textPrimary)
                     Spacer()
                     Text(L10n.format("play.bobs27.scoreFormat", row.score))

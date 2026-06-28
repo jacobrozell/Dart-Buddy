@@ -401,13 +401,13 @@ struct MatchSummaryScreen: View {
         case .horizontal:
             HStack(spacing: spacing) {
                 ForEach(row.stats, id: \.label) { stat in
-                    StatChip(value: stat.value, label: LocalizedStringKey(stat.label), compact: compact)
+                    StatChip(value: stat.value, label: stat.label, compact: compact)
                 }
             }
         case .vertical:
             VStack(alignment: .leading, spacing: spacing) {
                 ForEach(row.stats, id: \.label) { stat in
-                    StatChip(value: stat.value, label: LocalizedStringKey(stat.label), compact: compact)
+                    StatChip(value: stat.value, label: stat.label, compact: compact)
                 }
             }
         }

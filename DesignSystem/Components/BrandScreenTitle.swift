@@ -47,9 +47,14 @@ struct BrandRootScreenTitle: View {
     }
 }
 
-/// In-match gameplay headers (X01, Cricket).
+/// In-match gameplay headers (X01, Cricket, party/solo modes).
 struct BrandMatchScreenTitle: View {
-    let title: LocalizedStringKey
+    /// Resolved copy so keys in `GameplayModes.strings` localize correctly.
+    private let title: String
+
+    init(title key: String) {
+        self.title = L10n.string(key)
+    }
 
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 

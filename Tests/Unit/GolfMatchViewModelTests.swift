@@ -63,7 +63,7 @@ func golfViewModelCannotSubmitWithNoDarts() async throws {
     let (vm, _) = try makeGolfViewModel()
 
     #expect(vm.canSubmitFull == false)
-    #expect(vm.canSubmitEarly == false)
+    #expect(vm.canEndTurn == false)
 }
 
 @MainActor
@@ -72,7 +72,8 @@ func golfViewModelCanSubmitEarlyWithOneDart() async throws {
     let (vm, _) = try makeGolfViewModel()
     vm.enteredDarts = [golfDart(.double, 1)]
 
-    #expect(vm.canSubmitEarly == true)
+    #expect(vm.canEndTurn == true)
+    #expect(vm.endTurnEarly == true)
     #expect(vm.canSubmitFull == false)
 }
 
@@ -82,8 +83,9 @@ func golfViewModelCanSubmitFullWithThreeDarts() async throws {
     let (vm, _) = try makeGolfViewModel()
     vm.enteredDarts = [golfDart(.single, 1), golfDart(.single, 1), golfDart(.single, 1)]
 
+    #expect(vm.canEndTurn == true)
+    #expect(vm.endTurnEarly == false)
     #expect(vm.canSubmitFull == true)
-    #expect(vm.canSubmitEarly == false)
 }
 
 // MARK: - Submission

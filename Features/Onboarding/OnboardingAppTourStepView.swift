@@ -85,10 +85,10 @@ struct OnboardingAppTourStepView: View {
                 .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-                Text(LocalizedStringKey(titleKey))
+                Text(L10n.string(titleKey))
                     .font(.headline)
                     .foregroundStyle(Brand.textPrimary)
-                Text(LocalizedStringKey(bodyKey))
+                Text(L10n.string(bodyKey))
                     .font(.subheadline)
                     .foregroundStyle(Brand.textBodyOnCard)
                     .fixedSize(horizontal: false, vertical: true)

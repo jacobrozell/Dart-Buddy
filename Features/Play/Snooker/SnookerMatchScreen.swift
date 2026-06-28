@@ -128,7 +128,7 @@ struct SnookerMatchScreen: View {
         case let .error(messageKey):
             ErrorBanner(messageKey: messageKey)
         case .breakEndedFeedback:
-            Text("play.snooker.breakEnded")
+            Text(L10n.string("play.snooker.breakEnded"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Brand.amber)
                 .frame(maxWidth: .infinity, alignment: .leading)

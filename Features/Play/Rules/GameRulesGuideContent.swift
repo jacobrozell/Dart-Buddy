@@ -58,10 +58,10 @@ struct GameRulesGuideContent: View {
 
     private func ruleCard(_ section: GameRulesSection) -> some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-            Text(LocalizedStringKey(section.titleKey))
+            Text(L10n.string(section.titleKey))
                 .font(.headline)
                 .foregroundStyle(Brand.textPrimary)
-            Text(LocalizedStringKey(section.bodyKey))
+            Text(L10n.string(section.bodyKey))
                 .font(.subheadline)
                 .foregroundStyle(Brand.textBodyOnCard)
                 .fixedSize(horizontal: false, vertical: true)

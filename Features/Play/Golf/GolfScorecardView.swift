@@ -2,9 +2,8 @@ import SwiftUI
 
 /// Hole-by-hole scorecard for a Golf match.
 ///
-/// Uses a single horizontal scroll region so hole columns stay aligned across rows
-/// regardless of player name length. Course progress dots sit in the header row,
-/// centered over each hole column.
+/// Player names sit in a fixed leading column; hole columns scroll horizontally so
+/// progress dots stay aligned with stroke cells regardless of name length.
 struct GolfScorecardView: View {
     struct PlayerRow: Identifiable {
         let id: UUID
@@ -27,6 +26,10 @@ struct GolfScorecardView: View {
         GameplayLayout.usesLandscapeMatchScoringLayout(verticalSizeClass: verticalSizeClass)
     }
 
+    private var rowSpacing: CGFloat {
+        usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: usesLandscapeLayout ? DS.Spacing.s2 : DS.Spacing.s1) {
             strokeLegend
@@ -37,26 +40,39 @@ struct GolfScorecardView: View {
     // MARK: - Grid
 
     private var scorecardGrid: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2) {
-                headerRow
-                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                    playerRow(row, index: index)
+        HStack(alignment: .top, spacing: DS.Spacing.s2) {
+            nameColumn
+            ScrollView(.horizontal, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: rowSpacing) {
+                    holesHeaderRow
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        scoresRow(row, index: index)
+                    }
                 }
             }
         }
         .accessibilityIdentifier("golf_scorecard")
     }
 
-    // MARK: - Header
+    // MARK: - Name column
 
-    private var headerRow: some View {
-        HStack(spacing: 0) {
+    private var nameColumn: some View {
+        VStack(alignment: .leading, spacing: rowSpacing) {
             Text(L10n.string("play.golf.scorecard.playerHeader"))
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(Brand.textSecondary)
-                .frame(width: nameColumnWidth, alignment: .leading)
+                .frame(width: nameColumnWidth, height: headerRowHeight, alignment: .leading)
 
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                playerNameCell(row, index: index)
+            }
+        }
+    }
+
+    // MARK: - Scrollable hole grid
+
+    private var holesHeaderRow: some View {
+        HStack(spacing: 0) {
             ForEach(1 ... courseLength, id: \.self) { hole in
                 holeHeaderCell(hole)
             }
@@ -66,6 +82,7 @@ struct GolfScorecardView: View {
                 .foregroundStyle(Brand.textSecondary)
                 .frame(width: totalColumnWidth, alignment: .trailing)
         }
+        .frame(height: headerRowHeight, alignment: .bottom)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             L10n.format("play.golf.holeStrip.accessibilityFormat", currentHole, courseLength)
@@ -91,13 +108,9 @@ struct GolfScorecardView: View {
         .accessibilityHidden(true)
     }
 
-    // MARK: - Player row
-
     @ViewBuilder
-    private func playerRow(_ row: PlayerRow, index: Int) -> some View {
+    private func scoresRow(_ row: PlayerRow, index: Int) -> some View {
         HStack(spacing: 0) {
-            playerNameCell(row)
-
             ForEach(Array(row.holeStrokes.enumerated()), id: \.offset) { holeIndex, strokes in
                 strokeCell(strokes, holeNumber: holeIndex + 1, isActiveHole: holeIndex + 1 == currentHole && row.isActive)
             }
@@ -112,7 +125,8 @@ struct GolfScorecardView: View {
                 .foregroundStyle(row.isActive ? Brand.green : Brand.textPrimary)
                 .frame(width: totalColumnWidth, alignment: .trailing)
         }
-        .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
+        .frame(minHeight: playerRowHeight, alignment: .center)
+        .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
         .padding(.vertical, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
         .background(row.isActive ? Brand.cardElevated : Brand.card,
                     in: RoundedRectangle(cornerRadius: DS.Radius.sm))
@@ -121,7 +135,7 @@ struct GolfScorecardView: View {
         .accessibilityIdentifier("golf_scoreboard_row_\(index)")
     }
 
-    private func playerNameCell(_ row: PlayerRow) -> some View {
+    private func playerNameCell(_ row: PlayerRow, index: Int) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: DS.Spacing.s2) {
                 Circle()
@@ -142,6 +156,13 @@ struct GolfScorecardView: View {
             }
         }
         .frame(width: nameColumnWidth, alignment: .leading)
+        .frame(minHeight: playerRowHeight, alignment: .leading)
+        .padding(.vertical, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
+        .background(row.isActive ? Brand.cardElevated : Brand.card,
+                    in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(rowAccessibilityLabel(row))
+        .accessibilityIdentifier("golf_scoreboard_name_\(index)")
     }
 
     @ViewBuilder
@@ -193,9 +214,11 @@ struct GolfScorecardView: View {
 
     // MARK: - Layout constants
 
-    private var nameColumnWidth: CGFloat { usesLandscapeLayout ? 96 : 84 }
+    private var nameColumnWidth: CGFloat { usesLandscapeLayout ? 108 : 92 }
     private var holeColumnWidth: CGFloat { courseLength <= 9 ? 28 : 22 }
     private var totalColumnWidth: CGFloat { 36 }
+    private var headerRowHeight: CGFloat { 34 }
+    private var playerRowHeight: CGFloat { usesLandscapeLayout ? 44 : 40 }
 
     private func progressFillColor(for hole: Int) -> Color {
         if hole < currentHole { return Brand.green }

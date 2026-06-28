@@ -10,7 +10,7 @@ struct SetupValidationHint: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Brand.textOnAccent)
                 .accessibilityHidden(true)
-            Text(LocalizedStringKey(SetupValidationMessages.displayKey(for: messageKey)))
+            Text(L10n.string(SetupValidationMessages.displayKey(for: messageKey)))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Brand.textOnAccent)
                 .lineLimit(2)
@@ -21,7 +21,7 @@ struct SetupValidationHint: View {
         .padding(.vertical, DS.Spacing.s2)
         .background(Brand.redAccent, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(LocalizedStringKey(messageKey)))
+        .accessibilityLabel(L10n.string(messageKey))
         .accessibilityIdentifier("setupValidationHint")
         .motionBannerEntrance()
     }

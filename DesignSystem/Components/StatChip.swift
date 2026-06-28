@@ -2,7 +2,7 @@ import SwiftUI
 
 struct StatChip: View {
     let value: String
-    let label: LocalizedStringKey
+    let label: String
     var compact: Bool = false
 
     var body: some View {

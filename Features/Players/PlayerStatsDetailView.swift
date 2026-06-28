@@ -267,7 +267,7 @@ private struct StatTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.s1) {
-            Text(LocalizedStringKey(labelKey))
+            Text(L10n.string(labelKey))
                 .font(.caption)
                 .foregroundStyle(Brand.textSecondary)
             Text(value)
