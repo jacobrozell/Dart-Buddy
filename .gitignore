@@ -29,3 +29,11 @@ DartBuddy.xcodeproj/
 tmp/
 .cursor/mcp.json
 .xcodebuildmcp/
+
+# Analytics MCP (OAuth client secret from Google Cloud Console)
+analytics-mcp-client-secret.json
+
+# Python
+__pycache__/
+*.py[cod]
+
