@@ -50,34 +50,34 @@ enum LocalDataResetInventory {
         "PendingMatchPlayerSelections"
     ]
 
-    /// Must stay aligned with `SchemaLock.release_1_0_0Schema.models`.
+    /// Must stay aligned with `SchemaLock.currentReleaseSchema.models`.
     static let swiftDataDeleters: [(ModelContext) throws -> Void] = [
-        { try SwiftDataStoreReset.deleteAll(SchemaV1.PlayerRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV1.MatchRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV1.MatchParticipantRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV1.MatchSnapshotRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV1.MatchEventRecord.self, in: $0) },
-        { try SwiftDataStoreReset.deleteAll(SchemaV1.SettingsRecord.self, in: $0) }
+        { try SwiftDataStoreReset.deleteAll(SchemaV2.PlayerRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchParticipantRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchSnapshotRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV2.MatchEventRecord.self, in: $0) },
+        { try SwiftDataStoreReset.deleteAll(SchemaV2.SettingsRecord.self, in: $0) }
     ]
 
     private static let swiftDataCounters: [(ModelContext) throws -> (String, Int)] = [
-        { ctx in (String(describing: SchemaV1.PlayerRecord.self), try SwiftDataStoreReset.count(SchemaV1.PlayerRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV1.MatchRecord.self), try SwiftDataStoreReset.count(SchemaV1.MatchRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV1.MatchParticipantRecord.self), try SwiftDataStoreReset.count(SchemaV1.MatchParticipantRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV1.MatchSnapshotRecord.self), try SwiftDataStoreReset.count(SchemaV1.MatchSnapshotRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV1.MatchEventRecord.self), try SwiftDataStoreReset.count(SchemaV1.MatchEventRecord.self, in: ctx)) },
-        { ctx in (String(describing: SchemaV1.SettingsRecord.self), try SwiftDataStoreReset.count(SchemaV1.SettingsRecord.self, in: ctx)) }
+        { ctx in (String(describing: SchemaV2.PlayerRecord.self), try SwiftDataStoreReset.count(SchemaV2.PlayerRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV2.MatchRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV2.MatchParticipantRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchParticipantRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV2.MatchSnapshotRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchSnapshotRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV2.MatchEventRecord.self), try SwiftDataStoreReset.count(SchemaV2.MatchEventRecord.self, in: ctx)) },
+        { ctx in (String(describing: SchemaV2.SettingsRecord.self), try SwiftDataStoreReset.count(SchemaV2.SettingsRecord.self, in: ctx)) }
     ]
 
     static func assertSwiftDataInventoryMatchesReleaseSchema() {
-        let schemaCount = SchemaLock.release_1_0_0Schema.models.count
+        let schemaCount = SchemaLock.currentReleaseSchema.models.count
         precondition(
             swiftDataDeleters.count == schemaCount,
-            "LocalDataResetInventory.swiftDataDeleters (\(swiftDataDeleters.count)) must match SchemaLock.release_1_0_0Schema.models (\(schemaCount)). Update the inventory when adding SwiftData models."
+            "LocalDataResetInventory.swiftDataDeleters (\(swiftDataDeleters.count)) must match SchemaLock.currentReleaseSchema.models (\(schemaCount)). Update the inventory when adding SwiftData models."
         )
         precondition(
             swiftDataCounters.count == schemaCount,
-            "LocalDataResetInventory.swiftDataCounters must match SchemaLock.release_1_0_0Schema.models (\(schemaCount))."
+            "LocalDataResetInventory.swiftDataCounters must match SchemaLock.currentReleaseSchema.models (\(schemaCount))."
         )
     }
 }

@@ -15,7 +15,7 @@ struct BootstrapStoreRecoveryTests {
         let context = ModelContext(container)
         let matchId = UUID()
         context.insert(
-            SchemaV1.MatchRecord(
+            SchemaV2.MatchRecord(
                 id: matchId,
                 typeRaw: MatchType.x01.rawValue,
                 statusRaw: MatchStatus.completed.rawValue,
@@ -27,7 +27,7 @@ struct BootstrapStoreRecoveryTests {
         )
         for index in [0, 2] {
             context.insert(
-                SchemaV1.MatchEventRecord(
+                SchemaV2.MatchEventRecord(
                     matchId: matchId,
                     eventIndex: index,
                     eventTypeRaw: "x01Turn",
@@ -44,14 +44,14 @@ struct BootstrapStoreRecoveryTests {
         )
         let reopenedContext = ModelContext(reopened)
         let events = try reopenedContext.fetch(
-            FetchDescriptor<SchemaV1.MatchEventRecord>(
-                predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId },
+            FetchDescriptor<SchemaV2.MatchEventRecord>(
+                predicate: #Predicate<SchemaV2.MatchEventRecord> { $0.matchId == matchId },
                 sortBy: [SortDescriptor(\.eventIndex, order: .forward)]
             )
         )
         #expect(events.map(\.eventIndex) == [0, 1])
         let match = try #require(
-            try reopenedContext.fetch(FetchDescriptor<SchemaV1.MatchRecord>()).first { $0.id == matchId }
+            try reopenedContext.fetch(FetchDescriptor<SchemaV2.MatchRecord>()).first { $0.id == matchId }
         )
         #expect(match.eventCount == 2)
     }
@@ -70,7 +70,7 @@ struct BootstrapStoreRecoveryTests {
             logger: logger
         )
         let context = ModelContext(container)
-        #expect(try context.fetchCount(FetchDescriptor<SchemaV1.SettingsRecord>()) >= 0)
+        #expect(try context.fetchCount(FetchDescriptor<SchemaV2.SettingsRecord>()) >= 0)
     }
 }
 

@@ -16,6 +16,7 @@ struct ReleaseHighlight: Equatable, Sendable {
             Feature(matchType: .baseball, catalogID: "party.baseball"),
             Feature(matchType: .killer, catalogID: "party.killer"),
             Feature(matchType: .shanghai, catalogID: "party.shanghai"),
+            Feature(matchType: .raid, catalogID: "coop.raid"),
             Feature(matchType: .aroundTheClock, catalogID: "practice.aroundTheClock"),
         ]
     )

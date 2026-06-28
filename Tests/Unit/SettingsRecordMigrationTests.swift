@@ -6,7 +6,7 @@ import Testing
 func legacySettingsWithoutInstantBotTurnsDefaultToDisabled() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let context = ModelContext(container)
-    let record = SchemaV1.SettingsRecord()
+    let record = SchemaV2.SettingsRecord()
     record.instantBotTurnsEnabled = nil
     context.insert(record)
     try context.save()
@@ -21,7 +21,7 @@ func legacySettingsWithoutInstantBotTurnsDefaultToDisabled() async throws {
 func legacySettingsWithoutBotColumnsDefaultToEnabled() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let context = ModelContext(container)
-    let record = SchemaV1.SettingsRecord()
+    let record = SchemaV2.SettingsRecord()
     record.botStaggerEnabled = nil
     record.botDartHapticsEnabled = nil
     context.insert(record)
@@ -38,7 +38,7 @@ func legacySettingsWithoutBotColumnsDefaultToEnabled() async throws {
 func legacySettingsWithoutDartEntryPresentationDefaultToNumberPad() async throws {
     let container = try ModelContainerFactory.makeContainer(mode: .inMemory)
     let context = ModelContext(container)
-    let record = SchemaV1.SettingsRecord()
+    let record = SchemaV2.SettingsRecord()
     record.defaultDartEntryPresentationRaw = nil
     context.insert(record)
     try context.save()

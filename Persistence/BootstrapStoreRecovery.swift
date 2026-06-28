@@ -123,7 +123,7 @@ enum BootstrapStoreRecovery {
 
     static func repairAllMatchEventIndexes(in container: ModelContainer) throws -> Int {
         let context = ModelContext(container)
-        let matches = try context.fetch(FetchDescriptor<SchemaV1.MatchRecord>())
+        let matches = try context.fetch(FetchDescriptor<SchemaV2.MatchRecord>())
         var repairedMatchCount = 0
 
         for match in matches {
@@ -150,8 +150,8 @@ enum BootstrapStoreRecovery {
     }
 
     private static func repairEventIndexes(for matchId: UUID, in context: ModelContext) throws -> Bool {
-        let descriptor = FetchDescriptor<SchemaV1.MatchEventRecord>(
-            predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId },
+        let descriptor = FetchDescriptor<SchemaV2.MatchEventRecord>(
+            predicate: #Predicate<SchemaV2.MatchEventRecord> { $0.matchId == matchId },
             sortBy: [
                 SortDescriptor(\.eventIndex, order: .forward),
                 SortDescriptor(\.createdAt, order: .forward)
@@ -169,8 +169,8 @@ enum BootstrapStoreRecovery {
     }
 
     private static func eventCount(for matchId: UUID, in context: ModelContext) throws -> Int {
-        let descriptor = FetchDescriptor<SchemaV1.MatchEventRecord>(
-            predicate: #Predicate<SchemaV1.MatchEventRecord> { $0.matchId == matchId }
+        let descriptor = FetchDescriptor<SchemaV2.MatchEventRecord>(
+            predicate: #Predicate<SchemaV2.MatchEventRecord> { $0.matchId == matchId }
         )
         return try context.fetchCount(descriptor)
     }

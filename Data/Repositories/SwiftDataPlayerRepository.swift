@@ -19,11 +19,11 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     public func fetchPlayers(includeArchived: Bool) async throws -> [PlayerSummary] {
         try dataCall {
             let context = ModelContext(container)
-            var descriptor = FetchDescriptor<SchemaV1.PlayerRecord>(
+            var descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
                 sortBy: [SortDescriptor(\.name, order: .forward)]
             )
             if !includeArchived {
-                descriptor.predicate = #Predicate<SchemaV1.PlayerRecord> { !$0.isArchived }
+                descriptor.predicate = #Predicate<SchemaV2.PlayerRecord> { !$0.isArchived }
             }
             return try context.fetch(descriptor).map(mapPlayer)
         }
@@ -35,7 +35,7 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let trimmed = normalizeNameForSave(name)
             try validateName(trimmed, in: context, excludingPlayerId: nil)
             let now = Date()
-            let record = SchemaV1.PlayerRecord(
+            let record = SchemaV2.PlayerRecord(
                 name: trimmed,
                 isArchived: false,
                 isBot: false,
@@ -53,10 +53,10 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     public func createBot(difficulty: BotDifficulty) async throws -> PlayerSummary {
         try dataCall {
             let context = ModelContext(container)
-            let existing = try context.fetch(FetchDescriptor<SchemaV1.PlayerRecord>())
+            let existing = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
             let name = BotNaming.nextDefaultName(difficulty: difficulty, existingNames: existing.map(\.name))
             let now = Date()
-            let record = SchemaV1.PlayerRecord(
+            let record = SchemaV2.PlayerRecord(
                 name: name,
                 isArchived: false,
                 isBot: true,
@@ -80,14 +80,14 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
     public func createCustomBot(name: String, configuration: CustomBotConfiguration) async throws -> PlayerSummary {
         try dataCall {
             let context = ModelContext(container)
-            let existing = try context.fetch(FetchDescriptor<SchemaV1.PlayerRecord>())
+            let existing = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
             let trimmed = normalizeNameForSave(name)
             let resolvedName = trimmed.isEmpty
                 ? BotNaming.nextCustomBotName(existingNames: existing.map(\.name))
                 : trimmed
             try validateName(resolvedName, in: context, excludingPlayerId: nil)
             let now = Date()
-            let record = SchemaV1.PlayerRecord(
+            let record = SchemaV2.PlayerRecord(
                 name: resolvedName,
                 isArchived: false,
                 isBot: true,
@@ -185,8 +185,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         try dataCall {
             let context = ModelContext(container)
             let trainingRaw = BotKind.training.rawValue
-            let descriptor = FetchDescriptor<SchemaV1.PlayerRecord>(
-                predicate: #Predicate<SchemaV1.PlayerRecord> {
+            let descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
+                predicate: #Predicate<SchemaV2.PlayerRecord> {
                     $0.linkedPlayerId == playerId && $0.botKindRaw == trainingRaw
                 }
             )
@@ -207,7 +207,7 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let name = TrainingBotNaming.defaultName(linkedPlayerName: human.name)
             try validateName(name, in: context, excludingPlayerId: nil)
             let now = Date()
-            let record = SchemaV1.PlayerRecord(
+            let record = SchemaV2.PlayerRecord(
                 name: name,
                 isArchived: false,
                 isBot: true,
@@ -267,8 +267,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         try dataCall {
             let context = ModelContext(container)
             let primaryRaw = PlayerRole.primary.rawValue
-            let descriptor = FetchDescriptor<SchemaV1.PlayerRecord>(
-                predicate: #Predicate<SchemaV1.PlayerRecord> {
+            let descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
+                predicate: #Predicate<SchemaV2.PlayerRecord> {
                     $0.playerRoleRaw == primaryRaw && $0.isBot != true
                 }
             )
@@ -293,8 +293,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let primaryRaw = PlayerRole.primary.rawValue
             let guestRaw = PlayerRole.guest.rawValue
             let humans = try context.fetch(
-                FetchDescriptor<SchemaV1.PlayerRecord>(
-                    predicate: #Predicate<SchemaV1.PlayerRecord> { $0.isBot != true }
+                FetchDescriptor<SchemaV2.PlayerRecord>(
+                    predicate: #Predicate<SchemaV2.PlayerRecord> { $0.isBot != true }
                 )
             )
             for human in humans {
@@ -328,8 +328,8 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
             let context = ModelContext(container)
             let player = try fetchPlayerRecord(id: playerId, in: context)
             let refs = try context.fetch(
-                FetchDescriptor<SchemaV1.MatchParticipantRecord>(
-                    predicate: #Predicate<SchemaV1.MatchParticipantRecord> { $0.playerId == playerId }
+                FetchDescriptor<SchemaV2.MatchParticipantRecord>(
+                    predicate: #Predicate<SchemaV2.MatchParticipantRecord> { $0.playerId == playerId }
                 )
             )
             guard refs.isEmpty else {
@@ -347,9 +347,9 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         }
     }
 
-    private func fetchPlayerRecord(id: UUID, in context: ModelContext) throws -> SchemaV1.PlayerRecord {
-        let descriptor = FetchDescriptor<SchemaV1.PlayerRecord>(
-            predicate: #Predicate<SchemaV1.PlayerRecord> { $0.id == id }
+    private func fetchPlayerRecord(id: UUID, in context: ModelContext) throws -> SchemaV2.PlayerRecord {
+        let descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
+            predicate: #Predicate<SchemaV2.PlayerRecord> { $0.id == id }
         )
         guard let player = try context.fetch(descriptor).first else {
             throw AppError(
@@ -374,7 +374,7 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
                 userMessageKey: "player.validation.nameRequired"
             )
         }
-        let players = try context.fetch(FetchDescriptor<SchemaV1.PlayerRecord>())
+        let players = try context.fetch(FetchDescriptor<SchemaV2.PlayerRecord>())
         let normalized = normalizeForComparison(name)
         let duplicate = players.contains {
             if let excludingPlayerId, $0.id == excludingPlayerId {
@@ -404,10 +404,10 @@ public actor SwiftDataPlayerRepository: PlayerRepository {
         normalizeNameForSave(value).lowercased()
     }
 
-    private func fetchTrainingBotRecord(linkedTo playerId: UUID, in context: ModelContext) throws -> SchemaV1.PlayerRecord? {
+    private func fetchTrainingBotRecord(linkedTo playerId: UUID, in context: ModelContext) throws -> SchemaV2.PlayerRecord? {
         let trainingRaw = BotKind.training.rawValue
-        let descriptor = FetchDescriptor<SchemaV1.PlayerRecord>(
-            predicate: #Predicate<SchemaV1.PlayerRecord> {
+        let descriptor = FetchDescriptor<SchemaV2.PlayerRecord>(
+            predicate: #Predicate<SchemaV2.PlayerRecord> {
                 $0.linkedPlayerId == playerId && $0.botKindRaw == trainingRaw
             }
         )

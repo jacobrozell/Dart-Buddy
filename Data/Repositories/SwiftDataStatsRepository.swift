@@ -16,8 +16,8 @@ public actor SwiftDataStatsRepository: StatsRepository {
         guard !matchIds.isEmpty else { return [] }
         return try dataCall {
             let context = ModelContext(container)
-            let descriptor = FetchDescriptor<SchemaV1.MatchEventRecord>(
-                predicate: #Predicate<SchemaV1.MatchEventRecord> { matchIds.contains($0.matchId) },
+            let descriptor = FetchDescriptor<SchemaV2.MatchEventRecord>(
+                predicate: #Predicate<SchemaV2.MatchEventRecord> { matchIds.contains($0.matchId) },
                 sortBy: [SortDescriptor(\.eventIndex, order: .forward)]
             )
             return try context.fetch(descriptor).map(mapEvent)

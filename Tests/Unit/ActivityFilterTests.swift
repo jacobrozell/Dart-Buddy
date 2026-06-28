@@ -42,8 +42,8 @@ struct ActivityFilterTests {
         #expect(visible.contains(.killer))
         #expect(visible.contains(.shanghai))
         #expect(visible.contains(.aroundTheClock))
+        #expect(visible.contains(.raid))
         #expect(!visible.contains(.fleet))
-        #expect(!visible.contains(.raid))
         #expect(!visible.contains(.golf))
         #expect(!visible.contains(.americanCricket))
     }
@@ -52,7 +52,7 @@ struct ActivityFilterTests {
     func allGamesFilterScopesToReachableMatchTypesOnPartyPack() {
         let args = Self.partyPackReleaseArguments
         let included = ActivityModeFilter.includedMatchTypesForAllFilter(arguments: args)
-        #expect(included == [.x01, .cricket, .baseball, .killer, .shanghai, .aroundTheClock])
+        #expect(included == [.x01, .cricket, .baseball, .killer, .shanghai, .aroundTheClock, .raid])
 
         let query = ActivityModeFilter.all.historyQueryTypes(arguments: args)
         #expect(query.matchType == nil)

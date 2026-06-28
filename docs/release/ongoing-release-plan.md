@@ -306,10 +306,10 @@ Per-feature tags: [`estimated-release-registry.md`](estimated-release-registry.m
 | Version | Modes (user-facing) | Tabs | Bots | Discovery |
 |---------|---------------------|------|------|-----------|
 | **1.0** | X01, Cricket | 4 (no Modes) | Preset + custom | Play setup Standard |
-| **1.1** | + Baseball, Killer, Shanghai, Around the Clock | 4 (no Modes) | Preset + custom | Play setup (6 modes) |
+| **1.1** | + Baseball, Killer, Shanghai, **Raid**, Around the Clock | 4 (no Modes) | Preset + custom | Play setup (7 modes) |
 | **1.2** | Same | 4–5 | + Training Partner | + export · localized listings |
 | **1.3** | + American Cricket, Knockout, Golf, … (party wave II) | 5 | Same | Modes catalog |
-| **1.4** | + Raid, Fleet, practice drills | 5 | Same | + Siri/widgets |
+| **1.4** | + Fleet, practice drills wave II | 5 | Same | + Siri/widgets |
 | **2.0** | Growth bet | 5+ | Same | Achievements UI, etc. |
 
 ---

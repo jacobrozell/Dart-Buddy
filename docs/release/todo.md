@@ -17,7 +17,7 @@ Status legend: `[ ]` todo · `[~]` partial
 
 ### Engineering (mostly done)
 
-- [x] `ProductSurface.party1_1` allowlist — six modes (X01, Cricket, Baseball, Killer, Shanghai, Around the Clock)
+- [x] `ProductSurface.party1_1` allowlist — **seven modes** (X01, Cricket, Baseball, Killer, Shanghai, **Raid**, Around the Clock)
 - [x] `PartyPack1_1SmokeUITests` + `ProductSurfaceTests`
 - [x] Release highlights sheet (`ReleaseHighlights` / `ReleaseHighlightsStore`)
 - [x] CI on `release/**` pushes ([`ci.yml`](../../.github/workflows/ci.yml))

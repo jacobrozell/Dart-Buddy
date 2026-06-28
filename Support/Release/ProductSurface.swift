@@ -3,7 +3,7 @@ import Foundation
 /// Controls which product areas are reachable in this build.
 ///
 /// **Debug:** defaults to the full catalog (all tabs, party modes, locales).
-/// **Release / App Store:** defaults to 1.1 Party Pack (X01 + Cricket + party modes, 4 tabs, English bundle).
+/// **Release / App Store:** defaults to 1.1 (party modes + Raid + Around the Clock, 4 tabs, English bundle).
 /// Launch args override either default — see `docs/release/branch-strategy.md`.
 enum ProductSurface {
     struct Configuration: Sendable, Equatable {
@@ -38,7 +38,7 @@ enum ProductSurface {
             bundledLocaleCodes: ["en"]
         )
 
-        /// 1.1 Party Pack — lean shell plus Baseball, Killer, and Shanghai in Play setup.
+        /// 1.1 — lean shell plus party modes, Raid co-op, and Around the Clock practice.
         static let party1_1 = Configuration(
             showsModesTab: false,
             showsPartyModes: true,
@@ -94,13 +94,14 @@ enum ProductSurface {
         isFullProductSurfaceEnabled(arguments: arguments) ? .full : .party1_1
     }
 
-    /// Catalog IDs shipped in the default Release Party Pack 1.1 surface.
+    /// Catalog IDs shipped in the default Release 1.1 surface.
     static let partyPack1_1CatalogIDs: Set<String> = [
         "standard.x01",
         "standard.cricket",
         "party.baseball",
         "party.killer",
         "party.shanghai",
+        "coop.raid",
         "practice.aroundTheClock"
     ]
 
