@@ -171,12 +171,13 @@ struct MatchTurnSubmitter {
         }
 
         store.save(updated)
+        let telemetryMetadata = MatchAnalytics.metadata(for: updated)
         logger.matchInfo(
             matchId: matchId,
             matchType: matchType,
             eventName: "turn_submitted",
             message: "Turn accepted and persisted.",
-            metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
+            metadata: telemetryMetadata
         )
         if updated.runtime.status == .completed {
             logger.matchInfo(
@@ -185,7 +186,7 @@ struct MatchTurnSubmitter {
                 category: .appLifecycle,
                 eventName: "match_completed",
                 message: "Match completed.",
-                metadata: MatchTurnSupport.matchProgressMetadata(for: updated)
+                metadata: telemetryMetadata
             )
             logger.matchInfo(
                 matchId: matchId,
@@ -193,8 +194,9 @@ struct MatchTurnSubmitter {
                 category: .appLifecycle,
                 eventName: GameModeAnalytics.completedEventName,
                 message: "User completed a game mode match.",
-                metadata: MatchAnalytics.metadata(for: updated)
+                metadata: telemetryMetadata
             )
+            AnalyticsUserIdentity.syncLastGameMode(for: matchType)
         }
         return .succeeded(updated)
     }

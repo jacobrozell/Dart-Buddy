@@ -65,6 +65,14 @@ public enum AppBootstrapper {
         await DemoSeeder.seedIfRequested(dependencies)
         await PrimaryPlayerBootstrap.promoteOldestHumanIfNeeded(using: dependencies.playerRepository)
         await AnalyticsUserIdentity.sync(from: dependencies.playerRepository)
+        let fetchedSettings = try? await settingsRepository.fetchSettings()
+        await MainActor.run {
+            AnalyticsUserContext.syncFromBootstrap(
+                settings: fetchedSettings,
+                preferences: userPreferencesStore
+            )
+            AnalyticsAccessibilityContext.sync()
+        }
         logger.info(
             .appLifecycle,
             eventName: "app_bootstrap_ready",

@@ -181,6 +181,13 @@ final class SettingsViewModel: ObservableObject {
             AnalyticsUserIdentity.sync(userId: nil)
             settings = try await repository.fetchSettings()
             if let settings { userPreferencesStore.apply(settings) }
+            else {
+                AnalyticsUserContext.sync(
+                    settings: nil,
+                    preferences: userPreferencesStore,
+                    onboardingComplete: false
+                )
+            }
             state = .ready
             logger.warning(.settings, eventName: "settings_reset_all_data", message: "Reset local data path executed.")
         } catch is CancellationError {

@@ -46,4 +46,18 @@ public enum AnalyticsUserIdentity {
             Crashlytics.crashlytics().setUserID(userId ?? "")
         }
     }
+
+    /// Updates GA4 user properties for mode-level retention reporting.
+    public static func syncLastGameMode(for matchType: MatchType) {
+        guard FirebaseBootstrap.shouldConfigure, FirebaseBootstrap.isAnalyticsCollectionEnabled else { return }
+
+        let metadata = GameModeAnalytics.metadata(for: matchType)
+        Analytics.setUserProperty(matchType.rawValue, forName: "last_match_type")
+        if let gameModeId = metadata["gameModeId"] {
+            Analytics.setUserProperty(gameModeId, forName: "last_game_mode_id")
+        }
+        if let gameModeSection = metadata["gameModeSection"] {
+            Analytics.setUserProperty(gameModeSection, forName: "last_game_mode_section")
+        }
+    }
 }

@@ -121,9 +121,18 @@ final class MatchForfeitCoordinator {
                 category: .appLifecycle,
                 eventName: "match_forfeit_failed",
                 message: "Forfeit persist failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
+                metadata: forfeitFailureMetadata(for: host, error: error)
             )
         }
+    }
+
+    private func forfeitFailureMetadata(for host: any MatchPlaySessionHost, error: Error) -> [String: String] {
+        var metadata = MatchTurnSupport.appErrorMetadata(for: error)
+        metadata["resolution"] = winnerResolution
+        if let session = host.session {
+            metadata.merge(MatchAnalytics.metadata(for: session)) { _, new in new }
+        }
+        return metadata
     }
 
     var confirmMessageKey: String {

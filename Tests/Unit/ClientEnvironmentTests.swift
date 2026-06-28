@@ -7,7 +7,10 @@ func clientEnvironmentSnapshotCurrentReturnsStableShape() {
     let snapshot = ClientEnvironmentSnapshot.current()
     #expect(["iphone", "ipad", "mac", "tv", "carplay", "vision", "unspecified"].contains(snapshot.deviceClass))
     #expect(["portrait", "landscape", "unknown"].contains(snapshot.interfaceOrientation))
+    #expect(["standard", "accessibility", "unknown"].contains(snapshot.contentSizeCategory))
+    #expect(["light", "dark", "unspecified"].contains(snapshot.colorScheme))
     #expect(snapshot.analyticsMetadata.keys.contains("deviceClass"))
+    #expect(snapshot.analyticsMetadata.keys.contains("contentSizeCategory"))
 }
 
 @Test(.tags(.unit, .regression))
@@ -46,6 +49,9 @@ func clientEnvironmentSnapshotBuildsAnalyticsMetadata() {
     #expect(snapshot.analyticsMetadata["isScreenCaptured"] == "true")
     #expect(snapshot.analyticsMetadata["isExternalDisplayConnected"] == "true")
     #expect(snapshot.analyticsMetadata["interfaceOrientation"] == "landscape")
+    #expect(snapshot.analyticsMetadata["contentSizeCategory"] == "unknown")
+    #expect(snapshot.analyticsMetadata["colorScheme"] == "unspecified")
+    #expect(snapshot.analyticsMetadata["isLowPowerModeEnabled"] == "false")
 }
 
 @Test(.tags(.unit, .logging, .regression))

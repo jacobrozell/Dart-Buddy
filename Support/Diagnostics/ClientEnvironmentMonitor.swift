@@ -14,6 +14,7 @@ enum ClientEnvironmentMonitor {
         guard observers.isEmpty else { return }
 
         lastSnapshot = ClientEnvironment.snapshot
+        AnalyticsAccessibilityContext.sync()
         registerObservers(logger: logger)
     }
 
@@ -27,10 +28,12 @@ enum ClientEnvironmentMonitor {
             UIAccessibility.switchControlStatusDidChangeNotification,
             UIAccessibility.boldTextStatusDidChangeNotification,
             UIAccessibility.reduceMotionStatusDidChangeNotification,
+            UIContentSizeCategory.didChangeNotification,
             UIScreen.capturedDidChangeNotification,
             UIDevice.orientationDidChangeNotification,
             UIScene.willConnectNotification,
-            UIScene.didDisconnectNotification
+            UIScene.didDisconnectNotification,
+            Notification.Name.NSProcessInfoPowerStateDidChange
         ]
 
         for name in names {
@@ -57,12 +60,16 @@ enum ClientEnvironmentMonitor {
             return "boldText"
         case UIAccessibility.reduceMotionStatusDidChangeNotification:
             return "reduceMotion"
+        case UIContentSizeCategory.didChangeNotification:
+            return "contentSize"
         case UIScreen.capturedDidChangeNotification:
             return "screenCapture"
         case UIDevice.orientationDidChangeNotification:
             return "orientation"
         case UIScene.willConnectNotification, UIScene.didDisconnectNotification:
             return "display"
+        case Notification.Name.NSProcessInfoPowerStateDidChange:
+            return "lowPowerMode"
         default:
             return "unknown"
         }
@@ -87,6 +94,7 @@ enum ClientEnvironmentMonitor {
             message: "Client environment context changed.",
             metadata: metadata
         )
+        AnalyticsAccessibilityContext.sync(from: current)
         lastSnapshot = current
     }
 }

@@ -264,6 +264,26 @@ func mapsGameModePlayedAndCompletedEvents() {
     #expect(completedEvent?.name == "game_mode_completed")
     #expect(completedEvent?.parameters["gameModeId"] == "standard.cricket")
     #expect(completedEvent?.parameters["status"] == "completed")
+
+    let forfeited = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .appLifecycle,
+        eventName: "game_mode_forfeited",
+        message: "Forfeited.",
+        metadata: [
+            "matchType": "x01",
+            "gameModeId": "standard.x01",
+            "status": "forfeited",
+            "resolution": "user_picked",
+            "durationSeconds": "120"
+        ],
+        correlationId: nil
+    )
+    let forfeitedEvent = FirebaseAnalyticsEventMapping.map(forfeited, appVersion: nil)
+    #expect(forfeitedEvent?.name == "game_mode_forfeited")
+    #expect(forfeitedEvent?.parameters["gameModeId"] == "standard.x01")
+    #expect(forfeitedEvent?.parameters["resolution"] == "user_picked")
 }
 
 @Test(.tags(.unit, .logging, .regression))
@@ -393,7 +413,12 @@ func mapsMatchForfeitedAndForfeitFailedEvents() {
         category: .appLifecycle,
         eventName: "match_forfeit_failed",
         message: "Forfeit persist failed.",
-        metadata: ["matchType": "x01"],
+        metadata: [
+            "matchType": "x01",
+            "gameModeId": "standard.x01",
+            "resolution": "automatic",
+            "errorCode": "storage"
+        ],
         correlationId: nil
     )
 
@@ -406,6 +431,9 @@ func mapsMatchForfeitedAndForfeitFailedEvents() {
     let failedEvent = FirebaseAnalyticsEventMapping.map(failed, appVersion: nil)
     #expect(failedEvent?.name == "match_forfeit_failed")
     #expect(failedEvent?.parameters["matchType"] == "x01")
+    #expect(failedEvent?.parameters["gameModeId"] == "standard.x01")
+    #expect(failedEvent?.parameters["resolution"] == "automatic")
+    #expect(failedEvent?.parameters["errorCode"] == "storage")
 }
 
 @Test(.tags(.unit, .logging, .regression))

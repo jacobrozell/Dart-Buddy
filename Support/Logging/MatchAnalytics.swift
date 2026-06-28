@@ -80,12 +80,37 @@ enum MatchAnalytics {
         startSource: MatchStartSource,
         session: MatchLifecycleSession? = nil
     ) {
+        let metadata = resumeMetadata(for: match, startSource: startSource, session: session)
         logger.info(
             .ui,
             eventName: resumedEventName,
             message: "User resumed an in-progress match.",
-            metadata: resumeMetadata(for: match, startSource: startSource, session: session),
+            metadata: metadata,
             correlationId: match.id.uuidString
         )
+        logger.info(
+            .scoring,
+            eventName: GameModeAnalytics.playedEventName,
+            message: "User resumed playing a game mode.",
+            metadata: metadata,
+            correlationId: match.id.uuidString
+        )
+        AnalyticsUserIdentity.syncLastGameMode(for: match.type)
+    }
+
+    static func logGameModePlayed(
+        logger: any AppLogger,
+        matchType: MatchType,
+        metadata: [String: String],
+        correlationId: String
+    ) {
+        logger.info(
+            .scoring,
+            eventName: GameModeAnalytics.playedEventName,
+            message: "User started playing a game mode.",
+            metadata: metadata,
+            correlationId: correlationId
+        )
+        AnalyticsUserIdentity.syncLastGameMode(for: matchType)
     }
 }

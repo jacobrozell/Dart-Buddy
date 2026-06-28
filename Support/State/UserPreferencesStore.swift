@@ -32,5 +32,6 @@ public final class UserPreferencesStore: ObservableObject {
         feedback.turnTotalCallerEnabled = settings.turnTotalCallerEnabled
         feedback.botStaggerEnabled = settings.botStaggerEnabled
         feedback.botDartHapticsEnabled = settings.botDartHapticsEnabled
+        AnalyticsUserContext.syncAfterSettingsApply(settings)
     }
 }
