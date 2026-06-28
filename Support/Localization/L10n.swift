@@ -264,11 +264,6 @@ enum L10n {
     static let onboardingReadyReplayHint: LocalizedStringKey = "onboarding.ready.replayHint"
     static let settingsViewOnboarding: LocalizedStringKey = "settings.onboarding.viewTour"
     static let settingsViewOnboardingAccessibility: LocalizedStringKey = "settings.onboarding.viewTour.accessibility"
-    static let releaseHighlightsBadge: LocalizedStringKey = "release.highlights.badge"
-    static let releaseHighlightsPartyPackTitle: LocalizedStringKey = "release.highlights.partyPack.title"
-    static let releaseHighlightsPartyPackSubtitle: LocalizedStringKey = "release.highlights.partyPack.subtitle"
-    static let releaseHighlightsTryModes: LocalizedStringKey = "release.highlights.tryModes"
-    static let releaseHighlightsGotIt: LocalizedStringKey = "release.highlights.gotIt"
 
     static func format(_ key: String, _ args: CVarArg...) -> String {
         let format = localizedFormat(for: key)
