@@ -51,12 +51,13 @@ Define how runtime feature flags and environment configuration are modeled so ph
 - `enableLocalTournaments` (default `false`; `-enable_local_tournaments` — stub until hub ships)
 - `enableOnlineTournaments` (default `false`; `-enable_online_tournaments` — stub; requires `enableOnlinePlay`)
 
-### Product surface (lean 1.0)
+### Product surface (release slice)
 
-Separate from feature flags — see `Support/Release/ProductSurface.swift` and [`docs/release/lean-1.0-implementation-plan.md`](../docs/release/lean-1.0-implementation-plan.md).
+Separate from feature flags — see `Support/Release/ProductSurface.swift` and [`docs/release/branch-strategy.md`](../docs/release/branch-strategy.md).
 
-- **Default (Release):** lean 1.0 — 4 tabs, X01 + Cricket only, preset + custom bots, English bundle, no export / Training Partner UI
-- **Launch argument:** `-enable_full_product_surface` — restores Modes tab, party modes, Training Partner bots, export, and documents full locale list (UI tests / dogfood)
+- **Default (Debug and Release):** current shipping slice (`party1_1` on 1.1 — seven modes, four tabs, English bundle)
+- **Launch argument:** `-enable_full_product_surface` — restores Modes tab, full shipped catalog, Training Partner, export, and bundled locales (UI tests / dogfood on `dev`)
+- **Launch argument:** `-enable_lean_product_surface` — forces the shipping slice (explicit in UI tests)
 - **Do not** ship App Store builds with `-enable_full_product_surface`
 
 ---

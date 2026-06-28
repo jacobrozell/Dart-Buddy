@@ -14,7 +14,7 @@ End-to-end UI coverage for locked-in X01 and Cricket gameplay, organized so test
 |------|-------|------|
 | `X01MatchUITests.swift` | 8 | Scoring, checkout, undo, landscape, inactive card |
 | `CricketMatchUITests.swift` | 11 | Marks, continuation, setup chips, landscape, MPR |
-| `Lean1_0SmokeUITests.swift` | 3 | Lean Play → X01 / Cricket / Cut Throat start |
+| `PartyPack1_1SmokeUITests.swift` | 3 | Party Pack Play → X01 / Cricket / party / Raid / Around the Clock start |
 | `RegressionUITests.swift` | 7+ | Bot undo, exit Stay, bust, landscape pad keys |
 | `WCAGAccessibilityUITests.swift` | 40 | A11y audits + pad identifier contracts |
 | `MatchSetupUITests.swift` | partial | Roster, bots, solo practice |
@@ -274,7 +274,7 @@ Locks in UI coverage for bugs that regressed multiple times. Unit tests guard mu
 
 ### PR gate (`DartBuddyCI` — iPhone 17)
 
-- `Lean1_0SmokeUITests` (all)
+- `PartyPack1_1SmokeUITests` (all) — on `release/*` via `DartBuddyUILean`; not in PR `DartBuddyCI`
 - `WCAGAccessibilityUITests` (all)
 - **Optional add after Phase 1:** `X01MatchUITests/testX01TripleScoringUpdatesRemaining`, `CricketMatchUITests/testCricketEnterSubmitsPartialVisit`
 

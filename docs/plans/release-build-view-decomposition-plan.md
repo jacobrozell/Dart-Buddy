@@ -70,7 +70,7 @@ Each box is its **own file and struct**. `SetupHomeView.body` delegates immediat
 ## Phase 0 — Baseline & guardrails (~½ day)
 
 - [ ] Reproduce: remove `SWIFT_COMPILATION_MODE: singlefile`, `xcodegen generate`, Release build → confirm crash on `SetupHomeView.body`.
-- [ ] Capture passing UI baseline: `MatchSetupUITests`, `Lean1_0SmokeUITests`, onboarding setup flows.
+- [ ] Capture passing UI baseline: `MatchSetupUITests`, `PartyPack1_1SmokeUITests`, onboarding setup flows.
 - [ ] Add CI **Release build smoke** (build only):
 
   ```bash
@@ -202,7 +202,7 @@ Large single file but no multi-sheet chain. Split by settings section only if co
 
 - [ ] `DartBuddyCI` unit tests (Debug)
 - [ ] `MatchSetupUITests`
-- [ ] `Lean1_0SmokeUITests`
+- [ ] `PartyPack1_1SmokeUITests`
 - [ ] `OnboardingUITests` (roster identifiers)
 - [ ] CI Release build job
 

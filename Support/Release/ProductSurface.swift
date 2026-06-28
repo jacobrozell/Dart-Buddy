@@ -2,9 +2,9 @@ import Foundation
 
 /// Controls which product areas are reachable in this build.
 ///
-/// **Debug:** defaults to the full catalog (all tabs, party modes, locales).
-/// **Release / App Store:** defaults to 1.1 (party modes + Raid + Around the Clock, 4 tabs, English bundle).
-/// Launch args override either default — see `docs/release/branch-strategy.md`.
+/// **Debug and Release** default to the shipping slice (`party1_1` on 1.1 — seven modes, four tabs).
+/// Pass `-enable_full_product_surface` to dogfood the full catalog (Modes tab, all shipped modes, locales).
+/// See `docs/release/branch-strategy.md`.
 enum ProductSurface {
     struct Configuration: Sendable, Equatable {
         var showsModesTab: Bool
@@ -39,6 +39,7 @@ enum ProductSurface {
         )
 
         /// 1.1 — lean shell plus party modes, Raid co-op, and Around the Clock practice.
+        /// Raid reachability uses `partyPack1_1CatalogIDs`, not `showsCoopModes` (full-surface only).
         static let party1_1 = Configuration(
             showsModesTab: false,
             showsPartyModes: true,
@@ -79,11 +80,7 @@ enum ProductSurface {
         if arguments.contains(fullProductSurfaceLaunchArgument) {
             return true
         }
-        #if DEBUG
-        return true
-        #else
         return false
-        #endif
     }
 
     private static var active: Configuration {

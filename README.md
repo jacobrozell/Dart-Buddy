@@ -48,7 +48,7 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 |------|-----------|
 | **PR / push** | XcodeGen → `DartBuddyCI` scheme — unit + accessibility unit tests on iPhone 17 simulator |
 | **Nightly** | Parallel UI matrix (`DartBuddyUISmoke`, `UIGameplay`, `UIAccessibility`, `UILocalization`, `UILandscape`, `UIChrome`) — `.github/workflows/nightly-ui.yml` |
-| **Release branches** | `DartBuddyUILean` — lean `ProductSurface` smoke (`Lean1_0SmokeUITests`) |
+| **Release branches** | `DartBuddyUILean` — Party Pack 1.1 `ProductSurface` smoke (`PartyPack1_1SmokeUITests`) |
 | **Release** | Xcode Cloud archive → TestFlight (GHA **Trigger TestFlight**; Slack post-1.0 — [`docs/release/slack-integration.md`](docs/release/slack-integration.md)) |
 | **Migrations** | V1→V2.0→V2.1 SwiftData migration tests in CI (`SchemaV2_0_0` → `SchemaV2` lightweight) |
 

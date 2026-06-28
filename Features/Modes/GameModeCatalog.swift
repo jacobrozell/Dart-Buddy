@@ -368,7 +368,7 @@ enum GameModeCatalog {
         if ProductSurface.isFullProductSurfaceEnabled {
             return GameModeSection.allCases.compactMap { section in
                 if section == .coop, !ProductSurface.showsCoopModes { return nil }
-                let sectionEntries = entries(in: section)
+                let sectionEntries = available.filter { $0.section == section }
                 guard !sectionEntries.isEmpty else { return nil }
                 return (section, sectionEntries)
             }
@@ -388,7 +388,8 @@ enum GameModeCatalog {
     ) -> Int {
         guard ProductSurface.isFullProductSurfaceEnabled else { return 0 }
         guard ProductSurface.showsPartyModes else { return 0 }
-        return max(0, entries(in: section).count - displayedCount)
+        let reachableInSection = available.filter { $0.section == section }.count
+        return max(0, reachableInSection - displayedCount)
     }
 
     /// Catalog entry backing a routable match type, if any.

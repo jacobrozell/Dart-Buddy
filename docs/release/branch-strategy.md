@@ -26,7 +26,7 @@ On `dev`, engineers dogfood the full catalog:
 - `de` / `es` / `nl` / `fr` bundled in `project.yml`
 - UI tests run without `-enable_full_product_surface` unless testing lean regressions
 
-`Support/Release/ProductSurface.swift` defaults to lean 1.0 in **Release configuration**. On `dev`, Debug builds and the main `DartBuddy` scheme use full-surface launch args where needed. Release-branch archives flip `ProductSurface` defaults on that branch.
+`Support/Release/ProductSurface.swift` defaults to **`party1_1`** (7 modes) in **Debug and Release** unless `-enable_full_product_surface` is passed. On `dev`, add that launch arg to the Run scheme to dogfood the full catalog.
 
 ---
 

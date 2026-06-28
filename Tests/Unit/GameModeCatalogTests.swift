@@ -33,7 +33,7 @@ struct GameModeCatalogTests {
             }
         } else {
             #expect(mappedTypes == Set([
-                .x01, .cricket, .baseball, .killer, .shanghai, .aroundTheClock
+                .x01, .cricket, .baseball, .killer, .shanghai, .raid, .aroundTheClock
             ]))
         }
 
@@ -103,7 +103,7 @@ struct GameModeCatalogTests {
 
         let sections = GameModeCatalog.playSetupPickerSections()
         #expect(sections.map(\.0) == GameModeSection.allCases)
-        let practiceEntries = GameModeCatalog.entries(in: .practice)
+        let practiceEntries = GameModeCatalog.available.filter { $0.section == .practice }
         #expect(sections.first { $0.0 == .practice }?.1.count == practiceEntries.count)
         #expect(
             GameModeCatalog.playSetupPickerMoreComingCount(
@@ -114,15 +114,14 @@ struct GameModeCatalogTests {
     }
 
     @Test
-    func playSetupPickerShowsSixReachableModesOnPartyPack() {
+    func playSetupPickerShowsSevenReachableModesOnPartyPack() {
         guard !ProductSurface.isFullProductSurfaceEnabled else { return }
 
         let sections = GameModeCatalog.playSetupPickerSections()
         let ids = Set(sections.flatMap(\.1).map(\.id))
         #expect(ids == ProductSurface.partyPack1_1CatalogIDs)
-        #expect(sections.map(\.0) == [.standard, .party, .practice])
+        #expect(sections.map(\.0) == [.standard, .party, .coop, .practice])
         #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .party, displayedCount: 3) == 0)
-        #expect(!sections.contains { $0.0 == .coop })
     }
 
     @Test

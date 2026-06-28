@@ -10,12 +10,12 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         "party.baseball",
         "party.killer",
         "party.shanghai",
+        "coop.raid",
         "practice.aroundTheClock",
     ]
 
     private static let hiddenModeCatalogIDs = [
         "party.golf",
-        "coop.raid",
         "practice.aroundTheClock180",
         "standard.americanCricket",
     ]
@@ -55,7 +55,7 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
         XCTAssertFalse(app.tabBars.buttons["tab_modes"].exists)
     }
 
-    func testPartyPackModePickerListsExactlySixModes() {
+    func testPartyPackModePickerListsExactlySevenModes() {
         let app = launchPartyPackApp(["-seed_players"])
         ensurePlayTab(app, timeout: timeout)
 
@@ -210,6 +210,28 @@ final class PartyPack1_1SmokeUITests: DartBuddyUITestCase {
 
         waitForMatchGameplayChrome(
             headerIdentifier: "aroundTheClock_match_header",
+            in: app,
+            timeout: timeout + 20
+        )
+    }
+
+    func testPartyPackRaidMatchStartsSolo() {
+        let app = launchPartyPackApp(["-seed_players", "-ui_test_disable_feedback"])
+        ensurePlayTab(app, timeout: timeout)
+
+        selectModeFromPlaySetupPicker("coop.raid", in: app, expectedModeName: "Raid", timeout: timeout)
+        selectPlayerFromRoster("Alice", in: app)
+        XCTAssertFalse(
+            app.descendants(matching: .any)["setup_selected_Bob"].exists,
+            "Raid solo setup should not require a second hero"
+        )
+        let start = app.buttons["startMatchButton"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        waitForStartEnabled(start, timeout: timeout)
+        tapStartMatch(in: app, timeout: timeout)
+
+        waitForMatchGameplayChrome(
+            headerIdentifier: "raid_match_header",
             in: app,
             timeout: timeout + 20
         )

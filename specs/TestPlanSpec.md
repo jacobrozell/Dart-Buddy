@@ -40,7 +40,7 @@ UI tests are split into **seven Xcode targets** (shared helpers in `Tests/UI/Sup
 | `DartBuddyUILocalization` | `DartBuddyUILocalizationUITests` | `FrenchLocalizationSmokeUITests`, `GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`, `ChineseLocalizationSmokeUITests`, `ItalianLocalizationSmokeUITests` | UI Localization |
 | `DartBuddyUILandscape` | `DartBuddyUILandscapeUITests` | `RegressionUITests` (landscape + bot regressions; **iPhone 17 Pro Max**) | UI Landscape |
 | `DartBuddyUIChrome` | `DartBuddyUIChromeUITests` | `SettingsUITests`, `OnboardingUITests`, `PlayerDetailUITests`, `BotDetailUITests`, `HistoryDetailUITests` | UI Chrome |
-| `DartBuddyUILean` | `DartBuddyUILeanUITests` | `Lean1_0SmokeUITests` | **Release branches only** (`release/*`) |
+| `DartBuddyUILean` | `DartBuddyUILeanUITests` | `PartyPack1_1SmokeUITests` | **Release branches only** (`release/*`) |
 
 `DartBuddyUI` scheme runs all targets **except** `DartBuddyUILean` (full local UI pass). `DartBuddy` scheme runs unit + all UI targets for a complete local run.
 
@@ -123,7 +123,7 @@ Use canonical tags from `specs/SwiftTestingTagsSpec.md`.
   - `unit`, `localization`, `critical`
 - `GermanLocalizationSmokeUITests` / `SpanishLocalizationSmokeUITests` / `DutchLocalizationSmokeUITests` / `FrenchLocalizationSmokeUITests` / `ChineseLocalizationSmokeUITests` / `ItalianLocalizationSmokeUITests`:
   - `ui`, `localization`, `smoke`
-- `Lean1_0SmokeUITests`:
+- `PartyPack1_1SmokeUITests`:
   - `ui`, `smoke`, `releaseGate`
 
 ---

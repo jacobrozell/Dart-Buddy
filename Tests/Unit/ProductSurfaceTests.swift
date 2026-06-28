@@ -4,6 +4,46 @@ import Testing
 @Suite("Product surface", .tags(.unit, .regression))
 struct ProductSurfaceTests {
     private static let partyPackReleaseArguments = [ProductSurface.leanProductSurfaceLaunchArgument]
+    /// TestFlight / App Store: no launch arguments.
+    private static let testFlightArguments: [String] = []
+
+    @Test("TestFlight launch uses party pack without launch arguments")
+    func testFlightLaunchUsesPartyPackWithoutLaunchArguments() {
+        let args = Self.testFlightArguments
+        let config = ProductSurface.configuration(for: args)
+
+        #expect(!ProductSurface.isFullProductSurfaceEnabled(arguments: args))
+        #expect(config == .party1_1)
+        #expect(!config.showsModesTab)
+        #expect(!config.showsTrainingBots)
+        #expect(!config.showsPlayerExport)
+    }
+
+    @Test("TestFlight reachability matches party pack allowlist exactly")
+    func testFlightReachabilityMatchesAllowlistExactly() {
+        let args = Self.testFlightArguments
+
+        for entry in GameModeCatalog.all where entry.isAvailable {
+            guard let matchType = entry.matchType else { continue }
+            let reachable = ProductSurface.isMatchTypeReachable(matchType, arguments: args)
+            let expected = ProductSurface.partyPack1_1CatalogIDs.contains(entry.id)
+            #expect(reachable == expected, "Unexpected reachability for \(entry.id)")
+        }
+    }
+
+    @Test("Default play setup picker lists exactly seven modes")
+    func defaultPlaySetupPickerListsExactlySevenModes() {
+        guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        let sections = GameModeCatalog.playSetupPickerSections()
+        let ids = Set(sections.flatMap(\.1).map(\.id))
+        #expect(ids == ProductSurface.partyPack1_1CatalogIDs)
+        #expect(sections.flatMap(\.1).count == 7)
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .standard, displayedCount: 2) == 0)
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .party, displayedCount: 3) == 0)
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .coop, displayedCount: 1) == 0)
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: 1) == 0)
+    }
 
     @Test("Release defaults expose party modes without Modes tab")
     func releaseDefaultsExposePartyPack() {

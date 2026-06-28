@@ -209,7 +209,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 |---------|--------|-------|-----------|
 | GitHub Actions CI (push / PR) | Shipped | XcodeGen, build-for-testing, `DartBuddyCI` | `.github/workflows/ci.yml` |
 | Nightly UI tests | Shipped | Parallel matrix: smoke, gameplay, a11y, l10n, landscape, chrome | `.github/workflows/nightly-ui.yml` |
-| Lean UI tests (`DartBuddyUILean`) | Shipped | `release/*` branches only | `Lean1_0SmokeUITests` |
+| Lean UI tests (`DartBuddyUILean`) | Shipped | `release/*` branches only | `PartyPack1_1SmokeUITests` (7-mode Party Pack + Raid) |
 | Xcode Cloud → TestFlight | Shipped | Manual / API trigger only | [`release/xcode-cloud.md`](release/xcode-cloud.md) |
 | Trigger TestFlight workflow | Shipped | GHA → App Store Connect API | `.github/workflows/trigger-testflight.yml` |
 | XcodeGen project generation | Shipped | `.xcodeproj` not committed | `project.yml` |

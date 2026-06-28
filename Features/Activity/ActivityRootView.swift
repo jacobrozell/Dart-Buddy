@@ -1,4 +1,3 @@
-import Charts
 import SwiftUI
 
 enum ActivitySegment: String, CaseIterable, Identifiable {
@@ -25,7 +24,7 @@ struct ActivityRootView: View {
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var segment: ActivitySegment = ActivityRootView.startupSegment
-    @State private var modeFilter: ActivityModeFilter = .all
+    @State private var modeFilter: ActivityModeFilter = ActivityRootView.startupModeFilter
     @State private var period: ActivityPeriod = .all
     @State private var playerFilter: UUID?
     @State private var historyPath: [HistoryRoute] = []
@@ -349,6 +348,16 @@ struct ActivityRootView: View {
         }
     }
 
+    private static var startupModeFilter: ActivityModeFilter {
+        let arguments = ProcessInfo.processInfo.arguments
+        if let filterIndex = arguments.firstIndex(of: "-snapshot_activity_mode_filter"),
+           arguments.indices.contains(filterIndex + 1),
+           let filter = ActivityModeFilter(rawValue: arguments[filterIndex + 1]) {
+            return filter
+        }
+        return .all
+    }
+
     private static var startupSegment: ActivitySegment {
         let arguments = ProcessInfo.processInfo.arguments
         if let tabFlagIndex = arguments.firstIndex(of: "-snapshot_tab"),
@@ -392,7 +401,7 @@ struct StatisticsTablesContent: View {
             if viewModel.isX01 {
                 sectionTitle(L10n.string("stats.section.averageHighest"))
                 averageTable
-                averageChart
+                MultiPlayerAverageChart(rows: viewModel.rows)
                 if viewModel.showsTrendChart {
                     sectionTitle(L10n.string("stats.trend.title"))
                     AverageTrendChart(points: viewModel.trendPoints)
@@ -480,36 +489,6 @@ struct StatisticsTablesContent: View {
         ) { row in
             ["\(row.darts)", String(format: "%.1f%%", row.doublePercent), String(format: "%.1f%%", row.triplePercent)]
         }
-    }
-
-    private var averageChart: some View {
-        Chart(viewModel.rows) { row in
-            BarMark(
-                x: .value(L10n.string("stats.chart.axis.average"), row.average3Dart),
-                y: .value(L10n.string("stats.chart.axis.player"), row.name)
-            )
-            .foregroundStyle(Brand.green)
-            .annotation(position: .trailing) {
-                Text(String(format: "%.1f", row.average3Dart))
-                    .font(.caption2)
-                    .foregroundStyle(Brand.textSecondary)
-                    .accessibilityHidden(true)
-            }
-        }
-        .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-        .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
-        .frame(height: CGFloat(viewModel.rows.count) * 44 + 24)
-        .padding(DS.Spacing.s4)
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "stats.section.averageHighest"))
-        .accessibilityValue(averageChartAccessibilityValue)
-    }
-
-    private var averageChartAccessibilityValue: String {
-        viewModel.rows.map { row in
-            L10n.format("stats.trend.accessibilityPointFormat", row.name, row.average3Dart)
-        }.joined(separator: ", ")
     }
 
     private var sectorHitsDictionary: [String: Int] {

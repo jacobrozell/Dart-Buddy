@@ -17,7 +17,7 @@ FRAMED_DIR=marketing-screenshots/1.1/framed \
 ./Scripts/frame-marketing-screenshots.sh
 ```
 
-Captures use `-enable_lean_product_surface` so the binary matches the shipping **Party Pack 1.1** allowlist (six modes, four tabs, English UI).
+Captures use `-enable_lean_product_surface` so the binary matches the shipping **Party Pack 1.1** allowlist (seven modes, four tabs, English UI).
 
 ## Screens captured
 

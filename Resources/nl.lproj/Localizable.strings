@@ -753,7 +753,7 @@
 "onboarding.next" = "Volgende";
 "onboarding.continue" = "Doorgaan";
 "onboarding.getStarted" = "Aan de slag";
-"onboarding.welcome.title" = "Welkom bij Dart Buddy 1.0";
+"onboarding.welcome.title" = "Welkom bij Dart Buddy";
 "onboarding.welcome.body" = "Je lokale scorebord voor X01 en Cricket. Beheer spelers en wedstrijdgeschiedenis — geen account nodig en je gegevens blijven op dit apparaat.";
 "onboarding.experience.title" = "Kun je darts spelen?";
 "onboarding.experience.body" = "We passen je eerste stappen aan op basis van je ervaring.";
@@ -787,7 +787,7 @@
 "onboarding.tour.settings.body" = "Pas standaardwaarden, uiterlijk en app-gedrag aan.";
 "onboarding.tour.roadmap" = "Meer spelmodi en functies komen eraan. Stuur ons gerust feedback — we lezen elk bericht.";
 "onboarding.support.title" = "Hulp en feedback";
-"onboarding.support.body" = "Dart Buddy 1.0 is pas het begin. Vragen, bugs en ideeën helpen bepalen wat we hierna bouwen.";
+"onboarding.support.body" = "Dart Buddy is net begonnen. Vragen, bugs en ideeën helpen bepalen wat we hierna bouwen.";
 "onboarding.support.help" = "Support en FAQ";
 "onboarding.support.feedback" = "Feedback sturen";
 "onboarding.support.privacy" = "Privacybeleid";

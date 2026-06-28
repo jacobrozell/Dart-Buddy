@@ -59,7 +59,7 @@ Welcome → Skip → Ready → Play tab
 ### Behavior
 - **Trigger:** `UserDefaults` key `onboarding_completed` is unset and onboarding is enabled.
 - **Presentation:** `fullScreenCover` on `MainTabView` after bootstrap (before the App Store update check).
-- **Welcome:** One-screen 1.0 intro with **Skip** (escape hatch) and **Next**.
+- **Welcome:** One-screen intro with **Skip** (escape hatch) and **Next**. Copy keys are centralized in `Support/Onboarding/OnboardingCopy.swift` (no marketing version in the title).
 - **Experience question:** Two choice buttons — experienced path continues to preferences; beginner path continues to rules content (X01 + Cricket only via `ProductSurface`).
 - **Preferences (experienced path):** Curated subset of Settings (appearance, gameplay defaults, X01 defaults, feedback toggles). Changes persist immediately via `SettingsViewModel`.
 - **Learn to play (beginner path):** Reuses `GameRulesGuideContent` with onboarding **Continue** footer.
@@ -76,6 +76,7 @@ Welcome → Skip → Ready → Play tab
 - Opt in during UI tests with `-ui_test_onboarding` (still uses `-ui_test_reset` store reset)
 
 ### Implementation
+- `Support/Onboarding/OnboardingCopy.swift` — welcome/support string keys per release slice
 - `Support/Onboarding/OnboardingStore.swift`
 - `Features/Onboarding/OnboardingFlowView.swift` (+ step views)
 - `Features/Play/Rules/GameRulesGuideContent.swift` (shared rules content)

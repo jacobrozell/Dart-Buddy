@@ -753,7 +753,7 @@
 "onboarding.next" = "下一步";
 "onboarding.continue" = "继续";
 "onboarding.getStarted" = "开始使用";
-"onboarding.welcome.title" = "欢迎使用 Dart Buddy 1.0";
+"onboarding.welcome.title" = "欢迎使用 Dart Buddy";
 "onboarding.welcome.body" = "你本地的 X01 与板球记分器。记录玩家与比赛历史 — 无需账号,所有数据保留在此设备上。";
 "onboarding.experience.title" = "你会玩飞镖吗?";
 "onboarding.experience.body" = "我们将根据你的经验定制起步流程。";
@@ -787,7 +787,7 @@
 "onboarding.tour.settings.body" = "自定义默认值、外观与应用行为。";
 "onboarding.tour.roadmap" = "更多游戏模式与功能即将推出。随时发送反馈 — 我们会阅读每一条。";
 "onboarding.support.title" = "帮助与反馈";
-"onboarding.support.body" = "Dart Buddy 1.0 只是起点。问题、错误与建议都将帮助我们决定下一步。";
+"onboarding.support.body" = "Dart Buddy 才刚刚开始。问题、错误与建议都将帮助我们决定下一步。";
 "onboarding.support.help" = "支持与常见问题";
 "onboarding.support.feedback" = "发送反馈";
 "onboarding.support.privacy" = "隐私政策";

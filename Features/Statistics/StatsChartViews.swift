@@ -1,6 +1,83 @@
 import Charts
 import SwiftUI
 
+private enum StatsChartStyle {
+    static let barCornerRadius: CGFloat = 5
+    static let cardPadding = DS.Spacing.s4
+    static let gridOpacity: Double = 0.22
+
+    static var horizontalBarFill: LinearGradient {
+        LinearGradient(
+            colors: [Brand.green.opacity(0.72), Brand.green],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
+    static var verticalBarFill: LinearGradient {
+        LinearGradient(
+            colors: [Brand.green, Brand.green.opacity(0.68)],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    static var trendAreaFill: LinearGradient {
+        LinearGradient(
+            colors: [Brand.green.opacity(0.28), Brand.green.opacity(0.04)],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+}
+
+private extension View {
+    func statsChartPlotStyle() -> some View {
+        chartPlotStyle { plotArea in
+            plotArea
+                .padding(.horizontal, DS.Spacing.s1)
+                .padding(.vertical, DS.Spacing.s2)
+        }
+    }
+
+    func statsValueAxis() -> some View {
+        chartYAxis {
+            AxisMarks { _ in
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 4]))
+                    .foregroundStyle(Brand.textSecondary.opacity(StatsChartStyle.gridOpacity))
+                AxisValueLabel()
+                    .foregroundStyle(Brand.textSecondary)
+            }
+        }
+    }
+
+    func statsCategoryAxis(verticalLabels: Bool = false) -> some View {
+        chartXAxis {
+            AxisMarks { _ in
+                if verticalLabels {
+                    AxisValueLabel(orientation: .vertical)
+                        .foregroundStyle(Brand.textSecondary)
+                } else {
+                    AxisValueLabel()
+                        .foregroundStyle(Brand.textSecondary)
+                }
+            }
+        }
+    }
+
+    func statsHorizontalValueAxis(maxValue: Double) -> some View {
+        chartXScale(domain: 0...(max(maxValue * 1.14, 1)))
+            .chartXAxis {
+                AxisMarks { _ in
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 4]))
+                        .foregroundStyle(Brand.textSecondary.opacity(StatsChartStyle.gridOpacity))
+                    AxisValueLabel()
+                        .foregroundStyle(Brand.textSecondary)
+                }
+            }
+    }
+}
+
 struct SectorHitsChart: View {
     let hitsBySector: [String: Int]
     let mode: MatchType
@@ -34,19 +111,24 @@ struct SectorHitsChart: View {
                             x: .value(L10n.string("stats.chart.axis.sector"), StatsSectorOrder.label(hit.sector, mode: mode)),
                             y: .value(L10n.string("stats.chart.axis.hits"), hit.count)
                         )
-                        .foregroundStyle(Brand.green)
-                    }
-                    .chartXAxis {
-                        AxisMarks { _ in
-                            AxisValueLabel(orientation: .vertical)
-                                .foregroundStyle(Brand.textSecondary)
+                        .foregroundStyle(StatsChartStyle.verticalBarFill)
+                        .cornerRadius(StatsChartStyle.barCornerRadius)
+                        .annotation(position: .top, spacing: DS.Spacing.s1) {
+                            if hit.count > 0 {
+                                Text("\(hit.count)")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(Brand.textSecondary)
+                                    .accessibilityHidden(true)
+                            }
                         }
                     }
-                    .chartYAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
+                    .statsCategoryAxis(verticalLabels: true)
+                    .statsValueAxis()
+                    .statsChartPlotStyle()
                     .frame(width: max(CGFloat(hits.count) * sectorBarWidth, 280), height: chartHeight)
                 }
                 .frame(height: chartHeight)
-                .padding(DS.Spacing.s4)
+                .padding(StatsChartStyle.cardPadding)
                 .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(String(localized: "stats.hitsInSector"))
@@ -60,7 +142,7 @@ struct SectorHitsChart: View {
     }
 
     private var sectorBarWidth: CGFloat {
-        dynamicTypeSize.isAccessibilitySize ? 36 : 28
+        dynamicTypeSize.isAccessibilitySize ? 36 : 30
     }
 
     private var resolvedHeight: CGFloat {
@@ -96,33 +178,58 @@ struct PerPlayerSectorHitsSection: View {
 struct AverageTrendChart: View {
     let points: [StatsTrendPoint]
 
+    private var yDomain: ClosedRange<Double> {
+        let values = points.map(\.average3Dart)
+        guard let minValue = values.min(), let maxValue = values.max() else {
+            return 0...100
+        }
+        let padding = max((maxValue - minValue) * 0.18, 4)
+        return max(0, minValue - padding)...(maxValue + padding)
+    }
+
     var body: some View {
         Chart(points) { point in
+            AreaMark(
+                x: .value(L10n.string("stats.chart.axis.date"), point.date),
+                y: .value(L10n.string("stats.chart.axis.average"), point.average3Dart)
+            )
+            .foregroundStyle(StatsChartStyle.trendAreaFill)
+            .interpolationMethod(.catmullRom)
+
             LineMark(
                 x: .value(L10n.string("stats.chart.axis.date"), point.date),
                 y: .value(L10n.string("stats.chart.axis.average"), point.average3Dart)
             )
             .foregroundStyle(Brand.green)
+            .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
             .interpolationMethod(.catmullRom)
+
             PointMark(
                 x: .value(L10n.string("stats.chart.axis.date"), point.date),
                 y: .value(L10n.string("stats.chart.axis.average"), point.average3Dart)
             )
+            .symbolSize(44)
             .foregroundStyle(Brand.green)
+            .annotation(position: .top, spacing: DS.Spacing.s1) {
+                Text(String(format: "%.1f", point.average3Dart))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
+            }
         }
+        .chartYScale(domain: yDomain)
         .chartXAxis {
             AxisMarks(values: .automatic) { _ in
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 4]))
+                    .foregroundStyle(Brand.textSecondary.opacity(StatsChartStyle.gridOpacity))
                 AxisValueLabel(format: .dateTime.month(.abbreviated).day())
                     .foregroundStyle(Brand.textSecondary)
             }
         }
-        .chartYAxis {
-            AxisMarks { _ in
-                AxisValueLabel().foregroundStyle(Brand.textSecondary)
-            }
-        }
-        .frame(height: 200)
-        .padding(DS.Spacing.s4)
+        .statsValueAxis()
+        .statsChartPlotStyle()
+        .frame(height: 220)
+        .padding(StatsChartStyle.cardPadding)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(localized: "stats.trend.title"))
@@ -142,6 +249,56 @@ struct AverageTrendChart: View {
     }
 }
 
+struct MultiPlayerAverageChart: View {
+    let rows: [PlayerStatBreakdown]
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var maxAverage: Double {
+        rows.map(\.average3Dart).max() ?? 0
+    }
+
+    var body: some View {
+        Chart(rows) { row in
+            BarMark(
+                x: .value(L10n.string("stats.chart.axis.average"), row.average3Dart),
+                y: .value(L10n.string("stats.chart.axis.player"), row.name)
+            )
+            .foregroundStyle(StatsChartStyle.horizontalBarFill)
+            .cornerRadius(StatsChartStyle.barCornerRadius)
+            .annotation(position: .trailing, spacing: DS.Spacing.s1) {
+                Text(String(format: "%.1f", row.average3Dart))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .statsHorizontalValueAxis(maxValue: maxAverage)
+        .chartYAxis {
+            AxisMarks { _ in
+                AxisValueLabel(horizontalSpacing: DS.Spacing.s2)
+                    .foregroundStyle(Brand.textPrimary)
+            }
+        }
+        .statsChartPlotStyle()
+        .frame(height: CGFloat(rows.count) * rowHeight + 28)
+        .padding(StatsChartStyle.cardPadding)
+        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "stats.section.averageHighest"))
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityValue: String {
+        rows.map { row in
+            L10n.format("stats.trend.accessibilityPointFormat", row.name, row.average3Dart)
+        }.joined(separator: ", ")
+    }
+
+    private var rowHeight: CGFloat {
+        dynamicTypeSize.isAccessibilitySize ? 52 : 44
+    }
+}
+
 struct PlayerAverageChart: View {
     let average: Double
     let playerName: String
@@ -153,25 +310,25 @@ struct PlayerAverageChart: View {
                 x: .value(L10n.string("stats.chart.axis.average"), average),
                 y: .value(L10n.string("stats.chart.axis.player"), playerName)
             )
-            .foregroundStyle(Brand.green)
-            .annotation(position: .trailing) {
+            .foregroundStyle(StatsChartStyle.horizontalBarFill)
+            .cornerRadius(StatsChartStyle.barCornerRadius)
+            .annotation(position: .trailing, spacing: DS.Spacing.s1) {
                 Text(String(format: "%.1f", average))
-                    .font(.caption2)
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(Brand.textSecondary)
+                    .accessibilityHidden(true)
             }
         }
-        .chartXAxis { AxisMarks { _ in AxisValueLabel().foregroundStyle(Brand.textSecondary) } }
+        .statsHorizontalValueAxis(maxValue: average)
         .chartYAxis {
             AxisMarks { _ in
                 AxisValueLabel(horizontalSpacing: DS.Spacing.s2)
                     .foregroundStyle(Brand.textPrimary)
             }
         }
-        .chartPlotStyle { plotArea in
-            plotArea.padding(.leading, DS.Spacing.s1)
-        }
-        .frame(height: rowHeight + 24)
-        .padding(DS.Spacing.s4)
+        .statsChartPlotStyle()
+        .frame(height: rowHeight + 28)
+        .padding(StatsChartStyle.cardPadding)
         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(localized: "stats.threeDartAverage"))

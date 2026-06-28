@@ -753,7 +753,7 @@
 "onboarding.next" = "Avanti";
 "onboarding.continue" = "Continua";
 "onboarding.getStarted" = "Inizia";
-"onboarding.welcome.title" = "Benvenuto in Dart Buddy 1.0";
+"onboarding.welcome.title" = "Benvenuto in Dart Buddy";
 "onboarding.welcome.body" = "Il tuo segnapunti locale per X01 e Cricket. Traccia giocatori e cronologia partite—senza account, e i tuoi dati restano su questo dispositivo.";
 "onboarding.experience.title" = "Sai giocare a freccette?";
 "onboarding.experience.body" = "Personalizzeremo i tuoi primi passi in base alla tua esperienza.";
@@ -787,7 +787,7 @@
 "onboarding.tour.settings.body" = "Personalizza predefiniti, aspetto e comportamento dell'app.";
 "onboarding.tour.roadmap" = "Più modalità e funzioni sono in arrivo. Invia feedback in qualsiasi momento—leggiamo ogni messaggio.";
 "onboarding.support.title" = "Aiuto e feedback";
-"onboarding.support.body" = "Dart Buddy 1.0 è solo l'inizio. Domande, bug e idee aiutano a definire cosa costruiremo dopo.";
+"onboarding.support.body" = "Dart Buddy è appena agli inizi. Domande, bug e idee aiutano a definire cosa costruiremo dopo.";
 "onboarding.support.help" = "Supporto e FAQ";
 "onboarding.support.feedback" = "Invia feedback";
 "onboarding.support.privacy" = "Informativa privacy";
