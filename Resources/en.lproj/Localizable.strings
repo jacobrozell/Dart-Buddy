@@ -198,7 +198,10 @@
 "players.bots.difficulty.label" = "Difficulty";
 "players.bots.customization.section" = "Appearance";
 "players.bots.stats.section" = "Skill Profile";
-"players.bots.stats.footer" = "Engine parameters that drive how this bot throws in X01 and Cricket.";
+"players.bots.stats.summary.section" = "Game mode targets";
+"players.bots.stats.summary.hint" = "These are the player-facing targets for X01 and Cricket—the same scale used by custom bots. Other game modes derive skill from these values.";
+"players.bots.stats.engineDetails" = "Engine details";
+"players.bots.stats.footer" = "Expand engine details to see hit rates and other throw parameters. Values apply across all modes that share the bot engine templates.";
 "players.bots.stats.scoringVisitRange" = "Scoring visit target";
 "players.bots.stats.hitChanceSingle" = "Single hit chance";
 "players.bots.stats.hitChanceDouble" = "Double hit chance";
@@ -212,6 +215,7 @@
 "players.bots.stats.masterInTriple" = "Master-in triple opener";
 "players.bots.stats.wrongBed" = "Wrong bed miss";
 "players.bots.difficulty.accessibilityFormat" = "Difficulty: %@";
+"players.bots.difficulty.withMetrics.accessibilityFormat" = "Difficulty: %@, %@";
 "players.bots.identity.accessibilityFormat" = "%@, %@ color, %@ difficulty";
 "players.bots.roster.accessibilityFormat" = "%@, %@ bot";
 "players.bots.save.accessibility" = "Save bot";
@@ -744,6 +748,9 @@
 "gameplayTemplate.phaseRace.title" = "Phase race";
 "gameplayTemplate.boardState.title" = "Board state";
 "gameplayTemplate.roleSplit.title" = "Role split";
+"presetBot.customize.title" = "Customize further";
+"presetBot.customize.bodyFormat" = "Preset bots use fixed tiers. Start from %@ targets and tune every stat with a custom bot.";
+"presetBot.customize.action" = "Create custom bot from this tier";
 "bot.namePrefixFormat" = "%@ Bot ";
 "play.rules.learnButton" = "Learn to play";
 "play.rules.sheet.title" = "How to play";

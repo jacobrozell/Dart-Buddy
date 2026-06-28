@@ -198,7 +198,10 @@
 "players.bots.difficulty.label" = "Dificultad";
 "players.bots.customization.section" = "Apariencia";
 "players.bots.stats.section" = "Habilidad Proarchivo";
-"players.bots.stats.footer" = "Parámetros del motor que determinan cómo este bot lanza X01 y Cricket.";
+"players.bots.stats.summary.section" = "Objetivos por modo";
+"players.bots.stats.summary.hint" = "Objetivos comprensibles para X01 y Cricket — la misma escala que los bots personalizados. Otros modos derivan la habilidad de estos valores.";
+"players.bots.stats.engineDetails" = "Detalles del motor";
+"players.bots.stats.footer" = "Abre los detalles del motor para ver probabilidades de acierto y otros parámetros. Los valores aplican a todos los modos que comparten las mismas plantillas del motor.";
 "players.bots.stats.scoringVisitRange" = "Objetivo de visita de puntuación";
 "players.bots.stats.hitChanceSingle" = "Oportunidad de un solo golpe";
 "players.bots.stats.hitChanceDouble" = "Double oportunidad de acertar";
@@ -212,6 +215,7 @@
 "players.bots.stats.masterInTriple" = "Abridor triple master-in";
 "players.bots.stats.wrongBed" = "Señorita en la cama equivocada";
 "players.bots.difficulty.accessibilityFormat" = "Dificultad: %@";
+"players.bots.difficulty.withMetrics.accessibilityFormat" = "Dificultad: %@, %@";
 "players.bots.identity.accessibilityFormat" = "%@, %@ color, %@ dificultad";
 "players.bots.roster.accessibilityFormat" = "%@, %@ bot";
 "players.bots.save.accessibility" = "guardar robot";
@@ -744,6 +748,9 @@
 "gameplayTemplate.phaseRace.title" = "Carrera por fases";
 "gameplayTemplate.boardState.title" = "Estado del tablero";
 "gameplayTemplate.roleSplit.title" = "División de roles";
+"presetBot.customize.title" = "Personalizar más";
+"presetBot.customize.bodyFormat" = "Los bots predefinidos usan niveles fijos. Empieza con los objetivos de %@ y ajusta cada stat con un bot personalizado.";
+"presetBot.customize.action" = "Crear bot personalizado desde este nivel";
 "bot.namePrefixFormat" = "%@ Bot";
 "play.rules.learnButton" = "Aprende a jugar";
 "play.rules.sheet.title" = "Cómo jugar";
