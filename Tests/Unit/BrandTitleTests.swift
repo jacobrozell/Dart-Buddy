@@ -22,13 +22,19 @@ struct BrandTitleTests {
             "play.baseball.title",
             "play.killer.title",
             "play.shanghai.title",
-            "play.aroundTheClock.navTitle"
+            "play.aroundTheClock.navTitle",
+            "play.golf.navTitle"
         ]
         for key in keys {
             let title = L10n.string(key)
             #expect(!title.isEmpty)
             #expect(title != key)
         }
+    }
+
+    @Test("Golf nav title resolves from GameplayModes table", .tags(.regression))
+    func golfNavTitleResolvesFromGameplayModes() {
+        #expect(L10n.string("play.golf.navTitle") == "Golf")
     }
 }
 
