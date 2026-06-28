@@ -38,6 +38,17 @@ public struct CustomBotConfiguration: Codable, Equatable, Sendable {
         )
     }
 
+    public static func fromPreset(_ difficulty: BotDifficulty) -> CustomBotConfiguration {
+        let metrics = BotModeSummaryMetrics.preset(difficulty)
+        return CustomBotConfiguration(
+            schemaVersion: currentSchemaVersion,
+            x01Average: metrics.x01Average ?? CustomBotMetrics.defaultX01Average,
+            cricketMPR: metrics.cricketMPR ?? CustomBotMetrics.defaultCricketMPR,
+            explicitProfile: difficulty.skillProfile,
+            scoringBehaviorTier: difficulty
+        )
+    }
+
     public var metrics: CustomBotMetrics {
         CustomBotMetrics(x01Average: x01Average, cricketMPR: cricketMPR)
     }

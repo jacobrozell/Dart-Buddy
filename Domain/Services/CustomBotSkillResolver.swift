@@ -27,6 +27,6 @@ public enum CustomBotSkillResolver {
     }
 
     public static func combinedDisplayProfile(configuration: CustomBotConfiguration) -> BotDifficultyDisplayProfile {
-        configuration.resolvedCanonicalProfile().displayProfile
+        configuration.resolvedCanonicalProfile().displayProfile(summary: .custom(configuration.metrics))
     }
 }

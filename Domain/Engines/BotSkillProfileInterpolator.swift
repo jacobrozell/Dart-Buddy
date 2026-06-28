@@ -2,7 +2,7 @@ import Foundation
 
 /// Maps target X01 3-dart average or Cricket MPR to a continuous `BotSkillProfile`.
 public enum BotSkillProfileInterpolator {
-    private static let x01TierAverages: [(BotDifficulty, Double)] = [
+    static let x01TierAverages: [(BotDifficulty, Double)] = [
         (.veryEasy, 20),
         (.easy, 29),
         (.medium, 61),
@@ -10,13 +10,23 @@ public enum BotSkillProfileInterpolator {
         (.pro, 88)
     ]
 
-    private static let cricketTierMPR: [(BotDifficulty, Double)] = [
+    static let cricketTierMPR: [(BotDifficulty, Double)] = [
         (.veryEasy, 0.85),
         (.easy, 1.25),
         (.medium, 1.85),
         (.hard, 2.45),
         (.pro, 3.05)
     ]
+
+    /// Player-facing X01 3-dart average anchor for a preset tier (custom-bot slider scale).
+    public static func referenceX01Average(for difficulty: BotDifficulty) -> Double {
+        x01TierAverages.first { $0.0 == difficulty }?.1 ?? x01TierAverages[0].1
+    }
+
+    /// Player-facing Cricket MPR anchor for a preset tier (custom-bot slider scale).
+    public static func referenceCricketMPR(for difficulty: BotDifficulty) -> Double {
+        cricketTierMPR.first { $0.0 == difficulty }?.1 ?? cricketTierMPR[0].1
+    }
 
     public static func profile(forX01Average target: Double, clampToTierRange: Bool = true) -> BotSkillProfile {
         profile(for: target, anchors: x01TierAverages, clampToTierRange: clampToTierRange)
