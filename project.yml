@@ -286,7 +286,7 @@ targets:
     platform: iOS
     sources:
       - path: Tests/UI/Support
-      - path: Tests/UI/Lean1_0SmokeUITests.swift
+      - path: Tests/UI/Smart1_2SmokeUITests.swift
         type: file
     dependencies:
       - target: DartBuddy

@@ -504,6 +504,9 @@ extension XCTestCase {
                 app.swipeUp()
             }
         }
+        for _ in 0 ..< 6 where card.exists && !card.isHittable {
+            app.swipeUp()
+        }
         XCTAssertTrue(card.waitForExistence(timeout: timeout), "Expected picker card \(catalogId)")
         tapHittableElement(card)
         assertSelectedModeName(expectedModeName, in: app, timeout: timeout)
