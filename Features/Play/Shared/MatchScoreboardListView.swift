@@ -31,27 +31,20 @@ struct MatchScoreboardListView: View {
         VStack(spacing: usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2) {
             ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                 HStack(spacing: DS.Spacing.s3) {
-                    Circle()
-                        .fill(PlayerVisualViews.color(for: entry.colorToken))
-                        .frame(width: usesLandscapeLayout ? 12 : 10, height: usesLandscapeLayout ? 12 : 10)
-                    Text(entry.name)
-                        .font(rowNameFont(for: entry))
-                        .foregroundStyle(Brand.textPrimary)
-                        .lineLimit(1)
-                    if let leadingText = entry.leadingText {
-                        Text(leadingText)
-                            .font(usesLandscapeLayout ? .caption.weight(.semibold) : .caption2.weight(.semibold))
-                            .foregroundStyle(Brand.green)
-                    }
-                    Spacer()
+                    nameColumn(for: entry)
+                    Spacer(minLength: DS.Spacing.s2)
                     if let secondaryText = entry.secondaryText {
                         Text(secondaryText)
                             .font(usesLandscapeLayout ? .subheadline : .caption)
                             .foregroundStyle(Brand.textSecondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
                     }
                     Text(entry.totalText)
                         .font(usesLandscapeLayout ? .title2.weight(.bold) : .title3.weight(.bold))
+                        .monospacedDigit()
                         .foregroundStyle(entry.isActive ? Brand.green : Brand.textPrimary)
+                        .layoutPriority(1)
                 }
                 .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
                 .padding(.vertical, usesLandscapeLayout ? DS.Spacing.s3 : DS.Spacing.s2)
@@ -62,6 +55,29 @@ struct MatchScoreboardListView: View {
             }
         }
     }
+
+    private func nameColumn(for entry: Entry) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: DS.Spacing.s2) {
+                Circle()
+                    .fill(PlayerVisualViews.color(for: entry.colorToken))
+                    .frame(width: usesLandscapeLayout ? 12 : 10, height: usesLandscapeLayout ? 12 : 10)
+                Text(entry.name)
+                    .font(rowNameFont(for: entry))
+                    .foregroundStyle(Brand.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            if let leadingText = entry.leadingText {
+                Text(leadingText)
+                    .font(usesLandscapeLayout ? .caption.weight(.semibold) : .caption2.weight(.semibold))
+                    .foregroundStyle(Brand.green)
+            }
+        }
+        .frame(width: nameColumnWidth, alignment: .leading)
+    }
+
+    private var nameColumnWidth: CGFloat { usesLandscapeLayout ? 96 : 84 }
 
     private func rowNameFont(for entry: Entry) -> Font {
         let emphasized = entry.isActive || entry.leadingText != nil

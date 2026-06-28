@@ -23,12 +23,18 @@ struct GameModeCatalogTests {
         #expect(available.allSatisfy { $0.isAvailable })
         #expect(mappedTypes == Set(available.compactMap(\.matchType)))
 
-        if ProductSurface.showsPartyModes {
-            #expect(mappedTypes.contains(.baseball))
-            #expect(mappedTypes.contains(.golf))
+        if ProductSurface.isFullProductSurfaceEnabled {
+            if ProductSurface.showsPartyModes {
+                #expect(mappedTypes.contains(.baseball))
+                #expect(mappedTypes.contains(.golf))
+            } else {
+                #expect(!mappedTypes.contains(.baseball))
+                #expect(!mappedTypes.contains(.golf))
+            }
         } else {
-            #expect(!mappedTypes.contains(.baseball))
-            #expect(!mappedTypes.contains(.golf))
+            #expect(mappedTypes == Set([
+                .x01, .cricket, .baseball, .killer, .shanghai, .raid, .aroundTheClock
+            ]))
         }
 
         for type in mappedTypes {
@@ -92,14 +98,25 @@ struct GameModeCatalogTests {
     }
 
     @Test
-    func playSetupPickerShowsAllSectionsWhenPartyModesVisible() {
-        guard ProductSurface.showsPartyModes else { return }
+    func playSetupPickerShowsAllSectionsWhenFullSurfacePartyVisible() {
+        guard ProductSurface.isFullProductSurfaceEnabled, ProductSurface.showsPartyModes else { return }
 
         let sections = GameModeCatalog.playSetupPickerSections()
         #expect(sections.map(\.0) == GameModeSection.allCases)
         let practiceDisplayed = sections.first { $0.0 == .practice }?.1.count ?? 0
         #expect(practiceDisplayed == GameModeCatalog.entries(in: .practice).count)
         #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .practice, displayedCount: practiceDisplayed) == 0)
+    }
+
+    @Test
+    func playSetupPickerShowsSevenReachableModesOnPartyPack() {
+        guard !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+        let sections = GameModeCatalog.playSetupPickerSections()
+        let ids = Set(sections.flatMap(\.1).map(\.id))
+        #expect(ids == ProductSurface.partyPack1_1CatalogIDs)
+        #expect(sections.map(\.0) == [.standard, .party, .coop, .practice])
+        #expect(GameModeCatalog.playSetupPickerMoreComingCount(in: .party, displayedCount: 3) == 0)
     }
 
     @Test

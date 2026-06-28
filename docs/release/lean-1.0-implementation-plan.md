@@ -51,7 +51,7 @@ Actionable plan to ship **Dart Buddy 1.0 Core Scorekeeper** with owner decisions
 - Deep link parser + router (not advertised; low exposure)
 - App Store update prompt
 - SwiftData SchemaV2 + migration path
-- Buy Developer a Coffee link (owner can remove separately)
+- External tip link removed for 1.0 (`AppLinks.buyDeveloperCoffee = nil`); StoreKit tip jar planned post-1.0 — [`docs/plans/storekit-tip-jar-plan.md`](plans/storekit-tip-jar-plan.md)
 
 ---
 

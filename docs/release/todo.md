@@ -4,13 +4,48 @@ Goal: match the reference *Darts Scoreboard: Scorekeeper* app's functionality an
 
 Status legend: `[ ]` todo · `[~]` partial
 
+> **1.0.0 shipped:** App Store **1.0.0 (7)** — released 2026-06-22 (submitted 2026-06-20). Tag `1.0.0` on `7df4358`. Items below are post-ship backlog / 1.1 prep unless a hotfix is required.
+
 ---
 
-## 1.0 — Still needed
+## 1.1 — Party Pack (current)
 
-Ship blockers before App Store. **Scope:** lean 1.0 — X01 + Cricket only, 4 tabs, English, preset bots. See [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) for implementation tasks; [`ongoing-release-plan.md`](ongoing-release-plan.md) for release train.
+**Branch:** `release/1.1.0` · **Version:** `1.1.0` (build 8 in `project.yml`) · **1.0.0 live** on App Store (build 7).
 
-Remaining work after lean trim lands: **evidence + store ops**.
+**Master checklists:** [`1.1.0-ship-checklist.md`](1.1.0-ship-checklist.md) · RC runbook [`1.1.0-testflight-rc-plan.md`](1.1.0-testflight-rc-plan.md)  
+**Store copy draft:** [`1.1.0-app-store-copy.md`](1.1.0-app-store-copy.md)
+
+### Engineering (mostly done)
+
+- [x] `ProductSurface.party1_1` allowlist — **seven modes** (X01, Cricket, Baseball, Killer, Shanghai, **Raid**, Around the Clock)
+- [x] `PartyPack1_1SmokeUITests` + `ProductSurfaceTests`
+- [x] Release highlights sheet (`ReleaseHighlights` / `ReleaseHighlightsStore`)
+- [x] CI on `release/**` pushes ([`ci.yml`](../../.github/workflows/ci.yml))
+- [x] `estimated-releases.json` — `practice.aroundTheClock` → `1.1`
+- [x] Merge latest `master` hotfixes into `release/1.1.0` before RC cut
+- [ ] `CURRENT_PROJECT_VERSION` bump when cutting a **new** RC after QA failure
+
+### RC / TestFlight
+
+- [x] Local `DartBuddyCI` + `DartBuddyUILean` green on RC commit
+- [ ] Optional local Release archive smoke (signing + Crashlytics dSYM)
+- [ ] Trigger TestFlight — GHA **Trigger TestFlight** → `release/1.1.0`
+- [ ] Fill RC record in ship checklist (commit SHA, build #, tester, device)
+- [ ] Close [`roadmap/release/QA-Signoff-1.1.md`](../../roadmap/release/QA-Signoff-1.1.md) — no P0 rows left Pending
+
+### App Store (after RC Go)
+
+- [ ] Capture 1.1 screenshots — [`marketing-screenshots/1.1/README.md`](../../marketing-screenshots/1.1/README.md)
+- [ ] Finalize listing copy — [`1.1.0-app-store-copy.md`](1.1.0-app-store-copy.md)
+- [ ] Submit build · tag `v1.1.0` after approval · merge `release/1.1.0` → `master`
+
+---
+
+## 1.0 — Post-ship backlog (not blockers)
+
+**1.0.0 is live.** **Scope shipped:** lean 1.0 — X01 + Cricket only, 4 tabs, English, preset + custom bots. See [`lean-1.0-implementation-plan.md`](lean-1.0-implementation-plan.md) for what landed; [`ongoing-release-plan.md`](ongoing-release-plan.md) for **1.1+**.
+
+Deferred evidence + polish from the RC pass:
 
 **Master checklist:** [`1.0.0-ship-checklist.md`](1.0.0-ship-checklist.md) — everything before submit (start here).  
 **Expanded runbook:** [`release_checklist.md`](release_checklist.md) — device QA, App Store Connect, launch week, Reddit.
@@ -135,11 +170,11 @@ Work below is **blocked on your call** — not just time on device. Everything e
 |----------|-----------------|
 | **App icon** | Pick one from `assets/app-icons/` (5 concepts) → export into `Resources/Media.xcassets/AppIcon.appiconset/`. |
 | **Display name** | Default `Dart Buddy`; backups in `AppStoreConnectSpec.md` §3 if name taken. |
-| **Subtitle** | e.g. `Free X01 & Cricket Scoring` vs `No Ads Darts Scorekeeper` (≤30 chars). |
+| **Subtitle** | `X01 & Cricket Scorekeeper` (≤30 chars; no `free` / `no ads` in subtitle — Guideline 2.3.7). |
 | **Keywords & promo copy** | Starter set in spec §5 — finalize description + promotional text. |
 | **Screenshot set** | Framed iPhone set exists (`marketing-screenshots/framed/`); decide **order**, **light vs dark only**, and whether **iPad** uploads are in scope for 1.0. |
 | **Support & privacy URLs** | Code points to GitHub Pages (`Support/Navigation/AppLinks.swift`); confirm pages are live and copy is final before Connect upload. |
-| **Buy Developer a Coffee** | Link is on in Settings — keep, change URL, or remove for 1.0. |
+| **Tip jar** | **1.0:** remove external coffee link (`AppLinks.buyDeveloperCoffee = nil`) for Guideline 3.1.1. **Post-1.0:** StoreKit consumables — [`../plans/storekit-tip-jar-plan.md`](../plans/storekit-tip-jar-plan.md). |
 
 ### Privacy & compliance
 

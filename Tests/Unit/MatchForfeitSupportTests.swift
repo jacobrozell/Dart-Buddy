@@ -47,6 +47,47 @@ struct MatchForfeitSupportTests {
         #expect(forfeitArgs.winner == winner)
         #expect(forfeitArgs.forfeitedBy == forfeiter)
     }
+
+    @Test
+    @MainActor
+    func persistForfeitWorksForBaseballMatch() async throws {
+        let forfeiter = UUID()
+        let winner = UUID()
+        var session = try MatchLifecycleService.createMatch(
+            type: .baseball,
+            config: MatchConfigDefaults.config(for: .baseball),
+            participants: [
+                MatchParticipant(playerId: forfeiter, displayNameAtMatchStart: "Alice", turnOrder: 0),
+                MatchParticipant(playerId: winner, displayNameAtMatchStart: "Bob", turnOrder: 1)
+            ]
+        )
+        session = try MatchLifecycleService.submitBaseballTurn(
+            session: session,
+            darts: [DartInput(multiplier: .single, segment: .miss, isMiss: true)]
+        )
+
+        let matchId = session.runtime.matchId
+        let store = ActiveMatchStore()
+        store.save(session)
+        let repository = ForfeitSupportTrackingMatchRepository()
+
+        let result = try await MatchForfeitSupport.persistForfeit(
+            session: session,
+            forfeitingPlayerId: forfeiter,
+            winnerPlayerId: winner,
+            matchId: matchId,
+            store: store,
+            matchRepository: repository,
+            logger: DefaultAppLogger(minimumLevel: .fault, sink: ForfeitSupportSilentLogSink()),
+            matchType: .baseball,
+            resolution: "automatic"
+        )
+
+        #expect(result.runtime.status == .forfeited)
+        #expect(result.runtime.type == .baseball)
+        #expect(store.session(for: matchId) == nil)
+        #expect(await repository.forfeitCallCount == 1)
+    }
 }
 
 private struct ForfeitSupportSilentLogSink: LogSink {

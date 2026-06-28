@@ -46,7 +46,12 @@ class DartBuddyUITestCase: XCTestCase {
         localeIdentifier: String? = nil
     ) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ui_test_reset", "-disable_firebase_analytics"] + extraArguments
+        app.launchArguments = [
+            "-ui_test_reset",
+            "-disable_firebase_analytics",
+            "-skip_release_highlights",
+            "-skip_onboarding",
+        ] + extraArguments
         applyDefaultLaunchEnvironment(to: app)
         if let localeLanguage, let localeIdentifier {
             var environment = app.launchEnvironment
@@ -55,7 +60,7 @@ class DartBuddyUITestCase: XCTestCase {
             app.launchEnvironment = environment
         }
         app.launch()
-        _ = app.tabBars.firstMatch.waitForExistence(timeout: 15)
+        waitForAppBootstrapReady(in: app, timeout: 30)
         return app
     }
 

@@ -13,17 +13,11 @@ final class KnockoutMatchViewModel: ObservableObject {
     @Published private(set) var state: State = .readyTurn
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
     @Published private(set) var isBotPlaying = false
 
-    private let matchId: UUID
-    private let store: ActiveMatchStore
-    private let logger: any AppLogger
-    private let matchRepository: any MatchRepository
-    private let statsRepository: any StatsRepository
-    private let feedbackPreferences: FeedbackPreferences
-    private let turnSubmitter: MatchTurnSubmitter
-    private let botPlayback = MatchBotPlaybackLifecycle()
+    let matchId: UUID
+    private let sessionController: MatchSessionController
 
     init(
         matchId: UUID,
@@ -34,18 +28,21 @@ final class KnockoutMatchViewModel: ObservableObject {
         feedbackPreferences: FeedbackPreferences = FeedbackPreferences()
     ) {
         self.matchId = matchId
-        self.store = store
-        self.logger = logger
-        self.matchRepository = matchRepository
-        self.statsRepository = statsRepository
-        self.feedbackPreferences = feedbackPreferences
-        self.turnSubmitter = MatchTurnSubmitter(
+        self.sessionController = MatchSessionController(
             matchId: matchId,
             matchType: .knockout,
             eventTypeRaw: "knockoutTurn",
             store: store,
             logger: logger,
-            matchRepository: matchRepository
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            feedbackPreferences: feedbackPreferences,
+            errorKeys: MatchSessionErrorKeys(
+                sessionMissing: "knockout.error.sessionMissing",
+                undoFailed: "knockout.error.undoFailed",
+                invalidTurn: "knockout.error.invalidTurn"
+            ),
+            screenAppearedMessage: "Knockout match screen presented."
         )
         self.session = store.session(for: matchId)
     }
@@ -71,8 +68,6 @@ final class KnockoutMatchViewModel: ObservableObject {
             in: session.runtime.participants
         )
     }
-
-    // MARK: - Display helpers
 
     var navTitle: String { L10n.string("play.knockout.navTitle") }
 
@@ -107,94 +102,79 @@ final class KnockoutMatchViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Actions
-
     func submitTurn() async {
         await submitTurnAsync()
     }
 
     func undoLastTurn() async {
-        await undoLastTurnAsync()
+        await sessionController.undoLastTurn(
+            getSession: { session },
+            setSession: { session = $0 },
+            setReadyTurn: { state = .readyTurn },
+            setError: { state = .error($0) },
+            clearEnteredDarts: { enteredDarts.removeAll() },
+            onSuccess: { await playBotTurnIfNeeded() }
+        )
     }
 
     func undoLastDart() async {
-        await undoLastDartAsync()
+        await sessionController.undoLastDart(
+            getSession: { session },
+            getEnteredDarts: { enteredDarts },
+            setSession: { session = $0 },
+            setEnteredDarts: { enteredDarts = $0 },
+            setSelectedMultiplier: { selectedMultiplier = $0 },
+            setReadyTurn: { state = .readyTurn },
+            setError: { state = .error($0) },
+            onRestoredEmptyVisit: { await playBotTurnIfNeeded() }
+        )
     }
 
     func onAppear() async {
-        logger.matchInfo(
-            matchId: matchId,
-            matchType: .knockout,
-            category: .ui,
-            eventName: "match_screen_appeared",
-            message: "Knockout match screen presented."
+        await sessionController.handleAppear(
+            getSession: { session },
+            setSession: { session = $0 },
+            onLoadError: { state = .error($0) },
+            reconcileAfterSummaryUndo: { await reconcileAfterSummaryUndo() },
+            reconcileInterruptedBotPlayback: { reconcileInterruptedBotPlayback() },
+            scheduleBotPlayback: { scheduleBotPlaybackIfNeeded() }
         )
-        MatchGameplaySessionSync.refreshStoredSession(matchId: matchId, store: store, into: &session)
-        if await reconcileAfterSummaryUndo() { return }
-        await loadSessionIfNeeded()
-        reconcileInterruptedBotPlayback()
-        scheduleBotPlaybackIfNeeded()
     }
 
     func onDisappear() {
-        botPlayback.cancel { reconcileInterruptedBotPlayback() }
+        sessionController.handleDisappear(reconcileInterruptedBotPlayback: { reconcileInterruptedBotPlayback() })
     }
 
     func recoverBotPlaybackIfNeeded() {
-        MatchBotPlaybackRecovery.recoverIfNeeded(
+        sessionController.recoverBotPlaybackIfNeeded(
             isBotTurn: isCurrentPlayerBot,
             isBotPlaying: isBotPlaying,
-            reconcile: reconcileInterruptedBotPlayback,
-            schedule: scheduleBotPlaybackIfNeeded
+            reconcileInterruptedBotPlayback: { reconcileInterruptedBotPlayback() },
+            scheduleBotPlayback: { scheduleBotPlaybackIfNeeded() }
         )
-    }
-
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .knockout,
-                category: .appLifecycle,
-                eventName: "knockout_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
-    }
-
-    // MARK: - Bot playback
-
-    private func scheduleBotPlaybackIfNeeded() {
-        botPlayback.schedule { await self.playBotTurnIfNeeded() }
     }
 
     func playBotTurnIfNeeded() async {
         while await playSingleBotTurnIfNeeded() {}
     }
 
+    func loadSessionIfNeeded() async {
+        await sessionController.loadSessionIfNeeded(
+            session: session,
+            setSession: { session = $0 },
+            onError: { state = .error($0) }
+        )
+    }
+
+    private func scheduleBotPlaybackIfNeeded() {
+        sessionController.scheduleBotPlayback { await self.playBotTurnIfNeeded() }
+    }
+
     @discardableResult
     private func playSingleBotTurnIfNeeded() async -> Bool {
         guard let profile = currentBotSkillProfile,
-              state == .readyTurn,
-              isBotPlaying == false,
               let gs = session?.runtime.knockoutState else { return false }
 
-        isBotPlaying = true
-        defer { isBotPlaying = false }
-
-        enteredDarts.removeAll()
         var rng = SystemRandomNumberGenerator()
         let plannedDarts = DartBotEngine.generateKnockoutTurn(
             currentHigh: gs.currentHigh,
@@ -202,175 +182,91 @@ final class KnockoutMatchViewModel: ObservableObject {
             rng: &rng
         )
 
-        let dartDelay = BotTurnPacing.dartDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled)
-        for dart in plannedDarts {
-            do {
-                try await Task.sleep(nanoseconds: dartDelay)
-            } catch {
-                return false
-            }
-            enteredDarts.append(dart)
+        let submitted = await sessionController.playBotVisitAndSubmit(
+            isReadyTurn: state == .readyTurn,
+            isBotPlaying: isBotPlaying,
+            setBotPlaying: { isBotPlaying = $0 },
+            getEnteredDarts: { enteredDarts },
+            setEnteredDarts: { enteredDarts = $0 },
+            plannedDarts: plannedDarts
+        ) {
+            await submitTurnAsync(fromBotPlayback: true)
         }
-
-        do {
-            try await Task.sleep(nanoseconds: BotTurnPacing.submitDelayNanoseconds(staggerEnabled: feedbackPreferences.botStaggerEnabled))
-        } catch {
-            return false
-        }
-
-        await submitTurnAsync(fromBotPlayback: true)
-        guard session?.runtime.status != .completed else { return false }
-        return currentBotSkillProfile != nil && state == .readyTurn
+        guard submitted else { return false }
+        return sessionController.shouldContinueBotChain(
+            session: session,
+            isReadyTurn: state == .readyTurn,
+            isCurrentPlayerBot: { currentBotSkillProfile != nil }
+        )
     }
-
-    // MARK: - Private submission
 
     private func submitTurnAsync(fromBotPlayback: Bool = false) async {
         await loadSessionIfNeeded()
         guard let current = session else {
-            state = .error("knockout.error.sessionMissing")
+            state = .error(sessionController.errorKeys.sessionMissing)
             return
         }
         state = .submittingTurn
         let darts = enteredDarts
 
-        let outcome = await turnSubmitter.submitTurn(
+        let outcome = await sessionController.turnSubmitter.submitTurn(
             from: current,
-            invalidTurnFallbackKey: "knockout.error.invalidTurn"
+            invalidTurnFallbackKey: sessionController.errorKeys.invalidTurn
         ) {
             try MatchLifecycleService.submitKnockoutTurn(session: current, darts: darts)
         }
 
-        switch outcome {
-        case .cancelled:
-            state = .readyTurn
-        case let .rejected(messageKey):
-            state = .entryInvalid(messageKey)
-        case let .persistFailed(messageKey):
-            state = .error(messageKey)
-        case let .succeeded(updated):
-            session = updated
-            if let event = lastKnockoutTurn(in: updated) {
-                announceOutcome(event: event)
-            }
-            if updated.runtime.status == .completed {
-                state = .matchCompleted
-            } else {
-                state = .readyTurn
-                if !fromBotPlayback {
-                    await playBotTurnIfNeeded()
+        await sessionController.applySubmitOutcome(
+            outcome,
+            fromBotPlayback: fromBotPlayback,
+            setSession: { session = $0 },
+            clearEnteredDarts: { enteredDarts.removeAll() },
+            setReadyTurn: { state = .readyTurn },
+            setEntryInvalid: { state = .entryInvalid($0) },
+            setError: { state = .error($0) },
+            handleSuccess: { updated, fromBotPlayback in
+                if let event = lastKnockoutTurn(in: updated) {
+                    announceOutcome(event: event)
+                }
+                if updated.runtime.status == .completed {
+                    state = .matchCompleted
+                } else {
+                    state = .readyTurn
+                    if !fromBotPlayback {
+                        await playBotTurnIfNeeded()
+                    }
                 }
             }
-            enteredDarts.removeAll()
-        }
-    }
-
-    private func undoLastTurnAsync() async {
-        await loadSessionIfNeeded()
-        guard let current = session else { return }
-        do {
-            let undone = try await MatchTurnSupport.undoLastTurn(
-                session: current,
-                matchId: matchId,
-                store: store,
-                matchRepository: matchRepository
-            )
-            session = undone
-            state = .readyTurn
-            enteredDarts.removeAll()
-            await playBotTurnIfNeeded()
-        } catch is CancellationError {
-            state = .readyTurn
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "knockout.error.undoFailed"))
-        }
-    }
-
-    private func undoLastDartAsync() async {
-        await loadSessionIfNeeded()
-        guard let current = session else { return }
-        if !enteredDarts.isEmpty {
-            enteredDarts.removeLast()
-            selectedMultiplier = .single
-            return
-        }
-        do {
-            let result = try await MatchTurnSupport.undoLastDart(
-                session: current,
-                matchId: matchId,
-                store: store,
-                matchRepository: matchRepository
-            )
-            session = result.session
-            state = .readyTurn
-            enteredDarts = result.restoredDarts
-            if result.restoredDarts.isEmpty {
-                await playBotTurnIfNeeded()
-            }
-        } catch is CancellationError {
-            state = .readyTurn
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "knockout.error.undoFailed"))
-        }
-    }
-
-    private func loadSessionIfNeeded() async {
-        if session != nil { return }
-        if let existing = store.session(for: matchId) {
-            session = existing
-            return
-        }
-        do {
-            guard let snapshotSummary = try await matchRepository.fetchLatestSnapshot(matchId: matchId) else {
-                return
-            }
-            let runtime = try CodablePayloadCoder.decode(MatchRuntimeState.self, from: snapshotSummary.snapshotPayload)
-            let events = try await statsRepository.fetchEvents(matchId: matchId)
-            let envelopes = try events
-                .map { try CodablePayloadCoder.decode(MatchEventEnvelope.self, from: $0.eventPayload) }
-                .sorted { $0.eventIndex < $1.eventIndex }
-            let tailEvents = envelopes.filter { $0.eventIndex >= runtime.eventCount }
-            let snapshot = MatchSnapshot(
-                payloadVersion: snapshotSummary.snapshotVersion,
-                eventCount: runtime.eventCount,
-                createdAt: snapshotSummary.updatedAt,
-                payload: snapshotSummary.snapshotPayload
-            )
-            let rehydrated = try MatchLifecycleService.rehydrate(snapshot: snapshot, tailEvents: tailEvents)
-            store.save(rehydrated)
-            session = rehydrated
-        } catch {
-            state = .error(MatchTurnSupport.errorMessageKey(for: error, fallback: "knockout.error.sessionMissing"))
-        }
+        )
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {
-        guard state == .matchCompleted,
-              let stored = store.session(for: matchId),
-              stored.runtime.status == .inProgress else { return false }
-        session = stored
-        state = .readyTurn
-        enteredDarts = store.consumeResumeHint(matchId: matchId) ?? []
-        isBotPlaying = false
-        if currentBotSkillProfile != nil {
-            enteredDarts.removeAll()
-        }
-        if enteredDarts.isEmpty {
-            scheduleBotPlaybackIfNeeded()
-        }
-        return true
+        await sessionController.reconcileAfterSummaryUndo(
+            isMatchCompleted: state == .matchCompleted,
+            setSession: { session = $0 },
+            setEnteredDarts: { enteredDarts = $0 },
+            setBotPlaying: { isBotPlaying = $0 },
+            setReadyTurn: { state = .readyTurn },
+            isCurrentPlayerBot: { currentBotSkillProfile != nil },
+            scheduleBotPlayback: { scheduleBotPlaybackIfNeeded() }
+        )
     }
 
     private func reconcileInterruptedBotPlayback() {
-        isBotPlaying = false
-        enteredDarts.removeAll()
-        guard session?.runtime.status == .inProgress else { return }
-        switch state {
-        case .submittingTurn, .entryInvalid, .error, .matchCompleted:
-            state = .readyTurn
-        default:
-            break
-        }
+        sessionController.reconcileInterruptedBotPlayback(
+            session: session,
+            setBotPlaying: { isBotPlaying = $0 },
+            clearEnteredDarts: { enteredDarts.removeAll() },
+            shouldResetState: {
+                switch state {
+                case .submittingTurn, .entryInvalid, .error, .matchCompleted:
+                    return true
+                default:
+                    return false
+                }
+            },
+            resetState: { state = .readyTurn }
+        )
     }
 
     private func announceOutcome(event: KnockoutTurnEvent) {
@@ -399,4 +295,12 @@ final class KnockoutMatchViewModel: ObservableObject {
 
 private func postKnockoutAccessibilityAnnouncement(_ text: String) {
     UIAccessibility.post(notification: .announcement, argument: text)
+}
+
+extension KnockoutMatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { isBotPlaying || state == .submittingTurn }
+    var hostMatchRepository: any MatchRepository { sessionController.matchRepository }
+    var hostMatchStore: ActiveMatchStore { sessionController.store }
+    var hostMatchLogger: any AppLogger { sessionController.logger }
+    var hostMatchType: MatchType { .knockout }
 }

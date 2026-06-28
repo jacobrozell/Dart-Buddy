@@ -16,7 +16,7 @@
         <a href="support.html">Support</a>
         <a href="accessibility.html">Accessibility</a>
       </nav>
-      <p class="meta">Last updated: June 11, 2026</p>
+      <p class="meta">Last updated: June 27, 2026</p>
     </header>
 
     <p>This Privacy Policy describes how <strong>Dart Buddy</strong> (“the app”) handles information when you use our iOS application. The app is developed by Jacob Rozell.</p>
@@ -35,10 +35,10 @@
     <p>The app stores the following locally on your iPhone or iPad using Apple’s on-device storage (SwiftData):</p>
     <ul>
       <li><strong>Player profiles</strong> — display names you enter, optional notes, avatar/color choices, and bot settings.</li>
-      <li><strong>Match data</strong> — scores, turns, game mode (X01 or Cricket), configuration, timestamps, and related statistics.</li>
+      <li><strong>Match data</strong> — scores, turns, game mode (X01, Cricket, party modes, Raid co-op, practice modes, and related configurations), timestamps, and related statistics.</li>
       <li><strong>App settings</strong> — theme, sound, haptics, default game options, and similar preferences.</li>
     </ul>
-    <p>This data remains on your device unless you delete it (see Section 7) or remove the app. We do not operate a cloud backup or sync service in version 1.0.</p>
+    <p>This data remains on your device unless you delete it (see Section 7) or remove the app. We do not operate a cloud backup or sync service.</p>
 
     <h2>3. Information sent to third parties</h2>
     <p>In <strong>Release builds installed from the App Store</strong> (not typical Debug or developer builds), the app may send limited diagnostic and usage data to <strong>Google Firebase</strong>, operated by Google LLC:</p>
@@ -48,11 +48,13 @@
     <ul>
       <li><code>app_open</code> — app finished launching</li>
       <li><code>match_started</code>, <code>match_completed</code>, <code>match_abandoned</code></li>
+      <li><code>game_mode_played</code>, <code>game_mode_completed</code>, <code>game_mode_forfeited</code></li>
       <li><code>turn_submitted</code>, <code>undo_used</code></li>
       <li>Failure signals such as <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>bootstrap_store_open_failed</code></li>
       <li><code>client_environment_changed</code> — when display or accessibility context changes (for example orientation, VoiceOver, Reduce Motion, Bold Text, or screen capture). Parameters are boolean flags and device class only — not player names or match content.</li>
     </ul>
-    <p>Event parameters are restricted to non-identifying technical context, such as game mode (X01/Cricket), app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
+    <p>Event parameters are restricted to non-identifying technical context, such as game mode identifier (for example X01, Cricket, Baseball, Raid), app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
+    <p>Firebase may also store an <strong>anonymous User ID</strong> (a random UUID for your primary human player profile, or a Firebase Auth UID if you sign in to online features in a future version). This ID is not your display name and is not included on individual event parameters.</p>
 
     <h3>3.2 Firebase Crashlytics (crashes &amp; errors)</h3>
     <p>If the app crashes or records certain allowlisted error conditions, Crashlytics may receive:</p>

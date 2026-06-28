@@ -68,6 +68,19 @@ struct AppStoreUpdateCheckerTests {
     }
 
     @Test
+    func resolvedInstalledVersionUsesLaunchArgumentOverride() {
+        #expect(
+            AppStoreUpdateChecker.resolvedInstalledVersion(
+                arguments: [AppStoreUpdateChecker.installedVersionOverrideFlag, "0.9.0"]
+            ) == "0.9.0"
+        )
+        #expect(
+            AppStoreUpdateChecker.resolvedInstalledVersion(arguments: ["-other_flag"])
+                != "0.9.0"
+        )
+    }
+
+    @Test
     func checkerReturnsOfferWhenStoreIsNewer() async throws {
         let bundleIdentifier = uniqueBundleIdentifier()
         let defaults = makeIsolatedDefaults()

@@ -16,7 +16,8 @@ Define preset computer opponents, shared bot turn generation (`DartBotEngine`), 
 - Cricket bot turns when **Points On** and scoring mode is **Normal** or **Cut Throat**
 - Mode-specific bot turn generation for all **shipped** solo and party modes (see §5.1)
 - Setup gating via `BotModePlaySupport` (see §6.1)
-- Staggered dart reveal pacing (Settings → bot pacing toggle)
+- Staggered dart reveal pacing (Settings → bot stagger toggle)
+- **Instant bot turns** (Settings → During Play — [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md); app-wide, all modes and bot kinds)
 - Bot participants in 2..N player matches; at least one human required
 
 ### Out of Scope (1.0.0)
@@ -123,8 +124,11 @@ Validation keys (centralized in `botRosterValidationErrors`):
 
 ## In-Match
 - Bot turns auto-run after human submit (or on bot’s turn at leg start)
-- Dart stagger controlled by `BotTurnPacing` and Settings bot pacing preference
-- Cricket closure transitions use `cricketClosureTransitionNanoseconds` delay before ready state
+- Dart reveal pacing controlled by `BotTurnPacing` and Settings preferences ([`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md)):
+  - **Instant** — zero delay, no per-dart bot audio/haptics (app-wide toggle)
+  - **Staggered** — ~650 ms per dart when bot stagger is on
+  - **Fast** — ~220 ms per dart when bot stagger is off and instant is off
+- Mode-specific transition delays (cricket closure, Shanghai achievement, golf hole complete, etc.) respect the same instant policy
 - Turn indicator shows bot name from participant snapshot
 
 ## Player Detail (preset bots)

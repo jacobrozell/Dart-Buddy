@@ -496,6 +496,139 @@ func historyListViewModelPaginatesResults() async {
     #expect(vm.hasMorePages == false)
 }
 
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyFiltersByPartyPackModes() async {
+    let now = Date()
+    let summaries = [
+        MatchSummary(
+            id: UUID(), type: .baseball, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        ),
+        MatchSummary(
+            id: UUID(), type: .killer, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        ),
+        MatchSummary(
+            id: UUID(), type: .shanghai, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        ),
+        MatchSummary(
+            id: UUID(), type: .aroundTheClock, status: .completed, startedAt: now, endedAt: now,
+            winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+            eventCount: 1, createdAt: now, updatedAt: now
+        )
+    ]
+    let repository = FakeHistoryMatchRepository(rows: summaries)
+    let vm = HistoryListViewModel(
+        matchRepository: repository,
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    let filters: [(ActivityModeFilter, MatchType)] = [
+        (.baseball, .baseball),
+        (.killer, .killer),
+        (.shanghai, .shanghai),
+        (.aroundTheClock, .aroundTheClock)
+    ]
+    for (filter, expectedType) in filters {
+        vm.modeFilter = filter
+        await vm.applyFilters()
+        #expect(vm.rows.count == 1)
+        #expect(vm.rows.first?.summary.type == expectedType)
+    }
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyAllGamesFilterExcludesUnreachableModesOnPartyPack() async {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let now = Date()
+    let reachable = MatchSummary(
+        id: UUID(), type: .baseball, status: .completed, startedAt: now, endedAt: now,
+        winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+        eventCount: 1, createdAt: now, updatedAt: now
+    )
+    let hidden = MatchSummary(
+        id: UUID(), type: .golf, status: .completed, startedAt: now, endedAt: now,
+        winnerPlayerId: nil, currentTurnPlayerId: nil, currentLegIndex: 0, currentSetIndex: 0,
+        eventCount: 1, createdAt: now, updatedAt: now
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: [reachable, hidden]),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    vm.modeFilter = .all
+    await vm.applyFilters()
+
+    #expect(vm.rows.count == 1)
+    #expect(vm.rows.first?.summary.type == .baseball)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyIgnoresUnreachableGolfActiveMatch() async {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .golf,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 0,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: [], activeMatch: activeMatch),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    await vm.applyFilters()
+
+    #expect(vm.activeMatch == nil)
+}
+
+@MainActor
+@Test(.tags(.integration, .history, .match, .regression))
+func historyExposesReachableBaseballActiveMatch() async throws {
+    guard ProductSurface.showsPartyModes, !ProductSurface.isFullProductSurfaceEnabled else { return }
+
+    let activeMatch = MatchSummary(
+        id: UUID(),
+        type: .baseball,
+        status: .inProgress,
+        startedAt: Date(),
+        endedAt: nil,
+        winnerPlayerId: nil,
+        currentTurnPlayerId: nil,
+        currentLegIndex: 0,
+        currentSetIndex: 0,
+        eventCount: 2,
+        createdAt: Date(),
+        updatedAt: Date()
+    )
+    let vm = HistoryListViewModel(
+        matchRepository: FakeHistoryMatchRepository(rows: [], activeMatch: activeMatch),
+        playerRepository: FakeHistoryPlayerRepository(players: [])
+    )
+
+    await vm.applyFilters()
+
+    #expect(vm.activeMatch?.id == activeMatch.id)
+    #expect(vm.activeMatch?.type == .baseball)
+}
+
 // MARK: - Stats / detail fixtures
 
 private struct StatsFixture {
@@ -696,49 +829,15 @@ private func makeCompletedCricketFixture() throws -> StatsFixture {
     return StatsFixture(matchId: matchId, jacob: carol, sam: bob, summary: summary, participants: participants, events: events, snapshot: snapshot)
 }
 
-private actor StatsFakeMatchRepository: MatchRepository {
-    private let fixture: StatsFixture
-    private(set) var deletedIds: [UUID] = []
-
-    init(fixture: StatsFixture) { self.fixture = fixture }
-
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { fixture.summary }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [fixture.summary] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
-        guard filter.matchType == nil || filter.matchType == fixture.summary.type else { return [] }
-        return [MatchHistoryRecord(summary: fixture.summary, participants: fixture.participants)]
+private extension HistoryMatchRecord {
+    init(_ fixture: StatsFixture) {
+        self.init(
+            matchId: fixture.matchId,
+            summary: fixture.summary,
+            participants: fixture.participants,
+            snapshot: fixture.snapshot
+        )
     }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary { fixture.summary }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        matchId == fixture.matchId ? fixture.snapshot : nil
-    }
-    func fetchMatch(matchId: UUID) async throws -> MatchSummary? { matchId == fixture.matchId ? fixture.summary : nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { fixture.participants }
-    func deleteMatch(matchId: UUID) async throws { deletedIds.append(matchId) }
-
-    func wasDeleted(_ id: UUID) -> Bool { deletedIds.contains(id) }
-}
-
-private actor StatsFakeStatsRepository: StatsRepository {
-    private let events: [MatchEventSummary]
-    init(events: [MatchEventSummary]) { self.events = events }
-    func fetchEvents(matchId _: UUID) async throws -> [MatchEventSummary] { events }
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { events }
-}
-
-private actor StatsFakePlayerRepository: PlayerRepository {
-    func fetchPlayers(includeArchived _: Bool) async throws -> [PlayerSummary] { [] }
-    func createPlayer(name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func createBot(difficulty _: BotDifficulty) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func updatePlayerName(playerId _: UUID, name _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func updatePlayerProfile(playerId _: UUID, name _: String, avatarStyle _: PlayerAvatarStyle, colorToken _: PlayerColorToken, notes _: String) async throws -> PlayerSummary { throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error.repository.notImplemented") }
-    func archivePlayer(playerId _: UUID) async throws {}
-    func unarchivePlayer(playerId _: UUID) async throws {}
-    func deletePlayer(playerId _: UUID) async throws {}
 }
 
 @MainActor
@@ -746,9 +845,9 @@ private actor StatsFakePlayerRepository: PlayerRepository {
 func statisticsViewModelComputesBreakdownRows() async throws {
     let fixture = try makeCompletedX01Fixture()
     let vm = StatisticsViewModel(
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events),
-        playerRepository: StatsFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
     await vm.load()
 
@@ -765,9 +864,9 @@ func statisticsViewModelComputesBreakdownRows() async throws {
 func statisticsViewModelFiltersToSinglePlayer() async throws {
     let fixture = try makeCompletedX01Fixture()
     let vm = StatisticsViewModel(
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events),
-        playerRepository: StatsFakePlayerRepository()
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events),
+        playerRepository: FakePlayerRepositoryBuilder.readOnly()
     )
     vm.playerFilter = fixture.jacob
     await vm.load()
@@ -784,9 +883,9 @@ func playerDetailViewModelLoadsAllGamesStats() async throws {
     let vm = PlayerDetailViewModel(
         playerId: fixture.jacob,
         playerName: "Jacob",
-        playerRepository: StatsFakePlayerRepository(),
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        playerRepository: FakePlayerRepositoryBuilder.readOnly(),
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.load()
 
@@ -803,11 +902,11 @@ func playerDetailViewModelLoadsAllGamesStats() async throws {
 @Test(.tags(.integration, .history, .regression))
 func historyDetailViewModelDeletesMatch() async throws {
     let fixture = try makeCompletedX01Fixture()
-    let repo = StatsFakeMatchRepository(fixture: fixture)
+    let repo = FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture))
     let vm = HistoryDetailViewModel(
         matchId: fixture.matchId,
         matchRepository: repo,
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.onAppear()
     #expect(!vm.breakdowns.isEmpty)
@@ -815,7 +914,7 @@ func historyDetailViewModelDeletesMatch() async throws {
 
     let deleted = await vm.deleteMatch()
     #expect(deleted)
-    #expect(await repo.wasDeleted(fixture.matchId))
+    #expect(await repo.wasMatchDeleted(fixture.matchId))
 }
 
 @MainActor
@@ -824,8 +923,8 @@ func historyDetailViewModelResultAccessibilitySummaryIncludesStandings() async t
     let fixture = try makeCompletedX01Fixture()
     let vm = HistoryDetailViewModel(
         matchId: fixture.matchId,
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.onAppear()
 
@@ -842,7 +941,7 @@ func historyDetailViewModelReportsNotFoundForMissingMatch() async {
     let vm = HistoryDetailViewModel(
         matchId: UUID(),
         matchRepository: FakeHistoryMatchRepository(rows: []),
-        statsRepository: StatsFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: [])
     )
     await vm.onAppear()
 
@@ -857,8 +956,8 @@ func historyDetailViewModelBuildsCricketTimelineFromEvents() async throws {
     let fixture = try makeCompletedCricketFixture()
     let vm = HistoryDetailViewModel(
         matchId: fixture.matchId,
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.onAppear()
 
@@ -877,8 +976,8 @@ func historyDetailViewModelLoadsCricketBreakdownsAndStandings() async throws {
     let fixture = try makeCompletedCricketFixture()
     let vm = HistoryDetailViewModel(
         matchId: fixture.matchId,
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.onAppear()
 
@@ -896,8 +995,8 @@ func historyDetailViewModelBuildsX01TimelineFromEvents() async throws {
     let fixture = try makeCompletedX01Fixture()
     let vm = HistoryDetailViewModel(
         matchId: fixture.matchId,
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.onAppear()
 
@@ -952,8 +1051,8 @@ func historyDetailFormatsForfeitWinner() async throws {
     let fixture = try makeForfeitedX01Fixture()
     let vm = HistoryDetailViewModel(
         matchId: fixture.matchId,
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.onAppear()
 
@@ -998,8 +1097,8 @@ func historyDetailViewModelLoadsBreakdownsForCompletedMatch() async throws {
     let fixture = try makeCompletedX01Fixture()
     let vm = HistoryDetailViewModel(
         matchId: fixture.matchId,
-        matchRepository: StatsFakeMatchRepository(fixture: fixture),
-        statsRepository: StatsFakeStatsRepository(events: fixture.events)
+        matchRepository: FakeMatchRepositoryBuilder.statsFlow(record: HistoryMatchRecord(fixture)),
+        statsRepository: FakeStatsRepositoryBuilder.unfiltered(events: fixture.events)
     )
     await vm.onAppear()
 
@@ -1014,15 +1113,18 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     let rows: [MatchSummary]
     let participantsByMatchId: [UUID: [MatchParticipantSummary]]
     let snapshotsByMatchId: [UUID: MatchSnapshotSummary]
+    let activeMatch: MatchSummary?
 
     init(
         rows: [MatchSummary],
         participantsByMatchId: [UUID: [MatchParticipantSummary]] = [:],
-        snapshotsByMatchId: [UUID: MatchSnapshotSummary] = [:]
+        snapshotsByMatchId: [UUID: MatchSnapshotSummary] = [:],
+        activeMatch: MatchSummary? = nil
     ) {
         self.rows = rows
         self.participantsByMatchId = participantsByMatchId
         self.snapshotsByMatchId = snapshotsByMatchId
+        self.activeMatch = activeMatch
     }
 
     private var allRecords: [MatchHistoryRecord] {
@@ -1032,6 +1134,7 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     private func filteredRecords(filter: MatchHistoryFilter) -> [MatchHistoryRecord] {
         allRecords.filter { record in
             if let type = filter.matchType, record.summary.type != type { return false }
+            if let included = filter.includedMatchTypes, !included.contains(record.summary.type) { return false }
             if let startedAfter = filter.startedAfter, record.summary.startedAt < startedAfter { return false }
             if let playerId = filter.participantPlayerId {
                 guard record.participants.contains(where: { ($0.playerId ?? $0.id) == playerId }) else { return false }
@@ -1041,7 +1144,7 @@ private actor FakeHistoryMatchRepository: MatchRepository {
     }
 
     func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary { rows.first! }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
+    func fetchActiveMatch() async throws -> MatchSummary? { activeMatch }
     func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { rows }
     func fetchHistoryWithParticipants(page: Int, pageSize: Int, filter: MatchHistoryFilter) async throws -> [MatchHistoryRecord] {
         let filtered = filteredRecords(filter: filter)

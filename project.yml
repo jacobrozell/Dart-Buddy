@@ -310,6 +310,8 @@ targets:
         type: file
       - path: Tests/UI/HistoryDetailUITests.swift
         type: file
+      - path: Tests/UI/AppStoreUpdateUITests.swift
+        type: file
     dependencies:
       - target: DartBuddy
     settings:
@@ -322,7 +324,7 @@ targets:
     platform: iOS
     sources:
       - path: Tests/UI/Support
-      - path: Tests/UI/Lean1_0SmokeUITests.swift
+      - path: Tests/UI/PartyPack1_1SmokeUITests.swift
         type: file
     dependencies:
       - target: DartBuddy
@@ -342,6 +344,8 @@ schemes:
         - DartBuddy
       targets:
         - DartBuddyTests
+      commandLineArguments:
+        "-enable_lean_product_surface": true
     run:
       config: Debug
   DartBuddyUISmoke:

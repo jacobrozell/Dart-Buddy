@@ -276,15 +276,23 @@ Implementation: `Persistence/BootstrapStoreRecovery.swift`.
 
 ---
 
-## 15. Schema 1.0.0 Freeze (Dart Buddy)
+## 15. Schema release boundaries (Dart Buddy)
 
-**Ship baseline:** `SchemaV2` (`Schema.Version(2, 2, 0)`), wired in `ModelContainerFactory` and `Persistence/SchemaLock.swift`.
+### 1.0.0 App Store (frozen)
+
+**Baseline:** `SchemaV1` (`Schema.Version(1, 0, 0)`) — git tag `1.0.0`. **Do not edit** `SchemaV1.swift` in place.
+
+### 1.1.0 App Store
+
+**Baseline:** `SchemaV2` (`Schema.Version(2, 0, 0)`) — wired in `ModelContainerFactory` and `Persistence/SchemaLock.swift`.
+
+**Change from V1:** optional `SettingsRecord.instantBotTurnsEnabled` (`nil` → off at repository layer).
+
+**Supported upgrade path:** `SchemaV1` → `SchemaV2` via `DartsMigrationPlan.migrateV1ToV2` (lightweight). CI: `SchemaV1ToV2MigrationTests`.
 
 **Platform:** iOS **18.0+** deployment target (`project.yml`) — required for SwiftData `#Index` on hot query fields.
 
-**Supported upgrade path at launch:** `SchemaV1` → `SchemaV2_0_0` → `SchemaV2_1_0` → `SchemaV2` via `DartsMigrationPlan` (custom bot-kind backfill + lightweight column/index adds).
-
-### Frozen at 1.0 (do not change in place)
+### Frozen fields (unchanged V1 → V2 except noted)
 
 | Entity | Notes |
 |--------|--------|
@@ -293,7 +301,7 @@ Implementation: `Persistence/BootstrapStoreRecovery.swift`.
 | `MatchParticipantRecord` | Includes `botKindRaw`, `botSkillProfilePayload` |
 | `MatchSnapshotRecord` | Unchanged since V1 |
 | `MatchEventRecord` | Unchanged since V1 |
-| `SettingsRecord` | `botStaggerEnabled` / `botDartHapticsEnabled` stay **optional**; repository maps `nil` → `true` |
+| `SettingsRecord` | V2 adds optional `instantBotTurnsEnabled`; bot toggles stay optional (`nil` → enabled); repository maps `nil` → `false` for instant bot turns |
 
 ### Intentionally optional / runtime-defaulted
 

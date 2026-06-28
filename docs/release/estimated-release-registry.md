@@ -8,7 +8,7 @@ python3 Scripts/sync_estimated_release_tags.py
 
 Policy: [`release-tagging.md`](release-tagging.md) · Train narrative: [`ongoing-release-plan.md`](ongoing-release-plan.md)
 
-**Last reviewed:** 2026-06-13
+**Last reviewed:** 2026-06-14
 
 ---
 
@@ -34,7 +34,7 @@ Policy: [`release-tagging.md`](release-tagging.md) · Train narrative: [`ongoing
 | `party.hareAndHounds` | Hare and Hounds | Shipped | **1.3** |
 | `party.fleet` | Fleet | Shipped | **1.4** |
 | `coop.raid` | Raid | Shipped | **1.4** |
-| `practice.aroundTheClock` | Around the Clock | Shipped | **1.4** |
+| `practice.aroundTheClock` | Around the Clock | Shipped | **1.1** |
 | `practice.aroundTheClock180` | 180 ATC | Shipped | **1.4** |
 | `practice.chaseTheDragon` | Chase the Dragon | Shipped | **1.4** |
 | `practice.nineLives` | Nine Lives | Shipped | **1.4** |

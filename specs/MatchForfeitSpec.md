@@ -1191,7 +1191,7 @@ Party modes (nightly with `-enable_full_product_surface`):
 | `testX01ForfeitExitControlContract` | identifiers §17.2 after one turn |
 | `testMatchSummaryForfeitBannerContract` | after forfeit flow |
 
-### 19.5 `Tests/UI/Lean1_0SmokeUITests.swift`
+### 19.5 `Tests/UI/PartyPack1_1SmokeUITests.swift`
 
 Add smoke: **forfeit one X01 turn** in lean surface (validates 1.0 ship path).
 

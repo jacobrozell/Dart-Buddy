@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SetupHomeRosterSection: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @ScaledMetric(relativeTo: .body) private var rosterRowHeight: CGFloat = 52
@@ -10,30 +11,42 @@ struct SetupHomeRosterSection: View {
     let onShowCustomBot: () -> Void
     let onShowAddPlayer: () -> Void
 
+    private var usesWideLayout: Bool {
+        GameplayLayout.usesWideSetupHomeLayout(
+            horizontalSizeClass: horizontalSizeClass,
+            dynamicTypeSize: dynamicTypeSize
+        )
+    }
+
     var body: some View {
-        Group {
-            rosterControls
-            selectedRosterSection
-            availablePlayerList
+        VStack(alignment: .leading, spacing: DS.Spacing.s2) {
+            rosterSectionHeader
+            rosterSectionContent
         }
     }
 
-    var rosterControls: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: DS.Spacing.s3) {
-                    randomOrderToggle
-                    rosterActionButtons
-                }
-            } else {
-                HStack {
-                    randomOrderToggle
-                    Spacer()
-                    rosterActionButtons
-                }
-            }
+    @ViewBuilder
+    private var rosterSectionHeader: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(L10n.addToMatchSection)
+                .font(.headline)
+                .foregroundStyle(Brand.textPrimary)
+            Spacer(minLength: DS.Spacing.s2)
         }
-        .padding(.top, DS.Spacing.s2)
+    }
+
+    @ViewBuilder
+    private var rosterSectionContent: some View {
+        selectedRosterContent
+        if !usesWideLayout {
+            rosterControls
+        }
+        availablePlayersContent
+    }
+
+    var rosterControls: some View {
+        rosterActionButtons
+            .padding(.top, DS.Spacing.s2)
     }
 
     private var randomOrderToggle: some View {
@@ -118,34 +131,28 @@ struct SetupHomeRosterSection: View {
                 } label: {
                     rosterActionButtonLabel(systemImage: "cpu", title: L10n.addBotTitle)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityLabel(L10n.addBotTitle)
                 .accessibilityIdentifier("setup_addBot")
                 .rosterActionButtonChrome(
                     background: Brand.cardElevated,
-                    border: Brand.textSecondary.opacity(0.35),
-                    matchesSiblingHeight: true
+                    border: Brand.textSecondary.opacity(0.35)
                 )
             }
             Button(action: onShowAddPlayer) {
                 rosterActionButtonLabel(systemImage: "person.badge.plus", title: L10n.setupAddPlayers)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .buttonStyle(.plain)
             .accessibilityLabel(L10n.setupAddPlayers)
             .accessibilityIdentifier("setup_addPlayer")
-            .rosterActionButtonChrome(
-                background: Brand.green,
-                matchesSiblingHeight: true
-            )
+            .rosterActionButtonChrome(background: Brand.green)
         }
     }
 
     @ViewBuilder
     private func rosterActionButtonStack<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(spacing: DS.Spacing.s2, content: content)
-        } else {
-            HStack(alignment: .top, spacing: DS.Spacing.s2, content: content)
-        }
+        VStack(spacing: DS.Spacing.s2, content: content)
     }
 
     private func rosterActionButtonLabel(systemImage: String, title: LocalizedStringKey) -> some View {
@@ -175,7 +182,8 @@ struct SetupHomeRosterSection: View {
         } else {
             Text(title)
                 .font(.subheadline.weight(.semibold))
-                .lineLimit(2)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -204,94 +212,57 @@ struct SetupHomeRosterSection: View {
     }
 
     @ViewBuilder
-    var selectedRosterSection: some View {
+    private var selectedRosterContent: some View {
         if !setupViewModel.selectedPlayers.isEmpty {
             VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                Text(L10n.setupTurnOrder)
-                    .font(.headline)
-                    .foregroundStyle(Brand.textPrimary)
-                if setupViewModel.randomOrder {
-                    Text(L10n.setupTurnOrderRandomHint)
-                        .font(.footnote)
+                HStack(alignment: .firstTextBaseline) {
+                    Text(L10n.setupTurnOrder)
+                        .font(.subheadline)
                         .foregroundStyle(Brand.textSecondary)
+                    Spacer(minLength: DS.Spacing.s2)
+                    randomOrderToggle
                 }
-                if GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize) {
-                    accessibilityTurnOrderList
-                } else {
-                    List {
-                        ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
-                            selectedRosterRow(player: player, position: index + 1)
-                                .listRowBackground(Brand.card)
-                                .listRowSeparatorTint(Brand.cardElevated)
-                                .listRowInsets(
-                                    EdgeInsets(
-                                        top: turnOrderRowVerticalInset,
-                                        leading: DS.Spacing.s1,
-                                        bottom: turnOrderRowVerticalInset,
-                                        trailing: DS.Spacing.s1
-                                    )
-                                )
-                        }
-                        .onMove { source, destination in
-                            setupViewModel.moveSelectedPlayers(from: source, to: destination)
-                        }
-                    }
-                    .listStyle(.plain)
-                    .listRowSpacing(0)
-                    .scrollContentBackground(.hidden)
-                    .scrollDisabled(true)
-                    .environment(\.editMode, .constant(turnOrderEditMode))
-                    .frame(height: turnOrderListHeight)
-                    .accessibilityIdentifier("setup_turnOrderList")
+                if setupViewModel.randomOrder {
+                    BrandHelperText(message: L10n.setupTurnOrderRandomHint, icon: "shuffle")
                 }
+                accessibilityTurnOrderList
             }
         }
     }
 
     @ViewBuilder
-    var availablePlayerList: some View {
+    private var availablePlayersContent: some View {
         if setupViewModel.isRosterEmpty {
-            Text(L10n.setupPlayersEmptyHint)
-                .font(.footnote)
-                .foregroundStyle(Brand.textSecondary)
+            BrandEmptyHint(message: L10n.setupPlayersEmptyHint, icon: "person.2")
         } else if !setupViewModel.availableHumans.isEmpty || !setupViewModel.availableBots.isEmpty {
             VStack(alignment: .leading, spacing: DS.Spacing.s3) {
                 if !setupViewModel.availableBots.isEmpty {
-                    Text(L10n.botsSectionTitle).font(.headline).foregroundStyle(Brand.textPrimary)
+                    Text(L10n.botsSectionTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.textSecondary)
                     botRosterList
                 }
+
                 if !setupViewModel.availableHumans.isEmpty {
-                    Text(L10n.addToMatchSection)
-                        .font(.headline)
-                        .foregroundStyle(Brand.textPrimary)
+                    Text(L10n.playersSectionTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.textSecondary)
                     humanRosterList
                 }
             }
         }
     }
 
-    private var turnOrderEditMode: EditMode {
-        if voiceOverEnabled
-            || GameplayLayout.usesAccessibilitySetupHomeLayout(dynamicTypeSize: dynamicTypeSize)
-        {
-            return .inactive
-        }
-        return .active
-    }
-
     private var accessibilityTurnOrderList: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: DS.Spacing.s2) {
             ForEach(Array(setupViewModel.selectedPlayers.enumerated()), id: \.element.id) { index, player in
                 selectedRosterRow(player: player, position: index + 1)
                     .padding(.horizontal, DS.Spacing.s3)
                     .padding(.vertical, turnOrderRowVerticalInset)
-                if index < setupViewModel.selectedPlayers.count - 1 {
-                    Divider().overlay(Brand.cardElevated)
-                }
+                    .background(Brand.cardElevated, in: RoundedRectangle(cornerRadius: DS.Radius.md))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
         .accessibilityIdentifier("setup_turnOrderList")
     }
 
@@ -422,25 +393,23 @@ struct SetupHomeRosterSection: View {
     }
 
     private var botRosterList: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: DS.Spacing.s2) {
             ForEach(setupViewModel.availableBots) { bot in
                 rosterRow(
                     player: bot,
                     accessibilityId: "select_bot_\(bot.botDifficultyRaw ?? "unknown")"
                 )
-                Divider().overlay(Brand.cardElevated)
             }
         }
     }
 
     private var humanRosterList: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: DS.Spacing.s2) {
             ForEach(setupViewModel.availableHumans) { player in
                 rosterRow(
                     player: player,
                     accessibilityId: "select_\(player.name)"
                 )
-                Divider().overlay(Brand.cardElevated)
             }
         }
     }
@@ -451,24 +420,27 @@ struct SetupHomeRosterSection: View {
                 PlayerRosterAvatar(
                     avatarStyle: player.avatarStyle,
                     colorToken: player.colorToken,
-                    size: 28
+                    size: 32
                 )
                 Text(player.name)
                     .font(.headline)
-                    .foregroundStyle(Brand.textSecondary)
+                    .foregroundStyle(Brand.textPrimary)
                 Spacer()
                 if let difficulty = player.botDifficulty {
                     BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
                 } else if player.isCustomBot, let metrics = player.customBotMetrics {
                     CustomBotBadge(metrics: metrics, prominence: .compact)
                 }
-                Image(systemName: "plus.circle")
+                Image(systemName: "plus.circle.fill")
+                    .font(.title2)
                     .foregroundStyle(Brand.green)
                     .accessibilityHidden(true)
             }
             .frame(minHeight: 44)
+            .padding(.horizontal, DS.Spacing.s3)
             .padding(.vertical, DS.Spacing.s3)
-            .contentShape(Rectangle())
+            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
+            .contentShape(RoundedRectangle(cornerRadius: DS.Radius.md))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(nameAccessibilityLabel(for: player))
@@ -481,38 +453,16 @@ struct SetupHomeRosterSection: View {
         }
         return player.name
     }
-
-    private var turnOrderListHeight: CGFloat {
-        let count = setupViewModel.selectedPlayers.count
-        guard count > 0 else { return 0 }
-        let contentHeight = max(rosterRowHeight, 44)
-        let rowHeight = contentHeight + (turnOrderRowVerticalInset * 2)
-        return CGFloat(count) * rowHeight
-    }
-}
-
-private struct RosterActionButtonSiblingHeight: ViewModifier {
-    let isEnabled: Bool
-
-    func body(content: Content) -> some View {
-        if isEnabled {
-            content.frame(maxHeight: .infinity, alignment: .topLeading)
-        } else {
-            content
-        }
-    }
 }
 
 private extension View {
     @ViewBuilder
     func rosterActionButtonChrome(
         background: Color,
-        border: Color? = nil,
-        matchesSiblingHeight: Bool
+        border: Color? = nil
     ) -> some View {
         let base = self
-            .frame(maxWidth: .infinity)
-            .modifier(RosterActionButtonSiblingHeight(isEnabled: matchesSiblingHeight))
+            .frame(maxWidth: .infinity, alignment: .topLeading)
             .background(background, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
 
         if let border {

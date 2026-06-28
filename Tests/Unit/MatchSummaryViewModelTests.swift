@@ -22,7 +22,7 @@ func matchSummaryViewModelLoadsSessionFromRepositoryWhenStoreEmpty() async throw
     let matchId = session.runtime.matchId
     let snapshot = session.latestSnapshot
     let store = ActiveMatchStore()
-    let matchRepo = SummaryFakeMatchRepository(
+    let matchRepo = FakeMatchRepositoryBuilder.summarySnapshotOnly(
         snapshot: MatchSnapshotSummary(
             id: UUID(),
             matchId: matchId,
@@ -41,7 +41,7 @@ func matchSummaryViewModelLoadsSessionFromRepositoryWhenStoreEmpty() async throw
             createdAt: envelope.timestamp
         )
     }
-    let statsRepo = SummaryFakeStatsRepository(events: eventSummaries)
+    let statsRepo = FakeStatsRepositoryBuilder.rehydrating(events: eventSummaries)
 
     let vm = MatchSummaryViewModel(
         matchId: matchId,
@@ -81,14 +81,14 @@ func matchSummaryX01StatParityIncludesBestOutForEveryPlayer() async throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+        matchRepository: FakeMatchRepositoryBuilder.summarySnapshotOnly(snapshot: MatchSnapshotSummary(
             id: UUID(),
             matchId: session.runtime.matchId,
             snapshotVersion: session.latestSnapshot.payloadVersion,
             snapshotPayload: session.latestSnapshot.payload,
             updatedAt: Date()
         )),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 
@@ -191,14 +191,14 @@ func matchSummaryViewModelLoadsCricketSession() async throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+        matchRepository: FakeMatchRepositoryBuilder.summarySnapshotOnly(snapshot: MatchSnapshotSummary(
             id: UUID(),
             matchId: session.runtime.matchId,
             snapshotVersion: session.latestSnapshot.payloadVersion,
             snapshotPayload: session.latestSnapshot.payload,
             updatedAt: Date()
         )),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 
@@ -253,8 +253,8 @@ func matchSummaryCanRematchOnlyWhenCompleted() async throws {
     let inProgressVM = MatchSummaryViewModel(
         matchId: inProgress.runtime.matchId,
         store: store,
-        matchRepository: SummaryUndoFakeMatchRepository(),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        matchRepository: FakeMatchRepositoryBuilder.captureUpdatedSummaries(),
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     inProgressVM.refresh()
     #expect(!inProgressVM.canRematch)
@@ -272,8 +272,8 @@ func matchSummaryCanRematchOnlyWhenCompleted() async throws {
     let completedVM = MatchSummaryViewModel(
         matchId: completed.runtime.matchId,
         store: store,
-        matchRepository: SummaryUndoFakeMatchRepository(),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        matchRepository: FakeMatchRepositoryBuilder.captureUpdatedSummaries(),
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     completedVM.refresh()
     #expect(completedVM.canRematch)
@@ -296,8 +296,8 @@ func matchSummaryCannotUndoInProgressMatch() async throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryUndoFakeMatchRepository(),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        matchRepository: FakeMatchRepositoryBuilder.captureUpdatedSummaries(),
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 
@@ -318,10 +318,10 @@ func matchSummaryLoadIfNeededUsesStoreWithoutRehydrating() async throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryFakeMatchRepository(
+        matchRepository: FakeMatchRepositoryBuilder.summarySnapshotOnly(
             snapshot: MatchSnapshotSummary(id: UUID(), matchId: UUID(), snapshotVersion: 1, snapshotPayload: Data(), updatedAt: Date())
         ),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
 
     #expect(vm.hasResult)
@@ -352,7 +352,7 @@ func matchSummaryUndoLastThrowSurfacesErrorWhenPersistenceFails() async throws {
         matchId: matchId,
         store: store,
         matchRepository: SummaryFailingUndoMatchRepository(),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 
@@ -377,10 +377,10 @@ func matchSummaryRefreshReloadsSessionFromStore() async throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+        matchRepository: FakeMatchRepositoryBuilder.summarySnapshotOnly(snapshot: MatchSnapshotSummary(
             id: UUID(), matchId: session.runtime.matchId, snapshotVersion: 1, snapshotPayload: Data(), updatedAt: Date()
         )),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     #expect(vm.hasResult)
 
@@ -419,12 +419,12 @@ func matchSummaryUndoLastThrowReopensCompletedCricketMatch() async throws {
 
     let store = ActiveMatchStore()
     store.save(session)
-    let matchRepo = SummaryUndoFakeMatchRepository()
+    let matchRepo = FakeMatchRepositoryBuilder.captureUpdatedSummaries()
     let vm = MatchSummaryViewModel(
         matchId: matchId,
         store: store,
         matchRepository: matchRepo,
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
     #expect(vm.canUndoLastThrow)
@@ -457,12 +457,12 @@ func matchSummaryUndoLastThrowReopensCompletedMatch() async throws {
 
     let store = ActiveMatchStore()
     store.save(session)
-    let matchRepo = SummaryUndoFakeMatchRepository()
+    let matchRepo = FakeMatchRepositoryBuilder.captureUpdatedSummaries()
     let vm = MatchSummaryViewModel(
         matchId: matchId,
         store: store,
         matchRepository: matchRepo,
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 
@@ -507,14 +507,14 @@ func matchSummaryViewModelExposesForfeitNames() async throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+        matchRepository: FakeMatchRepositoryBuilder.summarySnapshotOnly(snapshot: MatchSnapshotSummary(
             id: UUID(),
             matchId: session.runtime.matchId,
             snapshotVersion: session.latestSnapshot.payloadVersion,
             snapshotPayload: session.latestSnapshot.payload,
             updatedAt: Date()
         )),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 
@@ -550,14 +550,14 @@ func matchSummaryViewModelBuildsGolfPlayerRows() async throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryFakeMatchRepository(snapshot: MatchSnapshotSummary(
+        matchRepository: FakeMatchRepositoryBuilder.summarySnapshotOnly(snapshot: MatchSnapshotSummary(
             id: UUID(),
             matchId: session.runtime.matchId,
             snapshotVersion: session.latestSnapshot.payloadVersion,
             snapshotPayload: session.latestSnapshot.payload,
             updatedAt: Date()
         )),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 
@@ -583,78 +583,6 @@ private actor SummaryFailingUndoMatchRepository: MatchRepository {
     func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
     func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
     func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor SummaryUndoFakeMatchRepository: MatchRepository {
-    private(set) var updatedSummaries: [MatchSummary] = []
-
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_ match: MatchSummary) async throws {
-        updatedSummaries.append(match)
-    }
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
-        MatchSnapshotSummary(id: UUID(), matchId: UUID(), snapshotVersion: 1, snapshotPayload: Data(), updatedAt: Date())
-    }
-    func fetchLatestSnapshot(matchId _: UUID) async throws -> MatchSnapshotSummary? { nil }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor SummaryFakeMatchRepository: MatchRepository {
-    let snapshot: MatchSnapshotSummary
-
-    init(snapshot: MatchSnapshotSummary) {
-        self.snapshot = snapshot
-    }
-
-    func createMatch(type _: MatchType, configPayload _: Data, participants _: [MatchParticipantSummary]) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func fetchActiveMatch() async throws -> MatchSummary? { nil }
-    func fetchHistory(page _: Int, pageSize _: Int) async throws -> [MatchSummary] { [] }
-    func fetchHistoryWithParticipants(page _: Int, pageSize _: Int, filter _: MatchHistoryFilter) async throws -> [MatchHistoryRecord] { [] }
-    func updateMatch(_: MatchSummary) async throws {}
-    func completeMatch(matchId _: UUID, endedAt _: Date, winnerPlayerId _: UUID?) async throws -> MatchSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func appendEvent(matchId _: UUID, eventTypeRaw _: String, eventPayload _: Data) async throws -> MatchEventSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func saveSnapshot(matchId _: UUID, snapshotVersion _: Int, snapshotPayload _: Data) async throws -> MatchSnapshotSummary {
-        throw AppError(code: .unsupportedOperation, layer: .data, severity: .warning, isRecoverable: true, userMessageKey: "error")
-    }
-    func fetchLatestSnapshot(matchId: UUID) async throws -> MatchSnapshotSummary? {
-        snapshot.matchId == matchId ? snapshot : nil
-    }
-    func fetchMatch(matchId _: UUID) async throws -> MatchSummary? { nil }
-    func fetchParticipants(matchId _: UUID) async throws -> [MatchParticipantSummary] { [] }
-    func deleteMatch(matchId _: UUID) async throws {}
-}
-
-private actor SummaryFakeStatsRepository: StatsRepository {
-    let events: [MatchEventSummary]
-
-    init(events: [MatchEventSummary]) {
-        self.events = events
-    }
-
-    func fetchEvents(matchId: UUID) async throws -> [MatchEventSummary] {
-        events.filter { $0.matchId == matchId }
-    }
-
-    func fetchEvents(matchIds _: [UUID]) async throws -> [MatchEventSummary] { [] }
 }
 
 @MainActor
@@ -687,7 +615,7 @@ func matchSummaryRaidUsesCoopTeamOutcome() throws {
     let vm = MatchSummaryViewModel(
         matchId: session.runtime.matchId,
         store: store,
-        matchRepository: SummaryFakeMatchRepository(
+        matchRepository: FakeMatchRepositoryBuilder.summarySnapshotOnly(
             snapshot: MatchSnapshotSummary(
                 id: UUID(),
                 matchId: session.runtime.matchId,
@@ -696,7 +624,7 @@ func matchSummaryRaidUsesCoopTeamOutcome() throws {
                 updatedAt: Date()
             )
         ),
-        statsRepository: SummaryFakeStatsRepository(events: [])
+        statsRepository: FakeStatsRepositoryBuilder.rehydrating(events: [])
     )
     vm.refresh()
 

@@ -30,6 +30,7 @@ Define accessibility requirements for MVP and future releases, with WCAG 2.1 AA 
 - Turn indicator must be announced with clear context.
 - Bust/check-out feedback must include non-visual cues.
 - Cricket board closed/open states require non-color indicators.
+- Bot throw playback pacing (stagger vs instant) is independent of UI Reduce Motion unless product enables the OR policy in [`InstantBotTurnsSpec.md`](InstantBotTurnsSpec.md) §5.
 
 ### Guided Play (planned)
 Blind and low-vision practice flows require audio-first design beyond baseline WCAG. See [`GuidedPlayAccessibilitySpec.md`](GuidedPlayAccessibilitySpec.md):

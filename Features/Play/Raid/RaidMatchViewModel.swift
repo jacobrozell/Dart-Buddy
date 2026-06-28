@@ -13,24 +13,28 @@ final class RaidMatchViewModel: ObservableObject {
     @Published private(set) var state: State = .readyTurn
     @Published var selectedMultiplier: DartMultiplier = .single
     @Published var enteredDarts: [DartInput] = []
-    @Published private(set) var session: MatchLifecycleSession?
+    @Published var session: MatchLifecycleSession?
+    @Published private(set) var shieldCloseSignal: Int?
 
-    private let matchId: UUID
+    let matchId: UUID
     private let store: ActiveMatchStore
     private let logger: any AppLogger
     private let matchRepository: any MatchRepository
+    private let statsRepository: any StatsRepository
     private let turnSubmitter: MatchTurnSubmitter
 
     init(
         matchId: UUID,
         store: ActiveMatchStore,
         logger: any AppLogger,
-        matchRepository: any MatchRepository
+        matchRepository: any MatchRepository,
+        statsRepository: any StatsRepository
     ) {
         self.matchId = matchId
         self.store = store
         self.logger = logger
         self.matchRepository = matchRepository
+        self.statsRepository = statsRepository
         self.turnSubmitter = MatchTurnSubmitter(
             matchId: matchId,
             matchType: .raid,
@@ -97,30 +101,8 @@ final class RaidMatchViewModel: ObservableObject {
 
     func onDisappear() {}
 
-    func abandonMatch() async {
-        await loadSessionIfNeeded()
-        guard let current = session, current.runtime.status == .inProgress else { return }
-        do {
-            let abandoned = try MatchLifecycleService.abandon(session: current)
-            try await matchRepository.updateMatch(MatchTurnSupport.matchSummary(from: abandoned.runtime))
-            _ = try await matchRepository.saveSnapshot(
-                matchId: matchId,
-                snapshotVersion: abandoned.latestSnapshot.payloadVersion,
-                snapshotPayload: abandoned.latestSnapshot.payload
-            )
-            store.remove(matchId: matchId)
-            session = abandoned
-        } catch {
-            logger.matchError(
-                matchId: matchId,
-                matchType: .raid,
-                category: .appLifecycle,
-                eventName: "raid_abandon_failed",
-                message: "Abandon failed.",
-                metadata: MatchTurnSupport.appErrorMetadata(for: error)
-            )
-        }
-    }
+    func recoverBotPlaybackIfNeeded() {}
+
 
     private func reconcileAfterSummaryUndo() async -> Bool {
         guard state == .matchCompleted,
@@ -161,7 +143,7 @@ final class RaidMatchViewModel: ObservableObject {
                 if case let .raidVisit(visit) = envelope.payload { return visit }
                 return nil
             }) {
-                announceVisitIfNeeded(event: event)
+                announceVisitIfNeeded(event: event, previousState: current.runtime.raidState)
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted
@@ -190,12 +172,39 @@ final class RaidMatchViewModel: ObservableObject {
         }
     }
 
-    private func loadSessionIfNeeded() async {
+    func loadSessionIfNeeded() async {
         if session != nil { return }
-        session = store.session(for: matchId)
+        switch await MatchSessionLoader.load(
+            matchId: matchId,
+            matchType: .raid,
+            store: store,
+            logger: logger,
+            matchRepository: matchRepository,
+            statsRepository: statsRepository,
+            sessionMissingFallbackKey: "raid.error.sessionMissing"
+        ) {
+        case let .loaded(loaded):
+            session = loaded
+        case .missing:
+            break
+        case let .failed(messageKey):
+            state = .error(messageKey)
+        }
     }
 
-    private func announceVisitIfNeeded(event: RaidVisitEvent) {
+    func acknowledgeShieldCloseAnnouncement() {
+        shieldCloseSignal = nil
+    }
+
+    private func announceVisitIfNeeded(event: RaidVisitEvent, previousState: RaidState?) {
+        if let previous = previousState,
+           let afterClosed = session?.runtime.raidState?.closedShieldSegments {
+            let newSegments = afterClosed.subtracting(previous.closedShieldSegments)
+            if let segment = newSegments.sorted(by: >).first {
+                shieldCloseSignal = segment
+            }
+        }
+
         if event.phaseBefore != event.phaseAfter {
             AccessibilityNotification.Announcement(
                 event.phaseAfter == .shield
@@ -212,4 +221,11 @@ final class RaidMatchViewModel: ObservableObject {
             AccessibilityNotification.Announcement(L10n.string("coop.summary.teamDefeat")).post()
         }
     }
+}
+extension RaidMatchViewModel: MatchPlaySessionHost {
+    var isBotTurnBlocking: Bool { state == .submittingTurn }
+    var hostMatchRepository: any MatchRepository { matchRepository }
+    var hostMatchStore: ActiveMatchStore { store }
+    var hostMatchLogger: any AppLogger { logger }
+    var hostMatchType: MatchType { .raid }
 }

@@ -190,6 +190,41 @@ struct MatchAnalyticsTests {
     }
 
     @Test
+    func sessionMetadataMapsPartyPackShippedModes() throws {
+        let partyPackModes: [(MatchType, Int)] = [
+            (.baseball, 2),
+            (.killer, 3),
+            (.shanghai, 2),
+            (.aroundTheClock, 1)
+        ]
+
+        for (type, participantCount) in partyPackModes {
+            let participants = (0 ..< participantCount).map { index in
+                MatchParticipant(
+                    playerId: UUID(),
+                    displayNameAtMatchStart: "P\(index + 1)",
+                    turnOrder: index
+                )
+            }
+            let session = try MatchLifecycleService.createMatch(
+                type: type,
+                config: MatchConfigDefaults.config(for: type),
+                participants: participants
+            )
+            let metadata = MatchAnalytics.metadata(for: session, startSource: .setup)
+
+            #expect(metadata["matchType"] == type.rawValue)
+            #expect(metadata["gameModeId"] == GameModeCatalog.entry(for: type)?.id)
+            #expect(metadata["startSource"] == "setup")
+            #expect(metadata["participantCount"] == String(participantCount))
+            #expect(metadata["status"] == MatchLifecycleStatus.inProgress.rawValue)
+            for key in metadata.keys {
+                #expect(!AnalyticsMetadataKeys.isBlockedPersonalDataKey(key))
+            }
+        }
+    }
+
+    @Test
     func forfeitMetadataIncludesResolutionAndDuration() throws {
         let session = try MatchLifecycleService.createMatch(
             type: .x01,

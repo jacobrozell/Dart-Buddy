@@ -67,9 +67,11 @@ Naming rules:
 ## App Name
 - `Dart Buddy` (subject to availability)
 
-## Subtitle (examples)
-- `Free X01 & Cricket Scoring`
-- `No Ads Darts Scorekeeper`
+## Subtitle (≤30 chars)
+- **Canonical:** `X01 & Cricket Scorekeeper`
+- **Alternates:** `Darts Scoreboard & History`, `X01, Cricket & Match Stats`
+
+**App Store rule (Guideline 2.3.7):** Do **not** use pricing or monetization language in the **name** or **subtitle** — including `free`, `no ads`, discounts, or price comparisons. Those claims belong in **promotional text** and the **description** only.
 
 ## Keywords (starter set)
 - darts, scoreboard, scorekeeper, x01, cricket, dart scorer, darts counter, darts tracker

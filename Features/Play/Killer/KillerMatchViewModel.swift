@@ -307,10 +307,13 @@ final class KillerMatchViewModel: ObservableObject {
             )
         }
 
+        let visitPrefix = enteredDarts
         guard await BotVisitPlayback.revealVisit(
             dartsToReveal,
             feedbackPreferences: feedbackPreferences,
-            append: { enteredDarts.append($0) }
+            applyRevealedDarts: { revealed in
+                enteredDarts = visitPrefix + revealed
+            }
         ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
@@ -363,7 +366,7 @@ final class KillerMatchViewModel: ObservableObject {
             session = updated
             if !isPick, lastKillerTurn(in: updated)?.darts.contains(where: \.becameKiller) == true {
                 state = .becameKillerFeedback
-                try? await Task.sleep(nanoseconds: BotTurnPacing.killerBecameKillerTransitionNanoseconds)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.killerBecameKillerDelayNanoseconds(feedbackPreferences: feedbackPreferences))
             }
             if updated.runtime.status == .completed {
                 state = .matchCompleted

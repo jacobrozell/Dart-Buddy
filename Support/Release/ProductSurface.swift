@@ -38,6 +38,19 @@ enum ProductSurface {
             showsAccessibilityMarketing: true,
             bundledLocaleCodes: ["en"]
         )
+
+        /// 1.1 — lean shell plus party modes, Raid co-op, and Around the Clock practice.
+        /// Raid reachability uses `partyPack1_1CatalogIDs`, not `showsCoopModes` (full-surface only).
+        static let party1_1 = Configuration(
+            showsModesTab: false,
+            showsPartyModes: true,
+            showsCoopModes: false,
+            showsTrainingBots: false,
+            showsCustomBots: true,
+            showsPlayerExport: false,
+            showsAccessibilityMarketing: true,
+            bundledLocaleCodes: ["en"]
+        )
     }
 
     static let fullProductSurfaceLaunchArgument = "-enable_full_product_surface"
@@ -58,7 +71,10 @@ enum ProductSurface {
     }
 
     static var isFullProductSurfaceEnabled: Bool {
-        let arguments = ProcessInfo.processInfo.arguments
+        isFullProductSurfaceEnabled(arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isFullProductSurfaceEnabled(arguments: [String]) -> Bool {
         if arguments.contains(leanProductSurfaceLaunchArgument) {
             return false
         }
@@ -73,26 +89,62 @@ enum ProductSurface {
     }
 
     private static var active: Configuration {
-        isFullProductSurfaceEnabled ? .full : .lean1_0
+        configuration(for: ProcessInfo.processInfo.arguments)
     }
+
+    static func configuration(for arguments: [String]) -> Configuration {
+        isFullProductSurfaceEnabled(arguments: arguments) ? .full : .party1_1
+    }
+
+    /// Catalog IDs shipped in the default Release 1.1 surface.
+    static let partyPack1_1CatalogIDs: Set<String> = [
+        "standard.x01",
+        "standard.cricket",
+        "party.baseball",
+        "party.killer",
+        "party.shanghai",
+        "coop.raid",
+        "practice.aroundTheClock"
+    ]
 
     /// Whether gameplay for this match type is reachable in the current product surface.
     static func isMatchTypeReachable(_ matchType: MatchType) -> Bool {
-        switch matchType {
-        case .x01, .cricket:
-            return true
-        default:
-            guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
-                return false
+        isMatchTypeReachable(matchType, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isMatchTypeReachable(_ matchType: MatchType, arguments: [String]) -> Bool {
+        guard let entry = GameModeCatalog.entry(for: matchType), entry.isAvailable else {
+            return false
+        }
+        return isCatalogEntryReachable(entry, arguments: arguments)
+    }
+
+    /// Whether a shipped catalog entry is reachable in the current product surface.
+    static func isCatalogEntryReachable(_ entry: GameModeCatalogEntry) -> Bool {
+        isCatalogEntryReachable(entry, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    static func isCatalogEntryReachable(_ entry: GameModeCatalogEntry, arguments: [String]) -> Bool {
+        guard entry.isAvailable, entry.matchType != nil else { return false }
+
+        let config = configuration(for: arguments)
+        if isFullProductSurfaceEnabled(arguments: arguments) {
+            switch entry.matchType {
+            case .x01, .cricket:
+                return true
+            default:
+                break
             }
             switch entry.section {
             case .party:
-                return showsPartyModes
+                return config.showsPartyModes
             case .coop:
-                return showsCoopModes
+                return config.showsCoopModes
             case .standard, .practice:
-                return showsModesTab
+                return config.showsModesTab
             }
         }
+
+        return partyPack1_1CatalogIDs.contains(entry.id)
     }
 }

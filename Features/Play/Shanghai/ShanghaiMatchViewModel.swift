@@ -284,10 +284,13 @@ final class ShanghaiMatchViewModel: ObservableObject {
             existingCount: partialVisitCount
         )
 
+        let visitPrefix = enteredDarts
         guard await BotVisitPlayback.revealVisit(
             dartsToReveal,
             feedbackPreferences: feedbackPreferences,
-            append: { enteredDarts.append($0) }
+            applyRevealedDarts: { revealed in
+                enteredDarts = visitPrefix + revealed
+            }
         ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
@@ -324,7 +327,7 @@ final class ShanghaiMatchViewModel: ObservableObject {
                 if event.achievedShanghai {
                     postAccessibilityAnnouncement(L10n.string("play.shanghai.achieved"))
                     state = .shanghaiFeedback
-                    try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementTransitionNanoseconds)
+                    try? await Task.sleep(nanoseconds: BotTurnPacing.shanghaiAchievementDelayNanoseconds(feedbackPreferences: feedbackPreferences))
                 }
             }
             if updated.runtime.status == .completed {

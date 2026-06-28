@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastReviewed": "2026-06-13",
+  "lastReviewed": "2026-06-14",
   "catalog": {
     "standard.x01": { "storeRelease": "1.0" },
     "standard.cricket": { "storeRelease": "1.0" },
@@ -30,7 +30,7 @@
     "coop.cerberus": { "storeRelease": "2.0+" },
     "coop.theVault": { "storeRelease": "2.0+" },
     "coop.clearTheBoard": { "storeRelease": "2.0+" },
-    "practice.aroundTheClock": { "storeRelease": "1.4" },
+    "practice.aroundTheClock": { "storeRelease": "1.1" },
     "practice.aroundTheClock180": { "storeRelease": "1.4" },
     "practice.chaseTheDragon": { "storeRelease": "1.4" },
     "practice.nineLives": { "storeRelease": "1.4" },

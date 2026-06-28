@@ -262,6 +262,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
     #expect(baseline.soundEnabled == true)
     #expect(baseline.botStaggerEnabled == true)
     #expect(baseline.botDartHapticsEnabled == true)
+    #expect(baseline.instantBotTurnsEnabled == false)
 
     let updated = SettingsSummary(
         id: baseline.id,
@@ -278,6 +279,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
         defaultSetsEnabled: baseline.defaultSetsEnabled,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+        instantBotTurnsEnabled: true,
         defaultDartEntryPresentationRaw: "numberPad",
         updatedAt: baseline.updatedAt
     )
@@ -288,6 +290,7 @@ func settingsRepositoryPersistsFeedbackToggles() async throws {
     #expect(reloaded.soundEnabled == false)
     #expect(reloaded.botStaggerEnabled == false)
     #expect(reloaded.botDartHapticsEnabled == false)
+    #expect(reloaded.instantBotTurnsEnabled == true)
 }
 
 @Test(.tags(.integration, .stats, .swiftdata, .regression))
@@ -365,6 +368,7 @@ func settingsRepositoryResetsPreferencesToDefaults() async throws {
         defaultSetsEnabled: true,
         botStaggerEnabled: false,
         botDartHapticsEnabled: false,
+            instantBotTurnsEnabled: false,
         defaultDartEntryPresentationRaw: "visualBoard",
         updatedAt: Date()
     )
@@ -412,11 +416,11 @@ func settingsRepositoryResetAllLocalDataClearsEverySwiftDataTable() async throws
     #expect(try await repos.match.fetchActiveMatch() != nil)
 
     let beforeReset = try LocalDataResetInventory.swiftDataRecordCounts(in: repos.container)
-    #expect(beforeReset[String(describing: SchemaV1.PlayerRecord.self)] == 2)
-    #expect(beforeReset[String(describing: SchemaV1.MatchRecord.self)] == 1)
-    #expect(beforeReset[String(describing: SchemaV1.MatchParticipantRecord.self)] == 2)
-    #expect(beforeReset[String(describing: SchemaV1.MatchEventRecord.self)] == 1)
-    #expect(beforeReset[String(describing: SchemaV1.MatchSnapshotRecord.self)] == 1)
+    #expect(beforeReset[String(describing: SchemaV2.PlayerRecord.self)] == 2)
+    #expect(beforeReset[String(describing: SchemaV2.MatchRecord.self)] == 1)
+    #expect(beforeReset[String(describing: SchemaV2.MatchParticipantRecord.self)] == 2)
+    #expect(beforeReset[String(describing: SchemaV2.MatchEventRecord.self)] == 1)
+    #expect(beforeReset[String(describing: SchemaV2.MatchSnapshotRecord.self)] == 1)
 
     try await repos.settings.resetAllLocalData()
 
@@ -425,12 +429,12 @@ func settingsRepositoryResetAllLocalDataClearsEverySwiftDataTable() async throws
     #expect(try await repos.match.fetchHistory(page: 0, pageSize: 10).isEmpty)
 
     let afterReset = try LocalDataResetInventory.swiftDataRecordCounts(in: repos.container)
-    #expect(afterReset[String(describing: SchemaV1.PlayerRecord.self)] == 0)
-    #expect(afterReset[String(describing: SchemaV1.MatchRecord.self)] == 0)
-    #expect(afterReset[String(describing: SchemaV1.MatchParticipantRecord.self)] == 0)
-    #expect(afterReset[String(describing: SchemaV1.MatchEventRecord.self)] == 0)
-    #expect(afterReset[String(describing: SchemaV1.MatchSnapshotRecord.self)] == 0)
-    #expect(afterReset[String(describing: SchemaV1.SettingsRecord.self)] == 1)
+    #expect(afterReset[String(describing: SchemaV2.PlayerRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchParticipantRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchEventRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.MatchSnapshotRecord.self)] == 0)
+    #expect(afterReset[String(describing: SchemaV2.SettingsRecord.self)] == 1)
 
     let settings = try await repos.settings.fetchSettings()
     #expect(settings.defaultMatchTypeRaw == "x01")

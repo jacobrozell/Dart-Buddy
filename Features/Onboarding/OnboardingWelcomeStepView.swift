@@ -8,8 +8,8 @@ struct OnboardingWelcomeStepView: View {
         OnboardingStepChrome(showsSkip: true, onSkip: onSkip) {
             OnboardingHeroStepContent(
                 symbolName: "target",
-                titleKey: "onboarding.welcome.title",
-                bodyKey: "onboarding.welcome.body"
+                titleKey: OnboardingCopy.hero.welcomeTitleKey,
+                bodyKey: OnboardingCopy.hero.welcomeBodyKey
             )
         } footer: {
             OnboardingPrimaryButton(

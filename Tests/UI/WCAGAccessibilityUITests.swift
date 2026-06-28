@@ -314,6 +314,11 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
             app.switches["settings_turnTotalCallerToggle"],
             identifier: "settings_turnTotalCallerToggle"
         )
+        scrollToSettingsControl("settings_instantBotTurnsToggle", in: app, timeout: timeout)
+        assertInteractiveElement(
+            app.switches["settings_instantBotTurnsToggle"],
+            identifier: "settings_instantBotTurnsToggle"
+        )
         scrollToSettingsControl("settings_botStaggerToggle", in: app, timeout: timeout)
         assertInteractiveElement(app.switches["settings_botStaggerToggle"], identifier: "settings_botStaggerToggle")
         assertInteractiveElement(app.switches["settings_botDartHapticsToggle"], identifier: "settings_botDartHapticsToggle")

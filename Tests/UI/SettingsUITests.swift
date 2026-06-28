@@ -17,6 +17,8 @@ final class SettingsUITests: DartBuddyUITestCase {
         XCTAssertTrue(app.switches["settings_hapticsToggle"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.switches["settings_soundToggle"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.switches["settings_turnTotalCallerToggle"].waitForExistence(timeout: timeout))
+        scrollToSettingsControl("settings_instantBotTurnsToggle", in: app, timeout: timeout)
+        XCTAssertTrue(app.switches["settings_instantBotTurnsToggle"].waitForExistence(timeout: timeout))
 
         scrollToSettingsControl("settings_botStaggerToggle", in: app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["Bot Opponents"].waitForExistence(timeout: timeout))

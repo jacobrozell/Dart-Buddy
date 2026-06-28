@@ -17,15 +17,18 @@ func playBotDartEntryFeedback(
     isBotPlaying: Bool,
     audio: any AudioFeedbackService,
     haptics: any HapticsService,
-    botDartHapticsEnabled: Bool
+    feedbackPreferences: FeedbackPreferences
 ) {
     guard isBotPlaying, darts.count > previousCount, let dart = darts.last else { return }
+    guard !BotPlaybackPolicy.instantBotTurnsActive(
+        instantBotTurnsEnabled: feedbackPreferences.instantBotTurnsEnabled
+    ) else { return }
     if dart.isMiss {
         audio.playMiss()
     } else {
         audio.playHit()
     }
-    if botDartHapticsEnabled {
+    if feedbackPreferences.botDartHapticsEnabled {
         haptics.playImpact()
     }
 }

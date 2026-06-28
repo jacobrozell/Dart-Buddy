@@ -16,6 +16,7 @@ Lightweight capture of feature ideas. Deep assessments live in sibling files (`a
 
 | Idea | Notes |
 |------|--------|
+| **Para darts / adaptive play feedback** | Reach out to players and orgs (e.g. [USAParaDarts](https://www.facebook.com/profile.php?id=100078819201080), Denver NC) for grounded accessibility feedback — not scheduled yet. Brief: [`para-darts-accessibility-outreach.md`](para-darts-accessibility-outreach.md). |
 | **Dedicated gameplay layout at accessibility text sizes** | At large Dynamic Type (accessibility sizes and up), score and keyboard are not visible together. Define an accessibility-only layout variant for in-game screens so score and input remain usable without scrolling past each other. See also [`specs/AccessibilitySpec.md`](../specs/AccessibilitySpec.md), [`accessibility/accessibility_todo.md`](../accessibility/accessibility_todo.md). |
 
 ---

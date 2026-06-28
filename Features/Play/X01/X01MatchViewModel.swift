@@ -389,10 +389,13 @@ final class X01MatchViewModel: ObservableObject {
             existingCount: partialVisitCount
         )
 
+        let visitPrefix = enteredDarts
         guard await BotVisitPlayback.revealVisit(
             dartsToReveal,
             feedbackPreferences: feedbackPreferences,
-            append: { enteredDarts.append($0) }
+            applyRevealedDarts: { revealed in
+                enteredDarts = visitPrefix + revealed
+            }
         ) else { return false }
         await submitTurnAsync(fromBotPlayback: true)
         guard session?.runtime.status != .completed else { return false }
