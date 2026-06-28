@@ -190,14 +190,15 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 
 ---
 
-## 1.2 — Smart Opponents
+## 1.2 — Smart Opponents + German
 
-**Positioning:** Training Partner + custom skill bots for serious practice.
+**Positioning:** Training Partner + custom skill bots for serious practice; **first localized store release (German)**.
 
 ### In scope
 
 | Area | Include |
 |------|---------|
+| **German UI** | `en` + `de` in App Store bundle; Deutsch App Store listing + screenshots |
 | **Training Partner** | Eligibility, create/link, setup roster |
 | **Custom bots** | User-defined X01 avg / Cricket MPR |
 | **Stats** | Fix bot-with-zero-games averaging UX (P1 in `todo.md`) |
@@ -206,6 +207,7 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 ### Out of scope
 
 - Modes catalog expansion
+- es / nl / fr / zh-Hans / it in **store** bundle (1.2.0 ships **German only**; files stay on `dev`)
 - Game Center
 
 ### Exit criteria → 1.3
