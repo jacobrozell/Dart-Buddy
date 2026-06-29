@@ -184,6 +184,8 @@ enum L10n {
     static let settingsSupportFeedbackHint: LocalizedStringKey = "settings.support.feedback.hint"
     static let feedbackNavTitle: LocalizedStringKey = "feedback.navTitle"
     static let feedbackIntro: LocalizedStringKey = "feedback.intro"
+    static let feedbackMostWantedTitle: LocalizedStringKey = "feedback.mostWanted.title"
+    static let feedbackMostWantedFooter: LocalizedStringKey = "feedback.mostWanted.footer"
     static let feedbackCategoryTitle: LocalizedStringKey = "feedback.category.title"
     static let feedbackCategoryPicker: LocalizedStringKey = "feedback.category.picker"
     static let feedbackSuggestionTitle: LocalizedStringKey = "feedback.suggestion.title"

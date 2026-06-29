@@ -35,6 +35,7 @@ struct AppSupportTests {
     @Test
     func mailSubjectIncludesCategoryTag() {
         let draft = FeedbackDraft(
+            mostWantedFeature: .moreCoopGameModes,
             category: .gameMode,
             specificItem: "Halve It",
             summary: "Add to catalog",
@@ -49,6 +50,7 @@ struct AppSupportTests {
     @Test
     func mailSubjectFallsBackToTrimmedSummaryWhenItemBlank() {
         let draft = FeedbackDraft(
+            mostWantedFeature: .notSure,
             category: .improvement,
             specificItem: "   ",
             summary: "  Faster Play setup  ",
@@ -59,14 +61,16 @@ struct AppSupportTests {
     }
 
     @Test
-    func mailBodyIncludesSummaryAndDiagnostics() {
+    func mailBodyIncludesMostWantedFeatureSummaryAndDiagnostics() {
         let draft = FeedbackDraft(
+            mostWantedFeature: .autoScoring,
             category: .scoringRules,
             specificItem: "501 double-out",
             summary: "Fix bust on double miss",
             details: "Happens after checkout suggestion"
         )
         let body = AppSupport.mailBody(for: draft)
+        #expect(body.contains("Most wanted upcoming feature: Camera auto-scoring"))
         #expect(body.contains("Summary: Fix bust on double miss"))
         #expect(body.contains("Scoring or checkout rules"))
         #expect(body.contains("App: Dart Buddy"))
@@ -75,6 +79,7 @@ struct AppSupportTests {
     @Test
     func mailtoURLForDraftUsesConfiguredRecipient() throws {
         let draft = FeedbackDraft(
+            mostWantedFeature: .notSure,
             category: .bug,
             specificItem: "X01 match",
             summary: "Score stuck",
@@ -91,13 +96,25 @@ struct AppSupportTests {
 
     @Test
     func invalidDraftWhenSummaryEmpty() {
-        let draft = FeedbackDraft(category: .other, specificItem: "", summary: "   ", details: "")
+        let draft = FeedbackDraft(
+            mostWantedFeature: .notSure,
+            category: .other,
+            specificItem: "",
+            summary: "   ",
+            details: ""
+        )
         #expect(!draft.isValid)
     }
 
     @Test
     func validDraftTrimsSummaryWhitespace() {
-        let draft = FeedbackDraft(category: .other, specificItem: "", summary: "  Useful idea  ", details: "")
+        let draft = FeedbackDraft(
+            mostWantedFeature: .morePracticeGameModes,
+            category: .other,
+            specificItem: "",
+            summary: "  Useful idea  ",
+            details: ""
+        )
         #expect(draft.isValid)
         #expect(draft.trimmedSummary == "Useful idea")
     }

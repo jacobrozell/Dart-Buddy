@@ -52,6 +52,7 @@ enum FeedbackCategory: String, CaseIterable, Identifiable {
 }
 
 struct FeedbackDraft: Equatable {
+    var mostWantedFeature: FeedbackMostWantedFeature
     var category: FeedbackCategory
     var specificItem: String
     var summary: String

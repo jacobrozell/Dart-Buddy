@@ -7,6 +7,7 @@ import UIKit
 struct FeedbackFormView: View {
     @Environment(\.openURL) private var openURL
 
+    @State private var mostWantedFeature: FeedbackMostWantedFeature = .notSure
     @State private var category: FeedbackCategory = .improvement
     @State private var specificItem = ""
     @State private var summary = ""
@@ -16,6 +17,7 @@ struct FeedbackFormView: View {
 
     private var draft: FeedbackDraft {
         FeedbackDraft(
+            mostWantedFeature: mostWantedFeature,
             category: category,
             specificItem: specificItem,
             summary: summary,
@@ -30,6 +32,19 @@ struct FeedbackFormView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Section {
+                Picker(L10n.feedbackMostWantedTitle, selection: $mostWantedFeature) {
+                    ForEach(FeedbackMostWantedFeature.pickerOptions) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+                .accessibilityIdentifier("feedback.mostWanted")
+            } header: {
+                Text(L10n.feedbackMostWantedTitle)
+            } footer: {
+                Text(L10n.feedbackMostWantedFooter)
             }
 
             Section {

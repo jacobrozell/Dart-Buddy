@@ -61,6 +61,7 @@ enum AppSupport {
         let details = draft.details.trimmingCharacters(in: .whitespacesAndNewlines)
 
         var lines: [String] = [
+            "Most wanted upcoming feature: \(draft.mostWantedFeature.mailLabel)",
             "Category: \(draft.category.label)",
         ]
         if !item.isEmpty {
