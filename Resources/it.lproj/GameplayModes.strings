@@ -270,7 +270,7 @@
 "play.loop.currentTargetTitle" = "Filo attuale";
 "play.loop.currentTargetFormat" = "%1$d %2$@";
 "play.loop.currentWireTargetAccessibilityFormat" = "Obiettivo attuale: %@";
-"play.loop.wireTarget.standard" = "Standard";
+"play.loop.wireTarget.standard" = "Classica";
 "play.loop.wireTarget.lowerLoop" = "Loop inferiore";
 "play.loop.wireTarget.upperLoop" = "Loop superiore";
 "play.loop.wireTarget.split" = "Split";

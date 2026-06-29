@@ -221,7 +221,7 @@
 "halveIt.error.invalidTurn" = "Die worp kon niet worden vastgelegd.";
 "play.rules.bobs27.overview.title" = "Overzicht";
 "play.rules.bobs27.overview.body" = "Begin met 27 punten. Werk door dubbels 1–20 en dan inner bull. Elke hit telt mee; mis je alle drie, trek de doelwaarde af.";
-"play.rules.bobs27.hit.title" = "Hits";
+"play.rules.bobs27.hit.title" = "Treffer";
 "play.rules.bobs27.hit.body" = "Alleen het vergrendelde dubbel telt op genummerde rondes. Op de bull-ronde alleen inner bull.";
 "play.rules.bobs27.miss.title" = "Missers";
 "play.rules.bobs27.miss.body" = "Raak je met geen van je drie pijlen het doel, trek de rondewaarde af van je score.";
