@@ -108,8 +108,8 @@ On `dev`, engineers dogfood the full catalog:
 | Suite | `dev` / PR | `release/*` |
 |-------|------------|-------------|
 | `DartBuddyCI` (unit + accessibility) | Every PR | Every PR |
-| Nightly UI matrix (smoke, gameplay, a11y, l10n, landscape, chrome) | Yes | Yes |
-| `DartBuddyUILean` | Skipped | **Required** |
+| `DartBuddyUI*` suites (smoke, gameplay, a11y, l10n, landscape, chrome) | Local / pre-release | Local / pre-release |
+| `DartBuddyUILean` | Optional (local) | **Required** (local) |
 
 ---
 

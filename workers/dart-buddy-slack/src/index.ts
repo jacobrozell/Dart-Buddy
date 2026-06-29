@@ -13,7 +13,6 @@ type SlackSlashBody = {
 
 const WORKFLOWS = {
   release: "trigger-testflight.yml",
-  nightly: "nightly-ui.yml",
 } as const;
 
 export default {
@@ -35,9 +34,6 @@ export default {
       switch (subcommand) {
         case "release":
           return await handleRelease(env, args.slice(1));
-        case "nightly":
-          await dispatchWorkflow(env, WORKFLOWS.nightly, { ref: "main" });
-          return jsonResponse(":crescent_moon: Nightly UI tests started on `main`.");
         case "status":
           return jsonResponse(await lastCiStatus(env));
         case "coverage":
@@ -57,7 +53,6 @@ function helpText(): string {
     "*Dart Buddy commands*",
     "`/dart-buddy release` — start TestFlight build on `main`",
     "`/dart-buddy release branch:feature/foo` — build a branch",
-    "`/dart-buddy nightly` — run nightly UI tests",
     "`/dart-buddy status` — last CI workflow result",
     "`/dart-buddy coverage` — coverage from last green CI run",
   ].join("\n");

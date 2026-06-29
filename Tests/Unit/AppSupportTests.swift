@@ -31,4 +31,74 @@ struct AppSupportTests {
         #expect(subject == L10n.string("settings.support.feedbackEmailSubject"))
         #expect(body?.contains(AppSupport.installedVersion) == true)
     }
+
+    @Test
+    func mailSubjectIncludesCategoryTag() {
+        let draft = FeedbackDraft(
+            category: .gameMode,
+            specificItem: "Halve It",
+            summary: "Add to catalog",
+            details: ""
+        )
+        let subject = AppSupport.mailSubject(for: draft)
+        #expect(subject.contains("[Dart Buddy]"))
+        #expect(subject.contains("Game mode"))
+        #expect(subject.contains("Halve It"))
+    }
+
+    @Test
+    func mailSubjectFallsBackToTrimmedSummaryWhenItemBlank() {
+        let draft = FeedbackDraft(
+            category: .improvement,
+            specificItem: "   ",
+            summary: "  Faster Play setup  ",
+            details: ""
+        )
+
+        #expect(AppSupport.mailSubject(for: draft) == "[Dart Buddy] Improvement — Faster Play setup")
+    }
+
+    @Test
+    func mailBodyIncludesSummaryAndDiagnostics() {
+        let draft = FeedbackDraft(
+            category: .scoringRules,
+            specificItem: "501 double-out",
+            summary: "Fix bust on double miss",
+            details: "Happens after checkout suggestion"
+        )
+        let body = AppSupport.mailBody(for: draft)
+        #expect(body.contains("Summary: Fix bust on double miss"))
+        #expect(body.contains("Scoring or checkout rules"))
+        #expect(body.contains("App: Dart Buddy"))
+    }
+
+    @Test
+    func mailtoURLForDraftUsesConfiguredRecipient() throws {
+        let draft = FeedbackDraft(
+            category: .bug,
+            specificItem: "X01 match",
+            summary: "Score stuck",
+            details: ""
+        )
+        let url = AppSupport.mailtoURL(for: draft)
+        #expect(url.scheme == "mailto")
+        #expect(url.absoluteString.contains(AppSupport.feedbackEmail))
+
+        let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        let subject = components.queryItems?.first(where: { $0.name == "subject" })?.value
+        #expect(subject?.contains("Bug") == true)
+    }
+
+    @Test
+    func invalidDraftWhenSummaryEmpty() {
+        let draft = FeedbackDraft(category: .other, specificItem: "", summary: "   ", details: "")
+        #expect(!draft.isValid)
+    }
+
+    @Test
+    func validDraftTrimsSummaryWhitespace() {
+        let draft = FeedbackDraft(category: .other, specificItem: "", summary: "  Useful idea  ", details: "")
+        #expect(draft.isValid)
+        #expect(draft.trimmedSummary == "Useful idea")
+    }
 }

@@ -7,7 +7,24 @@ enum LocalizationSmokeUITestSupport {
         let localeIdentifier: String
         let playTabLabel: String
         let playersTabLabel: String
+        let activityTabLabel: String?
         let settingsTabLabel: String
+
+        init(
+            languageCode: String,
+            localeIdentifier: String,
+            playTabLabel: String,
+            playersTabLabel: String,
+            activityTabLabel: String? = nil,
+            settingsTabLabel: String
+        ) {
+            self.languageCode = languageCode
+            self.localeIdentifier = localeIdentifier
+            self.playTabLabel = playTabLabel
+            self.playersTabLabel = playersTabLabel
+            self.activityTabLabel = activityTabLabel
+            self.settingsTabLabel = settingsTabLabel
+        }
     }
 
     private struct TabExpectation {
@@ -33,17 +50,30 @@ enum LocalizationSmokeUITestSupport {
         }
     }
 
-    static func tapPlayTab(in app: XCUIApplication, config: LocaleConfig, timeout: TimeInterval) {
-        guard let playTab = waitForTabBarItem(identifier: "tab_play", in: app, timeout: timeout) else {
-            XCTFail("Missing Play tab")
+    static func tapTab(
+        identifier: String,
+        label: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval
+    ) {
+        guard let tab = waitForTabBarItem(identifier: identifier, in: app, timeout: timeout) else {
+            XCTFail("Missing tab bar item '\(identifier)'")
             return
         }
         XCTAssertEqual(
-            playTab.label,
-            config.playTabLabel,
-            "Play tab should use localized label '\(config.playTabLabel)', got '\(playTab.label)'"
+            tab.label,
+            label,
+            "Tab '\(identifier)' should use localized label '\(label)', got '\(tab.label)'"
         )
-        tapIfPossible(playTab)
+        tapIfPossible(tab)
+    }
+
+    static func tapPlayTab(in app: XCUIApplication, config: LocaleConfig, timeout: TimeInterval) {
+        tapTab(identifier: "tab_play", label: config.playTabLabel, in: app, timeout: timeout)
+    }
+
+    static func tapPlayersTab(in app: XCUIApplication, config: LocaleConfig, timeout: TimeInterval) {
+        tapTab(identifier: "tab_players", label: config.playersTabLabel, in: app, timeout: timeout)
     }
 
     static func assertPlaySetupChromeVisible(in app: XCUIApplication, timeout: TimeInterval) {
@@ -55,16 +85,54 @@ enum LocalizationSmokeUITestSupport {
         )
     }
 
+    static func assertButton(
+        identifier: String,
+        localizedLabel: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let button = app.buttons[identifier]
+        XCTAssertTrue(button.waitForExistence(timeout: timeout), file: file, line: line)
+        XCTAssertEqual(button.label, localizedLabel, file: file, line: line)
+    }
+
+    static func assertStaticText(
+        _ label: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            app.staticTexts[label].waitForExistence(timeout: timeout),
+            "Expected localized copy '\(label)'",
+            file: file,
+            line: line
+        )
+    }
+
     static func launchForLocaleSmoke(
         _ testCase: DartBuddyUITestCase,
         config: LocaleConfig,
-        extraArguments: [String] = []
+        extraArguments: [String] = [],
+        leanProductSurface: Bool = false
     ) -> XCUIApplication {
-        let app = testCase.launchApp(
-            extraArguments,
-            localeLanguage: config.languageCode,
-            localeIdentifier: config.localeIdentifier
-        )
+        let app: XCUIApplication
+        if leanProductSurface {
+            app = testCase.launchAppWithLeanProductSurface(
+                extraArguments,
+                localeLanguage: config.languageCode,
+                localeIdentifier: config.localeIdentifier
+            )
+        } else {
+            app = testCase.launchApp(
+                extraArguments,
+                localeLanguage: config.languageCode,
+                localeIdentifier: config.localeIdentifier
+            )
+        }
         waitForAppShellReady(in: app, timeout: testCase.timeout + 10)
         return app
     }
@@ -79,12 +147,38 @@ enum LocalizationSmokeUITestSupport {
         }
     }
 
+    static func openModePicker(in app: XCUIApplication, timeout: TimeInterval) {
+        let changeButton = app.buttons["setup_changeModeButton"]
+        XCTAssertTrue(changeButton.waitForExistence(timeout: timeout), "Expected change-mode control on Play setup")
+        changeButton.tap()
+    }
+
+    static func assertModePickerCardVisible(
+        catalogID: String,
+        in app: XCUIApplication,
+        timeout: TimeInterval,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let card = app.descendants(matching: .any)["modes_card_\(catalogID)"]
+        if !card.waitForExistence(timeout: 3) {
+            for _ in 0 ..< 4 where card.exists == false {
+                app.swipeUp()
+            }
+        }
+        XCTAssertTrue(card.waitForExistence(timeout: timeout), "Expected mode card \(catalogID)", file: file, line: line)
+    }
+
     private static func tabExpectations(for config: LocaleConfig) -> [TabExpectation] {
-        [
+        var tabs = [
             TabExpectation(identifier: "tab_play", label: config.playTabLabel),
             TabExpectation(identifier: "tab_players", label: config.playersTabLabel),
-            TabExpectation(identifier: "tab_settings", label: config.settingsTabLabel),
         ]
+        if let activityTabLabel = config.activityTabLabel {
+            tabs.append(TabExpectation(identifier: "tab_activity", label: activityTabLabel))
+        }
+        tabs.append(TabExpectation(identifier: "tab_settings", label: config.settingsTabLabel))
+        return tabs
     }
 
     private static func waitForTabBarItem(

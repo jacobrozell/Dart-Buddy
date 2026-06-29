@@ -187,12 +187,12 @@
 "play.golf.setup.courseLength" = "Platzlänge";
 "play.golf.setup.courseLengthValueFormat" = "%d Löcher";
 "play.golf.setup.ruleset.gldLastDart" = "Letzter Dart zählt";
-"play.golf.stroke.double" = "Double";
+"play.golf.stroke.double" = "Doppel";
 "play.golf.stroke.miss" = "Fehlwurf";
 "play.golf.stroke.single" = "Einfach";
 "play.golf.stroke.triple" = "Triple";
-"play.golf.strokeLegend" = "Double 1 · Triple 2 · Single 3 · Fehlwurf 5";
-"play.golf.strokeLegend.accessibility" = "Wertung: Double zählt 1 Schlag, Triple 2, Single 3, Fehlwurf 5";
+"play.golf.strokeLegend" = "Doppel 1 · Triple 2 · Einfach 3 · Fehlwurf 5";
+"play.golf.strokeLegend.accessibility" = "Wertung: Doppel zählt 1 Schlag, Triple 2, Einfach 3, Fehlwurf 5";
 "play.golf.strokeAccessibilityFormat" = "%d Würfe, %@";
 "play.golf.title" = "Golf";
 "play.grandNational.announce.finished" = "Strecke abgeschlossen";
@@ -212,7 +212,7 @@
 "play.grandNational.setup.ruleset.novice" = "Anfänger";
 "play.grandNational.title" = "Grand National";
 "play.halveIt.title" = "Halbiere es";
-"play.halveIt.navTitle" = "Halve-It";
+"play.halveIt.navTitle" = "Halbiere es";
 "play.halveIt.headerFormat" = "Ziel %d — Runde %d von %d";
 "play.halveIt.roundTargetFormat" = "Zielsegment %d";
 "play.halveIt.pad.lockedSegmentHint" = "Nur Segment %d zählt diese Runde";

@@ -351,7 +351,7 @@ When changing layout predicates, confirm:
 - [ ] iPhone portrait Cricket: full board, not active/inactive split  
 - [ ] iPhone landscape Cricket: transposed board + wide pad  
 - [ ] iPad portrait + landscape: sidebar pad 420pt / 300pt  
-- [ ] Pro Max landscape nightly UI (`iPhone 17 Pro Max` in `.github/workflows/nightly-ui.yml`)  
+- [ ] Pro Max landscape UI (`iPhone 17 Pro Max`, `DartBuddyUILandscape` scheme)
 - [ ] AX: single scroll stack, no pinned regions that clip  
 
 ---

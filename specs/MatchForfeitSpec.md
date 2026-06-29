@@ -1204,7 +1204,7 @@ After forfeit against bot, open player detail — `matchesPlayed` subtitle refle
 | Suite | Simulator | Launch args |
 |-------|-----------|-------------|
 | PR `DartBuddyCI` | iPhone 17 | `-seed_players` |
-| Nightly UI | iPhone 17 Pro Max | party forfeit tests add `-enable_full_product_surface` |
+| Local UI (Pro Max) | iPhone 17 Pro Max | party forfeit tests add `-enable_full_product_surface` |
 
 ---
 

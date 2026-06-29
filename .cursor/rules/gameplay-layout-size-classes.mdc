@@ -60,4 +60,4 @@ verticalSizeClass == .compact && horizontalSizeClass == .regular
 
 For every new layout predicate, unit-test `(regular, compact, isPad: false)` and `(regular, compact, isPad: true)`.
 
-Landscape UI tests should run on **iPhone Pro Max** (nightly UI workflow) so regular-width phone landscape is exercised.
+Landscape UI tests should run on **iPhone Pro Max** locally so regular-width phone landscape is exercised.

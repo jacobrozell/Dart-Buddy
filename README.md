@@ -47,8 +47,7 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 | Gate | What runs |
 |------|-----------|
 | **PR / push** | XcodeGen → `DartBuddyCI` scheme — unit + accessibility unit tests on iPhone 17 simulator |
-| **Nightly** | Parallel UI matrix (`DartBuddyUISmoke`, `UIGameplay`, `UIAccessibility`, `UILocalization`, `UILandscape`, `UIChrome`) — `.github/workflows/nightly-ui.yml` |
-| **Release branches** | `DartBuddyUILean` — Party Pack 1.1 `ProductSurface` smoke (`PartyPack1_1SmokeUITests`) |
+| **Pre-release / local** | UI suites via `DartBuddyUI` or individual `DartBuddyUI*` schemes (see [`specs/TestPlanSpec.md`](specs/TestPlanSpec.md)) |
 | **Release** | Xcode Cloud archive → TestFlight (GHA **Trigger TestFlight**; Slack post-1.0 — [`docs/release/slack-integration.md`](docs/release/slack-integration.md)) |
 | **Migrations** | V1→V2.0→V2.1 SwiftData migration tests in CI (`SchemaV2_0_0` → `SchemaV2` lightweight) |
 
@@ -140,7 +139,7 @@ Run tests: **Product → Test** (`⌘U`), or:
 xcodebuild test -scheme DartBuddyCI \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 
-# UI only (nightly matrix — one suite example)
+# UI only (one suite example)
 xcodebuild test -scheme DartBuddyUIGameplay \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 
@@ -157,7 +156,7 @@ xcodebuild test -scheme DartBuddy \
 
 ### CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `dev`, `master`, or `main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). UI runs nightly via parallel matrix in `.github/workflows/nightly-ui.yml` (six suites on iPhone 17; landscape on iPhone 17 Pro Max). Locally: `xcodebuild test -scheme DartBuddyUIGameplay` for one UI suite, or `DartBuddyUI` / `DartBuddy` for broader runs.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request to `dev`, `master`, or `main`: Xcode 26.2, XcodeGen, `build-for-testing` then `test-without-building` on the `DartBuddyCI` scheme (unit + accessibility only) on an iPhone 17 simulator (`macos-26` runner). UI suites run locally before release: `xcodebuild test -scheme DartBuddyUIGameplay` for one suite, or `DartBuddyUI` / `DartBuddy` for broader runs.
 
 **Branch model:** `dev` = full catalog; `release/*` = `ProductSurface` gating — [`docs/release/branch-strategy.md`](docs/release/branch-strategy.md).
 

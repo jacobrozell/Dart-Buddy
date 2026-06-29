@@ -391,11 +391,14 @@ struct SettingsRootView: View {
             .accessibilityLabel(L10n.settingsSupportFAQAccessibility)
             .accessibilityIdentifier("settings_supportFAQLink")
 
-            Link(destination: AppSupport.feedbackMailtoURL) {
-                Label(L10n.settingsSupportFeedback, systemImage: "envelope")
+            NavigationLink {
+                FeedbackFormView()
+            } label: {
+                Label(L10n.settingsSupportFeedback, systemImage: "lightbulb")
             }
             .accessibilityLabel(L10n.settingsSupportFeedbackAccessibility)
-            .accessibilityIdentifier("settings_sendFeedbackLink")
+            .accessibilityHint(L10n.settingsSupportFeedbackHint)
+            .accessibilityIdentifier("settings_feedbackForm")
 
             Link(destination: AppLinks.appStoreReview) {
                 Label(L10n.settingsSupportRate, systemImage: "star")

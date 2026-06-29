@@ -6,7 +6,7 @@ Catalog of all product and system specifications. For **audit coverage** (spec +
 - Landscape and portrait are both required in MVP.
 - Accessibility target is WCAG 2.1 AA.
 - UI strings ship in `en`, `de`, `es`, `nl`, and `fr` (system locale; see `LocalizationSpec.md`).
-- CI runs unit + accessibility via `DartBuddyCI` on PR; UI smoke runs nightly (`nightly-ui.yml`) and locally via `DartBuddy` scheme.
+- CI runs unit + accessibility via `DartBuddyCI` on PR; UI suites run locally via `DartBuddyUI` / `DartBuddy` schemes.
 - App naming direction avoids "Lite" branding.
 
 ## Product and System Specs

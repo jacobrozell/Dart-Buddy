@@ -159,7 +159,7 @@ final class SettingsUITests: DartBuddyUITestCase {
         ensureSettingsTab(app, timeout: timeout)
         let linkIdentifiers = [
             "settings_supportFAQLink",
-            "settings_sendFeedbackLink",
+            "settings_feedbackForm",
             "settings_rateAppLink",
             "settings_accessibilityLink",
             "settings_privacyPolicyLink",
@@ -173,5 +173,32 @@ final class SettingsUITests: DartBuddyUITestCase {
         }
         scrollToSettingsControl("settings_aboutVersion", in: app, timeout: timeout)
         XCTAssertTrue(app.staticTexts["settings_aboutVersion"].waitForExistence(timeout: timeout))
+    }
+
+    func testFeedbackFormRequiresSummaryBeforeSending() {
+        let app = launchApp(["-seed_players"])
+
+        ensureSettingsTab(app, timeout: timeout)
+        scrollToSettingsControl("settings_feedbackForm", in: app, timeout: timeout)
+        app.descendants(matching: .any)["settings_feedbackForm"].tap()
+
+        let sendButton = app.buttons["feedback.send"]
+        XCTAssertTrue(sendButton.waitForExistence(timeout: timeout))
+        XCTAssertFalse(sendButton.isEnabled)
+
+        let itemField = app.textFields["feedback.specificItem"]
+        XCTAssertTrue(itemField.waitForExistence(timeout: timeout))
+        itemField.tap()
+        itemField.typeText("501")
+
+        XCTAssertFalse(sendButton.isEnabled)
+
+        let summaryField = app.textFields["feedback.summary"]
+        XCTAssertTrue(summaryField.waitForExistence(timeout: timeout))
+        summaryField.tap()
+        summaryField.typeText("Smarter checkout suggestions")
+
+        let enabledExpectation = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: sendButton)
+        wait(for: [enabledExpectation], timeout: timeout)
     }
 }

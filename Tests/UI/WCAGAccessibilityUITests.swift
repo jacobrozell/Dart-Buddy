@@ -328,10 +328,10 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
             app.descendants(matching: .any)["settings_supportFAQLink"],
             identifier: "settings_supportFAQLink"
         )
-        scrollToSettingsControl("settings_sendFeedbackLink", in: app, timeout: timeout)
+        scrollToSettingsControl("settings_feedbackForm", in: app, timeout: timeout)
         assertInteractiveElement(
-            app.descendants(matching: .any)["settings_sendFeedbackLink"],
-            identifier: "settings_sendFeedbackLink"
+            app.descendants(matching: .any)["settings_feedbackForm"],
+            identifier: "settings_feedbackForm"
         )
         scrollToSettingsControl("settings_rateAppLink", in: app, timeout: timeout)
         assertInteractiveElement(

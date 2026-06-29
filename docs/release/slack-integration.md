@@ -68,7 +68,6 @@ flowchart TB
 |---------|--------|
 | `/dart-buddy release` | `workflow_dispatch` on `trigger-testflight.yml` (branch input `main`) |
 | `/dart-buddy release branch:feature/foo` | Same workflow, custom branch |
-| `/dart-buddy nightly` | `workflow_dispatch` on `nightly-ui.yml` |
 | `/dart-buddy status` | Latest `ci.yml` run summary |
 | `/dart-buddy coverage` | Link to latest green CI `coverage-summary` artifact |
 

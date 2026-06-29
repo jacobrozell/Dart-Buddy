@@ -1,6 +1,6 @@
 # Xcode Cloud → TestFlight
 
-Automated **Release archive → TestFlight internal testing** via Xcode Cloud. Verification stays on GitHub Actions ([`ci.yml`](../../.github/workflows/ci.yml), [`nightly-ui.yml`](../../.github/workflows/nightly-ui.yml)).
+Automated **Release archive → TestFlight internal testing** via Xcode Cloud. Verification stays on GitHub Actions ([`ci.yml`](../../.github/workflows/ci.yml)).
 
 ## Trigger model
 
@@ -181,7 +181,7 @@ Cursor agents follow `.cursor/rules/git-push-jacobrozell.mdc`.
 
 ## Out of scope
 
-- Replacing GitHub Actions CI or nightly UI tests
+- Replacing GitHub Actions CI
 - Automatic builds on every push/tag
 - External TestFlight beta review automation
 - App Store review submission automation

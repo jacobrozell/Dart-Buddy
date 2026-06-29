@@ -30,17 +30,17 @@ Test-first policy for this project:
 
 ## UI Tests (`Tests/UI/`)
 
-UI tests are split into **seven Xcode targets** (shared helpers in `Tests/UI/Support/`) so nightly CI can run suites in parallel without multi-hour monolithic runs. See [`docs/release/branch-strategy.md`](../docs/release/branch-strategy.md).
+UI tests are split into **seven Xcode targets** (shared helpers in `Tests/UI/Support/`) so suites can run in parallel locally without multi-hour monolithic runs. See [`docs/release/branch-strategy.md`](../docs/release/branch-strategy.md).
 
-| Scheme | Target | Classes | Nightly job |
+| Scheme | Target | Classes | When to run |
 |--------|--------|---------|-------------|
-| `DartBuddyUISmoke` | `DartBuddyUISmokeUITests` | `MatchSetupUITests`, `ModesAndActivityUITests`, `MatchChromeUITests` | UI Smoke |
-| `DartBuddyUIGameplay` | `DartBuddyUIGameplayUITests` | `X01MatchUITests`, `CricketMatchUITests` | UI Gameplay |
-| `DartBuddyUIAccessibility` | `DartBuddyUIAccessibilityUITests` | `WCAGAccessibilityUITests` (~48 tests) | UI Accessibility |
-| `DartBuddyUILocalization` | `DartBuddyUILocalizationUITests` | `FrenchLocalizationSmokeUITests`, `GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`, `ChineseLocalizationSmokeUITests`, `ItalianLocalizationSmokeUITests` | UI Localization |
-| `DartBuddyUILandscape` | `DartBuddyUILandscapeUITests` | `RegressionUITests` (landscape + bot regressions; **iPhone 17 Pro Max**) | UI Landscape |
-| `DartBuddyUIChrome` | `DartBuddyUIChromeUITests` | `SettingsUITests`, `OnboardingUITests`, `PlayerDetailUITests`, `BotDetailUITests`, `HistoryDetailUITests` | UI Chrome |
-| `DartBuddyUILean` | `DartBuddyUILeanUITests` | `Smart1_2SmokeUITests` (1.2) · `Lean1_0SmokeUITests` (1.0/1.1) | **Release branches only** (`release/*`) |
+| `DartBuddyUISmoke` | `DartBuddyUISmokeUITests` | `MatchSetupUITests`, `ModesAndActivityUITests`, `MatchChromeUITests` | Pre-release / local |
+| `DartBuddyUIGameplay` | `DartBuddyUIGameplayUITests` | `X01MatchUITests`, `CricketMatchUITests` | Pre-release / local |
+| `DartBuddyUIAccessibility` | `DartBuddyUIAccessibilityUITests` | `WCAGAccessibilityUITests` (~48 tests) | Pre-release / local |
+| `DartBuddyUILocalization` | `DartBuddyUILocalizationUITests` | `FrenchLocalizationSmokeUITests`, `GermanLocalizationSmokeUITests`, `SpanishLocalizationSmokeUITests`, `DutchLocalizationSmokeUITests`, `ChineseLocalizationSmokeUITests`, `ItalianLocalizationSmokeUITests` | Pre-release / local |
+| `DartBuddyUILandscape` | `DartBuddyUILandscapeUITests` | `RegressionUITests` (landscape + bot regressions; **iPhone 17 Pro Max**) | Pre-release / local |
+| `DartBuddyUIChrome` | `DartBuddyUIChromeUITests` | `SettingsUITests`, `OnboardingUITests`, `PlayerDetailUITests`, `BotDetailUITests`, `HistoryDetailUITests` | Pre-release / local |
+| `DartBuddyUILean` | `DartBuddyUILeanUITests` | `Smart1_2SmokeUITests` (1.2) · `Lean1_0SmokeUITests` (1.0/1.1) | `release/*` branches (local) |
 
 `DartBuddyUI` scheme runs all targets **except** `DartBuddyUILean` (full local UI pass). `DartBuddy` scheme runs unit + all UI targets for a complete local run.
 
@@ -50,8 +50,8 @@ Other UI coverage:
 
 UI test execution policy:
 - **PR / `dev`:** `DartBuddyCI` (unit + `Tests/Accessibility/` only).
-- **Nightly:** parallel matrix in `.github/workflows/nightly-ui.yml` (`CI_PARALLEL_TESTING: YES`).
-- **Release branches:** add `DartBuddyUILean` job for `ProductSurface` regressions.
+- **Pre-release / local:** run `DartBuddyUI` or individual `DartBuddyUI*` schemes; use iPhone 17 Pro Max for landscape suite.
+- **Release branches:** run `DartBuddyUILean` locally for `ProductSurface` regressions.
 - Prioritize robust unit + integration coverage first; UI suites stay thin (observable UI state, not game rules).
 
 ---
@@ -85,9 +85,9 @@ UI test execution policy:
 
 ## 5. CI Recommendations
 - Run unit + accessibility on PR via `DartBuddyCI` scheme (see `.github/workflows/ci.yml`)
-- Run UI suites nightly via parallel matrix (see `.github/workflows/nightly-ui.yml`); run `DartBuddyUI` locally before release
-- Run `DartBuddyUILean` on `release/*` branches only
-- `DartBuddyPerformanceTests` (long-run bot simulations) is excluded from CI schemes; run locally or on nightly jobs
+- Run `DartBuddyUI` (or per-suite `DartBuddyUI*` schemes) locally before release
+- Run `DartBuddyUILean` on `release/*` branches before shipping
+- `DartBuddyPerformanceTests` (long-run bot simulations) is excluded from CI schemes; run locally
 - Track coverage trend for domain and repository layers
 
 ---

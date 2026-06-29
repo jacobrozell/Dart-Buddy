@@ -2,7 +2,18 @@
   "de": {
     "error.match.followTheLeader.openingRequiresScoringDart": "Der Eröffnungswurf muss die Scheibe treffen.",
     "error.match.loop.openingRequiresScoringDart": "Der Eröffnungswurf muss die Scheibe treffen.",
-    "modes.catalog.party.scam.name": "Betrug"
+    "modes.catalog.party.scam.name": "Betrug",
+    "trainingBot.calibrated.footer": "Basierend auf den Statistiken von %@ · wird bei jedem Spiel aktualisiert",
+    "onboarding.support.help": "Hilfe & FAQ",
+    "settings.support.faq": "Hilfe & FAQ",
+    "play.raid.defeat": "Überfall gescheitert",
+    "modes.catalog.coop.raid.blurb": "Koop-Bosskampf — Marken schließen, dann Doubles",
+    "modes.catalog.practice.halveIt.blurb": "Verfehle das Ziel, halbiere deinen Punktestand",
+    "play.baseball.stretchGateOpened": "7.-Inning-Stretch offen — Segment 7 zählt jetzt",
+    "release.highlights.partyPack.title": "Party-Paket",
+    "release.highlights.partyPack.subtitle": "Baseball, Killer, Shanghai und Rund um die Uhr findest du jetzt unter Spielen.",
+    "settings.support.faq.accessibility": "Hilfe und FAQ im Browser öffnen",
+    "onboarding.support.help.accessibility": "Hilfe und FAQ im Browser öffnen"
   },
   "es": {
     "error.match.blindKiller.assignmentsMissing": "No se pudieron asignar los números secretos de Killer ciego.",

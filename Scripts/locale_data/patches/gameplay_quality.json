@@ -23,7 +23,12 @@
     "play.scam.navTitle": "Betrug",
     "play.scam.title": "Betrug",
     "play.ticTacToe.target.outerBull": "Äußerer Bull",
-    "play.golf.stroke.single": "Einfach"
+    "play.golf.stroke.single": "Einfach",
+    "play.golf.stroke.double": "Doppel",
+    "play.golf.stroke.triple": "Triple",
+    "play.golf.strokeLegend": "Doppel 1 · Triple 2 · Einfach 3 · Fehlwurf 5",
+    "play.golf.strokeLegend.accessibility": "Wertung: Doppel zählt 1 Schlag, Triple 2, Einfach 3, Fehlwurf 5",
+    "play.halveIt.navTitle": "Halbiere es"
   },
   "es": {
     "play.blindKiller.navTitle": "Killer ciego",

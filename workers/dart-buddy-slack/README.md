@@ -10,7 +10,6 @@ Cloudflare Worker backing `/dart-buddy` slash commands. Bridges Slack to GitHub 
 |---------|---------------|
 | `/dart-buddy release` | `workflow_dispatch` on `trigger-testflight.yml` (`main`) |
 | `/dart-buddy release branch:foo` | Same workflow, custom branch input via dispatch `ref` |
-| `/dart-buddy nightly` | `workflow_dispatch` on `nightly-ui.yml` |
 | `/dart-buddy status` | Reads latest `ci.yml` run |
 | `/dart-buddy coverage` | Points to latest green CI coverage artifact |
 
