@@ -182,23 +182,37 @@ final class SettingsUITests: DartBuddyUITestCase {
         scrollToSettingsControl("settings_feedbackForm", in: app, timeout: timeout)
         app.descendants(matching: .any)["settings_feedbackForm"].tap()
 
+        XCTAssertTrue(
+            app.navigationBars["Suggest something"].waitForExistence(timeout: timeout),
+            "Feedback form should push onto the settings stack"
+        )
+
+        scrollToSettingsControl("feedback.send", in: app, timeout: timeout)
         let sendButton = app.buttons["feedback.send"]
-        XCTAssertTrue(sendButton.waitForExistence(timeout: timeout))
-        XCTAssertFalse(sendButton.isEnabled)
+        XCTAssertTrue(sendButton.waitForExistence(timeout: timeout), "Send feedback control should exist on the form")
+        XCTAssertFalse(sendButton.isEnabled, "Send should stay disabled until summary is filled")
 
         let itemField = app.textFields["feedback.specificItem"]
         XCTAssertTrue(itemField.waitForExistence(timeout: timeout))
-        itemField.tap()
-        itemField.typeText("501")
+        itemField.clearAndEnterText("501")
+        dismissKeyboardIfPresent(in: app)
 
-        XCTAssertFalse(sendButton.isEnabled)
+        XCTAssertFalse(sendButton.isEnabled, "Specific item alone should not enable send")
 
         let summaryField = app.textFields["feedback.summary"]
         XCTAssertTrue(summaryField.waitForExistence(timeout: timeout))
-        summaryField.tap()
-        summaryField.typeText("Smarter checkout suggestions")
+        summaryField.clearAndEnterText("Smarter checkout suggestions")
+        dismissKeyboardIfPresent(in: app)
 
-        let enabledExpectation = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: sendButton)
-        wait(for: [enabledExpectation], timeout: timeout)
+        scrollToSettingsControl("feedback.send", in: app, timeout: timeout)
+        XCTAssertTrue(sendButton.waitForExistence(timeout: timeout))
+        XCTAssertTrue(sendButton.isEnabled, "Send should enable once summary is filled")
+    }
+
+    private func dismissKeyboardIfPresent(in app: XCUIApplication) {
+        let returnKey = app.keyboards.buttons["Return"]
+        if returnKey.waitForExistence(timeout: 2) {
+            returnKey.tap()
+        }
     }
 }
