@@ -270,7 +270,7 @@
 "play.loop.currentTargetTitle" = "Aktuelles Drahtziel";
 "play.loop.currentTargetFormat" = "%1$d %2$@";
 "play.loop.currentWireTargetAccessibilityFormat" = "Aktuelles Ziel: %@";
-"play.loop.wireTarget.standard" = "Standard";
+"play.loop.wireTarget.standard" = "Klassisch";
 "play.loop.wireTarget.lowerLoop" = "Untere Schleife";
 "play.loop.wireTarget.upperLoop" = "Obere Schleife";
 "play.loop.wireTarget.split" = "Split";

@@ -123,8 +123,8 @@
 "play.setup.startMatch" = "Spiel starten";
 "play.x01.title" = "X01";
 "play.cricket.title" = "Cricket";
-"play.setup.category.standard" = "Standard";
-"play.setup.category.party" = "Party";
+"play.setup.category.standard" = "Klassiker";
+"play.setup.category.party" = "Partyspiele";
 "play.party.gamesSection" = "Spiel wählen";
 "play.party.comingSoon" = "Bald";
 "play.party.baseball.title" = "Baseball";
@@ -141,11 +141,11 @@
 "play.cricket.points.off" = "Aus";
 "common.on" = "An";
 "common.off" = "Aus";
-"play.cricket.mode.normal" = "Normal";
+"play.cricket.mode.normal" = "Regulär";
 "play.cricket.mode.cutThroat" = "Cut Throat";
 "play.cricket.subtitle.cutThroatLowest" = "Cut Throat · Niedrigster gewinnt";
 "play.cricket.subtitle.cutThroat" = "Cut Throat";
-"play.cricket.subtitle.normal" = "Normal";
+"play.cricket.subtitle.normal" = "Regulär";
 "play.cricket.subtitle.noScore" = "Ohne Punkte";
 "play.cricket.column.footer.darts" = "%d Darts";
 "play.cricket.column.footer.mpr" = "%.2f MPR";
@@ -180,7 +180,7 @@
 "history.detail.timelineSection" = "Ereignisverlauf";
 "players.title" = "Spieler";
 "players.section.title" = "Spieler";
-"players.bots.section.title" = "Bots";
+"players.bots.section.title" = "Bot-Spieler";
 "players.bots.add.title" = "Bot hinzufügen";
 "players.empty.title" = "Keine Spieler";
 "players.empty.description" = "Füge einen Spieler hinzu, um Spiele zu starten.";
@@ -281,9 +281,9 @@
 "stats.noDartData" = "Keine Dart-Daten aufgezeichnet.";
 "stats.trend.title" = "Durchschnitt im Verlauf";
 "stats.filter.allPlayers" = "Alle Spieler";
-"players.edit.avatar" = "Avatar";
+"players.edit.avatar" = "Profilbild";
 "players.edit.color" = "Farbe";
-"players.avatar.dart" = "Dart";
+"players.avatar.dart" = "Dartpfeil";
 "players.avatar.target" = "Zielscheibe";
 "players.avatar.trophy" = "Pokal";
 "players.avatar.flame" = "Flamme";
@@ -307,8 +307,8 @@
 "players.identity.color.teal" = "Petrol";
 "players.identity.color.orange" = "Orange";
 "players.identity.color.pink" = "Rosa";
-"players.identity.color.indigo" = "Indigo";
-"players.identity.color.cyan" = "Cyan";
+"players.identity.color.indigo" = "Indigoblau";
+"players.identity.color.cyan" = "Türkis";
 "players.identity.color.lime" = "Limette";
 "players.identity.color.coral" = "Koralle";
 "players.identity.color.mint" = "Minze";
@@ -320,7 +320,7 @@
 "history.filter.7d" = "7 T.";
 "history.filter.30d" = "30 T.";
 "history.filter.all" = "Alle";
-"settings.theme.system" = "System";
+"settings.theme.system" = "Automatisch";
 "settings.theme.light" = "Hell";
 "settings.theme.dark" = "Dunkel";
 "settings.theme.footer" = "Hell und Dunkel legen das Anzeige-Design für Spielen, Modi, Spieler und Aktivität fest. System folgt dem Gerät für diese Tabs. Einstellungen bleibt nur bei Hell hell; sonst dunkler Stil.";
@@ -330,13 +330,13 @@
 "settings.about.versionFormat" = "Dart Buddy · Version %@";
 "settings.helpAndFeedback" = "Hilfe & Feedback";
 "settings.support.faq" = "Hilfe & FAQ";
-"settings.support.feedback" = "Vorschlag senden";
+"settings.support.feedback" = "Feedback senden";
 "settings.support.feedback.hint" = "Spielmodus-, Wertungs- oder Verbesserungsvorschläge per E-Mail senden";
 "settings.support.rate" = "Dart Buddy bewerten";
 "settings.support.privacy" = "Datenschutzrichtlinie";
 "settings.support.accessibility" = "Barrierefreiheit";
 "settings.support.faq.accessibility" = "Hilfe und FAQ im Browser öffnen";
-"settings.support.feedback.accessibility" = "Feedback-Formular öffnen, um Vorschläge per E-Mail zu senden";
+"settings.support.feedback.accessibility" = "Feedback per E-Mail senden";
 "settings.support.rate.accessibility" = "Dart Buddy im App Store bewerten";
 "settings.support.privacy.accessibility" = "Datenschutzrichtlinie im Browser öffnen";
 "settings.support.accessibility.accessibility" = "Barrierefreiheitsinformationen im Browser öffnen";
@@ -364,7 +364,7 @@
 "feedback.summary" = "Kurzfassung";
 "feedback.summary.footer" = "Kurzfassung ist Pflicht. Je genauer, desto besser — Modusnamen und Regeldetails helfen.";
 "feedback.details.title" = "Zusätzliche Details";
-"feedback.details.field" = "Details";
+"feedback.details.field" = "Weitere Angaben";
 "feedback.send" = "Feedback senden";
 "feedback.send.footer" = "Öffnet deine Mail-App an den Entwickler. Es wird nichts gesendet, bis du in Mail auf Senden tippst.";
 "feedback.mailUnavailable.title" = "Mail ist nicht eingerichtet";
@@ -388,7 +388,7 @@
 "feedback.category.botOpponent.specificItemPlaceholder" = "z. B. Mittlerer Bot, Trainingsbot";
 "feedback.category.botOpponent.summaryPlaceholder" = "z. B. Schlauere Checkouts oder realistischere Fehlwürfe";
 "feedback.category.botOpponent.detailsPlaceholder" = "Spieltyp, Startpunktzahl und Beispielwürfe helfen.";
-"feedback.category.botOpponent.subjectTag" = "Bots";
+"feedback.category.botOpponent.subjectTag" = "Bot-Gegner";
 "feedback.category.scoringUX.label" = "Wurfeingabe & während des Spiels";
 "feedback.category.scoringUX.specificItemLabel" = "Bildschirm oder Steuerung";
 "feedback.category.scoringUX.specificItemPlaceholder" = "z. B. Visuelles Dartboard, Zahlenfeld";
@@ -415,10 +415,10 @@
 "feedback.category.improvement.subjectTag" = "Verbesserung";
 "feedback.category.other.label" = "Etwas anderes";
 "feedback.category.other.specificItemLabel" = "Thema";
-"feedback.category.other.specificItemPlaceholder" = "Optional";
+"feedback.category.other.specificItemPlaceholder" = "Thema (optional)";
 "feedback.category.other.summaryPlaceholder" = "Einzeilige Zusammenfassung";
 "feedback.category.other.detailsPlaceholder" = "Zusätzlicher Kontext — optional, aber willkommen.";
-"feedback.category.other.subjectTag" = "Feedback";
+"feedback.category.other.subjectTag" = "Sonstiges";
 "settings.support.buyCoffee" = "Entwickler einen Kaffee spendieren";
 "settings.support.buyCoffee.footer" = "Optionale Spende zur Unterstützung der Entwicklung. Öffnet in Safari.";
 "settings.support.buyCoffee.accessibility" = "Entwickler einen Kaffee spendieren, öffnet im Browser";
@@ -468,7 +468,7 @@
 "scoring.board.accessibilityHint" = "Tippe dorthin, wo dein Dart gelandet ist. Über die Taste in der Kopfzeile wechselst du zum Zahlenfeld.";
 "play.cricket.targetClosed" = "Ziel geschlossen!";
 "play.x01.legWon.banner" = "Leg gewonnen!";
-"players.edit.name" = "Name";
+"players.edit.name" = "Spielername";
 "players.edit.notes" = "Notizen";
 "play.setup.startScore" = "Startpunktzahl";
 "play.setup.setsEnabled" = "Sets aktiviert";
@@ -555,8 +555,8 @@
 "activity.filter.mode.accessibilityFormat" = "Spielmodusfilter, %@";
 "modes.title" = "Modi";
 "modes.search.placeholder" = "Modi suchen";
-"modes.section.standard" = "Standard";
-"modes.section.party" = "Party";
+"modes.section.standard" = "Klassiker";
+"modes.section.party" = "Partyspiele";
 "modes.section.coop" = "Koop";
 "modes.section.practice" = "Training";
 "modes.section.countFormat" = "%lld Modi";
@@ -717,7 +717,7 @@
 "bot.difficulty.easy" = "Leicht";
 "bot.difficulty.medium" = "Mittel";
 "bot.difficulty.hard" = "Schwer";
-"bot.difficulty.pro" = "Pro";
+"bot.difficulty.pro" = "Profi";
 "bot.rosterNameFormat" = "Wurfroboter · %@";
 "trainingBot.nameFormat" = "Trainingspartner von %@";
 "trainingBot.section.title" = "Trainingspartner";
@@ -786,7 +786,7 @@
 "customBot.add.menu" = "Eigener Bot…";
 "customBot.create.title" = "Eigener Bot";
 "customBot.create.action" = "Erstellen";
-"customBot.create.section.identity" = "Name";
+"customBot.create.section.identity" = "Identität";
 "customBot.create.section.stats" = "Zielwerte";
 "customBot.create.footer" = "Lege fest, wie stark der Bot in X01 (3-Dart-Durchschnitt) und Cricket (Marks pro Runde) spielt. Extreme Werte sind erlaubt.";
 "customBot.name.placeholder" = "Bot-Name (optional)";
@@ -1185,7 +1185,7 @@
 "play.party.fleet.title" = "Flotte";
 "play.party.fleet.subtitle" = "Verstecke deine Flotte — ruf, wirf, versenke die gegnerische";
 "play.fleet.setup.preset.quick" = "Schnell";
-"play.fleet.setup.preset.standard" = "Standard";
+"play.fleet.setup.preset.standard" = "Klassisch";
 "play.fleet.setup.preset.siege" = "Belagerung";
 "play.fleet.setup.preset.bullseye" = "Bullseye";
 "play.fleet.setup.preset" = "Voreinstellung";
@@ -1318,7 +1318,7 @@
 "coop.summary.raidDefeatSubheadFormat" = "%@ · Boss %d LP übrig";
 "play.raid.setup.bossTier" = "Boss-Stufe";
 "play.raid.setup.bossTier.challenger" = "Herausforderer";
-"play.raid.setup.bossTier.standard" = "Standard";
+"play.raid.setup.bossTier.standard" = "Normal";
 "play.raid.setup.bossTier.nightmare" = "Albtraum";
 "play.raid.setup.heroHearts" = "Heldenherzen";
 "play.raid.setup.enrageEnabled" = "Wutanfall";
@@ -1447,7 +1447,7 @@
 "achievement.db_play_50.description" = "Schließe 50 Partien ab.";
 "achievement.db_play_100.name" = "Engagiert";
 "achievement.db_play_100.description" = "Schließe 100 Partien ab.";
-"achievement.db_play_250.name" = "Veteran";
+"achievement.db_play_250.name" = "Dauerspieler";
 "achievement.db_play_250.description" = "Schließe 250 Partien ab.";
 "achievement.db_play_500.name" = "Hall of Fame";
 "achievement.db_play_500.description" = "Schließe 500 Partien ab.";
