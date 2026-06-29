@@ -263,6 +263,10 @@ struct SetupHomeRosterSection: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // `children: .contain` keeps each staged row a distinct accessibility element.
+        // Without it, a lone row merges into this identified container and loses its own
+        // `setup_selected_<name>` identifier (see docs/release/onboarding-staging-tests.md).
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("setup_turnOrderList")
     }
 
