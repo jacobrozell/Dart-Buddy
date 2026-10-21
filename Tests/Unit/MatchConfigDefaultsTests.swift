@@ -20,7 +20,7 @@ struct MatchConfigDefaultsTests {
                  (.football, .football), (.grandNational, .grandNational), (.hareAndHounds, .hareAndHounds),
                  (.aroundTheClock, .aroundTheClock), (.aroundTheClock180, .aroundTheClock180),
                  (.chaseTheDragon, .chaseTheDragon), (.nineLives, .nineLives),
-                 (.fleet, .fleet), (.raid, .raid):
+                 (.fleet, .fleet), (.raid, .raid), (.bobs27, .bobs27), (.halveIt, .halveIt):
                 break
             default:
                 Issue.record("Default config payload mismatch for \(type)")

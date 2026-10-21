@@ -43,7 +43,7 @@ struct MatchScoreboardListView: View {
                     Text(entry.totalText)
                         .font(usesLandscapeLayout ? .title2.weight(.bold) : .title3.weight(.bold))
                         .monospacedDigit()
-                        .foregroundStyle(entry.isActive ? Brand.green : Brand.textPrimary)
+                        .foregroundStyle(Brand.textPrimary)
                         .layoutPriority(1)
                 }
                 .padding(.horizontal, usesLandscapeLayout ? DS.Spacing.s4 : DS.Spacing.s3)
@@ -71,7 +71,7 @@ struct MatchScoreboardListView: View {
             if let leadingText = entry.leadingText {
                 Text(leadingText)
                     .font(usesLandscapeLayout ? .caption.weight(.semibold) : .caption2.weight(.semibold))
-                    .foregroundStyle(Brand.green)
+                    .foregroundStyle(Brand.textPrimary)
             }
         }
         .frame(width: nameColumnWidth, alignment: .leading)

@@ -94,6 +94,16 @@ enum MatchConfigAnalytics {
                 "configHeroHearts": String(cfg.heroHearts),
                 "configEnrageEnabled": bool(cfg.enrageEnabled)
             ]
+        case let .bobs27(cfg):
+            return [
+                "configBullSubtract": String(cfg.bullSubtract),
+                "configGameOverAtZero": bool(cfg.gameOverAtZero)
+            ]
+        case let .halveIt(cfg):
+            return [
+                "configStartingScore": String(cfg.startingScore),
+                "configSequence": cfg.sequenceRaw
+            ]
         case .mickeyMouse, .mulligan:
             return [:]
         }

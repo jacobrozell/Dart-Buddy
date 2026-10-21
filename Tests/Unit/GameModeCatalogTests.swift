@@ -48,7 +48,7 @@ struct GameModeCatalogTests {
             #expect(entry.matchType == nil, "Planned mode \(entry.id) must not claim a MatchType")
             #expect(entry.isAvailable == false)
         }
-        #expect(GameModeCatalog.planned.count == 12)
+        #expect(GameModeCatalog.planned.count == 10)
     }
 
     @Test

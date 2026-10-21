@@ -133,6 +133,24 @@ final class HistoryDetailViewModel: ObservableObject {
                     return Self.genericTurnTimeline(turnIndex: turn.turnIndex, playerId: turn.playerId, names: participantNames)
                 case let .raidVisit(visit):
                     return Self.genericTurnTimeline(turnIndex: visit.turnIndex, playerId: visit.playerId, names: participantNames)
+                case let .bobs27Round(round):
+                    let name = participantNames[round.playerId] ?? String(round.playerId.uuidString.prefix(6))
+                    return L10n.format(
+                        "history.timeline.bobs27RoundFormat",
+                        round.roundIndex + 1,
+                        name,
+                        round.delta,
+                        round.scoreAfter
+                    )
+                case let .halveItRound(round):
+                    let name = participantNames[round.playerId] ?? String(round.playerId.uuidString.prefix(6))
+                    return L10n.format(
+                        "history.timeline.halveItRoundFormat",
+                        round.roundIndex + 1,
+                        name,
+                        round.target,
+                        round.totalAfter
+                    )
                 case let .fleetDart(dart):
                     let name = participantNames[dart.playerId] ?? String(dart.playerId.uuidString.prefix(6))
                     return L10n.format("history.timeline.fleetDartFormat", name, dart.outcome.rawValue)
@@ -283,7 +301,7 @@ final class HistoryDetailViewModel: ObservableObject {
                          .americanCricketTurn, .mickeyMouseTurn, .mulliganTurn, .englishCricketTurn,
                          .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
                          .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
-                         .chaseTheDragonTurn, .nineLivesTurn, .raidVisit, .fleetDart:
+                         .chaseTheDragonTurn, .nineLivesTurn, .raidVisit, .fleetDart, .bobs27Round, .halveItRound:
                         true
                     case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
                         false
@@ -467,6 +485,10 @@ final class HistoryDetailViewModel: ObservableObject {
                 throwsByPlayer[dart.playerId, default: 0] += 1
                 if dart.multiplierRaw == DartMultiplier.double.rawValue { doublesByPlayer[dart.playerId, default: 0] += 1 }
                 if dart.multiplierRaw == DartMultiplier.triple.rawValue { triplesByPlayer[dart.playerId, default: 0] += 1 }
+            case let .bobs27Round(round):
+                throwsByPlayer[round.playerId, default: 0] += 3
+            case let .halveItRound(round):
+                throwsByPlayer[round.playerId, default: 0] += 3
             case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
                 break
             }

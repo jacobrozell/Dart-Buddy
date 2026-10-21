@@ -70,14 +70,18 @@ struct CoopBossChromeView: View {
     private var enrageBadge: some View {
         HStack(spacing: 4) {
             Image(systemName: "flame.fill")
+                .foregroundStyle(Brand.orange)
                 .accessibilityHidden(true)
             Text(L10n.string("play.raid.phase.enrage"))
                 .font(.caption.weight(.semibold))
+                .foregroundStyle(Brand.textPrimary)
         }
-        .foregroundStyle(Brand.orange)
         .padding(.horizontal, DS.Spacing.s2)
         .padding(.vertical, DS.Spacing.s1)
         .background(Brand.orange.opacity(0.16), in: Capsule())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L10n.string("play.raid.phase.enrage"))
+        .accessibilityIdentifier("coop_boss_enrage_badge")
     }
 
     private var heroHeartsStrip: some View {
@@ -101,9 +105,25 @@ struct CoopBossChromeView: View {
                     .padding(.horizontal, DS.Spacing.s2)
                     .padding(.vertical, DS.Spacing.s1)
                     .background(hero.isActive ? Brand.green.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: DS.Radius.xs))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(heroAccessibilityLabel(hero))
+                    .accessibilityAddTraits(hero.isActive ? .isSelected : [])
                 }
             }
         }
         .accessibilityIdentifier("coop_hero_hearts")
+    }
+
+    private func heroAccessibilityLabel(_ hero: CoopHeroHeartRow) -> String {
+        var parts = [
+            hero.name,
+            L10n.format("play.raid.heartsAccessibilityFormat", hero.hearts, hero.maxHearts)
+        ]
+        if hero.isDown {
+            parts.append(L10n.string("play.raid.heroDownAccessibility"))
+        } else if hero.isActive {
+            parts.append(L10n.string("common.active"))
+        }
+        return parts.joined(separator: ", ")
     }
 }

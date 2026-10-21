@@ -64,7 +64,8 @@ enum GameRulesCatalog {
         x01, cricket, americanCricket,
         baseball, killer, shanghai, mickeyMouse, mulligan, englishCricket,
         knockout, suddenDeath, fiftyOneByFives, golf, football, grandNational, hareAndHounds,
-        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives, fleet, raid
+        aroundTheClock, aroundTheClock180, chaseTheDragon, nineLives, fleet, raid,
+        bobs27, halveIt
     ]
 
     private static func makeGuide(
@@ -280,6 +281,20 @@ enum GameRulesCatalog {
         ("enrage", nil, "play.rules.raid.enrage.title", "play.rules.raid.enrage.body"),
         ("hearts", nil, "play.rules.raid.hearts.title", "play.rules.raid.hearts.body"),
         ("winning", nil, "play.rules.raid.winning.title", "play.rules.raid.winning.body")
+    ])
+
+    private static let bobs27 = makeGuide(id: "bobs27", matchType: .bobs27, [
+        ("overview", "scope", "play.rules.bobs27.overview.title", "play.rules.bobs27.overview.body"),
+        ("hit", nil, "play.rules.bobs27.hit.title", "play.rules.bobs27.hit.body"),
+        ("miss", nil, "play.rules.bobs27.miss.title", "play.rules.bobs27.miss.body"),
+        ("gameOver", nil, "play.rules.bobs27.gameOver.title", "play.rules.bobs27.gameOver.body")
+    ])
+
+    private static let halveIt = makeGuide(id: "halveIt", matchType: .halveIt, [
+        ("overview", "divide.circle.fill", "play.rules.halveIt.overview.title", "play.rules.halveIt.overview.body"),
+        ("start", nil, "play.rules.halveIt.start.title", "play.rules.halveIt.start.body"),
+        ("round", nil, "play.rules.halveIt.round.title", "play.rules.halveIt.round.body"),
+        ("winning", nil, "play.rules.halveIt.winning.title", "play.rules.halveIt.winning.body")
     ])
 
     private static let previewAll: [GameRulesPreviewGuide] = [

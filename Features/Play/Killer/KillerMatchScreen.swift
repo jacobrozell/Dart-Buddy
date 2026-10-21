@@ -24,7 +24,7 @@ struct KillerMatchScreen: View {
                     if let hint = viewModel.targetHint {
                         Text(hint)
                             .font(.caption2)
-                            .foregroundStyle(Brand.amber)
+                            .foregroundStyle(Brand.textSecondary)
                     }
                 }
             } trailing: {
@@ -34,7 +34,7 @@ struct KillerMatchScreen: View {
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(width: 44, height: 44)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }

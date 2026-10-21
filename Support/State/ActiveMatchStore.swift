@@ -36,6 +36,7 @@ public final class ActiveMatchStore: ObservableObject {
 
     func clearAll() {
         sessions.removeAll()
+        resumeHints.removeAll()
     }
 
     func activeMatchSummary() -> MatchSummary? {

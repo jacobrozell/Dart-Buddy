@@ -30,7 +30,7 @@ Catalog source: [`Features/Modes/GameModeCatalog.swift`](../../Features/Modes/Ga
 | [`CoopPvEModesSpec.md`](../CoopPvEModesSpec.md) | Cross-mode contract + **§13 progress**; UI §7, Learn §8, a11y §9, light/dark §7.5 |
 | [`InVisitSequenceProgressionSupplement.md`](InVisitSequenceProgressionSupplement.md) | Multi-target visits (Around the Clock, Nine Lives, Hare and Hounds, Chase the Dragon) — engine + `DartNumberPad` projection |
 
-## Implemented (22)
+## Implemented (24)
 
 - [`X01GameSpec.md`](implemented/X01GameSpec.md)
 - [`CricketSpec.md`](implemented/CricketSpec.md)
@@ -54,10 +54,12 @@ Catalog source: [`Features/Modes/GameModeCatalog.swift`](../../Features/Modes/Ga
 - [`AroundTheClock180GameSpec.md`](implemented/AroundTheClock180GameSpec.md)
 - [`ChaseTheDragonGameSpec.md`](implemented/ChaseTheDragonGameSpec.md)
 - [`NineLivesGameSpec.md`](implemented/NineLivesGameSpec.md)
+- [`Bobs27GameSpec.md`](implemented/Bobs27GameSpec.md)
+- [`HalveItGameSpec.md`](implemented/HalveItGameSpec.md)
 
-## Planned (12 catalog stubs + R&D)
+## Planned (10 catalog stubs + R&D)
 
-See [`planned/`](planned/) — 12 catalog stubs (Blind Killer, Follow the Leader, Loop, Prisoner, Scam, Snooker, Tic-Tac-Toe, Cerberus, The Vault, Clear the Board, Bob's 27, Halve-It), Call & Hit, Guided Practice, and **17 custom** modes below.
+See [`planned/`](planned/) — 10 catalog stubs (Blind Killer, Follow the Leader, Loop, Prisoner, Scam, Snooker, Tic-Tac-Toe, Cerberus, The Vault, Clear the Board), Call & Hit, Guided Practice, and **17 custom** modes below.
 
 ### Custom / co-op (brainstorm → spec)
 

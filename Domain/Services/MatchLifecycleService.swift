@@ -27,6 +27,8 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
     case fleetSonar(FleetSonarEvent)
     case fleetDart(FleetDartEvent)
     case raidVisit(RaidVisitEvent)
+    case bobs27Round(Bobs27RoundEvent)
+    case halveItRound(HalveItRoundEvent)
 
     private enum CodingKeys: String, CodingKey {
         case kind
@@ -56,6 +58,8 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetSonar
         case fleetDart
         case raidVisit
+        case bobs27
+        case halveIt
     }
 
     private enum Kind: String, Codable {
@@ -85,6 +89,8 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case fleetSonar
         case fleetDart
         case raidVisit
+        case bobs27Round
+        case halveItRound
     }
 
     public init(from decoder: any Decoder) throws {
@@ -143,6 +149,10 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
             self = .fleetDart(try container.decode(FleetDartEvent.self, forKey: .fleetDart))
         case .raidVisit:
             self = .raidVisit(try container.decode(RaidVisitEvent.self, forKey: .raidVisit))
+        case .bobs27Round:
+            self = .bobs27Round(try container.decode(Bobs27RoundEvent.self, forKey: .bobs27))
+        case .halveItRound:
+            self = .halveItRound(try container.decode(HalveItRoundEvent.self, forKey: .halveIt))
         }
     }
 
@@ -227,6 +237,12 @@ public enum MatchEventPayload: Codable, Equatable, Sendable {
         case let .raidVisit(event):
             try container.encode(Kind.raidVisit, forKey: .kind)
             try container.encode(event, forKey: .raidVisit)
+        case let .bobs27Round(event):
+            try container.encode(Kind.bobs27Round, forKey: .kind)
+            try container.encode(event, forKey: .bobs27)
+        case let .halveItRound(event):
+            try container.encode(Kind.halveItRound, forKey: .kind)
+            try container.encode(event, forKey: .halveIt)
         }
     }
 }
@@ -281,6 +297,8 @@ public struct MatchRuntimeState: Codable, Equatable, Sendable {
     public var nineLivesState: NineLivesState?
     public var fleetState: FleetState?
     public var raidState: RaidState?
+    public var bobs27State: Bobs27State?
+    public var halveItState: HalveItState?
 }
 
 public struct MatchLifecycleSession: Sendable {
@@ -346,7 +364,9 @@ public enum MatchLifecycleService {
             chaseTheDragonState: nil,
             nineLivesState: nil,
             fleetState: nil,
-            raidState: nil
+            raidState: nil,
+            bobs27State: nil,
+            halveItState: nil
         )
 
         switch (type, config) {
@@ -394,6 +414,10 @@ public enum MatchLifecycleService {
             runtime.fleetState = try FleetEngine.makeInitialState(config: cfg, playerIds: playerIds)
         case let (.raid, .raid(cfg)):
             runtime.raidState = try RaidEngine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.bobs27, .bobs27(cfg)):
+            runtime.bobs27State = try Bobs27Engine.makeInitialState(config: cfg, playerIds: playerIds)
+        case let (.halveIt, .halveIt(cfg)):
+            runtime.halveItState = try HalveItEngine.makeInitialState(config: cfg, playerIds: playerIds)
         default:
             throw AppError(code: .validationFailed, layer: .domain, severity: .warning, isRecoverable: true, userMessageKey: "error.match.configMismatch")
         }
@@ -664,6 +688,22 @@ public enum MatchLifecycleService {
         try NineLivesMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
     }
 
+    public static func submitBobs27Round(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        try Bobs27MatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
+    }
+
+    public static func submitHalveItRound(
+        session: MatchLifecycleSession,
+        darts: [DartInput],
+        timestamp: Date = Date()
+    ) throws -> MatchLifecycleSession {
+        try HalveItMatchLifecycleHandler.submitTurn(session: session, darts: darts, timestamp: timestamp)
+    }
+
     public static func submitRaidVisit(
         session: MatchLifecycleSession,
         darts: [DartInput],
@@ -818,7 +858,7 @@ public enum MatchLifecycleService {
             return turn.darts.map(ChaseTheDragonEngine.dartInput(from:))
         case .suddenDeathTurn, .fiftyOneByFivesTurn, .grandNationalTurn, .hareAndHoundsTurn,
              .aroundTheClockTurn, .nineLivesTurn, .raidVisit, .fleetPlacement, .fleetPlacementUI, .fleetSonar,
-             .fleetDart:
+             .fleetDart, .bobs27Round, .halveItRound:
             return nil
         }
     }
@@ -916,6 +956,10 @@ public enum MatchLifecycleService {
             return try FleetMatchLifecycleHandler.replaySonar(sonar, session: session)
         case let .fleetDart(dart):
             return try FleetMatchLifecycleHandler.replayDart(dart, session: session)
+        case let .bobs27Round(round):
+            return try Bobs27MatchLifecycleHandler.replayTurn(round, session: session, timestamp: event.timestamp)
+        case let .halveItRound(round):
+            return try HalveItMatchLifecycleHandler.replayTurn(round, session: session, timestamp: event.timestamp)
         }
     }
 

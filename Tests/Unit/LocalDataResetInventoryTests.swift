@@ -15,12 +15,14 @@ struct LocalDataResetInventoryTests {
 
     @Test
     func setupPreferenceInventoryListsEveryImplementedModeStore() {
-        #expect(LocalDataResetInventory.setupPreferenceStores.count == 4)
+        #expect(LocalDataResetInventory.setupPreferenceStores.count == 6)
         let names = Set(LocalDataResetInventory.setupPreferenceStores.map { String(describing: $0) })
         #expect(names.contains("CricketSetupPreferences"))
         #expect(names.contains("BaseballSetupPreferences"))
         #expect(names.contains("ShanghaiSetupPreferences"))
         #expect(names.contains("KillerSetupPreferences"))
+        #expect(names.contains("RaidSetupPreferences"))
+        #expect(names.contains("AroundTheClockSetupPreferences"))
     }
 
     @Test
@@ -49,6 +51,14 @@ struct LocalDataResetInventoryTests {
             userDefaults: defaults
         )
         KillerSetupPreferences.save(startingLives: 5, userDefaults: defaults)
+        RaidSetupPreferences.save(bossTier: .nightmare, userDefaults: defaults)
+        RaidSetupPreferences.save(heroHearts: 5, userDefaults: defaults)
+        RaidSetupPreferences.save(enrageEnabled: false, userDefaults: defaults)
+        AroundTheClockSetupPreferences.save(
+            includeBullFinish: true,
+            resetPolicy: .resetOnThreeMisses,
+            userDefaults: defaults
+        )
 
         LocalAppStateReset.clearAllPersistedAuxiliaryState(userDefaults: defaults)
 
@@ -71,6 +81,14 @@ struct LocalDataResetInventoryTests {
         #expect(cricket.scoringMode == .standard)
 
         #expect(KillerSetupPreferences.load(userDefaults: defaults) == 3)
+
+        #expect(RaidSetupPreferences.loadBossTier(userDefaults: defaults) == .standard)
+        #expect(RaidSetupPreferences.loadHeroHearts(userDefaults: defaults) == 3)
+        #expect(RaidSetupPreferences.loadEnrageEnabled(userDefaults: defaults) == true)
+
+        let atc = AroundTheClockSetupPreferences.load(userDefaults: defaults)
+        #expect(atc.includeBullFinish == false)
+        #expect(atc.resetPolicy == .noReset)
     }
 
     private func makeIsolatedDefaults() -> UserDefaults {

@@ -33,7 +33,7 @@ struct RaidShieldProgressView: View {
             Text("\(segment)")
                 .font(.caption2.weight(.bold))
                 .monospacedDigit()
-                .foregroundStyle(isClosed ? Brand.green : Brand.textPrimary)
+                .foregroundStyle(Brand.textPrimary)
 
             if isClosed {
                 Image(systemName: "checkmark.seal.fill")
@@ -53,7 +53,7 @@ struct RaidShieldProgressView: View {
             if isClosed {
                 Text(L10n.string("play.raid.shieldProgress.damageBadge"))
                     .font(.system(size: 9, weight: .bold, design: .rounded))
-                    .foregroundStyle(Brand.green)
+                    .foregroundStyle(Brand.textPrimary)
             } else {
                 Color.clear.frame(height: 11)
             }

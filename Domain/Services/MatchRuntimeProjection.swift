@@ -219,6 +219,29 @@ enum MatchRuntimeProjection {
             )
             return
         }
+        if let state = runtime.bobs27State {
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : state.playerId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.isComplete ? state.playerId : nil,
+                timestamp: timestamp
+            )
+            return
+        }
+        if let state = runtime.halveItState {
+            let currentId = state.players.indices.contains(state.currentPlayerIndex)
+                ? state.players[state.currentPlayerIndex].playerId
+                : nil
+            projectStandardTurnState(
+                &runtime,
+                currentTurnPlayerId: state.isComplete ? nil : currentId,
+                isComplete: state.isComplete,
+                winnerPlayerId: state.winnerPlayerId,
+                timestamp: timestamp
+            )
+            return
+        }
         if let state = runtime.fleetState {
             projectFleetState(&runtime, fleetState: state, timestamp: timestamp)
         }

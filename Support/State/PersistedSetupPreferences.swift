@@ -13,3 +13,5 @@ extension CricketSetupPreferences: PersistedSetupPreferences {}
 extension BaseballSetupPreferences: PersistedSetupPreferences {}
 extension ShanghaiSetupPreferences: PersistedSetupPreferences {}
 extension KillerSetupPreferences: PersistedSetupPreferences {}
+extension RaidSetupPreferences: PersistedSetupPreferences {}
+extension AroundTheClockSetupPreferences: PersistedSetupPreferences {}

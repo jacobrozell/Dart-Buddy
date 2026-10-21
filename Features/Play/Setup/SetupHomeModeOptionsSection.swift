@@ -49,8 +49,10 @@ struct SetupHomeModeOptionsSection: View {
             SetupChaseTheDragonOptionChips(setupViewModel: setupViewModel)
         case .nineLives:
             SetupNineLivesOptionChips(setupViewModel: setupViewModel)
-        case .mickeyMouse, .mulligan,
-             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt, .none:
+        case .halveIt:
+            SetupHalveItOptionChips(setupViewModel: setupViewModel)
+        case .mickeyMouse, .mulligan, .bobs27,
+             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .none:
             EmptyView()
         }
     }

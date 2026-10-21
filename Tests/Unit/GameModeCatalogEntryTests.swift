@@ -96,9 +96,9 @@ struct GameModeCatalogEntryTests {
     @Test
     func plannedModesUseSectionAccentFallback() {
         let plannedParty = GameModeCatalog.planned.first { $0.section == .party }
-        let plannedPractice = GameModeCatalog.planned.first { $0.section == .practice }
         #expect(plannedParty != nil)
-        #expect(plannedPractice != nil)
+        // Practice section is fully shipped after Bob's 27 / Halve-It promotion.
+        #expect(GameModeCatalog.planned.filter { $0.section == .practice }.isEmpty)
     }
 
     @Test

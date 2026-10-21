@@ -5,19 +5,21 @@ enum AroundTheClockSetupPreferences {
     private static let includeBullFinishKey = "aroundTheClockSetup.includeBullFinish"
     private static let resetPolicyKey = "aroundTheClockSetup.resetPolicy"
 
-    static func load() -> (includeBullFinish: Bool, resetPolicy: AroundTheClockResetPolicy) {
-        let defaults = UserDefaults.standard
-        let bull = defaults.object(forKey: includeBullFinishKey) as? Bool ?? false
-        let policyRaw = defaults.string(forKey: resetPolicyKey)
+    static func load(userDefaults: UserDefaults = .standard) -> (includeBullFinish: Bool, resetPolicy: AroundTheClockResetPolicy) {
+        let bull = userDefaults.object(forKey: includeBullFinishKey) as? Bool ?? false
+        let policyRaw = userDefaults.string(forKey: resetPolicyKey)
             ?? AroundTheClockResetPolicy.noReset.rawValue
         let policy = AroundTheClockResetPolicy(rawValue: policyRaw) ?? .noReset
         return (bull, policy)
     }
 
-    static func save(includeBullFinish: Bool, resetPolicy: AroundTheClockResetPolicy) {
-        let defaults = UserDefaults.standard
-        defaults.set(includeBullFinish, forKey: includeBullFinishKey)
-        defaults.set(resetPolicy.rawValue, forKey: resetPolicyKey)
+    static func save(
+        includeBullFinish: Bool,
+        resetPolicy: AroundTheClockResetPolicy,
+        userDefaults: UserDefaults = .standard
+    ) {
+        userDefaults.set(includeBullFinish, forKey: includeBullFinishKey)
+        userDefaults.set(resetPolicy.rawValue, forKey: resetPolicyKey)
     }
 
     static func clearStored(userDefaults: UserDefaults = .standard) {

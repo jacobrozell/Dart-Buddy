@@ -61,11 +61,11 @@ struct AroundTheClockSequenceStripView: View {
                 let target = row.targetIndex < 20 ? row.targetIndex + 1 : 25
                 Text(L10n.format("play.aroundTheClock.currentTargetFormat", target))
                     .font(usesLandscapeLayout ? .caption.weight(.semibold) : .caption2.weight(.semibold))
-                    .foregroundStyle(row.isActive ? Brand.green : Brand.textSecondary)
+                    .foregroundStyle(row.isActive ? Brand.textPrimary : Brand.textSecondary)
             } else {
                 Text(L10n.string("play.aroundTheClock.announce.complete"))
                     .font(usesLandscapeLayout ? .caption.weight(.semibold) : .caption2.weight(.semibold))
-                    .foregroundStyle(Brand.green)
+                    .foregroundStyle(Brand.textPrimary)
             }
         }
     }

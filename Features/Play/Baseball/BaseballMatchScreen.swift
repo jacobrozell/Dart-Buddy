@@ -25,7 +25,7 @@ struct BaseballMatchScreen: View {
                         if viewModel.showsExtraInningBadge {
                             Text(L10n.string("play.baseball.extraInning"))
                                 .font(.caption2.weight(.semibold))
-                                .foregroundStyle(Brand.amber)
+                                .foregroundStyle(Brand.textPrimary)
                         }
                     }
                     .accessibilityElement(children: .ignore)
@@ -39,7 +39,7 @@ struct BaseballMatchScreen: View {
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(width: 44, height: 44)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
