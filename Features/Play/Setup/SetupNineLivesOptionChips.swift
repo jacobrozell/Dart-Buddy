@@ -22,7 +22,8 @@ struct SetupNineLivesOptionChips: View {
     }
 
     private var nineLivesStartingLivesChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.nineLives.setup.startingLives", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.nineLivesStartingLives.displayName
+        return SetupOptionChipHelpers.chip(titleKey: "play.nineLives.setup.startingLives", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(NineLivesStartingLives.allCases, id: \.rawValue) { option in
                     Button(option.displayName) {
@@ -32,11 +33,14 @@ struct SetupNineLivesOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.nineLivesStartingLives.displayName,
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.nineLives.setup.startingLives", value)
+            )
             .accessibilityIdentifier("setup_nineLivesStartingLivesChip")
         }
     }

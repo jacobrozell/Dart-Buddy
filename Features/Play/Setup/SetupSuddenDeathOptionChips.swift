@@ -24,25 +24,30 @@ struct SetupSuddenDeathOptionChips: View {
     }
 
     private var suddenDeathEliminateAllTiedChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.suddenDeath.setup.eliminateAllTied", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.suddenDeathEliminateAllTied
+            ? L10n.string("common.on")
+            : L10n.string("common.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.suddenDeath.setup.eliminateAllTied", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Button {
                 setupViewModel.suddenDeathEliminateAllTied.toggle()
                 setupViewModel.revalidate()
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.suddenDeathEliminateAllTied
-                        ? L10n.string("common.on")
-                        : L10n.string("common.off"),
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.suddenDeath.setup.eliminateAllTied", value)
+            )
             .accessibilityIdentifier("setup_suddenDeathEliminateAllTiedChip")
         }
     }
 
     private var suddenDeathVisitsPerRoundChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.suddenDeath.setup.visitsPerRound", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format("play.suddenDeath.setup.visitsPerRoundValueFormat", setupViewModel.suddenDeathVisitsPerRound)
+        return SetupOptionChipHelpers.chip(titleKey: "play.suddenDeath.setup.visitsPerRound", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([1, 2], id: \.self) { count in
                     Button(L10n.format("play.suddenDeath.setup.visitsPerRoundValueFormat", count)) {
@@ -52,11 +57,14 @@ struct SetupSuddenDeathOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format("play.suddenDeath.setup.visitsPerRoundValueFormat", setupViewModel.suddenDeathVisitsPerRound),
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.suddenDeath.setup.visitsPerRound", value)
+            )
             .accessibilityIdentifier("setup_suddenDeathVisitsPerRoundChip")
         }
     }

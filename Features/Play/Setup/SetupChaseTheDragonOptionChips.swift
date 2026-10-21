@@ -22,7 +22,8 @@ struct SetupChaseTheDragonOptionChips: View {
     }
 
     private var chaseTheDragonLapsChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.chaseTheDragon.setup.laps", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.chaseTheDragonLaps.displayName
+        return SetupOptionChipHelpers.chip(titleKey: "play.chaseTheDragon.setup.laps", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(ChaseTheDragonLaps.allCases, id: \.rawValue) { laps in
                     Button(laps.displayName) {
@@ -32,11 +33,14 @@ struct SetupChaseTheDragonOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.chaseTheDragonLaps.displayName,
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.chaseTheDragon.setup.laps", value)
+            )
             .accessibilityIdentifier("setup_chaseTheDragonLapsChip")
         }
     }

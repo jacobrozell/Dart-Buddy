@@ -27,7 +27,11 @@ struct SetupFiftyOneByFivesOptionChips: View {
     }
 
     private var fiftyOneByFivesTargetChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fiftyOneByFives.setup.targetPoints", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format(
+            "play.fiftyOneByFives.setup.targetPointsValueFormat",
+            setupViewModel.fiftyOneByFivesTargetPoints
+        )
+        return SetupOptionChipHelpers.chip(titleKey: "play.fiftyOneByFives.setup.targetPoints", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([31, 41, 51, 61, 101], id: \.self) { target in
                     Button(L10n.format("play.fiftyOneByFives.setup.targetPointsValueFormat", target)) {
@@ -37,20 +41,23 @@ struct SetupFiftyOneByFivesOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format(
-                        "play.fiftyOneByFives.setup.targetPointsValueFormat",
-                        setupViewModel.fiftyOneByFivesTargetPoints
-                    ),
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fiftyOneByFives.setup.targetPoints", value)
+            )
             .accessibilityIdentifier("setup_fiftyOneByFivesTargetChip")
         }
     }
 
     private var fiftyOneByFivesMustFinishExactChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fiftyOneByFives.setup.mustFinishExact", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.fiftyOneByFivesMustFinishExact
+            ? L10n.string("common.on")
+            : L10n.string("common.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.fiftyOneByFives.setup.mustFinishExact", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Toggle(isOn: Binding(
                 get: { setupViewModel.fiftyOneByFivesMustFinishExact },
                 set: {
@@ -61,6 +68,9 @@ struct SetupFiftyOneByFivesOptionChips: View {
                 EmptyView()
             }
             .labelsHidden()
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fiftyOneByFives.setup.mustFinishExact", value)
+            )
             .accessibilityIdentifier("setup_fiftyOneByFivesMustFinishExactToggle")
         }
     }

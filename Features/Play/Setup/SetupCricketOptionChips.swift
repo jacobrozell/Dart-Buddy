@@ -93,7 +93,7 @@ struct SetupCricketOptionChips: View {
     }
 
     private var cricketModeChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.mode", color: Brand.red, dynamicTypeSize: dynamicTypeSize) {
+        SetupOptionChipHelpers.chip(titleKey: "play.setup.chip.mode", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(CricketScoringMode.allCases, id: \.rawValue) { value in
                     Button(value.displayName) {
@@ -105,7 +105,7 @@ struct SetupCricketOptionChips: View {
             } label: {
                 SetupOptionChipHelpers.chipBox(
                     setupViewModel.cricketScoringMode.displayName,
-                    color: Brand.red,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: setupViewModel.cricketPointsEnabled
                 )
                 .opacity(setupViewModel.cricketPointsEnabled ? 1 : 0.45)

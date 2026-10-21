@@ -24,7 +24,8 @@ struct SetupGrandNationalOptionChips: View {
     }
 
     private var grandNationalRulesetChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.grandNational.setup.ruleset", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.grandNationalRuleset.displayName
+        return SetupOptionChipHelpers.chip(titleKey: "play.grandNational.setup.ruleset", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(GrandNationalRuleset.allCases, id: \.rawValue) { ruleset in
                     Button(ruleset.displayName) {
@@ -34,17 +35,21 @@ struct SetupGrandNationalOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.grandNationalRuleset.displayName,
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.grandNational.setup.ruleset", value)
+            )
             .accessibilityIdentifier("setup_grandNationalRulesetChip")
         }
     }
 
     private var grandNationalLapsChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.grandNational.setup.laps", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format("play.grandNational.setup.lapsValueFormat", setupViewModel.grandNationalLaps)
+        return SetupOptionChipHelpers.chip(titleKey: "play.grandNational.setup.laps", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([1, 2, 3], id: \.self) { count in
                     Button(L10n.format("play.grandNational.setup.lapsValueFormat", count)) {
@@ -54,11 +59,14 @@ struct SetupGrandNationalOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format("play.grandNational.setup.lapsValueFormat", setupViewModel.grandNationalLaps),
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.grandNational.setup.laps", value)
+            )
             .accessibilityIdentifier("setup_grandNationalLapsChip")
         }
     }

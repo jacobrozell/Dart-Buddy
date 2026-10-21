@@ -22,7 +22,8 @@ struct SetupKnockoutOptionChips: View {
     }
 
     private var knockoutStrikesChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.knockout.setup.strikesToEliminate", color: Brand.red, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format("play.knockout.setup.strikesValueFormat", setupViewModel.knockoutStrikesToEliminate)
+        return SetupOptionChipHelpers.chip(titleKey: "play.knockout.setup.strikesToEliminate", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([1, 2, 3, 4, 5], id: \.self) { count in
                     Button(L10n.format("play.knockout.setup.strikesValueFormat", count)) {
@@ -32,11 +33,14 @@ struct SetupKnockoutOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format("play.knockout.setup.strikesValueFormat", setupViewModel.knockoutStrikesToEliminate),
-                    color: Brand.red,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.knockout.setup.strikesToEliminate", value)
+            )
             .accessibilityIdentifier("setup_knockoutStrikesChip")
         }
     }

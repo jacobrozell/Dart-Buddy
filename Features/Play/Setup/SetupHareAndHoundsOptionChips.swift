@@ -22,7 +22,8 @@ struct SetupHareAndHoundsOptionChips: View {
     }
 
     private var hareAndHoundsHoundStartChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.hareAndHounds.setup.houndStart", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.hareAndHoundsHoundStart.displayName
+        return SetupOptionChipHelpers.chip(titleKey: "play.hareAndHounds.setup.houndStart", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(HoundStartPosition.allCases, id: \.rawValue) { position in
                     Button(position.displayName) {
@@ -32,11 +33,14 @@ struct SetupHareAndHoundsOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.hareAndHoundsHoundStart.displayName,
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.hareAndHounds.setup.houndStart", value)
+            )
             .accessibilityIdentifier("setup_hareAndHoundsHoundStartChip")
         }
     }
