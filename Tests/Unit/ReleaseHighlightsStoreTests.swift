@@ -6,13 +6,17 @@ import Testing
 struct ReleaseHighlightsStoreTests {
     @Test("Smart 1.2 surface presents Smart Opponents highlight")
     func currentHighlightOnSmart12Surface() {
-        let storeArgs = [ProductSurface.leanProductSurfaceLaunchArgument]
+        let defaultArgs: [String] = []
+        let leanArgs = [ProductSurface.leanProductSurfaceLaunchArgument]
         let fullArgs = [ProductSurface.fullProductSurfaceLaunchArgument]
 
-        let highlight = ReleaseHighlights.current(arguments: storeArgs)
-        #expect(highlight == .smartOpponents1_2)
-        #expect(highlight?.features.contains(where: { $0.matchType == .raid }) == true)
-        #expect(highlight?.features.contains(where: { $0.matchType == .golf }) == true)
+        for args in [defaultArgs, leanArgs] {
+            let highlight = ReleaseHighlights.current(arguments: args)
+            #expect(highlight == .smartOpponents1_2)
+            #expect(highlight?.features.contains(where: { $0.matchType == .raid }) == true)
+            #expect(highlight?.features.contains(where: { $0.matchType == .golf }) == true)
+            #expect(highlight?.features.contains(where: { $0.matchType == .bobs27 }) == true)
+        }
         #expect(ReleaseHighlights.current(arguments: fullArgs) == nil)
     }
 

@@ -446,6 +446,25 @@ func setupPartyShanghaiRejectsCustomBot() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
+func setupCatalogBaseballRejectsCustomBot() async {
+    guard ProductSurface.isMatchTypeReachable(.baseball) else { return }
+    let human = makePlayer("Human")
+    let custom = makeCustomBot("Custom")
+    let vm = makeSetupViewModel(players: [human, custom])
+    await vm.onAppear()
+    vm.applyPendingModeSelection(
+        PendingModeSelection(setupCategory: .standard, mode: nil, partyGame: nil, matchType: .baseball)
+    )
+    vm.selectedPlayerIds = [human.id, custom.id]
+    vm.revalidate()
+
+    #expect(vm.botPlaySupport == .presetOnly)
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.baseballBotsPresetOnly"))
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
 func setupExistingCustomBotAppendsToSelection() async {
     let human = makePlayer("Human")
     let custom = makeCustomBot("Custom Ace")

@@ -1,4 +1,3 @@
-import FirebaseAnalytics
 import Foundation
 
 /// Privacy-safe user properties for retention and product-health segmentation.
@@ -71,15 +70,13 @@ public enum AnalyticsUserContext {
         preferences: UserPreferencesStore?,
         onboardingComplete: Bool
     ) {
-        guard FirebaseBootstrap.shouldConfigure, FirebaseBootstrap.isAnalyticsCollectionEnabled else { return }
-
-        for (name, value) in userPropertyValues(
-            settings: settings,
-            preferences: preferences,
-            onboardingComplete: onboardingComplete
-        ) {
-            Analytics.setUserProperty(value, forName: name)
-        }
+        AnalyticsUserPropertySink.setAll(
+            userPropertyValues(
+                settings: settings,
+                preferences: preferences,
+                onboardingComplete: onboardingComplete
+            )
+        )
     }
 
     private static func isOnboardingComplete() -> Bool {
