@@ -4,16 +4,48 @@ Goal: match the reference *Darts Scoreboard: Scorekeeper* app's functionality an
 
 Status legend: `[ ]` todo · `[~]` partial
 
-> **1.0.0 shipped:** App Store **1.0.0 (7)** — released 2026-06-22 (submitted 2026-06-20). Tag `1.0.0` on `7df4358`. Items below are post-ship backlog / 1.1 prep unless a hotfix is required.
+> **1.0.0 shipped:** App Store **1.0.0 (7)** — released 2026-06-22 (submitted 2026-06-20). Tag `1.0.0` on `7df4358`. **Next store train after 1.1:** `release/1.2.0` (Smart Opponents + German).
 
 ---
 
-## 1.1 — Party Pack (current)
+## 1.2 — Smart Opponents + German (next after 1.1)
+
+**Branch:** `release/1.2.0` · **Surface:** `smart1_2` (10 modes + Training Partner + export + **en/de**)
+
+**Master checklist:** [`1.2.0-ship-checklist.md`](1.2.0-ship-checklist.md) · Training Partner [`1.2.0-training-partner-plan.md`](1.2.0-training-partner-plan.md) · Store copy [`1.2.0-app-store-copy.md`](1.2.0-app-store-copy.md)
+
+**Future work / carryover:** [`ongoing/1.2.0-future-work.md`](../../ongoing/1.2.0-future-work.md) — deferred 1.1 review items (Baseball stretch-gate, Killer bot policy, Raid VM tests, migration fixture depth, setup chip AX, store wipe safety, analytics labels) + slice RC gaps.
+
+### Engineering follow-ups (from 1.1 review)
+
+- [ ] Migration fixture asserts players/matches/events (`C1`)
+- [ ] Baseball stretch-gate single source of truth (`C2`)
+- [ ] Killer / catalog bot policy alignment (`C3`)
+- [ ] `RaidMatchViewModelTests` (`C4`)
+- [ ] Setup chip VoiceOver title+value (`C5`)
+- [ ] Marketing / Raid screenshot freshness for EN+DE (`C6`)
+- [ ] Store wipe backup safety + restore test (`C7`)
+- [ ] Analytics user-property sinks allowlisted (`C8`)
+- [ ] Party chip color language (`C9`)
+- [ ] `ProductSurface.analyticsLabel` distinguishes `smart1_2` (`C10`)
+- [ ] Run review lanes on tip → `ongoing/1.2.0-review-fixes.md` (`S7`)
+
+### Slice RC (device)
+
+- [ ] Training Partner device matrix · Golf · Bob's 27 · Halve-It
+- [ ] German UI + DE privacy/support Pages
+- [ ] Duo / Pro Max + iPad layout matrix for new modes
+- [ ] DBPE export + re-import smoke
+
+---
+
+## 1.1 — Party Pack (current RC)
 
 **Branch:** `release/1.1.0` · **Version:** `1.1.0` (build 8 in `project.yml`) · **1.0.0 live** on App Store (build 7).
 
 **Master checklists:** [`1.1.0-ship-checklist.md`](1.1.0-ship-checklist.md) · RC runbook [`1.1.0-testflight-rc-plan.md`](1.1.0-testflight-rc-plan.md)  
-**Store copy draft:** [`1.1.0-app-store-copy.md`](1.1.0-app-store-copy.md)
+**Store copy draft:** [`1.1.0-app-store-copy.md`](1.1.0-app-store-copy.md)  
+**Review sprint:** see polish PR for `ongoing/1.1.0-review-fixes.md` — product blockers fixed; `#rf-6` CI still open; mediums deferred → 1.2 future work.
 
 ### Engineering (mostly done)
 
