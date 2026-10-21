@@ -97,10 +97,8 @@ struct GameModeCatalogEntryTests {
     func plannedModesUseSectionAccentFallback() {
         let plannedParty = GameModeCatalog.planned.first { $0.section == .party }
         #expect(plannedParty != nil)
-        // Practice planned stubs were promoted (Bob's 27 / Halve-It); keep party coverage.
-        if let plannedPractice = GameModeCatalog.planned.first(where: { $0.section == .practice }) {
-            #expect(plannedPractice.accentColor != nil || plannedPractice.section == .practice)
-        }
+        // Practice section is fully shipped after Bob's 27 / Halve-It promotion.
+        #expect(GameModeCatalog.planned.filter { $0.section == .practice }.isEmpty)
     }
 
     @Test
