@@ -9,18 +9,20 @@ Plans and projects **in implementation** — approved, specced, and actively bei
 | Ship blockers / release train | [`docs/release/`](../docs/release/) |
 | Shipped behavior | [`specs/`](../specs/) + [`docs/feature-inventory.md`](../docs/feature-inventory.md) |
 
-**Last updated:** 2026-06-27
+**Last updated:** 2026-10-21
 
 ## Active
 
 | Plan | Doc | Status | Notes |
 |------|-----|--------|-------|
+| 1.1.0 release review | [`1.1.0-review-fixes.md`](1.1.0-review-fixes.md) | Lanes running | Bundle vs `1.0.0`; process in [`docs/review-lanes/`](../docs/review-lanes/) |
 | UI screenshot iteration | [`docs/plans/ui-screenshot-iteration-plan.md`](../docs/plans/ui-screenshot-iteration-plan.md) | In progress | Code done; Phase 4 re-capture remaining |
 | Co-op mode grouping | [`docs/plans/coop-mode-grouping.md`](../docs/plans/coop-mode-grouping.md) | Partial | Phase 0 done; Raid ships in 1.1 |
 | Co-op PvE modes | [`specs/CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) | In progress | Raid ships in 1.1; Fleet/Cerberus/Vault post-1.1 |
 | Custom bot architecture | [`docs/plans/custom-bot-architecture-ui-plan.md`](../docs/plans/custom-bot-architecture-ui-plan.md) | Partial | Lean 1.0 ships simple custom bots only |
 | Game mode families | [`docs/plans/game-mode-families.md`](../docs/plans/game-mode-families.md) | Approved — not started | Cricket family card + variant sheet |
 | Release build view decomposition | [`docs/plans/release-build-view-decomposition-plan.md`](../docs/plans/release-build-view-decomposition-plan.md) | Approved — not started | Split oversized SwiftUI views for Release builds |
+| Bob's 27 + Halve-It | Engines exist; UI/lifecycle stubs | In progress | Promote from planned → playable practice modes |
 
 ## See also
 
