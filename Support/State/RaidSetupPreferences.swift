@@ -5,37 +5,43 @@ enum RaidSetupPreferences {
     private static let heroHeartsKey = "raidSetup.heroHearts"
     private static let enrageEnabledKey = "raidSetup.enrageEnabled"
 
-    static func loadBossTier() -> RaidBossTier {
-        let raw = UserDefaults.standard.string(forKey: bossTierKey) ?? RaidBossTier.standard.rawValue
+    static func loadBossTier(userDefaults: UserDefaults = .standard) -> RaidBossTier {
+        let raw = userDefaults.string(forKey: bossTierKey) ?? RaidBossTier.standard.rawValue
         return RaidBossTier(rawValue: raw) ?? .standard
     }
 
-    static func save(bossTier: RaidBossTier) {
-        UserDefaults.standard.set(bossTier.rawValue, forKey: bossTierKey)
+    static func save(bossTier: RaidBossTier, userDefaults: UserDefaults = .standard) {
+        userDefaults.set(bossTier.rawValue, forKey: bossTierKey)
     }
 
-    static func loadHeroHearts() -> Int {
-        let value = UserDefaults.standard.integer(forKey: heroHeartsKey)
+    static func loadHeroHearts(userDefaults: UserDefaults = .standard) -> Int {
+        let value = userDefaults.integer(forKey: heroHeartsKey)
         return [3, 4, 5].contains(value) ? value : 3
     }
 
-    static func save(heroHearts: Int) {
-        UserDefaults.standard.set(heroHearts, forKey: heroHeartsKey)
+    static func save(heroHearts: Int, userDefaults: UserDefaults = .standard) {
+        userDefaults.set(heroHearts, forKey: heroHeartsKey)
     }
 
-    static func loadEnrageEnabled() -> Bool {
-        UserDefaults.standard.object(forKey: enrageEnabledKey) as? Bool ?? true
+    static func loadEnrageEnabled(userDefaults: UserDefaults = .standard) -> Bool {
+        userDefaults.object(forKey: enrageEnabledKey) as? Bool ?? true
     }
 
-    static func save(enrageEnabled: Bool) {
-        UserDefaults.standard.set(enrageEnabled, forKey: enrageEnabledKey)
+    static func save(enrageEnabled: Bool, userDefaults: UserDefaults = .standard) {
+        userDefaults.set(enrageEnabled, forKey: enrageEnabledKey)
     }
 
-    static func makeConfig() -> MatchConfigRaid {
+    static func makeConfig(userDefaults: UserDefaults = .standard) -> MatchConfigRaid {
         MatchConfigRaid(
-            bossTier: loadBossTier(),
-            heroHearts: loadHeroHearts(),
-            enrageEnabled: loadEnrageEnabled()
+            bossTier: loadBossTier(userDefaults: userDefaults),
+            heroHearts: loadHeroHearts(userDefaults: userDefaults),
+            enrageEnabled: loadEnrageEnabled(userDefaults: userDefaults)
         )
+    }
+
+    static func clearStored(userDefaults: UserDefaults = .standard) {
+        userDefaults.removeObject(forKey: bossTierKey)
+        userDefaults.removeObject(forKey: heroHeartsKey)
+        userDefaults.removeObject(forKey: enrageEnabledKey)
     }
 }

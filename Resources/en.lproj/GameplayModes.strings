@@ -30,7 +30,7 @@
 "play.aroundTheClock.setup.resetPolicy.noReset" = "No reset";
 "play.aroundTheClock.setup.resetPolicy.resetEntireSequence" = "Reset entire sequence";
 "play.aroundTheClock.setup.resetPolicy.resetOnThreeMisses" = "Reset on three misses";
-"play.aroundTheClock.targetAdvanced" = "Target advanced";
+"play.aroundTheClock.targetAdvanced" = "Target advanced to %d";
 "play.aroundTheClock.title" = "Around The Clock";
 
 "play.aroundTheClock180.leading" = "Leading";

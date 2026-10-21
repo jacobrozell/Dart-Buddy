@@ -109,9 +109,14 @@ struct AroundTheClockMatchScreen: View {
         case let .entryInvalid(messageKey), let .error(messageKey):
             ErrorBanner(messageKey: messageKey)
         case .targetAdvancedFeedback:
-            MatchFeedbackBanner(text: "play.aroundTheClock.targetAdvanced", style: .legWin)
+            if let target = viewModel.currentTarget {
+                MatchFeedbackBanner(
+                    text: LocalizedStringKey(L10n.format("play.aroundTheClock.targetAdvanced", target)),
+                    style: .legWin
+                )
                 .accessibilityHidden(true)
                 .accessibilityIdentifier("aroundTheClock_target_advanced_feedback")
+            }
         default:
             EmptyView()
         }

@@ -16,7 +16,9 @@ enum LocalDataResetInventory {
         CricketSetupPreferences.self,
         BaseballSetupPreferences.self,
         ShanghaiSetupPreferences.self,
-        KillerSetupPreferences.self
+        KillerSetupPreferences.self,
+        RaidSetupPreferences.self,
+        AroundTheClockSetupPreferences.self
     ]
 
     /// Non-setup auxiliary keys cleared on reset (onboarding, marketing dismissals, etc.).

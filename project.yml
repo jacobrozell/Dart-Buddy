@@ -54,42 +54,20 @@ targets:
       - path: Resources/en.lproj/GameplayModes.strings
         type: file
         buildPhase: resources
-      - path: Resources/de.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/de.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/es.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/es.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/nl.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/nl.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/fr.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/fr.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/zh-Hans.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/zh-Hans.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/it.lproj/Localizable.strings
-        type: file
-        buildPhase: resources
-      - path: Resources/it.lproj/GameplayModes.strings
-        type: file
-        buildPhase: resources
+      # 1.1 Party Pack ships English-only (ProductSurface.party1_1.bundledLocaleCodes).
+      # Keep locale files in the tree for 1.2+; do not bundle them in this Release target.
+      # - path: Resources/de.lproj/Localizable.strings
+      # - path: Resources/de.lproj/GameplayModes.strings
+      # - path: Resources/es.lproj/Localizable.strings
+      # - path: Resources/es.lproj/GameplayModes.strings
+      # - path: Resources/nl.lproj/Localizable.strings
+      # - path: Resources/nl.lproj/GameplayModes.strings
+      # - path: Resources/fr.lproj/Localizable.strings
+      # - path: Resources/fr.lproj/GameplayModes.strings
+      # - path: Resources/zh-Hans.lproj/Localizable.strings
+      # - path: Resources/zh-Hans.lproj/GameplayModes.strings
+      # - path: Resources/it.lproj/Localizable.strings
+      # - path: Resources/it.lproj/GameplayModes.strings
       - path: Resources/GoogleService-Info.plist
         type: file
         buildPhase: resources
@@ -135,8 +113,7 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: NO
         INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
-        # Camera auto-scoring (flag `enableVisionAutoScoring`, specs/AutoScoringVisionSpec.md).
-        INFOPLIST_KEY_NSCameraUsageDescription: Dart Buddy uses the camera to detect darts on the board and score throws automatically.
+        # Camera purpose string omitted while vision auto-scoring stays launch-arg gated (5.1.1).
         INFOPLIST_KEY_UIRequiresFullScreen: NO
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone:
           - UIInterfaceOrientationPortrait
@@ -154,12 +131,6 @@ targets:
       properties:
         CFBundleLocalizations:
           - en
-          - de
-          - es
-          - nl
-          - fr
-          - zh-Hans
-          - it
         CFBundleURLTypes:
           - CFBundleURLName: com.jacobrozell.DartBuddy.deeplink
             CFBundleURLSchemes:

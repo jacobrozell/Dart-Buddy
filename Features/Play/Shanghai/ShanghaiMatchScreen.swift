@@ -24,13 +24,13 @@ struct ShanghaiMatchScreen: View {
                         if viewModel.showsExtraRoundBadge {
                             Text(L10n.string("play.shanghai.extraRound"))
                                 .font(.caption2.weight(.semibold))
-                                .foregroundStyle(Brand.amber)
+                                .foregroundStyle(Brand.textPrimary)
                         }
                     }
                     if let scoringHint = viewModel.scoringHint {
                         Text(scoringHint)
                             .font(.caption2)
-                            .foregroundStyle(Brand.amber)
+                            .foregroundStyle(Brand.textSecondary)
                             .accessibilityIdentifier("shanghai_scoring_hint")
                     }
                 }
@@ -44,7 +44,7 @@ struct ShanghaiMatchScreen: View {
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(width: 44, height: 44)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }

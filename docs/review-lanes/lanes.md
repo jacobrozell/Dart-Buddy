@@ -96,7 +96,7 @@ You are the UI/UX review lane for {APP} {VERSION}.
 Repo: {REPO}
 Branch: {BRANCH} vs {BASE}. Do not modify files.
 
-Read docs/ux-design-review.md, DesignSystem/, specs/DesignSystemSpec.md, gameplay-layout docs, and new/changed match + setup screens on this branch.
+Read docs/ux-design-review.md, DesignSystem/, specs/DesignSystemSpec.md, docs/gameplay-layout-modes.md, `.cursor/rules/gameplay-layout-size-classes.mdc`, and new/changed match + setup screens on this branch.
 
 Evaluate (ship-risk first, not speculative redesign):
 - First-run / setup cognitive load for new modes
@@ -107,9 +107,23 @@ Evaluate (ship-risk first, not speculative redesign):
 - Copy tone vs Learn to play / What's New
 - Marketing screenshot freshness vs actual UI (note gaps; do not claim visual QA on device unless you did)
 
+**Layout regression matrix (required for every new/changed match screen):**
+Treat **iPhone Duo / Plus / Pro Max landscape** as a first-class target — they report `horizontalSizeClass == .regular` like iPad. Do **not** treat regular-width as “iPad”.
+
+| Target | Signals to check |
+|--------|------------------|
+| iPhone portrait | compact width, regular height |
+| iPhone landscape (SE / standard) | compact height + phone idiom |
+| **iPhone Duo / Pro Max landscape** | compact height + **regular width** + **phone idiom** — must use iPhone landscape shell, not iPad side-by-side |
+| iPad portrait | pad idiom; side-by-side only when `playerCount >= 3` |
+| iPad landscape | pad idiom + compact height; same 3+ player threshold |
+| Dynamic Type AX1–AX5 | full-scroll accessibility shell |
+
+Flag modes that skip `MatchScoringBody` / `SideBySideMatchBody`, branch phone-vs-pad on `horizontalSizeClass` alone, or break the pinned active-band + pad contract on Duo/iPad.
+
 Return:
 1. Verdict: Ready / Ready with nits / Block {VERSION}
-2. Table: Severity | Location (file:line) | Finding | User impact
+2. Table: Severity | Location (file:line) | Finding | User impact | Layout target (if layout)
 3. Top polish wins that are NOT blockers.
 4. What already feels coherent.
 ```

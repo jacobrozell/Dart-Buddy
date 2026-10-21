@@ -1196,6 +1196,8 @@
 "play.raid.bossHPAccessibilityFormat" = "Boss health %d of %d";
 "play.raid.heartsAccessibilityFormat" = "%d of %d hearts";
 "play.raid.heroFallbackName" = "Hero";
+"play.raid.heroDownAccessibility" = "Down";
+"play.raid.activeHeroAccessibilityFormat" = "%@'s turn";
 "play.raid.phase.shield" = "Shield";
 "play.raid.phase.expose" = "Expose";
 "play.raid.phase.enrage" = "Enrage";
