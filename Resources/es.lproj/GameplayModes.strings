@@ -224,3 +224,16 @@
 "play.suddenDeath.title" = "Sudden Death";
 "play.suddenDeath.totalPointsAccessibilityFormat" = "%d puntos en total";
 "play.ticTacToe.title" = "Tic-Tac-Toe";
+
+"play.bobs27.navTitle" = "Bob's 27";
+"play.bobs27.round.bull" = "Bull";
+"play.bobs27.round.doubleFormat" = "Double %d";
+"play.bobs27.scoreFormat" = "%d";
+"play.bobs27.roundProgressFormat" = "Round %d of %d";
+"play.bobs27.gameOver" = "Game over";
+"play.halveIt.navTitle" = "Halve-It";
+"play.halveIt.roundTargetFormat" = "Hit %d";
+"play.halveIt.runningTotalFormat" = "%d";
+"play.halveIt.roundProgressFormat" = "Round %d of %d";
+"play.halveIt.setup.startingScore" = "Start";
+"play.halveIt.setup.startingScoreValueFormat" = "%d";

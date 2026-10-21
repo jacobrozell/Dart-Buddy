@@ -22,7 +22,7 @@ Plans and projects **in implementation** — approved, specced, and actively bei
 | Custom bot architecture | [`docs/plans/custom-bot-architecture-ui-plan.md`](../docs/plans/custom-bot-architecture-ui-plan.md) | Partial | Lean 1.0 ships simple custom bots only |
 | Game mode families | [`docs/plans/game-mode-families.md`](../docs/plans/game-mode-families.md) | Approved — not started | Cricket family card + variant sheet |
 | Release build view decomposition | [`docs/plans/release-build-view-decomposition-plan.md`](../docs/plans/release-build-view-decomposition-plan.md) | Approved — not started | Split oversized SwiftUI views for Release builds |
-| Bob's 27 + Halve-It | Engines exist; UI/lifecycle stubs | In progress | Promote from planned → playable practice modes |
+| Bob's 27 + Halve-It | Full-surface practice modes | In progress (this PR) | Engines + UI + lifecycle wired; not in party1_1 allowlist |
 
 ## See also
 

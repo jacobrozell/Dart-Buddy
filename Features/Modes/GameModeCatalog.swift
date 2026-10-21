@@ -318,14 +318,15 @@ enum GameModeCatalog {
         ),
         GameModeCatalogEntry(
             id: "practice.bobs27", name: "Bob's 27", blurb: "Doubles checkout drill",
-            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
+            section: .practice, status: .shipped, minimumPlayers: 1, maximumPlayers: 1,
+            matchType: .bobs27, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "scope"
         ),
         GameModeCatalogEntry(
             id: "practice.halveIt", name: "Halve-It", blurb: "Miss the target, halve your score",
-            section: .practice, status: .planned, minimumPlayers: 1, maximumPlayers: 1,
-            matchType: nil, uiTemplate: .soloChallenge, statKind: .soloScore,
+            // Solo v1 — engine supports multiplayer; keep catalog max 1 until setup UX lands.
+            section: .practice, status: .shipped, minimumPlayers: 1, maximumPlayers: 1,
+            matchType: .halveIt, uiTemplate: .soloChallenge, statKind: .soloScore,
             iconSystemName: "divide.circle.fill"
         )
     ]

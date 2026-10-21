@@ -99,10 +99,12 @@ Reachable on **`dev`** with full product surface (all shipped modes in picker, r
 | 180 Around the Clock | `AroundTheClock180Engine`, `Features/Play/AroundTheClock180/` | [`AroundTheClock180GameSpec.md`](../specs/game-modes/implemented/AroundTheClock180GameSpec.md) |
 | Chase the Dragon | `ChaseTheDragonEngine`, `Features/Play/ChaseTheDragon/` | [`ChaseTheDragonGameSpec.md`](../specs/game-modes/implemented/ChaseTheDragonGameSpec.md) |
 | Nine Lives | `NineLivesEngine`, `Features/Play/NineLives/` | [`NineLivesGameSpec.md`](../specs/game-modes/implemented/NineLivesGameSpec.md) |
+| Bob's 27 | `Bobs27Engine`, `Features/Play/Bobs27/` (full surface) | [`Bobs27GameSpec.md`](../specs/game-modes/implemented/Bobs27GameSpec.md) |
+| Halve-It | `HalveItEngine`, `Features/Play/HalveIt/` (full surface) | [`HalveItGameSpec.md`](../specs/game-modes/implemented/HalveItGameSpec.md) |
 
 **Doc debt:** promoted 2026-06-13 — 17 specs moved to `specs/game-modes/implemented/`. Custom/R&D specs remain under `planned/` without catalog ids.
 
-### Planned — catalog stubs (12)
+### Planned — catalog stubs (10)
 
 Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 
@@ -118,8 +120,6 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Cerberus | Co-op | Role split | [`CerberusGameSpec.md`](../specs/game-modes/planned/CerberusGameSpec.md) |
 | The Vault | Co-op | Phase race | [`TheVaultGameSpec.md`](../specs/game-modes/planned/TheVaultGameSpec.md) |
 | Clear the Board | Co-op | Board state | [`ClearTheBoardGameSpec.md`](../specs/game-modes/planned/ClearTheBoardGameSpec.md) |
-| Bob's 27 | Practice | Solo challenge | [`Bobs27GameSpec.md`](../specs/game-modes/planned/Bobs27GameSpec.md) |
-| Halve-It | Practice | Solo challenge | [`HalveItGameSpec.md`](../specs/game-modes/planned/HalveItGameSpec.md) |
 
 ### Game mode infrastructure
 
@@ -130,7 +130,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | 8 gameplay UI templates | Partial | Enum A–I defined; **J (voice drill)** spec'd for Call & Hit | [`VoiceDrillUITemplateSpec.md`](../specs/game-modes/planned/VoiceDrillUITemplateSpec.md) |
 | Per-mode stat kinds (34 declared) | Partial | Live reducers vary by mode; all shipped modes have history/activity filters | `ModeStatKind` in `GameModeCatalog.swift` |
 | Campaign mode (Journey tab) | **Planned** | Spec’d; no implementation; flag `enableCampaign` | [`CampaignSpec.md`](../specs/CampaignSpec.md) |
-| Solo practice platform | **Partial** | Four practice engines shipped; Bob's 27 / Halve-It / Call & Hit still planned | [`SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md) |
+| Solo practice platform | **Partial** | Six practice engines shipped (incl. Bob's 27 + Halve-It on full surface); Call & Hit still planned | [`SoloPracticeModesSpec.md`](../specs/SoloPracticeModesSpec.md) |
 | Co-op platform | **Partial** | Raid shipped; shared `BossParticipant` type + Cerberus/Vault/Clear the Board still planned | [`CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) §13 |
 | Guided Play (blind/low-vision) | **Assessed (R&D)** | WIP — camera + mic + talk-back; see FutureIdeas brief | [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |

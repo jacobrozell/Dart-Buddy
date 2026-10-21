@@ -52,8 +52,8 @@ enum SetupHomeModeContext {
     static func hasModeOptionChips(for setupViewModel: MatchSetupViewModel) -> Bool {
         guard let matchType = activeMatchTypeForSetupOptions(for: setupViewModel) else { return false }
         switch matchType {
-        case .mickeyMouse, .mulligan,
-             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+        case .mickeyMouse, .mulligan, .bobs27,
+             .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe:
             return false
         default:
             return true

@@ -284,7 +284,20 @@ enum MatchForfeitStandingsRegistry {
                 prefersLowerScore: true
             )
 
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+        case .bobs27:
+            guard let state = session.runtime.bobs27State, state.playerId == playerId else {
+                throw invalidForfeitState()
+            }
+            return pointsStanding(playerId: playerId, score: state.score, turnOrder: turnOrder)
+
+        case .halveIt:
+            guard let state = session.runtime.halveItState,
+                  let player = state.players.first(where: { $0.playerId == playerId }) else {
+                throw invalidForfeitState()
+            }
+            return pointsStanding(playerId: playerId, score: player.total, turnOrder: turnOrder)
+
+        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe:
             throw invalidForfeitState()
         }
     }
@@ -345,12 +358,12 @@ enum MatchForfeitStandingsRegistry {
                 MatchParticipant(playerId: p3, displayNameAtMatchStart: "C", turnOrder: 2)
             ]
             config = MatchConfigDefaults.config(for: type)
-        case .aroundTheClock, .aroundTheClock180, .chaseTheDragon:
+        case .aroundTheClock, .aroundTheClock180, .chaseTheDragon, .bobs27, .halveIt:
             participants = [
                 MatchParticipant(playerId: p1, displayNameAtMatchStart: "A", turnOrder: 0)
             ]
             config = MatchConfigDefaults.config(for: type)
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe:
             throw AppError(
                 code: .invalidGameState,
                 layer: .domain,
@@ -424,7 +437,11 @@ enum MatchForfeitStandingsRegistry {
             return try MatchLifecycleService.submitFleetPlacementLock(session: updated, playerId: playerId)
         case .raid:
             return try MatchLifecycleService.submitRaidVisit(session: session, darts: [miss, miss, miss])
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+        case .bobs27:
+            return try MatchLifecycleService.submitBobs27Round(session: session, darts: [miss, miss, miss])
+        case .halveIt:
+            return try MatchLifecycleService.submitHalveItRound(session: session, darts: [miss, miss, miss])
+        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe:
             return session
         }
     }

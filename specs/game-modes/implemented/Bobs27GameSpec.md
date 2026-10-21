@@ -1,10 +1,10 @@
 # Bob's 27 Game Specification
 
 ## 1. Purpose
-Define Bob's 27 — solo doubles practice from 27 points — for future implementation.
+Define Bob's 27 — solo doubles practice from 27 points.
 
-**Status:** Planned (`practice.bobs27`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
-**Estimated release:** `TBD`
+**Status:** Shipped (`practice.bobs27`) — full product surface only (not Party Pack 1.1).
+**Estimated release:** Full surface / post–1.1
 
 References: [Target Darts — Bob's 27](https://www.target-darts.co.uk/dart-games), [darts501.com](https://darts501.com/Games.html).
 
@@ -83,8 +83,8 @@ Replay restores round and score.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.bobs27.` |
-| **Shipped in app** | Planned |
-| **Estimated release** | `TBD` |
+| **Shipped in app** | Yes (full product surface) |
+| **Estimated release** | Full surface / post–1.1 |
 
 ### Overview
 | **Title key** | `play.rules.bobs27.overview.title` |
@@ -144,4 +144,4 @@ If your score drops to zero or below, the game ends. Otherwise finish all rounds
 ## 8. Verification
 | Field | Value |
 |-------|-------|
-| **Status** | Planned |
+| **Status** | Shipped |

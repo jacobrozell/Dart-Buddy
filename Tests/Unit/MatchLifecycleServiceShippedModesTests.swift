@@ -48,7 +48,17 @@ private enum ShippedModeLifecycleSupport {
                 session: session,
                 input: GolfTurnInput(darts: [miss()])
             )
-        case .killer, .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+        case .bobs27:
+            return try MatchLifecycleService.submitBobs27Round(
+                session: session,
+                darts: [miss(), miss(), miss()]
+            )
+        case .halveIt:
+            return try MatchLifecycleService.submitHalveItRound(
+                session: session,
+                darts: [miss(), miss(), miss()]
+            )
+        case .killer, .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe:
             return session
         }
     }
@@ -141,6 +151,10 @@ private enum ShippedModeLifecycleSupport {
             return try MatchLifecycleService.submitChaseTheDragonTurn(session: session, darts: [miss()])
         case .nineLives:
             return try MatchLifecycleService.submitNineLivesTurn(session: session, darts: [miss()])
+        case .bobs27:
+            return try MatchLifecycleService.submitBobs27Round(session: session, darts: [miss(), miss(), miss()])
+        case .halveIt:
+            return try MatchLifecycleService.submitHalveItRound(session: session, darts: [miss(), miss(), miss()])
         default:
             return session
         }
@@ -224,7 +238,7 @@ struct MatchLifecycleServiceShippedModesTests {
 
     @Test
     func soloPracticeModesAllowSingleParticipant() throws {
-        for type in [MatchType.aroundTheClock, .aroundTheClock180, .chaseTheDragon] {
+        for type in [MatchType.aroundTheClock, .aroundTheClock180, .chaseTheDragon, .bobs27, .halveIt] {
             let session = try MatchLifecycleService.createMatch(
                 type: type,
                 config: MatchConfigDefaults.config(for: type),

@@ -1,10 +1,10 @@
 # Halve-It Game Specification
 
 ## 1. Purpose
-Define Halve-It — descending target sequence with halve-on-miss scoring — for future implementation.
+Define Halve-It — descending target sequence with halve-on-miss scoring.
 
-**Status:** Planned (`practice.halveIt`). R&D: [`FutureIdeas/party-practice-modes.md`](../../../FutureIdeas/party-practice-modes.md).
-**Estimated release:** `TBD`
+**Status:** Shipped (`practice.halveIt`) — full product surface only; catalog max 1 (solo) for v1.
+**Estimated release:** Full surface / post–1.1
 
 References: [darts501.com — Halve-it](https://darts501.com/Games.html).
 
@@ -83,8 +83,8 @@ Replay restores totals and round index.
 | | |
 |---|---|
 | **Key prefix** | `play.rules.halveIt.` |
-| **Shipped in app** | Planned |
-| **Estimated release** | `TBD` |
+| **Shipped in app** | Yes (full product surface; solo max 1) |
+| **Estimated release** | Full surface / post–1.1 |
 
 ### Overview
 | **Title key** | `play.rules.halveIt.overview.title` |
@@ -142,4 +142,4 @@ After the last round, highest total wins. One bad miss late can collapse a lead 
 ## 8. Verification
 | Field | Value |
 |-------|-------|
-| **Status** | Planned |
+| **Status** | Shipped |

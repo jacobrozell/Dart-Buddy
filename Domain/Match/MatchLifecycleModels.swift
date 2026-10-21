@@ -215,6 +215,8 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
     case nineLives(MatchConfigNineLives)
     case fleet(MatchConfigFleet)
     case raid(MatchConfigRaid)
+    case bobs27(MatchConfigBobs27)
+    case halveIt(MatchConfigHalveIt)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -240,6 +242,8 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case nineLives
         case fleet
         case raid
+        case bobs27
+        case halveIt
     }
 
     private enum PayloadType: String, Codable {
@@ -265,6 +269,8 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case nineLives
         case fleet
         case raid
+        case bobs27
+        case halveIt
     }
 
     public init(from decoder: any Decoder) throws {
@@ -315,6 +321,10 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
             self = .fleet(try container.decode(MatchConfigFleet.self, forKey: .fleet))
         case .raid:
             self = .raid(try container.decode(MatchConfigRaid.self, forKey: .raid))
+        case .bobs27:
+            self = .bobs27(try container.decode(MatchConfigBobs27.self, forKey: .bobs27))
+        case .halveIt:
+            self = .halveIt(try container.decode(MatchConfigHalveIt.self, forKey: .halveIt))
         }
     }
 
@@ -387,6 +397,12 @@ public enum MatchConfigPayload: Codable, Equatable, Sendable {
         case let .raid(config):
             try container.encode(PayloadType.raid, forKey: .type)
             try container.encode(config, forKey: .raid)
+        case let .bobs27(config):
+            try container.encode(PayloadType.bobs27, forKey: .type)
+            try container.encode(config, forKey: .bobs27)
+        case let .halveIt(config):
+            try container.encode(PayloadType.halveIt, forKey: .type)
+            try container.encode(config, forKey: .halveIt)
         }
     }
 }

@@ -67,6 +67,8 @@ final class MatchSetupViewModel: ObservableObject {
     @Published var raidBossTier: RaidBossTier = .standard
     @Published var raidHeroHearts: Int = 3
     @Published var raidEnrageEnabled = true
+    /// Halve-It starting total (defaults-only Bob's 27 has no setup knobs).
+    @Published var halveItStartingScore: Int = 301
     @Published var randomOrder = false
     @Published private(set) var isSubmitting = false
     @Published private(set) var validationErrors: [String] = []
@@ -402,6 +404,10 @@ final class MatchSetupViewModel: ObservableObject {
             raidBossTier = config.bossTier
             raidHeroHearts = config.heroHearts
             raidEnrageEnabled = config.enrageEnabled
+        case .bobs27:
+            break
+        case let .halveIt(config):
+            halveItStartingScore = max(0, config.startingScore)
         }
 
         normalizeForProductSurface()
@@ -526,6 +532,9 @@ final class MatchSetupViewModel: ObservableObject {
         }
         if catalogType == .fleet, selectedParticipantCount != 2 {
             return ["setup.validation.fleetExactTwoPlayers"]
+        }
+        if selectedParticipantCount > entry.maximumPlayers {
+            return [entry.isSolo ? "setup.validation.soloOnly" : "setup.validation.maximumPlayers"]
         }
         if entry.section == .coop {
             if selectedParticipantCount > 3 {
@@ -830,7 +839,12 @@ final class MatchSetupViewModel: ObservableObject {
                     enrageEnabled: raidEnrageEnabled
                 )
             )
-        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe, .bobs27, .halveIt:
+        case .bobs27:
+            return .bobs27(MatchConfigBobs27())
+        case .halveIt:
+            // v1 ships solo (catalog maximumPlayers: 1) with the curated 20→15 sequence.
+            return .halveIt(MatchConfigHalveIt(startingScore: halveItStartingScore))
+        case .blindKiller, .followTheLeader, .loop, .prisoner, .scam, .snooker, .ticTacToe:
             return MatchConfigDefaults.config(for: .x01)
         }
     }

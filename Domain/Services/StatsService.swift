@@ -254,7 +254,7 @@ public enum StatsService {
                      .knockoutTurn, .suddenDeathTurn, .fiftyOneByFivesTurn, .golfTurn, .footballTurn,
                      .grandNationalTurn, .hareAndHoundsTurn, .aroundTheClockTurn, .aroundTheClock180Turn,
                      .chaseTheDragonTurn, .nineLivesTurn, .raidVisit, .fleetPlacement, .fleetPlacementUI,
-                     .fleetSonar, .fleetDart:
+                     .fleetSonar, .fleetDart, .bobs27Round, .halveItRound:
                     break
                 }
             }
@@ -369,6 +369,10 @@ public enum StatsService {
             applyRaidVisitBreakdown(visit, nameById: nameById, byPlayer: &byPlayer)
         case let .fleetDart(dart):
             applyFleetDartBreakdown(dart, nameById: nameById, byPlayer: &byPlayer)
+        case let .bobs27Round(round):
+            applyFixedDartBreakdown(playerId: round.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
+        case let .halveItRound(round):
+            applyFixedDartBreakdown(playerId: round.playerId, dartCount: 3, nameById: nameById, byPlayer: &byPlayer)
         case .fleetPlacement, .fleetPlacementUI, .fleetSonar:
             break
         }

@@ -83,7 +83,9 @@ struct PlayRootView: View {
                      let .chaseTheDragonMatch(matchId),
                      let .nineLivesMatch(matchId),
                      let .fleetMatch(matchId),
-                     let .raidMatch(matchId):
+                     let .raidMatch(matchId),
+                     let .bobs27Match(matchId),
+                     let .halveItMatch(matchId):
                     PlayMatchRouteView(
                         route: route,
                         dependencies: dependencies,
@@ -96,9 +98,7 @@ struct PlayRootView: View {
                      .prisonerMatch,
                      .scamMatch,
                      .snookerMatch,
-                     .ticTacToeMatch,
-                     .bobs27Match,
-                     .halveItMatch:
+                     .ticTacToeMatch:
                     EmptyView()
                 case let .matchSummary(matchId):
                     MatchSummaryScreen(

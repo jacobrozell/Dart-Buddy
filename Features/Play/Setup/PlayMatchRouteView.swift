@@ -545,6 +545,54 @@ struct PlayMatchRouteView: View {
                     lifecycleDependencies: lifecycle
                 )
             }
+        case let .bobs27Match(matchId):
+            MatchRouteScreen(
+                matchId: matchId,
+                dependencies: dependencies,
+                onShowSummary: onShowSummary
+            ) {
+                Bobs27MatchViewModel(
+                    matchId: matchId,
+                    store: dependencies.activeMatchStore,
+                    logger: dependencies.logger,
+                    matchRepository: dependencies.matchRepository,
+                    statsRepository: dependencies.statsRepository,
+                    feedbackPreferences: dependencies.userPreferencesStore.feedback
+                )
+            } content: { viewModel, lifecycle in
+                Bobs27MatchScreen(
+                    viewModel: viewModel,
+                    onShowSummary: onShowSummary,
+                    audio: dependencies.audioFeedbackService,
+                    haptics: dependencies.hapticsService,
+                    feedbackPreferences: dependencies.userPreferencesStore.feedback,
+                    lifecycleDependencies: lifecycle
+                )
+            }
+        case let .halveItMatch(matchId):
+            MatchRouteScreen(
+                matchId: matchId,
+                dependencies: dependencies,
+                onShowSummary: onShowSummary
+            ) {
+                HalveItMatchViewModel(
+                    matchId: matchId,
+                    store: dependencies.activeMatchStore,
+                    logger: dependencies.logger,
+                    matchRepository: dependencies.matchRepository,
+                    statsRepository: dependencies.statsRepository,
+                    feedbackPreferences: dependencies.userPreferencesStore.feedback
+                )
+            } content: { viewModel, lifecycle in
+                HalveItMatchScreen(
+                    viewModel: viewModel,
+                    onShowSummary: onShowSummary,
+                    audio: dependencies.audioFeedbackService,
+                    haptics: dependencies.hapticsService,
+                    feedbackPreferences: dependencies.userPreferencesStore.feedback,
+                    lifecycleDependencies: lifecycle
+                )
+            }
         default:
             EmptyView()
         }
