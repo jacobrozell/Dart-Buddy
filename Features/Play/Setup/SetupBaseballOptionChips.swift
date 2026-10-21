@@ -26,34 +26,43 @@ struct SetupBaseballOptionChips: View {
     }
 
     private var baseballInningsChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.innings", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
-            SetupOptionChipHelpers.chipBox(L10n.string("play.baseball.setup.inningsValue"), color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false)
+        let value = L10n.string("play.baseball.setup.inningsValue")
+        return SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.innings", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+            SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false)
+                .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.baseball.setup.innings", value))
                 .accessibilityIdentifier("setup_baseballInningsChip")
         }
     }
 
     private var baseballTieBreakerChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.tieBreaker", color: Brand.red, dynamicTypeSize: dynamicTypeSize) {
+        let selectedLabel = setupViewModel.baseballTieBreaker.displayName
+        return SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.tieBreaker", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
-                ForEach(BaseballTieBreaker.allCases, id: \.rawValue) { value in
-                    Button(value.displayName) {
-                        setupViewModel.baseballTieBreaker = value
+                ForEach(BaseballTieBreaker.allCases, id: \.rawValue) { option in
+                    Button(option.displayName) {
+                        setupViewModel.baseballTieBreaker = option
                         setupViewModel.revalidate()
                     }
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.baseballTieBreaker.displayName,
-                    color: Brand.red,
+                    selectedLabel,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.baseball.setup.tieBreaker", selectedLabel)
+            )
             .accessibilityIdentifier("setup_baseballTieBreakerChip")
         }
     }
 
     private var baseballStretchChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.stretch", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.baseballSeventhInningStretch
+            ? L10n.string("play.baseball.stretch.on")
+            : L10n.string("play.baseball.stretch.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.baseball.setup.stretch", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.baseball.stretch.off")) {
                     setupViewModel.baseballSeventhInningStretch = false
@@ -65,13 +74,12 @@ struct SetupBaseballOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.baseballSeventhInningStretch
-                        ? L10n.string("play.baseball.stretch.on")
-                        : L10n.string("play.baseball.stretch.off"),
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.baseball.setup.stretch", value))
             .accessibilityIdentifier("setup_baseballStretchChip")
         }
     }

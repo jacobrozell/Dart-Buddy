@@ -71,6 +71,24 @@ struct BootstrapStoreRecoveryTests {
         )
         let context = ModelContext(container)
         #expect(try context.fetchCount(FetchDescriptor<SchemaV2.SettingsRecord>()) >= 0)
+
+        let backups = try FileManager.default.contentsOfDirectory(atPath: url.deletingLastPathComponent().path)
+            .filter { $0.contains("DartBuddy-recovery-") }
+        #expect(!backups.isEmpty)
+    }
+
+    @Test
+    func backupAndDeleteRefusesWipeWhenStoreMissingIsOk() {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dartbuddy-missing-\(UUID().uuidString).sqlite")
+        let logger = DefaultAppLogger(minimumLevel: .fault, sink: SilentLogSink())
+        #expect(
+            BootstrapStoreRecovery.backupAndDeleteStoreIfNeeded(
+                mode: .customURL(url),
+                logger: logger,
+                reason: "unit_missing"
+            )
+        )
     }
 }
 

@@ -299,32 +299,7 @@ final class BaseballMatchViewModel: ObservableObject {
     }
 
     private func previewRuns(for dart: DartInput, state: BaseballState, playerIndex: Int) -> Int {
-        if dart.isMiss { return 0 }
-        switch state.phase {
-        case .bullPlayoff:
-            switch dart.segment {
-            case .outerBull: return 1
-            case .innerBull: return 2
-            default: return 0
-            }
-        case .innings:
-            let target = state.currentInning
-            if state.config.seventhInningStretch, target == 7, !state.players[playerIndex].stretchGateOpen {
-                if dart.segment == .outerBull || dart.segment == .innerBull { return 0 }
-                if case let .oneToTwenty(value) = dart.segment, value == target { return 0 }
-                return 0
-            }
-            if case let .oneToTwenty(value) = dart.segment, value == target {
-                switch dart.multiplier {
-                case .single: return 1
-                case .double: return 2
-                case .triple: return 3
-                }
-            }
-            return 0
-        case .completed:
-            return 0
-        }
+        BaseballEngine.previewRuns(for: dart, state: state, playerIndex: playerIndex)
     }
 
     private func reconcileAfterSummaryUndo() async -> Bool {

@@ -1,4 +1,3 @@
-import FirebaseAnalytics
 import Foundation
 
 /// User-scoped accessibility signals for product-health segmentation.
@@ -17,11 +16,7 @@ public enum AnalyticsAccessibilityContext {
     }
 
     public static func sync(from snapshot: ClientEnvironmentSnapshot = ClientEnvironment.snapshot) {
-        guard FirebaseBootstrap.shouldConfigure, FirebaseBootstrap.isAnalyticsCollectionEnabled else { return }
-
-        for (name, value) in userPropertyValues(from: snapshot) {
-            Analytics.setUserProperty(value, forName: name)
-        }
+        AnalyticsUserPropertySink.setAll(userPropertyValues(from: snapshot))
     }
 
     private static func boolString(_ value: Bool) -> String {

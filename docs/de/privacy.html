@@ -25,7 +25,7 @@
         <a href="support.html">Support</a>
         <a href="accessibility.html">Barrierefreiheit</a>
       </nav>
-      <p class="meta">Zuletzt aktualisiert: 11. Juni 2026</p>
+      <p class="meta">Zuletzt aktualisiert: 21. Oktober 2026</p>
     </header>
 
     <p>Diese Datenschutzerklärung beschreibt, wie <strong>Dart Buddy</strong> („die App“) mit Informationen umgeht, wenn Sie unsere iOS-Anwendung nutzen. Die App wird von Jacob Rozell entwickelt.</p>
@@ -58,11 +58,22 @@
     <ul>
       <li><code>app_open</code> — App-Start abgeschlossen</li>
       <li><code>match_started</code>, <code>match_completed</code>, <code>match_abandoned</code></li>
+      <li><code>game_mode_played</code>, <code>game_mode_completed</code>, <code>game_mode_forfeited</code></li>
       <li><code>turn_submitted</code>, <code>undo_used</code></li>
       <li>Fehlersignale wie <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>bootstrap_store_open_failed</code></li>
       <li><code>client_environment_changed</code> — bei Änderungen von Anzeige- oder Barrierefreiheitskontext (z. B. Ausrichtung, VoiceOver, Bewegung reduzieren, Fetter Text oder Bildschirmaufnahme). Parameter sind nur boolesche Flags und Geräteklasse — keine Spielernamen oder Spielinhalte.</li>
     </ul>
-    <p>Ereignisparameter sind auf nicht identifizierenden technischen Kontext beschränkt, z. B. Spielmodus, App-Version, Fehlercodes und Barrierefreiheits-Flags. Wir senden <strong>keine</strong> Spielernamen, Freitextnotizen oder vollständige Spielpayloads an Analytics.</p>
+    <p>Ereignisparameter sind auf nicht identifizierenden technischen Kontext beschränkt, z. B. Spielmodus-Kennung (etwa X01, Cricket, Baseball, Raid), App-Version, Fehlercodes und Barrierefreiheits-Flags. Wir senden <strong>keine</strong> Spielernamen, Freitextnotizen oder vollständige Spielpayloads an Analytics.</p>
+    <p>Firebase kann außerdem eine <strong>anonyme Benutzer-ID</strong> speichern (eine zufällige UUID für Ihr primäres menschliches Spielerprofil bzw. eine Firebase-Auth-UID, falls Sie sich in einer späteren Version bei Online-Funktionen anmelden). Diese ID ist nicht Ihr Anzeigename und wird nicht in einzelnen Ereignisparametern mitgeführt.</p>
+    <p>Zusätzlich zu Ereignissen kann Analytics grobe <strong>User Properties</strong> (Segmentierungsdimensionen bezogen auf die anonyme Installation, nicht auf Ihren Anzeigenamen) speichern. Dazu können gehören:</p>
+    <ul>
+      <li>App-Einstellungspräferenzen wie Erscheinungsmodus, Haptik-/Ton-Schalter, Ansage, Bot-Feedback und Standard-Dart-Eingabe</li>
+      <li>Barrierefreiheits- / Dynamic-Type-Flags wie VoiceOver, Switch Control, Bewegung reduzieren, Fetter Text und Content-Size-Kategorie</li>
+      <li>App-Locale, Build-Nummer und Product-Surface-Slice (z. B. <code>smart1_2</code>, <code>party1_1</code>, <code>lean1_0</code> oder <code>full</code>)</li>
+      <li>Zuletzt gespielte Match-Typ- / Spielmodus-Kennungen (nur Modus-IDs — keine Spielernamen oder Punkte)</li>
+      <li>Ob das Onboarding abgeschlossen wurde</li>
+    </ul>
+    <p>User Properties sind nur boolesche Flags, kurze Enums und Modus-Kennungen. Wir hängen <strong>keine</strong> Spielernamen, Notizen oder Spielinhalte an diese Properties.</p>
 
     <h3>3.2 Firebase Crashlytics (Abstürze &amp; Fehler)</h3>
     <p>Bei Abstürzen oder bestimmten freigegebenen Fehlerzuständen kann Crashlytics erhalten:</p>

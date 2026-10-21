@@ -23,7 +23,8 @@ struct SetupRaidOptionChips: View {
     }
 
     private var raidBossTierChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.bossTier", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.string(RaidSetupPreferences.loadBossTier().displayNameKey)
+        return SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.bossTier", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(RaidBossTier.allCases, id: \.rawValue) { tier in
                     Button(L10n.string(tier.displayNameKey)) {
@@ -32,14 +33,16 @@ struct SetupRaidOptionChips: View {
                     }
                 }
             } label: {
-                SetupOptionChipHelpers.chipBox(L10n.string(RaidSetupPreferences.loadBossTier().displayNameKey), color: Brand.amber, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.raid.setup.bossTier", value))
             .accessibilityIdentifier("setup_raidBossTierChip")
         }
     }
 
     private var raidHeroHeartsChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.heroHearts", color: Brand.redAccent, dynamicTypeSize: dynamicTypeSize) {
+        let value = "\(RaidSetupPreferences.loadHeroHearts())"
+        return SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.heroHearts", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([3, 4, 5], id: \.self) { hearts in
                     Button("\(hearts)") {
@@ -48,24 +51,31 @@ struct SetupRaidOptionChips: View {
                     }
                 }
             } label: {
-                SetupOptionChipHelpers.chipBox("\(RaidSetupPreferences.loadHeroHearts())", color: Brand.redAccent, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.raid.setup.heroHearts", value))
             .accessibilityIdentifier("setup_raidHeroHeartsChip")
         }
     }
 
     private var raidEnrageChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.enrageEnabled", color: Brand.orange, dynamicTypeSize: dynamicTypeSize) {
+        let value = RaidSetupPreferences.loadEnrageEnabled()
+            ? L10n.string("common.on")
+            : L10n.string("common.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.raid.setup.enrageEnabled", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
-                Button(L10n.string("common.on")) { RaidSetupPreferences.save(enrageEnabled: true) }
-                Button(L10n.string("common.off")) { RaidSetupPreferences.save(enrageEnabled: false) }
+                Button(L10n.string("common.on")) {
+                    RaidSetupPreferences.save(enrageEnabled: true)
+                    setupViewModel.revalidate()
+                }
+                Button(L10n.string("common.off")) {
+                    RaidSetupPreferences.save(enrageEnabled: false)
+                    setupViewModel.revalidate()
+                }
             } label: {
-                SetupOptionChipHelpers.chipBox(
-                    RaidSetupPreferences.loadEnrageEnabled() ? L10n.string("common.on") : L10n.string("common.off"),
-                    color: Brand.orange,
-                    dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
-                )
+                SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.raid.setup.enrageEnabled", value))
             .accessibilityIdentifier("setup_raidEnrageChip")
         }
     }

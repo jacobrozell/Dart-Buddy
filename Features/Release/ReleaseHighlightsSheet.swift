@@ -51,11 +51,11 @@ struct ReleaseHighlightsSheet: View {
                 .padding(.vertical, DS.Spacing.s1)
                 .background(Brand.green.opacity(0.14), in: Capsule())
 
-            Text(L10n.releaseHighlightsPartyPackTitle)
+            Text(LocalizedStringKey(highlight.titleKey))
                 .font(.title2.weight(.bold))
                 .foregroundStyle(Brand.textPrimary)
 
-            Text(L10n.releaseHighlightsPartyPackSubtitle)
+            Text(LocalizedStringKey(highlight.subtitleKey))
                 .font(.body)
                 .foregroundStyle(Brand.textSecondary)
         }

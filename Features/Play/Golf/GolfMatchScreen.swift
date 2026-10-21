@@ -22,7 +22,7 @@ struct GolfMatchScreen: View {
                         .foregroundStyle(Brand.textSecondary)
                     Text(viewModel.lastDartHint)
                         .font(.caption2)
-                        .foregroundStyle(Brand.amber)
+                        .foregroundStyle(Brand.textSecondary)
                         .accessibilityIdentifier("golf_last_dart_hint")
                 }
                 .accessibilityElement(children: .ignore)
@@ -35,7 +35,7 @@ struct GolfMatchScreen: View {
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(width: 44, height: 44)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }

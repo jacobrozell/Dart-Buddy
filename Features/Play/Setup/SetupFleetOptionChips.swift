@@ -35,7 +35,8 @@ struct SetupFleetOptionChips: View {
     }
 
     private var fleetPresetChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.preset", color: Brand.proBot, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.string(FleetSetupPreferences.loadPreset().titleKey)
+        return SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.preset", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(FleetSetupPreferences.Preset.allCases, id: \.rawValue) { preset in
                     Button(L10n.string(preset.titleKey)) {
@@ -44,14 +45,18 @@ struct SetupFleetOptionChips: View {
                     }
                 }
             } label: {
-                SetupOptionChipHelpers.chipBox(L10n.string(FleetSetupPreferences.loadPreset().titleKey), color: Brand.proBot, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fleet.setup.preset", value)
+            )
             .accessibilityIdentifier("setup_fleetPresetChip")
         }
     }
 
     private var fleetShipCountChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.shipCountLabel", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = "\(FleetSetupPreferences.loadShipCount().count)"
+        return SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.shipCountLabel", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(FleetShipCount.allCases, id: \.rawValue) { count in
                     Button("\(count.count)") {
@@ -60,14 +65,21 @@ struct SetupFleetOptionChips: View {
                     }
                 }
             } label: {
-                SetupOptionChipHelpers.chipBox("\(FleetSetupPreferences.loadShipCount().count)", color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fleet.setup.shipCountLabel", value)
+            )
             .accessibilityIdentifier("setup_fleetShipCountChip")
         }
     }
 
     private var fleetShipHealthChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.shipHealth", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let health = FleetSetupPreferences.loadShipHealth()
+        let value = health == .fragile
+            ? L10n.string("play.fleet.setup.shipHealth.fragile")
+            : L10n.string("play.fleet.setup.shipHealth.armored")
+        return SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.shipHealth", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.fleet.setup.shipHealth.fragile")) {
                     FleetSetupPreferences.save(shipHealth: .fragile)
@@ -76,34 +88,41 @@ struct SetupFleetOptionChips: View {
                     FleetSetupPreferences.save(shipHealth: .armored)
                 }
             } label: {
-                let health = FleetSetupPreferences.loadShipHealth()
-                let label = health == .fragile
-                    ? L10n.string("play.fleet.setup.shipHealth.fragile")
-                    : L10n.string("play.fleet.setup.shipHealth.armored")
-                SetupOptionChipHelpers.chipBox(label, color: Brand.amber, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fleet.setup.shipHealth", value)
+            )
             .accessibilityIdentifier("setup_fleetShipHealthChip")
         }
     }
 
     private var fleetBullChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.bullAllowed", color: Brand.green, dynamicTypeSize: dynamicTypeSize) {
+        let value = FleetSetupPreferences.loadBullAllowed() ? L10n.string("common.on") : L10n.string("common.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.bullAllowed", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("common.on")) { FleetSetupPreferences.save(bullAllowed: true) }
                 Button(L10n.string("common.off")) { FleetSetupPreferences.save(bullAllowed: false) }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    FleetSetupPreferences.loadBullAllowed() ? L10n.string("common.on") : L10n.string("common.off"),
-                    color: Brand.green,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fleet.setup.bullAllowed", value)
+            )
             .accessibilityIdentifier("setup_fleetBullChip")
         }
     }
 
     private var fleetCallModeChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.callMode", color: Brand.orange, dynamicTypeSize: dynamicTypeSize) {
+        let mode = FleetSetupPreferences.loadCallMode()
+        let value = mode == .strict
+            ? L10n.string("play.fleet.setup.callMode.strict")
+            : L10n.string("play.fleet.setup.callMode.callOnly")
+        return SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.callMode", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.fleet.setup.callMode.strict")) {
                     FleetSetupPreferences.save(callMode: .strict)
@@ -112,28 +131,31 @@ struct SetupFleetOptionChips: View {
                     FleetSetupPreferences.save(callMode: .callOnly)
                 }
             } label: {
-                let mode = FleetSetupPreferences.loadCallMode()
-                let label = mode == .strict
-                    ? L10n.string("play.fleet.setup.callMode.strict")
-                    : L10n.string("play.fleet.setup.callMode.callOnly")
-                SetupOptionChipHelpers.chipBox(label, color: Brand.orange, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
+                SetupOptionChipHelpers.chipBox(value, color: Brand.key, dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true)
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fleet.setup.callMode", value)
+            )
             .accessibilityIdentifier("setup_fleetCallModeChip")
         }
     }
 
     private var fleetSonarChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.sonarEnabled", color: Brand.proBot, dynamicTypeSize: dynamicTypeSize) {
+        let value = FleetSetupPreferences.loadSonarEnabled() ? L10n.string("common.on") : L10n.string("common.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.fleet.setup.sonarEnabled", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("common.on")) { FleetSetupPreferences.save(sonarEnabled: true) }
                 Button(L10n.string("common.off")) { FleetSetupPreferences.save(sonarEnabled: false) }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    FleetSetupPreferences.loadSonarEnabled() ? L10n.string("common.on") : L10n.string("common.off"),
-                    color: Brand.proBot,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.fleet.setup.sonarEnabled", value)
+            )
             .accessibilityIdentifier("setup_fleetSonarChip")
         }
     }

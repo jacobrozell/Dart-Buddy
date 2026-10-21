@@ -4,14 +4,19 @@ import Testing
 
 @Suite("Release highlights", .tags(.unit, .regression))
 struct ReleaseHighlightsStoreTests {
-    @Test("Release highlights suppressed on smart1_2 store surface")
-    func currentHighlightNilOnSmart12Surface() {
-        let storeArgs: [String] = []
+    @Test("Smart 1.2 surface presents Smart Opponents highlight")
+    func currentHighlightOnSmart12Surface() {
+        let defaultArgs: [String] = []
         let leanArgs = [ProductSurface.leanProductSurfaceLaunchArgument]
         let fullArgs = [ProductSurface.fullProductSurfaceLaunchArgument]
 
-        #expect(ReleaseHighlights.current(arguments: storeArgs) == nil)
-        #expect(ReleaseHighlights.current(arguments: leanArgs) == nil)
+        for args in [defaultArgs, leanArgs] {
+            let highlight = ReleaseHighlights.current(arguments: args)
+            #expect(highlight == .smartOpponents1_2)
+            #expect(highlight?.features.contains(where: { $0.matchType == .raid }) == true)
+            #expect(highlight?.features.contains(where: { $0.matchType == .golf }) == true)
+            #expect(highlight?.features.contains(where: { $0.matchType == .bobs27 }) == true)
+        }
         #expect(ReleaseHighlights.current(arguments: fullArgs) == nil)
     }
 

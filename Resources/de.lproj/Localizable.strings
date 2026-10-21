@@ -904,7 +904,9 @@
 "settings.onboarding.viewTour.accessibility" = "Onboarding anzeigen";
 "release.highlights.badge" = "Neu";
 "release.highlights.partyPack.title" = "Party-Paket";
-"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai und Rund um die Uhr findest du jetzt unter Spielen.";
+"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai, Raid und Rund um die Uhr findest du jetzt unter Spielen.";
+"release.highlights.smartOpponents.title" = "Smarte Gegner";
+"release.highlights.smartOpponents.subtitle" = "Golf, Bob’s 27 und Halve-It sind neu unter Spielen — plus Trainingspartner und deutsche Oberfläche.";
 "release.highlights.tryModes" = "Neue Modi ausprobieren";
 "release.highlights.gotIt" = "Verstanden";
 "release.highlights.accessibility" = "Neu in Dart Buddy";
@@ -1307,6 +1309,12 @@
 "play.raid.phase.enrage" = "Wutanfall";
 "play.raid.legend.shield" = "20–16 schließen für je 8 Schaden";
 "play.raid.legend.expose" = "Doubles 2 · Triples 3";
+"play.raid.closeDamageFormat" = "%@ geschlossen — 8 Schaden!";
+"play.raid.shieldProgress.title" = "Schild-Ziele";
+"play.raid.shieldProgress.closedFormat" = "Segment %@ geschlossen";
+"play.raid.shieldProgress.damageBadge" = "+8";
+"play.raid.heroDownAccessibility" = "Ausgeschieden";
+"play.raid.activeHeroAccessibilityFormat" = "%@ ist dran";
 "play.raid.enrageStrikeAnnouncement" = "Boss-Wutanfall";
 "play.raid.victory" = "Boss besiegt!";
 "play.raid.defeat" = "Überfall gescheitert";

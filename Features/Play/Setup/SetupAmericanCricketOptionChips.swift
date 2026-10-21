@@ -11,7 +11,10 @@ struct SetupAmericanCricketOptionChips: View {
     }
 
     private var americanCricketPointsChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.americanCricket.setup.points", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.americanCricketPointsEnabled
+            ? L10n.string("play.americanCricket.setup.pointsOn")
+            : L10n.string("play.americanCricket.setup.pointsOff")
+        return SetupOptionChipHelpers.chip(titleKey: "play.americanCricket.setup.points", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 Button(L10n.string("play.americanCricket.setup.pointsOn")) {
                     setupViewModel.americanCricketPointsEnabled = true
@@ -23,13 +26,14 @@ struct SetupAmericanCricketOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.americanCricketPointsEnabled
-                        ? L10n.string("play.americanCricket.setup.pointsOn")
-                        : L10n.string("play.americanCricket.setup.pointsOff"),
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.americanCricket.setup.points", value)
+            )
             .accessibilityIdentifier("setup_americanCricketPointsChip")
         }
     }

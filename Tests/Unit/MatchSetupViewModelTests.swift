@@ -373,7 +373,7 @@ func setupPartyKillerAllowsPresetBot() async {
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func setupPartyKillerAllowsCustomBot() async {
+func setupPartyKillerRejectsCustomBot() async {
     guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
     let custom = makeCustomBot("Custom")
@@ -391,13 +391,14 @@ func setupPartyKillerAllowsCustomBot() async {
     vm.selectedPlayerIds = [human.id, custom.id, third.id]
     vm.revalidate()
 
-    #expect(vm.canStart)
-    #expect(vm.validationErrors.isEmpty)
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.killerBotsPresetOnly"))
+    #expect(vm.botPlaySupport == .presetOnly)
 }
 
 @MainActor
 @Test(.tags(.unit, .setupFlow, .regression))
-func setupPartyBaseballAllowsCustomBot() async {
+func setupPartyBaseballRejectsCustomBot() async {
     guard ProductSurface.showsPartyModes else { return }
     let human = makePlayer("Human")
     let custom = makeCustomBot("Custom")
@@ -414,8 +415,52 @@ func setupPartyBaseballAllowsCustomBot() async {
     vm.selectedPlayerIds = [human.id, custom.id]
     vm.revalidate()
 
-    #expect(vm.canStart)
-    #expect(vm.validationErrors.isEmpty)
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.baseballBotsPresetOnly"))
+    #expect(vm.botPlaySupport == .presetOnly)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func setupPartyShanghaiRejectsCustomBot() async {
+    guard ProductSurface.showsPartyModes else { return }
+    let human = makePlayer("Human")
+    let custom = makeCustomBot("Custom")
+    let vm = MatchSetupViewModel(
+        playerRepository: FakePlayerRepository(players: [human, custom]),
+        settingsRepository: FakeSettingsRepository(),
+        matchRepository: FakeMatchRepository(),
+        activeMatchStore: ActiveMatchStore(),
+        pendingMatchPlayerSelections: PendingMatchPlayerSelections()
+    )
+    await vm.onAppear()
+    vm.updateSetupCategory(.party)
+    vm.updatePartyGame(.shanghai)
+    vm.selectedPlayerIds = [human.id, custom.id]
+    vm.revalidate()
+
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.shanghaiBotsPresetOnly"))
+    #expect(vm.botPlaySupport == .presetOnly)
+}
+
+@MainActor
+@Test(.tags(.unit, .setupFlow, .regression))
+func setupCatalogBaseballRejectsCustomBot() async {
+    guard ProductSurface.isMatchTypeReachable(.baseball) else { return }
+    let human = makePlayer("Human")
+    let custom = makeCustomBot("Custom")
+    let vm = makeSetupViewModel(players: [human, custom])
+    await vm.onAppear()
+    vm.applyPendingModeSelection(
+        PendingModeSelection(setupCategory: .standard, mode: nil, partyGame: nil, matchType: .baseball)
+    )
+    vm.selectedPlayerIds = [human.id, custom.id]
+    vm.revalidate()
+
+    #expect(vm.botPlaySupport == .presetOnly)
+    #expect(!vm.canStart)
+    #expect(vm.validationErrors.contains("setup.validation.baseballBotsPresetOnly"))
 }
 
 @MainActor

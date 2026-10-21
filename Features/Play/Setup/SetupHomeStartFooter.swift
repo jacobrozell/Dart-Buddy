@@ -13,18 +13,14 @@ struct SetupHomeStartFooter: View {
     }
 
     private var showsBotMenu: Bool {
-        guard let _ = onShowCustomBot else { return false }
-        guard setupViewModel.setupCategory != .party || ProductSurface.showsPartyModes else { return false }
-        return setupViewModel.setupCategory != .party
-            || setupViewModel.partyGame == .baseball
-            || setupViewModel.partyGame == .shanghai
-            || setupViewModel.partyGame == .killer
+        guard onShowCustomBot != nil else { return false }
+        guard setupViewModel.botPlaySupport.allowsBots else { return false }
+        if setupViewModel.setupCategory == .party, !ProductSurface.showsPartyModes { return false }
+        return true
     }
 
     private var allowsAdvancedBotMenuItems: Bool {
-        setupViewModel.setupCategory != .party
-            || setupViewModel.partyGame == .baseball
-            || setupViewModel.partyGame == .shanghai
+        setupViewModel.botPlaySupport.allowsTrainingAndCustomBots
     }
 
     private var showsTrainingBotsInSetup: Bool {

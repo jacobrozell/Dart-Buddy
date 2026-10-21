@@ -22,7 +22,8 @@ struct SetupGolfOptionChips: View {
     }
 
     private var golfCourseLengthChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.golf.setup.courseLength", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format("play.golf.setup.courseLengthValueFormat", setupViewModel.golfCourseLength)
+        return SetupOptionChipHelpers.chip(titleKey: "play.golf.setup.courseLength", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(GolfCourseLength.allCases, id: \.rawValue) { length in
                     Button(L10n.format("play.golf.setup.courseLengthValueFormat", length.rawValue)) {
@@ -32,11 +33,14 @@ struct SetupGolfOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format("play.golf.setup.courseLengthValueFormat", setupViewModel.golfCourseLength),
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.golf.setup.courseLength", value)
+            )
             .accessibilityIdentifier("setup_golfCourseLengthChip")
         }
     }

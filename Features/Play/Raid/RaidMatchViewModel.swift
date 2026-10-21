@@ -60,6 +60,14 @@ final class RaidMatchViewModel: ObservableObject {
         return L10n.format("play.raid.headerFormat", phase, state.bossHP, state.bossMaxHP)
     }
 
+    var headerAccessibilityLabel: String {
+        var parts = [L10n.string("play.raid.navTitle"), headerText]
+        if let active = coopChromeHeroes.first(where: \.isActive) {
+            parts.append(L10n.format("play.raid.activeHeroAccessibilityFormat", active.name))
+        }
+        return parts.filter { !$0.isEmpty }.joined(separator: ", ")
+    }
+
     var coopChromeHeroes: [CoopBossChromeView.CoopHeroHeartRow] {
         guard let session, let raidState else { return [] }
         let activeId = raidState.heroes.indices.contains(raidState.currentHeroIndex)
@@ -157,6 +165,11 @@ final class RaidMatchViewModel: ObservableObject {
     private func undoLastDartAsync() async {
         await loadSessionIfNeeded()
         guard let current = session else { return }
+        if !enteredDarts.isEmpty {
+            enteredDarts.removeLast()
+            state = .readyTurn
+            return
+        }
         do {
             let undone = try await MatchTurnSupport.undoLastTurn(
                 session: current,
@@ -167,6 +180,8 @@ final class RaidMatchViewModel: ObservableObject {
             session = undone
             state = .readyTurn
             enteredDarts.removeAll()
+        } catch is CancellationError {
+            state = .readyTurn
         } catch {
             state = .error((error as? AppError)?.userMessageKey ?? "error.match.undoFailed")
         }

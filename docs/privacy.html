@@ -25,7 +25,7 @@
         <a href="support.html">Support</a>
         <a href="accessibility.html">Accessibility</a>
       </nav>
-      <p class="meta">Last updated: June 11, 2026</p>
+      <p class="meta">Last updated: October 21, 2026</p>
     </header>
 
     <p>This Privacy Policy describes how <strong>Dart Buddy</strong> (“the app”) handles information when you use our iOS application. The app is developed by Jacob Rozell.</p>
@@ -58,11 +58,22 @@
     <ul>
       <li><code>app_open</code> — app finished launching</li>
       <li><code>match_started</code>, <code>match_completed</code>, <code>match_abandoned</code></li>
+      <li><code>game_mode_played</code>, <code>game_mode_completed</code>, <code>game_mode_forfeited</code></li>
       <li><code>turn_submitted</code>, <code>undo_used</code></li>
       <li>Failure signals such as <code>match_start_failed</code>, <code>turn_persist_failed</code>, <code>bootstrap_store_open_failed</code></li>
       <li><code>client_environment_changed</code> — when display or accessibility context changes (for example orientation, VoiceOver, Reduce Motion, Bold Text, or screen capture). Parameters are boolean flags and device class only — not player names or match content.</li>
     </ul>
-    <p>Event parameters are restricted to non-identifying technical context, such as game mode, app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
+    <p>Event parameters are restricted to non-identifying technical context, such as game mode identifier (for example X01, Cricket, Baseball, Raid), app version, error codes, accessibility-setting booleans, and similar metadata. We do <strong>not</strong> send player names, freeform notes, or full match payloads to Analytics.</p>
+    <p>Firebase may also store an <strong>anonymous User ID</strong> (a random UUID for your primary human player profile, or a Firebase Auth UID if you sign in to online features in a future version). This ID is not your display name and is not included on individual event parameters.</p>
+    <p>In addition to events, Analytics may retain coarse <strong>User Properties</strong> (segmentation dimensions scoped to the anonymous installation, not your display name). These may include:</p>
+    <ul>
+      <li>App settings preferences such as appearance mode, haptics/sound toggles, turn caller, bot feedback options, and default dart-entry presentation</li>
+      <li>Accessibility / Dynamic Type flags such as VoiceOver, Switch Control, Reduce Motion, Bold Text, and content-size category bucket</li>
+      <li>App locale, build number, and product surface slice (for example <code>smart1_2</code>, <code>party1_1</code>, <code>lean1_0</code>, or <code>full</code>)</li>
+      <li>Last-played match type / game mode identifiers (mode IDs only — not player names or scores)</li>
+      <li>Whether onboarding has been completed</li>
+    </ul>
+    <p>User Properties are boolean flags, short enums, and mode identifiers only. We do <strong>not</strong> attach player names, notes, or match content to these properties.</p>
 
     <h3>3.2 Firebase Crashlytics (crashes &amp; errors)</h3>
     <p>If the app crashes or records certain allowlisted error conditions, Crashlytics may receive:</p>

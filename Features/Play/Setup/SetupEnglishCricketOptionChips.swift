@@ -24,7 +24,8 @@ struct SetupEnglishCricketOptionChips: View {
     }
 
     private var englishCricketWicketsChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.englishCricket.setup.wicketsPerInnings", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format("play.englishCricket.setup.wicketsValueFormat", setupViewModel.englishCricketWicketsPerInnings)
+        return SetupOptionChipHelpers.chip(titleKey: "play.englishCricket.setup.wicketsPerInnings", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([5, 7, 10], id: \.self) { count in
                     Button(L10n.format("play.englishCricket.setup.wicketsValueFormat", count)) {
@@ -34,29 +35,36 @@ struct SetupEnglishCricketOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format("play.englishCricket.setup.wicketsValueFormat", setupViewModel.englishCricketWicketsPerInnings),
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.englishCricket.setup.wicketsPerInnings", value)
+            )
             .accessibilityIdentifier("setup_englishCricketWicketsChip")
         }
     }
 
     private var englishCricketEndEarlyChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.englishCricket.setup.endWhenTargetPassed", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.englishCricketEndWhenTargetPassed
+            ? L10n.string("common.on")
+            : L10n.string("common.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.englishCricket.setup.endWhenTargetPassed", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Button {
                 setupViewModel.englishCricketEndWhenTargetPassed.toggle()
                 setupViewModel.revalidate()
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.englishCricketEndWhenTargetPassed
-                        ? L10n.string("common.on")
-                        : L10n.string("common.off"),
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.englishCricket.setup.endWhenTargetPassed", value)
+            )
             .accessibilityIdentifier("setup_englishCricketEndEarlyChip")
         }
     }

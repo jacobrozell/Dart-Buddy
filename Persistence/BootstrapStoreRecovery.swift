@@ -1,6 +1,11 @@
 import Foundation
 import SwiftData
 
+enum BootstrapStoreRecoveryError: Error, Equatable {
+    /// Existing store could not be copied; wipe was refused to avoid data loss.
+    case backupFailedBeforeWipe
+}
+
 /// Opens the SwiftData store at launch, repairing local inconsistencies or recreating
 /// the on-disk store when migration/open fails. Callers should never surface a blocking
 /// recovery screen — log faults and continue with a usable container.
@@ -33,7 +38,7 @@ enum BootstrapStoreRecovery {
         }
 
         if case .appDefault = mode {
-            AppStoreReset.deleteSQLiteStore()
+            _ = backupAndDeleteStoreIfNeeded(mode: mode, logger: logger, reason: "recovery_exhausted")
         }
         return (try? ModelContainerFactory.makeContainer(mode: mode))
             ?? ModelContainerFactory.makeInMemoryFallbackContainer()
@@ -45,7 +50,9 @@ enum BootstrapStoreRecovery {
         forceRecreate: Bool = false
     ) throws -> ModelContainer {
         if forceRecreate {
-            backupAndDeleteStoreIfNeeded(mode: mode, logger: logger, reason: "forced_recreate")
+            guard backupAndDeleteStoreIfNeeded(mode: mode, logger: logger, reason: "forced_recreate") else {
+                throw BootstrapStoreRecoveryError.backupFailedBeforeWipe
+            }
             let container = try ModelContainerFactory.makeContainer(mode: mode)
             logger.info(
                 .migration,
@@ -75,10 +82,14 @@ enum BootstrapStoreRecovery {
                     message: "Invariant repair failed; recreating local store.",
                     metadata: storageMetadata(mode: mode).merging(["underlyingError": String(describing: error)]) { current, _ in current }
                 )
-                backupAndDeleteStoreIfNeeded(mode: mode, logger: logger, reason: "repair_failed")
+                guard backupAndDeleteStoreIfNeeded(mode: mode, logger: logger, reason: "repair_failed") else {
+                    throw BootstrapStoreRecoveryError.backupFailedBeforeWipe
+                }
                 return try ModelContainerFactory.makeContainer(mode: mode)
             }
             return container
+        } catch let recoveryError as BootstrapStoreRecoveryError {
+            throw recoveryError
         } catch {
             logger.fault(
                 .migration,
@@ -86,7 +97,9 @@ enum BootstrapStoreRecovery {
                 message: "Failed to open local store; recreating from backup.",
                 metadata: storageMetadata(mode: mode).merging(openFailureMetadata(error)) { current, _ in current }
             )
-            backupAndDeleteStoreIfNeeded(mode: mode, logger: logger, reason: "open_failed")
+            guard backupAndDeleteStoreIfNeeded(mode: mode, logger: logger, reason: "open_failed") else {
+                throw BootstrapStoreRecoveryError.backupFailedBeforeWipe
+            }
             let container = try ModelContainerFactory.makeContainer(mode: mode)
             logger.fault(
                 .migration,
@@ -98,26 +111,55 @@ enum BootstrapStoreRecovery {
         }
     }
 
+    /// Backs up then deletes. Returns `false` when a store exists but backup failed (refuses wipe).
+    @discardableResult
     static func backupAndDeleteStoreIfNeeded(
         mode: ModelContainerFactory.StorageMode,
         logger: any AppLogger,
         reason: String
-    ) {
+    ) -> Bool {
         switch mode {
         case .appDefault:
-            if let backupPath = AppStoreReset.backupSQLiteStore() {
+            guard let sqliteBase = AppStoreReset.sqliteStoreBaseURL else { return true }
+            guard FileManager.default.fileExists(atPath: sqliteBase.path) else { return true }
+            guard let backupPath = AppStoreReset.backupSQLiteStore(at: sqliteBase) else {
                 logger.fault(
                     .migration,
-                    eventName: "bootstrap_store_backed_up",
-                    message: "Backed up local store before recreation.",
-                    metadata: ["reason": reason, "backupPath": backupPath]
+                    eventName: "bootstrap_store_backup_failed",
+                    message: "Backup failed; refusing to delete local store.",
+                    metadata: ["reason": reason]
                 )
+                return false
             }
+            logger.fault(
+                .migration,
+                eventName: "bootstrap_store_backed_up",
+                message: "Backed up local store before recreation.",
+                metadata: ["reason": reason, "backupPath": backupPath]
+            )
             AppStoreReset.deleteSQLiteStore()
+            return true
         case let .customURL(url):
+            guard FileManager.default.fileExists(atPath: url.path) else { return true }
+            guard let backupPath = AppStoreReset.backupSQLiteStore(at: url) else {
+                logger.fault(
+                    .migration,
+                    eventName: "bootstrap_store_backup_failed",
+                    message: "Backup failed; refusing to delete customURL store.",
+                    metadata: ["reason": reason, "storePath": url.path]
+                )
+                return false
+            }
+            logger.fault(
+                .migration,
+                eventName: "bootstrap_store_backed_up",
+                message: "Backed up customURL store before recreation.",
+                metadata: ["reason": reason, "backupPath": backupPath]
+            )
             AppStoreReset.deleteSQLiteStore(at: url)
+            return true
         case .inMemory:
-            break
+            return true
         }
     }
 

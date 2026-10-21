@@ -32,4 +32,27 @@ struct AppStoreResetTests {
             #expect(!FileManager.default.fileExists(atPath: url.path))
         }
     }
+
+    @Test
+    func backupAndRestoreRoundTripPreservesBytes() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dartbuddy-backup-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let sqliteBase = directory.appending(path: "DartBuddy.sqlite")
+        let payload = Data("store-bytes-\(UUID().uuidString)".utf8)
+        try payload.write(to: sqliteBase)
+        try Data([0x01]).write(to: sqliteBase.appendingPathExtension("wal"))
+
+        let backupPath = try #require(AppStoreReset.backupSQLiteStore(at: sqliteBase))
+        #expect(FileManager.default.fileExists(atPath: backupPath))
+
+        AppStoreReset.deleteSQLiteStore(at: sqliteBase)
+        #expect(!FileManager.default.fileExists(atPath: sqliteBase.path))
+
+        #expect(AppStoreReset.restoreSQLiteStore(fromBackupPath: backupPath, to: sqliteBase))
+        #expect(try Data(contentsOf: sqliteBase) == payload)
+        #expect(FileManager.default.fileExists(atPath: sqliteBase.appendingPathExtension("wal").path))
+    }
 }

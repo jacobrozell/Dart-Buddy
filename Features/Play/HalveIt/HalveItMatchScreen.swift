@@ -30,7 +30,7 @@ struct HalveItMatchScreen: View {
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(width: 44, height: 44)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }

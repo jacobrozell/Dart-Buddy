@@ -49,15 +49,14 @@ public enum AnalyticsUserIdentity {
 
     /// Updates GA4 user properties for mode-level retention reporting.
     public static func syncLastGameMode(for matchType: MatchType) {
-        guard FirebaseBootstrap.shouldConfigure, FirebaseBootstrap.isAnalyticsCollectionEnabled else { return }
-
         let metadata = GameModeAnalytics.metadata(for: matchType)
-        Analytics.setUserProperty(matchType.rawValue, forName: "last_match_type")
+        var values: [String: String] = ["last_match_type": matchType.rawValue]
         if let gameModeId = metadata["gameModeId"] {
-            Analytics.setUserProperty(gameModeId, forName: "last_game_mode_id")
+            values["last_game_mode_id"] = gameModeId
         }
         if let gameModeSection = metadata["gameModeSection"] {
-            Analytics.setUserProperty(gameModeSection, forName: "last_game_mode_section")
+            values["last_game_mode_section"] = gameModeSection
         }
+        AnalyticsUserPropertySink.setAll(values)
     }
 }
