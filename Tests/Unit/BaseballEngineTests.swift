@@ -149,6 +149,16 @@ func baseballSeventhInningStretchGate() throws {
     #expect(state.currentInning == 7)
     #expect(state.currentPlayerIndex == 0)
 
+    // Preview must match submit rules: closed stretch gate awards 0 runs for a 7.
+    #expect(BaseballEngine.previewRuns(for: d(.triple, 7), state: state, playerIndex: 0) == 0)
+    #expect(
+        BaseballEngine.previewRuns(
+            for: DartInput(multiplier: .single, segment: .outerBull),
+            state: state,
+            playerIndex: 0
+        ) == 0
+    )
+
     let blocked = try BaseballEngine.submitTurn(state: state, darts: [d(.triple, 7)]).updatedState
     #expect(blocked.players[0].cumulativeRuns == 6)
     #expect(blocked.players[0].stretchGateOpen == false)
@@ -160,6 +170,7 @@ func baseballSeventhInningStretchGate() throws {
     #expect(opened.players[0].stretchGateOpen)
     #expect(opened.players[0].cumulativeRuns == 9)
     #expect(opened.players[0].runsThisInning == 3)
+    #expect(BaseballEngine.previewRuns(for: d(.triple, 7), state: opened, playerIndex: 0) == 3)
 }
 
 @Test(.tags(.unit, .match, .critical, .offline, .regression))

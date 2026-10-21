@@ -6,8 +6,16 @@ import Testing
 struct BotBehaviorVerificationTests {
     // MARK: - Setup policy
 
-    @Test func botModePlaySupport_allowsCustomBotsOnPartyModes() {
-        for matchType in [MatchType.baseball, .shanghai, .killer, .golf, .prisoner] {
+    @Test func botModePlaySupport_presetOnlyOnClassicPartyModes() {
+        for matchType in [MatchType.baseball, .shanghai, .killer] {
+            let support = BotModePlaySupport.support(for: matchType)
+            #expect(support == .presetOnly)
+            #expect(!support.allowsTrainingAndCustomBots)
+        }
+    }
+
+    @Test func botModePlaySupport_allowsCustomBotsOnFullPartyModes() {
+        for matchType in [MatchType.golf, .prisoner] {
             let support = BotModePlaySupport.support(for: matchType)
             #expect(support == .full)
             #expect(support.allowsTrainingAndCustomBots)

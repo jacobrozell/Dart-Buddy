@@ -13,7 +13,8 @@ struct SetupKillerOptionChips: View {
     }
 
     private var killerLivesChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.killer.setup.lives", color: Brand.red, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format("play.killer.setup.livesValueFormat", setupViewModel.killerStartingLives)
+        return SetupOptionChipHelpers.chip(titleKey: "play.killer.setup.lives", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([3, 4, 5], id: \.self) { lives in
                     Button(L10n.format("play.killer.setup.livesValueFormat", lives)) {
@@ -23,11 +24,12 @@ struct SetupKillerOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format("play.killer.setup.livesValueFormat", setupViewModel.killerStartingLives),
-                    color: Brand.red,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.killer.setup.lives", value))
             .accessibilityIdentifier("setup_killerLivesChip")
         }
     }

@@ -24,7 +24,8 @@ struct SetupShanghaiOptionChips: View {
     }
 
     private var shanghaiRoundsChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.shanghai.setup.rounds", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = L10n.format("play.shanghai.setup.roundsValueFormat", setupViewModel.shanghaiRoundCount)
+        return SetupOptionChipHelpers.chip(titleKey: "play.shanghai.setup.rounds", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach([7, 10, 20], id: \.self) { count in
                     Button(L10n.format("play.shanghai.setup.roundsValueFormat", count)) {
@@ -34,17 +35,19 @@ struct SetupShanghaiOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    L10n.format("play.shanghai.setup.roundsValueFormat", setupViewModel.shanghaiRoundCount),
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.shanghai.setup.rounds", value))
             .accessibilityIdentifier("setup_shanghaiRoundsChip")
         }
     }
 
     private var shanghaiBonusChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.shanghai.setup.bonusRule", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.shanghaiBonusRule.displayName
+        return SetupOptionChipHelpers.chip(titleKey: "play.shanghai.setup.bonusRule", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(ShanghaiBonusRule.allCases, id: \.rawValue) { rule in
                     Button(rule.displayName) {
@@ -54,11 +57,12 @@ struct SetupShanghaiOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.shanghaiBonusRule.displayName,
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(SetupOptionChipHelpers.chipAccessibilityLabel("play.shanghai.setup.bonusRule", value))
             .accessibilityIdentifier("setup_shanghaiBonusChip")
         }
     }

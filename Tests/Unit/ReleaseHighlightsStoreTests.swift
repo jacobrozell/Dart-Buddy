@@ -4,14 +4,15 @@ import Testing
 
 @Suite("Release highlights", .tags(.unit, .regression))
 struct ReleaseHighlightsStoreTests {
-    @Test("Release highlights suppressed on smart1_2 store surface")
-    func currentHighlightNilOnSmart12Surface() {
-        let storeArgs: [String] = []
-        let leanArgs = [ProductSurface.leanProductSurfaceLaunchArgument]
+    @Test("Smart 1.2 surface presents Smart Opponents highlight")
+    func currentHighlightOnSmart12Surface() {
+        let storeArgs = [ProductSurface.leanProductSurfaceLaunchArgument]
         let fullArgs = [ProductSurface.fullProductSurfaceLaunchArgument]
 
-        #expect(ReleaseHighlights.current(arguments: storeArgs) == nil)
-        #expect(ReleaseHighlights.current(arguments: leanArgs) == nil)
+        let highlight = ReleaseHighlights.current(arguments: storeArgs)
+        #expect(highlight == .smartOpponents1_2)
+        #expect(highlight?.features.contains(where: { $0.matchType == .raid }) == true)
+        #expect(highlight?.features.contains(where: { $0.matchType == .golf }) == true)
         #expect(ReleaseHighlights.current(arguments: fullArgs) == nil)
     }
 

@@ -18,13 +18,13 @@ struct RaidMatchScreen: View {
             MatchGameplayHeader(onExit: { showExitConfirmation = true }) {
                 VStack(alignment: .leading, spacing: 2) {
                     BrandMatchScreenTitle(title: "play.raid.navTitle")
-                        .accessibilityIdentifier("raid_match_header")
                     Text(viewModel.headerText)
                         .font(.caption)
                         .foregroundStyle(Brand.textSecondary)
                 }
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(L10n.string("play.raid.navTitle") + ", " + viewModel.headerText)
+                .accessibilityLabel(viewModel.headerAccessibilityLabel)
+                .accessibilityIdentifier("raid_match_header")
             } trailing: {
                 Button {
                     actionTask?.cancel()
@@ -32,7 +32,7 @@ struct RaidMatchScreen: View {
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.headline.weight(.bold))
-                        .foregroundStyle(Brand.green)
+                        .foregroundStyle(Brand.textPrimary)
                         .frame(width: 44, height: 44)
                         .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
                 }
@@ -40,46 +40,32 @@ struct RaidMatchScreen: View {
                 .accessibilityIdentifier("match_undo")
             }
 
-            if let raidState = viewModel.raidState {
-                ScrollView {
+            if viewModel.raidState != nil {
+                SideBySideMatchBody(playerCount: max(viewModel.coopChromeHeroes.count, 1)) {
                     VStack(spacing: DS.Spacing.s3) {
-                        CoopBossChromeView(
-                            bossHP: raidState.bossHP,
-                            bossMaxHP: raidState.bossMaxHP,
-                            phase: raidState.phase,
-                            enrageActive: raidState.enrageActive,
-                            heroes: viewModel.coopChromeHeroes
-                        )
-                        if let segment = shieldCloseBannerSegment {
-                            MatchFeedbackBanner(
-                                text: LocalizedStringKey(L10n.format("play.raid.closeDamageFormat", segment)),
-                                style: .cricketClosure
+                        if let raidState = viewModel.raidState {
+                            CoopBossChromeView(
+                                bossHP: raidState.bossHP,
+                                bossMaxHP: raidState.bossMaxHP,
+                                phase: raidState.phase,
+                                enrageActive: raidState.enrageActive,
+                                heroes: viewModel.coopChromeHeroes
                             )
-                            .accessibilityIdentifier("raid_shield_close_banner")
-                        }
-                        if raidState.phase == .shield {
-                            RaidShieldProgressView(
-                                teamMarks: raidState.teamCricketMarks,
-                                closedSegments: raidState.closedShieldSegments
-                            )
-                            raidShieldLegend
-                        } else {
-                            raidExposeLegend
-                        }
-                        DartNumberPad(
-                            enteredDarts: $viewModel.enteredDarts,
-                            selectedMultiplier: $viewModel.selectedMultiplier,
-                            showsBull: true,
-                            onUndoTurn: {
-                                actionTask?.cancel()
-                                actionTask = Task { await viewModel.undoLastDart() }
+                            if raidState.phase == .shield {
+                                RaidShieldProgressView(
+                                    teamMarks: raidState.teamCricketMarks,
+                                    closedSegments: raidState.closedShieldSegments
+                                )
+                                raidShieldLegend
+                            } else {
+                                raidExposeLegend
                             }
-                        )
-                        .disabled(!viewModel.canHumanInput)
-                        .opacity(viewModel.canHumanInput ? 1 : 0.55)
+                        }
                     }
-                    .padding(.horizontal, DS.Spacing.s4)
-                    .padding(.vertical, DS.Spacing.s3)
+                } padChrome: {
+                    stateBanner
+                } controls: {
+                    raidPad
                 }
                 .onChange(of: viewModel.enteredDarts) { old, darts in
                     guard viewModel.canHumanInput else { return }
@@ -141,6 +127,38 @@ struct RaidMatchScreen: View {
             guard !showExitConfirmation else { return }
             viewModel.onDisappear()
         }
+    }
+
+    @ViewBuilder
+    private var stateBanner: some View {
+        if let segment = shieldCloseBannerSegment {
+            MatchFeedbackBanner(
+                text: LocalizedStringKey(L10n.format("play.raid.closeDamageFormat", segment)),
+                style: .cricketClosure
+            )
+            .accessibilityHidden(true)
+            .accessibilityIdentifier("raid_shield_close_banner")
+        }
+        switch viewModel.state {
+        case let .entryInvalid(messageKey), let .error(messageKey):
+            ErrorBanner(messageKey: messageKey)
+        default:
+            EmptyView()
+        }
+    }
+
+    private var raidPad: some View {
+        DartNumberPad(
+            enteredDarts: $viewModel.enteredDarts,
+            selectedMultiplier: $viewModel.selectedMultiplier,
+            showsBull: true,
+            onUndoTurn: {
+                actionTask?.cancel()
+                actionTask = Task { await viewModel.undoLastDart() }
+            }
+        )
+        .disabled(!viewModel.canHumanInput)
+        .opacity(viewModel.canHumanInput ? 1 : 0.55)
     }
 
     private var raidShieldLegend: some View {

@@ -77,9 +77,23 @@ enum ProductSurface {
     static var showsAccessibilityMarketing: Bool { active.showsAccessibilityMarketing }
     static var bundledLocaleCodes: [String] { active.bundledLocaleCodes }
 
-    /// Coarse build slice label for analytics (`full` vs `lean`).
+    /// Build slice label for analytics — distinct per shipping surface.
+    ///
+    /// Values: `full`, `smart1_2`, `party1_1`, `lean1_0` (never a generic `lean`).
     static var analyticsLabel: String {
-        isFullProductSurfaceEnabled ? "full" : "lean"
+        analyticsLabel(for: active)
+    }
+
+    static func analyticsLabel(for configuration: Configuration) -> String {
+        if configuration == .full { return "full" }
+        if configuration == .smart1_2 { return "smart1_2" }
+        if configuration == .party1_1 { return "party1_1" }
+        if configuration == .lean1_0 { return "lean1_0" }
+        return "unknown"
+    }
+
+    static func analyticsLabel(arguments: [String]) -> String {
+        analyticsLabel(for: configuration(for: arguments))
     }
 
     static var isFullProductSurfaceEnabled: Bool {

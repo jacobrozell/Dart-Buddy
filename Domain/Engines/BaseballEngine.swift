@@ -268,6 +268,11 @@ public enum BaseballEngine {
         let openedStretchGate: Bool
     }
 
+    /// Live scoreboard preview — same resolution rules as `submitTurn` (including stretch gate).
+    public static func previewRuns(for dart: DartInput, state: BaseballState, playerIndex: Int) -> Int {
+        resolveDart(dart, state: state, playerIndex: playerIndex).runs
+    }
+
     private static func resolveDart(_ dart: DartInput, state: BaseballState, playerIndex: Int) -> DartResolution {
         if dart.isMiss {
             return DartResolution(runs: 0, openedStretchGate: false)

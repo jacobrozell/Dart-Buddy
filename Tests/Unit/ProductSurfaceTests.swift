@@ -75,4 +75,20 @@ struct ProductSurfaceTests {
             #expect(ProductSurface.isMatchTypeReachable(matchType, arguments: args))
         }
     }
+
+    @Test("Analytics labels distinguish store surfaces")
+    func analyticsLabelsDistinguishSurfaces() {
+        #expect(ProductSurface.analyticsLabel(for: .full) == "full")
+        #expect(ProductSurface.analyticsLabel(for: .smart1_2) == "smart1_2")
+        #expect(ProductSurface.analyticsLabel(for: .party1_1) == "party1_1")
+        #expect(ProductSurface.analyticsLabel(for: .lean1_0) == "lean1_0")
+
+        #expect(
+            ProductSurface.analyticsLabel(arguments: Self.smartReleaseArguments) == "smart1_2"
+        )
+        #expect(
+            ProductSurface.analyticsLabel(arguments: [ProductSurface.fullProductSurfaceLaunchArgument])
+                == "full"
+        )
+    }
 }

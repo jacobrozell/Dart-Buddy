@@ -24,25 +24,30 @@ struct SetupAroundTheClockOptionChips: View {
     }
 
     private var aroundTheClockBullFinishChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.aroundTheClock.setup.includeBullFinish", color: Brand.amber, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.aroundTheClockIncludeBullFinish
+            ? L10n.string("common.on")
+            : L10n.string("common.off")
+        return SetupOptionChipHelpers.chip(titleKey: "play.aroundTheClock.setup.includeBullFinish", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Button {
                 setupViewModel.aroundTheClockIncludeBullFinish.toggle()
                 setupViewModel.revalidate()
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.aroundTheClockIncludeBullFinish
-                        ? L10n.string("common.on")
-                        : L10n.string("common.off"),
-                    color: Brand.amber,
+                    value,
+                    color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: false
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.aroundTheClock.setup.includeBullFinish", value)
+            )
             .accessibilityIdentifier("setup_aroundTheClockBullFinishChip")
         }
     }
 
     private var aroundTheClockResetPolicyChip: some View {
-        SetupOptionChipHelpers.chip(titleKey: "play.aroundTheClock.setup.resetPolicy", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
+        let value = setupViewModel.aroundTheClockResetPolicy.displayName
+        return SetupOptionChipHelpers.chip(titleKey: "play.aroundTheClock.setup.resetPolicy", color: Brand.key, dynamicTypeSize: dynamicTypeSize) {
             Menu {
                 ForEach(AroundTheClockResetPolicy.allCases, id: \.rawValue) { policy in
                     Button(policy.displayName) {
@@ -52,11 +57,14 @@ struct SetupAroundTheClockOptionChips: View {
                 }
             } label: {
                 SetupOptionChipHelpers.chipBox(
-                    setupViewModel.aroundTheClockResetPolicy.displayName,
+                    value,
                     color: Brand.key,
                     dynamicTypeSize: dynamicTypeSize, showsMenuIndicator: true
                 )
             }
+            .accessibilityLabel(
+                SetupOptionChipHelpers.chipAccessibilityLabel("play.aroundTheClock.setup.resetPolicy", value)
+            )
             .accessibilityIdentifier("setup_aroundTheClockResetPolicyChip")
         }
     }
