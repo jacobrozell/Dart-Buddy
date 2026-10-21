@@ -15,7 +15,8 @@ Plans and projects **in implementation** — approved, specced, and actively bei
 
 | Plan | Doc | Status | Notes |
 |------|-----|--------|-------|
-| 1.1.0 release review | [`1.1.0-review-fixes.md`](1.1.0-review-fixes.md) | Lanes running | Bundle vs `1.0.0`; process in [`docs/review-lanes/`](../docs/review-lanes/) |
+| 1.1.0 release review | [`1.1.0-review-fixes.md`](1.1.0-review-fixes.md) | `--fix` landed; `#rf-6` open | Product blockers fixed; mediums → 1.2 |
+| **1.2.0 future work** | PR [#33](https://github.com/jacobrozell/Dart-Buddy/pull/33) · `release/1.2.0` | Open | Carryover `C1`–`C10` + slice RC gaps |
 | UI screenshot iteration | [`docs/plans/ui-screenshot-iteration-plan.md`](../docs/plans/ui-screenshot-iteration-plan.md) | In progress | Code done; Phase 4 re-capture remaining |
 | Co-op mode grouping | [`docs/plans/coop-mode-grouping.md`](../docs/plans/coop-mode-grouping.md) | Partial | Phase 0 done; Raid ships in 1.1 |
 | Co-op PvE modes | [`specs/CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) | In progress | Raid ships in 1.1; Fleet/Cerberus/Vault post-1.1 |
