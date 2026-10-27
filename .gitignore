@@ -35,6 +35,13 @@ tmp/
 # Google Analytics MCP OAuth client (GCP Console → Desktop app; do not commit)
 analytics-mcp-client-secret.json
 
+# GA4 / GCP service-account keys (never commit — keep under ~/.config/ga4/ only)
+*-ga4-reader.json
+*ga4*credentials*.json
+*-firebase-adminsdk*.json
+**/service-account*.json
+!**/service-account*.example.json
+
 # Python
 __pycache__/
 *.py[cod]

@@ -9,12 +9,13 @@ Plans and projects **in implementation** — approved, specced, and actively bei
 | Ship blockers / release train | [`docs/release/`](../docs/release/) |
 | Shipped behavior | [`specs/`](../specs/) + [`docs/feature-inventory.md`](../docs/feature-inventory.md) |
 
-**Last updated:** 2026-06-27
+**Last updated:** 2026-10-15
 
 ## Active
 
 | Plan | Doc | Status | Notes |
 |------|-----|--------|-------|
+| Duo + dynamic layout | [`docs/plans/duo-dynamic-layout-release-plan.md`](../docs/plans/duo-dynamic-layout-release-plan.md) | Draft | Proposed **1.3** after 1.2. Window width, not iPad idiom |
 | UI screenshot iteration | [`docs/plans/ui-screenshot-iteration-plan.md`](../docs/plans/ui-screenshot-iteration-plan.md) | In progress | Code done; Phase 4 re-capture remaining |
 | Co-op mode grouping | [`docs/plans/coop-mode-grouping.md`](../docs/plans/coop-mode-grouping.md) | Partial | Phase 0 done; Raid ships in 1.1 |
 | Co-op PvE modes | [`specs/CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) | In progress | Raid ships in 1.1; Fleet/Cerberus/Vault post-1.1 |

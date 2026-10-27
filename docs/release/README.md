@@ -2,6 +2,8 @@
 
 **Current store version:** **1.0.0 (7)** live · **1.1.0** tagged on `master` · **1.2.0** scope locked on `release/1.2.0`.
 
+**Next layout slice (draft):** [`../plans/duo-dynamic-layout-release-plan.md`](../plans/duo-dynamic-layout-release-plan.md) — proposed **1.3** for iPhone Duo and resizable iPad. Does not change 1.2 scope.
+
 | File | Role |
 |------|------|
 | [**`1.2.0-ship-checklist.md`**](1.2.0-ship-checklist.md) | **1.2** — 10 modes + German + Training Partner |
