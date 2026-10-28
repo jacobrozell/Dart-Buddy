@@ -3,6 +3,37 @@ import Testing
 @testable import DartBuddy
 
 @Test(.tags(.unit, .logging, .regression))
+func mapsVisionDetectionOutcome() {
+    let entry = LogEntry(
+        timestamp: Date(),
+        level: .info,
+        category: .vision,
+        eventName: "vision_detection_outcome",
+        message: "Vision detection changed",
+        metadata: [
+            "status": "changed",
+            "detectedScore": "T20",
+            "correctedScore": "5",
+            "visionConfidence": "0.800",
+            "visionExact": "3",
+            "visionChanged": "1",
+            "visionDismissed": "0",
+            "vision_session_id": UUID().uuidString
+        ],
+        correlationId: nil
+    )
+
+    let event = FirebaseAnalyticsEventMapping.map(entry, appVersion: nil)
+    #expect(event?.name == "vision_detection_outcome")
+    #expect(event?.parameters["status"] == "changed")
+    #expect(event?.parameters["detectedScore"] == "T20")
+    #expect(event?.parameters["correctedScore"] == "5")
+    #expect(event?.parameters["visionExact"] == "3")
+    #expect(event?.parameters["visionChanged"] == "1")
+    #expect(event?.parameters["vision_session_id"] == nil)
+}
+
+@Test(.tags(.unit, .logging, .regression))
 func mapsAllowlistedMatchLifecycleEvents() {
     let entry = LogEntry(
         timestamp: Date(),

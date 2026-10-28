@@ -167,6 +167,25 @@ func driftPausesSessionAndDropsPendingProposal() {
 }
 
 @Test(.tags(.unit, .vision, .regression))
+func manualHomographyIgnoresContourDrift() throws {
+    var session = VisionScoringSession()
+    let calibration = try #require(BoardCalibration(
+        outerWireImagePoints: [
+            SIMD2(0.5, 0.2),
+            SIMD2(0.8, 0.5),
+            SIMD2(0.5, 0.8),
+            SIMD2(0.2, 0.5),
+        ],
+        quality: CalibrationQuality(fitConfidence: 1, brightness: 0.5, sharpness: 0.6)
+    ))
+    let applied = session.applyCalibration(calibration)
+    #expect(applied)
+    let drifted = session.observeBoard(centerX: 0.9, centerY: 0.9, radius: 0.9)
+    #expect(!drifted)
+    #expect(session.phase == .ready)
+}
+
+@Test(.tags(.unit, .vision, .regression))
 func smallBoardMovementDoesNotPause() {
     var session = calibratedSession()
     let smallMove = session.observeBoard(centerX: 0.51, centerY: 0.5, radius: 0.3)
@@ -193,6 +212,22 @@ func detectionForDifferentSessionIsIgnored() {
         frameTimestamp: Date()
     )
     #expect(session.handle(foreign) == .ignored(.sessionMismatch))
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func detectionTallyCountsExactChangedAndDismissed() {
+    var tally = VisionDetectionTally()
+    let detected = DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+    tally.recordConfirmation(detected: detected, submitted: detected)
+    tally.recordConfirmation(
+        detected: detected,
+        submitted: DartInput(multiplier: .single, segment: .oneToTwenty(5))
+    )
+    tally.recordDismissal()
+    #expect(tally.exact == 1)
+    #expect(tally.changed == 1)
+    #expect(tally.dismissed == 1)
+    #expect(tally.scored == 2)
 }
 
 @Test(.tags(.unit, .vision, .regression))

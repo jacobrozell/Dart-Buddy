@@ -811,7 +811,7 @@
 "onboarding.tour.settings.body" = "Personalizza predefiniti, aspetto e comportamento dell'app.";
 "onboarding.tour.roadmap" = "Più modalità e funzioni sono in arrivo. Invia feedback in qualsiasi momento—leggiamo ogni messaggio.";
 "onboarding.support.title" = "Aiuto e feedback";
-"onboarding.support.body" = "Dart Buddy è solo l'inizio. Domande, bug e idee aiutano a definire cosa costruiremo dopo.";
+"onboarding.support.body" = "Dart Buddy è appena agli inizi. Domande, bug e idee aiutano a definire cosa costruiremo dopo.";
 "onboarding.support.help" = "Supporto e FAQ";
 "onboarding.support.feedback" = "Invia feedback";
 "onboarding.support.privacy" = "Informativa privacy";
@@ -1289,13 +1289,19 @@
 "vision.launchButton" = "Punteggio fotocamera";
 "vision.launchButton.accessibility" = "Apri punteggio fotocamera";
 "vision.action.recalibrate" = "Ricalibra";
+"vision.action.undoTap" = "Annulla tocco";
 "vision.status.requestingAccess" = "Richiesta accesso alla fotocamera...";
+"vision.tally.dismissedOnlyFormat" = "%d scartati";
+"vision.tally.summaryFormat" = "%d/%d esatti · %d corretti · %d scartati";
 "vision.status.accessDenied" = "Abilita l'accesso alla fotocamera in Impostazioni per usare il punteggio fotocamera.";
 "vision.status.cameraUnavailable" = "La fotocamera non è disponibile su questo dispositivo.";
 "vision.status.calibrating" = "Allinea il bersaglio nel cerchio";
 "vision.status.drift" = "Fotocamera spostata - ricalibra per continuare";
 "vision.status.paused" = "Punteggio fotocamera in pausa";
+"vision.calibration.locked" = "Bersaglio bloccato";
 "vision.calibration.qualityFormat" = "Bersaglio bloccato - allineamento %d%%";
+"vision.calibration.tapOuterWireFormat" = "Tocca il filo esterno del doppio al centro del %d";
+"vision.calibration.waitingForImage" = "Resta fermo così l'immagine si blocca";
 "vision.hint.centerBoard" = "Punta la fotocamera sul bersaglio";
 "vision.hint.moveCloser" = "Avvicinati al bersaglio";
 "vision.hint.moveFarther" = "Allontanati dal bersaglio";
@@ -1304,6 +1310,8 @@
 "vision.hint.holdSteady" = "Mantieni fermo...";
 "vision.proposal.title" = "Tiro rilevato";
 "vision.proposal.confidenceFormat" = "Affidabilità %d%%";
+"vision.proposal.addCorrectedFormat" = "Aggiungi %@";
+"vision.proposal.change" = "Modifica";
 "vision.proposal.confirm" = "Aggiungi alla visita";
 "vision.proposal.reject" = "Scarta";
 "vision.proposal.waiting" = "In attesa di freccette...";

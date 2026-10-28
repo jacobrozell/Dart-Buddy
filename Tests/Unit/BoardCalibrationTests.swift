@@ -64,6 +64,64 @@ func qualityGateRejectsPoorFitBrightnessOrBlur() {
 }
 
 @Test(.tags(.unit, .vision, .regression))
+func homographyRecoversKnownPerspective() throws {
+    let original = try #require(PerspectiveTransform(values: [
+        2.2, 0.15, -1.05,
+        0.05, -2.1, 0.95,
+        0.25, 0.1, 1,
+    ]))
+    let inverse = try #require(original.inverted())
+    let imagePoints = try BoardCalibration.outerWireBoardPoints.map { board in
+        let image = try #require(inverse.apply(toImageX: board.x, imageY: board.y))
+        return SIMD2(image.x, image.y)
+    }
+    let recovered = try #require(PerspectiveTransform.homography(
+        fromImagePoints: imagePoints,
+        toBoardPoints: BoardCalibration.outerWireBoardPoints
+    ))
+    let probeImage = try #require(inverse.apply(toImageX: 0.2, imageY: 0.55))
+    let expected = try #require(original.apply(toImageX: probeImage.x, imageY: probeImage.y))
+    let actual = try #require(recovered.apply(toImageX: probeImage.x, imageY: probeImage.y))
+    #expect(abs(actual.x - expected.x) < 1e-5)
+    #expect(abs(actual.y - expected.y) < 1e-5)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func homographyRejectsCollinearPoints() {
+    let collinear = [
+        SIMD2(0.2, 0.2),
+        SIMD2(0.4, 0.4),
+        SIMD2(0.6, 0.6),
+        SIMD2(0.8, 0.8),
+    ]
+    #expect(PerspectiveTransform.homography(
+        fromImagePoints: collinear,
+        toBoardPoints: BoardCalibration.outerWireBoardPoints
+    ) == nil)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func tappedOuterWireCalibrationScoresBullAndDoubleTwenty() throws {
+    let center = SIMD2(0.5, 0.62)
+    let top = SIMD2(0.5, 0.20)
+    let right = SIMD2(0.78, 0.62)
+    let bottom = SIMD2(0.5, 0.88)
+    let left = SIMD2(0.22, 0.62)
+    let calibration = try #require(BoardCalibration(
+        outerWireImagePoints: [top, right, bottom, left],
+        quality: acceptableQuality
+    ))
+    #expect(!calibration.monitorsContourDrift)
+    let bull = try #require(calibration.dartInput(atImageX: center.x, imageY: center.y))
+    #expect(bull == DartInput(multiplier: .single, segment: .innerBull))
+    // Mid-treble on the 20, mapped back through the inverse so the check is not on the wire.
+    let inverse = try #require(calibration.transform.inverted())
+    let tripleImage = try #require(inverse.apply(toImageX: 0, imageY: 0.606))
+    let tripleTwenty = try #require(calibration.dartInput(atImageX: tripleImage.x, imageY: tripleImage.y))
+    #expect(tripleTwenty == DartInput(multiplier: .triple, segment: .oneToTwenty(20)))
+}
+
+@Test(.tags(.unit, .vision, .regression))
 func driftDetectionRespectsTolerances() throws {
     let calibration = try #require(BoardCalibration(
         centerX: 0.5,

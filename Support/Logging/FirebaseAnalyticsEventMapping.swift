@@ -42,7 +42,8 @@ public enum FirebaseAnalyticsEventMapping {
         "intent_performed",
         "intent_failed",
         "client_environment_changed",
-        "onboarding_completed"
+        "onboarding_completed",
+        "vision_detection_outcome"
     ]
 
     private static let allowlistedParameterKeys: Set<String> = AnalyticsMetadataKeys.firebaseParameters

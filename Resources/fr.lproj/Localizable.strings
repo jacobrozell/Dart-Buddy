@@ -811,7 +811,7 @@
 "onboarding.tour.settings.body" = "Personnalise les valeurs par défaut, l'apparence et le comportement de l'app.";
 "onboarding.tour.roadmap" = "D'autres modes et fonctionnalités arrivent. Envoie un retour à tout moment — nous lisons chaque message.";
 "onboarding.support.title" = "Aide et retours";
-"onboarding.support.body" = "Dart Buddy n'est qu'un début. Tes questions, bugs et idées façonnent la suite.";
+"onboarding.support.body" = "Dart Buddy n'en est qu'au début. Tes questions, bugs et idées façonnent la suite.";
 "onboarding.support.help" = "Aide et FAQ";
 "onboarding.support.feedback" = "Envoyer un retour";
 "onboarding.support.privacy" = "Politique de confidentialité";
@@ -1289,13 +1289,19 @@
 "vision.launchButton" = "Score par caméra";
 "vision.launchButton.accessibility" = "Ouvrir le score par caméra";
 "vision.action.recalibrate" = "Recalibrer";
+"vision.action.undoTap" = "Annuler le toucher";
 "vision.status.requestingAccess" = "Demande d'accès à la caméra…";
+"vision.tally.dismissedOnlyFormat" = "%d ignorés";
+"vision.tally.summaryFormat" = "%d/%d exacts · %d modifiés · %d ignorés";
 "vision.status.accessDenied" = "Active l'accès caméra dans Réglages pour le score par caméra.";
 "vision.status.cameraUnavailable" = "La caméra n'est pas disponible sur cet appareil.";
 "vision.status.calibrating" = "Aligne la cible dans le cercle";
 "vision.status.drift" = "La caméra a bougé — recalibre pour continuer";
 "vision.status.paused" = "Score par caméra en pause";
+"vision.calibration.locked" = "Cible verrouillée";
 "vision.calibration.qualityFormat" = "Cible verrouillée — ajustement %d%%";
+"vision.calibration.tapOuterWireFormat" = "Touche le fil extérieur du double au milieu du %d";
+"vision.calibration.waitingForImage" = "Reste immobile pour verrouiller l'image";
 "vision.hint.centerBoard" = "Pointe la caméra vers la cible";
 "vision.hint.moveCloser" = "Rapproche-toi de la cible";
 "vision.hint.moveFarther" = "Éloigne-toi de la cible";
@@ -1304,6 +1310,8 @@
 "vision.hint.holdSteady" = "Reste stable…";
 "vision.proposal.title" = "Lancer détecté";
 "vision.proposal.confidenceFormat" = "Confiance %d%%";
+"vision.proposal.addCorrectedFormat" = "Ajouter %@";
+"vision.proposal.change" = "Modifier";
 "vision.proposal.confirm" = "Ajouter à la volée";
 "vision.proposal.reject" = "Rejeter";
 "vision.proposal.waiting" = "Recherche de fléchettes…";

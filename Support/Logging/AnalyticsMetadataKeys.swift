@@ -87,6 +87,16 @@ public enum AnalyticsMetadataKeys {
         "created_player"
     ]
 
+    /// Camera-scoring garage outcomes. `status` is exact, changed, or dismissed.
+    private static let visionDetection: Set<String> = [
+        "detectedScore",
+        "correctedScore",
+        "visionConfidence",
+        "visionExact",
+        "visionChanged",
+        "visionDismissed"
+    ]
+
     /// Keys that must never reach analytics sinks, even if accidentally allowlisted.
     private static let blockedPersonalDataKeys: Set<String> = [
         "playerId",
@@ -176,7 +186,7 @@ public enum AnalyticsMetadataKeys {
         "path",
         "version",
         "intentName"
-    ])
+    ]).union(visionDetection)
 
     public static let defaultRedactionAllowed: Set<String> = generalRedaction
         .union(gameMode)
@@ -185,6 +195,7 @@ public enum AnalyticsMetadataKeys {
         .union(matchConfig)
         .union(onboarding)
         .union(clientEnvironment)
+        .union(visionDetection)
 
     public static let firebaseParameters: Set<String> = generalFirebase.union(clientEnvironment)
 

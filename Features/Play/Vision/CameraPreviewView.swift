@@ -8,6 +8,9 @@ import UIKit
 struct CameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
     let overlay: VisionScoringViewModel.BoardOverlay?
+    let calibrationTaps: [VisionScoringViewModel.CalibrationTap]
+    let aspectRatio: Double
+    let onCalibrationTap: (Double, Double) -> Void
 
     func makeUIView(context: Context) -> CameraPreviewUIView {
         let view = CameraPreviewUIView()
@@ -18,6 +21,9 @@ struct CameraPreviewView: UIViewRepresentable {
 
     func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
         uiView.boardOverlay = overlay
+        uiView.calibrationTaps = calibrationTaps
+        uiView.aspectRatio = aspectRatio
+        uiView.onCalibrationTap = onCalibrationTap
     }
 }
 
@@ -35,13 +41,29 @@ final class CameraPreviewUIView: UIView {
         didSet { updateOverlayPath() }
     }
 
+    var calibrationTaps: [VisionScoringViewModel.CalibrationTap] = [] {
+        didSet { updateMarkerPath() }
+    }
+
+    /// Buffer height divided by width. Taps convert through this into width units.
+    var aspectRatio: Double = 0
+
+    var onCalibrationTap: ((Double, Double) -> Void)?
+
     private let overlayLayer = CAShapeLayer()
+    private let markerLayer = CAShapeLayer()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         overlayLayer.fillColor = UIColor.clear.cgColor
         overlayLayer.lineWidth = 3
         layer.addSublayer(overlayLayer)
+        markerLayer.fillColor = UIColor.systemGreen.cgColor
+        markerLayer.strokeColor = UIColor.white.cgColor
+        markerLayer.lineWidth = 2
+        layer.addSublayer(markerLayer)
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleCalibrationTap(_:)))
+        addGestureRecognizer(tap)
     }
 
     @available(*, unavailable)
@@ -52,7 +74,18 @@ final class CameraPreviewUIView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         overlayLayer.frame = bounds
+        markerLayer.frame = bounds
         updateOverlayPath()
+        updateMarkerPath()
+    }
+
+    @objc private func handleCalibrationTap(_ recognizer: UITapGestureRecognizer) {
+        guard aspectRatio > 0 else { return }
+        let layerPoint = recognizer.location(in: self)
+        // Capture-device space matches the sensor buffer the analyzer uses: (0, 0) is
+        // the top left. Width-unit y scales by the buffer aspect ratio, same as impacts.
+        let devicePoint = previewLayer.captureDevicePointConverted(fromLayerPoint: layerPoint)
+        onCalibrationTap?(Double(devicePoint.x), Double(devicePoint.y) * aspectRatio)
     }
 
     private func updateOverlayPath() {
@@ -85,5 +118,20 @@ final class CameraPreviewUIView: UIView {
             ? UIColor.systemGreen.cgColor
             : UIColor.systemYellow.cgColor
         overlayLayer.lineDashPattern = boardOverlay.isLocked ? nil : [8, 6]
+    }
+
+    private func updateMarkerPath() {
+        guard aspectRatio > 0, bounds.width > 0, !calibrationTaps.isEmpty else {
+            markerLayer.path = nil
+            return
+        }
+        let path = UIBezierPath()
+        for tap in calibrationTaps {
+            let center = previewLayer.layerPointConverted(
+                fromCaptureDevicePoint: CGPoint(x: tap.imageX, y: tap.imageY / aspectRatio)
+            )
+            path.append(UIBezierPath(arcCenter: center, radius: 8, startAngle: 0, endAngle: 2 * .pi, clockwise: true))
+        }
+        markerLayer.path = path.cgPath
     }
 }

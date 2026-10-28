@@ -115,6 +115,34 @@ public struct RejectDetectedThrowCommand: Equatable, Sendable {
     }
 }
 
+// MARK: - Garage tally
+
+/// Running detector outcomes for one camera session. Exact means the confirmed dart
+/// matched the proposal. Changed means the player rewrote it. Dismissed means the
+/// proposal was not a throw they wanted scored.
+public struct VisionDetectionTally: Equatable, Sendable {
+    public var exact = 0
+    public var changed = 0
+    public var dismissed = 0
+
+    public init() {}
+
+    /// Proposals the player scored, whether or not they rewrote the dart.
+    public var scored: Int { exact + changed }
+
+    public mutating func recordConfirmation(detected: DartInput, submitted: DartInput) {
+        if submitted == detected {
+            exact += 1
+        } else {
+            changed += 1
+        }
+    }
+
+    public mutating func recordDismissal() {
+        dismissed += 1
+    }
+}
+
 // MARK: - Guidance
 
 /// User-facing camera guidance hints surfaced during calibration and play (spec §5).

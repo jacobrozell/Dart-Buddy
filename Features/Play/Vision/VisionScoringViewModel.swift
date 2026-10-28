@@ -1,9 +1,9 @@
 import Foundation
 
-/// Orchestrates one camera scoring session (Phase A, assistive): guided calibration,
-/// then dart detection proposals the user confirms or dismisses. Confirmed darts are
-/// handed to the match flow via `onDartConfirmed` — the match engine stays the
-/// source of truth (spec §7).
+/// Orchestrates one camera scoring session (Phase A, assistive): the player taps four
+/// outer-wire points to lock a homography, then dart detection proposals are confirmed
+/// or dismissed. Confirmed darts are handed to the match flow via `onDartConfirmed` —
+/// the match engine stays the source of truth (spec §7).
 @MainActor
 final class VisionScoringViewModel: ObservableObject {
     enum Status: Equatable {
@@ -26,13 +26,21 @@ final class VisionScoringViewModel: ObservableObject {
         let isLocked: Bool
     }
 
+    /// A calibration tap in the same width-unit space the impact detector uses.
+    struct CalibrationTap: Equatable {
+        let imageX: Double
+        let imageY: Double
+    }
+
     @Published private(set) var status: Status = .idle
     @Published private(set) var hints: [VisionGuidanceHint] = []
-    /// Stable-observation progress toward calibration lock, `0...1`.
-    @Published private(set) var calibrationProgress: Double = 0
-    @Published private(set) var fitQuality: Double = 0
-    @Published private(set) var boardOverlay: BoardOverlay?
+    /// Tapped outer-wire points, in `BoardCalibration.outerWireCalibrationSegments` order.
+    @Published private(set) var calibrationTaps: [CalibrationTap] = []
+    /// Buffer height divided by width. Zero until the first analyzed frame.
+    @Published private(set) var previewAspectRatio: Double = 0
     @Published private(set) var proposal: DetectedThrow?
+    /// Exact, changed, and dismissed counts for this camera session.
+    @Published private(set) var tally = VisionDetectionTally()
 
     let camera = VisionCameraService()
     var onDartConfirmed: ((DartInput, VisionThrowMetadata) -> Void)?
@@ -41,17 +49,18 @@ final class VisionScoringViewModel: ObservableObject {
     private let logger: (any AppLogger)?
     private var analysisTask: Task<Void, Never>?
 
-    /// Consecutive acceptable, stable board observations required to lock calibration.
-    private static let stableObservationsRequired = 6
-    private static let stabilityCenterTolerance = 0.02
-    private static let stabilityRadiusTolerance = 0.03
-    // Width-unit bounds: a 16:9 frame is ~0.56 width units tall, so the board can
-    // fill most of the height at the top bound.
-    private static let minimumBoardRadius = 0.12
-    private static let maximumBoardRadius = 0.40
-
-    private var stableObservations: [VisionFrameAnalysis.BoardObservation] = []
     private var latestQuality = CalibrationQuality(fitConfidence: 0, brightness: 0, sharpness: 0)
+
+    /// Segment number the next tap should land on. Stays on the last segment until the lock succeeds.
+    var nextCalibrationSegment: Int {
+        let segments = BoardCalibration.outerWireCalibrationSegments
+        let index = min(calibrationTaps.count, segments.count - 1)
+        return segments[index]
+    }
+
+    var canUndoCalibrationTap: Bool {
+        status == .calibrating && !calibrationTaps.isEmpty
+    }
 
     init(logger: (any AppLogger)? = nil) {
         self.logger = logger
@@ -99,56 +108,95 @@ final class VisionScoringViewModel: ObservableObject {
 
     func recalibrate() {
         session.beginRecalibration()
-        stableObservations = []
-        calibrationProgress = 0
+        calibrationTaps = []
         proposal = nil
-        boardOverlay = nil
         camera.resetAnalyzer()
         if status != .idle, status != .accessDenied, status != .cameraUnavailable {
             status = .calibrating
         }
     }
 
+    /// Records a tap in width-unit image coordinates. Four taps, in segment order, solve the homography.
+    func registerCalibrationTap(imageX: Double, imageY: Double) {
+        guard status == .calibrating, session.phase == .calibrating else { return }
+        guard previewAspectRatio > 0, imageX.isFinite, imageY.isFinite else { return }
+        guard calibrationTaps.count < BoardCalibration.outerWireCalibrationSegments.count else { return }
+        calibrationTaps.append(CalibrationTap(imageX: imageX, imageY: imageY))
+        tryLockManualCalibration()
+    }
+
+    func undoCalibrationTap() {
+        guard canUndoCalibrationTap else { return }
+        calibrationTaps.removeLast()
+    }
+
     func confirmProposal(corrected: DartInput? = nil) {
         guard let proposal else { return }
         let command = ConfirmDetectedThrowCommand(detectedThrowId: proposal.id, correctedDart: corrected)
         guard let confirmed = session.handle(command) else { return }
-        self.proposal = nil
-        logger?.info(
-            .vision,
-            eventName: "vision_throw_confirmed",
-            message: "Vision detection confirmed",
-            metadata: confirmed.metadata.loggingMetadata
+        tally.recordConfirmation(detected: proposal.dart, submitted: confirmed.dart)
+        logOutcome(
+            status: confirmed.dart == proposal.dart ? "exact" : "changed",
+            detected: proposal.dart,
+            corrected: confirmed.dart,
+            confidence: proposal.visionConfidence
         )
+        self.proposal = nil
         onDartConfirmed?(confirmed.dart, confirmed.metadata)
     }
 
     func rejectProposal() {
         guard let proposal else { return }
         session.handle(RejectDetectedThrowCommand(detectedThrowId: proposal.id))
+        tally.recordDismissal()
+        logOutcome(
+            status: "dismissed",
+            detected: proposal.dart,
+            corrected: nil,
+            confidence: proposal.visionConfidence
+        )
         self.proposal = nil
+    }
+
+    private func logOutcome(
+        status: String,
+        detected: DartInput,
+        corrected: DartInput?,
+        confidence: Double
+    ) {
+        var metadata = [
+            "status": status,
+            "detectedScore": detected.compactDisplayLabel,
+            "visionConfidence": String(format: "%.3f", confidence),
+            "visionExact": String(tally.exact),
+            "visionChanged": String(tally.changed),
+            "visionDismissed": String(tally.dismissed),
+        ]
+        if let corrected, corrected != detected {
+            metadata["correctedScore"] = corrected.compactDisplayLabel
+        }
         logger?.info(
             .vision,
-            eventName: "vision_throw_rejected",
-            message: "Vision detection rejected",
-            metadata: proposal.metadata(inputMethod: .visionConfirmed).loggingMetadata
+            eventName: "vision_detection_outcome",
+            message: "Vision detection \(status)",
+            metadata: metadata
         )
     }
 
     // MARK: - Frame handling
 
     private func handle(_ analysis: VisionFrameAnalysis) {
+        previewAspectRatio = analysis.aspectRatio
         latestQuality = CalibrationQuality(
             fitConfidence: analysis.board?.fitConfidence ?? 0,
             brightness: analysis.brightness,
             sharpness: analysis.sharpness
         )
-        fitQuality = latestQuality.fitConfidence
         updateHints(analysis: analysis)
 
         switch session.phase {
         case .calibrating:
-            handleCalibration(analysis: analysis)
+            tryLockManualCalibration()
         case .ready:
             handleDetection(analysis: analysis)
         case .paused:
@@ -156,72 +204,29 @@ final class VisionScoringViewModel: ObservableObject {
         }
     }
 
-    private func handleCalibration(analysis: VisionFrameAnalysis) {
-        guard let board = analysis.board,
-              latestQuality.isAcceptable,
-              (Self.minimumBoardRadius ... Self.maximumBoardRadius).contains(board.radius) else {
-            stableObservations = []
-            calibrationProgress = 0
-            boardOverlay = analysis.board.map {
-                BoardOverlay(
-                    centerX: $0.centerX,
-                    centerY: $0.centerY,
-                    radius: $0.radius,
-                    aspectRatio: analysis.aspectRatio,
-                    isLocked: false
-                )
-            }
+    private func tryLockManualCalibration() {
+        let segments = BoardCalibration.outerWireCalibrationSegments
+        guard session.phase == .calibrating, calibrationTaps.count == segments.count else { return }
+        let quality = CalibrationQuality(
+            fitConfidence: 1,
+            brightness: latestQuality.brightness,
+            sharpness: latestQuality.sharpness
+        )
+        guard quality.isAcceptable else { return }
+        let imagePoints = calibrationTaps.map { SIMD2($0.imageX, $0.imageY) }
+        guard let calibration = BoardCalibration(outerWireImagePoints: imagePoints, quality: quality),
+              session.applyCalibration(calibration) else {
+            calibrationTaps.removeLast()
             return
         }
-
-        if let last = stableObservations.last, !isStable(board, comparedTo: last) {
-            stableObservations = []
-        }
-        stableObservations.append(board)
-        calibrationProgress = min(1, Double(stableObservations.count) / Double(Self.stableObservationsRequired))
-        boardOverlay = BoardOverlay(
-            centerX: board.centerX,
-            centerY: board.centerY,
-            radius: board.radius,
-            aspectRatio: analysis.aspectRatio,
-            isLocked: false
-        )
-
-        guard stableObservations.count >= Self.stableObservationsRequired else { return }
-        lockCalibration(aspectRatio: analysis.aspectRatio)
-    }
-
-    private func lockCalibration(aspectRatio: Double) {
-        let count = Double(stableObservations.count)
-        let centerX = stableObservations.map(\.centerX).reduce(0, +) / count
-        let centerY = stableObservations.map(\.centerY).reduce(0, +) / count
-        let radius = stableObservations.map(\.radius).reduce(0, +) / count
-        guard let calibration = BoardCalibration(
-            centerX: centerX,
-            centerY: centerY,
-            radius: radius,
-            quality: latestQuality
-        ), session.applyCalibration(calibration) else {
-            stableObservations = []
-            calibrationProgress = 0
-            return
-        }
-        stableObservations = []
-        boardOverlay = BoardOverlay(
-            centerX: centerX,
-            centerY: centerY,
-            radius: radius,
-            aspectRatio: aspectRatio,
-            isLocked: true
-        )
         status = .ready
         logger?.info(
             .vision,
             eventName: "vision_calibration_locked",
-            message: "Board calibration locked",
+            message: "Board calibration locked from outer-wire taps",
             metadata: [
                 "vision_session_id": session.id.uuidString,
-                "fit_confidence": String(format: "%.3f", calibration.quality.fitConfidence),
+                "calibration": "manual_homography",
             ]
         )
     }
@@ -268,30 +273,11 @@ final class VisionScoringViewModel: ObservableObject {
         if analysis.sharpness < CalibrationQuality.minimumSharpness {
             updated.append(.tooBlurry)
         }
-        if session.phase == .calibrating {
-            if let board = analysis.board {
-                if board.radius < Self.minimumBoardRadius {
-                    updated.append(.moveCloser)
-                } else if board.radius > Self.maximumBoardRadius {
-                    updated.append(.moveFarther)
-                } else if calibrationProgress > 0, calibrationProgress < 1 {
-                    updated.append(.holdSteady)
-                }
-            } else {
-                updated.append(.centerBoard)
-            }
+        if session.phase == .calibrating, calibrationTaps.count == BoardCalibration.outerWireCalibrationSegments.count {
+            updated.append(.holdSteady)
         }
         if updated != hints {
             hints = updated
         }
-    }
-
-    private func isStable(
-        _ observation: VisionFrameAnalysis.BoardObservation,
-        comparedTo previous: VisionFrameAnalysis.BoardObservation
-    ) -> Bool {
-        abs(observation.centerX - previous.centerX) <= Self.stabilityCenterTolerance
-            && abs(observation.centerY - previous.centerY) <= Self.stabilityCenterTolerance
-            && abs(observation.radius - previous.radius) <= Self.stabilityRadiusTolerance
     }
 }

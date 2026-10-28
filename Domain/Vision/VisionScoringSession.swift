@@ -81,7 +81,7 @@ public struct VisionScoringSession: Equatable, Sendable {
     /// Returns `true` when drift paused the session.
     @discardableResult
     public mutating func observeBoard(centerX: Double, centerY: Double, radius: Double) -> Bool {
-        guard phase == .ready, let calibration else { return false }
+        guard phase == .ready, let calibration, calibration.monitorsContourDrift else { return false }
         guard calibration.hasDrifted(
             observedCenterX: centerX,
             observedCenterY: centerY,
