@@ -16,8 +16,7 @@ struct SetupHomeChrome<Content: View>: View {
     }
 
     private var setupFooterMaxWidth: CGFloat {
-        if GameplayLayout.usesIPadMainShell() { return .infinity }
-        return GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass)
+        GameplayLayout.contentMaxWidth(horizontalSizeClass: horizontalSizeClass)
     }
 
     private var usesWideLayout: Bool {

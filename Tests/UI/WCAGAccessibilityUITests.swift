@@ -526,6 +526,15 @@ final class WCAGAccessibilityUITests: DartBuddyUITestCase {
         assertReachable(app.otherElements["cricket_column_active"], identifier: "cricket_column_active", in: app)
     }
 
+    func testOnboardingBodyVisibleAtAXXXL() {
+        let app = launchOnboardingApp(extraArguments: AccessibilityTestLaunch.accessibilityTextSizeArguments)
+
+        let body = app.staticTexts["onboarding_hero_body"]
+        assertReachable(body, identifier: "onboarding_hero_body", in: app)
+        XCTAssertFalse(body.label.isEmpty, "Welcome body should expose its full copy at AXXXL")
+        assertReachable(app.buttons["onboarding_next"], identifier: "onboarding_next", in: app)
+    }
+
     func testPlayersListSearchUsableAtAXXXL() {
         let app = launchForAccessibility(
             extraArguments: ["-seed_demo", "-snapshot_tab", "players"],

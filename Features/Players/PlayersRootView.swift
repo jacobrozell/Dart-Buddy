@@ -14,16 +14,28 @@ private struct PlayerSheetPresentation: Identifiable {
     }
 }
 
+private enum PlayersSheet: Identifiable {
+    case customBot
+    case player(PlayerSheetPresentation)
+    case export(ExportShareItem)
+
+    var id: String {
+        switch self {
+        case .customBot: "customBot"
+        case let .player(presentation): "player-\(presentation.id)"
+        case let .export(item): "export-\(item.id)"
+        }
+    }
+}
+
 struct PlayersRootView: View {
     let dependencies: AppDependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [PlayersRoute] = []
     @StateObject private var viewModel: PlayersListViewModel
-    @State private var playerSheet: PlayerSheetPresentation?
-    @State private var showsCustomBotSheet = false
+    @State private var sheet: PlayersSheet?
     @State private var deleteBlockedMessage: String?
-    @State private var exportShareItem: ExportShareItem?
     @State private var exportErrorKey: String?
     @State private var actionTask: Task<Void, Never>?
     @State private var retryTask: Task<Void, Never>?
@@ -40,24 +52,8 @@ struct PlayersRootView: View {
 
     var body: some View {
         phonePlayersShell
-        .sheet(isPresented: $showsCustomBotSheet) {
-            CustomBotCreationSheet { name, metrics in
-                actionTask?.cancel()
-                actionTask = Task { await viewModel.createCustomBot(name: name, metrics: metrics) }
-            }
-        }
-        .sheet(item: $playerSheet) { presentation in
-            PlayerEditSheet(
-                viewModel: PlayerEditViewModel(
-                    existingNames: viewModel.players.map(\.name),
-                    editing: presentation.editing,
-                    defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
-                ),
-                existing: presentation.editing,
-                onSave: { player in
-                    await viewModel.save(player)
-                }
-            )
+        .sheet(item: $sheet) { sheet in
+            sheetContent(sheet)
         }
         .alert(L10n.actionBlockedTitle, isPresented: Binding(
             get: { deleteBlockedMessage != nil },
@@ -75,15 +71,37 @@ struct PlayersRootView: View {
         } message: {
             Text(LocalizedStringKey(exportErrorKey ?? "players.detail.export.error"))
         }
-        .sheet(item: $exportShareItem) { item in
-            ActivityShareSheet(items: [item.url]) {
-                try? FileManager.default.removeItem(at: item.url)
-                exportShareItem = nil
-            }
-        }
         .onDisappear {
             actionTask?.cancel()
             retryTask?.cancel()
+        }
+    }
+
+    @ViewBuilder
+    private func sheetContent(_ sheet: PlayersSheet) -> some View {
+        switch sheet {
+        case .customBot:
+            CustomBotCreationSheet { name, metrics in
+                actionTask?.cancel()
+                actionTask = Task { await viewModel.createCustomBot(name: name, metrics: metrics) }
+            }
+        case let .player(presentation):
+            PlayerEditSheet(
+                viewModel: PlayerEditViewModel(
+                    existingNames: viewModel.players.map(\.name),
+                    editing: presentation.editing,
+                    defaultPrimary: presentation.editing == nil && !viewModel.hasPrimaryPlayer
+                ),
+                existing: presentation.editing,
+                onSave: { player in
+                    await viewModel.save(player)
+                }
+            )
+        case let .export(item):
+            ActivityShareSheet(items: [item.url]) {
+                try? FileManager.default.removeItem(at: item.url)
+                self.sheet = nil
+            }
         }
     }
 
@@ -99,7 +117,7 @@ struct PlayersRootView: View {
             .safeAreaInset(edge: .bottom) {
                 if viewModel.state != .error && viewModel.players.isEmpty {
                     Button {
-                        playerSheet = .add()
+                        sheet = .player(.add())
                     } label: {
                         Text(L10n.addPlayerTitle)
                     }
@@ -132,7 +150,7 @@ struct PlayersRootView: View {
                 dependencies: dependencies,
                 onEdit: {
                     guard let player = viewModel.player(id: playerId) else { return }
-                    playerSheet = .edit(player)
+                    sheet = .player(.edit(player))
                 },
                 onArchiveToggle: {
                     actionTask?.cancel()
@@ -155,7 +173,7 @@ struct PlayersRootView: View {
                 dependencies: dependencies,
                 onEdit: {
                     guard let id = playerId, let player = viewModel.player(id: id) else { return }
-                    playerSheet = .edit(player)
+                    sheet = .player(.edit(player))
                 },
                 onArchiveToggle: {},
                 onSave: { player in
@@ -309,14 +327,14 @@ struct PlayersRootView: View {
     private var playersToolbarMenu: some View {
         Menu {
             Button {
-                playerSheet = .add()
+                sheet = .player(.add())
             } label: {
                 Label(L10n.addPlayerTitle, systemImage: "person.badge.plus")
             }
             Menu {
                 if ProductSurface.showsCustomBots {
                     Button {
-                        showsCustomBotSheet = true
+                        sheet = .customBot
                     } label: {
                         Label(L10n.customBotAddMenu, systemImage: "slider.horizontal.3")
                     }
@@ -342,70 +360,15 @@ struct PlayersRootView: View {
     }
 
     private func playerCard(_ player: EditablePlayer) -> some View {
-        Button {
-            selectPlayer(player.id)
-        } label: {
-            HStack(spacing: DS.Spacing.s3) {
-                PlayerAvatarChip(player: player, size: 40)
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: DS.Spacing.s2) {
-                        Text(player.name)
-                            .font(.headline)
-                            .foregroundStyle(Brand.textPrimary)
-                        if player.isPrimaryPlayer {
-                            Text(L10n.playersPrimaryBadge)
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(Brand.inkOnBright)
-                                .padding(.horizontal, DS.Spacing.s2)
-                                .padding(.vertical, 2)
-                                .background(Brand.green, in: Capsule())
-                                .accessibilityHidden(true)
-                        }
-                    }
-                    if let difficulty = player.botDifficulty {
-                        BotDifficultyBadge(difficulty: difficulty, prominence: .compact)
-                    } else if player.isCustomBot {
-                        CustomBotBadge(
-                            metrics: CustomBotMetrics(
-                                x01Average: player.customX01Average,
-                                cricketMPR: player.customCricketMPR
-                            ),
-                            prominence: .compact
-                        )
-                    } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
-                        Text(L10n.format("players.list.record", summary.games, summary.wins))
-                            .font(.caption)
-                            .foregroundStyle(Brand.textSecondary)
-                    }
-                }
-                if player.isArchived {
-                    Text(L10n.archived).font(.caption).foregroundStyle(Brand.textSecondary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Brand.textSecondary)
-                    .accessibilityHidden(true)
-            }
-            .padding(DS.Spacing.s3)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-            .contentShape(RoundedRectangle(cornerRadius: DS.Radius.md))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(playerRowAccessibilityLabel(player))
-        .accessibilityIdentifier(player.botDifficulty == nil ? "player_row_\(player.name)" : "player_row_bot_\(player.id.uuidString)")
-        .contextMenu {
-            Button {
+        PlayersListRow(
+            player: player,
+            summary: viewModel.summary(for: player.id),
+            onSelect: { selectPlayer(player.id) },
+            onArchiveToggle: {
                 actionTask?.cancel()
                 actionTask = Task { await viewModel.archiveToggle(player.id) }
-            } label: {
-                Label(
-                    player.isArchived ? L10n.string("players.unarchive") : L10n.string("players.archive"),
-                    systemImage: player.isArchived ? "tray.and.arrow.up" : "archivebox"
-                )
-            }
-            Button(role: .destructive) {
+            },
+            onDelete: {
                 actionTask?.cancel()
                 actionTask = Task {
                     if !(await viewModel.delete(player.id)) {
@@ -415,32 +378,8 @@ struct PlayersRootView: View {
                         )
                     }
                 }
-            } label: {
-                Label(L10n.delete, systemImage: "trash")
             }
-        }
-    }
-
-    private func playerRowAccessibilityLabel(_ player: EditablePlayer) -> String {
-        var suffix = ""
-        if let difficulty = player.botDifficulty {
-            suffix += L10n.format("players.row.botSuffix", difficulty.displayName)
-        } else if player.isCustomBot {
-            suffix += L10n.format(
-                "customBot.row.accessibilitySuffix",
-                player.customX01Average,
-                player.customCricketMPR
-            )
-        } else if let summary = viewModel.summary(for: player.id), summary.games > 0 {
-            suffix += ", \(L10n.format("players.list.record.accessibility", summary.games, summary.wins))"
-        }
-        if player.isPrimaryPlayer {
-            suffix += L10n.string("players.row.primarySuffix")
-        }
-        if player.isArchived {
-            suffix += L10n.string("players.row.archivedSuffix")
-        }
-        return L10n.format("players.row.accessibilityFormat", player.name, suffix)
+        )
     }
 
     private var searchField: some View {
@@ -462,11 +401,9 @@ struct PlayersRootView: View {
     private func handleExportResult(_ result: Result<URL, Error>) {
         switch result {
         case let .success(url):
-            exportShareItem = ExportShareItem(url: url)
+            sheet = .export(ExportShareItem(url: url))
         case let .failure(error):
             exportErrorKey = (error as? AppError)?.userMessageKey ?? "players.detail.export.error"
         }
     }
 }
-
-

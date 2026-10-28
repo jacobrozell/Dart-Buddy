@@ -94,14 +94,14 @@ struct MatchSummaryScreen: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(maxHeight: max(0, geometry.size.height - 64))
-                    achievementsSection
+                    MatchSummaryAchievementsSection(presentations: viewModel.achievementPresentations)
                 } else {
                     Text(L10n.summaryResult)
                         .font(.title.weight(.heavy))
                         .foregroundStyle(Brand.textPrimary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
-                landscapeActions
+                actions(compact: true)
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
             .padding(.horizontal, DS.Spacing.s4)
@@ -114,7 +114,7 @@ struct MatchSummaryScreen: View {
         if usesSideBySidePlayerGrid {
             HStack(spacing: DS.Spacing.s3) {
                 ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
-                    playerCard(row, layout: .horizontal, compactStats: true)
+                    MatchSummaryPlayerCard(row: row, layout: .horizontal, compactStats: true)
                         .frame(maxWidth: .infinity)
                         .motionStaggeredReveal(index: index, when: celebrate)
                 }
@@ -123,7 +123,7 @@ struct MatchSummaryScreen: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: DS.Spacing.s3) {
                     ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
-                        playerCard(row, layout: .horizontal, compactStats: true)
+                        MatchSummaryPlayerCard(row: row, layout: .horizontal, compactStats: true)
                             .motionStaggeredReveal(index: index, when: celebrate)
                     }
                 }
@@ -142,7 +142,7 @@ struct MatchSummaryScreen: View {
             } else if viewModel.hasResult {
                 celebrationHeader(trophyPointSize: trophySize)
                 playerResultsGrid(axis: .vertical)
-                achievementsSection
+                MatchSummaryAchievementsSection(presentations: viewModel.achievementPresentations)
             } else {
                 Text(L10n.summaryResult).font(.title.weight(.heavy)).foregroundStyle(Brand.textPrimary)
             }
@@ -160,84 +160,25 @@ struct MatchSummaryScreen: View {
     }
 
     private func celebrationHeader(trophyPointSize: CGFloat) -> some View {
-        VStack(spacing: DS.Spacing.s2) {
-            if viewModel.isForfeited {
-                Image(systemName: "flag.checkered.2.crossed")
-                    .font(.system(size: trophyPointSize))
-                    .foregroundStyle(Brand.amber)
-                    .accessibilityHidden(true)
-                Text(L10n.string("play.summary.forfeit.title"))
-                    .font(usesLandscapeSplit ? .largeTitle.weight(.heavy) : .title.weight(.heavy))
-                    .foregroundStyle(Brand.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier("matchSummaryForfeitBanner")
-                if let forfeiter = viewModel.forfeiterName, let winner = viewModel.winnerName {
-                    Text(L10n.format("play.summary.forfeit.subtitle", forfeiter, winner))
-                        .font(.subheadline)
-                        .foregroundStyle(Brand.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier("matchSummaryForfeitSubtitle")
-                } else if viewModel.forfeiterName != nil {
-                    Text(L10n.string("play.summary.forfeit.solo.subtitle"))
-                        .font(.subheadline)
-                        .foregroundStyle(Brand.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier("matchSummaryForfeitSubtitle")
-                }
-            } else if viewModel.isCoopMatch {
-                Image(systemName: viewModel.coopTeamVictory == true ? "checkmark.seal.fill" : "xmark.octagon.fill")
-                    .font(.system(size: trophyPointSize))
-                    .foregroundStyle(viewModel.coopTeamVictory == true ? Brand.green : Brand.redAccent)
-                    .scaleEffect(celebrate ? 1 : (reduceMotion ? 1 : 0.4))
-                    .opacity(celebrate ? 1 : (reduceMotion ? 1 : 0))
-                    .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: celebrate)
-                    .accessibilityHidden(true)
-                Text(L10n.string(viewModel.coopHeadlineKey))
-                    .font(usesLandscapeSplit ? .largeTitle.weight(.heavy) : .title.weight(.heavy))
-                    .foregroundStyle(Brand.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier("matchSummaryCoopHeadline")
-                if let subheadline = viewModel.coopSubheadline {
-                    Text(subheadline)
-                        .font(.subheadline)
-                        .foregroundStyle(Brand.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier("matchSummaryCoopSubheadline")
-                }
-                if let mvpName = viewModel.coopMvpName {
-                    Text(L10n.format("play.raid.mvpFormat", mvpName))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Brand.amber)
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier("matchSummaryCoopMVP")
-                }
-            } else {
-                Image(systemName: "trophy.fill")
-                    .font(.system(size: trophyPointSize))
-                    .foregroundStyle(Brand.amber)
-                    .scaleEffect(celebrate ? 1 : (reduceMotion ? 1 : 0.4))
-                    .opacity(celebrate ? 1 : (reduceMotion ? 1 : 0))
-                    .rotationEffect(.degrees(celebrate ? 0 : (reduceMotion ? 0 : -25)))
-                    .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.6), value: celebrate)
-                if let winnerName = viewModel.winnerName {
-                    Text(L10n.format("play.summary.winsFormat", winnerName))
-                        .font(usesLandscapeSplit ? .largeTitle.weight(.heavy) : .title.weight(.heavy))
-                        .foregroundStyle(Brand.textPrimary)
-                        .multilineTextAlignment(.center)
-                }
-            }
-            Text(viewModel.typeLabel)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Brand.textSecondary)
-            if viewModel.hasResult {
-                gameRecordedBadge
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, usesLandscapeSplit ? 0 : DS.Spacing.s4)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(celebrationHeaderAccessibilityLabel)
-        .accessibilityIdentifier("matchSummaryHeader")
+        MatchSummaryCelebrationHeader(
+            viewModel: viewModel,
+            trophyPointSize: trophyPointSize,
+            celebrate: celebrate,
+            usesLandscapeSplit: usesLandscapeSplit
+        )
+    }
+
+    private func actions(compact: Bool) -> some View {
+        MatchSummaryActions(
+            viewModel: viewModel,
+            compact: compact,
+            isRematching: isRematching,
+            rematchErrorKey: rematchErrorKey,
+            onRematch: runRematch,
+            onDone: onDone,
+            onViewStatistics: { onViewHistoryDetail(viewModel.matchId) },
+            onUndoLastThrow: runUndoLastThrow
+        )
     }
 
     @ViewBuilder
@@ -254,7 +195,7 @@ struct MatchSummaryScreen: View {
         if axis == .horizontal {
             HStack(spacing: DS.Spacing.s3) {
                 ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
-                    playerCard(row, layout: .horizontal, compactStats: true)
+                    MatchSummaryPlayerCard(row: row, layout: .horizontal, compactStats: true)
                         .frame(maxWidth: .infinity)
                         .motionStaggeredReveal(index: index, when: celebrate)
                 }
@@ -268,7 +209,7 @@ struct MatchSummaryScreen: View {
                 spacing: DS.Spacing.s3
             ) {
                 ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
-                    playerCard(row, layout: .fitsWidth)
+                    MatchSummaryPlayerCard(row: row, layout: .fitsWidth)
                         .motionStaggeredReveal(index: index, when: celebrate)
                 }
             }
@@ -277,279 +218,9 @@ struct MatchSummaryScreen: View {
 
     private var stackedPlayerCards: some View {
         ForEach(Array(viewModel.playerRows.enumerated()), id: \.element.id) { index, row in
-            playerCard(row, layout: .fitsWidth)
+            MatchSummaryPlayerCard(row: row, layout: .fitsWidth)
                 .motionStaggeredReveal(index: index, when: celebrate)
         }
-    }
-
-    @ViewBuilder
-    private var achievementsSection: some View {
-        if !viewModel.achievementPresentations.isEmpty {
-            VStack(alignment: .leading, spacing: DS.Spacing.s3) {
-                Text(L10n.string("achievements.summary.title"))
-                    .font(.headline)
-                    .foregroundStyle(Brand.textPrimary)
-                ForEach(viewModel.achievementPresentations) { presentation in
-                    AchievementUnlockRow(presentation: presentation)
-                }
-            }
-            .padding(DS.Spacing.s3)
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.md))
-            .accessibilityIdentifier("matchSummaryAchievements")
-        }
-    }
-
-    private var gameRecordedBadge: some View {
-        HStack(spacing: 6) {
-            Image(systemName: viewModel.isForfeited ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-            Text(viewModel.isForfeited ? L10n.string("play.summary.forfeit.statsSaved") : L10n.string("play.summary.gameRecorded"))
-        }
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(viewModel.isForfeited ? Brand.amber : Brand.green)
-        .accessibilityIdentifier("matchSummaryGameRecorded")
-    }
-
-    private var celebrationHeaderAccessibilityLabel: String {
-        if viewModel.isForfeited {
-            var parts = [L10n.string("play.summary.forfeit.title")]
-            if let forfeiter = viewModel.forfeiterName, let winner = viewModel.winnerName {
-                parts.append(L10n.format("play.summary.forfeit.subtitle", forfeiter, winner))
-            } else if viewModel.forfeiterName != nil {
-                parts.append(L10n.string("play.summary.forfeit.solo.subtitle"))
-            }
-            parts.append(viewModel.typeLabel)
-            if viewModel.hasResult {
-                parts.append(L10n.string("play.summary.forfeit.statsSaved"))
-            }
-            return parts.joined(separator: ". ")
-        }
-        if viewModel.isCoopMatch {
-            var parts = [L10n.string(viewModel.coopHeadlineKey)]
-            if let subheadline = viewModel.coopSubheadline {
-                parts.append(subheadline)
-            }
-            if let mvpName = viewModel.coopMvpName {
-                parts.append(L10n.format("play.raid.mvpFormat", mvpName))
-            }
-            parts.append(viewModel.typeLabel)
-            if viewModel.hasResult {
-                parts.append(L10n.string("play.summary.gameRecorded"))
-            }
-            return parts.joined(separator: ". ")
-        }
-        guard let winnerName = viewModel.winnerName else { return viewModel.typeLabel }
-        let recorded = viewModel.hasResult ? L10n.string("play.summary.gameRecorded") : ""
-        return L10n.format("play.summary.header.accessibilityFormat", winnerName, viewModel.typeLabel)
-            + (recorded.isEmpty ? "" : ". \(recorded)")
-    }
-
-    private enum PlayerCardStatLayout {
-        case horizontal
-        case fitsWidth
-    }
-
-    private func playerCard(
-        _ row: MatchSummaryViewModel.PlayerRow,
-        layout: PlayerCardStatLayout,
-        compactStats: Bool = false
-    ) -> some View {
-        HStack(spacing: 0) {
-            Rectangle()
-                .fill(row.isWinner ? Brand.amber : Color.clear)
-                .frame(width: 6)
-            VStack(alignment: .leading, spacing: DS.Spacing.s2) {
-                HStack(spacing: 6) {
-                    if row.isWinner {
-                        Image(systemName: "crown.fill").font(.caption).foregroundStyle(Brand.amber)
-                    }
-                    Text(row.name)
-                        .font(.headline)
-                        .foregroundStyle(row.isWinner ? Brand.amber : Brand.textPrimary)
-                        .lineLimit(1)
-                }
-                switch layout {
-                case .horizontal:
-                    playerCardStats(row, layout: .horizontal, compact: compactStats)
-                case .fitsWidth:
-                    ViewThatFits(in: .horizontal) {
-                        playerCardStats(row, layout: .horizontal, compact: compactStats)
-                        playerCardStats(row, layout: .vertical, compact: compactStats)
-                    }
-                }
-            }
-            .padding(compactStats ? DS.Spacing.s2 : DS.Spacing.s3)
-            Spacer(minLength: 0)
-        }
-        .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(playerRowAccessibilityLabel(row))
-    }
-
-    private enum PlayerCardStatsAxis {
-        case horizontal
-        case vertical
-    }
-
-    @ViewBuilder
-    private func playerCardStats(
-        _ row: MatchSummaryViewModel.PlayerRow,
-        layout: PlayerCardStatsAxis,
-        compact: Bool
-    ) -> some View {
-        let spacing = compact ? DS.Spacing.s2 : DS.Spacing.s3
-        switch layout {
-        case .horizontal:
-            HStack(spacing: spacing) {
-                ForEach(row.stats, id: \.label) { stat in
-                    StatChip(value: stat.value, label: stat.label, compact: compact)
-                }
-            }
-        case .vertical:
-            VStack(alignment: .leading, spacing: spacing) {
-                ForEach(row.stats, id: \.label) { stat in
-                    StatChip(value: stat.value, label: stat.label, compact: compact)
-                }
-            }
-        }
-    }
-
-    private func playerRowAccessibilityLabel(_ row: MatchSummaryViewModel.PlayerRow) -> String {
-        let stats = row.stats.map { "\($0.label) \($0.value)" }.joined(separator: ", ")
-        let prefix = row.isWinner ? L10n.string("play.summary.player.winnerPrefix") : ""
-        return L10n.format("play.summary.player.accessibilityFormat", prefix, row.name, stats)
-    }
-
-    @ViewBuilder
-    private func actions(compact: Bool) -> some View {
-        if compact {
-            landscapeActions
-        } else {
-            VStack(spacing: DS.Spacing.s3) {
-                portraitActionButtons
-            }
-            .padding(.top, DS.Spacing.s2)
-        }
-    }
-
-    private var landscapeActions: some View {
-        VStack(spacing: DS.Spacing.s2) {
-            HStack(spacing: DS.Spacing.s3) {
-                PrimaryActionButton(
-                    title: LocalizedStringKey(viewModel.rematchTitleKey),
-                    accent: .green,
-                    isEnabled: viewModel.canRematch,
-                    isLoading: isRematching,
-                    accessibilityIdentifier: "matchSummaryRematch",
-                    action: runRematch
-                )
-                PrimaryActionButton(
-                    title: L10n.summaryDone,
-                    accent: .green,
-                    accessibilityIdentifier: "matchSummaryDone",
-                    action: onDone
-                )
-                summarySecondaryButton(
-                    title: L10n.summaryViewGameStatistics,
-                    action: { onViewHistoryDetail(viewModel.matchId) },
-                    compact: true
-                )
-            }
-            if let rematchErrorKey {
-                ErrorBanner(messageKey: rematchErrorKey)
-            }
-            if let undoErrorKey = viewModel.undoErrorKey {
-                ErrorBanner(messageKey: undoErrorKey)
-            }
-            if viewModel.canUndoLastThrow {
-                undoLastThrowSection(compact: true)
-            }
-        }
-        .padding(.top, DS.Spacing.s1)
-    }
-
-    @ViewBuilder
-    private var portraitActionButtons: some View {
-        if let rematchErrorKey {
-            ErrorBanner(messageKey: rematchErrorKey)
-        }
-        PrimaryActionButton(
-            title: LocalizedStringKey(viewModel.rematchTitleKey),
-            accent: .green,
-            isEnabled: viewModel.canRematch,
-            isLoading: isRematching,
-            accessibilityIdentifier: "matchSummaryRematch",
-            action: runRematch
-        )
-        PrimaryActionButton(
-            title: L10n.summaryDone,
-            accent: .green,
-            accessibilityIdentifier: "matchSummaryDone",
-            action: onDone
-        )
-        Button(action: { onViewHistoryDetail(viewModel.matchId) }) {
-            Text(L10n.summaryViewGameStatistics)
-                .font(.headline).foregroundStyle(Brand.textPrimary)
-                .frame(maxWidth: .infinity, minHeight: 52)
-                .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-        }
-        .buttonStyle(.plain)
-        if let undoErrorKey = viewModel.undoErrorKey {
-            ErrorBanner(messageKey: undoErrorKey)
-        }
-        if viewModel.canUndoLastThrow {
-            undoLastThrowSection(compact: false)
-        }
-    }
-
-    @ViewBuilder
-    private func undoLastThrowSection(compact: Bool) -> some View {
-        VStack(spacing: DS.Spacing.s1) {
-            summarySecondaryButton(
-                title: L10n.summaryUndoLastThrow,
-                action: runUndoLastThrow,
-                isLoading: viewModel.isUndoing,
-                identifier: "matchSummaryUndoLastThrow",
-                hint: L10n.summaryUndoLastThrowHint,
-                compact: compact
-            )
-            Text(L10n.summaryUndoLastThrowWarning)
-                .font(compact ? .caption2 : .caption)
-                .foregroundStyle(Brand.textSecondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .accessibilityIdentifier("matchSummaryUndoLastThrowWarning")
-        }
-    }
-
-    private func summarySecondaryButton(
-        title: LocalizedStringKey,
-        action: @escaping () -> Void,
-        isLoading: Bool = false,
-        identifier: String? = nil,
-        hint: LocalizedStringKey? = nil,
-        compact: Bool = false
-    ) -> some View {
-        Button(action: action) {
-            Group {
-                if isLoading {
-                    ProgressView()
-                        .tint(Brand.textPrimary)
-                        .accessibilityLabel(L10n.loading)
-                } else {
-                    Text(title)
-                        .font(compact ? .subheadline.weight(.semibold) : .headline)
-                        .foregroundStyle(Brand.textPrimary)
-                        .lineLimit(compact ? 2 : 1)
-                        .minimumScaleFactor(compact ? 0.85 : 1)
-                        .multilineTextAlignment(.center)
-                }
-            }
-            .frame(maxWidth: .infinity, minHeight: compact ? 48 : 52)
-            .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.lg))
-        }
-        .buttonStyle(.plain)
-        .disabled(isLoading)
-        .modifier(SummarySecondaryButtonAccessibility(identifier: identifier, hint: hint))
     }
 
     private func runRematch() {
@@ -569,25 +240,6 @@ struct MatchSummaryScreen: View {
             if let restoredDarts = await viewModel.undoLastThrow() {
                 onUndoLastThrow(restoredDarts)
             }
-        }
-    }
-}
-
-private struct SummarySecondaryButtonAccessibility: ViewModifier {
-    let identifier: String?
-    let hint: LocalizedStringKey?
-
-    func body(content: Content) -> some View {
-        if let identifier, let hint {
-            content
-                .accessibilityIdentifier(identifier)
-                .accessibilityHint(hint)
-        } else if let identifier {
-            content.accessibilityIdentifier(identifier)
-        } else if let hint {
-            content.accessibilityHint(hint)
-        } else {
-            content
         }
     }
 }

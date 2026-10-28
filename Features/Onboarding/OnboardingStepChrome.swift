@@ -49,9 +49,6 @@ struct OnboardingStepChrome<Content: View, Footer: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var contentMaxWidth: CGFloat {
-        if GameplayLayout.usesIPadMainShell() {
-            return GameplayLayout.iPadOnboardingContentMaxWidth
-        }
         if horizontalSizeClass == .regular { return 560 }
         return .infinity
     }
@@ -220,7 +217,9 @@ struct OnboardingHeroStepContent: View {
                 .font(.body)
                 .foregroundStyle(Brand.textSecondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityIdentifier("onboarding_hero_body")
         }
     }
 }

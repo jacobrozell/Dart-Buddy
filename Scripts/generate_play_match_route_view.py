@@ -1,10 +1,37 @@
 #!/usr/bin/env python3
-"""Generate consolidated PlayMatchRouteView.swift."""
+"""Generate PlayMatchRouteView.swift, per-mode route views, and MatchRouteScreen.swift.
+
+Outputs:
+  Features/Play/Setup/PlayMatchRouteView.swift        thin dispatcher
+  Features/Play/Setup/Routes/{Mode}MatchRouteView.swift  one per mode
+  Features/Play/Shared/MatchRouteScreen.swift         shared @StateObject host
+
+Re-run after adding a mode; stale route files for removed modes are deleted.
+"""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+ROUTES_DIR = ROOT / "Features/Play/Setup/Routes"
 
+FEEDBACK = "feedbackPreferences: dependencies.userPreferencesStore.feedback"
+AUDIO = "audio: dependencies.audioFeedbackService"
+HAPTICS = "haptics: dependencies.hapticsService"
+LIFECYCLE = "lifecycleDependencies: lifecycle"
+VISUAL_BOARD_ENABLED = (
+    "visualDartboardInputEnabled: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput)"
+)
+DEFAULT_ENTRY = (
+    "defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation\n"
+    "    .resolved(allowsVisualBoard: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput))"
+)
+
+STANDARD_SCREEN_ARGS = [AUDIO, HAPTICS, FEEDBACK, LIFECYCLE]
+
+# (route key, type prefix) — standard VM + screen with lifecycle chrome.
 STANDARD_MODES = [
+    ("baseball", "Baseball"),
+    ("killer", "Killer"),
+    ("shanghai", "Shanghai"),
     ("americanCricket", "AmericanCricket"),
     ("mickeyMouse", "MickeyMouse"),
     ("mulligan", "Mulligan"),
@@ -23,159 +50,144 @@ STANDARD_MODES = [
     ("fleet", "Fleet"),
 ]
 
-SPECIAL_MODES = [
-    ("x01", "X01"),
-    ("cricket", "Cricket"),
-    ("baseball", "Baseball"),
-    ("killer", "Killer"),
-    ("shanghai", "Shanghai"),
-    ("raid", "Raid"),
+# 1.2 modes whose screens do not take lifecycle chrome.
+NO_LIFECYCLE_MODES = [
+    ("halveIt", "HalveIt"),
+    ("scam", "Scam"),
+    ("snooker", "Snooker"),
+    ("ticTacToe", "TicTacToe"),
+    ("blindKiller", "BlindKiller"),
+    ("followTheLeader", "FollowTheLeader"),
+    ("loop", "Loop"),
+    ("prisoner", "Prisoner"),
 ]
 
-def standard_route_case(route_key: str, mode_name: str) -> str:
-    return f"""        case let .{route_key}Match(matchId):
-            MatchRouteScreen(
-                matchId: matchId,
-                dependencies: dependencies,
-                onShowSummary: onShowSummary
-            ) {{
-                {mode_name}MatchViewModel(
-                    matchId: matchId,
-                    store: dependencies.activeMatchStore,
-                    logger: dependencies.logger,
-                    matchRepository: dependencies.matchRepository,
-                    statsRepository: dependencies.statsRepository,
-                    feedbackPreferences: dependencies.userPreferencesStore.feedback
-                )
-            }} content: {{ viewModel, lifecycle in
-                {mode_name}MatchScreen(
-                    viewModel: viewModel,
-                    onShowSummary: onShowSummary,
-                    audio: dependencies.audioFeedbackService,
-                    haptics: dependencies.hapticsService,
-                    feedbackPreferences: dependencies.userPreferencesStore.feedback,
-                    lifecycleDependencies: lifecycle
-                )
-            }}"""
 
-def raid_case() -> str:
-    return """        case let .raidMatch(matchId):
-            MatchRouteScreen(
-                matchId: matchId,
-                dependencies: dependencies,
-                onShowSummary: onShowSummary
-            ) {
-                RaidMatchViewModel(
-                    matchId: matchId,
-                    store: dependencies.activeMatchStore,
-                    logger: dependencies.logger,
-                    matchRepository: dependencies.matchRepository,
-                    statsRepository: dependencies.statsRepository
-                )
-            } content: { viewModel, lifecycle in
-                RaidMatchScreen(
-                    viewModel: viewModel,
-                    onShowSummary: onShowSummary,
-                    audio: dependencies.audioFeedbackService,
-                    haptics: dependencies.hapticsService,
-                    feedbackPreferences: dependencies.userPreferencesStore.feedback,
-                    lifecycleDependencies: lifecycle
-                )
-            }"""
+def mode(route_key, prefix, screen_args, vm_feedback=True):
+    return {
+        "route_key": route_key,
+        "prefix": prefix,
+        "screen_args": screen_args,
+        "vm_feedback": vm_feedback,
+    }
 
-def x01_case() -> str:
-    return """        case let .x01Match(matchId):
-            MatchRouteScreen(
-                matchId: matchId,
-                dependencies: dependencies,
-                onShowSummary: onShowSummary
-            ) {
-                X01MatchViewModel(
-                    matchId: matchId,
-                    store: dependencies.activeMatchStore,
-                    logger: dependencies.logger,
-                    matchRepository: dependencies.matchRepository,
-                    statsRepository: dependencies.statsRepository,
-                    feedbackPreferences: dependencies.userPreferencesStore.feedback
-                )
-            } content: { viewModel, lifecycle in
-                X01MatchScreen(
-                    viewModel: viewModel,
-                    onShowSummary: onShowSummary,
-                    audio: dependencies.audioFeedbackService,
-                    haptics: dependencies.hapticsService,
-                    turnTotalCaller: dependencies.turnTotalCallerService,
-                    feedbackPreferences: dependencies.userPreferencesStore.feedback,
-                    lifecycleDependencies: lifecycle,
-                    visionScoringEnabled: dependencies.featureFlags.isEnabled(.enableVisionAutoScoring),
-                    visualDartboardInputEnabled: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput),
-                    visionLogger: dependencies.logger,
-                    defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
-                        .resolved(allowsVisualBoard: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput))
-                )
-            }"""
 
-def cricket_case() -> str:
-    return """        case let .cricketMatch(matchId):
-            MatchRouteScreen(
-                matchId: matchId,
-                dependencies: dependencies,
-                onShowSummary: onShowSummary
-            ) {
-                CricketMatchViewModel(
-                    matchId: matchId,
-                    store: dependencies.activeMatchStore,
-                    logger: dependencies.logger,
-                    matchRepository: dependencies.matchRepository,
-                    statsRepository: dependencies.statsRepository,
-                    feedbackPreferences: dependencies.userPreferencesStore.feedback
-                )
-            } content: { viewModel, lifecycle in
-                CricketMatchScreen(
-                    viewModel: viewModel,
-                    onShowSummary: onShowSummary,
-                    audio: dependencies.audioFeedbackService,
-                    haptics: dependencies.hapticsService,
-                    turnTotalCaller: dependencies.turnTotalCallerService,
-                    feedbackPreferences: dependencies.userPreferencesStore.feedback,
-                    lifecycleDependencies: lifecycle,
-                    visualDartboardInputEnabled: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput),
-                    defaultDartEntryPresentation: dependencies.userPreferencesStore.defaultDartEntryPresentation
-                        .resolved(allowsVisualBoard: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput))
-                )
-            }"""
+MODES = [
+    mode("x01", "X01", [
+        AUDIO,
+        HAPTICS,
+        "turnTotalCaller: dependencies.turnTotalCallerService",
+        FEEDBACK,
+        LIFECYCLE,
+        "visionScoringEnabled: dependencies.featureFlags.isEnabled(.enableVisionAutoScoring)",
+        VISUAL_BOARD_ENABLED,
+        "visionLogger: dependencies.logger",
+        DEFAULT_ENTRY,
+    ]),
+    mode("cricket", "Cricket", [
+        AUDIO,
+        HAPTICS,
+        "turnTotalCaller: dependencies.turnTotalCallerService",
+        FEEDBACK,
+        LIFECYCLE,
+        VISUAL_BOARD_ENABLED,
+        DEFAULT_ENTRY,
+    ]),
+]
+MODES += [mode(rk, prefix, STANDARD_SCREEN_ARGS) for rk, prefix in STANDARD_MODES]
+MODES.append(mode("raid", "Raid", STANDARD_SCREEN_ARGS, vm_feedback=False))
+MODES.append(mode("bobs27", "Bobs27", [AUDIO, HAPTICS]))
+MODES += [mode(rk, prefix, [AUDIO, HAPTICS, FEEDBACK]) for rk, prefix in NO_LIFECYCLE_MODES]
 
-def simple_legacy_case(route_key: str, mode_name: str) -> str:
-    return standard_route_case(route_key, mode_name)
 
-cases = [x01_case(), cricket_case()]
-for rk, mn in [("baseball", "Baseball"), ("killer", "Killer"), ("shanghai", "Shanghai")]:
-    cases.append(simple_legacy_case(rk, mn))
-for rk, mn in STANDARD_MODES:
-    cases.append(standard_route_case(rk, mn))
-cases.append(raid_case())
+def indent(text, spaces):
+    pad = " " * spaces
+    return "\n".join(pad + line for line in text.split("\n"))
 
-body = "\n".join(cases)
 
-content = f'''import SwiftUI
+def arg_lines(args, spaces):
+    return ",\n".join(indent(arg, spaces) for arg in args)
 
-/// Routes active match screens from `PlayRoute` without per-mode route wrapper structs.
+
+def route_view(m):
+    prefix = m["prefix"]
+    vm_args = [
+        "matchId: matchId",
+        "store: dependencies.activeMatchStore",
+        "logger: dependencies.logger",
+        "matchRepository: dependencies.matchRepository",
+        "statsRepository: dependencies.statsRepository",
+    ]
+    if m["vm_feedback"]:
+        vm_args.append(FEEDBACK)
+    screen_args = ["viewModel: viewModel", "onShowSummary: onShowSummary"] + m["screen_args"]
+    lifecycle_param = "lifecycle" if LIFECYCLE in m["screen_args"] else "_"
+    return f"""import SwiftUI
+
+struct {prefix}MatchRouteView: View {{
+    let matchId: UUID
+    let dependencies: AppDependencies
+    let onShowSummary: () -> Void
+
+    var body: some View {{
+        MatchRouteScreen(
+            matchId: matchId,
+            dependencies: dependencies,
+            onShowSummary: onShowSummary
+        ) {{
+            {prefix}MatchViewModel(
+{arg_lines(vm_args, 16)}
+            )
+        }} content: {{ viewModel, {lifecycle_param} in
+            {prefix}MatchScreen(
+{arg_lines(screen_args, 16)}
+            )
+        }}
+    }}
+}}
+"""
+
+
+def dispatcher():
+    cases = "\n".join(
+        f"""        case let .{m["route_key"]}Match(matchId):
+            {m["prefix"]}MatchRouteView(matchId: matchId, dependencies: dependencies, onShowSummary: onShowSummary)"""
+        for m in MODES
+    )
+    return f"""import SwiftUI
+
+/// Routes active match screens from `PlayRoute`. Generated by `Scripts/generate_play_match_route_view.py`.
 struct PlayMatchRouteView: View {{
     let route: PlayRoute
     let dependencies: AppDependencies
     let onShowSummary: () -> Void
 
     var body: some View {{
+        if let matchType = route.inProgressRulesMatchType {{
+            MatchInProgressRulesAccess(matchType: matchType) {{
+                routeBody
+            }}
+        }} else {{
+            routeBody
+        }}
+    }}
+
+    @ViewBuilder
+    private var routeBody: some View {{
         switch route {{
-{body}
+{cases}
         default:
             EmptyView()
         }}
     }}
 }}
+"""
+
+
+MATCH_ROUTE_SCREEN = """import SwiftUI
 
 /// Shared `@StateObject` host for match route screens.
-private struct MatchRouteScreen<VM: ObservableObject, Content: View>: View {{
+struct MatchRouteScreen<VM: ObservableObject, Content: View>: View {
     let dependencies: AppDependencies
     let onShowSummary: () -> Void
     @StateObject private var viewModel: VM
@@ -187,24 +199,44 @@ private struct MatchRouteScreen<VM: ObservableObject, Content: View>: View {{
         onShowSummary: @escaping () -> Void,
         makeViewModel: @escaping () -> VM,
         @ViewBuilder content: @escaping (VM, MatchLifecycleChromeDependencies) -> Content
-    ) {{
+    ) {
         self.dependencies = dependencies
         self.onShowSummary = onShowSummary
         _viewModel = StateObject(wrappedValue: makeViewModel())
         self.content = content
-    }}
+    }
 
-    var body: some View {{
+    var body: some View {
         let lifecycle = MatchLifecycleChromeDependencies(
             store: dependencies.activeMatchStore,
             matchRepository: dependencies.matchRepository,
             logger: dependencies.logger
         )
         content(viewModel, lifecycle)
-    }}
-}}
-'''
+    }
+}
+"""
 
-out = ROOT / "Features/Play/Setup/PlayMatchRouteView.swift"
-out.write_text(content)
-print(f"wrote {out} ({len(content)} bytes)")
+
+def write(path, content):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+    print(f"wrote {path.relative_to(ROOT)}")
+
+
+def main():
+    write(ROOT / "Features/Play/Setup/PlayMatchRouteView.swift", dispatcher())
+    write(ROOT / "Features/Play/Shared/MatchRouteScreen.swift", MATCH_ROUTE_SCREEN)
+    expected = set()
+    for m in MODES:
+        path = ROUTES_DIR / f"{m['prefix']}MatchRouteView.swift"
+        expected.add(path)
+        write(path, route_view(m))
+    for stale in ROUTES_DIR.glob("*MatchRouteView.swift"):
+        if stale not in expected:
+            stale.unlink()
+            print(f"removed {stale.relative_to(ROOT)}")
+
+
+if __name__ == "__main__":
+    main()

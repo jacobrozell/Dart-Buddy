@@ -15,15 +15,6 @@ enum GameplayLayout {
     /// Readable column for setup, summary, and list-style screens on iPad (phone-style fallback).
     static let regularContentMaxWidth: CGFloat = 920
 
-    /// iPad main shell flag — always false after unified tab bar migration.
-    /// Retained for test compatibility; will be removed in a future cleanup.
-    static func usesIPadMainShell(isPad: Bool = defaultIsPad) -> Bool {
-        false
-    }
-
-    /// Max readable width for onboarding hero content on iPad.
-    static let iPadOnboardingContentMaxWidth: CGFloat = 720
-
     static func contentMaxWidth(
         horizontalSizeClass: UserInterfaceSizeClass?,
         isPad: Bool = defaultIsPad

@@ -154,6 +154,8 @@ Remove `SetupHomeChromeModifier`; use concrete footer view instead of generic cl
 
 ## Phase 5 — Secondary views (optional / if needed)
 
+> Superseded by [`swiftui-view-extraction-master-plan.md`](swiftui-view-extraction-master-plan.md).
+
 Apply the same patterns if Release still fails or before adding new presentation layers.
 
 ### `PlayersRootView` (preventive)

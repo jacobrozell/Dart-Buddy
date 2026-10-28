@@ -105,13 +105,6 @@ struct SettingsRootView: View {
     }
 
     @ViewBuilder
-    private func settingsSectionFooter(_ key: LocalizedStringKey) -> some View {
-        Text(key)
-            .font(.footnote)
-            .foregroundStyle(usesBrandSettingsPalette ? Brand.textSecondary : Color.secondary)
-    }
-
-    @ViewBuilder
     private var settingsPlaceholderBody: some View {
         switch viewModel.state {
         case let .error(messageKey):
@@ -150,11 +143,15 @@ struct SettingsRootView: View {
             startingModeSection(settings, usesBrand: usesBrandSettingsPalette)
             matchDefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
             x01DefaultsSection(settings, usesBrand: usesBrandSettingsPalette)
-            duringPlaySection(usesBrand: usesBrandSettingsPalette)
-            botOpponentsSection(usesBrand: usesBrandSettingsPalette)
-            dataSection(usesBrand: usesBrandSettingsPalette)
-            helpAndFeedbackSection(usesBrand: usesBrandSettingsPalette)
-            aboutSection(usesBrand: usesBrandSettingsPalette)
+            SettingsDuringPlaySection(
+                viewModel: viewModel,
+                showsDartEntryPresentationPicker: dependencies.featureFlags.isEnabled(.enableVisualDartboardInput),
+                usesBrand: usesBrandSettingsPalette
+            )
+            SettingsBotOpponentsSection(viewModel: viewModel, usesBrand: usesBrandSettingsPalette)
+            SettingsDataSection(usesBrand: usesBrandSettingsPalette) { viewModel.requestReset() }
+            SettingsHelpAndFeedbackSection(usesBrand: usesBrandSettingsPalette)
+            SettingsAboutSection(usesBrand: usesBrandSettingsPalette) { showsOnboarding = true }
         }
         .listStyle(.insetGrouped)
         .tint(Brand.green)
@@ -196,7 +193,7 @@ struct SettingsRootView: View {
             Text(L10n.appearanceSection)
         } footer: {
             if settings.appearanceModeRaw != "dark" {
-                settingsSectionFooter("settings.theme.footer")
+                SettingsSectionFooter("settings.theme.footer", usesBrand: usesBrand)
             }
         }
         .brandFormRowBackground(when: usesBrand)
@@ -215,7 +212,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsStartingModeSection)
         } footer: {
-            settingsSectionFooter(L10n.settingsStartingModeFooter)
+            SettingsSectionFooter(L10n.settingsStartingModeFooter, usesBrand: usesBrand)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -251,7 +248,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.settingsMatchDefaultsSection)
         } footer: {
-            settingsSectionFooter(L10n.settingsMatchDefaultsFooter)
+            SettingsSectionFooter(L10n.settingsMatchDefaultsFooter, usesBrand: usesBrand)
         }
         .brandFormRowBackground(when: usesBrand)
     }
@@ -290,157 +287,7 @@ struct SettingsRootView: View {
         } header: {
             Text(L10n.x01DefaultsSection)
         } footer: {
-            settingsSectionFooter(L10n.x01DefaultsFooter)
-        }
-        .brandFormRowBackground(when: usesBrand)
-    }
-
-    private func duringPlaySection(usesBrand: Bool) -> some View {
-        Section {
-            if dependencies.featureFlags.isEnabled(.enableVisualDartboardInput) {
-                Picker("settings.dartEntryPresentation.label", selection: Binding(
-                    get: {
-                        DartEntryPresentation(
-                            rawValueOrDefault: viewModel.settings?.defaultDartEntryPresentationRaw
-                        ).rawValue
-                    },
-                    set: { viewModel.queueDartEntryPresentationUpdate($0) }
-                )) {
-                    Text("settings.dartEntryPresentation.numberPad")
-                        .tag(DartEntryPresentation.numberPad.rawValue)
-                    Text("settings.dartEntryPresentation.visualBoard")
-                        .tag(DartEntryPresentation.visualBoard.rawValue)
-                }
-                .accessibilityIdentifier("settings_dartEntryPresentationPicker")
-                .accessibilityHint(L10n.string("settings.dartEntryPresentation.hint"))
-            }
-            Toggle("settings.feedback.haptics", isOn: Binding(
-                get: { viewModel.settings?.hapticsEnabled ?? true },
-                set: { viewModel.queueFeedbackUpdate(haptics: $0) }
-            ))
-            .accessibilityIdentifier("settings_hapticsToggle")
-            Toggle("settings.feedback.sound", isOn: Binding(
-                get: { viewModel.settings?.soundEnabled ?? true },
-                set: { viewModel.queueFeedbackUpdate(sound: $0) }
-            ))
-            .accessibilityIdentifier("settings_soundToggle")
-            Toggle("settings.feedback.turnTotalCaller", isOn: Binding(
-                get: { viewModel.settings?.turnTotalCallerEnabled ?? false },
-                set: { viewModel.queueFeedbackUpdate(turnTotalCaller: $0) }
-            ))
-            .accessibilityIdentifier("settings_turnTotalCallerToggle")
-            .accessibilityHint(L10n.string("settings.feedback.turnTotalCaller.hint"))
-            Toggle("settings.feedback.instantBotTurns", isOn: Binding(
-                get: { viewModel.settings?.instantBotTurnsEnabled ?? false },
-                set: { viewModel.queueFeedbackUpdate(instantBotTurns: $0) }
-            ))
-            .accessibilityIdentifier("settings_instantBotTurnsToggle")
-            .accessibilityHint(L10n.string("settings.feedback.instantBotTurns.accessibilityHint"))
-        } header: {
-            Text(L10n.settingsDuringPlaySection)
-        } footer: {
-            settingsSectionFooter(L10n.settingsDuringPlayFooter)
-        }
-        .brandFormRowBackground(when: usesBrand)
-    }
-
-    private func botOpponentsSection(usesBrand: Bool) -> some View {
-        let instantBotTurnsOn = viewModel.settings?.instantBotTurnsEnabled ?? false
-        return Section {
-            Toggle("settings.feedback.botStagger", isOn: Binding(
-                get: { viewModel.settings?.botStaggerEnabled ?? true },
-                set: { viewModel.queueBotPacingUpdate(stagger: $0) }
-            ))
-            .accessibilityIdentifier("settings_botStaggerToggle")
-            .disabled(instantBotTurnsOn)
-            Toggle("settings.feedback.botDartHaptics", isOn: Binding(
-                get: { viewModel.settings?.botDartHapticsEnabled ?? true },
-                set: { viewModel.queueBotPacingUpdate(dartHaptics: $0) }
-            ))
-            .accessibilityIdentifier("settings_botDartHapticsToggle")
-            .accessibilityHint(L10n.string("settings.feedback.botDartHaptics.hint"))
-            .disabled(instantBotTurnsOn)
-        } header: {
-            Text(L10n.settingsBotOpponentsSection)
-        } footer: {
-            settingsSectionFooter(
-                instantBotTurnsOn
-                    ? L10n.settingsBotOpponentsInstantOverridesFooter
-                    : L10n.settingsBotOpponentsFooter
-            )
-        }
-        .brandFormRowBackground(when: usesBrand)
-    }
-
-    private func dataSection(usesBrand: Bool) -> some View {
-        Section(L10n.dataSection) {
-            Button(L10n.resetAllData, role: .destructive) {
-                viewModel.requestReset()
-            }
-            .accessibilityLabel(L10n.string("settings.reset.accessibility"))
-            .accessibilityIdentifier("settings_resetAllDataButton")
-        }
-        .brandFormRowBackground(when: usesBrand)
-    }
-
-    private func helpAndFeedbackSection(usesBrand: Bool) -> some View {
-        Section {
-            Link(destination: AppLinks.support) {
-                Label(L10n.settingsSupportFAQ, systemImage: "questionmark.circle")
-            }
-            .accessibilityLabel(L10n.settingsSupportFAQAccessibility)
-            .accessibilityIdentifier("settings_supportFAQLink")
-
-            NavigationLink {
-                FeedbackFormView()
-            } label: {
-                Label(L10n.settingsSupportFeedback, systemImage: "lightbulb")
-            }
-            .accessibilityLabel(L10n.settingsSupportFeedbackAccessibility)
-            .accessibilityHint(L10n.settingsSupportFeedbackHint)
-            .accessibilityIdentifier("settings_feedbackForm")
-
-            Link(destination: AppLinks.appStoreReview) {
-                Label(L10n.settingsSupportRate, systemImage: "star")
-            }
-            .accessibilityLabel(L10n.settingsSupportRateAccessibility)
-            .accessibilityIdentifier("settings_rateAppLink")
-
-            if ProductSurface.showsAccessibilityMarketing {
-                Link(destination: AppLinks.accessibility) {
-                    Label(L10n.settingsSupportAccessibility, systemImage: "accessibility")
-                }
-                .accessibilityLabel(L10n.settingsSupportAccessibilityLabel)
-                .accessibilityIdentifier("settings_accessibilityLink")
-            }
-
-            Link(destination: AppLinks.privacy) {
-                Label(L10n.settingsSupportPrivacy, systemImage: "hand.raised")
-            }
-            .accessibilityLabel(L10n.settingsSupportPrivacyAccessibility)
-            .accessibilityIdentifier("settings_privacyPolicyLink")
-        } header: {
-            Text(L10n.settingsHelpAndFeedbackSection)
-        }
-        .brandFormRowBackground(when: usesBrand)
-    }
-
-    private func aboutSection(usesBrand: Bool) -> some View {
-        Section {
-            Button {
-                showsOnboarding = true
-            } label: {
-                Label(L10n.settingsViewOnboarding, systemImage: "book.pages")
-            }
-            .accessibilityLabel(L10n.settingsViewOnboardingAccessibility)
-            .accessibilityIdentifier("settings_viewOnboardingButton")
-
-            Text(AppSupport.versionLabel)
-                .foregroundStyle(usesBrand ? Brand.textSecondary : DS.ColorRole.textSecondary)
-                .accessibilityLabel(AppSupport.versionLabel)
-                .accessibilityIdentifier("settings_aboutVersion")
-        } header: {
-            Text(L10n.aboutSection)
+            SettingsSectionFooter(L10n.x01DefaultsFooter, usesBrand: usesBrand)
         }
         .brandFormRowBackground(when: usesBrand)
     }
