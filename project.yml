@@ -179,6 +179,9 @@ targets:
         - DartBuddyUILeanUITests
       commandLineArguments:
         "-enable_achievements": true
+        # This test branch turns camera scoring and Firebase analytics on for device runs.
+        "-enable_vision_scoring": true
+        "-firebase_analytics_debug": true
   DartBuddyTests:
     type: bundle.unit-test
     platform: iOS
