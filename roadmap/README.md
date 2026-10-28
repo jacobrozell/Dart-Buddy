@@ -1,6 +1,12 @@
 # Roadmap
 
-**Status:** 1.0 MVP implementation complete. Remaining work is QA evidence and App Store ops — see [`docs/release/todo.md`](../docs/release/todo.md).
+**Status:** 1.0 is live. Forward product thread is the solo companion: record the games, play alone or with friends.
+
+| Doc | Role |
+|-----|------|
+| [`solo-companion.md`](solo-companion.md) | **Current roadmap** — 1.2 copy, 1.2.1 bot stats, 1.3 layout, then a Solo shelf. Does not reopen 1.2 features |
+
+1.2 ship work stays in [`docs/release/todo.md`](../docs/release/todo.md).
 
 ## Active release artifacts
 
