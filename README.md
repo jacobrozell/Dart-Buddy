@@ -27,7 +27,7 @@ Dependency flow is strict: **Features → Domain/Data interfaces → SwiftData**
 
 ### What we have built
 
-Most of the long-term product surface is **implemented in code**; lean 1.0 intentionally **hides** anything that has not passed the device QA bar.
+Most of the long-term product surface is **implemented in code**. The App Store build is **1.1.0** (Ready for Distribution): seven modes, English, preset and custom bots. `release/1.2.0` is the next update: ten modes, Training Partner, player export, and German.
 
 | Area | Built | In lean 1.0 app |
 |------|-------|-----------------|
@@ -54,35 +54,30 @@ Most of the long-term product surface is **implemented in code**; lean 1.0 inten
 
 Three Xcode unit/accessibility targets: `Tests/Unit/`, `Tests/Accessibility/`. UI tests split into seven targets under `Tests/UI/` (see [`specs/TestPlanSpec.md`](specs/TestPlanSpec.md) § UI suites). Marketing screenshot capture scripts live under `marketing-screenshots/` and `Scripts/`.
 
-### Recent engineering work
+### Where the release train is
 
-Highlights from the current development arc:
-
-- **Custom bots** — domain models, skill facets, `BotParticipantFactory`, match-setup wiring, advanced stat sliders
-- **Lean 1.0 trim** — scope lock, marketing screenshots, gameplay layout polish (iPad landscape, checkout banner)
-- **Gamification prep** — achievement domain layer (`AchievementEvaluator`, `DefaultAchievementService`), Phase 1 catalog ([`AchievementCatalogPhase1.md`](specs/AchievementCatalogPhase1.md)), `BotAchievementTierResolver`
-- **Co-op Raid + Fleet** — playable on `dev` with full product surface; lean 1.0 still gates party/co-op from resume
-- **Spec governance** — feature inventory, delete-all-data policy ([`DeleteAllDataSpec.md`](specs/DeleteAllDataSpec.md)), gamification specs ([`AchievementsSpec.md`](specs/AchievementsSpec.md))
-- **Release train** — phased ship plan with test-confidence matrix ([`docs/release/ongoing-release-plan.md`](docs/release/ongoing-release-plan.md))
-- **CI docs artifact** — automated spec/code gap report on every build
+- **1.0.0 (7)** — first App Store release, 2026-06-22. Lean X01 + Cricket.
+- **1.1.0** — **Ready for Distribution.** Seven modes: X01, Cricket, Baseball, Killer, Shanghai, Raid, Around the Clock. English. No Training Partner, no export.
+- **1.2.0** — device QA, then TestFlight. Adds Golf, Bob's 27, Halve-It, Training Partner, player export, and German. Checklist is on `release/1.2.0` (`docs/release/1.2.0-ship-checklist.md`).
+- **Camera scoring** — tripod experiment on `experiment/vision-tripod-test`. Stays off for 1.2 and 1.3.
 
 ---
 
-## Status — 1.0 RC (lean core)
+## Status — 1.2 device QA
 
-**Now:** Finishing device QA evidence and App Store ops for a **small, well-tested** first release.
+**Store today:** **1.1.0**, Ready for Distribution. **Now:** **1.2.0** on `release/1.2.0` — device QA, a TestFlight RC, then the App Store. Duo is **1.3**. The modes catalog is **1.4**.
 
-| | Lean 1.0 ships | Built but hidden until later |
-|--|----------------|------------------------------|
-| **Modes** | X01 + Cricket (Normal + Cut Throat) | 20 additional shipped engines (party, co-op Raid, practice drills) |
-| **Tabs** | Play · Players · Activity · Settings | Modes catalog |
+| | On the App Store (1.1.0) | In the 1.2 update |
+|--|--------------------------|-------------------|
+| **Modes** | X01, Cricket, Baseball, Killer, Shanghai, Raid, Around the Clock | Those seven, plus Golf, Bob's 27, Halve-It |
+| **Tabs** | Play · Players · Activity · Settings | Modes tab still hidden |
 | **Bots** | Preset + custom | Training Partner |
-| **Locale** | English only (`de`/`es`/`nl` files stay in repo) | In-app language picker |
-| **Other** | Onboarding, rules sheet | Player export, App Intents |
+| **Locale** | English | English + German (`es` / `nl` stay on `dev`) |
+| **Other** | Onboarding, rules sheet | Player export. App Intents still off |
+
+Chase the Dragon, 180 Around the Clock, and Nine Lives stay unreachable. Train: [`docs/release/ongoing-release-plan.md`](docs/release/ongoing-release-plan.md).
 
 **Telemetry:** Firebase Analytics + Crashlytics in Release builds with a real plist (allowlisted events only; off in Debug/CI unless opted in).
-
-**Remaining for App Store:** Device QA on lean matrix, accessibility evidence, bootstrap store recovery smoke, English listing assets — [`docs/release/todo.md`](docs/release/todo.md) · [`roadmap/release/QA-Signoff-RC1.md`](roadmap/release/QA-Signoff-RC1.md).
 
 ---
 
@@ -92,24 +87,24 @@ Strategy: **ship a narrow core, then widen in versioned slices** — each releas
 
 ```mermaid
 flowchart LR
-  v10["1.0 Core<br/>X01 + Cricket"]
-  v11["1.1 Party Pack<br/>Baseball · Killer · Shanghai"]
-  v12["1.2 Smart Opponents<br/>Training Partner"]
-  v13["1.3 Modes Catalog<br/>Browse all 29 modes"]
-  v14["1.4 Shortcuts<br/>Siri · widgets"]
-  v20["2.0 Growth<br/>Achievements · online · …"]
+  v10["1.0 Shipped<br/>X01 + Cricket"]
+  v11["1.1 Live<br/>7 modes"]
+  v12["1.2 Now<br/>10 modes · Training Partner"]
+  v13["1.3 Duo<br/>iPhone Duo · iPad"]
+  v14["1.4 Catalog<br/>Modes tab"]
+  v20["Later<br/>Shortcuts · growth"]
 
   v10 --> v11 --> v12 --> v13 --> v14 --> v20
 ```
 
 | Release | Focus |
 |---------|-------|
-| **1.0** *(now)* | Ad-free X01 & Cricket scorekeeper · 4 tabs · preset + custom bots |
-| **1.1** | Party modes (Baseball, Killer, Shanghai) + device QA matrix |
-| **1.2** | Training Partner bots · stats UX polish |
-| **1.3** | Restore Modes tab · honest “coming soon” for 24 catalog stubs |
-| **1.4** | App Intents on · widgets / Control Center · play reminders |
-| **2.0** | Pick one primary growth bet: local achievements + Game Center, online play, next mode batch, talk mode, or Apple Watch |
+| **1.0** | Shipped 2026-06-22. Ad-free X01 & Cricket · 4 tabs · preset + custom bots |
+| **1.1** | Ready for Distribution. Seven modes: party pack, Raid, Around the Clock |
+| **1.2** *(now)* | Ten modes · Training Partner · player export · German. Device QA, then TestFlight |
+| **1.3** | iPhone Duo and resizable iPad |
+| **1.4** | Modes tab |
+| **Later** | App Intents, widgets, achievements, online play, or Apple Watch |
 
 **Post-1.0 specs (no ship date):** [`CampaignSpec.md`](specs/CampaignSpec.md) (Journey tab), [`OnlinePlaySpec.md`](specs/OnlinePlaySpec.md), [`AutoScoringVisionSpec.md`](specs/AutoScoringVisionSpec.md). Ideas live in [`FutureIdeas/`](FutureIdeas/).
 
@@ -177,7 +172,7 @@ High-level summary only — authoritative rules are in feature specs:
 - Settings: appearance, default game options, haptics, sound, bot pacing
 - **English UI** in 1.0 (additional locales ship in a later release)
 
-Post-1.0 (implemented but hidden in lean 1.0): Modes catalog tab, party modes, Training Partner bots, player export — see [`docs/feature-inventory.md`](docs/feature-inventory.md).
+**1.1** on the store adds Baseball, Killer, Shanghai, Raid, and Around the Clock. The 1.2 update adds Golf, Bob's 27, Halve-It, Training Partner, and player export. The Modes catalog tab stays hidden until 1.4. See [`docs/feature-inventory.md`](docs/feature-inventory.md).
 
 ---
 
