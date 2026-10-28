@@ -310,7 +310,7 @@ final class SnookerMatchViewModel: ObservableObject {
                 state = .matchCompleted
             } else if lastSnookerDart(in: updated)?.breakEnded == true {
                 state = .breakEndedFeedback
-                try? await Task.sleep(nanoseconds: 900_000_000)
+                try? await Task.sleep(nanoseconds: BotTurnPacing.snookerBreakEndedTransitionNanoseconds)
                 state = .readyDart
                 if !fromBotPlayback { scheduleBotPlaybackIfNeeded() }
             } else {

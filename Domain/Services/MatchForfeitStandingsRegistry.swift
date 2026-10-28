@@ -298,6 +298,17 @@ enum MatchForfeitStandingsRegistry {
             }
             return pointsStanding(playerId: playerId, score: player.total, turnOrder: turnOrder)
 
+        case .scam, .snooker, .ticTacToe, .blindKiller, .followTheLeader, .loop, .prisoner:
+            return try laterModeStanding(for: playerId, in: session, turnOrder: turnOrder)
+        }
+    }
+
+    private static func laterModeStanding(
+        for playerId: UUID,
+        in session: MatchLifecycleSession,
+        turnOrder: Int
+    ) throws -> MatchForfeitStanding {
+        switch session.runtime.type {
         case .scam:
             guard let state = session.runtime.scamState,
                   let player = state.players.first(where: { $0.playerId == playerId }) else {
@@ -369,6 +380,9 @@ enum MatchForfeitStandingsRegistry {
                 throw invalidForfeitState()
             }
             return pointsStanding(playerId: playerId, score: player.progressIndex, turnOrder: turnOrder)
+
+        default:
+            throw invalidForfeitState()
         }
     }
 

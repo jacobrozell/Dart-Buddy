@@ -266,6 +266,7 @@ func setupCatalogMickeyMouseAllowsPresetBot() async {
     )
     let guest = makePlayer("Guest")
     let vm = makeSetupViewModel(players: [human, bot, guest])
+    await vm.onAppear()
     vm.applyPendingModeSelection(
         PendingModeSelection(setupCategory: .standard, mode: nil, partyGame: nil, matchType: .mickeyMouse)
     )

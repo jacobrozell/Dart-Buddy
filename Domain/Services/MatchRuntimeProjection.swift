@@ -196,6 +196,10 @@ enum MatchRuntimeProjection {
             )
             return
         }
+        projectLaterModes(&runtime, timestamp: timestamp)
+    }
+
+    private static func projectLaterModes(_ runtime: inout MatchRuntimeState, timestamp: Date) {
         if let state = runtime.nineLivesState {
             projectStandardTurnState(
                 &runtime,

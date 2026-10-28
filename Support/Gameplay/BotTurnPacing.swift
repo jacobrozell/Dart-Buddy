@@ -42,6 +42,7 @@ enum BotTurnPacing {
     static let mickeyMouseTargetAdvancedTransitionNanoseconds: UInt64 = 600_000_000
     static let killerBecameKillerTransitionNanoseconds: UInt64 = 700_000_000
     static let briefModeFeedbackTransitionNanoseconds: UInt64 = 400_000_000
+    static let snookerBreakEndedTransitionNanoseconds: UInt64 = 900_000_000
 
     static func instantBotsActive(_ feedbackPreferences: FeedbackPreferences) -> Bool {
         BotPlaybackPolicy.instantBotTurnsActive(

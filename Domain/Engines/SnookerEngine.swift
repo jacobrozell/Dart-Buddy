@@ -21,6 +21,18 @@ public enum SnookerColour: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// Board segment recorded when this colour is potted. Black is the bull.
+    public var pocketedSegment: Int {
+        switch self {
+        case .yellow: return 16
+        case .green: return 17
+        case .brown: return 18
+        case .blue: return 19
+        case .pink: return 20
+        case .black: return 25
+        }
+    }
+
     /// Whether the dart pots this colour. Any ring on the assigned segment
     /// counts; black is any bull (inner or outer).
     public func isHit(by dart: DartInput) -> Bool {
@@ -334,7 +346,7 @@ public enum SnookerEngine {
                 playerId: playerId,
                 ballType: .colour,
                 nominatedColour: colour,
-                segmentPocketed: colour == .black ? 25 : 16 + SnookerColour.allCases.firstIndex(of: colour)!,
+                segmentPocketed: colour.pocketedSegment,
                 points: colour.points,
                 breakEnded: frameCompleted,  // break implicitly ends with the frame
                 frameCompleted: frameCompleted,
