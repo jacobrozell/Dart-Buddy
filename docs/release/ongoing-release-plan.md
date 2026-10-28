@@ -225,7 +225,11 @@ Timelines are indicative — **exit criteria** matter more than calendar dates.
 
 ---
 
-## 1.3 — Modes Catalog
+## 1.3 — Duo layout (as of 2026-10-28)
+
+The modes-catalog section below is **not** the next update. On 2026-10-28, Duo and resizable-iPad layout took **1.3**. The modes catalog moves to **1.4**. Plan: [`../plans/duo-dynamic-layout-release-plan.md`](../plans/duo-dynamic-layout-release-plan.md). 1.2 execution is [`1.2.0-ship-checklist.md`](1.2.0-ship-checklist.md).
+
+## 1.3 — Modes Catalog (superseded — now 1.4)
 
 **Positioning:** Browse all game types; honest “coming soon” for the long tail.
 
@@ -337,3 +341,4 @@ Per-feature tags: [`estimated-release-registry.md`](estimated-release-registry.m
 | | Analytics on vs off for 1.0 | **On** (Analytics + Crashlytics) |
 | | Keep or hide App Store update prompt | |
 | | 1.1 date / party modes together | **Lean 1.1** — Baseball, Killer, Shanghai, Around the Clock only; Raid + Training Partner deferred to 1.2/1.4 (2026-06-23) |
+| 2026-10-28 | Next update after 1.2 | **1.3 Duo layout.** Modes catalog moves to 1.4. 1.2 stays device QA → TestFlight → App Store |

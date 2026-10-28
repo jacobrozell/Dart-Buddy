@@ -6,7 +6,7 @@
 |-----|------|
 | [`solo-companion.md`](solo-companion.md) | **Current roadmap** — 1.2 copy, 1.2.1 bot stats, 1.3 layout, then a Solo shelf. Does not reopen 1.2 features |
 
-1.2 ship work stays in [`docs/release/todo.md`](../docs/release/todo.md).
+1.2 ship work is [`docs/release/1.2.0-ship-checklist.md`](../docs/release/1.2.0-ship-checklist.md) (last updated 2026-10-28). [`docs/release/todo.md`](../docs/release/todo.md) is older backlog.
 
 ## Active release artifacts
 

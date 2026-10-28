@@ -134,7 +134,7 @@ Shown in Modes tab as “coming soon”; no `MatchType`, Start disabled.
 | Co-op platform | **Partial** | Raid shipped; shared `BossParticipant` type + Cerberus/Vault/Clear the Board still planned | [`CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) §13 |
 | Guided Play (blind/low-vision) | **Assessed (R&D)** | WIP — camera + mic + talk-back; see FutureIdeas brief | [`FutureIdeas/guided-play-blind-darts.md`](../FutureIdeas/guided-play-blind-darts.md) |
 | Online multiplayer | Planned | Firestore sync | [`OnlinePlaySpec.md`](../specs/OnlinePlaySpec.md) |
-| Vision auto-scoring | Partial | Phase A (guided calibration + assistive detection) behind flag; X01 only | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · flag `enableVisionAutoScoring` |
+| Vision auto-scoring | Partial | Phase A (guided calibration + assistive detection) behind flag; X01 only. Next work is the wire-confirm policy, not a model | [`AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · [`auto-scorer-plan.md`](plans/auto-scorer-plan.md) · flag `enableVisionAutoScoring` |
 
 ---
 

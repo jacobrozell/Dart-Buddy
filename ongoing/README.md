@@ -9,14 +9,15 @@ Plans and projects **in implementation** — approved, specced, and actively bei
 | Ship blockers / release train | [`docs/release/`](../docs/release/) |
 | Shipped behavior | [`specs/`](../specs/) + [`docs/feature-inventory.md`](../docs/feature-inventory.md) |
 
-**Last updated:** 2026-10-27
+**Last updated:** 2026-10-28
 
 ## Active
 
 | Plan | Doc | Status | Notes |
 |------|-----|--------|-------|
+| **1.2.0 ship** | [`docs/release/1.2.0-ship-checklist.md`](../docs/release/1.2.0-ship-checklist.md) | **Current release** | Start here. Device QA, TestFlight RC, then App Store. Branch `release/1.2.0`. Duo is 1.3 |
 | Solo companion | [`roadmap/solo-companion.md`](../roadmap/solo-companion.md) | Draft | Record + solo/friends. Copy in 1.2; bot stats in 1.2.1; Solo shelf with the catalog. Does not reopen 1.2 features |
-| Duo + dynamic layout | [`docs/plans/duo-dynamic-layout-release-plan.md`](../docs/plans/duo-dynamic-layout-release-plan.md) | Draft | Proposed **1.3** after 1.2. Window width, not iPad idiom |
+| Duo + dynamic layout | [`docs/plans/duo-dynamic-layout-release-plan.md`](../docs/plans/duo-dynamic-layout-release-plan.md) | Draft · **1.3** | Next update after 1.2. Confirmed 2026-10-28. Window width, not iPad idiom |
 | SwiftUI view extraction | [`docs/plans/swiftui-view-extraction-master-plan.md`](../docs/plans/swiftui-view-extraction-master-plan.md) | In progress | Phases 0–7 done (routes, Activity, summary, setup roster, Players, Settings). Match screens batch + history/stats open |
 | Accessibility layout fixes (AXXXL) | [`accessibility/wcag-2.1-aa/SUMMARY.md`](../accessibility/wcag-2.1-aa/SUMMARY.md) | Code done | AXXXL re-capture + screen tracker updates remaining |
 | UI screenshot iteration | [`docs/plans/ui-screenshot-iteration-plan.md`](../docs/plans/ui-screenshot-iteration-plan.md) | In progress | Code done; Phase 4 re-capture remaining |

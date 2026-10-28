@@ -5,7 +5,7 @@ Long-horizon architecture and implementation plans that span multiple releases. 
 | Plan | Status | Summary |
 |------|--------|---------|
 | [`../../roadmap/solo-companion.md`](../../roadmap/solo-companion.md) | Draft · roadmap | Record the games; play alone or with friends. 1.2 copy, then bot stats, then a Solo shelf. 1.2 feature scope stays locked |
-| [`duo-dynamic-layout-release-plan.md`](duo-dynamic-layout-release-plan.md) | Draft · proposed 1.3 | Size-class + window width for iPhone Duo and resizable iPad; drop idiom from layout |
+| [`duo-dynamic-layout-release-plan.md`](duo-dynamic-layout-release-plan.md) | Draft · **1.3** (confirmed 2026-10-28) | Size-class + window width for iPhone Duo and resizable iPad; drop idiom from layout. Not in 1.2 |
 | [`coop-mode-grouping.md`](coop-mode-grouping.md) | Phase 0–1 done · Raid shipped | Co-op catalog + Raid playable; Phase 2 extraction + a11y close-out |
 | [`game-mode-families.md`](game-mode-families.md) | Approved direction · not implemented | Cricket family card + variant sheet; Mulligan/English Cricket standalone; catalog model |
 | [`custom-bot-architecture-ui-plan.md`](custom-bot-architecture-ui-plan.md) | Approved direction · not fully implemented | Bot protocol stack, persistence, template resolution, phased UI |
