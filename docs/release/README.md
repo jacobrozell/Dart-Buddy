@@ -1,8 +1,12 @@
 # Release documentation
 
-**Current store version:** **1.0.0 (7)** live · **1.1.0** tagged on `master` · **1.2.0** scope locked on `release/1.2.0`.
+**Last updated:** 2026-10-28
 
-**Next layout slice (draft):** [`../plans/duo-dynamic-layout-release-plan.md`](../plans/duo-dynamic-layout-release-plan.md) — proposed **1.3** for iPhone Duo and resizable iPad. Does not change 1.2 scope.
+**Current store version:** **1.0.0 (7)** live · **1.1.0** tagged on `master` · **1.2.0** ready for device QA on `release/1.2.0`.
+
+**Start here for 1.2:** [`1.2.0-ship-checklist.md`](1.2.0-ship-checklist.md).
+
+**Next update:** [`../plans/duo-dynamic-layout-release-plan.md`](../plans/duo-dynamic-layout-release-plan.md) — **1.3** iPhone Duo and resizable iPad. Confirmed 2026-10-28. Modes catalog moves to 1.4.
 
 | File | Role |
 |------|------|

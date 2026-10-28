@@ -1,6 +1,6 @@
 # Roadmap
 
-**Status:** 1.0 MVP implementation complete. Remaining work is QA evidence and App Store ops — see [`docs/release/todo.md`](../docs/release/todo.md).
+**Status:** 1.0 is live. 1.2 ship work is [`docs/release/1.2.0-ship-checklist.md`](../docs/release/1.2.0-ship-checklist.md) (last updated 2026-10-28). [`docs/release/todo.md`](../docs/release/todo.md) is older backlog.
 
 ## Active release artifacts
 

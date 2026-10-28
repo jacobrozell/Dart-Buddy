@@ -4,11 +4,11 @@
 **Created:** 2026-10-15  
 **Goal:** Ship a layout release that follows the window, not the device. iPhone Duo (inner and outer display) and resizable iPad (Split View, Stage Manager, Slide Over) should get the same scoring, setup, and list chrome as a full-screen iPad of the same size.
 
-**Proposed version:** **1.3.0**, after **1.2.0** ships. 1.2 stays locked (10 modes, Training Partner, German, export). Modes Catalog moves to **1.4**.
+**Version:** **1.3.0**, after **1.2.0** ships. Confirmed 2026-10-28. 1.2 stays locked (10 modes, Training Partner, German, export). Modes Catalog moves to **1.4**.
 
 **Reference pass:** Puzzle Buddy [`ongoing/iphone-duo-1.1.0.md`](../../../PuzzleBuddy/ongoing/iphone-duo-1.1.0.md) — size classes for chrome, no idiom, no orientation.
 
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-28
 
 ---
 
@@ -146,6 +146,7 @@ Capture one X01 match (2 players and 4) and Play setup per row. This is the befo
 
 - Unit tests for every band above, including the Pro Max false-friend case.
 - Simulator smoke: Duo inner match + setup; iPad half-width match (pad not wider than the window); Pro Max landscape regression.
+- Rotation or a phone-width resize does not drop the in-progress visit. Score targets stay thumb-sized ([`solo-companion.md`](../../roadmap/solo-companion.md)).
 - No Connect Duo screenshots or badge in this version.
 - Release notes: layout on iPhone Duo and iPad multitasking. No new modes.
 

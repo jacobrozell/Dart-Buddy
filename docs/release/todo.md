@@ -1,5 +1,7 @@
 # Dart Buddy — TODO
 
+> **1.2.0 is the current release.** Execution list, last updated 2026-10-28: [`1.2.0-ship-checklist.md`](1.2.0-ship-checklist.md). The sections below are older backlog. Do not treat the 1.1 block as the sprint.
+
 Goal: match the reference *Darts Scoreboard: Scorekeeper* app's functionality and feel — ad-free.
 
 Status legend: `[ ]` todo · `[~]` partial
@@ -138,7 +140,7 @@ Do not block 1.0 on these.
 - [ ] **Campaign mode** — [`FutureIdeas/campaign-mode.md`](../../FutureIdeas/campaign-mode.md) (ladder; depends on new game engines).
 - [ ] **Firebase Auth** — `../../specs/FirebaseBackendAnalyticsSpec.md` Phase 2
 - [ ] **Online play / Firestore sync** — `../../specs/OnlinePlaySpec.md`
-- [ ] **AI camera auto-scoring** — `AutoScoringVisionSpec`
+- [ ] **AI camera auto-scoring** — [`AutoScoringVisionSpec`](../../specs/AutoScoringVisionSpec.md) · execution plan [`docs/plans/auto-scorer-plan.md`](../plans/auto-scorer-plan.md). Flag stays off; not a 1.2 item.
 - [ ] **External display / AirPlay**
 - [ ] **Voice caller (“180!”)** — output/hype TTS; not Talk Mode input ([`FutureIdeas/talk-mode.md`](../../FutureIdeas/talk-mode.md))
 - [ ] **Apple Watch / widgets / cloud sync**
