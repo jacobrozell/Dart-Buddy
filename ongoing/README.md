@@ -9,12 +9,13 @@ Plans and projects **in implementation** — approved, specced, and actively bei
 | Ship blockers / release train | [`docs/release/`](../docs/release/) |
 | Shipped behavior | [`specs/`](../specs/) + [`docs/feature-inventory.md`](../docs/feature-inventory.md) |
 
-**Last updated:** 2026-06-27
+**Last updated:** 2026-10-28
 
 ## Active
 
 | Plan | Doc | Status | Notes |
 |------|-----|--------|-------|
+| **Tripod auto-scoring** | `experiment/vision-tripod-test` · [`specs/AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) | Queued | One real-board session: four outer-wire taps lock the homography, then count exact, changed, and dismissed throws. Flag stays off. 1.2 stays frozen. |
 | UI screenshot iteration | [`docs/plans/ui-screenshot-iteration-plan.md`](../docs/plans/ui-screenshot-iteration-plan.md) | In progress | Code done; Phase 4 re-capture remaining |
 | Co-op mode grouping | [`docs/plans/coop-mode-grouping.md`](../docs/plans/coop-mode-grouping.md) | Partial | Phase 0 done; Raid ships in 1.1 |
 | Co-op PvE modes | [`specs/CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) | In progress | Raid ships in 1.1; Fleet/Cerberus/Vault post-1.1 |
