@@ -118,11 +118,13 @@ struct X01MatchScreen: View {
         .sheet(isPresented: $showVisionScoring) {
             VisionScoringSheet(
                 logger: visionLogger,
-                isInputAllowed: viewModel.canHumanInput && viewModel.enteredDarts.count < 3,
-                onDartConfirmed: { dart, _ in
-                    guard viewModel.canHumanInput, viewModel.enteredDarts.count < 3 else { return }
-                    viewModel.enteredDarts.append(dart)
-                }
+                dartsAllowed: cameraDartsAllowed,
+                turnKey: cameraTurnKey,
+                remainingScore: activeRemainingScore,
+                visitEnds: cameraVisitEnds,
+                audio: audio,
+                haptics: haptics,
+                onVisitSubmitted: acceptCameraVisit
             )
         }
         .onChange(of: viewModel.legFinishSoundToken) { _, token in
@@ -430,5 +432,33 @@ struct X01MatchScreen: View {
     private func playDartFeedback(_ dart: DartInput) {
         if dart.isMiss { audio.playMiss() } else { audio.playHit() }
         haptics.playImpact()
+    }
+
+    private var cameraDartsAllowed: Int {
+        viewModel.canHumanInput ? max(0, 3 - viewModel.enteredDarts.count) : 0
+    }
+
+    private var cameraTurnKey: String? {
+        guard let state = viewModel.x01State else { return nil }
+        return "\(state.setIndex)-\(state.legIndex)-\(state.turnIndex)-\(state.currentPlayerIndex)"
+    }
+
+    private var activeRemainingScore: Int? {
+        guard let state = viewModel.x01State else { return nil }
+        return state.players[state.currentPlayerIndex].remainingScore
+    }
+
+    private func cameraVisitEnds(_ tray: [DartInput]) -> Bool {
+        guard let remaining = activeRemainingScore else { return true }
+        return X01CameraVisit.visitEnds(viewModel.enteredDarts + tray, remainingScore: remaining)
+    }
+
+    private func acceptCameraVisit(_ tray: [DartInput]) {
+        guard viewModel.canHumanInput, let remaining = activeRemainingScore else { return }
+        viewModel.enteredDarts += X01CameraVisit.dartsToEnter(
+            tray: tray,
+            alreadyEntered: viewModel.enteredDarts,
+            remainingScore: remaining
+        )
     }
 }

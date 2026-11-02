@@ -1,29 +1,49 @@
 import SwiftUI
 
-/// Camera scoring sheet (Phase A, assistive): the player taps the outer double wire
-/// at 20, 6, 3, and 11 to lock a homography, then confirms detection proposals.
-/// The number pad stays available behind the sheet for manual corrections.
+/// Camera scoring sheet: outer-wire calibration, then a visit tray for hands-free
+/// detection with review and submit into the active X01 turn.
 struct VisionScoringSheet: View {
     let logger: (any AppLogger)?
-    /// Whether the match can accept another dart right now (human turn, visit not full).
-    let isInputAllowed: Bool
-    let onDartConfirmed: (DartInput, VisionThrowMetadata) -> Void
+    let dartsAllowed: Int
+    /// Changes whenever the match moves to a new turn, so a stale tray is dropped.
+    let turnKey: String?
+    let remainingScore: Int?
+    let visitEnds: ([DartInput]) -> Bool
+    let audio: any AudioFeedbackService
+    let haptics: any HapticsService
+    let onVisitSubmitted: ([DartInput]) -> Void
 
     @StateObject private var viewModel: VisionScoringViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var isCorrecting = false
-    @State private var correctionDarts: [DartInput] = []
-    @State private var correctionMultiplier: DartMultiplier = .single
 
     init(
         logger: (any AppLogger)?,
-        isInputAllowed: Bool,
-        onDartConfirmed: @escaping (DartInput, VisionThrowMetadata) -> Void
+        dartsAllowed: Int,
+        turnKey: String?,
+        remainingScore: Int?,
+        visitEnds: @escaping ([DartInput]) -> Bool,
+        audio: any AudioFeedbackService,
+        haptics: any HapticsService,
+        onVisitSubmitted: @escaping ([DartInput]) -> Void
     ) {
         self.logger = logger
-        self.isInputAllowed = isInputAllowed
-        self.onDartConfirmed = onDartConfirmed
+        self.dartsAllowed = dartsAllowed
+        self.turnKey = turnKey
+        self.remainingScore = remainingScore
+        self.visitEnds = visitEnds
+        self.audio = audio
+        self.haptics = haptics
+        self.onVisitSubmitted = onVisitSubmitted
         _viewModel = StateObject(wrappedValue: VisionScoringViewModel(logger: logger))
+    }
+
+    private var dartMarkers: [CameraPreviewView.DartMarker] {
+        viewModel.visit.enumerated().compactMap { index, entry in
+            guard let detection = entry.detection,
+                  let imageX = detection.imageX,
+                  let imageY = detection.imageY else { return nil }
+            return CameraPreviewView.DartMarker(number: index + 1, imageX: imageX, imageY: imageY)
+        }
     }
 
     var body: some View {
@@ -34,6 +54,7 @@ struct VisionScoringSheet: View {
                     session: viewModel.camera.captureSession,
                     overlay: nil,
                     calibrationTaps: viewModel.calibrationTaps,
+                    dartMarkers: dartMarkers,
                     aspectRatio: viewModel.previewAspectRatio,
                     onCalibrationTap: { imageX, imageY in
                         viewModel.registerCalibrationTap(imageX: imageX, imageY: imageY)
@@ -44,54 +65,70 @@ struct VisionScoringSheet: View {
                 VStack {
                     statusOverlay
                     Spacer()
+                    calibrationGuide
                     hintsOverlay
                 }
                 .padding(DS.Spacing.s3)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black)
-            proposalBar
+            visitBar
         }
         .background(Brand.background.ignoresSafeArea())
         .task {
-            viewModel.onDartConfirmed = onDartConfirmed
+            viewModel.visitEnds = visitEnds
+            viewModel.onVisitSubmitted = onVisitSubmitted
+            viewModel.onDartDetected = { dart in
+                if dart.isMiss { audio.playMiss() } else { audio.playHit() }
+                haptics.playImpact()
+            }
+            viewModel.updateTurn(dartsAllowed: dartsAllowed, turnKey: turnKey)
             await viewModel.start()
         }
-        .onDisappear { viewModel.stop() }
-        .onChange(of: viewModel.proposal?.id) { _, _ in
-            isCorrecting = false
-            correctionDarts = []
-            correctionMultiplier = .single
+        .onChange(of: dartsAllowed) { _, new in
+            viewModel.updateTurn(dartsAllowed: new, turnKey: turnKey)
         }
+        .onChange(of: turnKey) { _, new in
+            viewModel.updateTurn(dartsAllowed: dartsAllowed, turnKey: new)
+        }
+        .onDisappear { viewModel.stop() }
     }
 
     private var header: some View {
-        HStack {
-            Text(L10n.string("vision.title"))
-                .font(.headline)
-                .foregroundStyle(Brand.textPrimary)
-            Spacer()
-            if viewModel.canUndoCalibrationTap {
-                Button(L10n.string("vision.action.undoTap")) {
-                    viewModel.undoCalibrationTap()
+        VStack(spacing: DS.Spacing.s1) {
+            HStack {
+                Text(L10n.string("vision.title"))
+                    .font(.headline)
+                    .foregroundStyle(Brand.textPrimary)
+                Spacer()
+                if viewModel.canUndoCalibrationTap {
+                    Button(L10n.string("vision.action.undoTap")) {
+                        viewModel.undoCalibrationTap()
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.green)
+                }
+                Button(L10n.string("vision.action.recalibrate")) {
+                    viewModel.recalibrate()
                 }
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Brand.green)
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(Brand.textPrimary)
+                }
+                .accessibilityLabel(L10n.string("common.close"))
+                .padding(.leading, DS.Spacing.s3)
             }
-            Button(L10n.string("vision.action.recalibrate")) {
-                viewModel.recalibrate()
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Brand.green)
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.headline.weight(.bold))
+            if let remainingScore {
+                Text(L10n.format("vision.visit.remainingFormat", remainingScore))
+                    .font(.title3.monospacedDigit().bold())
                     .foregroundStyle(Brand.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .accessibilityLabel(L10n.string("common.close"))
-            .padding(.leading, DS.Spacing.s3)
         }
         .padding(DS.Spacing.s3)
     }
@@ -107,9 +144,13 @@ struct VisionScoringSheet: View {
             statusPill(L10n.string("vision.status.cameraUnavailable"))
         case .calibrating:
             statusPill(
-                viewModel.calibrationTaps.count == BoardCalibration.outerWireCalibrationSegments.count
+                viewModel.calibrationTaps.count == BoardCalibration.outerWireCalibrationCrossings.count
                     ? L10n.string("vision.calibration.waitingForImage")
-                    : L10n.format("vision.calibration.tapOuterWireFormat", viewModel.nextCalibrationSegment)
+                    : L10n.format(
+                        "vision.calibration.tapCrossingFormat",
+                        viewModel.nextCalibrationCrossing.left,
+                        viewModel.nextCalibrationCrossing.right
+                    )
             )
         case .ready:
             statusPill(L10n.string("vision.calibration.locked"))
@@ -135,6 +176,23 @@ struct VisionScoringSheet: View {
     }
 
     @ViewBuilder
+    private var calibrationGuide: some View {
+        let taps = viewModel.calibrationTaps.count
+        if viewModel.status == .calibrating, taps < BoardCalibration.outerWireCalibrationCrossings.count {
+            HStack(alignment: .bottom, spacing: DS.Spacing.s2) {
+                CalibrationTapGuide(completedTaps: taps)
+                    .accessibilityHidden(true)
+                Text(L10n.string("vision.calibration.guideCaption"))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(DS.Spacing.s2)
+                    .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: DS.Radius.sm))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
     private var hintsOverlay: some View {
         if let hint = viewModel.hints.first {
             Text(L10n.string(hint.localizationKey))
@@ -147,12 +205,12 @@ struct VisionScoringSheet: View {
     }
 
     @ViewBuilder
-    private var proposalBar: some View {
+    private var visitBar: some View {
         VStack(spacing: DS.Spacing.s2) {
-            if let proposal = viewModel.proposal {
-                proposalContent(proposal)
-            } else {
-                Text(L10n.string("vision.proposal.waiting"))
+            if viewModel.status == .ready || viewModel.status == .paused(.userPaused) {
+                VisionVisitTray(viewModel: viewModel)
+            } else if viewModel.status == .paused(.calibrationDrift) {
+                Text(L10n.string("vision.status.drift"))
                     .font(.subheadline)
                     .foregroundStyle(Brand.textSecondary)
             }
@@ -163,98 +221,30 @@ struct VisionScoringSheet: View {
     }
 
     @ViewBuilder
-    private func proposalContent(_ proposal: DetectedThrow) -> some View {
-        VStack(spacing: DS.Spacing.s2) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.string("vision.proposal.title"))
-                        .font(.caption)
-                        .foregroundStyle(Brand.textSecondary)
-                    Text(proposal.dart.compactDisplayLabel)
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(Brand.textPrimary)
-                        .accessibilityLabel(proposal.dart.spokenAccessibilityName)
-                }
-                Spacer()
-                Text(L10n.format(
-                    "vision.proposal.confidenceFormat",
-                    Int((proposal.visionConfidence * 100).rounded())
-                ))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(Brand.textSecondary)
-            }
-            if isCorrecting {
-                DartNumberPad(
-                    enteredDarts: $correctionDarts,
-                    selectedMultiplier: $correctionMultiplier,
-                    maxDarts: 1,
-                    showsVisitPreview: false,
-                    onUndoTurn: { isCorrecting = false }
-                )
-            }
-            HStack(spacing: DS.Spacing.s2) {
-                proposalButton(L10n.string("vision.proposal.reject"), fill: Brand.card, ink: Brand.textPrimary) {
-                    viewModel.rejectProposal()
-                }
-                proposalButton(L10n.string("vision.proposal.change"), fill: Brand.card, ink: Brand.textPrimary) {
-                    isCorrecting = true
-                }
-                proposalButton(confirmTitle(for: proposal), fill: Brand.green, ink: .black) {
-                    viewModel.confirmProposal(corrected: correctionDarts.first)
-                }
-                .disabled(!isInputAllowed || (isCorrecting && correctionDarts.isEmpty))
-                .opacity(isInputAllowed && !(isCorrecting && correctionDarts.isEmpty) ? 1 : 0.45)
-            }
-            if !isInputAllowed {
-                Text(L10n.string("vision.proposal.inputBlocked"))
-                    .font(.caption)
-                    .foregroundStyle(Brand.textSecondary)
-            }
-        }
-        .accessibilityElement(children: .contain)
-    }
-
-    private func confirmTitle(for proposal: DetectedThrow) -> String {
-        guard let corrected = correctionDarts.first, corrected != proposal.dart else {
-            return L10n.string("vision.proposal.confirm")
-        }
-        return L10n.format("vision.proposal.addCorrectedFormat", corrected.compactDisplayLabel)
-    }
-
-    private func proposalButton(
-        _ title: String,
-        fill: Color,
-        ink: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, DS.Spacing.s3)
-                .background(fill, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
-                .foregroundStyle(ink)
-        }
-    }
-
-    @ViewBuilder
     private var tallyLine: some View {
         let tally = viewModel.tally
-        if tally.scored > 0 || tally.dismissed > 0 {
-            Text(tally.scored > 0
-                ? L10n.format(
-                    "vision.tally.summaryFormat",
-                    tally.exact,
-                    tally.scored,
-                    tally.changed,
-                    tally.dismissed
-                )
-                : L10n.format("vision.tally.dismissedOnlyFormat", tally.dismissed)
-            )
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Brand.textSecondary)
+        if tally.scored > 0 || tally.dismissed > 0 || tally.addedByHand > 0 {
+            VStack(alignment: .leading, spacing: 2) {
+                if tally.scored > 0 || tally.dismissed > 0 {
+                    Text(tally.scored > 0
+                        ? L10n.format(
+                            "vision.tally.summaryFormat",
+                            tally.exact,
+                            tally.scored,
+                            tally.changed,
+                            tally.dismissed
+                        )
+                        : L10n.format("vision.tally.dismissedOnlyFormat", tally.dismissed)
+                    )
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Brand.textSecondary)
+                }
+                if tally.addedByHand > 0 {
+                    Text(L10n.format("vision.tally.addedFormat", tally.addedByHand))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Brand.textSecondary)
+                }
+            }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityIdentifier("vision_detection_tally")
         }

@@ -6,11 +6,34 @@ import UIKit
 /// circle is drawn in a shape layer and converted from capture-device coordinates via
 /// the preview layer, so it stays aligned across orientations and aspect-fill crops.
 struct CameraPreviewView: UIViewRepresentable {
+    struct DartMarker: Equatable {
+        let number: Int
+        let imageX: Double
+        let imageY: Double
+    }
+
     let session: AVCaptureSession
     let overlay: VisionScoringViewModel.BoardOverlay?
     let calibrationTaps: [VisionScoringViewModel.CalibrationTap]
+    let dartMarkers: [DartMarker]
     let aspectRatio: Double
     let onCalibrationTap: (Double, Double) -> Void
+
+    init(
+        session: AVCaptureSession,
+        overlay: VisionScoringViewModel.BoardOverlay?,
+        calibrationTaps: [VisionScoringViewModel.CalibrationTap],
+        dartMarkers: [DartMarker] = [],
+        aspectRatio: Double,
+        onCalibrationTap: @escaping (Double, Double) -> Void
+    ) {
+        self.session = session
+        self.overlay = overlay
+        self.calibrationTaps = calibrationTaps
+        self.dartMarkers = dartMarkers
+        self.aspectRatio = aspectRatio
+        self.onCalibrationTap = onCalibrationTap
+    }
 
     func makeUIView(context: Context) -> CameraPreviewUIView {
         let view = CameraPreviewUIView()
@@ -22,6 +45,7 @@ struct CameraPreviewView: UIViewRepresentable {
     func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
         uiView.boardOverlay = overlay
         uiView.calibrationTaps = calibrationTaps
+        uiView.dartMarkers = dartMarkers
         uiView.aspectRatio = aspectRatio
         uiView.onCalibrationTap = onCalibrationTap
     }
@@ -45,6 +69,10 @@ final class CameraPreviewUIView: UIView {
         didSet { updateMarkerPath() }
     }
 
+    var dartMarkers: [CameraPreviewView.DartMarker] = [] {
+        didSet { updateDartMarkers() }
+    }
+
     /// Buffer height divided by width. Taps convert through this into width units.
     var aspectRatio: Double = 0
 
@@ -52,6 +80,7 @@ final class CameraPreviewUIView: UIView {
 
     private let overlayLayer = CAShapeLayer()
     private let markerLayer = CAShapeLayer()
+    private let dartMarkerContainer = CALayer()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -62,6 +91,7 @@ final class CameraPreviewUIView: UIView {
         markerLayer.strokeColor = UIColor.white.cgColor
         markerLayer.lineWidth = 2
         layer.addSublayer(markerLayer)
+        layer.addSublayer(dartMarkerContainer)
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleCalibrationTap(_:)))
         addGestureRecognizer(tap)
     }
@@ -75,8 +105,10 @@ final class CameraPreviewUIView: UIView {
         super.layoutSubviews()
         overlayLayer.frame = bounds
         markerLayer.frame = bounds
+        dartMarkerContainer.frame = bounds
         updateOverlayPath()
         updateMarkerPath()
+        updateDartMarkers()
     }
 
     @objc private func handleCalibrationTap(_ recognizer: UITapGestureRecognizer) {
@@ -133,5 +165,38 @@ final class CameraPreviewUIView: UIView {
             path.append(UIBezierPath(arcCenter: center, radius: 8, startAngle: 0, endAngle: 2 * .pi, clockwise: true))
         }
         markerLayer.path = path.cgPath
+    }
+
+    private func updateDartMarkers() {
+        dartMarkerContainer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        guard aspectRatio > 0, bounds.width > 0 else { return }
+        let amber = UIColor(red: 0.96, green: 0.70, blue: 0.12, alpha: 1)
+        for marker in dartMarkers {
+            let center = previewLayer.layerPointConverted(
+                fromCaptureDevicePoint: CGPoint(x: marker.imageX, y: marker.imageY / aspectRatio)
+            )
+            let circle = CAShapeLayer()
+            circle.path = UIBezierPath(
+                arcCenter: center,
+                radius: 11,
+                startAngle: 0,
+                endAngle: 2 * .pi,
+                clockwise: true
+            ).cgPath
+            circle.fillColor = amber.cgColor
+            circle.strokeColor = UIColor.white.cgColor
+            circle.lineWidth = 2
+            dartMarkerContainer.addSublayer(circle)
+
+            let label = CATextLayer()
+            label.string = "\(marker.number)"
+            label.alignmentMode = .center
+            label.fontSize = 12
+            label.font = UIFont.boldSystemFont(ofSize: 12)
+            label.foregroundColor = UIColor.black.cgColor
+            label.contentsScale = UIScreen.main.scale
+            label.frame = CGRect(x: center.x - 11, y: center.y - 7, width: 22, height: 14)
+            dartMarkerContainer.addSublayer(label)
+        }
     }
 }

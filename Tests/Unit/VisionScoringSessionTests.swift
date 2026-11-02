@@ -11,17 +11,22 @@ private func calibratedSession(policy: VisionScoringPolicy = .assistive) -> Visi
         quality: CalibrationQuality(fitConfidence: 0.9, brightness: 0.5, sharpness: 0.6)
     )!
     session.applyCalibration(calibration)
+    session.beginVisit(capacity: 3)
     return session
 }
 
 /// Detection straight above center inside the triple ring (triple 20).
-private func tripleTwentyCommand(for session: VisionScoringSession, confidence: Double) -> DetectThrowCommand {
+private func tripleTwentyCommand(
+    for session: VisionScoringSession,
+    confidence: Double,
+    at timestamp: Date = Date()
+) -> DetectThrowCommand {
     DetectThrowCommand(
         visionSessionId: session.id,
         imageX: 0.5,
         imageY: 0.5 - 0.606 * 0.3,
         confidence: confidence,
-        frameTimestamp: Date()
+        frameTimestamp: timestamp
     )
 }
 
@@ -48,6 +53,42 @@ func unacceptableCalibrationIsRejected() {
 }
 
 @Test(.tags(.unit, .vision, .regression))
+func changesWellOffTheBoardAreIgnored() {
+    var session = calibratedSession()
+    // 2.7 board radii below center: past the miss zone.
+    let offBoard = DetectThrowCommand(
+        visionSessionId: session.id,
+        imageX: 0.5,
+        imageY: 1.3,
+        confidence: 0.8,
+        frameTimestamp: Date()
+    )
+    #expect(session.handle(offBoard) == .ignored(.unmappablePoint))
+    #expect(session.visit.isEmpty)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func surroundDetectionAddsMissToVisit() throws {
+    var session = calibratedSession()
+    let calibration = try #require(session.calibration)
+    let inverse = try #require(calibration.transform.inverted())
+    let image = try #require(inverse.apply(toImageX: 0, imageY: 1.25))
+    let command = DetectThrowCommand(
+        visionSessionId: session.id,
+        imageX: image.x,
+        imageY: image.y,
+        confidence: 0.8,
+        frameTimestamp: Date()
+    )
+    guard case let .proposed(detection) = session.handle(command) else {
+        Issue.record("Expected miss proposal")
+        return
+    }
+    #expect(detection.dart.isMiss)
+    #expect(session.visit.count == 1)
+}
+
+@Test(.tags(.unit, .vision, .regression))
 func assistivePolicyProposesInsteadOfAutoCommitting() throws {
     var session = calibratedSession()
     let outcome = session.handle(tripleTwentyCommand(for: session, confidence: 0.99))
@@ -57,7 +98,8 @@ func assistivePolicyProposesInsteadOfAutoCommitting() throws {
     }
     #expect(detection.dart == DartInput(multiplier: .triple, segment: .oneToTwenty(20)))
     #expect(detection.visionConfidence == 0.99)
-    #expect(session.pendingProposal == detection)
+    #expect(session.visit.count == 1)
+    #expect(session.visit[0].dart == detection.dart)
 }
 
 @Test(.tags(.unit, .vision, .regression))
@@ -65,7 +107,7 @@ func detectionsBelowConfidenceFloorAreDropped() {
     var session = calibratedSession()
     let outcome = session.handle(tripleTwentyCommand(for: session, confidence: 0.1))
     #expect(outcome == .ignored(.belowConfidenceFloor))
-    #expect(session.pendingProposal == nil)
+    #expect(session.visit.isEmpty)
 }
 
 @Test(.tags(.unit, .vision, .regression))
@@ -73,97 +115,180 @@ func autoCommitRequiresEnabledPolicyAndThreshold() {
     let policy = VisionScoringPolicy(autoCommitEnabled: true, autoCommitConfidenceThreshold: 0.92)
     var session = calibratedSession(policy: policy)
 
-    // Never silently auto-score below the threshold (spec §8): proposes instead.
     let belowThreshold = session.handle(tripleTwentyCommand(for: session, confidence: 0.7))
     guard case .proposed = belowThreshold else {
         Issue.record("Expected proposal below threshold, got \(belowThreshold)")
         return
     }
-    session.handle(RejectDetectedThrowCommand(detectedThrowId: session.pendingProposal!.id))
+    _ = session.removeDart(id: session.visit[0].id)
 
     let aboveThreshold = session.handle(tripleTwentyCommand(for: session, confidence: 0.95))
     guard case .autoCommitted = aboveThreshold else {
         Issue.record("Expected auto-commit above threshold, got \(aboveThreshold)")
         return
     }
-    #expect(session.pendingProposal == nil)
+    #expect(session.visit.count == 1)
 }
 
 @Test(.tags(.unit, .vision, .regression))
-func secondDetectionIgnoredWhileProposalPending() {
+func detectionAddsDartToVisit() {
     var session = calibratedSession()
     _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
+    #expect(session.visit.count == 1)
+    #expect(session.visitStatus == .collecting)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func visitClosesWhenFull() {
+    var session = calibratedSession()
+    let start = Date()
+    for index in 0 ..< 3 {
+        let throwTime = start.addingTimeInterval(Double(index) * 2)
+        _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8, at: throwTime))
+    }
+    #expect(session.visitStatus == .reviewing)
+    let fourth = session.handle(tripleTwentyCommand(for: session, confidence: 0.8, at: start.addingTimeInterval(6)))
+    #expect(fourth == .ignored(.visitClosed))
+    #expect(session.visit.count == 3)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func beginVisitWithZeroCapacityIgnoresDetections() {
+    var session = calibratedSession()
+    session.beginVisit(capacity: 0)
+    #expect(session.visitStatus == .reviewing)
     let outcome = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
-    #expect(outcome == .ignored(.proposalPending))
+    #expect(outcome == .ignored(.visitClosed))
 }
 
 @Test(.tags(.unit, .vision, .regression))
-func confirmReturnsDartWithVisionConfirmedMetadata() throws {
+func closeVisitIgnoredWhenEmpty() {
     var session = calibratedSession()
-    guard case let .proposed(detection) = session.handle(tripleTwentyCommand(for: session, confidence: 0.8)) else {
-        Issue.record("Expected proposal")
-        return
-    }
-    let confirmOutcome = session.handle(ConfirmDetectedThrowCommand(detectedThrowId: detection.id))
-    let confirmed = try #require(confirmOutcome)
-    #expect(confirmed.dart == detection.dart)
-    #expect(confirmed.metadata.inputMethod == .visionConfirmed)
-    #expect(confirmed.metadata.visionConfidence == 0.8)
-    #expect(confirmed.metadata.visionSessionId == session.id)
-    #expect(session.pendingProposal == nil)
+    session.closeVisit()
+    #expect(session.visitStatus == .collecting)
+    session.closeVisit(evenIfEmpty: true)
+    #expect(session.visitStatus == .reviewing)
 }
 
 @Test(.tags(.unit, .vision, .regression))
-func confirmAppliesUserCorrection() throws {
+func settlingDartIsNotCountedTwice() {
     var session = calibratedSession()
-    guard case let .proposed(detection) = session.handle(tripleTwentyCommand(for: session, confidence: 0.8)) else {
-        Issue.record("Expected proposal")
-        return
-    }
-    let corrected = DartInput(multiplier: .single, segment: .oneToTwenty(5))
-    let confirmOutcome = session.handle(
-        ConfirmDetectedThrowCommand(detectedThrowId: detection.id, correctedDart: corrected)
+    let first = tripleTwentyCommand(for: session, confidence: 0.8)
+    _ = session.handle(first)
+    let settle = DetectThrowCommand(
+        visionSessionId: session.id,
+        imageX: first.imageX + 0.002,
+        imageY: first.imageY,
+        confidence: 0.8,
+        frameTimestamp: first.frameTimestamp.addingTimeInterval(0.4)
     )
-    let confirmed = try #require(confirmOutcome)
-    #expect(confirmed.dart == corrected)
+    #expect(session.handle(settle) == .ignored(.duplicate))
+
+    let grouped = DetectThrowCommand(
+        visionSessionId: session.id,
+        imageX: first.imageX + 0.002,
+        imageY: first.imageY,
+        confidence: 0.8,
+        frameTimestamp: first.frameTimestamp.addingTimeInterval(2)
+    )
+    guard case .proposed = session.handle(grouped) else {
+        Issue.record("A later dart in the same spot is a new throw")
+        return
+    }
+    #expect(session.visit.count == 2)
 }
 
 @Test(.tags(.unit, .vision, .regression))
-func staleConfirmAndRejectAreNoOps() {
+func keepThrowingResumesWhenRoom() {
     var session = calibratedSession()
     _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
-    let staleConfirm = session.handle(ConfirmDetectedThrowCommand(detectedThrowId: UUID()))
-    #expect(staleConfirm == nil)
-    let staleReject = session.handle(RejectDetectedThrowCommand(detectedThrowId: UUID()))
-    #expect(!staleReject)
-    #expect(session.pendingProposal != nil)
+    session.closeVisit()
+    #expect(session.visitStatus == .reviewing)
+    session.resumeCollecting()
+    #expect(session.visitStatus == .collecting)
 }
 
 @Test(.tags(.unit, .vision, .regression))
-func rejectClearsProposalAndAllowsNewDetections() {
+func editAndRemoveIgnoreUnknownIds() {
     var session = calibratedSession()
-    guard case let .proposed(detection) = session.handle(tripleTwentyCommand(for: session, confidence: 0.8)) else {
-        Issue.record("Expected proposal")
-        return
-    }
-    let rejected = session.handle(RejectDetectedThrowCommand(detectedThrowId: detection.id))
-    #expect(rejected)
-    guard case .proposed = session.handle(tripleTwentyCommand(for: session, confidence: 0.8)) else {
-        Issue.record("Expected a fresh proposal after reject")
-        return
-    }
+    _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
+    let id = session.visit[0].id
+    let unknownEdit = session.editDart(id: UUID(), to: DartInput(multiplier: .single, segment: .oneToTwenty(1)))
+    #expect(!unknownEdit)
+    let unknownRemove = session.removeDart(id: UUID())
+    #expect(unknownRemove == nil)
+    #expect(session.visit.count == 1)
+    let corrected = DartInput(multiplier: .single, segment: .oneToTwenty(5))
+    let didEdit = session.editDart(id: id, to: corrected)
+    #expect(didEdit)
+    #expect(session.visit[0].dart == corrected)
+    let removed = session.removeDart(id: id)
+    #expect(removed != nil)
+    #expect(session.visit.isEmpty)
 }
 
 @Test(.tags(.unit, .vision, .regression))
-func driftPausesSessionAndDropsPendingProposal() {
+func addManualDartRespectsCapacity() {
+    var session = calibratedSession()
+    let dart = DartInput(multiplier: .single, segment: .oneToTwenty(20))
+    let first = session.addManualDart(dart)
+    #expect(first)
+    #expect(session.visit.count == 1)
+    #expect(session.visit[0].detection == nil)
+    for _ in 1 ..< 3 {
+        let added = session.addManualDart(dart)
+        #expect(added)
+    }
+    let overflow = session.addManualDart(dart)
+    #expect(!overflow)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func submitReturnsEditedDartsAndResets() {
+    var session = calibratedSession()
+    _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
+    let id = session.visit[0].id
+    let corrected = DartInput(multiplier: .single, segment: .oneToTwenty(5))
+    session.editDart(id: id, to: corrected)
+    let submitted = session.submitVisit()
+    #expect(submitted.count == 1)
+    #expect(submitted[0].dart == corrected)
+    #expect(session.visit.isEmpty)
+    #expect(session.visitStatus == .collecting)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func driftClosesVisitButKeepsDarts() {
     var session = calibratedSession()
     _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
     let driftPaused = session.observeBoard(centerX: 0.6, centerY: 0.5, radius: 0.3)
     #expect(driftPaused)
     #expect(session.phase == .paused(.calibrationDrift))
-    #expect(session.pendingProposal == nil)
+    #expect(session.visit.count == 1)
+    #expect(session.visitStatus == .reviewing)
     let afterDrift = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
     #expect(afterDrift == .ignored(.sessionNotReady))
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func recalibrationKeepsVisit() {
+    var session = calibratedSession()
+    _ = session.handle(tripleTwentyCommand(for: session, confidence: 0.8))
+    session.beginRecalibration()
+    #expect(session.phase == .calibrating)
+    #expect(session.visit.count == 1)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func detectionStoresImagePoint() throws {
+    var session = calibratedSession()
+    let command = tripleTwentyCommand(for: session, confidence: 0.8)
+    guard case let .proposed(detection) = session.handle(command) else {
+        Issue.record("Expected proposal")
+        return
+    }
+    #expect(detection.imageX == command.imageX)
+    #expect(detection.imageY == command.imageY)
 }
 
 @Test(.tags(.unit, .vision, .regression))
@@ -224,9 +349,11 @@ func detectionTallyCountsExactChangedAndDismissed() {
         submitted: DartInput(multiplier: .single, segment: .oneToTwenty(5))
     )
     tally.recordDismissal()
+    tally.recordAddedByHand()
     #expect(tally.exact == 1)
     #expect(tally.changed == 1)
     #expect(tally.dismissed == 1)
+    #expect(tally.addedByHand == 1)
     #expect(tally.scored == 2)
 }
 

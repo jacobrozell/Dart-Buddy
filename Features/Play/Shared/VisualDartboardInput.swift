@@ -248,7 +248,7 @@ enum VisualDartboardMetrics {
 /// Canvas rendering of the board face: 20 wedges × 4 ring zones, bull circles, and the
 /// number ring. Zone boundaries mirror `BoardHitResolver.RingBounds` so what the player
 /// sees is exactly what a tap resolves to.
-private struct DartboardFace: View {
+struct DartboardFace: View {
     let scoringSegments: Set<Int>?
 
     var body: some View {

@@ -16,6 +16,7 @@ final class VisionCameraService: NSObject, @unchecked Sendable {
     private let analyzer = DartboardFrameAnalyzer()
     private var continuation: AsyncStream<VisionFrameAnalysis>.Continuation?
     private var isConfigured = false
+    private var device: AVCaptureDevice?
 
     static var authorizationStatus: AVAuthorizationStatus {
         AVCaptureDevice.authorizationStatus(for: .video)
@@ -62,11 +63,38 @@ final class VisionCameraService: NSObject, @unchecked Sendable {
         }
     }
 
+    func setImpactRegion(_ region: [Bool]?, tipOffset: SIMD2<Double>?) {
+        sampleQueue.async { [analyzer] in
+            analyzer.setImpactRegion(region, tipOffset: tipOffset)
+        }
+    }
+
+    /// Horizontal field of view of the capture buffer, in degrees. Zero before configuration.
+    var horizontalFieldOfView: Double {
+        Double(device?.activeFormat.videoFieldOfView ?? 0)
+    }
+
+    /// Freezes exposure, focus, and white balance so the camera's own adjustments
+    /// don't read as darts. Unlock while calibrating so the picture can settle.
+    func setImagingLocked(_ locked: Bool) {
+        sampleQueue.async { [weak self] in
+            guard let device = self?.device, (try? device.lockForConfiguration()) != nil else { return }
+            defer { device.unlockForConfiguration() }
+            let exposure: AVCaptureDevice.ExposureMode = locked ? .locked : .continuousAutoExposure
+            let focus: AVCaptureDevice.FocusMode = locked ? .locked : .continuousAutoFocus
+            let whiteBalance: AVCaptureDevice.WhiteBalanceMode = locked ? .locked : .continuousAutoWhiteBalance
+            if device.isExposureModeSupported(exposure) { device.exposureMode = exposure }
+            if device.isFocusModeSupported(focus) { device.focusMode = focus }
+            if device.isWhiteBalanceModeSupported(whiteBalance) { device.whiteBalanceMode = whiteBalance }
+        }
+    }
+
     private func configure() throws {
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: device) else {
             throw CameraError.cameraUnavailable
         }
+        self.device = device
 
         captureSession.beginConfiguration()
         defer { captureSession.commitConfiguration() }

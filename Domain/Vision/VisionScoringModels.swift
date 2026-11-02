@@ -16,19 +16,25 @@ public struct DetectedThrow: Identifiable, Codable, Equatable, Sendable {
     public let dart: DartInput
     public let visionConfidence: Double
     public let frameTimestamp: Date
+    public let imageX: Double?
+    public let imageY: Double?
 
     public init(
         id: UUID = UUID(),
         visionSessionId: UUID,
         dart: DartInput,
         visionConfidence: Double,
-        frameTimestamp: Date
+        frameTimestamp: Date,
+        imageX: Double? = nil,
+        imageY: Double? = nil
     ) {
         self.id = id
         self.visionSessionId = visionSessionId
         self.dart = dart
         self.visionConfidence = visionConfidence
         self.frameTimestamp = frameTimestamp
+        self.imageX = imageX
+        self.imageY = imageY
     }
 
     /// Metadata attached to scoring events fed by this detection (spec §7).
@@ -96,22 +102,21 @@ public struct DetectThrowCommand: Equatable, Sendable {
     }
 }
 
-public struct ConfirmDetectedThrowCommand: Equatable, Sendable {
-    public let detectedThrowId: UUID
-    /// Set when the user edited the proposed dart before accepting it.
-    public let correctedDart: DartInput?
-
-    public init(detectedThrowId: UUID, correctedDart: DartInput? = nil) {
-        self.detectedThrowId = detectedThrowId
-        self.correctedDart = correctedDart
-    }
+public enum VisionVisitStatus: Equatable, Sendable {
+    case collecting
+    case reviewing
 }
 
-public struct RejectDetectedThrowCommand: Equatable, Sendable {
-    public let detectedThrowId: UUID
+public struct VisitDart: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    /// Nil when the player added the dart by hand.
+    public let detection: DetectedThrow?
+    public var dart: DartInput
 
-    public init(detectedThrowId: UUID) {
-        self.detectedThrowId = detectedThrowId
+    public init(id: UUID = UUID(), detection: DetectedThrow?, dart: DartInput) {
+        self.id = id
+        self.detection = detection
+        self.dart = dart
     }
 }
 
@@ -124,6 +129,7 @@ public struct VisionDetectionTally: Equatable, Sendable {
     public var exact = 0
     public var changed = 0
     public var dismissed = 0
+    public private(set) var addedByHand = 0
 
     public init() {}
 
@@ -140,6 +146,10 @@ public struct VisionDetectionTally: Equatable, Sendable {
 
     public mutating func recordDismissal() {
         dismissed += 1
+    }
+
+    public mutating func recordAddedByHand() {
+        addedByHand += 1
     }
 }
 

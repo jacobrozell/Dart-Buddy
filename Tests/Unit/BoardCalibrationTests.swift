@@ -121,6 +121,75 @@ func tappedOuterWireCalibrationScoresBullAndDoubleTwenty() throws {
     #expect(tripleTwenty == DartInput(multiplier: .triple, segment: .oneToTwenty(20)))
 }
 
+/// Outer-wire taps seen by a pinhole camera (60° FOV) facing the board from 10 board
+/// radii away, with the board shifted `offsetX` radii right of the optical axis.
+private func syntheticCameraCalibration(offsetX: Double) throws -> BoardCalibration {
+    let focal = 0.5 / tan(Double.pi / 6)
+    let taps = BoardCalibration.outerWireBoardPoints.map { board in
+        SIMD2(focal * (board.x + offsetX) / 10 + 0.5, -focal * board.y / 10 + 0.28125)
+    }
+    return try #require(BoardCalibration(outerWireImagePoints: taps, quality: acceptableQuality))
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func dartTipOffsetVanishesHeadOn() throws {
+    let calibration = try syntheticCameraCalibration(offsetX: 0)
+    let offset = try #require(calibration.dartTipOffset(horizontalFieldOfViewDegrees: 60, aspectRatio: 0.5625))
+    #expect(abs(offset.x) < 1e-6)
+    #expect(abs(offset.y) < 1e-6)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func dartTipOffsetPointsBackTowardTheAxisOffCenter() throws {
+    let calibration = try syntheticCameraCalibration(offsetX: 3)
+    let offset = try #require(calibration.dartTipOffset(horizontalFieldOfViewDegrees: 60, aspectRatio: 0.5625))
+    // The flight sits nearer the camera, so it images farther right; the tip is to its left.
+    let focal = 0.5 / tan(Double.pi / 6)
+    let expectedX = focal * 3 / 10 - focal * 3 / 9.3
+    #expect(abs(offset.x - expectedX) < 1e-4)
+    #expect(abs(offset.y) < 1e-6)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func firstCrossingSitsOnTheFiveTwentyWire() throws {
+    let calibration = try syntheticCameraCalibration(offsetX: 0)
+    let inverse = try #require(calibration.transform.inverted())
+    func dart(atDegrees degrees: Double) throws -> DartInput? {
+        let radians = degrees * Double.pi / 180
+        let image = try #require(inverse.apply(toImageX: 0.97 * sin(radians), imageY: 0.97 * cos(radians)))
+        return calibration.dartInput(atImageX: image.x, imageY: image.y)
+    }
+    #expect(try dart(atDegrees: -5) == DartInput(multiplier: .double, segment: .oneToTwenty(20)))
+    #expect(try dart(atDegrees: -13) == DartInput(multiplier: .double, segment: .oneToTwenty(5)))
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func surroundThrowScoresMiss() throws {
+    let calibration = try #require(BoardCalibration(
+        centerX: 0.5,
+        centerY: 0.5,
+        radius: 0.3,
+        quality: acceptableQuality
+    ))
+    let inverse = try #require(calibration.transform.inverted())
+    let image = try #require(inverse.apply(toImageX: 0, imageY: 1.25))
+    let dart = try #require(calibration.dartInput(atImageX: image.x, imageY: image.y))
+    #expect(dart.isMiss)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func farOffBoardPointsAreUnmapped() throws {
+    let calibration = try #require(BoardCalibration(
+        centerX: 0.5,
+        centerY: 0.5,
+        radius: 0.3,
+        quality: acceptableQuality
+    ))
+    let inverse = try #require(calibration.transform.inverted())
+    let image = try #require(inverse.apply(toImageX: 0, imageY: 3.0))
+    #expect(calibration.dartInput(atImageX: image.x, imageY: image.y) == nil)
+}
+
 @Test(.tags(.unit, .vision, .regression))
 func driftDetectionRespectsTolerances() throws {
     let calibration = try #require(BoardCalibration(

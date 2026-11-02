@@ -75,8 +75,7 @@ No third-party runtime package required for baseline implementation.
 
 ## New Command/Event Types
 - `DetectThrowCommand`
-- `ConfirmDetectedThrowCommand`
-- `RejectDetectedThrowCommand`
+- Visit tray (assistive mode): `beginVisit(capacity:)`, `closeVisit()`, `resumeCollecting()`, `editDart(id:to:)`, `removeDart(id:)`, `addManualDart(_:)`, `submitVisit()`
 
 ## Event Metadata (extend existing payloads)
 - `inputMethod = visionAuto | visionConfirmed | manual`

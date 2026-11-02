@@ -210,15 +210,15 @@ public struct BoardCalibration: Codable, Equatable, Sendable {
     /// and would pause the session on the next frame.
     public let monitorsContourDrift: Bool
 
-    /// Outer-double wire midpoints, in tap order: 20 (up), 6 (right), 3 (down), 11 (left).
-    /// Board-plane y points up and a radius of `1` is the outer double wire.
-    public static let outerWireCalibrationSegments = [20, 6, 3, 11]
-    public static let outerWireBoardPoints: [SIMD2<Double>] = [
-        SIMD2(0, 1),
-        SIMD2(1, 0),
-        SIMD2(0, -1),
-        SIMD2(-1, 0),
-    ]
+    /// Where a segment wire crosses the outer double wire, in tap order: 5|20, 13|6, 17|3,
+    /// 8|11 (the DeepDarts points). A crossing is a visible corner; a segment's midpoint is not.
+    public static let outerWireCalibrationCrossings: [(left: Int, right: Int)] = [(5, 20), (13, 6), (17, 3), (8, 11)]
+    /// Board-plane positions of the crossings: y points up and a radius of `1` is the
+    /// outer double wire. Each sits half a wedge (9°) anticlockwise of 20, 6, 3, and 11.
+    public static let outerWireBoardPoints: [SIMD2<Double>] = [-9.0, 81, 171, 261].map { degrees in
+        let radians = degrees * Double.pi / 180
+        return SIMD2(sin(radians), cos(radians))
+    }
 
     public init?(
         centerX: Double,
@@ -244,8 +244,7 @@ public struct BoardCalibration: Codable, Equatable, Sendable {
         self.monitorsContourDrift = true
     }
 
-    /// Locks a calibration from four tapped image points, in `outerWireCalibrationSegments` order.
-    /// The points are the outer double wire at the middle of 20, 6, 3, and 11.
+    /// Locks a calibration from four tapped image points, in `outerWireCalibrationCrossings` order.
     public init?(
         outerWireImagePoints: [SIMD2<Double>],
         quality: CalibrationQuality,
@@ -284,8 +283,85 @@ public struct BoardCalibration: Codable, Equatable, Sendable {
         return abs(observedRadius - radius) > Self.driftRadiusTolerance * radius
     }
 
+    /// Board-plane radius (double-outer = 1) used for legacy proximity checks.
+    public static let maxImpactRadius = 1.5
+
+    /// How far from the board center (in board units) motion can still be a dart,
+    /// including the surround and floor just below the board. Past this is ignored.
+    public static let maxDetectionRadius = 2.5
+
+    /// Typical tip-to-flight-center distance of a thrown steel-tip dart, in board units
+    /// (outer double radius = 1, about 170 mm).
+    public static let dartTipToFlightLength = 0.7
+
+    /// Image vector (width units) from a dart's flight center to its tip at the board
+    /// center. Darts stand out of the board toward the camera, so off-axis cameras see
+    /// the flight displaced from the tip. Recovers the board pose from the homography
+    /// with a pinhole camera of the given horizontal field of view.
+    public func dartTipOffset(
+        horizontalFieldOfViewDegrees fieldOfView: Double,
+        aspectRatio: Double,
+        dartLength: Double = Self.dartTipToFlightLength
+    ) -> SIMD2<Double>? {
+        guard fieldOfView > 0, fieldOfView < 180, aspectRatio > 0,
+              let boardToImage = transform.inverted() else { return nil }
+        let focal = 0.5 / tan(fieldOfView * Double.pi / 360)
+        let principal = SIMD2(0.5, aspectRatio / 2)
+        let m = boardToImage.values
+        func cameraSpace(_ x: Double, _ y: Double, _ w: Double) -> SIMD3<Double> {
+            SIMD3((x - principal.x * w) / focal, (y - principal.y * w) / focal, w)
+        }
+        func length(_ v: SIMD3<Double>) -> Double { (v * v).sum().squareRoot() }
+
+        var axisX = cameraSpace(m[0], m[3], m[6])
+        var axisY = cameraSpace(m[1], m[4], m[7])
+        var center = cameraSpace(m[2], m[5], m[8])
+        let scale = 2 / (length(axisX) + length(axisY))
+        guard scale.isFinite, scale > 0 else { return nil }
+        axisX *= scale
+        axisY *= scale
+        center *= scale
+        if center.z < 0 {
+            axisX = -axisX
+            axisY = -axisY
+            center = -center
+        }
+        var normal = SIMD3(
+            axisX.y * axisY.z - axisX.z * axisY.y,
+            axisX.z * axisY.x - axisX.x * axisY.z,
+            axisX.x * axisY.y - axisX.y * axisY.x
+        )
+        let normalLength = length(normal)
+        guard normalLength > 0 else { return nil }
+        normal /= normalLength
+        if (normal * center).sum() > 0 { normal = -normal }
+
+        let flight = center + normal * dartLength
+        guard flight.z > 0 else { return nil }
+        func project(_ point: SIMD3<Double>) -> SIMD2<Double> {
+            SIMD2(focal * point.x / point.z, focal * point.y / point.z) + principal
+        }
+        return project(center) - project(flight)
+    }
+
+    /// Whether an image point is close enough to the board to be a dart.
+    public func isNearBoard(atImageX x: Double, imageY y: Double) -> Bool {
+        guard let point = transform.apply(toImageX: x, imageY: y) else { return false }
+        return point.radius <= Self.maxImpactRadius
+    }
+
+    /// Whether motion at this image point should be considered for dart detection.
+    public func isWithinDetectionZone(atImageX x: Double, imageY y: Double) -> Bool {
+        guard let point = transform.apply(toImageX: x, imageY: y) else { return false }
+        return point.radius <= Self.maxDetectionRadius
+    }
+
     /// Maps a normalized image point to the dart it scores under this calibration.
+    /// Returns `nil` for points far outside the board area. Surround and near-miss
+    /// throws map to a miss dart.
     public func dartInput(atImageX x: Double, imageY y: Double) -> DartInput? {
-        transform.apply(toImageX: x, imageY: y).map(DartboardGeometry.dartInput(at:))
+        guard let point = transform.apply(toImageX: x, imageY: y),
+              point.radius <= Self.maxDetectionRadius else { return nil }
+        return DartboardGeometry.dartInput(at: point)
     }
 }

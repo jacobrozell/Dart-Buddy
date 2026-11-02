@@ -42,8 +42,9 @@ public enum DetectionOutcome: Equatable, Sendable {
         case sessionNotReady
         case sessionMismatch
         case belowConfidenceFloor
-        case proposalPending
+        case visitClosed
         case unmappablePoint
+        case duplicate
     }
 }
 
@@ -55,12 +56,70 @@ public struct VisionScoringSession: Equatable, Sendable {
     public let policy: VisionScoringPolicy
     public private(set) var phase: VisionSessionPhase
     public private(set) var calibration: BoardCalibration?
-    public private(set) var pendingProposal: DetectedThrow?
+    public private(set) var visit: [VisitDart] = []
+    public private(set) var visitStatus: VisionVisitStatus = .collecting
+    public private(set) var visitCapacity = 3
+
+    /// A second report this soon at nearly the same board spot is a dart settling or
+    /// drooping after impact, not a new throw.
+    public static let duplicateWindow: TimeInterval = 1.0
+    /// Board-plane distance (outer double radius = 1, about 14 mm) for the duplicate check.
+    public static let duplicateBoardDistance = 0.08
 
     public init(id: UUID = UUID(), policy: VisionScoringPolicy = .assistive) {
         self.id = id
         self.policy = policy
         self.phase = .calibrating
+    }
+
+    // MARK: - Visit
+
+    public mutating func beginVisit(capacity: Int) {
+        visit = []
+        visitCapacity = min(max(capacity, 0), 3)
+        visitStatus = visitCapacity > 0 ? .collecting : .reviewing
+    }
+
+    /// Called on takeout, "Done throwing", or when the match says the visit is over.
+    /// Automatic closes skip an empty visit; the player can close one by hand when
+    /// every dart missed the camera.
+    public mutating func closeVisit(evenIfEmpty: Bool = false) {
+        guard evenIfEmpty || !visit.isEmpty else { return }
+        visitStatus = .reviewing
+    }
+
+    public mutating func resumeCollecting() {
+        guard visit.count < visitCapacity else { return }
+        visitStatus = .collecting
+    }
+
+    @discardableResult
+    public mutating func editDart(id: UUID, to dart: DartInput) -> Bool {
+        guard let index = visit.firstIndex(where: { $0.id == id }) else { return false }
+        visit[index].dart = dart
+        return true
+    }
+
+    @discardableResult
+    public mutating func removeDart(id: UUID) -> VisitDart? {
+        guard let index = visit.firstIndex(where: { $0.id == id }) else { return nil }
+        return visit.remove(at: index)
+    }
+
+    @discardableResult
+    public mutating func addManualDart(_ dart: DartInput) -> Bool {
+        guard visit.count < visitCapacity else { return false }
+        visit.append(VisitDart(detection: nil, dart: dart))
+        if visit.count >= visitCapacity {
+            visitStatus = .reviewing
+        }
+        return true
+    }
+
+    public mutating func submitVisit() -> [VisitDart] {
+        let submitted = visit
+        beginVisit(capacity: visitCapacity)
+        return submitted
     }
 
     // MARK: - Calibration lifecycle
@@ -71,7 +130,6 @@ public struct VisionScoringSession: Equatable, Sendable {
     public mutating func applyCalibration(_ calibration: BoardCalibration) -> Bool {
         guard calibration.quality.isAcceptable else { return false }
         self.calibration = calibration
-        pendingProposal = nil
         phase = .ready
         return true
     }
@@ -88,21 +146,19 @@ public struct VisionScoringSession: Equatable, Sendable {
             observedRadius: radius
         ) else { return false }
         phase = .paused(.calibrationDrift)
-        pendingProposal = nil
+        closeVisit()
         return true
     }
 
     /// Drops the current calibration and returns to the guided calibration flow.
     public mutating func beginRecalibration() {
         calibration = nil
-        pendingProposal = nil
         phase = .calibrating
     }
 
     public mutating func pauseByUser() {
         guard phase == .ready else { return }
         phase = .paused(.userPaused)
-        pendingProposal = nil
     }
 
     public mutating func resumeFromUserPause() {
@@ -115,42 +171,49 @@ public struct VisionScoringSession: Equatable, Sendable {
     public mutating func handle(_ command: DetectThrowCommand) -> DetectionOutcome {
         guard command.visionSessionId == id else { return .ignored(.sessionMismatch) }
         guard phase == .ready, let calibration else { return .ignored(.sessionNotReady) }
-        guard pendingProposal == nil else { return .ignored(.proposalPending) }
+        guard visitStatus == .collecting, visit.count < visitCapacity else { return .ignored(.visitClosed) }
         guard command.confidence >= policy.proposalConfidenceFloor else {
             return .ignored(.belowConfidenceFloor)
         }
         guard let dart = calibration.dartInput(atImageX: command.imageX, imageY: command.imageY) else {
             return .ignored(.unmappablePoint)
         }
+        if isDuplicate(command, calibration: calibration) {
+            return .ignored(.duplicate)
+        }
 
         let detection = DetectedThrow(
             visionSessionId: id,
             dart: dart,
             visionConfidence: command.confidence,
-            frameTimestamp: command.frameTimestamp
+            frameTimestamp: command.frameTimestamp,
+            imageX: command.imageX,
+            imageY: command.imageY
         )
+        visit.append(VisitDart(id: detection.id, detection: detection, dart: detection.dart))
+        if visit.count >= visitCapacity {
+            visitStatus = .reviewing
+        }
         // Never silently auto-score below the threshold (spec §8).
         if policy.autoCommitEnabled && command.confidence >= policy.autoCommitConfidenceThreshold {
             return .autoCommitted(detection)
         }
-        pendingProposal = detection
         return .proposed(detection)
     }
 
-    /// Confirms the pending proposal, returning the dart (corrected if the user edited it)
-    /// and the metadata to attach to the scoring event. Returns `nil` for stale ids.
-    public mutating func handle(_ command: ConfirmDetectedThrowCommand) -> (dart: DartInput, metadata: VisionThrowMetadata)? {
-        guard let proposal = pendingProposal, proposal.id == command.detectedThrowId else { return nil }
-        pendingProposal = nil
-        let dart = command.correctedDart ?? proposal.dart
-        return (dart, proposal.metadata(inputMethod: .visionConfirmed))
-    }
-
-    /// Rejects the pending proposal. Returns `false` for stale ids.
-    @discardableResult
-    public mutating func handle(_ command: RejectDetectedThrowCommand) -> Bool {
-        guard let proposal = pendingProposal, proposal.id == command.detectedThrowId else { return false }
-        pendingProposal = nil
-        return true
+    private func isDuplicate(_ command: DetectThrowCommand, calibration: BoardCalibration) -> Bool {
+        guard let point = calibration.transform.apply(toImageX: command.imageX, imageY: command.imageY) else {
+            return false
+        }
+        return visit.contains { entry in
+            guard let detection = entry.detection,
+                  let imageX = detection.imageX,
+                  let imageY = detection.imageY,
+                  abs(command.frameTimestamp.timeIntervalSince(detection.frameTimestamp)) < Self.duplicateWindow,
+                  let previous = calibration.transform.apply(toImageX: imageX, imageY: imageY) else {
+                return false
+            }
+            return hypot(point.x - previous.x, point.y - previous.y) < Self.duplicateBoardDistance
+        }
     }
 }

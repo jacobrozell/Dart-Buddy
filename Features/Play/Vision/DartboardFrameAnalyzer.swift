@@ -26,6 +26,7 @@ struct VisionFrameAnalysis: Sendable {
     /// normalized coordinates for preview-layer display.
     let aspectRatio: Double
     let timestamp: Date
+    let sceneMotion: Bool
 }
 
 /// Turns raw camera pixel buffers into `VisionFrameAnalysis` values. Board fit uses
@@ -33,17 +34,31 @@ struct VisionFrameAnalysis: Sendable {
 /// expensive step); impacts use the pure `ImpactDetector` over a downsampled luma grid.
 /// Runs on the camera capture queue, never on the main thread.
 final class DartboardFrameAnalyzer {
-    private static let gridSize = 64
+    static let gridSize = 64
     private static let contourFrameInterval = 8
 
     private var impactDetector = ImpactDetector()
     private var frameCount = 0
     private var lastBoardObservation: VisionFrameAnalysis.BoardObservation?
+    private var tipOffset: SIMD2<Double>?
+    /// Full-resolution copy of the frame behind the detector's current baseline.
+    private var baselineLuma: LumaImage?
+    private var currentLuma: LumaImage?
+
+    /// Restricts impacts to `gridSize`² row-major cells; `nil` watches the whole frame.
+    /// `tipOffset` is the flight-to-tip vector in per-axis normalized image units.
+    func setImpactRegion(_ region: [Bool]?, tipOffset: SIMD2<Double>?) {
+        impactDetector.setRegion(region, tipOffset: tipOffset)
+        self.tipOffset = tipOffset
+        baselineLuma = nil
+    }
 
     func reset() {
         impactDetector.reset()
         frameCount = 0
         lastBoardObservation = nil
+        tipOffset = nil
+        baselineLuma = nil
     }
 
     func analyze(_ pixelBuffer: CVPixelBuffer) -> VisionFrameAnalysis? {
@@ -58,14 +73,27 @@ final class DartboardFrameAnalyzer {
             lastBoardObservation = Self.detectBoard(in: pixelBuffer, aspectRatio: aspectRatio)
         }
 
-        // The square luma grid samples the full buffer, so its per-axis normalized
-        // centroid converts to width units by scaling y with the aspect ratio.
-        let impact = impactDetector.process(grid).map {
-            ImpactDetector.Candidate(
-                imageX: $0.imageX,
-                imageY: $0.imageY * aspectRatio,
-                confidence: $0.confidence
+        let generation = impactDetector.baselineGeneration
+        let impact = impactDetector.process(grid).map { coarse in
+            if let tip = refineTip(coarse, pixelBuffer: pixelBuffer) {
+                return ImpactDetector.Candidate(
+                    imageX: tip.x / width,
+                    imageY: tip.y / width,
+                    confidence: coarse.confidence,
+                    clusterBounds: coarse.clusterBounds
+                )
+            }
+            // The square luma grid samples the full buffer, so its per-axis normalized
+            // point converts to width units by scaling y with the aspect ratio.
+            return ImpactDetector.Candidate(
+                imageX: coarse.imageX,
+                imageY: coarse.imageY * aspectRatio,
+                confidence: coarse.confidence,
+                clusterBounds: coarse.clusterBounds
             )
+        }
+        if impactDetector.baselineGeneration != generation {
+            Self.copyLuma(from: pixelBuffer, into: &baselineLuma)
         }
 
         return VisionFrameAnalysis(
@@ -74,14 +102,74 @@ final class DartboardFrameAnalyzer {
             sharpness: Self.sharpness(of: grid),
             impact: impact,
             aspectRatio: aspectRatio,
-            timestamp: Date()
+            timestamp: Date(),
+            sceneMotion: impactDetector.sawLargeMotion
         )
+    }
+
+    // MARK: - Full-resolution tip
+
+    /// Diffs the pre-arrival and settled frames at full resolution around the coarse
+    /// hit; returns the tip in buffer pixels, or `nil` to keep the coarse point.
+    private func refineTip(_ coarse: ImpactDetector.Candidate, pixelBuffer: CVPixelBuffer) -> SIMD2<Double>? {
+        guard let baselineLuma else { return nil }
+        Self.copyLuma(from: pixelBuffer, into: &currentLuma)
+        guard let currentLuma else { return nil }
+        let width = Double(currentLuma.width)
+        let height = Double(currentLuma.height)
+        let margin = width / Double(Self.gridSize) * 1.5
+        let bounds = coarse.clusterBounds
+        var minX = bounds.x * width
+        var minY = bounds.y * height
+        var maxX = bounds.z * width
+        var maxY = bounds.w * height
+        let flightToTip = tipOffset.map { SIMD2($0.x * width, $0.y * height) }
+        if let flightToTip {
+            // A thin barrel may not register on the coarse grid; keep the expected tip in view.
+            let tip = SIMD2((minX + maxX) / 2, (minY + maxY) / 2) + flightToTip
+            minX = min(minX, tip.x)
+            minY = min(minY, tip.y)
+            maxX = max(maxX, tip.x)
+            maxY = max(maxY, tip.y)
+        }
+        let roi = DartTipLocator.PixelRect(
+            minX: Int(minX - margin),
+            minY: Int(minY - margin),
+            maxX: Int(maxX + margin),
+            maxY: Int(maxY + margin)
+        )
+        return DartTipLocator.locateTip(baseline: baselineLuma, current: currentLuma, in: roi, flightToTip: flightToTip)
     }
 
     // MARK: - Luma extraction
 
+    /// Copies the full-resolution luma plane, reusing `image`'s storage when the size matches.
+    static func copyLuma(from pixelBuffer: CVPixelBuffer, into image: inout LumaImage?) {
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
+        guard CVPixelBufferIsPlanar(pixelBuffer),
+              let base = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0) else {
+            image = nil
+            return
+        }
+        let width = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0)
+        let height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0)
+        let bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)
+        if image?.width != width || image?.height != height {
+            image = LumaImage(width: width, height: height, pixels: [UInt8](repeating: 0, count: width * height))
+        }
+        image?.pixels.withUnsafeMutableBytes { destination in
+            guard let target = destination.baseAddress else { return }
+            for row in 0 ..< height {
+                memcpy(target + row * width, base + row * bytesPerRow, width)
+            }
+        }
+    }
+
     /// Samples the luma plane of a 420f/BGRA buffer down to a `size`x`size` grid.
-    static func lumaGrid(from pixelBuffer: CVPixelBuffer, size: Int) -> LumaGrid? {
+    /// Each cell averages a sub-grid of pixels so sensor noise and sub-pixel shake
+    /// along wedge edges don't read as change.
+    static func lumaGrid(from pixelBuffer: CVPixelBuffer, size: Int, samplesPerAxis: Int = 4) -> LumaGrid? {
         CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
         defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
 
@@ -98,11 +186,19 @@ final class DartboardFrameAnalyzer {
 
         let luma = base.assumingMemoryBound(to: UInt8.self)
         var values = [Double](repeating: 0, count: size * size)
+        let sampleSpan = size * samplesPerAxis
+        let sampleCount = Double(samplesPerAxis * samplesPerAxis) * 255.0
         for gridY in 0 ..< size {
-            let sourceY = gridY * height / size + height / (size * 2)
             for gridX in 0 ..< size {
-                let sourceX = gridX * width / size + width / (size * 2)
-                values[gridY * size + gridX] = Double(luma[sourceY * bytesPerRow + sourceX]) / 255.0
+                var sum = 0
+                for sampleY in 0 ..< samplesPerAxis {
+                    let sourceY = ((gridY * samplesPerAxis + sampleY) * 2 + 1) * height / (sampleSpan * 2)
+                    for sampleX in 0 ..< samplesPerAxis {
+                        let sourceX = ((gridX * samplesPerAxis + sampleX) * 2 + 1) * width / (sampleSpan * 2)
+                        sum += Int(luma[sourceY * bytesPerRow + sourceX])
+                    }
+                }
+                values[gridY * size + gridX] = Double(sum) / sampleCount
             }
         }
         return LumaGrid(width: size, height: size, values: values)
