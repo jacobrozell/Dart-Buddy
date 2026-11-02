@@ -1,7 +1,7 @@
 # Vision tripod review-lane fixes
 
 **Goal:** Find ship-risk bugs in the tripod experiment. This does not unfreeze 1.2.  
-**Repo:** `/Users/jrozell/Desktop/personal/DartBuddy`  
+**Repo:** `/Users/jrozell/Desktop/personal/apps/DartBuddy`  
 **Branch:** `experiment/vision-tripod-test` vs `master`  
 **Reviewed:** 2026-11-01  
 **Status legend:** `[ ]` not started · `[~]` in progress · `[x]` done · `[>]` deferred

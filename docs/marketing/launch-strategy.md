@@ -12,12 +12,12 @@ Where to post, what to say, and how to prioritize channels for a solo passion-pr
 
 ## Positioning (keep consistent everywhere)
 
-**One-liner:** Free iPhone scorekeeper for X01 & Cricket. No ads, no account. Built because I got sick of the free alternatives.
+**One-liner:** Free iPhone scorekeeper for beginners and garage nights with friends. No ads, no account.
 
 **Who cares most:**
 
-1. Casual home / pub players (largest group, most ad-frustrated)
-2. League players who want something reliable, not flashy
+1. Beginners and friends playing in a garage or at home
+2. Casual players who want simple scoring without a fuss
 3. iOS devs / indie builders (secondary: story angle, not primary users)
 
 **What not to lead with:** "I built an app." Lead with the problem: ads mid-match, cluttered UI, paywalls for basic scoring.
@@ -130,12 +130,12 @@ Later      Tier 3 (BDG) only with testimonials + short demo clip ready
 
 ### Phase 0 - Foundation (before/during first posts)
 
-1. **App Store listing** - subtitle stresses "Free" + "No Ads" + "X01 & Cricket"
+1. **App Store listing** - subtitle is who it is for (`Garage nights for beginners`). "Free" and "no ads" stay in the promo text and description, not the subtitle.
 2. **Screenshots** - X01 gameplay first, then Cricket, then setup/history
 3. **Support path** - Settings → feedback or support URL ready for confused users
 4. **Ask for reviews gently** - after a completed match feels natural; not on first launch
 
-**ASO is the always-on channel.** Most dart app discovery is someone typing "darts scorekeeper" in the App Store. Starter keywords: `darts, scoreboard, scorekeeper, x01, cricket, dart scorer, darts counter, darts tracker`.
+**ASO is the always-on channel.** Most dart app discovery is someone typing "darts scorekeeper" in the App Store. Keywords: `darts,scorekeeper,x01,cricket,beginner,garage,friends,501,301,party,casual,counter,practice`.
 
 ### Phase 1 - Week 1: "Seed the pond"
 

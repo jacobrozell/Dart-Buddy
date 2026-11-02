@@ -27,7 +27,7 @@ Dependency flow is strict: **Features → Domain/Data interfaces → SwiftData**
 
 ### What we have built
 
-Most of the long-term product surface is **implemented in code**. The App Store build is **1.1.0** (Ready for Distribution): seven modes, English, preset and custom bots. `release/1.2.0` is the next update: ten modes, Training Partner, player export, and German.
+Most of the long-term product surface is **implemented in code**. The App Store build is **1.1.0** (Ready for Distribution): seven modes, English, preset and custom bots. `release/1.2.0` is the next store update, and it is frozen: ten modes, Training Partner, player export, and German.
 
 | Area | Built | In lean 1.0 app |
 |------|-------|-----------------|
@@ -58,14 +58,14 @@ Three Xcode unit/accessibility targets: `Tests/Unit/`, `Tests/Accessibility/`. U
 
 - **1.0.0 (7)** — first App Store release, 2026-06-22. Lean X01 + Cricket.
 - **1.1.0** — **Ready for Distribution.** Seven modes: X01, Cricket, Baseball, Killer, Shanghai, Raid, Around the Clock. English. No Training Partner, no export.
-- **1.2.0** — device QA, then TestFlight. Adds Golf, Bob's 27, Halve-It, Training Partner, player export, and German. Checklist is on `release/1.2.0` (`docs/release/1.2.0-ship-checklist.md`).
-- **Camera scoring** — tripod experiment on `experiment/vision-tripod-test`. Stays off for 1.2 and 1.3.
+- **1.2.0** — frozen. Adds Golf, Bob's 27, Halve-It, Training Partner, player export, and German. Checklist is on `release/1.2.0` (`docs/release/1.2.0-ship-checklist.md`).
+- **Camera scoring** — next session is on `experiment/vision-tripod-test`. Stays off for 1.2 and 1.3.
 
 ---
 
-## Status — 1.2 device QA
+## Status — 1.2 frozen
 
-**Store today:** **1.1.0**, Ready for Distribution. **Now:** **1.2.0** on `release/1.2.0` — device QA, a TestFlight RC, then the App Store. Duo is **1.3**. The modes catalog is **1.4**.
+**Store today:** **1.1.0**, Ready for Distribution. **Now:** one real-board session on `experiment/vision-tripod-test`. **1.2.0** stays frozen on `release/1.2.0`. Duo is **1.3**. The modes catalog is **1.4**.
 
 | | On the App Store (1.1.0) | In the 1.2 update |
 |--|--------------------------|-------------------|

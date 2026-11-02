@@ -7,15 +7,16 @@ Define App Store presence, branding, naming, metadata, and launch assets for the
 
 ## 2. Product Positioning
 - Free darts scorekeeper for iPhone
-- No ads
-- Fast scoring for X01 and Cricket
+- For beginners and garage nights with friends
+- No ads, no account
+- Fast scoring for X01, Cricket, and simple party games
 - Local-first reliability
 - Accessible, clean Apple-native UI
 
 Primary audience:
-- Casual home players
-- Pub/bar players
-- League players wanting simple and reliable scoring
+- Beginners learning the game
+- Friends playing in a garage or at home
+- Casual players who want a simple scorekeeper
 
 ---
 
@@ -68,13 +69,15 @@ Naming rules:
 - `Dart Buddy` (subject to availability)
 
 ## Subtitle (≤30 chars)
-- **Canonical:** `X01 & Cricket Scorekeeper`
-- **Alternates:** `Darts Scoreboard & History`, `X01, Cricket & Match Stats`
+- **Canonical:** `Garage nights for beginners` (27)
+- **Alternate:** `Beginner darts with friends` (27)
+
+The subtitle is who it is for. Search terms (`darts`, `scorekeeper`, `x01`, `cricket`) stay in keywords.
 
 **App Store rule (Guideline 2.3.7):** Do **not** use pricing or monetization language in the **name** or **subtitle** — including `free`, `no ads`, discounts, or price comparisons. Those claims belong in **promotional text** and the **description** only.
 
-## Keywords (starter set)
-- darts, scoreboard, scorekeeper, x01, cricket, dart scorer, darts counter, darts tracker
+## Keywords (≤100, comma-separated, no spaces)
+- `darts,scorekeeper,x01,cricket,beginner,garage,friends,501,301,party,casual,counter,practice`
 
 Rules:
 - Keep keyword list focused; avoid irrelevant stuffing
@@ -82,22 +85,32 @@ Rules:
 
 ## App Store Connect identifiers
 - **Bundle ID:** `com.jacobrozell.DartBuddy`
-- **App Store Connect app ID:** `6775713346` (canonical in `AppLinks.appStoreAppID`)
-- **Public listing URL:** `https://apps.apple.com/app/id6775713346`
+- **App Store Connect app ID:** `6777507161` (canonical in `AppLinks.appStoreAppID`)
+- **Public listing URL:** `https://apps.apple.com/app/id6777507161`
 
 ## In-app update availability
 - Shipped in 1.x: optional update prompt on main tab load — see [`AppShellSpec.md`](AppShellSpec.md) §6.
 - Uses Apple’s public iTunes Lookup API; no third-party SDK.
 - Prompt appears only after a **released** App Store version is newer than the installed build (TestFlight-only builds do not trigger it).
 
-## Promotional Text (example)
-- `A simple, free darts scoreboard for X01 and Cricket. Fast input, clean UI, match history, and no ads.`
+## Promotional Text (≤170, editable on the live version)
+- `For beginners and garage nights with friends. Score X01, Cricket, and easy party games. Free, no ads, no account.`
 
-## Description Structure
-1. Core value proposition
-2. Key features (X01, Cricket, history, players, settings)
-3. Accessibility/local-first/no ads highlights
-4. Future roadmap tease (watch, smart scoring) without overpromising dates
+## Description
+```
+Dart Buddy is a free darts scorekeeper for beginners and garage nights with friends. Pass the phone around, tap in each dart, and get back to throwing. No ads, no account, and your matches stay on your device.
+
+• X01 (301 and 501), with checkout suggestions
+• Cricket, Normal and Cut Throat
+• Baseball, Killer, and Shanghai for a group
+• Raid, a co-op game for one to three people
+• Around the Clock, solo practice from 1 to bull
+• Add friends or a bot, reorder turns, and start in one tap
+• Match history and stats
+• VoiceOver, Dynamic Type, and Light or Dark mode
+
+Your scores stay on your phone.
+```
 
 ---
 

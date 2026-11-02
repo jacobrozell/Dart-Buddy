@@ -689,7 +689,7 @@ Apple requires hosted URLs; don't hard-code scattered strings.
 - [ ] **15.3** Wire canonical URLs in `AppLinks` → `https://<user>.github.io/<repo>/privacy.html`
 - [ ] **15.4** App Store Connect: Privacy Policy URL + Support URL (+ Accessibility URL if provided)
 - [ ] **15.5** Bump "Last updated" when practices or third-party SDKs change
-- [ ] **15.6** App Store metadata spec — honest subtitle/keywords (only claim shipped features); subtitle must not reference price/monetization (`free`, `no ads`, etc. — Guideline 2.3.7; canonical: `X01 & Cricket Scorekeeper`)
+- [ ] **15.6** App Store metadata spec — honest subtitle/keywords (only claim shipped features); subtitle must not reference price/monetization (`free`, `no ads`, etc. — Guideline 2.3.7; canonical: `Garage nights for beginners`)
 - [ ] **15.7** Marketing screenshots + optional automation (`-snapshot_*` launch args)
 - [ ] **15.8** Launch screen — storyboard or asset catalog (scales across devices)
 - [ ] **15.9** CI/CD for TestFlight (Xcode Cloud, Fastlane, or GHA trigger)
