@@ -1301,7 +1301,8 @@
 "vision.calibration.locked" = "Board fixiert";
 "vision.calibration.qualityFormat" = "Board fixiert - Passung %d%%";
 "vision.calibration.tapCrossingFormat" = "Tippe dort, wo der Draht zwischen %1$d und %2$d auf die Außenkante des Doppelrings trifft";
-"vision.calibration.guideCaption" = "Tippe auf die Ecken, an denen ein Draht die Außenkante des äußersten rot-grünen Rings (Doubles) trifft, nicht den inneren Triple-Ring.";
+"vision.calibration.guideCaption" = "Folge 1-4. Jede Zahl sitzt auf der Außenkante des äußeren Doppelrings, nicht auf dem inneren Triple-Ring.";
+"vision.calibration.pointsRejected" = "Diese vier Punkte ergeben kein Board. Tippe die letzte Ecke erneut.";
 "vision.calibration.waitingForImage" = "Stillhalten, damit das Bild sich fixieren kann";
 "vision.hint.centerBoard" = "Richte die Kamera auf das Dartboard";
 "vision.hint.moveCloser" = "Gehe näher ans Board";
@@ -1319,6 +1320,7 @@
 "vision.visit.doneThrowing" = "Fertig geworfen";
 "vision.visit.keepThrowing" = "Weiterwerfen";
 "vision.visit.addDart" = "Dart hinzufügen";
+"vision.visit.addedCaption" = "Hinzugefügt";
 "vision.visit.remove" = "Dart entfernen";
 "vision.visit.submit" = "Aufnahme senden";
 "vision.visit.submitWithMissesFormat" = "Aufnahme senden (%d als Fehlwurf)";

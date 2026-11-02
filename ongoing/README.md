@@ -9,13 +9,13 @@ Plans and projects **in implementation** — approved, specced, and actively bei
 | Ship blockers / release train | [`docs/release/`](../docs/release/) |
 | Shipped behavior | [`specs/`](../specs/) + [`docs/feature-inventory.md`](../docs/feature-inventory.md) |
 
-**Last updated:** 2026-10-28
+**Last updated:** 2026-11-01
 
 ## Active
 
 | Plan | Doc | Status | Notes |
 |------|-----|--------|-------|
-| **Tripod auto-scoring** | `experiment/vision-tripod-test` · [`specs/AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · [`docs/plans/camera-scoring-ux-plan.md`](../docs/plans/camera-scoring-ux-plan.md) | In testing | One real-board session: four outer-wire taps lock the homography, then count exact, changed, and dismissed throws. Flag stays off. 1.2 stays frozen. |
+| **Tripod auto-scoring** | `experiment/vision-tripod-test` · [`specs/AutoScoringVisionSpec.md`](../specs/AutoScoringVisionSpec.md) · [`docs/plans/camera-scoring-ux-plan.md`](../docs/plans/camera-scoring-ux-plan.md) | In testing | Four-tap lock and the visit tally are hardened locally on top of `07a3a17`. Flag stays off. 1.2 stays frozen. Unit tests 1,865/1,865. Bugbot: two highs (Loop pass, Bob's 27) and a low VoiceOver announcement on the Loop opening throw. Both passes skipped the vision sources. Review: [`vision-tripod-review-fixes.md`](vision-tripod-review-fixes.md). |
 | UI screenshot iteration | [`docs/plans/ui-screenshot-iteration-plan.md`](../docs/plans/ui-screenshot-iteration-plan.md) | In progress | Code done; Phase 4 re-capture remaining |
 | Co-op mode grouping | [`docs/plans/coop-mode-grouping.md`](../docs/plans/coop-mode-grouping.md) | Partial | Phase 0 done; Raid ships in 1.1 |
 | Co-op PvE modes | [`specs/CoopPvEModesSpec.md`](../specs/CoopPvEModesSpec.md) | In progress | Raid ships in 1.1; Fleet/Cerberus/Vault post-1.1 |

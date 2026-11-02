@@ -143,15 +143,19 @@ struct VisionScoringSheet: View {
         case .cameraUnavailable:
             statusPill(L10n.string("vision.status.cameraUnavailable"))
         case .calibrating:
-            statusPill(
-                viewModel.calibrationTaps.count == BoardCalibration.outerWireCalibrationCrossings.count
-                    ? L10n.string("vision.calibration.waitingForImage")
-                    : L10n.format(
+            if viewModel.previewAspectRatio <= 0 {
+                statusPill(L10n.string("vision.calibration.waitingForImage"))
+            } else if viewModel.calibrationRejected {
+                statusPill(L10n.string("vision.calibration.pointsRejected"))
+            } else {
+                statusPill(
+                    L10n.format(
                         "vision.calibration.tapCrossingFormat",
                         viewModel.nextCalibrationCrossing.left,
                         viewModel.nextCalibrationCrossing.right
                     )
-            )
+                )
+            }
         case .ready:
             statusPill(L10n.string("vision.calibration.locked"))
         case .paused(.calibrationDrift):
@@ -207,6 +211,7 @@ struct VisionScoringSheet: View {
     @ViewBuilder
     private var visitBar: some View {
         VStack(spacing: DS.Spacing.s2) {
+            tallyLine
             if viewModel.status == .ready || viewModel.status == .paused(.userPaused) {
                 VisionVisitTray(viewModel: viewModel)
             } else if viewModel.status == .paused(.calibrationDrift) {
@@ -214,7 +219,6 @@ struct VisionScoringSheet: View {
                     .font(.subheadline)
                     .foregroundStyle(Brand.textSecondary)
             }
-            tallyLine
         }
         .padding(DS.Spacing.s3)
         .background(Brand.background)
@@ -223,25 +227,22 @@ struct VisionScoringSheet: View {
     @ViewBuilder
     private var tallyLine: some View {
         let tally = viewModel.tally
-        if tally.scored > 0 || tally.dismissed > 0 || tally.addedByHand > 0 {
+        let boardIsLive = viewModel.status == .ready || viewModel.status == .paused(.userPaused)
+        let hasActivity = tally.scored > 0 || tally.dismissed > 0 || tally.addedByHand > 0
+        if boardIsLive || hasActivity {
             VStack(alignment: .leading, spacing: 2) {
-                if tally.scored > 0 || tally.dismissed > 0 {
-                    Text(tally.scored > 0
-                        ? L10n.format(
-                            "vision.tally.summaryFormat",
-                            tally.exact,
-                            tally.scored,
-                            tally.changed,
-                            tally.dismissed
-                        )
-                        : L10n.format("vision.tally.dismissedOnlyFormat", tally.dismissed)
-                    )
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Brand.textSecondary)
-                }
+                Text(L10n.format(
+                    "vision.tally.summaryFormat",
+                    tally.exact,
+                    tally.scored,
+                    tally.changed,
+                    tally.dismissed
+                ))
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .foregroundStyle(Brand.textPrimary)
                 if tally.addedByHand > 0 {
                     Text(L10n.format("vision.tally.addedFormat", tally.addedByHand))
-                        .font(.caption.weight(.semibold))
+                        .font(.subheadline.weight(.semibold).monospacedDigit())
                         .foregroundStyle(Brand.textSecondary)
                 }
             }

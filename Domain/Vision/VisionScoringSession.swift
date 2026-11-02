@@ -5,12 +5,14 @@ import Foundation
 /// confirm/edit. Phase B flips `autoCommitEnabled` with a tuned threshold.
 public struct VisionScoringPolicy: Equatable, Sendable {
     /// Detections below this confidence are dropped without a proposal.
+    /// Assistive mode uses 0.3, the bottom of `ImpactDetector`'s range, so a
+    /// cluster that already persisted is still offered to the visit tray.
     public let proposalConfidenceFloor: Double
     public let autoCommitEnabled: Bool
     public let autoCommitConfidenceThreshold: Double
 
     public init(
-        proposalConfidenceFloor: Double = 0.35,
+        proposalConfidenceFloor: Double = 0.3,
         autoCommitEnabled: Bool = false,
         autoCommitConfidenceThreshold: Double = 0.92
     ) {
@@ -126,9 +128,14 @@ public struct VisionScoringSession: Equatable, Sendable {
 
     /// Applies a completed calibration. Rejected (returns `false`) when quality is
     /// below the acceptance gate, leaving the session in `.calibrating`.
+    /// A four-tap homography passes `enforcingQualityGate: false`: the player already
+    /// placed the wires, and a dim room must not throw those taps away.
     @discardableResult
-    public mutating func applyCalibration(_ calibration: BoardCalibration) -> Bool {
-        guard calibration.quality.isAcceptable else { return false }
+    public mutating func applyCalibration(
+        _ calibration: BoardCalibration,
+        enforcingQualityGate: Bool = true
+    ) -> Bool {
+        guard !enforcingQualityGate || calibration.quality.isAcceptable else { return false }
         self.calibration = calibration
         phase = .ready
         return true

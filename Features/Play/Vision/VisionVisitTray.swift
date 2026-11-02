@@ -101,7 +101,7 @@ struct VisionVisitTray: View {
                     Text(entry.dart.compactDisplayLabel)
                         .font(.title2.weight(.bold).monospacedDigit())
                         .foregroundStyle(Brand.textPrimary)
-                    slotCaption(entry: entry, slotNumber: slotNumber)
+                    slotCaption(entry: entry)
                 }
                 .frame(maxWidth: .infinity, minHeight: 72)
                 .background(Brand.card, in: RoundedRectangle(cornerRadius: DS.Radius.sm))
@@ -131,7 +131,7 @@ struct VisionVisitTray: View {
     }
 
     @ViewBuilder
-    private func slotCaption(entry: VisitDart, slotNumber: Int) -> some View {
+    private func slotCaption(entry: VisitDart) -> some View {
         if let detection = entry.detection {
             Text(L10n.format(
                 "vision.proposal.confidenceFormat",
@@ -140,8 +140,8 @@ struct VisionVisitTray: View {
             .font(.caption2.weight(.semibold))
             .foregroundStyle(Brand.textSecondary)
         } else {
-            Text(L10n.format("vision.visit.emptySlotFormat", slotNumber))
-                .font(.caption2)
+            Text(L10n.string("vision.visit.addedCaption"))
+                .font(.caption2.weight(.semibold))
                 .foregroundStyle(Brand.textSecondary)
         }
     }

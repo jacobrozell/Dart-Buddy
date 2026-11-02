@@ -222,6 +222,11 @@ func takeoutNeedsSustainedMotion() {
         fired = takeout.observe(sceneMotion: true)
     }
     #expect(fired)
+    var stillFiring = true
+    for _ in 0 ..< 30 {
+        stillFiring = takeout.observe(sceneMotion: false)
+    }
+    #expect(!stillFiring)
 }
 
 @Test(.tags(.unit, .vision, .regression))

@@ -1301,7 +1301,8 @@
 "vision.calibration.locked" = "Cible verrouillée";
 "vision.calibration.qualityFormat" = "Cible verrouillée — ajustement %d%%";
 "vision.calibration.tapCrossingFormat" = "Touche l'endroit où le fil entre %1$d et %2$d rejoint le bord extérieur de l'anneau des doubles";
-"vision.calibration.guideCaption" = "Touche les coins où un fil rejoint le bord extérieur de l'anneau rouge/vert le plus extérieur (doubles), pas l'anneau intérieur des triples.";
+"vision.calibration.guideCaption" = "Suis 1-4. Chaque numéro est sur le bord extérieur de l'anneau des doubles, pas sur l'anneau intérieur des triples.";
+"vision.calibration.pointsRejected" = "Ces quatre touches ne s'alignent pas. Retouche le dernier coin.";
 "vision.calibration.waitingForImage" = "Reste immobile pour verrouiller l'image";
 "vision.hint.centerBoard" = "Pointe la caméra vers la cible";
 "vision.hint.moveCloser" = "Rapproche-toi de la cible";
@@ -1319,6 +1320,7 @@
 "vision.visit.doneThrowing" = "J'ai fini de lancer";
 "vision.visit.keepThrowing" = "Continuer à lancer";
 "vision.visit.addDart" = "Ajouter une fléchette";
+"vision.visit.addedCaption" = "Ajoutée";
 "vision.visit.remove" = "Retirer la fléchette";
 "vision.visit.submit" = "Valider la volée";
 "vision.visit.submitWithMissesFormat" = "Valider la volée (%d en raté)";

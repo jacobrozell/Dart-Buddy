@@ -43,6 +43,8 @@ final class VisionScoringViewModel: ObservableObject {
     @Published private(set) var dartsAllowed = 0
     /// Exact, changed, and dismissed counts for this camera session.
     @Published private(set) var tally = VisionDetectionTally()
+    /// The last four taps were not a usable board quad. The last tap was dropped.
+    @Published private(set) var calibrationRejected = false
 
     let camera = VisionCameraService()
     var visitEnds: ([DartInput]) -> Bool = { $0.count >= 3 }
@@ -97,8 +99,7 @@ final class VisionScoringViewModel: ObservableObject {
         }
         camera.setImagingLocked(false)
 
-        session = VisionScoringSession(policy: .assistive)
-        status = .calibrating
+        prepareSessionForCapture()
         logger?.info(
             .vision,
             eventName: "vision_session_started",
@@ -126,6 +127,9 @@ final class VisionScoringViewModel: ObservableObject {
     func recalibrate() {
         session.beginRecalibration()
         calibrationTaps = []
+        calibrationRejected = false
+        takeout.reset()
+        takeoutArmed = false
         camera.resetAnalyzer()
         camera.setImagingLocked(false)
         if status != .idle, status != .accessDenied, status != .cameraUnavailable {
@@ -141,6 +145,7 @@ final class VisionScoringViewModel: ObservableObject {
         self.turnKey = turnKey
         if turnChanged || dartsAllowed == 0 || session.visit.isEmpty {
             if !session.visit.isEmpty {
+                tallyUnreviewedDetections()
                 logger?.info(
                     .vision,
                     eventName: "vision_visit_discarded",
@@ -159,17 +164,40 @@ final class VisionScoringViewModel: ObservableObject {
         takeoutArmed = false
     }
 
+    /// Fresh scoring session for the current turn. `start()` calls this once the
+    /// camera is running. Replacing the session without reapplying `dartsAllowed`
+    /// made a mid-visit open accept three more darts.
+    func prepareSessionForCapture() {
+        tallyUnreviewedDetections()
+        session = VisionScoringSession(policy: .assistive)
+        startNewVisit(capacity: dartsAllowed)
+        calibrationTaps = []
+        calibrationRejected = false
+        status = .calibrating
+        syncVisit()
+    }
+
+    /// Proposals cleared before review still happened. Count them as dismissed so
+    /// the board-session tally does not drop throws the player never scored.
+    private func tallyUnreviewedDetections() {
+        for entry in session.visit where entry.detection != nil {
+            tally.recordDismissal()
+        }
+    }
+
     /// Records a tap in width-unit image coordinates. Four taps, in segment order, solve the homography.
     func registerCalibrationTap(imageX: Double, imageY: Double) {
         guard status == .calibrating, session.phase == .calibrating else { return }
         guard previewAspectRatio > 0, imageX.isFinite, imageY.isFinite else { return }
         guard calibrationTaps.count < BoardCalibration.outerWireCalibrationCrossings.count else { return }
+        calibrationRejected = false
         calibrationTaps.append(CalibrationTap(imageX: imageX, imageY: imageY))
         tryLockManualCalibration()
     }
 
     func undoCalibrationTap() {
         guard canUndoCalibrationTap else { return }
+        calibrationRejected = false
         calibrationTaps.removeLast()
     }
 
@@ -244,7 +272,7 @@ final class VisionScoringViewModel: ObservableObject {
 
     // MARK: - Frame handling
 
-    private func handle(_ analysis: VisionFrameAnalysis) {
+    func handle(_ analysis: VisionFrameAnalysis) {
         previewAspectRatio = analysis.aspectRatio
         latestQuality = CalibrationQuality(
             fitConfidence: analysis.board?.fitConfidence ?? 0,
@@ -266,18 +294,22 @@ final class VisionScoringViewModel: ObservableObject {
     private func tryLockManualCalibration() {
         let crossings = BoardCalibration.outerWireCalibrationCrossings
         guard session.phase == .calibrating, calibrationTaps.count == crossings.count else { return }
+        // Brightness and sharpness stay on screen as hints. They must not reject a
+        // solved four-tap homography: a spotlighted board in a dark room fails the
+        // whole-frame gate even when the wires are visible.
         let quality = CalibrationQuality(
             fitConfidence: 1,
             brightness: latestQuality.brightness,
             sharpness: latestQuality.sharpness
         )
-        guard quality.isAcceptable else { return }
         let imagePoints = calibrationTaps.map { SIMD2($0.imageX, $0.imageY) }
         guard let calibration = BoardCalibration(outerWireImagePoints: imagePoints, quality: quality),
-              session.applyCalibration(calibration) else {
+              session.applyCalibration(calibration, enforcingQualityGate: false) else {
             calibrationTaps.removeLast()
+            calibrationRejected = true
             return
         }
+        calibrationRejected = false
         camera.setImagingLocked(true)
         // Analyzer cells are per-axis normalized; calibration math is in width units.
         let tipOffset = calibration.dartTipOffset(

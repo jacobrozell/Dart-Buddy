@@ -1301,7 +1301,8 @@
 "vision.calibration.locked" = "靶面已锁定";
 "vision.calibration.qualityFormat" = "靶面已锁定 - 贴合 %d%%";
 "vision.calibration.tapCrossingFormat" = "点击 %1$d 和 %2$d 之间的分隔线与双倍环外边缘的交点";
-"vision.calibration.guideCaption" = "点击分隔线与最外圈红/绿环（双倍区）外边缘的交点，不是内圈的三倍环。";
+"vision.calibration.guideCaption" = "按 1-4 的顺序点。每个数字在最外圈双倍环的外边缘，不是内圈三倍环。";
+"vision.calibration.pointsRejected" = "这四个点对不齐。请再点一次最后一个角。";
 "vision.calibration.waitingForImage" = "保持稳定，以便锁定画面";
 "vision.hint.centerBoard" = "将摄像头对准飞镖靶";
 "vision.hint.moveCloser" = "靠近靶面";
@@ -1319,6 +1320,7 @@
 "vision.visit.doneThrowing" = "投镖完成";
 "vision.visit.keepThrowing" = "继续投镖";
 "vision.visit.addDart" = "添加飞镖";
+"vision.visit.addedCaption" = "手动";
 "vision.visit.remove" = "移除飞镖";
 "vision.visit.submit" = "提交本回合";
 "vision.visit.submitWithMissesFormat" = "提交本回合（%d 记为未中）";

@@ -132,6 +132,21 @@ private func syntheticCameraCalibration(offsetX: Double) throws -> BoardCalibrat
 }
 
 @Test(.tags(.unit, .vision, .regression))
+func homographyLocksACloseOffAxisBoard() throws {
+    let focal = 0.5 / tan(Double.pi / 6)
+    let distance = 4.0
+    let offsetX = 1.5
+    let taps = BoardCalibration.outerWireBoardPoints.map { board in
+        SIMD2(focal * (board.x + offsetX) / distance + 0.5, -focal * board.y / distance + 0.28)
+    }
+    let calibration = try #require(BoardCalibration(outerWireImagePoints: taps, quality: acceptableQuality))
+    let inverse = try #require(calibration.transform.inverted())
+    let image = try #require(inverse.apply(toImageX: 0, imageY: 0.606))
+    let dart = try #require(calibration.dartInput(atImageX: image.x, imageY: image.y))
+    #expect(dart == DartInput(multiplier: .triple, segment: .oneToTwenty(20)))
+}
+
+@Test(.tags(.unit, .vision, .regression))
 func dartTipOffsetVanishesHeadOn() throws {
     let calibration = try syntheticCameraCalibration(offsetX: 0)
     let offset = try #require(calibration.dartTipOffset(horizontalFieldOfViewDegrees: 60, aspectRatio: 0.5625))

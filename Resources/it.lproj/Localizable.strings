@@ -1301,7 +1301,8 @@
 "vision.calibration.locked" = "Bersaglio bloccato";
 "vision.calibration.qualityFormat" = "Bersaglio bloccato - allineamento %d%%";
 "vision.calibration.tapCrossingFormat" = "Tocca il punto in cui il filo tra %1$d e %2$d incontra il bordo esterno dell'anello dei doppi";
-"vision.calibration.guideCaption" = "Tocca gli angoli in cui un filo incontra il bordo esterno dell'anello rosso/verde più esterno (doppi), non l'anello interno dei tripli.";
+"vision.calibration.guideCaption" = "Segui 1-4. Ogni numero è sul bordo esterno dell'anello dei doppi, non sull'anello interno dei tripli.";
+"vision.calibration.pointsRejected" = "Quei quattro tocchi non sono allineati. Tocca di nuovo l'ultimo angolo.";
 "vision.calibration.waitingForImage" = "Resta fermo così l'immagine si blocca";
 "vision.hint.centerBoard" = "Punta la fotocamera sul bersaglio";
 "vision.hint.moveCloser" = "Avvicinati al bersaglio";
@@ -1319,6 +1320,7 @@
 "vision.visit.doneThrowing" = "Ho finito di lanciare";
 "vision.visit.keepThrowing" = "Continua a lanciare";
 "vision.visit.addDart" = "Aggiungi freccetta";
+"vision.visit.addedCaption" = "Aggiunta";
 "vision.visit.remove" = "Rimuovi freccetta";
 "vision.visit.submit" = "Invia visita";
 "vision.visit.submitWithMissesFormat" = "Invia visita (%d come miss)";

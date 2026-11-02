@@ -1301,7 +1301,8 @@
 "vision.calibration.locked" = "Bord vergrendeld";
 "vision.calibration.qualityFormat" = "Bord vergrendeld - passing %d%%";
 "vision.calibration.tapCrossingFormat" = "Tik waar de draad tussen %1$d en %2$d de buitenrand van de dubbelring raakt";
-"vision.calibration.guideCaption" = "Tik op de hoeken waar een draad de buitenrand van de buitenste rood/groene ring (dubbels) raakt, niet de binnenste triple-ring.";
+"vision.calibration.guideCaption" = "Volg 1-4. Elk nummer staat op de buitenrand van de buitenste dubbelring, niet op de binnenste tripelring.";
+"vision.calibration.pointsRejected" = "Die vier tikken liggen niet goed. Tik de laatste hoek opnieuw.";
 "vision.calibration.waitingForImage" = "Houd stil zodat het beeld kan vergrendelen";
 "vision.hint.centerBoard" = "Richt de camera op het dartbord";
 "vision.hint.moveCloser" = "Ga dichter bij het bord staan";
@@ -1319,6 +1320,7 @@
 "vision.visit.doneThrowing" = "Klaar met gooien";
 "vision.visit.keepThrowing" = "Verder gooien";
 "vision.visit.addDart" = "Dart toevoegen";
+"vision.visit.addedCaption" = "Toegevoegd";
 "vision.visit.remove" = "Dart verwijderen";
 "vision.visit.submit" = "Beurt indienen";
 "vision.visit.submitWithMissesFormat" = "Beurt indienen (%d als miss)";

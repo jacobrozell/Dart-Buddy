@@ -1305,7 +1305,8 @@
 "vision.calibration.locked" = "Board locked";
 "vision.calibration.qualityFormat" = "Board locked - fit %d%%";
 "vision.calibration.tapCrossingFormat" = "Tap where the wire between %1$d and %2$d meets the outer edge of the double ring";
-"vision.calibration.guideCaption" = "Tap the corners where a wire meets the outside edge of the outermost red/green ring (doubles), not the inner triple ring.";
+"vision.calibration.guideCaption" = "Follow 1-4. Each number sits on the outside edge of the outer double ring, not the inner triple ring.";
+"vision.calibration.pointsRejected" = "Those four taps didn't line up. Tap the last corner again.";
 "vision.calibration.waitingForImage" = "Hold still so the picture can lock";
 "vision.hint.centerBoard" = "Point the camera at the dartboard";
 "vision.hint.moveCloser" = "Move closer to the board";
@@ -1323,6 +1324,7 @@
 "vision.visit.doneThrowing" = "Done throwing";
 "vision.visit.keepThrowing" = "Keep throwing";
 "vision.visit.addDart" = "Add dart";
+"vision.visit.addedCaption" = "Added";
 "vision.visit.remove" = "Remove dart";
 "vision.visit.submit" = "Submit visit";
 "vision.visit.submitWithMissesFormat" = "Submit visit (%d as miss)";

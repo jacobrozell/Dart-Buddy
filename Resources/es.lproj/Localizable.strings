@@ -1301,7 +1301,8 @@
 "vision.calibration.locked" = "Diana fijada";
 "vision.calibration.qualityFormat" = "Diana fijada - ajuste %d%%";
 "vision.calibration.tapCrossingFormat" = "Toca donde el alambre entre %1$d y %2$d toca el borde exterior del anillo de dobles";
-"vision.calibration.guideCaption" = "Toca las esquinas donde un alambre toca el borde exterior del anillo rojo/verde más externo (dobles), no el anillo interior de triples.";
+"vision.calibration.guideCaption" = "Sigue 1-4. Cada número está en el borde exterior del anillo de dobles, no en el anillo interior de triples.";
+"vision.calibration.pointsRejected" = "Esos cuatro toques no cuadran. Toca la última esquina otra vez.";
 "vision.calibration.waitingForImage" = "Quédate quieto para fijar la imagen";
 "vision.hint.centerBoard" = "Apunta la cámara a la diana";
 "vision.hint.moveCloser" = "Acércate a la diana";
@@ -1319,6 +1320,7 @@
 "vision.visit.doneThrowing" = "Terminé de tirar";
 "vision.visit.keepThrowing" = "Seguir tirando";
 "vision.visit.addDart" = "Añadir dardo";
+"vision.visit.addedCaption" = "Añadido";
 "vision.visit.remove" = "Quitar dardo";
 "vision.visit.submit" = "Enviar visita";
 "vision.visit.submitWithMissesFormat" = "Enviar visita (%d como fallo)";

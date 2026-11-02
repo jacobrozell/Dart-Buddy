@@ -365,3 +365,188 @@ func userPauseAndResume() {
     session.resumeFromUserPause()
     #expect(session.phase == .ready)
 }
+
+@Test(.tags(.unit, .vision, .regression))
+func detectorFloorConfidenceIsStillProposed() {
+    var session = calibratedSession()
+    let outcome = session.handle(tripleTwentyCommand(for: session, confidence: 0.3))
+    guard case .proposed = outcome else {
+        Issue.record("A persisted cluster at the detector floor should reach the tray, got \(outcome)")
+        return
+    }
+    #expect(session.visit.count == 1)
+    let dropped = session.handle(tripleTwentyCommand(for: session, confidence: 0.29, at: Date().addingTimeInterval(2)))
+    #expect(dropped == .ignored(.belowConfidenceFloor))
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func manualLockBypassesTheFrameQualityGate() throws {
+    var session = VisionScoringSession()
+    let dim = try #require(BoardCalibration(
+        outerWireImagePoints: [
+            SIMD2(0.5, 0.20),
+            SIMD2(0.78, 0.62),
+            SIMD2(0.5, 0.88),
+            SIMD2(0.22, 0.62),
+        ],
+        quality: CalibrationQuality(fitConfidence: 1, brightness: 0.05, sharpness: 0.05)
+    ))
+    let rejected = session.applyCalibration(dim)
+    let applied = session.applyCalibration(dim, enforcingQualityGate: false)
+    #expect(!rejected)
+    #expect(applied)
+    #expect(session.phase == .ready)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func captureStartKeepsDartsLeftInTheTurn() {
+    let viewModel = VisionScoringViewModel()
+    viewModel.updateTurn(dartsAllowed: 2, turnKey: "0-0-0-0")
+    viewModel.prepareSessionForCapture()
+    #expect(viewModel.visitCapacity == 2)
+    let dart = DartInput(multiplier: .single, segment: .oneToTwenty(20))
+    viewModel.addDart(dart)
+    viewModel.addDart(dart)
+    viewModel.addDart(dart)
+    #expect(viewModel.visit.count == 2)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func tapsBeforeTheFirstFrameAreIgnored() {
+    let viewModel = VisionScoringViewModel()
+    viewModel.updateTurn(dartsAllowed: 3, turnKey: "0-0-0-0")
+    viewModel.prepareSessionForCapture()
+    viewModel.registerCalibrationTap(imageX: 0.5, imageY: 0.2)
+    #expect(viewModel.calibrationTaps.isEmpty)
+    #expect(viewModel.previewAspectRatio == 0)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func dimFrameStillLocksFourOuterWireTaps() {
+    let viewModel = lockedCamera(brightness: 0.05, sharpness: 0.05)
+    #expect(viewModel.status == .ready)
+    #expect(viewModel.calibrationTaps.count == 4)
+    #expect(!viewModel.calibrationRejected)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func misalignedTapsDropTheLastPoint() {
+    let viewModel = VisionScoringViewModel()
+    viewModel.updateTurn(dartsAllowed: 3, turnKey: "0-0-0-0")
+    viewModel.prepareSessionForCapture()
+    viewModel.handle(visionFrame())
+    for point in [SIMD2(0.2, 0.2), SIMD2(0.3, 0.3), SIMD2(0.4, 0.4), SIMD2(0.5, 0.5)] {
+        viewModel.registerCalibrationTap(imageX: point.x, imageY: point.y)
+    }
+    #expect(viewModel.calibrationRejected)
+    #expect(viewModel.calibrationTaps.count == 3)
+    #expect(viewModel.status == .calibrating)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func submitCountsExactChangedAndDismissed() {
+    let viewModel = lockedCamera()
+    let start = Date()
+    viewModel.handle(visionFrame(impact: impact(x: 0.5, y: 0.54), at: start))
+    #expect(viewModel.visit.count == 1)
+    viewModel.submitVisit()
+    #expect(viewModel.tally.exact == 1)
+    #expect(viewModel.tally.changed == 0)
+    #expect(viewModel.tally.dismissed == 0)
+
+    viewModel.handle(visionFrame(impact: impact(x: 0.5, y: 0.54), at: start.addingTimeInterval(3)))
+    viewModel.handle(visionFrame(impact: impact(x: 0.5, y: 0.32), at: start.addingTimeInterval(5)))
+    #expect(viewModel.visit.count == 2)
+    let first = viewModel.visit[0].id
+    let second = viewModel.visit[1]
+    let rewritten = second.dart == DartInput(multiplier: .single, segment: .oneToTwenty(5))
+        ? DartInput(multiplier: .triple, segment: .oneToTwenty(20))
+        : DartInput(multiplier: .single, segment: .oneToTwenty(5))
+    viewModel.editDart(id: second.id, to: rewritten)
+    viewModel.removeDart(id: first)
+    viewModel.submitVisit()
+    #expect(viewModel.tally.exact == 1)
+    #expect(viewModel.tally.changed == 1)
+    #expect(viewModel.tally.dismissed == 1)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func sameSpotSettleDoesNotAddASecondDart() {
+    let viewModel = lockedCamera()
+    let start = Date()
+    viewModel.handle(visionFrame(impact: impact(x: 0.5, y: 0.54), at: start))
+    viewModel.handle(visionFrame(impact: impact(x: 0.5, y: 0.545), at: start.addingTimeInterval(0.4)))
+    #expect(viewModel.visit.count == 1)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func turnChangeCountsUnreviewedDetectionsAsDismissed() {
+    let viewModel = lockedCamera()
+    viewModel.handle(visionFrame(impact: impact(x: 0.5, y: 0.54)))
+    #expect(viewModel.visit.count == 1)
+    viewModel.updateTurn(dartsAllowed: 3, turnKey: "0-0-1-0")
+    #expect(viewModel.tally.dismissed == 1)
+    #expect(viewModel.tally.exact == 0)
+    #expect(viewModel.visit.isEmpty)
+    viewModel.updateTurn(dartsAllowed: 3, turnKey: "0-0-1-0")
+    #expect(viewModel.tally.dismissed == 1)
+}
+
+@MainActor
+@Test(.tags(.unit, .vision, .regression))
+func handAddedDartIsNotAnExactDetection() {
+    let viewModel = lockedCamera()
+    viewModel.addDart(DartInput(multiplier: .single, segment: .oneToTwenty(20)))
+    #expect(viewModel.visit.count == 1)
+    viewModel.submitVisit()
+    #expect(viewModel.tally.exact == 0)
+    #expect(viewModel.tally.changed == 0)
+    #expect(viewModel.tally.dismissed == 0)
+    #expect(viewModel.tally.addedByHand == 1)
+}
+
+@MainActor
+private func lockedCamera(brightness: Double = 0.5, sharpness: Double = 0.8) -> VisionScoringViewModel {
+    let viewModel = VisionScoringViewModel()
+    viewModel.updateTurn(dartsAllowed: 3, turnKey: "0-0-0-0")
+    viewModel.prepareSessionForCapture()
+    viewModel.handle(visionFrame(brightness: brightness, sharpness: sharpness))
+    for point in [SIMD2(0.5, 0.20), SIMD2(0.78, 0.62), SIMD2(0.5, 0.88), SIMD2(0.22, 0.62)] {
+        viewModel.registerCalibrationTap(imageX: point.x, imageY: point.y)
+    }
+    return viewModel
+}
+
+private func visionFrame(
+    brightness: Double = 0.5,
+    sharpness: Double = 0.8,
+    impact: ImpactDetector.Candidate? = nil,
+    at timestamp: Date = Date(),
+    sceneMotion: Bool = false
+) -> VisionFrameAnalysis {
+    VisionFrameAnalysis(
+        board: nil,
+        brightness: brightness,
+        sharpness: sharpness,
+        impact: impact,
+        aspectRatio: 0.5625,
+        timestamp: timestamp,
+        sceneMotion: sceneMotion
+    )
+}
+
+private func impact(x: Double, y: Double, confidence: Double = 0.8) -> ImpactDetector.Candidate {
+    ImpactDetector.Candidate(
+        imageX: x,
+        imageY: y,
+        confidence: confidence,
+        clusterBounds: SIMD4(0.4, 0.4, 0.6, 0.6)
+    )
+}

@@ -64,6 +64,21 @@ func tipLocatorStepsFromFlightWhenBarrelIsMissing() throws {
 }
 
 @Test(.tags(.unit, .vision, .regression))
+func tipLocatorFindsTheLowerEndOfAVerticalDart() throws {
+    var image = blankImage()
+    paint(&image, x: 94 ... 106, y: 20 ... 32, value: 220)
+    paint(&image, x: 99 ... 101, y: 33 ... 90, value: 30)
+    let tip = try #require(DartTipLocator.locateTip(
+        baseline: blankImage(),
+        current: image,
+        in: wholeImage,
+        flightToTip: SIMD2(0, 50)
+    ))
+    #expect(abs(tip.x - 100.5) < 4)
+    #expect(abs(tip.y - 90.5) < 4)
+}
+
+@Test(.tags(.unit, .vision, .regression))
 func tipLocatorIgnoresUnchangedFrames() {
     #expect(DartTipLocator.locateTip(
         baseline: blankImage(),
