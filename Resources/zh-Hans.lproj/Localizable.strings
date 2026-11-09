@@ -327,9 +327,6 @@
 "settings.support.accessibility.accessibility" = "在浏览器中打开辅助功能信息";
 "settings.support.feedbackEmailSubject" = "Dart Buddy 反馈";
 "settings.support.feedbackEmailBodyFormat" = "应用版本:%@\n\n";
-"settings.support.buyCoffee" = "请开发者喝杯咖啡";
-"settings.support.buyCoffee.footer" = "可选打赏以支持开发,将在 Safari 中打开。";
-"settings.support.buyCoffee.accessibility" = "请开发者喝杯咖啡,在浏览器中打开";
 "play.home.modeFormat" = "模式:%@";
 "play.home.resumeButton.hint" = "继续当前进行中的比赛。";
 "play.home.startNewMatch.hint" = "打开设置以配置新比赛。";
@@ -1316,3 +1313,13 @@
 "achievement.db_play_250.description" = "完成 250 场比赛。";
 "achievement.db_play_500.name" = "名人堂";
 "achievement.db_play_500.description" = "完成 500 场比赛。";
+"play.raid.closeDamageFormat" = "已关闭 %@ — 8 点伤害！";
+"play.raid.shieldProgress.closedFormat" = "分区 %@ 已关闭";
+"play.raid.shieldProgress.damageBadge" = "+8";
+"play.raid.shieldProgress.title" = "护盾目标";
+"release.highlights.accessibility" = "Dart Buddy 新功能";
+"release.highlights.badge" = "新功能";
+"release.highlights.gotIt" = "知道了";
+"release.highlights.partyPack.subtitle" = "Baseball、Killer、Shanghai 和 Around the Clock 现已可在对局设置中选择。";
+"release.highlights.partyPack.title" = "Party Pack";
+"release.highlights.tryModes" = "试试新模式";

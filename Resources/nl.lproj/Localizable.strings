@@ -327,9 +327,6 @@
 "settings.support.accessibility.accessibility" = "Toegankelijkheidsinformatie openen in de browser";
 "settings.support.feedbackEmailSubject" = "Dart Buddy-feedback";
 "settings.support.feedbackEmailBodyFormat" = "App-versie: %@\n\n";
-"settings.support.buyCoffee" = "Koop de ontwikkelaar een koffie";
-"settings.support.buyCoffee.footer" = "Optionele fooi om de ontwikkeling te steunen. Opent in Safari.";
-"settings.support.buyCoffee.accessibility" = "Koop de ontwikkelaar een koffie, opent in de browser";
 "play.home.modeFormat" = "Modus: %@";
 "play.home.resumeButton.hint" = "Hervat de huidige lopende wedstrijd.";
 "play.home.startNewMatch.hint" = "Open setup om een nieuwe wedstrijd te configureren.";
@@ -1316,3 +1313,13 @@
 "achievement.db_play_250.description" = "Rond 250 wedstrijden af.";
 "achievement.db_play_500.name" = "Hall of Fame";
 "achievement.db_play_500.description" = "Rond 500 wedstrijden af.";
+"play.raid.closeDamageFormat" = "%@ gesloten — 8 schade!";
+"play.raid.shieldProgress.closedFormat" = "Segment %@ gesloten";
+"play.raid.shieldProgress.damageBadge" = "+8";
+"play.raid.shieldProgress.title" = "Schilddoelen";
+"release.highlights.accessibility" = "Nieuw in Dart Buddy";
+"release.highlights.badge" = "Nieuw";
+"release.highlights.gotIt" = "Begrepen";
+"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai en Around the Clock staan klaar in de spelinstellingen.";
+"release.highlights.partyPack.title" = "Party Pack";
+"release.highlights.tryModes" = "Nieuwe modi proberen";

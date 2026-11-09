@@ -327,9 +327,6 @@
 "settings.support.accessibility.accessibility" = "Ouvrir les infos d'accessibilité dans le navigateur";
 "settings.support.feedbackEmailSubject" = "Retour Dart Buddy";
 "settings.support.feedbackEmailBodyFormat" = "Version de l'app : %@\n\n";
-"settings.support.buyCoffee" = "Offrir un café au développeur";
-"settings.support.buyCoffee.footer" = "Pourboire facultatif pour soutenir le développement. Ouvre dans Safari.";
-"settings.support.buyCoffee.accessibility" = "Offrir un café au développeur, ouvre dans le navigateur";
 "play.home.modeFormat" = "Mode : %@";
 "play.home.resumeButton.hint" = "Reprends le match en cours.";
 "play.home.startNewMatch.hint" = "Ouvre la configuration pour un nouveau match.";
@@ -1316,3 +1313,13 @@
 "achievement.db_play_250.description" = "Terminer 250 parties.";
 "achievement.db_play_500.name" = "Salon de la renommée";
 "achievement.db_play_500.description" = "Terminer 500 parties.";
+"play.raid.closeDamageFormat" = "%@ fermé — 8 dégâts !";
+"play.raid.shieldProgress.closedFormat" = "Segment %@ fermé";
+"play.raid.shieldProgress.damageBadge" = "+8";
+"play.raid.shieldProgress.title" = "Cibles du bouclier";
+"release.highlights.accessibility" = "Nouveautés de Dart Buddy";
+"release.highlights.badge" = "Nouveautés";
+"release.highlights.gotIt" = "Compris";
+"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai et Around the Clock sont disponibles dans la configuration de partie.";
+"release.highlights.partyPack.title" = "Party Pack";
+"release.highlights.tryModes" = "Essayer les nouveaux modes";

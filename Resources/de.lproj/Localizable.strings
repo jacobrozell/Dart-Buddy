@@ -327,9 +327,6 @@
 "settings.support.accessibility.accessibility" = "Barrierefreiheitsinformationen im Browser öffnen";
 "settings.support.feedbackEmailSubject" = "Dart Buddy Feedback";
 "settings.support.feedbackEmailBodyFormat" = "App-Version: %@\n\n";
-"settings.support.buyCoffee" = "Entwickler einen Kaffee spendieren";
-"settings.support.buyCoffee.footer" = "Optionale Spende zur Unterstützung der Entwicklung. Öffnet in Safari.";
-"settings.support.buyCoffee.accessibility" = "Entwickler einen Kaffee spendieren, öffnet im Browser";
 "play.home.modeFormat" = "Modus: %@";
 "play.home.resumeButton.hint" = "Setzt das laufende Spiel fort.";
 "play.home.startNewMatch.hint" = "Öffnet Setup für ein neues Spiel.";
@@ -1316,3 +1313,13 @@
 "achievement.db_play_250.description" = "Schließe 250 Partien ab.";
 "achievement.db_play_500.name" = "Hall of Fame";
 "achievement.db_play_500.description" = "Schließe 500 Partien ab.";
+"play.raid.closeDamageFormat" = "%@ geschlossen — 8 Schaden!";
+"play.raid.shieldProgress.closedFormat" = "Segment %@ geschlossen";
+"play.raid.shieldProgress.damageBadge" = "+8";
+"play.raid.shieldProgress.title" = "Schildziele";
+"release.highlights.accessibility" = "Neu in Dart Buddy";
+"release.highlights.badge" = "Neu";
+"release.highlights.gotIt" = "Verstanden";
+"release.highlights.partyPack.subtitle" = "Baseball, Killer, Shanghai und Around the Clock sind jetzt in der Spielauswahl verfügbar.";
+"release.highlights.partyPack.title" = "Party Pack";
+"release.highlights.tryModes" = "Neue Modi ausprobieren";
