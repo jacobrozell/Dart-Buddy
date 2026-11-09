@@ -2,22 +2,25 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-/// Live camera preview with the board-fit guidance overlay (spec §5). The overlay
-/// circle is drawn in a shape layer and converted from capture-device coordinates via
-/// the preview layer, so it stays aligned across orientations and aspect-fill crops.
+/// Live camera preview. Reports the rotation that keeps video upright for the
+/// current interface orientation so captured frames can be rotated to match:
+/// what the detector analyzes is then exactly what the player sees, and "up" in
+/// the image is "up" on screen.
 struct CameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
-    let overlay: VisionScoringViewModel.BoardOverlay?
+    let onRotationAngleChange: (CGFloat) -> Void
 
     func makeUIView(context: Context) -> CameraPreviewUIView {
         let view = CameraPreviewUIView()
         view.previewLayer.session = session
         view.previewLayer.videoGravity = .resizeAspectFill
+        view.onRotationAngleChange = onRotationAngleChange
         return view
     }
 
     func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
-        uiView.boardOverlay = overlay
+        uiView.onRotationAngleChange = onRotationAngleChange
+        uiView.syncRotation()
     }
 }
 
@@ -31,59 +34,67 @@ final class CameraPreviewUIView: UIView {
         return previewLayer
     }
 
-    var boardOverlay: VisionScoringViewModel.BoardOverlay? {
-        didSet { updateOverlayPath() }
-    }
-
-    private let overlayLayer = CAShapeLayer()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        overlayLayer.fillColor = UIColor.clear.cgColor
-        overlayLayer.lineWidth = 3
-        layer.addSublayer(overlayLayer)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) is not supported")
-    }
+    var onRotationAngleChange: ((CGFloat) -> Void)?
+    private var reportedAngle: CGFloat?
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        overlayLayer.frame = bounds
-        updateOverlayPath()
+        syncRotation()
     }
 
-    private func updateOverlayPath() {
-        guard let boardOverlay, bounds.width > 0, boardOverlay.aspectRatio > 0 else {
-            overlayLayer.path = nil
-            return
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        syncRotation()
+    }
+
+    /// Applies the upright rotation to the preview and reports it when it changes.
+    func syncRotation() {
+        guard let orientation = window?.windowScene?.interfaceOrientation else { return }
+        let angle = Self.videoRotationAngle(for: orientation)
+        if let connection = previewLayer.connection,
+           connection.isVideoRotationAngleSupported(angle),
+           connection.videoRotationAngle != angle {
+            connection.videoRotationAngle = angle
         }
-        // Overlay values are in width units; capture-device points are per-axis
-        // normalized, so y converts back through the aspect ratio.
-        let deviceY = boardOverlay.centerY / boardOverlay.aspectRatio
-        let center = previewLayer.layerPointConverted(
-            fromCaptureDevicePoint: CGPoint(x: boardOverlay.centerX, y: deviceY)
-        )
-        let edge = previewLayer.layerPointConverted(
-            fromCaptureDevicePoint: CGPoint(x: boardOverlay.centerX + boardOverlay.radius, y: deviceY)
-        )
-        let radius = hypot(edge.x - center.x, edge.y - center.y)
-        guard radius.isFinite, radius > 1 else {
-            overlayLayer.path = nil
-            return
+        if reportedAngle != angle {
+            reportedAngle = angle
+            onRotationAngleChange?(angle)
         }
-        overlayLayer.path = UIBezierPath(
-            arcCenter: center,
-            radius: radius,
-            startAngle: 0,
-            endAngle: 2 * .pi,
-            clockwise: true
-        ).cgPath
-        overlayLayer.strokeColor = boardOverlay.isLocked
-            ? UIColor.systemGreen.cgColor
-            : UIColor.systemYellow.cgColor
-        overlayLayer.lineDashPattern = boardOverlay.isLocked ? nil : [8, 6]
+    }
+
+    /// Rotation (degrees) that makes back-camera video upright in an interface orientation.
+    static func videoRotationAngle(for orientation: UIInterfaceOrientation) -> CGFloat {
+        switch orientation {
+        case .landscapeRight: return 0
+        case .landscapeLeft: return 180
+        case .portraitUpsideDown: return 270
+        default: return 90
+        }
+    }
+}
+
+/// Maps between image width units and points in a view that shows the camera
+/// image aspect-filled (matching `AVLayerVideoGravity.resizeAspectFill`).
+struct AspectFillMapping {
+    let viewSize: CGSize
+    /// Image height divided by width.
+    let aspectRatio: Double
+
+    private var scale: Double {
+        max(Double(viewSize.width), Double(viewSize.height) / max(aspectRatio, 0.0001))
+    }
+
+    func viewPoint(for point: ImagePoint) -> CGPoint {
+        CGPoint(
+            x: (point.x - 0.5) * scale + Double(viewSize.width) / 2,
+            y: (point.y - aspectRatio / 2) * scale + Double(viewSize.height) / 2
+        )
+    }
+
+    func imagePoint(for point: CGPoint) -> ImagePoint {
+        ImagePoint(
+            x: (Double(point.x) - Double(viewSize.width) / 2) / scale + 0.5,
+            y: (Double(point.y) - Double(viewSize.height) / 2) / scale + aspectRatio / 2
+        )
     }
 }

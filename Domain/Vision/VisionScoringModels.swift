@@ -16,19 +16,28 @@ public struct DetectedThrow: Identifiable, Codable, Equatable, Sendable {
     public let dart: DartInput
     public let visionConfidence: Double
     public let frameTimestamp: Date
+    /// Where the tip landed on the board plane, when known (for overlays/diagnostics).
+    public let boardPoint: BoardPoint?
+    /// Set on auto-committed throws whose confidence was below the auto-commit
+    /// threshold: scored so play keeps flowing, but flagged for the player to check.
+    public let needsReview: Bool
 
     public init(
         id: UUID = UUID(),
         visionSessionId: UUID,
         dart: DartInput,
         visionConfidence: Double,
-        frameTimestamp: Date
+        frameTimestamp: Date,
+        boardPoint: BoardPoint? = nil,
+        needsReview: Bool = false
     ) {
         self.id = id
         self.visionSessionId = visionSessionId
         self.dart = dart
         self.visionConfidence = visionConfidence
         self.frameTimestamp = frameTimestamp
+        self.boardPoint = boardPoint
+        self.needsReview = needsReview
     }
 
     /// Metadata attached to scoring events fed by this detection (spec §7).
@@ -125,6 +134,10 @@ public enum VisionGuidanceHint: String, CaseIterable, Sendable {
     case tooDark
     case tooBlurry
     case holdSteady
+    /// Camera faces the board nearly head-on, where flights hide the dart tips.
+    case angleCamera
+    /// Detection starts from an empty board.
+    case clearBoard
 
     public var localizationKey: String {
         "vision.hint.\(rawValue)"

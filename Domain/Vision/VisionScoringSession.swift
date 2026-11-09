@@ -1,25 +1,61 @@
 import Foundation
 
 /// Confidence policy for vision detections (spec §3, §8).
-/// Phase A ships with auto-commit disabled: every detection is proposed for
-/// confirm/edit. Phase B flips `autoCommitEnabled` with a tuned threshold.
+/// - `assistive` (Phase A): every detection is proposed for confirm/edit.
+/// - `automatic` (Phase B): detections score immediately; uncertain ones are still
+///   scored (so a throw is never lost mid-visit) but flagged `needsReview`, so the
+///   player is never *silently* given a doubtful score.
 public struct VisionScoringPolicy: Equatable, Sendable {
+    public enum LowConfidenceBehavior: Equatable, Sendable {
+        /// Hold the detection as a pending proposal until confirmed or rejected.
+        case propose
+        /// Score it now, flagged for review.
+        case commitFlagged
+    }
+
     /// Detections below this confidence are dropped without a proposal.
     public let proposalConfidenceFloor: Double
     public let autoCommitEnabled: Bool
     public let autoCommitConfidenceThreshold: Double
+    public let lowConfidenceBehavior: LowConfidenceBehavior
+    /// Tips closer than this to a wire (millimetres) lose confidence, bottoming out
+    /// at `wireMinimumConfidenceFactor` on the wire itself.
+    public let wireCautionDistanceMM: Double
+    public let wireMinimumConfidenceFactor: Double
 
     public init(
         proposalConfidenceFloor: Double = 0.35,
         autoCommitEnabled: Bool = false,
-        autoCommitConfidenceThreshold: Double = 0.92
+        autoCommitConfidenceThreshold: Double = 0.92,
+        lowConfidenceBehavior: LowConfidenceBehavior = .propose,
+        wireCautionDistanceMM: Double = 0,
+        wireMinimumConfidenceFactor: Double = 0.6
     ) {
         self.proposalConfidenceFloor = proposalConfidenceFloor
         self.autoCommitEnabled = autoCommitEnabled
         self.autoCommitConfidenceThreshold = autoCommitConfidenceThreshold
+        self.lowConfidenceBehavior = lowConfidenceBehavior
+        self.wireCautionDistanceMM = wireCautionDistanceMM
+        self.wireMinimumConfidenceFactor = wireMinimumConfidenceFactor
     }
 
     public static let assistive = VisionScoringPolicy()
+
+    public static let automatic = VisionScoringPolicy(
+        proposalConfidenceFloor: 0.3,
+        autoCommitEnabled: true,
+        autoCommitConfidenceThreshold: 0.7,
+        lowConfidenceBehavior: .commitFlagged,
+        wireCautionDistanceMM: 4
+    )
+
+    /// Scales raw detector confidence by how close the tip is to a scoring boundary.
+    public func adjustedConfidence(_ confidence: Double, at point: BoardPoint) -> Double {
+        guard wireCautionDistanceMM > 0 else { return confidence }
+        let marginMM = DartboardGeometry.boundaryMargin(at: point) * DartboardGeometry.doubleOuterRadiusMM
+        let closeness = max(0, min(1, 1 - marginMM / wireCautionDistanceMM))
+        return confidence * (1 - closeness * (1 - wireMinimumConfidenceFactor))
+    }
 }
 
 public enum VisionSessionPhase: Equatable, Sendable {
@@ -99,6 +135,19 @@ public struct VisionScoringSession: Equatable, Sendable {
         phase = .calibrating
     }
 
+    /// Pauses scoring because the board no longer lines up with the calibration.
+    public mutating func pauseForDrift() {
+        guard phase == .ready else { return }
+        phase = .paused(.calibrationDrift)
+        pendingProposal = nil
+    }
+
+    /// Resumes after a drift pause when the player chooses to keep the calibration.
+    public mutating func resumeFromDriftPause() {
+        guard phase == .paused(.calibrationDrift), calibration != nil else { return }
+        phase = .ready
+    }
+
     public mutating func pauseByUser() {
         guard phase == .ready else { return }
         phase = .paused(.userPaused)
@@ -119,18 +168,23 @@ public struct VisionScoringSession: Equatable, Sendable {
         guard command.confidence >= policy.proposalConfidenceFloor else {
             return .ignored(.belowConfidenceFloor)
         }
-        guard let dart = calibration.dartInput(atImageX: command.imageX, imageY: command.imageY) else {
+        guard let point = calibration.transform.apply(toImageX: command.imageX, imageY: command.imageY) else {
             return .ignored(.unmappablePoint)
         }
+        let confidence = policy.adjustedConfidence(command.confidence, at: point)
+        let isConfident = confidence >= policy.autoCommitConfidenceThreshold
 
         let detection = DetectedThrow(
             visionSessionId: id,
-            dart: dart,
-            visionConfidence: command.confidence,
-            frameTimestamp: command.frameTimestamp
+            dart: DartboardGeometry.dartInput(at: point),
+            visionConfidence: confidence,
+            frameTimestamp: command.frameTimestamp,
+            boardPoint: point,
+            needsReview: policy.autoCommitEnabled && !isConfident
         )
-        // Never silently auto-score below the threshold (spec §8).
-        if policy.autoCommitEnabled && command.confidence >= policy.autoCommitConfidenceThreshold {
+        // Never silently auto-score below the threshold (spec §8): doubtful throws
+        // are either held for confirmation or scored with a visible review flag.
+        if policy.autoCommitEnabled, isConfident || policy.lowConfidenceBehavior == .commitFlagged {
             return .autoCommitted(detection)
         }
         pendingProposal = detection

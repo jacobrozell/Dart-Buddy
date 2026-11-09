@@ -73,7 +73,16 @@ public struct LocalFeatureFlagsProvider: FeatureFlagsProvider {
             if arguments.contains("-enable_vision_scoring") {
                 return true
             }
+            if arguments.contains("-ui_test_reset") {
+                return false
+            }
+            // On for local/dev builds so camera scoring can be tried on a device
+            // without launch arguments; still off in Release until it is proven.
+            #if DEBUG
+            return true
+            #else
             return false
+            #endif
         case .enableAppIntents:
             if arguments.contains("-enable_app_intents") {
                 return true
