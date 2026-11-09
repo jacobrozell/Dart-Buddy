@@ -402,7 +402,9 @@ public enum PallinoEngine {
         let winnerId = (isTie || topScore == 0) ? nil : leaders.first
 
         let roundIndex = state.roundIndex
-        let pallino = state.currentPallino!  // resolved only inside throwing phase
+        guard let pallino = state.currentPallino else {
+            preconditionFailure("Rounds are resolved only inside the throwing phase, which always has a pallino")
+        }
 
         if let winnerId {
             state.roundWins[winnerId, default: 0] += 1

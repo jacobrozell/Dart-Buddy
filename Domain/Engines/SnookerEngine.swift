@@ -321,7 +321,7 @@ public enum SnookerEngine {
                 playerId: playerId,
                 ballType: .colour,
                 nominatedColour: colour,
-                segmentPocketed: colour == .black ? 25 : 16 + SnookerColour.allCases.firstIndex(of: colour)!,
+                segmentPocketed: colour == .black ? 25 : 16 + (SnookerColour.allCases.firstIndex(of: colour) ?? 0),
                 points: colour.points,
                 breakEnded: frameCompleted,  // break implicitly ends with the frame
                 frameCompleted: frameCompleted,
