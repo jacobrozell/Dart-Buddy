@@ -119,11 +119,26 @@ struct X01MatchScreen: View {
             VisionScoringSheet(
                 logger: visionLogger,
                 isInputAllowed: viewModel.canHumanInput && viewModel.enteredDarts.count < 3,
-                onDartConfirmed: { dart, _ in
-                    guard viewModel.canHumanInput, viewModel.enteredDarts.count < 3 else { return }
-                    viewModel.enteredDarts.append(dart)
-                }
+                visitDarts: viewModel.canHumanInput ? viewModel.enteredDarts : [],
+                canSubmitVisit: viewModel.canHumanInput && !viewModel.enteredDarts.isEmpty,
+                actions: VisionScoringSheet.Actions(
+                    onDartDetected: { dart, _ in addVisionDart(dart) },
+                    onBoardCleared: { handleVisionBoardCleared() },
+                    onCorrectDart: { index, dart in
+                        guard viewModel.canHumanInput, viewModel.enteredDarts.indices.contains(index) else { return }
+                        viewModel.enteredDarts[index] = dart
+                    },
+                    onUndoLastDart: { runUndo() },
+                    onAddMiss: {
+                        _ = addVisionDart(DartInput(multiplier: .single, segment: .miss, isMiss: true))
+                    },
+                    onSubmitVisit: { submitVisionVisit() }
+                )
             )
+            // Half height keeps the scoreboard visible (and usable) behind the camera.
+            .presentationDetents([.fraction(0.6), .large])
+            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.6)))
+            .presentationDragIndicator(.visible)
         }
         .onChange(of: viewModel.legFinishSoundToken) { _, token in
             if token > 0 {
@@ -414,12 +429,46 @@ struct X01MatchScreen: View {
         // Starting the next visit dismisses the BUST banner and re-arms scoring.
         viewModel.acknowledgeBustFeedback()
         guard viewModel.state == .readyTurn else { return }
+        // With camera scoring open the visit is submitted when the darts are pulled,
+        // so a misread dart can still be corrected while it is in the board.
+        guard !showVisionScoring else { return }
         let remaining = state.players[state.currentPlayerIndex].remainingScore
         let visitTotal = darts.reduce(0) { $0 + $1.points }
         if darts.count == 3 || visitTotal >= remaining {
             actionTask?.cancel()
             actionTask = Task { await viewModel.submitTurn() }
         }
+    }
+
+    // MARK: - Camera scoring
+
+    /// Adds a camera-detected dart to the visit. Returns `false` when the match
+    /// cannot take it (bot turn, visit already full).
+    private func addVisionDart(_ dart: DartInput) -> Bool {
+        guard viewModel.canHumanInput, viewModel.enteredDarts.count < 3 else { return false }
+        viewModel.inputMode = .dartEntry
+        viewModel.enteredDarts.append(dart)
+        return true
+    }
+
+    /// Darts were pulled: a finished visit (three darts, bust, or checkout) is submitted.
+    /// Shorter visits wait for the player, since a dart may have gone undetected.
+    private func handleVisionBoardCleared() {
+        guard viewModel.canHumanInput, !viewModel.enteredDarts.isEmpty,
+              let state = viewModel.session?.runtime.x01State else { return }
+        let remaining = state.players[state.currentPlayerIndex].remainingScore
+        let visitTotal = viewModel.enteredDarts.reduce(0) { $0 + $1.points }
+        guard viewModel.enteredDarts.count == 3 || visitTotal >= remaining else { return }
+        submitVisionVisit()
+    }
+
+    private func submitVisionVisit() {
+        guard viewModel.canHumanInput, !viewModel.enteredDarts.isEmpty else { return }
+        viewModel.acknowledgeBustFeedback()
+        guard viewModel.state == .readyTurn else { return }
+        viewModel.inputMode = .dartEntry
+        actionTask?.cancel()
+        actionTask = Task { await viewModel.submitTurn() }
     }
 
     private func runUndo() {

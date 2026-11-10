@@ -75,4 +75,39 @@ public enum DartboardGeometry {
         let index = Int(normalized / wedgeAngleDegrees) % segmentWheel.count
         return segmentWheel[index]
     }
+
+    /// Physical radius of the outer double edge, for converting board units to millimetres.
+    public static let doubleOuterRadiusMM = 170.0
+
+    /// Distance from a board-plane point to the nearest scoring boundary (ring wire or
+    /// wedge wire), in board units. Small margins mean a slightly different tip
+    /// estimate would score differently, so detections there deserve less confidence.
+    public static func boundaryMargin(at point: BoardPoint) -> Double {
+        let radius = point.radius
+        let rings = [
+            RingRadius.innerBull, RingRadius.outerBull, RingRadius.tripleInner,
+            RingRadius.tripleOuter, RingRadius.doubleInner, RingRadius.doubleOuter,
+        ]
+        var margin = rings.map { abs(radius - $0) }.min() ?? 0
+        // Wedge wires only matter between the bull and the outer double edge.
+        if radius > RingRadius.outerBull, radius < RingRadius.doubleOuter {
+            let angle = angleDegrees(of: point)
+            let offset = (angle + wedgeAngleDegrees / 2).truncatingRemainder(dividingBy: wedgeAngleDegrees)
+            let toWire = min(offset, wedgeAngleDegrees - offset) * Double.pi / 180
+            margin = min(margin, radius * sin(toWire))
+        }
+        return margin
+    }
+
+    /// Board-plane point at a radius and an angle measured clockwise from the top.
+    public static func point(radius: Double, angleDegrees: Double) -> BoardPoint {
+        let radians = angleDegrees * Double.pi / 180
+        return BoardPoint(x: radius * sin(radians), y: radius * cos(radians))
+    }
+
+    /// Whether the double/triple ring of the wedge at this clockwise index is red
+    /// (the 20 wedge is index 0 and red; colours alternate around the board).
+    public static func ringIsRed(wedgeIndex: Int) -> Bool {
+        wedgeIndex % 2 == 0
+    }
 }

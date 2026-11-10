@@ -1,184 +1,273 @@
 import CoreVideo
 import Foundation
-import Vision
 
-/// One analyzed camera frame: board fit (when contour detection ran), frame quality
-/// metrics, and any confirmed dart impact candidate.
+/// One analyzed camera frame.
 ///
-/// All coordinates use aspect-corrected "width units": x spans `0...1` across the
-/// image width, y grows downward in the same physical scale (`0...height/width`).
-/// This keeps radial distances isotropic so circle fits and segment mapping stay
-/// accurate on non-square buffers.
+/// All image coordinates use aspect-corrected "width units": x spans `0...1` across
+/// the upright image width, y grows downward in the same physical scale
+/// (`0...height/width`), so distances are isotropic on non-square buffers.
 struct VisionFrameAnalysis: Sendable {
-    struct BoardObservation: Sendable {
-        let centerX: Double
-        let centerY: Double
-        let radius: Double
-        /// Circularity-based fit quality, `0...1`.
-        let fitConfidence: Double
-    }
-
-    let board: BoardObservation?
+    /// Board found in this frame. Only set while searching, on frames where
+    /// detection ran (`didSearchForBoard`).
+    let board: BoardDetection?
+    let didSearchForBoard: Bool
+    /// How well the locked calibration still matches the scene; set periodically while tracking.
+    let calibrationAgreement: Double?
+    /// Dart landed / board cleared, while tracking.
+    let event: ImpactDetector.Event?
+    /// Whether the empty-board reference has been captured (tracking only).
+    let isArmed: Bool
     let brightness: Double
     let sharpness: Double
-    let impact: ImpactDetector.Candidate?
-    /// Buffer height divided by width; converts width units back to per-axis
-    /// normalized coordinates for preview-layer display.
+    /// Buffer height divided by width.
     let aspectRatio: Double
     let timestamp: Date
 }
 
-/// Turns raw camera pixel buffers into `VisionFrameAnalysis` values. Board fit uses
-/// `VNDetectContoursRequest` (run on a sampled cadence — contour detection is the
-/// expensive step); impacts use the pure `ImpactDetector` over a downsampled luma grid.
-/// Runs on the camera capture queue, never on the main thread.
+/// Turns raw camera pixel buffers into `VisionFrameAnalysis` values.
+///
+/// - Searching: every few frames the buffer is downsampled to RGB and handed to
+///   `BoardDetector`.
+/// - Tracking: every frame the calibrated board region is resampled to a fixed-size
+///   luma/chroma grid for `ImpactDetector`; the calibration is re-verified against
+///   the scene about once a second so camera bumps are noticed.
+///
+/// Runs on the camera capture queue, never on the main thread. Not thread-safe:
+/// all access must stay on that queue.
 final class DartboardFrameAnalyzer {
-    private static let gridSize = 64
-    private static let contourFrameInterval = 8
+    private enum Mode {
+        case searching
+        case tracking(BoardCalibration, ImageRegion)
+    }
 
+    /// Side of the square grid the impact detector sees (~1.5 mm of board per cell).
+    private static let impactGridSize = 320
+    /// Longest side of the frame handed to board detection.
+    private static let colorFrameLongSide = 640
+    private static let boardSearchFrameInterval = 5
+    private static let agreementFrameInterval = 30
+    private static let qualityGridSize = 48
+
+    private var mode = Mode.searching
     private var impactDetector = ImpactDetector()
     private var frameCount = 0
-    private var lastBoardObservation: VisionFrameAnalysis.BoardObservation?
 
-    func reset() {
+    func startSearching() {
+        mode = .searching
         impactDetector.reset()
         frameCount = 0
-        lastBoardObservation = nil
+    }
+
+    func startTracking(_ calibration: BoardCalibration) {
+        let region = ImageRegion.around(calibration)
+        impactDetector.configure(calibration: calibration, region: region)
+        mode = .tracking(calibration, region)
+        frameCount = 0
     }
 
     func analyze(_ pixelBuffer: CVPixelBuffer) -> VisionFrameAnalysis? {
-        guard let grid = Self.lumaGrid(from: pixelBuffer, size: Self.gridSize) else { return nil }
-        let width = Double(CVPixelBufferGetWidth(pixelBuffer))
-        let height = Double(CVPixelBufferGetHeight(pixelBuffer))
-        guard width > 0, height > 0 else { return nil }
-        let aspectRatio = height / width
+        guard let planes = LockedPlanes(pixelBuffer) else { return nil }
+        defer { planes.unlock() }
         frameCount += 1
 
-        if frameCount % Self.contourFrameInterval == 1 {
-            lastBoardObservation = Self.detectBoard(in: pixelBuffer, aspectRatio: aspectRatio)
-        }
+        let quality = planes.quality(gridSize: Self.qualityGridSize)
+        var board: BoardDetection?
+        var didSearch = false
+        var agreement: Double?
+        var event: ImpactDetector.Event?
 
-        // The square luma grid samples the full buffer, so its per-axis normalized
-        // centroid converts to width units by scaling y with the aspect ratio.
-        let impact = impactDetector.process(grid).map {
-            ImpactDetector.Candidate(
-                imageX: $0.imageX,
-                imageY: $0.imageY * aspectRatio,
-                confidence: $0.confidence
-            )
+        switch mode {
+        case .searching:
+            if frameCount % Self.boardSearchFrameInterval == 1,
+               let frame = planes.colorFrame(longSide: Self.colorFrameLongSide) {
+                didSearch = true
+                board = BoardDetector.detect(in: frame)
+            }
+        case let .tracking(calibration, region):
+            if let frame = planes.impactFrame(region: region, gridSize: Self.impactGridSize) {
+                event = impactDetector.process(frame)
+            }
+            if frameCount % Self.agreementFrameInterval == 0,
+               let frame = planes.colorFrame(longSide: Self.colorFrameLongSide) {
+                agreement = BoardDetector.agreement(of: calibration, in: frame)
+            }
         }
 
         return VisionFrameAnalysis(
-            board: lastBoardObservation,
-            brightness: grid.brightness,
-            sharpness: Self.sharpness(of: grid),
-            impact: impact,
-            aspectRatio: aspectRatio,
+            board: board,
+            didSearchForBoard: didSearch,
+            calibrationAgreement: agreement,
+            event: event,
+            isArmed: impactDetector.isArmed,
+            brightness: quality.brightness,
+            sharpness: quality.sharpness,
+            aspectRatio: Double(planes.height) / Double(planes.width),
             timestamp: Date()
         )
     }
+}
 
-    // MARK: - Luma extraction
+/// Read access to the luma and chroma planes of a locked bi-planar 4:2:0 buffer.
+private struct LockedPlanes {
+    let pixelBuffer: CVPixelBuffer
+    let width: Int
+    let height: Int
+    let luma: UnsafePointer<UInt8>
+    let lumaBytesPerRow: Int
+    let chroma: UnsafePointer<UInt8>
+    let chromaBytesPerRow: Int
+    let chromaWidth: Int
+    let chromaHeight: Int
 
-    /// Samples the luma plane of a 420f/BGRA buffer down to a `size`x`size` grid.
-    static func lumaGrid(from pixelBuffer: CVPixelBuffer, size: Int) -> LumaGrid? {
-        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
-        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
-
+    init?(_ pixelBuffer: CVPixelBuffer) {
         let format = CVPixelBufferGetPixelFormatType(pixelBuffer)
-        let isBiPlanar = format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
-            || format == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
-        guard isBiPlanar else { return nil }
-        guard let base = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0) else { return nil }
-
+        guard format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+            || format == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+            CVPixelBufferGetPlaneCount(pixelBuffer) >= 2 else { return nil }
+        guard CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly) == kCVReturnSuccess else { return nil }
+        guard let lumaBase = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0),
+              let chromaBase = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1) else {
+            CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
+            return nil
+        }
         let width = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0)
         let height = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0)
-        let bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)
-        guard width >= size, height >= size else { return nil }
-
-        let luma = base.assumingMemoryBound(to: UInt8.self)
-        var values = [Double](repeating: 0, count: size * size)
-        for gridY in 0 ..< size {
-            let sourceY = gridY * height / size + height / (size * 2)
-            for gridX in 0 ..< size {
-                let sourceX = gridX * width / size + width / (size * 2)
-                values[gridY * size + gridX] = Double(luma[sourceY * bytesPerRow + sourceX]) / 255.0
-            }
+        let chromaWidth = CVPixelBufferGetWidthOfPlane(pixelBuffer, 1)
+        let chromaHeight = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1)
+        guard width >= 64, height >= 64, chromaWidth > 0, chromaHeight > 0 else {
+            CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
+            return nil
         }
-        return LumaGrid(width: size, height: size, values: values)
+        self.pixelBuffer = pixelBuffer
+        self.width = width
+        self.height = height
+        self.luma = UnsafePointer(lumaBase.assumingMemoryBound(to: UInt8.self))
+        self.lumaBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0)
+        self.chroma = UnsafePointer(chromaBase.assumingMemoryBound(to: UInt8.self))
+        self.chromaBytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1)
+        self.chromaWidth = chromaWidth
+        self.chromaHeight = chromaHeight
     }
 
-    /// Mean absolute horizontal gradient as a cheap focus/motion-blur proxy, scaled
-    /// so a sharp dartboard frame (high wedge contrast) lands near `1.0`.
-    static func sharpness(of grid: LumaGrid) -> Double {
-        var total = 0.0
-        var count = 0
-        for y in 0 ..< grid.height {
-            for x in 1 ..< grid.width {
-                total += abs(grid.values[y * grid.width + x] - grid.values[y * grid.width + x - 1])
-                count += 1
-            }
-        }
-        guard count > 0 else { return 0 }
-        return min(1.0, (total / Double(count)) / 0.08)
+    func unlock() {
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
     }
 
-    // MARK: - Board contour fit
-
-    static func detectBoard(in pixelBuffer: CVPixelBuffer, aspectRatio: Double) -> VisionFrameAnalysis.BoardObservation? {
-        let request = VNDetectContoursRequest()
-        request.contrastAdjustment = 1.5
-        request.maximumImageDimension = 512
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
-        guard (try? handler.perform([request])) != nil,
-              let contours = request.results?.first else { return nil }
-
-        var best: VisionFrameAnalysis.BoardObservation?
-        for index in 0 ..< contours.topLevelContourCount {
-            let contour = contours.topLevelContours[index]
-            guard let observation = boardObservation(from: contour.normalizedPoints, aspectRatio: aspectRatio) else {
-                continue
-            }
-            if observation.fitConfidence > (best?.fitConfidence ?? 0), observation.radius > 0.1 {
-                best = observation
-            }
-        }
-        return best
+    /// Luma at a pixel, clamped to the buffer.
+    @inline(__always)
+    private func lumaValue(x: Int, y: Int) -> Int {
+        let cx = min(max(x, 0), width - 1)
+        let cy = min(max(y, 0), height - 1)
+        return Int(luma[cy * lumaBytesPerRow + cx])
     }
 
-    /// Fits a circle to a contour and scores it by circularity (`4πA / P²`).
-    /// Vision uses per-axis normalized, bottom-left-origin coordinates: y flips into
-    /// image orientation and scales by the aspect ratio into isotropic width units
-    /// before fitting, so a physical circle actually fits a circle here.
-    static func boardObservation(from points: [SIMD2<Float>], aspectRatio: Double) -> VisionFrameAnalysis.BoardObservation? {
-        guard points.count >= 8, aspectRatio > 0 else { return nil }
-        let corrected = points.map { point in
-            SIMD2<Double>(Double(point.x), (1.0 - Double(point.y)) * aspectRatio)
-        }
+    /// Cb and Cr for a full-resolution pixel position, clamped to the buffer.
+    @inline(__always)
+    private func chromaValue(x: Int, y: Int) -> (cb: Int, cr: Int) {
+        let cx = min(max(x * chromaWidth / width, 0), chromaWidth - 1)
+        let cy = min(max(y * chromaHeight / height, 0), chromaHeight - 1)
+        let offset = cy * chromaBytesPerRow + cx * 2
+        return (Int(chroma[offset]), Int(chroma[offset + 1]))
+    }
 
-        var area = 0.0
-        var perimeter = 0.0
-        var sumX = 0.0
-        var sumY = 0.0
-        for index in corrected.indices {
-            let current = corrected[index]
-            let next = corrected[(index + 1) % corrected.count]
-            area += current.x * next.y - next.x * current.y
-            perimeter += ((next.x - current.x) * (next.x - current.x)
-                + (next.y - current.y) * (next.y - current.y)).squareRoot()
-            sumX += current.x
-            sumY += current.y
+    /// Mean luma plus a focus/motion-blur proxy (mean horizontal gradient) from a coarse grid.
+    func quality(gridSize: Int) -> (brightness: Double, sharpness: Double) {
+        var total = 0
+        var gradient = 0
+        for gridY in 0 ..< gridSize {
+            let y = gridY * height / gridSize + height / (gridSize * 2)
+            var previous = 0
+            for gridX in 0 ..< gridSize {
+                let x = gridX * width / gridSize + width / (gridSize * 2)
+                let value = lumaValue(x: x, y: y)
+                total += value
+                if gridX > 0 {
+                    gradient += abs(value - previous)
+                }
+                previous = value
+            }
         }
-        area = abs(area) / 2
-        guard area > 0, perimeter > 0 else { return nil }
+        let cells = Double(gridSize * gridSize)
+        let brightness = Double(total) / cells / 255
+        let meanGradient = Double(gradient) / Double(gridSize * (gridSize - 1)) / 255
+        return (brightness, min(1, meanGradient / 0.08))
+    }
 
-        let circularity = min(1.0, 4 * Double.pi * area / (perimeter * perimeter))
-        let radius = (area / Double.pi).squareRoot()
-        return VisionFrameAnalysis.BoardObservation(
-            centerX: sumX / Double(corrected.count),
-            centerY: sumY / Double(corrected.count),
-            radius: radius,
-            fitConfidence: circularity
-        )
+    /// Downsampled RGB copy of the whole frame for board detection.
+    func colorFrame(longSide: Int) -> ColorFrame? {
+        let factor = max(1, Int((Double(max(width, height)) / Double(longSide)).rounded(.up)))
+        let outWidth = width / factor
+        let outHeight = height / factor
+        guard outWidth > 0, outHeight > 0 else { return nil }
+        var rgb = [UInt8](repeating: 0, count: outWidth * outHeight * 3)
+        rgb.withUnsafeMutableBufferPointer { out in
+            for oy in 0 ..< outHeight {
+                let sy = oy * factor + factor / 2
+                for ox in 0 ..< outWidth {
+                    let sx = ox * factor + factor / 2
+                    // Average a 2x2 luma patch to tame sensor noise.
+                    let y = (lumaValue(x: sx, y: sy) + lumaValue(x: sx - 1, y: sy)
+                        + lumaValue(x: sx, y: sy - 1) + lumaValue(x: sx - 1, y: sy - 1)) / 4
+                    let c = chromaValue(x: sx, y: sy)
+                    let cb = c.cb - 128
+                    let cr = c.cr - 128
+                    // Full-range YCbCr -> RGB in 10-bit fixed point.
+                    let r = y + (1436 * cr) / 1024
+                    let g = y - (352 * cb + 731 * cr) / 1024
+                    let b = y + (1815 * cb) / 1024
+                    let index = (oy * outWidth + ox) * 3
+                    out[index] = UInt8(min(255, max(0, r)))
+                    out[index + 1] = UInt8(min(255, max(0, g)))
+                    out[index + 2] = UInt8(min(255, max(0, b)))
+                }
+            }
+        }
+        return ColorFrame(width: outWidth, height: outHeight, rgb: rgb)
+    }
+
+    /// Resamples a square image region (width units) to the impact detector's grid.
+    func impactFrame(region: ImageRegion, gridSize: Int) -> ImpactFrame? {
+        guard region.size > 0 else { return nil }
+        let count = gridSize * gridSize
+        var lumaOut = [Float](repeating: 0.1, count: count)
+        var cbOut = [Float](repeating: 0.5, count: count)
+        var crOut = [Float](repeating: 0.5, count: count)
+        // Width units scale by the buffer width on both axes.
+        let unit = Double(width)
+        let cellPixels = region.size * unit / Double(gridSize)
+        // Box-filter over each cell's footprint so thin dart parts are not skipped.
+        let taps = min(3, max(1, Int(cellPixels.rounded())))
+        let tapStep = cellPixels / Double(taps)
+        let tapCount = Float(taps * taps) * 255
+
+        lumaOut.withUnsafeMutableBufferPointer { lumaPointer in
+            cbOut.withUnsafeMutableBufferPointer { cbPointer in
+                crOut.withUnsafeMutableBufferPointer { crPointer in
+                    for gridY in 0 ..< gridSize {
+                        let top = (region.originY + Double(gridY) / Double(gridSize) * region.size) * unit
+                        for gridX in 0 ..< gridSize {
+                            let left = (region.originX + Double(gridX) / Double(gridSize) * region.size) * unit
+                            let centerX = Int(left + cellPixels / 2)
+                            let centerY = Int(top + cellPixels / 2)
+                            // Cells outside the camera image keep their constant fill.
+                            guard centerX >= 0, centerY >= 0, centerX < width, centerY < height else { continue }
+                            var sum = 0
+                            for tapY in 0 ..< taps {
+                                let y = Int(top + (Double(tapY) + 0.5) * tapStep)
+                                for tapX in 0 ..< taps {
+                                    sum += lumaValue(x: Int(left + (Double(tapX) + 0.5) * tapStep), y: y)
+                                }
+                            }
+                            let c = chromaValue(x: centerX, y: centerY)
+                            let index = gridY * gridSize + gridX
+                            lumaPointer[index] = Float(sum) / tapCount
+                            cbPointer[index] = Float(c.cb) / 255
+                            crPointer[index] = Float(c.cr) / 255
+                        }
+                    }
+                }
+            }
+        }
+        return ImpactFrame(width: gridSize, height: gridSize, luma: lumaOut, cb: cbOut, cr: crOut)
     }
 }

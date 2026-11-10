@@ -57,8 +57,17 @@ func appIntentsEnabledWithLaunchArgument() {
 
 @Test(.tags(.unit, .regression))
 func visionAutoScoringDisabledByDefault() {
-    let provider = LocalFeatureFlagsProvider(arguments: [])
+    let provider = LocalFeatureFlagsProvider(arguments: ["-ui_test_reset"])
     #expect(!provider.isEnabled(.enableVisionAutoScoring))
+
+    // Dev builds expose camera scoring for on-device testing; Release keeps it off.
+    #if DEBUG
+    let devProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(devProvider.isEnabled(.enableVisionAutoScoring))
+    #else
+    let releaseProvider = LocalFeatureFlagsProvider(arguments: [])
+    #expect(!releaseProvider.isEnabled(.enableVisionAutoScoring))
+    #endif
 }
 
 @Test(.tags(.unit, .regression))

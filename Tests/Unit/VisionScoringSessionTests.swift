@@ -203,3 +203,61 @@ func userPauseAndResume() {
     session.resumeFromUserPause()
     #expect(session.phase == .ready)
 }
+
+// MARK: - Automatic policy
+
+@Test(.tags(.unit, .vision, .regression))
+func automaticPolicyCommitsConfidentDetections() {
+    var session = calibratedSession(policy: .automatic)
+    let outcome = session.handle(tripleTwentyCommand(for: session, confidence: 0.92))
+    guard case let .autoCommitted(detection) = outcome else {
+        Issue.record("Expected auto-commit, got \(outcome)")
+        return
+    }
+    #expect(detection.dart == DartInput(multiplier: .triple, segment: .oneToTwenty(20)))
+    #expect(!detection.needsReview)
+    #expect(detection.boardPoint != nil)
+    #expect(session.pendingProposal == nil)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func automaticPolicyFlagsUncertainDetectionsInsteadOfBlocking() {
+    var session = calibratedSession(policy: .automatic)
+    let outcome = session.handle(tripleTwentyCommand(for: session, confidence: 0.5))
+    guard case let .autoCommitted(detection) = outcome else {
+        Issue.record("Expected flagged auto-commit, got \(outcome)")
+        return
+    }
+    #expect(detection.needsReview)
+    // Nothing is left pending, so the next dart is not dropped.
+    #expect(session.pendingProposal == nil)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func automaticPolicyDistrustsTipsOnTheWire() {
+    var session = calibratedSession(policy: .automatic)
+    // Right on the wire between the treble and the outer single of the 20.
+    let command = DetectThrowCommand(
+        visionSessionId: session.id,
+        imageX: 0.5,
+        imageY: 0.5 - (107.0 / 170.0) * 0.3,
+        confidence: 0.92,
+        frameTimestamp: Date()
+    )
+    guard case let .autoCommitted(detection) = session.handle(command) else {
+        Issue.record("Expected flagged auto-commit")
+        return
+    }
+    #expect(detection.needsReview)
+    #expect(detection.visionConfidence < 0.7)
+}
+
+@Test(.tags(.unit, .vision, .regression))
+func driftPauseCanBeResumedOrRecalibrated() {
+    var session = calibratedSession(policy: .automatic)
+    session.pauseForDrift()
+    #expect(session.phase == .paused(.calibrationDrift))
+    #expect(session.handle(tripleTwentyCommand(for: session, confidence: 0.9)) == .ignored(.sessionNotReady))
+    session.resumeFromDriftPause()
+    #expect(session.phase == .ready)
+}
