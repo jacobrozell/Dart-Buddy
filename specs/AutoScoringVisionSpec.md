@@ -6,7 +6,9 @@
 > `enableVisionAutoScoring` (on in Debug builds; `-enable_vision_scoring` elsewhere).
 > Domain logic lives in `Domain/Vision/` (board detection, perspective calibration,
 > camera pose, dart-tip detection, session state machine); capture/UI in
-> `Features/Play/Vision/`. See §12 for how it works and §13 for the device test plan.
+> `Features/Play/Vision/`. See §12 for how it works and §13 for the device test plan;
+> the full walkthrough of each stage, strategy and tuning value is in
+> [`docs/vision-auto-scoring.md`](../docs/vision-auto-scoring.md).
 > Phase C remains future work.
 
 ## 1. Purpose
